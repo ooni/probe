@@ -1,0 +1,65 @@
+
+                              Proxyooni specification
+                                   version 0.0
+                                  Jacob Appelbaum
+
+0. Preface
+
+ This document describes a new proxy that is required to support ooni-probe.
+
+1. Overview
+
+ There is no common proxy type that thwarts even the most basic traffic
+ monitoring. The Proxyooni specification aims to provide a proxy that is
+ encrypted by default, optionally authenticated, and will provide a way to run
+ specific ooni-probe tests natively on the system where the proxy is running.
+
+2. Implementation
+
+ Proxyooni may be written in any language, the reference implementation will be
+ implemented in Python. The program shall be called ooni-proxy and it will handle
+ running as a privileged user or an unprivileged user on supported systems. We
+ aim to support ooni-proxy on Debian Gnu/Linux as the reference platform.
+
+2.1 Connections
+
+ When ooni-proxy runs, it should open a single port and it will allow TLS 1.0
+ clients to connect with a cipher suite that provides perfect forward secrecy.
+
+2.2 Certificates
+
+ ooni-proxy should use a certificate if supplied or dynamically generate a
+ certificate on startup; any connecting client should bootstrap trust with a
+ TOFU model, a client may ignore the
+
+2.3 Authentication
+
+ ooni-proxy should provide open access by default with no authentication.
+ It should support TLS-PSK[0] if authentication is desired. Key distribution is
+ explictly an out of scope problem.
+
+3.0 Services offered
+
+ Post authentication, a remote client should treat ooni-proxy as a SOCKS4A[1]
+ proxy. It should be possible to chain as many Proxyooni proxies as desired.
+
+3.1 Additional services offered
+
+ ooni-proxy should allow for the sending of raw socket data - this is currently
+ left unspecified. This should be specified in the next revision of the
+ specification.
+
+3.2 Advanced meta-services
+
+ It may be desired to load code on the ooni-proxy from a client with newer
+ tests. This should be specified in the next revision of the specification.
+
+4. Security Concerns
+
+ It is probably not a good idea to run ooni-proxy unless you have permission to
+ do so. Consider your network context carefully; if it is dangerous to run a test
+ ensure that you do not run the test.
+
+[0] http://en.wikipedia.org/wiki/TLS-PSK
+[1] http://en.wikipedia.org/wiki/SOCKS#SOCKS_4a
+

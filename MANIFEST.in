@@ -1,0 +1,6 @@
+include CHANGES.yaml
+include LICENSE
+include Makefile
+include README.rst
+include package/*
+include tests/*

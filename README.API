@@ -1,0 +1,29 @@
+Writing network filtering tests is explained in this document.
+
+We define tests as returning a tri-state and we log everything sent/recieved.
+
+High level tests should go into 'ooni/plugins/' and primative tests should go into
+'ooni/' as things that will help with many or all tests.
+
+Our plugins are loaded by Plugooni, our plugin loader; each plugin is a plgoo file
+named as pluginname_plgoo.py and placed in 'ooni/plugins/'.
+
+ooni-probe has two reserved keywords in the plugin name space - "all" - which
+is a way for a user to specify that they want to load all modules or "skel"
+which is an empty module that should never be loaded. The skel module is
+included to encourage people to write reasonable plugins.
+
+True means that the test considers the network "Safe"
+False means that the test considers the network "Unsafe"
+None means that the test failed in some way.
+
+Safe does not mean that the network is unfiltered but merely that the test
+was unable to specifically detect an attacker.
+
+Unsafe only means that the network is misbehaving.
+
+None may be the result of an internal failure such as non-functional DNS
+resolution or no connection to the internet.
+
+Later, we'll define plugin checks as yaml (with our yamlooni) with our plugin 
+loader; currently - we assume people can write python and add hooks at needed.

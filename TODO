@@ -1,0 +1,418 @@
+This is a list of techniques that should be added as plugins or hooks or yamlooni
+
+Implement Plugooni - our plugin framework
+Implement Yamlooni - our output format
+Implement Proxooni - our proxy spec and program
+
+We should launch our own Tor on a special port (say, 127.0.0.1:9066)
+We should act as a controller with TorCtl to do this, etc
+We should take the Tor consensus file and pass it to plugins such as marco
+
+HTTP Host header comparsion of a vs b
+HTTP Content length header comparision of a vs b
+
+GET request splitting
+  "G E T "
+  Used in Iran
+
+General Malformed HTTP requests
+  Error pages are fingerprintable
+
+traceroute
+  icmp/udp/tcp
+  each network link is an edge, each hop is a vertex in a network graph
+
+traceroute hop count
+  "TTL walking"
+
+Latency measurement
+TCP reset detection
+Forged DNS spoofing detection
+
+DNS oracle query tool
+  given DNS server foo - test resolve and look for known block pages
+
+Test HTTP header order - do they get reordered?
+
+Look for these filter fingerprints:
+X-Squid-Error: ERR_SCC_SMARTFILTER_DENIED 0 
+X-Squid-Error: ERR_ACCESS_DENIED 0 
+X-Cache: MISS from SmartFilter 
+
+
+WWW-Authenticate: Basic realm="SmartFilter Control List HTTP Download" 
+
+
+Via: 1.1 WEBFILTER.CONSERVESCHOOL.ORG:8080 
+
+X-Cache: MISS from webfilter.whiteschneider.com 
+X-Cache: MISS from webfilter.whiteschneider.com 
+X-Cache: MISS from webfilter.whiteschneider.com 
+
+Location: http://192.168.0.244/webfilter/blockpage?nonce=7d2b7e500e99a0fe&tid=3 
+
+
+X-Cache: MISS from webfilter.imscs.local 
+X-Cache: MISS from webfilter.tjs.at
+
+
+Via: 1.1 webwasher (Webwasher 6.8.7.9396) 
+
+Websense:
+HTTP/1.0 301 Moved Permanently  -> Location: http://www.websense.com/
+
+Via: HTTP/1.1 localhost.localdomain (Websense-Content_Gateway/7.1.4 [c s f ]), HTTP/1.0 localhost.localdomain (Websense-Content_Gateway/7.1.4 [cMsSf ]) 
+
+
+BlueCoat:
+
+Via: 1.1 testrating.dc5.es.bluecoat.com 
+403 -> 
+Set-Cookie: BIGipServerpool_bluecoat=1185677834.20480.0000; expires=Fri, 15-Apr-2011 10:13:21 GMT; path=/ 
+
+HTTP/1.0 407 Proxy Authentication Required ( The ISA Server requires authorization to fulfill the request. Access to the Web Proxy filter is denied. )  -> Via: 1.1 WEBSENSE 
+
+HTTP/1.0 302 Found -> Location: http://bluecoat/?cfru=aHR0cDovLzIwMC4yNy4xMjMuMTc4Lw== 
+
+HTTP/1.0 403 Forbidden 
+Server: squid/3.0.STABLE8 
+
+X-Squid-Error: ERR_ACCESS_DENIED 0 
+X-Cache: MISS from Bluecoat 
+X-Cache-Lookup: NONE from Bluecoat:3128 
+Via: 1.0 Bluecoat (squid/3.0.STABLE8) 
+
+ISA server:
+HTTP/1.0 403 Forbidden ( ISA Server is configured to block HTTP requests that require authentication. ) 
+
+
+Unknown:
+X-XSS-Protection: 1; mode=block 
+
+Rimon filter:
+
+Rimon: RWC_BLOCK
+HTTP/1.1 Rimon header
+Rimon header is only sent by lighttpd
+http://www.ynetnews.com/articles/0,7340,L-3446129,00.html
+http://btya.org/pdfs/rvienerbrochure.pdf
+
+Korea filtering:
+HTTP/1.0 302 Object Moved -> Location: http://www.willtechnology.co.kr/eng/BlockingMSGew.htm 
+Redirects to Korean filter:
+http://www.willtechnology.co.kr/eng/BlockingMSGew.htm
+
+UA filtering:
+HTTP/1.0 307 Temporary Redirect 
+https://my.best.net.ua/login/blocked/
+
+netsweeper:
+HTTP/1.0 302 Moved 
+Location: http://netsweeper1.gaggle.net:8080/webadmin/deny/index.php?dpid=53&dpruleid=53&cat=254&ttl=-905&groupname=default&policyname=default&username=-&userip=74.82.57.112&connectionip=1.0.0.127&nsphostname=netsweeper1.gaggle.net&protocol=nsef&dplanguage=-&url=http%3a%2f%2f184%2e105%2e199%2e252%2f 
+
+Set-cookie: RT_SID_netsweeper.com.80=68a6f5c564a9db297e8feb2bff69d73f; path=/ 
+X-Cache: MISS from netsweeper.irishbroadband.ie 
+X-Cache-Lookup: NONE from netsweeper.irishbroadband.ie:80 
+Via: 1.0 netsweeper.irishbroadband.ie:80 (squid/2.6.STABLE21)
+
+Nokia:
+Via: 1.1 saec-nokiaq05ca (NetCache NetApp/6.0.7) 
+Server: "Nokia" 
+
+CensorNet:
+HTTP/1.0 401 Authorization Required 
+WWW-Authenticate: Basic realm="CensorNet Administration Area" 
+Server: CensorNet/4.0 
+
+http://www.itcensor.com/censor 
+
+
+Server: ZyWALL Content Filter
+
+Apache/1.3.34 (Unix) filter/1.0
+
+HTTP/1.0 502 infiniteproxyloop 
+Via: 1.0 218.102.20.37 (McAfee Web Gateway 7.0.1.5.0.8505) 
+
+
+Set-Cookie: McAfee-SCM-URL-Filter-Coach="dD4OzXciEcp8Ihf1dD4ZzHM5FMZ2PSvRTllOnSR4RZkqfkmEIGgb3hZlVJsEaFaXNmNS3mgsdZAxaVOKIGgrrSx4Rb8hekmNKn4g02VZToogf1SbIQcVz3Q8G/U="; Comment="McAfee URL access coaching"; Version=1; Path=/; Max-Age=900; expires=Sat, 18 Dec 2010 06:47:11 GMT; 
+
+
+WWW-Authenticate: Basic realm="(Nancy McAfee)" 
+
+
+No known fingerprints for:
+NetNanny
+WebChaver
+accountable2you.com
+http://www.shodanhq.com/?q=barracuda
+http://www.shodanhq.com/?q=untangle
+http://www.shodanhq.com/?q=Lightspeed
+
+Server: Smarthouse Lightspeed 
+Server: Smarthouse Lightspeed2 
+Server: Smarthouse Lightspeed 3 
+
+Server: EdgePrism/3.8.1.1 
+
+
+X-Cache: MISS from Barracuda-WebFilter.jmpsecurities.com 
+Via: 1.0 Barracuda-WebFilter.jmpsecurities.com:8080 (http_scan/4.0.2.6.19) 
+
+HTTP/1.0 302 Redirected by M86 Web Filter
+http://www.m86security.com/products/web_security/m86-web-filter.asp
+
+Location: http://10.1.61.37:81/cgi/block.cgi?URL=http://70.182.111.99/&IP=96.9.174.54&CAT=WEMAIL&USER=DEFAULT&CE=0 
+
+
+Via: 1.1 WEBSENSE 
+
+
+Via: 1.1 192.168.1.251 (McAfee Web Gateway 7.1.0.1.0.10541) 
+Via: 1.1 McAfeeSA3000.cbcl.lan 
+
+
+X-Squid-Error: ERR_CONNECT_FAIL 111 
+X-Cache: MISS from CudaWebFilter.poten.com  
+
+http://212.50.251.82/ -iran squid
+
+HTTP/1.0 403 Forbidden ( Forefront TMG denied the specified Uniform Resource Locator (URL). ) 
+Via: 1.1 TMG 
+
+
+Server: NetCache appliance (NetApp/6.0.2) 
+
+
+Server: EdgePrism/3.8.1.1 
+
+
+Server: Mikrotik HttpProxy 
+
+
+Via: 1.1 TMG-04, 1.1 TMG-03 
+
+
+X-Squid-Error: ERR_INVALID_REQ 0 
+X-Cache: MISS from uspa150.trustedproxies.com 
+X-Cache-Lookup: NONE from uspa150.trustedproxies.com:80 
+
+http://www.shodanhq.com/host/view/93.125.95.177
+
+
+Server: SarfX WEB: Self Automation Redirect & Filter Expernet.Ltd Security Web Server 
+http://203.229.245.100/ <- korea block page
+
+
+
+Server: Asroc Intelligent Security Filter 4.1.8 
+
+
+
+Server: tinyproxy/1.8.2 
+
+http://www.shodanhq.com/host/view/64.104.95.251
+
+
+
+Server: Asroc Intelligent Security Filter 4.1.8 
+
+http://www.shodanhq.com/host/view/67.220.92.62
+
+
+Server: SarfX WEB: Self Automation Redirect & Filter Expernet.Ltd Security Web Server 
+http://www.shodanhq.com/host/view/203.229.245.100
+Location: http://192.168.3.20/redirect.cgi?Time=05%2FJul%2F2011%3A21%3A29%3A32%20%2B0800&ID=0000034097&Client_IP=173.212.232.58&User=-&Site=64.104.95.251&URI=-&Status_Code=403&Decision_Tag=BLOCK_ADMIN_PROTOCOL-DefaultGroup-DefaultGroup-NONE-NONE-NONE&URL_Cat=URL%20Filtering%20Bypassed&WBRS=-&DVS_Verdict=-&DVS_ThreatName=-&Reauth_URL=- 
+
+
+http://www.shodanhq.com/?q=%22content+filter%22+-squid+-apache+-ZyWall&page=4
+http://www.shodanhq.com/host/view/72.5.92.51
+http://www.microsoft.com/forefront/threat-management-gateway/en/us/pricing-licensing.aspx
+
+http://meta.wikimedia.org/wiki/Talk:XFF_project
+
+% dig nats.epiccash.com       
+
+; <<>> DiG 9.7.3 <<>> nats.epiccash.com
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 14920
+;; flags: qr rd ra; QUERY: 1, ANSWER: 1, AUTHORITY: 2, ADDITIONAL: 0
+
+;; QUESTION SECTION:
+;nats.epiccash.com.		IN	A
+
+;; ANSWER SECTION:
+nats.epiccash.com.	5	IN	A	172.27.0.1
+
+;; AUTHORITY SECTION:
+epiccash.com.		5	IN	NS	ns0.example.net.
+epiccash.com.		5	IN	NS	ns1.example.net.
+
+;; Query time: 81 msec
+;; SERVER: 172.16.42.2#53(172.16.42.2)
+;; WHEN: Sat Jul 16 16:14:11 2011
+;; MSG SIZE  rcvd: 98
+
+If we think it's squid, we can perhaps confirm it:
+echo -e "GET cache_object://localhost/info HTTP/1.0\r\n" | nc en.wikipedia.com 80                                                                                                                                                      
+Harvest urls from:
+http://urlblacklist.com/?sec=download
+
+https://secure.wikimedia.org/wikipedia/simple/wiki/User_talk:62.30.249.131
+
+mention WCCPv2 filters (http://www.cl.cam.ac.uk/~rnc1/talks/090528-uknof13.pdf)
+
+Cite a bunch of Richard's work:
+http://www.cl.cam.ac.uk/~rnc1/ignoring.pdf
+
+http://www.contentkeeper.com/products/web
+
+We should detect HTTP re-directs to rfc-1918 addresses; they're almost always captive portals.
+We should also detect HTTP MITM served from rfc-1918 addresses for the same reason.
+
+We should take a page from sshshuttle and run without touching the disk
+
+VIA Rail MITM's SSL In Ottawa:
+Jul 22 17:47:21.983 [Warning] Problem bootstrapping. Stuck at 85%: Finishing handshake with first hop. (DONE; DONE; count 13; recommendation warn)
+
+http://wireless.colubris.com:81/goform/HtmlLoginRequest?username=al1852&password=al1852
+
+VIA Rail Via header (DONE):
+
+HTTP/1.0 301 Moved Permanently
+Location: http://www.google.com/
+Content-Type: text/html; charset=UTF-8
+Date: Sat, 23 Jul 2011 02:21:30 GMT
+Expires: Mon, 22 Aug 2011 02:21:30 GMT
+Cache-Control: public, max-age=2592000
+Server: gws
+Content-Length: 219
+X-XSS-Protection: 1; mode=block
+X-Cache: MISS from cache_server
+X-Cache-Lookup: MISS from cache_server:3128
+Via: 1.0 cache_server:3128 (squid/2.6.STABLE21)
+Connection: close
+
+<HTML><HEAD><meta http-equiv="content-type" content="text/html;charset=utf-8">
+<TITLE>301 Moved</TITLE></HEAD><BODY>
+<H1>301 Moved</H1>
+The document has moved
+<A HREF="http://www.google.com/">here</A>.
+</BODY></HTML>
+
+
+blocked site (DONE):
+
+HTTP/1.0 302 Moved Temporarily
+Server: squid/2.6.STABLE21
+Date: Sat, 23 Jul 2011 02:22:17 GMT
+Content-Length: 0
+Location: http://10.66.66.66/denied.html
+
+invalid request response:
+
+$ nc 8.8.8.8 80 (DONE)
+hjdashjkdsahjkdsa
+HTTP/1.0 400 Bad Request
+Server: squid/2.6.STABLE21
+Date: Sat, 23 Jul 2011 02:22:44 GMT
+Content-Type: text/html
+Content-Length: 1178
+Expires: Sat, 23 Jul 2011 02:22:44 GMT
+X-Squid-Error: ERR_INVALID_REQ 0
+X-Cache: MISS from cache_server
+X-Cache-Lookup: NONE from cache_server:3128
+Via: 1.0 cache_server:3128 (squid/2.6.STABLE21)
+Proxy-Connection: close
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<HTML><HEAD><META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+<TITLE>ERROR: The requested URL could not be retrieved</TITLE>
+<STYLE type="text/css"><!--BODY{background-color:#ffffff;font-family:verdana,sans-serif}PRE{font-family:sans-serif}--></STYLE>
+</HEAD><BODY>
+<H1>ERROR</H1>
+<H2>The requested URL could not be retrieved</H2>
+<HR noshade size="1px">
+<P>
+While trying to process the request:
+<PRE>
+hjdashjkdsahjkdsa
+
+</PRE>
+<P>
+The following error was encountered:
+<UL>
+<LI>
+<STRONG>
+Invalid Request
+</STRONG>
+</UL>
+
+<P>
+Some aspect of the HTTP Request is invalid.  Possible problems:
+<UL>
+<LI>Missing or unknown request method
+<LI>Missing URL
+<LI>Missing HTTP Identifier (HTTP/1.0)
+<LI>Request is too large
+<LI>Content-Length missing for POST or PUT requests
+<LI>Illegal character in hostname; underscores are not allowed
+</UL>
+<P>Your cache administrator is <A HREF="mailto:root">root</A>. 
+
+<BR clear="all">
+<HR noshade size="1px">
+<ADDRESS>
+Generated Sat, 23 Jul 2011 02:22:44 GMT by cache_server (squid/2.6.STABLE21)
+</ADDRESS>
+</BODY></HTML>
+
+nc 10.66.66.66 80
+GET cache_object://localhost/info HTTP/1.0
+HTTP/1.0 403 Forbidden
+Server: squid/2.6.STABLE21
+Date: Sat, 23 Jul 2011 02:25:56 GMT
+Content-Type: text/html
+Content-Length: 1061
+Expires: Sat, 23 Jul 2011 02:25:56 GMT
+X-Squid-Error: ERR_ACCESS_DENIED 0
+X-Cache: MISS from cache_server
+X-Cache-Lookup: NONE from cache_server:3128
+Via: 1.0 cache_server:3128 (squid/2.6.STABLE21)
+Proxy-Connection: close
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<HTML><HEAD><META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+<TITLE>ERROR: The requested URL could not be retrieved</TITLE>
+<STYLE type="text/css"><!--BODY{background-color:#ffffff;font-family:verdana,sans-serif}PRE{font-family:sans-serif}--></STYLE>
+</HEAD><BODY>
+<H1>ERROR</H1>
+<H2>The requested URL could not be retrieved</H2>
+<HR noshade size="1px">
+<P>
+While trying to retrieve the URL:
+<A HREF="cache_object://localhost/info">cache_object://localhost/info</A>
+<P>
+The following error was encountered:
+<UL>
+<LI>
+<STRONG>
+Access Denied.
+</STRONG>
+<P>
+Access control configuration prevents your request from
+being allowed at this time.  Please contact your service provider if
+you feel this is incorrect.
+</UL>
+<P>Your cache administrator is <A HREF="mailto:root">root</A>. 
+
+
+<BR clear="all">
+<HR noshade size="1px">
+<ADDRESS>
+Generated Sat, 23 Jul 2011 02:25:56 GMT by cache_server (squid/2.6.STABLE21)
+</ADDRESS>
+</BODY></HTML>
+
+

@@ -1,0 +1,79 @@
+We should implement the following as plugoons:
+
+dns_plgoo.py - Various DNS checks
+
+As a start - we should perform a known good check against a name or list of
+names.  As input, we should take an ip address, a name or a list of names for
+testing; we also take dns servers for experiment or control data. For output we
+emit UDP or TCP packets - we should support proxying these requests when
+possible as is the case with TCP but probably not with UDP for certain DNS
+request types.
+
+http_plgoo.py - Various HTTP checks
+
+We should compare two pages and see if we have identical properties.
+At the very least, we should print the important differences - perhaps
+with a diff like output? We should look for fingerprints in URLS that are
+returned. We should detect 302 re-direction.
+
+As input, we should take an ip address, a name or a list of names for testing;
+we also take a list of headers such as random user agent strings and so on.
+We should emit TCP packets and ensure that we do not leak DNS for connections
+that we expect to proxy to a remote network.
+
+latency_plgoo.py - Measure latency for a host or a list of hosts
+
+As input, we should take an ip address, a name or a list of names for testing;
+We should measure the mean latency from the ooni-probe to the host with various
+traceroute tests. We should also measure the latency between the ooni-probe and
+a given server for any other protocol that is request and response oriented;
+HTTP latency may be calculated by simply tracking the delta between requests
+and responses.
+
+tcptrace_plgoo.py udptrace_plgoo.py icmptrace_plgoo.py - Traceroute suites
+
+tcptrace_plgoo.py should allow for both stray and in-connection traceroute
+modes.
+
+udptrace_plgoo.py should use UDP 53 by default; 0 and 123 are also nice options
+- it may also be nice to simply make a random A record request in a DNS packet
+and use it as the payload for a UDP traceroute.
+
+reversetrace_plgoo.py should give a remote host the client's IP and return the
+output of a traceroute to that IP from the remote host. It will need a remote
+component if run against a web server. It would not need a remote component if
+run against route-views - we can simply telnet over Tor and ask it to trace to
+our detected client IP.
+
+keyword_plgoo.py should take a keyword or a list of keywords for use as a
+payload in a varity of protocols. This should be protocol aware - dns keyword
+filtering requires a sniffer to catch stray packets after the censor wins the
+race. HTTP payloads in open connections may be similar and in practice, we'll
+have to find tune it.
+
+icsi_plgoo.py - The ICSI Netalyzr tests; we should act as a client for their
+servers. They have dozens of tests and to implement this plgoo, we'll need to
+add many things to ooni. More details here:
+http://netalyzr.icsi.berkeley.edu/faq.html
+http://netalyzr.icsi.berkeley.edu/json/id=example-session
+
+HTML output:
+http://n2.netalyzr.icsi.berkeley.edu/summary/id=43ca208a-3466-82f17207-9bc1-433f-9b43
+
+JSON output:
+http://n2.netalyzr.icsi.berkeley.edu/json/id=43ca208a-3466-82f17207-9bc1-433f-9b43
+
+Netalyzer log:
+http://netalyzr.icsi.berkeley.edu/restore/id=43ca208a-3466-82f17207-9bc1-433f-9b43
+http://n2.netalyzr.icsi.berkeley.edu/transcript/id=43ca208a-3466-82f17207-9bc1-433f-9b43/side=client
+http://n2.netalyzr.icsi.berkeley.edu/transcript/id=43ca208a-3466-82f17207-9bc1-433f-9b43/side=server
+
+sniffer_plgoo.py - We need a generic method for capturing packets during a full
+run - this may be better as a core ooni-probe feature but we should implement
+packet capture in a plugin if it is done no where else.
+
+nmap_plgoo.py - We should take a list of hosts and run nmap against each of
+these hosts; many hosts are collected during testing and they should be scanned
+with something reasonable like "-A -O -T4 -sT --top-ports=10000" or something
+more reasonable.
+

@@ -1,0 +1,14 @@
+There is no license for NetalyzrCLI.jar; so while we include it, it's just
+for ease of use.
+
+We currently support interfacing with the ICSI Netalyzr system by wrapping
+the NetalyzrCLI.jar client. It was downloaded on August 5th, 2011 from the
+following URL:
+  http://netalyzr.icsi.berkeley.edu/NetalyzrCLI.jar
+
+More information about the client is available on the cli web page:
+  http://netalyzr.icsi.berkeley.edu/cli.html
+
+After looking at NetalyzrCLI.jar, I discovered that '-d' runs it in a
+debugging mode that is quite useful for understanding their testing
+framework as it runs.

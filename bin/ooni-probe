@@ -1,0 +1,10 @@
+#!/usr/bin/env python
+"""\
+ This is the example OONI probe command line utility
+"""
+
+import sys
+
+from ooni.command import Command
+
+Command(sys.argv[1:]).run()

@@ -1,0 +1,11 @@
+Create the probe like so:
+  tar -cvzf probe.tar.gz marco.py connectback.sh dirconntest.sh \
+            generic-host-test.sh install-probe.sh host-prep.sh \
+            cached-consensus hosts.txt 
+
+Instruct the user to do the following:
+
+   wget http://crypto.nsa.org/tmp/install-probe.sh
+   chmod +x install-probe.sh
+   ./install-probe.sh
+
