@@ -16,9 +16,12 @@ import random
 import threading
 import sys
 import os
-
-from ooni.plugooni import Plugoo
-from ooni.common import Storage
+try:
+    from ooni.plugooni import Plugoo
+    from ooni.common import Storage
+    from ooni import output
+except:
+    print "ERR: Not running from ooni"
 
 ssl = OpenSSL = None
 
@@ -49,15 +52,6 @@ pyOpenSSL, or both."""
 # How many servers should we test in parallel?
 N_THREADS = 16
 
-# Where do we write the results?
-OUTPUT = "results/marco.out"
-
-# Where do we write certificates?
-CERT_OUTPUT = "results/marco_certs.out"
-
-# Where do we log the result of the run.
-LOGFILE = "results/marco.log"
-
 # How long do we give individual socket operations to succeed or fail?
 # (Seconds)
 TIMEOUT = 10
@@ -81,11 +75,16 @@ def clean_pem_cert(cert):
 def record((addr,port), state, extra=None, cert=None):
     LOCK.acquire()
     try:
-        print >>OUT, "%s:%d %s %r" %(addr,port,state,extra)
-        OUT.flush()
+        OUT_DATA.append({'addr' : addr,
+                         'port' : port,
+                         'state' : state,
+                         'extra' : extra})
+        OUT.output(OUT_DATA)
         if cert:
-            print >>CERT_OUT, "%s:%d\n%s"%(addr,port,clean_pem_cert(cert))
-            CERT_OUT.flush()
+            CERT_OUT_DATA.append({'addr' : addr,
+                                  'port' : port,
+                                  'clean_cert' : clean_pem_cert(cert)})
+            CERT_OUT.output(CERT_OUT_DATA)
     finally:
         LOCK.release()
 
@@ -201,17 +200,23 @@ def runThreaded(addrList, nThreads):
         t.join()
 
 def main(self, args):
+    # BEGIN
+    # This logic should be present in more or less all plugoos
     global OUT
     global CERT_OUT
+    global OUT_DATA
+    global CERT_OUT_DATA
+    OUT_DATA = []
+    CERT_OUT_DATA = []
 
     try:
-        OUT = open(args.output.main, 'w')
+        OUT = output.yaml(args.output.main) #open(args.output.main, 'w')
     except:
         print "No output file given. quitting..."
         return -1
 
     try:
-        CERT_OUT = open(args.output.certificates, 'w')
+        CERT_OUT = output.yaml(args.output.main) #open(args.output.certificates, 'w')
     except:
         print "No output cert file given. quitting..."
         return -1
@@ -221,6 +226,8 @@ def main(self, args):
                         level=logging.INFO,
                         filename=args.log)
     logging.info("============== STARTING NEW LOG")
+    # END
+
     if ssl is not None:
         methodName = "ssl"
     elif OpenSSL is not None:
