@@ -1,6 +1,6 @@
 import yaml
 
-class yaml:
+class data:
     def __init__(self, name=None):
         if name:
             self.name = name
@@ -8,11 +8,14 @@ class yaml:
     def output(self, data, name=None):
         if name:
             self.name = name
-        try:
-            stream = open(name, 'w')
-            yaml.dump(data, stream)
-            stream.close()
-        except:
-            pass
 
+        stream = open(self.name, 'w')
+        yaml.dump(data, stream)
+        stream.close()
+    def append(self, data, name=None):
+        if name:
+            self.name = name
+        stream = open(self.name, 'a')
+        yaml.dump(data, stream)
+        stream.close()
 

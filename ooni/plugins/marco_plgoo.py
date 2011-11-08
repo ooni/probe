@@ -75,16 +75,14 @@ def clean_pem_cert(cert):
 def record((addr,port), state, extra=None, cert=None):
     LOCK.acquire()
     try:
-        OUT_DATA.append({'addr' : addr,
+        OUT.append({'addr' : addr,
                          'port' : port,
                          'state' : state,
                          'extra' : extra})
-        OUT.output(OUT_DATA)
         if cert:
-            CERT_OUT_DATA.append({'addr' : addr,
+            CERT_OUT.append({'addr' : addr,
                                   'port' : port,
                                   'clean_cert' : clean_pem_cert(cert)})
-            CERT_OUT.output(CERT_OUT_DATA)
     finally:
         LOCK.release()
 
@@ -210,13 +208,13 @@ def main(self, args):
     CERT_OUT_DATA = []
 
     try:
-        OUT = output.yaml(args.output.main) #open(args.output.main, 'w')
+        OUT = output.data(name=args.output.main) #open(args.output.main, 'w')
     except:
         print "No output file given. quitting..."
         return -1
 
     try:
-        CERT_OUT = output.yaml(args.output.main) #open(args.output.certificates, 'w')
+        CERT_OUT = output.data(args.output.certificates) #open(args.output.certificates, 'w')
     except:
         print "No output cert file given. quitting..."
         return -1
@@ -236,24 +234,32 @@ def main(self, args):
         methodName = "socket"
     logging.info("Running marco with method '%s'", methodName)
 
-    addresses = set()
+    addresses = []
 
     if args.input.ips:
         for fn in input.file(args.input.ips).simple():
-            addresses.add( (a,b) )
+            addresses.append( (a,b) )
 
     elif args.input.consensus:
         for fn in args:
             print fn
             for a,b in parseNetworkstatus(open(args.input.consensus)):
-                addresses.add( (a,b) )
+                addresses.append( (a,b) )
+
+    if args.input.randomize:
+        # Take a random permutation of the set the knuth way!
+        for i in range(0, len(addresses)):
+            j = random.randint(0, i)
+            addresses[i], addresses[j] = addresses[j], addresses[i]
 
     if len(addresses) == 0:
         logging.error("No input source given, quiting...")
         return -1
 
     addresses = list(addresses)
-    addresses.sort()
+
+    if not args.input.randomize:
+        addresses.sort()
 
     runThreaded(addresses, N_THREADS)
 
@@ -279,6 +285,8 @@ class MarcoPlugin(Plugoo):
     self.args.log = 'reports/marco.log'
 
   def ooni_main(self, cmd):
+    self.args.input.randomize = cmd.randomize
+    self.args.input.ip = cmd.listfile
     main(self, self.args)
 
 if __name__ == '__main__':
