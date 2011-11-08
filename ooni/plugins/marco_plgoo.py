@@ -203,6 +203,7 @@ def runThreaded(addrList, nThreads):
 def main(self, args):
     global OUT
     global CERT_OUT
+
     try:
         OUT = open(args.output.main, 'w')
     except:
@@ -218,7 +219,7 @@ def main(self, args):
     logging.basicConfig(format='%(asctime)s [%(levelname)s] [%(threadName)s] %(message)s',
                         datefmt="%b %d %H:%M:%S",
                         level=logging.INFO,
-                        filename=LOGFILE)
+                        filename=args.log)
     logging.info("============== STARTING NEW LOG")
     if ssl is not None:
         methodName = "ssl"
