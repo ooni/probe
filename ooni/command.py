@@ -16,6 +16,7 @@ import ooni.dns_cc_check
 import ooni.transparenthttp
 import ooni.helpers
 import ooni.plugooni
+import ooni.inputs
 
 class Command():
     def __init__(self, args):
@@ -60,7 +61,7 @@ class Command():
             action="callback", callback=cb_plugin,
             help="run the Plugooni plgoo plugin specified"
         )
- 
+
         # --listplugins
         def cb_list_plugins(option, opt, value, oparser):
             self.action = opt[2:]
@@ -210,8 +211,8 @@ class Command():
 
     def version(self):
         print """
-ooni-probe REcon 2011 pre-alpha
-Copyright (c) 2011, Jacob Appelbaum
+ooni-probe pre-alpha
+Copyright (c) 2011, Jacob Appelbaum, Arturo Filastò
 See: https://www.torproject.org/ooni/
 
 """

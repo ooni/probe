@@ -15,7 +15,7 @@ class HttpPlugin(Plugoo):
         self.modules_to_import = []
         self.output_dir = ""
         self.buf = ''
-        
+
     def cb(self, type, content):
         print "got %d bytes from %s" % (len(content), type) # DEBUG
         if not self.buf:
@@ -44,7 +44,7 @@ class HttpPlugin(Plugoo):
         if not re.match("[a-zA-Z0-9]+\:\/\/[a-zA-Z0-9]+", url):
           return None
         scheme, host, port, path = client._parse(url)
-        
+
         ctrl_dest = self.endpoint(scheme, host, port)
         if not ctrl_dest:
             raise Exception('unsupported scheme %s in %s' % (scheme, url))
@@ -65,5 +65,6 @@ class HttpPlugin(Plugoo):
         f = client.HTTPClientFactory(url)
         f.deferred.addCallback(lambda x: self.cb('experiment', x))
         experiment.connect(f)
-        
+
         reactor.run()
+

@@ -18,6 +18,7 @@ import sys
 import os
 
 from ooni.plugooni import Plugoo
+from ooni.common import Storage
 
 ssl = OpenSSL = None
 
@@ -202,8 +203,17 @@ def runThreaded(addrList, nThreads):
 def main(self, args):
     global OUT
     global CERT_OUT
-    OUT = open(OUTPUT, 'w')
-    CERT_OUT = open(CERT_OUTPUT, 'w')
+    try:
+        OUT = open(args.output.main, 'w')
+    except:
+        print "No output file given. quitting..."
+        return -1
+
+    try:
+        CERT_OUT = open(args.output.certificates, 'w')
+    except:
+        print "No output cert file given. quitting..."
+        return -1
 
     logging.basicConfig(format='%(asctime)s [%(levelname)s] [%(threadName)s] %(message)s',
                         datefmt="%b %d %H:%M:%S",
@@ -220,10 +230,19 @@ def main(self, args):
 
     addresses = set()
 
-    for fn in args:
-        print fn
-        for a,b in parseNetworkstatus(open(fn)):
+    if args.input.ips:
+        for fn in input.file(args.input.ips).simple():
             addresses.add( (a,b) )
+
+    elif args.input.consensus:
+        for fn in args:
+            print fn
+            for a,b in parseNetworkstatus(open(args.input.consensus)):
+                addresses.add( (a,b) )
+
+    if len(addresses) == 0:
+        logging.error("No input source given, quiting...")
+        return -1
 
     addresses = list(addresses)
     addresses.sort()
@@ -237,11 +256,22 @@ class MarcoPlugin(Plugoo):
     self.modules = [ "logging", "socket", "time", "random", "threading", "sys",
                      "OpenSSL.SSL", "OpenSSL.crypto", "os" ]
 
+    self.input = Storage()
+    self.input.ip = None
+    self.input.consensus = os.path.expanduser("~/.tor/cached-consensus")
+
+    self.output = Storage()
+    self.output.main = 'reports/marco.out'
+    self.output.certificates = 'reports/marco_certs.out'
+
     # We require for Tor to already be running or have recently run
-    self.default_args = [os.path.expanduser("~/.tor/cached-consensus")] 
+    self.args = Storage()
+    self.args.input = self.input
+    self.args.output = self.output
+    self.args.log = 'reports/marco.log'
 
   def ooni_main(self, cmd):
-    main(self, self.default_args)
+    main(self, self.args)
 
 if __name__ == '__main__':
     if len(sys.argv) < 2:
