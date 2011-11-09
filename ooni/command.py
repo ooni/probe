@@ -16,7 +16,7 @@ import ooni.dns_cc_check
 import ooni.transparenthttp
 import ooni.helpers
 import ooni.plugooni
-import ooni.inputs
+import ooni.input
 
 class Command():
     def __init__(self, args):
