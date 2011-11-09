@@ -31,6 +31,12 @@ try:
 except:
     print "Error importing output"
 
+try:
+    from ooni import input
+except:
+    print "Error importing output"
+
+
 
 ssl = OpenSSL = None
 
@@ -246,7 +252,8 @@ def main(self, args):
     addresses = []
 
     if args.input.ips:
-        for a, b in input.file(args.input.ips).simple().split(":"):
+        for fn in input.file(args.input.ips).simple():
+            a, b = fn.split(":")
             addresses.append( (a,b) )
 
     elif args.input.consensus:
@@ -284,7 +291,7 @@ class MarcoPlugin(Plugoo):
     try:
         c_file = os.path.expanduser("~/.tor/cached-consensus")
         open(c_file)
-        self.input.consensus = os.path.expanduser("~/.tor/cached-consensus")
+        self.input.consensus = c_file
     except:
         pass
 
@@ -297,8 +304,7 @@ class MarcoPlugin(Plugoo):
 
     if not self.input.consensus:
         print "Error importing consensus file"
-        return -2
-
+        sys.exit(1)
 
     self.output = Storage()
     self.output.main = 'reports/marco.yamlooni'
@@ -312,8 +318,7 @@ class MarcoPlugin(Plugoo):
 
   def ooni_main(self, cmd):
     self.args.input.randomize = cmd.randomize
-    self.args.input.ip = cmd.listfile
-    print "List File: %s" % self.args.input.ip
+    self.args.input.ips = cmd.listfile
     main(self, self.args)
 
 if __name__ == '__main__':
