@@ -254,7 +254,7 @@ def main(self, args):
     if args.input.ips:
         for fn in input.file(args.input.ips).simple():
             a, b = fn.split(":")
-            addresses.append( (a,b) )
+            addresses.append( (a,int(b)) )
 
     elif args.input.consensus:
         for fn in args:
@@ -307,18 +307,28 @@ class MarcoPlugin(Plugoo):
         sys.exit(1)
 
     self.output = Storage()
-    self.output.main = 'reports/marco.yamlooni'
-    self.output.certificates = 'reports/marco_certs.out'
+    self.output.main = 'reports/marco-1.yamlooni'
+    self.output.certificates = 'reports/marco_certs-1.out'
 
-    try:
-        os.unlink(self.output.main)
-    except:
-        pass
+    # XXX This needs to be moved to a proper function
+    #     refactor, refactor and ... refactor!
+    if os.path.exists(self.output.main):
+        basedir = "/".join(self.output.main.split("/")[:-1])
+        fn = self.output.main.split("/")[-1].split(".")
+        ext = fn[1]
+        name = fn[0].split("-")[0]
+        i = fn[0].split("-")[1]
+        i = int(i) + 1
+        self.output.main = os.path.join(basedir, name + "-" + str(i) + "." + ext)
 
-    try:
-        os.unlink(self.output.certificates)
-    except:
-        pass
+    if os.path.exists(self.output.certificates):
+        basedir = "/".join(self.output.certificates.split("/")[:-1])
+        fn = self.output.certificates.split("/")[-1].split(".")
+        ext = fn[1]
+        name = fn[0].split("-")[0]
+        i = fn[0].split("-")[1]
+        i = int(i) + 1
+        self.output.certificates= os.path.join(basedir, name + "-" + str(i) + "." + ext)
 
     # We require for Tor to already be running or have recently run
     self.args = Storage()
