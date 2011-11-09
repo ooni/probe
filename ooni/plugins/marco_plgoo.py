@@ -282,13 +282,19 @@ class MarcoPlugin(Plugoo):
     self.input = Storage()
     self.input.ip = None
     try:
+        c_file = os.path.expanduser("~/.tor/cached-consensus")
+        open(c_file)
         self.input.consensus = os.path.expanduser("~/.tor/cached-consensus")
     except:
         pass
+
     try:
-        self.input.consensus = os.path.expanduser("~/tor/bundle/tor-browser_en-US/Data/Tor/cached-consensus")
+        c_file = os.path.expanduser("~/tor/bundle/tor-browser_en-US/Data/Tor/cached-consensus")
+        open(c_file)
+        self.input.consensus = c_file
     except:
         pass
+
     if not self.input.consensus:
         print "Error importing consensus file"
         return -2
