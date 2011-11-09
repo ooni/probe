@@ -16,6 +16,6 @@ class data:
         if name:
             self.name = name
         stream = open(self.name, 'a')
-        yaml.dump(data, stream)
+        yaml.dump([data], stream)
         stream.close()
 
