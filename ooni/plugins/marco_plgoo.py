@@ -310,6 +310,16 @@ class MarcoPlugin(Plugoo):
     self.output.main = 'reports/marco.yamlooni'
     self.output.certificates = 'reports/marco_certs.out'
 
+    try:
+        os.unlink(self.output.main)
+    except:
+        pass
+
+    try:
+        os.unlink(self.output.certificates)
+    except:
+        pass
+
     # We require for Tor to already be running or have recently run
     self.args = Storage()
     self.args.input = self.input
