@@ -275,7 +275,7 @@ class MarcoPlugin(Plugoo):
     self.input.consensus = os.path.expanduser("~/.tor/cached-consensus")
 
     self.output = Storage()
-    self.output.main = 'reports/marco.out'
+    self.output.main = 'reports/marco.yamlooni'
     self.output.certificates = 'reports/marco_certs.out'
 
     # We require for Tor to already be running or have recently run
