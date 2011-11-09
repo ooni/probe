@@ -303,6 +303,7 @@ class MarcoPlugin(Plugoo):
   def ooni_main(self, cmd):
     self.args.input.randomize = cmd.randomize
     self.args.input.ip = cmd.listfile
+    print "List File: %s" % self.args.input.ip
     main(self, self.args)
 
 if __name__ == '__main__':
