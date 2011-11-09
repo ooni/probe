@@ -18,10 +18,19 @@ import sys
 import os
 try:
     from ooni.plugooni import Plugoo
+except:
+    print "Error importing Plugoo"
+
+try:
     from ooni.common import Storage
+except:
+    print "Error importing Storage"
+
+try:
     from ooni import output
 except:
-    print "ERR: Not running from ooni"
+    print "Error importing output"
+
 
 ssl = OpenSSL = None
 
@@ -272,7 +281,14 @@ class MarcoPlugin(Plugoo):
 
     self.input = Storage()
     self.input.ip = None
-    self.input.consensus = os.path.expanduser("~/.tor/cached-consensus")
+    try:
+        self.input.consensus = os.path.expanduser("~/.tor/cached-consensus")
+    try:
+        self.input.consensus = os.path.expanduser("~/tor/bundle/tor-browser_en-US/Data/Tor/cached-consensus")
+    if not self.input.consensus:
+        print "Error importing consensus file"
+        return -2
+
 
     self.output = Storage()
     self.output.main = 'reports/marco.yamlooni'
