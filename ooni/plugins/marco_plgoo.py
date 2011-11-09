@@ -246,7 +246,7 @@ def main(self, args):
     addresses = []
 
     if args.input.ips:
-        for fn in input.file(args.input.ips).simple():
+        for a, b in input.file(args.input.ips).simple().split(":"):
             addresses.append( (a,b) )
 
     elif args.input.consensus:
@@ -283,8 +283,12 @@ class MarcoPlugin(Plugoo):
     self.input.ip = None
     try:
         self.input.consensus = os.path.expanduser("~/.tor/cached-consensus")
+    except:
+        pass
     try:
         self.input.consensus = os.path.expanduser("~/tor/bundle/tor-browser_en-US/Data/Tor/cached-consensus")
+    except:
+        pass
     if not self.input.consensus:
         print "Error importing consensus file"
         return -2
