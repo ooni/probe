@@ -1,0 +1,8 @@
+# This an example ooni-probe asset file.
+# The properties of assets are definied with the "#:" syntax
+#:name The asset name
+#:desc The description of this asset is bla bla bla bla bla
+#:tests testa,testb,testc
+#:files something.xml,somethingelse.xml
+This is the main body of the assets.
+bla bla bla
