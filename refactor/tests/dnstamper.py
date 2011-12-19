@@ -13,9 +13,13 @@ def lookup(hostname, ns):
         ret.append(data.address)
     return ret
 
-def compare_lookups(address):
-    exp = lookup(address, '8.8.8.8')
-    control = lookup(address, '208.67.222.222')
+def compare_lookups(args):
+    # this is just a dirty hack
+    address = args[0]
+    ooni = args[1]
+    ns = args[2]
+    exp = lookup(address, ns)
+    control = lookup(address, ooni.config.dns_control_server)
     print address
     if len(set(exp) & set(control)) > 0:
         print "No tampering"
@@ -25,18 +29,22 @@ def compare_lookups(address):
         print control
 
 def run(ooni):
+    """Run the test
+    """
     config = ooni.config
     urls = []
+    
     f = open(os.path.join(config.main.assetdir, config.tests.dns_experiment))
+    nsf = open(os.path.join(config.main.assetdir, config.tests.dns_experiment_dns))
+    nss = [x.strip() for x in nsf.readlines()]
     i = 0
+    # XXX Clean up this code
     ooni.logger.info("reading file")
-    for line in f.readlines():
-        urls.append(line.strip())
-        if i % 100 == 0:
-            jobs = [gevent.spawn(compare_lookups, url) for url in urls]
-            gevent.joinall(jobs, timeout=2)
-            [job.value for job in jobs]
-            urls = []
+    for url in f.readlines():
+        jobs = [gevent.spawn(compare_lookups, (url, ooni, ns)) for ns in nss]
+        gevent.joinall(jobs, timeout=2)
+        [job.value for job in jobs]
+
     ooni.logger.info("finished")
     
     f.close()
