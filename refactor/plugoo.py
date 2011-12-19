@@ -1,6 +1,8 @@
 # This contains all of the "goo" necessary for creating
 # ooni-probe plugoonies.
 
+import os
+
 import logging
 import itertools
 import gevent
@@ -36,14 +38,11 @@ class Asset:
         """
         # XXX this is really written with my feet.
         #     clean me up please...
-        if self.fh:
-            line = self.fh.readline()
-            if line:
-                return line.replace('\n','')
-            else:
-                self.fh.seek(0)
-                raise StopIteration
+        line = self.fh.readline()
+        if line:
+            return line.replace('\n','')
         else:
+            self.fh.seek(0)
             raise StopIteration
     
     def next(self):
@@ -53,9 +52,71 @@ class Asset:
             raise StopIteration
 
 
+class Report:
+    def __init__(self, ooni, 
+                 scp="127.0.0.1:22", 
+                 yaml="test.yaml", 
+                 file="test.report",
+                 tcp="127.0.0.1:9000"):
+        
+        self.file = file
+        self.yaml = yaml
+        self.tcp = tcp
+        self.scp = scp
+        self.config = ooni.config.report
+        
+        try:
+            import paramiko
+        except:
+            self.scp = None
+            ooni.logger("Could not import paramiko. SCP will not be disabled")
+
+    
+    def scp(self, rfile, data):
+        host, port = self.scp.split(":")
+        transport = paramiko.Transport((host, port))
+        
+        try:
+            username = self.config.ssh_username
+        except:
+            raise "No username provided"
+        
+        transport.load_host_keys(os.path.expanduser("~/.ssh/known_hosts"))
+        
+        if self.config.ssh_keyfile:
+            keyfile = os.path.expanduser(self.config.ssh_keyfile)
+            key = paramiko.RSAKey.from_private_key_file(keylocfile)
+            try:
+                transport.connect(username=username, pkey=key)
+            except Exception, e:
+                raise e
+            
+        elif self.config.ssh_password:
+            try:
+                transport.connect(username=username, password=self.config.ssh_password)
+            except Exception, e:
+                raise e
+        else:
+            raise "No key or password provided for ssh"
+
+        sftp = paramiko.SFTPClient.from_transport(transport)
+        try:
+            sftp = ssh.open_sftp()
+            remote_file = sftp.file(rfile, "wb")
+            remote_file.set_pipelined(True)
+            remote_file.write(data)
+            
+        except Exception, e:
+            raise e
+        sftp.close()
+        transport.close()
+    
+
 class Plugoo():
-    def __init__(self, config):
-        self.config = config
+    def __init__(self, ooni):
+        self.config = ooni.config
+        self.logger = ooni.logger
+        self.name = "test"
     
     def experiment(self, *a, **b):
         pass
@@ -64,6 +125,9 @@ class Plugoo():
         pass
     
     def compare(self, *a, **b):
+        """Override this method to write your own
+        Plugoo.
+        """
         pass
     
     def load_assets(self, assets):
@@ -90,11 +154,12 @@ class Plugoo():
             
                
     def run(self, assets=None, buffer=100, timeout=2):
+        logger.info("Starting %s", self.name)
         jobs = []
         if assets:
+            logger.debug("Runnig through tests")
             for i, data in enumerate(self.load_assets(assets)):
                 args = {'data': data}
-
                 # Append to the job queue
                 jobs.append(gevent.spawn(self.compare, **args))
                 # If the buffer is full run the jobs

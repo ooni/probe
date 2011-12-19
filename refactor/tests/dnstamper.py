@@ -6,18 +6,6 @@ from plugoo import Plugoo, Asset
 class DNSTAsset(Asset):
     def __init__(self, file=None):
         self = Asset.__init__(self, file)
-    
-    def next_asset(self):
-        # Seriously... Rewrite it...
-        if self.fh:
-            line = self.fh.readline()
-            if line:
-                return line.replace('\n','')
-            else:
-                self.fh.seek(0)
-                raise StopIteration
-        else:
-            raise StopIteration
 
 class DNST(Plugoo):
     def lookup(self, hostname, ns):
@@ -45,7 +33,7 @@ class DNST(Plugoo):
         control = self.lookup(address, config.tests.dns_control_server)
         
         if len(set(exp) & set(control)) > 0:
-            print "%s : no tampering" % address
+            print "%s : no tampering on %s" % (address, ns)
         else:
             print "%s : possible tampering (%s, %s)" % (exp, control)
 
@@ -55,12 +43,14 @@ def run(ooni):
     config = ooni.config
     urls = []
     
-    dns_experiment = DNSTAsset(os.path.join(config.main.assetdir, config.tests.dns_experiment))
-    dns_experiment_dns = DNSTAsset(os.path.join(config.main.assetdir, config.tests.dns_experiment_dns))
+    dns_experiment = DNSTAsset(os.path.join(config.main.assetdir, \
+                                            config.tests.dns_experiment))
+    dns_experiment_dns = DNSTAsset(os.path.join(config.main.assetdir, \
+                                                config.tests.dns_experiment_dns))
 
     assets = [dns_experiment, dns_experiment_dns]
 
-    dnstest = DNST(config)
+    dnstest = DNST(ooni)
     ooni.logger.info("starting test")
     dnstest.run(assets)
     ooni.logger.info("finished")

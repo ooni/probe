@@ -51,4 +51,3 @@ class Config(Storage):
             self._cfgparser.write(cfgfile)
         finally:
             cfgfile.close()
-    
