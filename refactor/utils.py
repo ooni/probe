@@ -1,4 +1,5 @@
 import imp
+import logging
 
 class Storage(dict):
     """
@@ -16,7 +17,6 @@ class Storage(dict):
         >>> del o.a
         >>> o.a
         None
-    
     """
 
     def __getattr__(self, key):
@@ -43,6 +43,22 @@ class Storage(dict):
     def __setstate__(self, value):
         for (k, v) in value.items():
             self[k] = v
+            
+def get_logger(config):
+    loglevel = getattr(logging, config.loglevel.upper())
+    logging.basicConfig(level=loglevel,
+                    format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
+                    filename=config.logfile,
+                    filemode='w')
+
+    console = logging.StreamHandler()
+    console.setLevel(logging.INFO)
+    # Set the console logger to a different format
+    formatter = logging.Formatter('%(name)-12s: %(levelname)-8s %(message)s')
+    console.setFormatter(formatter)
+    logging.getLogger('').addHandler(console)
+
+    return logging.getLogger('ooni-probe')
 
 def parse_asset(asset):
     parsed = Storage()
@@ -65,6 +81,10 @@ def parse_asset(asset):
             else:
                 break
     finally:
+        if not parsed.name:
+            parsed.name = asset
+        if not parsed.files:
+            parsed.files = asset
         f.close()
         return parsed
 
