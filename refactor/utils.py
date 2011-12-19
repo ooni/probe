@@ -43,7 +43,8 @@ class Storage(dict):
     def __setstate__(self, value):
         for (k, v) in value.items():
             self[k] = v
-            
+        
+
 def get_logger(config):
     loglevel = getattr(logging, config.loglevel.upper())
     logging.basicConfig(level=loglevel,
