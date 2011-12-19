@@ -115,7 +115,10 @@ class ooni(object):
         """Run a single test
         """
         self.tests[test].module.run(self)
+
+if __name__ == "__main__":
+    o = ooni()
+    o.list_tests()
     
-o = ooni()
-o.run_tests()
+    o.run_test("traceroute")
 

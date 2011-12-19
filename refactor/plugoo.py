@@ -143,18 +143,15 @@ class Plugoo():
         self.logger = ooni.logger
         self.name = "test"
     
-    def experiment(self, *a, **b):
-        pass
-    
     def control(self, *a, **b):
         pass
-    
-    def compare(self, *a, **b):
+
+    def experiment(self, *a, **b):
         """Override this method to write your own
         Plugoo.
         """
         pass
-    
+        
     def load_assets(self, assets):
         """Takes as input an array of Asset objects and
         outputs an iterator for the loaded assets.
@@ -186,7 +183,7 @@ class Plugoo():
             for i, data in enumerate(self.load_assets(assets)):
                 args = {'data': data}
                 # Append to the job queue
-                jobs.append(gevent.spawn(self.compare, **args))
+                jobs.append(gevent.spawn(self.experiment, **args))
                 # If the buffer is full run the jobs
                 if i % buffer == 0:
                     # Run the jobs with the selected timeout
@@ -200,8 +197,6 @@ def torify(socksaddr):
     decorate functions that should use to for connecting to
     the interwebz. The suggary syntax is the following:
     @torify("127.0.0.1:9050")
-    or
-    @torify()
     """
     def decorator(target):
         host, port = socksaddr.split(":")

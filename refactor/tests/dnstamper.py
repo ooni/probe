@@ -18,9 +18,10 @@ class DNST(Plugoo):
         
         for data in answer:
             ret.append(data.address)
+            
         return ret
     
-    def compare(self, *a, **kw):        
+    def experiment(self, *a, **kw):        
         # this is just a dirty hack
         address = kw['data'][0]
         ns = kw['data'][1]
