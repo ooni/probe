@@ -53,6 +53,15 @@ class Asset:
 
 
 class Report:
+    """This is the ooni-probe reporting mechanism. It allows
+    reporting to multiple destinations and file formats.
+    :scp the string of <host>:<port> of an ssh server
+    :yaml the filename of a the yaml file to write
+    :file the filename of a simple txt file to write
+    :tcp the <host>:<port> of a TCP server that will just listen for
+         inbound connection and accept a stream of data (think of it
+         as a `nc -l -p <port> > filename.txt`)
+    """
     def __init__(self, ooni, 
                  scp="127.0.0.1:22", 
                  yaml="test.yaml", 
@@ -72,17 +81,27 @@ class Report:
             ooni.logger("Could not import paramiko. SCP will not be disabled")
 
     
-    def scp(self, rfile, data):
+    def scp(self, rfile, data, mode='wb'):
+        """Push data to the remote ssh server.
+        :rfile the remote filename to write
+        :data the raw data content that should be written
+        :mode in what mode the file should be created
+        """
         host, port = self.scp.split(":")
         transport = paramiko.Transport((host, port))
+        
+        # The remote path of the remote file to write
+        rfpath = os.path.join(self.config.ssh_rpath, rfile)
         
         try:
             username = self.config.ssh_username
         except:
             raise "No username provided"
         
+        # Load the local known host key file
         transport.load_host_keys(os.path.expanduser("~/.ssh/known_hosts"))
         
+        # We prefer to use an ssh keyfile fo authentication
         if self.config.ssh_keyfile:
             keyfile = os.path.expanduser(self.config.ssh_keyfile)
             key = paramiko.RSAKey.from_private_key_file(keylocfile)
@@ -91,18 +110,21 @@ class Report:
             except Exception, e:
                 raise e
             
+        # If not even a password is fine
         elif self.config.ssh_password:
             try:
                 transport.connect(username=username, password=self.config.ssh_password)
             except Exception, e:
                 raise e
+            
+        # ... but no authentication, that is madness!
         else:
             raise "No key or password provided for ssh"
 
         sftp = paramiko.SFTPClient.from_transport(transport)
         try:
             sftp = ssh.open_sftp()
-            remote_file = sftp.file(rfile, "wb")
+            remote_file = sftp.file(rfile, mode)
             remote_file.set_pipelined(True)
             remote_file.write(data)
             
@@ -110,7 +132,10 @@ class Report:
             raise e
         sftp.close()
         transport.close()
-    
+
+    def report(self):
+        """This should be invoked every time you wish to write some re
+        """
 
 class Plugoo():
     def __init__(self, ooni):
@@ -169,5 +194,3 @@ class Plugoo():
                     for job in jobs:
                         print job.value
                     jobs = []
-         
-    
