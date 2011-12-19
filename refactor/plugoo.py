@@ -179,10 +179,10 @@ class Plugoo():
             
                
     def run(self, assets=None, buffer=100, timeout=2):
-        logger.info("Starting %s", self.name)
+        self.logger.info("Starting %s", self.name)
         jobs = []
         if assets:
-            logger.debug("Runnig through tests")
+            self.logger.debug("Runnig through tests")
             for i, data in enumerate(self.load_assets(assets)):
                 args = {'data': data}
                 # Append to the job queue
@@ -194,3 +194,19 @@ class Plugoo():
                     for job in jobs:
                         print job.value
                     jobs = []
+
+def torify(socksaddr):
+    """This is the torify decorator. It should be used to
+    decorate functions that should use to for connecting to
+    the interwebz. The suggary syntax is the following:
+    @torify("127.0.0.1:9050")
+    or
+    @torify()
+    """
+    def decorator(target):
+        host, port = socksaddr.split(":")
+        socks.setdefaultproxy(socks.PROXY_TYPE_SOCKS5, host, int(port))
+        # Wrap the module into socks 
+        socks.wrapmodule(target)
+        return target    
+    return decorator

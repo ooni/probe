@@ -1,6 +1,7 @@
 from dns import resolver
 import gevent
 import os
+import plugoo
 from plugoo import Plugoo, Asset
 
 class DNSTAsset(Asset):
