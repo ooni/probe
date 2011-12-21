@@ -227,38 +227,56 @@ class Plugoo():
         assets = [hostlist, portlist, requestlist]
         
         """
+        asset_count = len(assets)
         bigsize = 0
         bigidx = 0
-        for i, v in enumerate(assets):
-            size = v.len()
-            if size > bigsize:
-                bigidx, bigsize = (i, size)
         
-        smallassets = list(assets)
-        smallassets.pop(bigidx)                
+        if asset_count > 1:
+            # If we have more than on asset we try to do some
+            # optimizations as how to iterate through them by
+            # picking the largest asset set as the main iterator
+            # and do a cartesian product on the smaller sets
+            for i, v in enumerate(assets):
+                size = v.len()
+                if size > bigsize:
+                    bigidx, bigsize = (i, size)
+        
+            smallassets = list(assets)
+            smallassets.pop(bigidx)                
             
         for x in assets[bigidx]:
-            # XXX this will only work in python 2.6, maybe refactor
-            for comb in itertools.product(*smallassets):
-                yield (x,) + comb
+            if asset_count > 1:
+                # XXX this will only work in python 2.6, maybe refactor?
+                for comb in itertools.product(*smallassets):
+                    yield (x,) + comb
+            else:
+                yield (x)
             
                
     def run(self, assets=None, buffer=10, timeout=2):
         self.logger.info("Starting %s", self.name)
         jobs = []
         if assets:
-            self.logger.debug("Runnig through tests")
+            self.logger.debug("Running through tests")
             for i, data in enumerate(self.load_assets(assets)):
                 args = {'data': data}
                 # Append to the job queue
                 jobs.append(gevent.spawn(self.experiment, **args))
                 # If the buffer is full run the jobs
-                if i % buffer == 0:
+                if i % buffer == (buffer-1):
                     # Run the jobs with the selected timeout
                     gevent.joinall(jobs, timeout=timeout)
                     for job in jobs:
+                        print job.value
                         self.report(job.value)
                     jobs = []
+                    
+            if len(jobs) > 0:
+                gevent.joinall(jobs, timeout=timeout)
+                for job in jobs:
+                    print job.value
+                    self.report(job.value)
+                jobs = []
 
 def torify(socksaddr):
     """This is the torify decorator. It should be used to

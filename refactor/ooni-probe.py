@@ -120,6 +120,5 @@ class ooni(object):
 if __name__ == "__main__":
     o = ooni()
     o.list_tests()
-    
-    o.run_test("dnstamper")
+    o.run_test("bridget")
 
