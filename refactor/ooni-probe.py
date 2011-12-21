@@ -18,6 +18,7 @@ class ooni(object):
         self.config = Storage()
         self.config.main = Config("main")
         self.config.tests = Config("tests")
+        self.config.report = Config("report")
 
         self.logger = get_logger(self.config.main)
         
@@ -120,5 +121,5 @@ if __name__ == "__main__":
     o = ooni()
     o.list_tests()
     
-    o.run_test("traceroute")
+    o.run_test("dnstamper")
 

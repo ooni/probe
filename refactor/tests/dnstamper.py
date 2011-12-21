@@ -36,8 +36,10 @@ class DNST(Plugoo):
         
         if len(set(exp) & set(control)) > 0:
             print "%s : no tampering on %s" % (address, ns)
+            return (address, ns, False)
         else:
-            print "%s : possible tampering (%s, %s)" % (exp, control)
+            print "%s : possible tampering on %s (%s, %s)" % (address, ns, exp, control)
+            return (address, ns, exp, control, True)
 
 def run(ooni):
     """Run the test

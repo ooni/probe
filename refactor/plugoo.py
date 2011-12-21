@@ -59,9 +59,13 @@ class Asset:
 class Report:
     """This is the ooni-probe reporting mechanism. It allows
     reporting to multiple destinations and file formats.
+    
     :scp the string of <host>:<port> of an ssh server
+    
     :yaml the filename of a the yaml file to write
+    
     :file the filename of a simple txt file to write
+    
     :tcp the <host>:<port> of a TCP server that will just listen for
          inbound connection and accept a stream of data (think of it
          as a `nc -l -p <port> > filename.txt`)
@@ -81,10 +85,32 @@ class Report:
         except:
             self.scp = None
             ooni.logger("Could not import paramiko. SCP will not be disabled")
+    
+    def __call__(self, data):
+        """This should be invoked every time you wish to write some 
+        data to the reporting system
+        """
+        dump = "- " + yaml.dump(data)
+        reports = []
+        
+        if self.file:
+            reports.append("file")
+        
+        if self.tcp:
+            reports.append("tcp")
+        
+        if self.scp:
+            reports.append("scp")
+            
+        jobs = [gevent.spawn(self.send_report, *(dump, report)) for report in reports]
 
-    def file_report(self, data, file=self.file, mode='wb'):
+        return jobs
+
+    def file_report(self, data, file=None, mode='a+'):
         """This reports to a file in YAML format
         """
+        if not file:
+            file = self.file
         try:
             f = open(file, mode)
             f.write(data)
@@ -112,12 +138,14 @@ class Report:
             send_socket.close()
 
     
-    def scp_report(self, data, rfile=self.file, mode='wb'):
+    def scp_report(self, data, rfile=None, mode='a+'):
         """Push data to the remote ssh server.
         :rfile the remote filename to write
         :data the raw data content that should be written
         :mode in what mode the file should be created
         """
+        if not rfile:
+            rfile = self.file
         host, port = self.scp.split(":")
         transport = paramiko.Transport((host, port))
         
@@ -169,33 +197,19 @@ class Report:
         """This sends the report using the
         specified type.
         """
+        print "Reporting %s to %s" % (data, type)
         getattr(self, type+"_report").__call__(data)
-
-    def report(self, data):
-        """This should be invoked every time you wish to write some 
-        data to the reporting system
-        """
-        dump = "- " + yaml.dumps(data)
-        reports = []
-        
-        if self.file:
-            reports.append("file")
-        
-        if self.tcp:
-            reports.append("tcp")
-        
-        if self.scp:
-            reports.append("scp")
-            
-        jobs = [gevent.spawn(self.send_report, report) for report in reports]
-
-        return jobs
 
 class Plugoo():
     def __init__(self, ooni):
         self.config = ooni.config
         self.logger = ooni.logger
         self.name = "test"
+        self.report = Report(ooni,
+                             scp=ooni.config.report.ssh,
+                             file=ooni.config.report.file,
+                             tcp=ooni.config.report.tcp)
+        
     
     def control(self, *a, **b):
         pass
@@ -229,7 +243,7 @@ class Plugoo():
                 yield (x,) + comb
             
                
-    def run(self, assets=None, buffer=100, timeout=2):
+    def run(self, assets=None, buffer=10, timeout=2):
         self.logger.info("Starting %s", self.name)
         jobs = []
         if assets:
@@ -243,7 +257,7 @@ class Plugoo():
                     # Run the jobs with the selected timeout
                     gevent.joinall(jobs, timeout=timeout)
                     for job in jobs:
-                        print job.value
+                        self.report(job.value)
                     jobs = []
 
 def torify(socksaddr):

@@ -82,8 +82,7 @@ class Traceroute(Plugoo):
         self.traceroute(address)
 
 def run(ooni):
-    """Run the test
-    """
+    """Run the test"""
     config = ooni.config
     urls = []
     
