@@ -3,6 +3,10 @@
 
 import os
 
+import yaml
+
+import socket
+
 import logging
 import itertools
 import gevent
@@ -64,12 +68,10 @@ class Report:
     """
     def __init__(self, ooni, 
                  scp="127.0.0.1:22", 
-                 yaml="test.yaml", 
                  file="test.report",
                  tcp="127.0.0.1:9000"):
         
         self.file = file
-        self.yaml = yaml
         self.tcp = tcp
         self.scp = scp
         self.config = ooni.config.report
@@ -80,8 +82,37 @@ class Report:
             self.scp = None
             ooni.logger("Could not import paramiko. SCP will not be disabled")
 
+    def file_report(self, data, file=self.file, mode='wb'):
+        """This reports to a file in YAML format
+        """
+        try:
+            f = open(file, mode)
+            f.write(data)
+        except Exception, e:
+            raise e
+        finally:
+            f.close()
+
     
-    def scp(self, rfile, data, mode='wb'):
+    def tcp_report(self, data):
+        """This connect to the specified tcp server
+        and writes the data passed as argument.
+        """
+        host, port = self.tcp.split(":")
+        tcp = socket.getprotobyname('tcp')
+        send_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM, tcp)
+        try:
+            send_socket.connect((host, int(port)))
+            send_socket.send(data)
+    
+        except Exception, e:
+            raise e
+    
+        finally:
+            send_socket.close()
+
+    
+    def scp_report(self, data, rfile=self.file, mode='wb'):
         """Push data to the remote ssh server.
         :rfile the remote filename to write
         :data the raw data content that should be written
@@ -132,10 +163,33 @@ class Report:
             raise e
         sftp.close()
         transport.close()
-
-    def report(self):
-        """This should be invoked every time you wish to write some re
+    
+    
+    def send_report(self, data, type):
+        """This sends the report using the
+        specified type.
         """
+        getattr(self, type+"_report").__call__(data)
+
+    def report(self, data):
+        """This should be invoked every time you wish to write some 
+        data to the reporting system
+        """
+        dump = "- " + yaml.dumps(data)
+        reports = []
+        
+        if self.file:
+            reports.append("file")
+        
+        if self.tcp:
+            reports.append("tcp")
+        
+        if self.scp:
+            reports.append("scp")
+            
+        jobs = [gevent.spawn(self.send_report, report) for report in reports]
+
+        return jobs
 
 class Plugoo():
     def __init__(self, ooni):

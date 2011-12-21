@@ -12,6 +12,7 @@ class TracerouteAsset(Asset):
     def __init__(self, file=None):
         self = Asset.__init__(self, file)
 
+
 class Traceroute(Plugoo):
     """A *very* quick and dirty traceroute implementation, UDP and TCP
     """
@@ -72,7 +73,7 @@ class Traceroute(Plugoo):
                 break
 
             ttl += 1
-            
+    
     
     def experiment(self, *a, **kw):        
         # this is just a dirty hack
