@@ -24,7 +24,7 @@ class Asset:
             self.name = file
             self.fh = open(file, 'r')
         self.eof = False
-    
+
     def __iter__(self):
         return self
 
@@ -36,7 +36,7 @@ class Asset:
         # rewind the file
         self.fh.seek(0)
         return i + 1
-        
+
     def next_asset(self):
         """Return the next asset.
         """
@@ -48,7 +48,7 @@ class Asset:
         else:
             self.fh.seek(0)
             raise StopIteration
-    
+
     def next(self):
         try:
             return self.next_asset()
@@ -59,55 +59,64 @@ class Asset:
 class Report:
     """This is the ooni-probe reporting mechanism. It allows
     reporting to multiple destinations and file formats.
-    
+
     :scp the string of <host>:<port> of an ssh server
-    
+
     :yaml the filename of a the yaml file to write
-    
+
     :file the filename of a simple txt file to write
-    
+
     :tcp the <host>:<port> of a TCP server that will just listen for
          inbound connection and accept a stream of data (think of it
          as a `nc -l -p <port> > filename.txt`)
     """
-    def __init__(self, ooni, 
-                 scp="127.0.0.1:22", 
+    def __init__(self, ooni,
+                 scp="127.0.0.1:22",
                  file="test.report",
                  tcp="127.0.0.1:9000"):
-        
+
         self.file = file
         self.tcp = tcp
         self.scp = scp
         self.config = ooni.config.report
-        
+        self.logger = ooni.logger
+
         try:
             import paramiko
         except:
             self.scp = None
-            ooni.logger("Could not import paramiko. SCP will not be disabled")
-    
+            self.logger.warn("Could not import paramiko. SCP will not be disabled")
+
     def __call__(self, data):
-        """This should be invoked every time you wish to write some 
+        """
+        This should be invoked every time you wish to write some
         data to the reporting system
         """
+        print "Writing report(s)"
+        self.logger.info("Writing report(s)")
         dump = "- " + yaml.dump(data)
         reports = []
-        
+
         if self.file:
             reports.append("file")
-        
+
         if self.tcp:
             reports.append("tcp")
-        
+
         if self.scp:
             reports.append("scp")
-            
-        jobs = [gevent.spawn(self.send_report, *(dump, report)) for report in reports]
 
-        return jobs
+        jobs = [gevent.spawn(self.send_report, *(dump, report)) for report in reports]
+        gevent.joinall(jobs)
+        ret = []
+        for job in jobs:
+            print job.value
+            ret.append(job.value)
+        return ret
 
     def file_report(self, data, file=None, mode='a+'):
-        """This reports to a file in YAML format
+        """
+        This reports to a file in YAML format
         """
         if not file:
             file = self.file
@@ -119,7 +128,7 @@ class Report:
         finally:
             f.close()
 
-    
+
     def tcp_report(self, data):
         """This connect to the specified tcp server
         and writes the data passed as argument.
@@ -130,14 +139,14 @@ class Report:
         try:
             send_socket.connect((host, int(port)))
             send_socket.send(data)
-    
+
         except Exception, e:
             raise e
-    
+
         finally:
             send_socket.close()
 
-    
+
     def scp_report(self, data, rfile=None, mode='a+'):
         """Push data to the remote ssh server.
         :rfile the remote filename to write
@@ -148,18 +157,18 @@ class Report:
             rfile = self.file
         host, port = self.scp.split(":")
         transport = paramiko.Transport((host, port))
-        
+
         # The remote path of the remote file to write
         rfpath = os.path.join(self.config.ssh_rpath, rfile)
-        
+
         try:
             username = self.config.ssh_username
         except:
             raise "No username provided"
-        
+
         # Load the local known host key file
         transport.load_host_keys(os.path.expanduser("~/.ssh/known_hosts"))
-        
+
         # We prefer to use an ssh keyfile fo authentication
         if self.config.ssh_keyfile:
             keyfile = os.path.expanduser(self.config.ssh_keyfile)
@@ -168,14 +177,14 @@ class Report:
                 transport.connect(username=username, pkey=key)
             except Exception, e:
                 raise e
-            
+
         # If not even a password is fine
         elif self.config.ssh_password:
             try:
                 transport.connect(username=username, password=self.config.ssh_password)
             except Exception, e:
                 raise e
-            
+
         # ... but no authentication, that is madness!
         else:
             raise "No key or password provided for ssh"
@@ -186,13 +195,13 @@ class Report:
             remote_file = sftp.file(rfile, mode)
             remote_file.set_pipelined(True)
             remote_file.write(data)
-            
+
         except Exception, e:
             raise e
         sftp.close()
         transport.close()
-    
-    
+
+
     def send_report(self, data, type):
         """This sends the report using the
         specified type.
@@ -209,8 +218,8 @@ class Plugoo():
                              scp=ooni.config.report.ssh,
                              file=ooni.config.report.file,
                              tcp=ooni.config.report.tcp)
-        
-    
+
+
     def control(self, *a, **b):
         pass
 
@@ -219,18 +228,18 @@ class Plugoo():
         Plugoo.
         """
         pass
-        
+
     def load_assets(self, assets):
         """Takes as input an array of Asset objects and
         outputs an iterator for the loaded assets.
         example:
         assets = [hostlist, portlist, requestlist]
-        
+
         """
         asset_count = len(assets)
         bigsize = 0
         bigidx = 0
-        
+
         if asset_count > 1:
             # If we have more than on asset we try to do some
             # optimizations as how to iterate through them by
@@ -240,10 +249,10 @@ class Plugoo():
                 size = v.len()
                 if size > bigsize:
                     bigidx, bigsize = (i, size)
-        
+
             smallassets = list(assets)
-            smallassets.pop(bigidx)                
-            
+            smallassets.pop(bigidx)
+
         for x in assets[bigidx]:
             if asset_count > 1:
                 # XXX this will only work in python 2.6, maybe refactor?
@@ -251,9 +260,18 @@ class Plugoo():
                     yield (x,) + comb
             else:
                 yield (x)
-            
-               
-    def run(self, assets=None, buffer=10, timeout=2):
+
+    def srun(self, assets=None, buffer=10, timeout=2):
+        self.logger.info("Starting %s", self.name)
+        if assets:
+            self.logger.debug("Running through tests")
+            for i, data in enumerate(self.load_assets(assets)):
+                args = {'data': data}
+                ret = self.experiment(**args)
+                print ret
+                self.report(ret)
+
+    def run(self, assets=None, buffer=10, timeout=30):
         self.logger.info("Starting %s", self.name)
         jobs = []
         if assets:
@@ -269,13 +287,15 @@ class Plugoo():
                     for job in jobs:
                         print job.value
                         self.report(job.value)
+                        job.kill()
                     jobs = []
-                    
+
             if len(jobs) > 0:
                 gevent.joinall(jobs, timeout=timeout)
                 for job in jobs:
                     print job.value
                     self.report(job.value)
+                    job.kill()
                 jobs = []
 
 def torify(socksaddr):
@@ -287,7 +307,7 @@ def torify(socksaddr):
     def decorator(target):
         host, port = socksaddr.split(":")
         socks.setdefaultproxy(socks.PROXY_TYPE_SOCKS5, host, int(port))
-        # Wrap the module into socks 
+        # Wrap the module into socks
         socks.wrapmodule(target)
-        return target    
+        return target
     return decorator

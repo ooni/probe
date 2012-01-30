@@ -1,8 +1,57 @@
-ooni-probe - Open Observatory of Network Interference  
+ooni-probe - Open Observatory of Network Interference
 
 "The Net interprets censorship as damage and routes around it."
                 - John Gilmore; TIME magazine (6 December 1993)
 
-This is a python implementation of the OONI ideas.
-This tool attempts to gather as much data about a network connection as is
-possible.
+The goal of ooni-probe is to collect data about censorship around
+the world.
+
+OONI uses open methodologies and the data will be provided in raw
+format to allow any researcher to indipendently draw their conclusions
+from the results OONI tests.
+
+There are currently projects aimed at measuring censorship in one
+way or another but they either use non open methodologies or their
+tools are not open sources. OONI aims at filling up this gap by
+creating the first open source framework for developing network
+tests and collecting data on censorship.
+
+OONI revolves around three major concepts: Assets, Tests and
+Reports.
+
+# Assets
+
+Assets are the inputs used inside Tests to detect censorship events.
+These can be URL lists, keywords, ip addresses, packets or any kind
+of set of data.
+In the python specific implementation this is represented as a python
+iterable object. This means that the Testing framework will be able
+to iterate through every element in the Asset.
+
+# Tests
+
+This is the core of OONI. These are the actual tests that will be run
+using as input (if an input is required) the Assets.
+Tests can be summarized as an experiment and a control. The control
+represents the expected result and the experiment is the network operation
+being performed on the live network. If the experiment does not match up
+with the control then a censorship event had occured.
+
+OONI probe provides some useful functionality to the application developer
+that may be useful when developing censorship detection tests. For example
+it is possible to make a request over the Tor network easily or use a fast
+and flexible non-blocking HTTP client implementation.
+
+# Reports
+
+This is the data that is collected from the test. OONI probe provides a
+flexible means of storing results and uploading this data to a remote
+server or a flat file.
+
+The Test developer should include in the report as much data as possible
+and can contain raw packet dumps as well as structured synthetic results.
+
+In future on top of ooni-probe Reports it will be possible to develop
+flexible post-processing tools to allow data-visualization guru's to
+properly visualize and contextualize the resulting data.
+

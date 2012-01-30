@@ -21,18 +21,18 @@ class ooni(object):
         self.config.report = Config("report")
 
         self.logger = get_logger(self.config.main)
-        
+
         self.logger.info("Started ooni-probe")
-        
+
         self.assets = []
         self.get_assets()
-        
+
         self.tests = Storage()
         self.load_tests()
-        
+
         self.runtests = self.config.tests.run.split(",")
 
-    
+
     def get_assets(self):
         """Parse all the assets in the asset directory.
         Assets can optionaly contain the ooni-probe asset file
@@ -45,8 +45,8 @@ class ooni(object):
             for name in files:
                 asset = os.path.join(root, name)
                 self.assets.append(parse_asset(asset))
-    
-    def list_assets(self):        
+
+    def list_assets(self):
         """Enumerate all the assets in the directory specified
         in the config file
         """
@@ -60,7 +60,7 @@ class ooni(object):
             if asset.tests:
                 print "    tests: %s" % asset.tests
             print ""
-    
+
     def load_tests(self):
         """Iterate through the plugoos insite the folder specified by the
         config file and instantiate them.
@@ -72,7 +72,7 @@ class ooni(object):
             test_name = fname
             if not self.config.main.testdir in sys.path:
                 sys.path.insert(0, self.config.main.testdir)
-    
+
             module = __import__(fname)
             try:
                 test.name = module.__plugoo__
@@ -83,7 +83,7 @@ class ooni(object):
                 test.name = test_name
                 test.desc = ""
                 test.module = module
-    
+
             try:
                 self.tests[test_name] = test
             except Exception, e:
@@ -101,7 +101,7 @@ class ooni(object):
                 print "    description: %s" % test.desc
             print ""
 
-    
+
     def run_tests(self):
         """Run all the tests that have been loaded
         """
@@ -111,7 +111,7 @@ class ooni(object):
                 self.tests[name].module.run(self)
             except Exception, e:
                 print "ERR: %s" % e
-    
+
     def run_test(self, test):
         """Run a single test
         """
