@@ -1,3 +1,7 @@
+"""
+
+"""
+
 import imp
 import logging
 
@@ -5,7 +9,7 @@ class Storage(dict):
     """
     A Storage object is like a dictionary except `obj.foo` can be used
     in addition to `obj['foo']`.
-    
+
         >>> o = Storage(a=1)
         >>> o.a
         1
@@ -43,7 +47,7 @@ class Storage(dict):
     def __setstate__(self, value):
         for (k, v) in value.items():
             self[k] = v
-        
+
 
 def get_logger(config):
     loglevel = getattr(logging, config.loglevel.upper())
@@ -76,7 +80,7 @@ def parse_asset(asset):
                     parsed[n] = v.split(",")
                 else:
                     parsed[n] = v
-            
+
             elif line.startswith("#"):
                 continue
             else:
@@ -105,8 +109,8 @@ def import_test(name, config):
             test.name = test_name
             test.desc = ""
             test.module = module
-            
+
         return test_name, test
-        
+
     return None, None
-            
+

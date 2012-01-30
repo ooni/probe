@@ -1,3 +1,13 @@
+"""
+    bridgeT
+    *******
+
+    an OONI test (we call them Plugoos :P) aimed
+    at detecting if a set of Tor bridges are working or not.
+
+    :copyright: (c) 2012 by Arturo Filastò.
+    :license: BSD, see LICENSE for more details.
+"""
 import os
 import sys
 import errno
@@ -18,6 +28,10 @@ class BridgeTAsset(Asset):
         self = Asset.__init__(self, file)
 
 class BridgeT(Plugoo):
+    # This is the timeout value after which
+    # we will give up
+    timeout = 20
+
     def writetorrc(self, bridge):
         # register Tor to an ephemeral port
         socksport = random.randint(49152, 65535)
@@ -37,7 +51,7 @@ DataDirectory %s
         os.mkdir(datadir)
         return (randomname, datadir)
 
-    def connect(self, bridge, timeout=20):
+    def connect(self, bridge, timeout=self.timeout):
         torrc, tordir = self.writetorrc(bridge)
         cmd = ["tor", "-f", torrc]
 
@@ -91,7 +105,8 @@ DataDirectory %s
         return self.connect(bridge)
 
 def run(ooni):
-    """Run the test
+    """
+    Run the test
     """
     config = ooni.config
     urls = []
@@ -102,8 +117,8 @@ def run(ooni):
     assets = [bridges]
 
     bridget = BridgeT(ooni)
-    ooni.logger.info("starting test")
+    ooni.logger.info("Starting bridget test")
     bridget.run(assets)
-    ooni.logger.info("finished")
+    ooni.logger.info("Testing completed!")
 
 

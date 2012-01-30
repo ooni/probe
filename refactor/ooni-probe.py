@@ -1,3 +1,20 @@
+#!/usr/bin/env python
+"""
+    ooni-probe
+    **********
+
+    Open Observatory of Network Interference
+
+    "The Net interprets censorship as damage and routes around it."
+                    - John Gilmore; TIME magazine (6 December 1993)
+
+    The goal of ooni-probe is to collect data about censorship around
+    the world.
+
+    :copyright: (c) 2012 by Arturo Filastò.
+    :license: see LICENSE for more details.
+"""
+
 import imp
 import os
 import sys

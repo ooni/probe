@@ -1,5 +1,14 @@
-# This contains all of the "goo" necessary for creating
-# ooni-probe plugoonies.
+"""
+    plugoo
+    ******
+
+    This contains all of the "goo" necessary for creating
+    ooni-probe plugoonies.
+
+    :copyright: (c) 2012 by Arturo Filastò.
+    :license: see LICENSE for more details.
+
+"""
 
 import os
 
