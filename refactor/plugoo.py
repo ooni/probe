@@ -102,8 +102,7 @@ class Report:
         This should be invoked every time you wish to write some
         data to the reporting system
         """
-        print "Writing report(s)"
-        self.logger.info("Writing report(s)")
+        #print "Writing report(s)"
         dump = "- " + yaml.dump(data)
         reports = []
 
@@ -297,6 +296,7 @@ class Plugoo():
                     gevent.joinall(jobs, timeout=timeout)
                     for job in jobs:
                         #print "JOB VAL: %s" % job.value
+                        self.logger.info("Writing report(s)")
                         self.report(job.value)
                         job.kill()
                     jobs = []
@@ -305,6 +305,7 @@ class Plugoo():
                 gevent.joinall(jobs, timeout=timeout)
                 for job in jobs:
                     #print "JOB VAL: %s" % job.value
+                    self.logger.info("Writing report(s)")
                     self.report(job.value)
                     job.kill()
                 jobs = []
