@@ -1,11 +1,15 @@
 try:
     from dns import resolver
 except:
-    print "Error dnspython is not installed (http://www.dnspython.org/)"
+    print "Error: dnspython is not installed (http://www.dnspython.org/)"
 import gevent
 import os
 import plugoo
-import scapy
+
+try:
+    import scapy
+except:
+    print "Error: traceroute plugin requires scapy to be installed (http://www.secdev.org/projects/scapy)"
 
 from plugoo import Plugoo, Asset
 
