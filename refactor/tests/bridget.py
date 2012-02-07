@@ -1,3 +1,4 @@
+# -*- coding: UTF-8
 """
     bridgeT
     *******
@@ -5,7 +6,7 @@
     an OONI test (we call them Plugoos :P) aimed
     at detecting if a set of Tor bridges are working or not.
 
-    :copyright: (c) 2012 by Arturo Filastò.
+    :copyright: (c) 2012 by Arturo Filastò
     :license: BSD, see LICENSE for more details.
 """
 import os

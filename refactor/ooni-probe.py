@@ -1,3 +1,4 @@
+# -*- coding: UTF-8
 #!/usr/bin/env python
 """
     ooni-probe
@@ -11,7 +12,7 @@
     The goal of ooni-probe is to collect data about censorship around
     the world.
 
-    :copyright: (c) 2012 by Arturo Filastò.
+    :copyright: (c) 2012 by Arturo Filastò
     :license: see LICENSE for more details.
 """
 
