@@ -295,7 +295,7 @@ class Plugoo():
                     # Run the jobs with the selected timeout
                     gevent.joinall(jobs, timeout=timeout)
                     for job in jobs:
-                        print job.value
+                        print "JOB VAL: %s" % job.value
                         self.report(job.value)
                         job.kill()
                     jobs = []
