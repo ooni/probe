@@ -120,7 +120,7 @@ class Report:
         gevent.joinall(jobs)
         ret = []
         for job in jobs:
-            print job.value
+            #print job.value
             ret.append(job.value)
         return ret
 
@@ -216,7 +216,8 @@ class Report:
         """This sends the report using the
         specified type.
         """
-        print "Reporting %s to %s" % (data, type)
+        #print "Reporting %s to %s" % (data, type)
+        self.logger.info("Reporting to %s" % type)
         getattr(self, type+"_report").__call__(data)
 
 class Plugoo():
@@ -295,7 +296,7 @@ class Plugoo():
                     # Run the jobs with the selected timeout
                     gevent.joinall(jobs, timeout=timeout)
                     for job in jobs:
-                        print "JOB VAL: %s" % job.value
+                        #print "JOB VAL: %s" % job.value
                         self.report(job.value)
                         job.kill()
                     jobs = []
@@ -303,7 +304,7 @@ class Plugoo():
             if len(jobs) > 0:
                 gevent.joinall(jobs, timeout=timeout)
                 for job in jobs:
-                    print job.value
+                    #print "JOB VAL: %s" % job.value
                     self.report(job.value)
                     job.kill()
                 jobs = []
