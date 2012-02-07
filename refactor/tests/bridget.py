@@ -52,7 +52,9 @@ DataDirectory %s
         os.mkdir(datadir)
         return (randomname, datadir)
 
-    def connect(self, bridge, timeout=self.timeout):
+    def connect(self, bridge, timeout):
+        if not timeout:
+            timeout = self.timeout
         torrc, tordir = self.writetorrc(bridge)
         cmd = ["tor", "-f", torrc]
 
