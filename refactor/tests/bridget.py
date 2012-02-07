@@ -52,6 +52,7 @@ ClientTransportPlugin obfs2 exec /usr/local/bin/obfsproxy --managed
 UseBridges 1
 bridge %s
 DataDirectory %s
+usemicrodescriptors 0
 """ % (socksport, bridge, datadir)
 
         try:
