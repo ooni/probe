@@ -65,6 +65,8 @@ DataDirectory %s
 
     def connect(self, bridge, timeout=None):
         if not timeout:
+            if self.config.tests.tor_bridges_timeout:
+                self.timeout = self.config.tests.tor_bridges_timeout
             timeout = self.timeout
         torrc, tordir = self.writetorrc(bridge)
         cmd = ["tor", "-f", torrc]
