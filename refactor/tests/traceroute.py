@@ -1,4 +1,7 @@
-from dns import resolver
+try:
+    from dns import resolver
+except:
+    print "Error dnspython is not installed (http://www.dnspython.org/)"
 import gevent
 import os
 import plugoo
@@ -40,52 +43,52 @@ class Traceroute(Plugoo):
                     send_sock.connect((dst, dst_port))
                 except socket.timeout:
                     pass
-                
+
                 except Exception, e:
                     print "Error doing connect %s" % e
             else:
                 send_sock.sendto("", (dst, dst_port))
-            
+
             curr_addr = None
             try:
                 print "receiving data..."
                 _, curr_addr = recv_sock.recvfrom(512)
                 curr_addr = curr_addr[0]
-            
+
             except socket.error, e:
                 print "SOCKET ERROR: %s" % e
-                
+
             except Exception, e:
                 print "ERROR: %s" % e
-                
+
             finally:
                 send_sock.close()
                 recv_sock.close()
-            
+
             if curr_addr is not None:
                 curr_host = "%s" % curr_addr
             else:
                 curr_host = "*"
-            
+
             print "%d\t%s" % (ttl, curr_host)
 
             if curr_addr == dest_addr or ttl > max_hops:
                 break
 
             ttl += 1
-    
-    
-    def experiment(self, *a, **kw):        
+
+
+    def experiment(self, *a, **kw):
         # this is just a dirty hack
         address = kw['data'][0]
-        
+
         self.traceroute(address)
 
 def run(ooni):
     """Run the test"""
     config = ooni.config
     urls = []
-    
+
     traceroute_experiment = TracerouteAsset(os.path.join(config.main.assetdir, \
                                             config.tests.traceroute))
 
@@ -95,5 +98,5 @@ def run(ooni):
     ooni.logger.info("starting traceroute test")
     traceroute.run(assets)
     ooni.logger.info("finished")
-    
+
 

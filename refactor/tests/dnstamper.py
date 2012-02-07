@@ -1,4 +1,7 @@
-from dns import resolver
+try:
+    from dns import resolver
+except:
+    print "Error dnspython is not installed! (http://www.dnspython.org/)"
 import gevent
 import os
 import plugoo
@@ -13,27 +16,27 @@ class DNST(Plugoo):
         res = resolver.Resolver(configure=False)
         res.nameservers = [ns]
         answer = res.query(hostname)
-        
-        ret = []  
-        
+
+        ret = []
+
         for data in answer:
             ret.append(data.address)
-            
+
         return ret
-    
-    def experiment(self, *a, **kw):        
+
+    def experiment(self, *a, **kw):
         # this is just a dirty hack
         address = kw['data'][0]
         ns = kw['data'][1]
-        
+
         config = self.config
-        
+
         print "ADDRESS: %s" % address
         print "NAMESERVER: %s" % ns
-        
+
         exp = self.lookup(address, ns)
         control = self.lookup(address, config.tests.dns_control_server)
-        
+
         if len(set(exp) & set(control)) > 0:
             print "%s : no tampering on %s" % (address, ns)
             return (address, ns, False)
@@ -46,7 +49,7 @@ def run(ooni):
     """
     config = ooni.config
     urls = []
-    
+
     dns_experiment = DNSTAsset(os.path.join(config.main.assetdir, \
                                             config.tests.dns_experiment))
     dns_experiment_dns = DNSTAsset(os.path.join(config.main.assetdir, \
@@ -58,5 +61,5 @@ def run(ooni):
     ooni.logger.info("starting test")
     dnstest.run(assets)
     ooni.logger.info("finished")
-    
+
 
