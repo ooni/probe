@@ -281,7 +281,7 @@ class Plugoo():
                 print ret
                 self.report(ret)
 
-    def run(self, assets=None, buffer=10, timeout=30):
+    def run(self, assets=None, buffer=10, timeout=100000):
         self.logger.info("Starting %s", self.name)
         jobs = []
         if assets:
