@@ -42,6 +42,7 @@ class BridgeT(Plugoo):
 UseBridges 1
 bridge %s
 DataDirectory %s
+usemicrodescriptors 0
 """ % (socksport, bridge, datadir)
         try:
             f = open(randomname, "wb")
