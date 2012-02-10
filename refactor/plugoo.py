@@ -107,7 +107,7 @@ class Report:
         data to the reporting system
         """
         #print "Writing report(s)"
-        dump = '---\n'
+        dump = '--- \n'
         dump += yaml.dump(data)
         reports = []
 
@@ -315,16 +315,19 @@ class Plugoo():
                     job.kill()
                 jobs = []
 
-def torify(socksaddr):
+def torify(socksaddr, modules=None):
     """This is the torify decorator. It should be used to
     decorate functions that should use to for connecting to
     the interwebz. The suggary syntax is the following:
-    @torify("127.0.0.1:9050")
+    @torify("127.0.0.1:9050", [urllib2])
+    def myfunction():
+        f = urllib2.urlopen('https://torproject.org/')
     """
     def decorator(target):
         host, port = socksaddr.split(":")
         socks.setdefaultproxy(socks.PROXY_TYPE_SOCKS5, host, int(port))
-        # Wrap the module into socks
-        socks.wrapmodule(target)
+        # Wrap the modules into socks
+        for module in modules:
+            socks.wrapmodule(module)
         return target
     return decorator
