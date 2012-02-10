@@ -15,6 +15,10 @@ import os
 
 import yaml
 
+try:
+    import socks
+except:
+    "Error SocksiPy is not installed!"
 import socket
 
 import logging
