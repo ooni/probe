@@ -38,11 +38,22 @@ class BridgeT(Plugoo):
         socksport = random.randint(49152, 65535)
         randomname = "tor_"+str(random.randint(0, 424242424242))
         datadir = "/tmp/" + randomname
-        torrc = """SocksPort %s
+        if bridge.startswith("obfs://"):
+            obfsbridge = bridge.split("/")[1]
+            torrc = """SocksPort %s
+UseBridges 1
+DataDirectory %s
+Bridge obfs2 %s
+ClientTransportPlugin obfs2 exec /usr/local/bin/obfsproxy --managed
+""" % (socksport, obfsbridge, datadir)
+
+        else:
+            torrc = """SocksPort %s
 UseBridges 1
 bridge %s
 DataDirectory %s
 """ % (socksport, bridge, datadir)
+
         try:
             f = open(randomname, "wb")
             f.write(torrc)
