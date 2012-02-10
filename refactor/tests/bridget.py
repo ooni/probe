@@ -17,12 +17,18 @@ import random
 import re
 from shutil import rmtree
 from subprocess import Popen, PIPE
+from datetime import datetime
 
 import plugoo
 import gevent
 from gevent import socket
 import fcntl
 from plugoo import Plugoo, Asset
+
+try:
+    from TorCtl import TorCtl
+except:
+    print "Error TorCtl not installed!"
 
 class BridgeTAsset(Asset):
     def __init__(self, file=None):
@@ -36,6 +42,7 @@ class BridgeT(Plugoo):
     def writetorrc(self, bridge):
         # register Tor to an ephemeral port
         socksport = random.randint(49152, 65535)
+        controlport = random.randint(49152, 65535)
         randomname = "tor_"+str(random.randint(0, 424242424242))
         datadir = "/tmp/" + randomname
         if bridge.startswith("obfs://"):
@@ -45,8 +52,8 @@ UseBridges 1
 Bridge obfs2 %s
 DataDirectory %s
 ClientTransportPlugin obfs2 exec /usr/local/bin/obfsproxy --managed
-""" % (socksport, obfsbridge, datadir)
-            print torrc
+ControlPort %s
+""" % (socksport, obfsbridge, datadir, controlport)
         else:
             torrc = """SocksPort %s
 UseBridges 1
@@ -62,14 +69,24 @@ usemicrodescriptors 0
             f.close()
 
         os.mkdir(datadir)
-        return (randomname, datadir)
+        return (randomname, datadir, controlport)
+
+    def parsebridgeinfo(self, output):
+        ret = {}
+        fields = ['router', 'platform', 'opt', 'published', 'uptime', 'bandwidth']
+
+        for x in output.split("\n"):
+            cfield = x.split(' ')
+            if cfield[0] in fields:
+                ret[cfield[0]] = ' '.join(cfield[1:])
+        return ret
 
     def connect(self, bridge, timeout=None):
         if not timeout:
             if self.config.tests.tor_bridges_timeout:
                 self.timeout = self.config.tests.tor_bridges_timeout
             timeout = self.timeout
-        torrc, tordir = self.writetorrc(bridge)
+        torrc, tordir, controlport = self.writetorrc(bridge)
         cmd = ["tor", "-f", torrc]
 
         tupdate = time.time()
@@ -84,16 +101,24 @@ usemicrodescriptors 0
                 o = p.stdout.read(4096)
                 if re.search("100%", o):
                     print "%s bridge works" % bridge
+                    c = TorCtl.connect('127.0.0.1', controlport)
+                    bridgeinfo = self.parsebridgeinfo(c.get_info('dir/server/all')['dir/server/all'])
+                    c.close()
                     p.stdout.close()
                     os.unlink(os.path.join(os.getcwd(), torrc))
                     rmtree(tordir)
                     p.terminate()
-                    return [bridge, True]
+                    return {
+                            'Time': datetime.now(),
+                            'Bridge': bridge,
+                            'Working': True,
+                            'Descriptor': bridgeinfo
+                            }
 
                 if re.search("%", o):
                     # Keep updating the timeout if there is progress
                     tupdate = time.time()
-                    print o
+                    print ".",
                     continue
 
             except IOError:
@@ -111,7 +136,12 @@ usemicrodescriptors 0
                 os.unlink(os.path.join(os.getcwd(), torrc))
                 rmtree(tordir)
                 p.terminate()
-                return [bridge, False]
+                return {
+                        'Time': datetime.now(),
+                        'Bridge': bridge,
+                        'Working': False,
+                        'Descriptor': {}
+                        }
 
     def experiment(self, *a, **kw):
         # this is just a dirty hack
