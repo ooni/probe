@@ -52,7 +52,6 @@ ClientTransportPlugin obfs2 exec /usr/local/bin/obfsproxy --managed
 UseBridges 1
 bridge %s
 DataDirectory %s
-usemicrodescriptors 0
 """ % (socksport, bridge, datadir)
 
         try:
@@ -66,8 +65,6 @@ usemicrodescriptors 0
 
     def connect(self, bridge, timeout=None):
         if not timeout:
-            if self.config.tests.tor_bridges_timeout:
-                self.timeout = self.config.tests.tor_bridges_timeout
             timeout = self.timeout
         torrc, tordir = self.writetorrc(bridge)
         cmd = ["tor", "-f", torrc]
