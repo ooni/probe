@@ -44,7 +44,8 @@ class BridgeT(Plugoo):
 
     def writetorrc(self, bridge):
         # register Tor to an ephemeral port
-        socksport = random.randint(49152, 65535)
+        #socksport = random.randint(49152, 65535)
+        socksport = 9050
         controlport = random.randint(49152, 65535)
         randomname = "tor_"+str(random.randint(0, 424242424242))
         datadir = "/tmp/" + randomname
@@ -64,7 +65,7 @@ bridge %s
 DataDirectory %s
 usemicrodescriptors 0
 """ % (socksport, bridge, datadir)
-
+        print torrc
         try:
             f = open(randomname, "wb")
             f.write(torrc)
@@ -86,16 +87,18 @@ usemicrodescriptors 0
 
     @torify
     def download_file(self):
+        time_start=time.time()
         f = urllib2.urlopen('http://check.torproject.org')
-        print f.readlines()
-
+        data= f.readlines()
+        time_end = time.time()
+        return len(data)/(time_end-time_start)
 
     def connect(self, bridge, timeout=None):
         if not timeout:
             if self.config.tests.tor_bridges_timeout:
                 self.timeout = self.config.tests.tor_bridges_timeout
             timeout = self.timeout
-        self.download_file()
+            #self.download_file()
         torrc, tordir, controlport = self.writetorrc(bridge)
         cmd = ["tor", "-f", torrc]
 
@@ -114,6 +117,8 @@ usemicrodescriptors 0
                     c = TorCtl.connect('127.0.0.1', controlport)
                     bridgeinfo = self.parsebridgeinfo(c.get_info('dir/server/all')['dir/server/all'])
                     c.close()
+                    bandwidth=self.download_file()
+                    print bandwidth
                     p.stdout.close()
                     os.unlink(os.path.join(os.getcwd(), torrc))
                     rmtree(tordir)
@@ -122,13 +127,14 @@ usemicrodescriptors 0
                             'Time': datetime.now(),
                             'Bridge': bridge,
                             'Working': True,
-                            'Descriptor': bridgeinfo
+                            'Descriptor': bridgeinfo,
+                            'Calculated bandwidth': bandwidth
                             }
 
                 if re.search("%", o):
                     # Keep updating the timeout if there is progress
                     tupdate = time.time()
-                    print ".",
+                    print o
                     continue
 
             except IOError:
