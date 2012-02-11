@@ -23,7 +23,8 @@ import plugoo
 import gevent
 from gevent import socket
 import fcntl
-from plugoo import Plugoo, Asset
+from plugoo import Plugoo, Asset, torify
+import urllib2
 
 try:
     from TorCtl import TorCtl
@@ -38,6 +39,8 @@ class BridgeT(Plugoo):
     # This is the timeout value after which
     # we will give up
     timeout = 20
+    # These are the modules that should be torified
+    modules = [urllib2]
 
     def writetorrc(self, bridge):
         # register Tor to an ephemeral port
@@ -81,11 +84,18 @@ usemicrodescriptors 0
                 ret[cfield[0]] = ' '.join(cfield[1:])
         return ret
 
+    @torify
+    def download_file(self):
+        f = urllib2.urlopen('http://check.torproject.org')
+        print f.readlines()
+
+
     def connect(self, bridge, timeout=None):
         if not timeout:
             if self.config.tests.tor_bridges_timeout:
                 self.timeout = self.config.tests.tor_bridges_timeout
             timeout = self.timeout
+        self.download_file()
         torrc, tordir, controlport = self.writetorrc(bridge)
         cmd = ["tor", "-f", torrc]
 
