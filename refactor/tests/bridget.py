@@ -44,8 +44,7 @@ class BridgeT(Plugoo):
 
     def writetorrc(self, bridge):
         # register Tor to an ephemeral port
-        #socksport = random.randint(49152, 65535)
-        socksport = 9050
+        socksport = random.randint(49152, 65535)
         controlport = random.randint(49152, 65535)
         randomname = "tor_"+str(random.randint(0, 424242424242))
         datadir = "/tmp/" + randomname
@@ -66,14 +65,12 @@ DataDirectory %s
 usemicrodescriptors 0
 """ % (socksport, bridge, datadir)
         print torrc
-        try:
-            f = open(randomname, "wb")
+        
+        with open(randomname, "wb") as f:
             f.write(torrc)
-        finally:
-            f.close()
-
+        
         os.mkdir(datadir)
-        return (randomname, datadir, controlport)
+        return (randomname, datadir, controlport, socksport)
 
     def parsebridgeinfo(self, output):
         ret = {}
@@ -85,12 +82,17 @@ usemicrodescriptors 0
                 ret[cfield[0]] = ' '.join(cfield[1:])
         return ret
 
-    @torify
-    def download_file(self):
+    #Can't use @torify as it doesn't support concurrency right now 
+    def download_file(self, socksport):
+        socks.setdefaultproxy(socks.PROXY_TYPE_SOCKS5, "127.0.0.1", int(socksport))
+        socks.wrapmodule(urllib2)
         time_start=time.time()
         f = urllib2.urlopen('http://check.torproject.org')
         data= f.readlines()
+        print data
+        print len(data)
         time_end = time.time()
+        print (time_end-time_start)
         return len(data)/(time_end-time_start)
 
     def connect(self, bridge, timeout=None):
@@ -99,7 +101,7 @@ usemicrodescriptors 0
                 self.timeout = self.config.tests.tor_bridges_timeout
             timeout = self.timeout
             #self.download_file()
-        torrc, tordir, controlport = self.writetorrc(bridge)
+        torrc, tordir, controlport, socksport = self.writetorrc(bridge)
         cmd = ["tor", "-f", torrc]
 
         tupdate = time.time()
@@ -112,13 +114,22 @@ usemicrodescriptors 0
             o = ""
             try:
                 o = p.stdout.read(4096)
+                if o:
+                    print o
                 if re.search("100%", o):
                     print "%s bridge works" % bridge
+                    print "%s controlport" % controlport
                     c = TorCtl.connect('127.0.0.1', controlport)
+                    print c
+                    #c.set_event_handler(LogHandler())
+                    #c.set_events(["DEBUG", "INFO", "NOTICE", "WARN", "ERR"])
                     bridgeinfo = self.parsebridgeinfo(c.get_info('dir/server/all')['dir/server/all'])
-                    c.close()
-                    bandwidth=self.download_file()
+                    #circID = c.extend_circuit(0, ["bridge","serenity"])
+                    bandwidth=self.download_file(socksport)
                     print bandwidth
+                    print c.get_info('stream-status')
+                    #c.signal("HALT")
+                    c.close()
                     p.stdout.close()
                     os.unlink(os.path.join(os.getcwd(), torrc))
                     rmtree(tordir)
@@ -134,7 +145,7 @@ usemicrodescriptors 0
                 if re.search("%", o):
                     # Keep updating the timeout if there is progress
                     tupdate = time.time()
-                    print o
+                    #print o
                     continue
 
             except IOError:
