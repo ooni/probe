@@ -68,29 +68,28 @@ def get_logger(config):
 def parse_asset(asset):
     parsed = Storage()
     try:
-        f = open(asset, 'r')
-        for line in f.readlines():
+        with open(asset, 'r') as f:
+            for line in f.readlines():
             # XXX This should be rewritten, if the values contain
             #     #: they will be rewritten with blank.
             # should not be an issue but this is not a very good parser
-            if line.startswith("#:"):
-                n = line.split(' ')[0].replace('#:','')
-                v = line.replace('#:'+n+' ', '').strip()
-                if n in ('tests', 'files'):
-                    parsed[n] = v.split(",")
+                if line.startswith("#:"):
+                    n = line.split(' ')[0].replace('#:','')
+                    v = line.replace('#:'+n+' ', '').strip()
+                    if n in ('tests', 'files'):
+                        parsed[n] = v.split(",")
+                    else:
+                        parsed[n] = v
+                        
+                elif line.startswith("#"):
+                    continue
                 else:
-                    parsed[n] = v
-
-            elif line.startswith("#"):
-                continue
-            else:
-                break
+                        break
     finally:
         if not parsed.name:
             parsed.name = asset
         if not parsed.files:
             parsed.files = asset
-        f.close()
         return parsed
 
 def import_test(name, config):

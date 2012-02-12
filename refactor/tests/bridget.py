@@ -15,22 +15,52 @@ import errno
 import time
 import random
 import re
+import glob
+import socks
 from shutil import rmtree
 from subprocess import Popen, PIPE
 from datetime import datetime
 
+import shutil
 import plugoo
 import gevent
 from gevent import socket
 import fcntl
 from plugoo import Plugoo, Asset, torify
 import urllib2
+import httplib
 
 try:
     from TorCtl import TorCtl
 except:
     print "Error TorCtl not installed!"
 
+class SocksiPyConnection(httplib.HTTPConnection):
+    def __init__(self, proxytype, proxyaddr, proxyport = None, rdns = True,
+                 username = None, password = None, *args, **kwargs):
+        self.proxyargs = (proxytype, proxyaddr, proxyport, rdns, username, password)
+        httplib.HTTPConnection.__init__(self, *args, **kwargs)
+
+    def connect(self):
+        self.sock = socks.socksocket()
+        self.sock.setproxy(*self.proxyargs)
+        if isinstance(self.timeout, float):
+            self.sock.settimeout(self.timeout)
+        self.sock.connect((self.host, self.port))
+            
+class SocksiPyHandler(urllib2.HTTPHandler):
+    def __init__(self, *args, **kwargs):
+        self.args = args
+        self.kw = kwargs
+        urllib2.HTTPHandler.__init__(self)
+
+    def http_open(self, req):
+        def build(host, port=None, strict=None, timeout=0):    
+            conn = SocksiPyConnection(*self.args, host=host, port=port,
+                                      strict=strict, timeout=timeout, **self.kw)
+            return conn
+        return self.do_open(build, req)
+    
 class BridgeTAsset(Asset):
     def __init__(self, file=None):
         self = Asset.__init__(self, file)
@@ -41,11 +71,12 @@ class BridgeT(Plugoo):
     timeout = 20
     # These are the modules that should be torified
     modules = [urllib2]
+    
 
     def writetorrc(self, bridge):
+        self.failures = []
         # register Tor to an ephemeral port
-        #socksport = random.randint(49152, 65535)
-        socksport = 9050
+        socksport = random.randint(49152, 65535)
         controlport = random.randint(49152, 65535)
         randomname = "tor_"+str(random.randint(0, 424242424242))
         datadir = "/tmp/" + randomname
@@ -66,14 +97,12 @@ DataDirectory %s
 usemicrodescriptors 0
 """ % (socksport, bridge, datadir)
         print torrc
-        try:
-            f = open(randomname, "wb")
+        
+        with open(randomname, "wb") as f:
             f.write(torrc)
-        finally:
-            f.close()
-
+        
         os.mkdir(datadir)
-        return (randomname, datadir, controlport)
+        return (randomname, datadir, controlport, socksport)
 
     def parsebridgeinfo(self, output):
         ret = {}
@@ -85,12 +114,34 @@ usemicrodescriptors 0
                 ret[cfield[0]] = ' '.join(cfield[1:])
         return ret
 
+<<<<<<< HEAD
+=======
+    #Can't use @torify as it doesn't support concurrency right now 
+    def download_file(self, socksport):
+        time_start=time.time()
+
+        opener = urllib2.build_opener(SocksiPyHandler(socks.PROXY_TYPE_SOCKS5,
+                                                      '127.0.0.1', int(socksport)))
+        f = opener.open('http://check.torproject.org')
+        data= f.readlines()
+        print data
+        print len(data)
+        time_end = time.time()
+        print (time_end-time_start)
+        return len(data)/(time_end-time_start)
+
+>>>>>>> remotes/gsathya/fix-utils.py
     def connect(self, bridge, timeout=None):
         if not timeout:
             if self.config.tests.tor_bridges_timeout:
                 self.timeout = self.config.tests.tor_bridges_timeout
             timeout = self.timeout
+<<<<<<< HEAD
         torrc, tordir, controlport = self.writetorrc(bridge)
+=======
+            #self.download_file()
+        torrc, tordir, controlport, socksport = self.writetorrc(bridge)
+>>>>>>> remotes/gsathya/fix-utils.py
         cmd = ["tor", "-f", torrc]
 
         tupdate = time.time()
@@ -103,13 +154,16 @@ usemicrodescriptors 0
             o = ""
             try:
                 o = p.stdout.read(4096)
+                if o:
+                    print o
                 if re.search("100%", o):
                     print "%s bridge works" % bridge
+                    print "%s controlport" % controlport
                     c = TorCtl.connect('127.0.0.1', controlport)
                     bridgeinfo = self.parsebridgeinfo(c.get_info('dir/server/all')['dir/server/all'])
-                    c.close()
-                    bandwidth=self.download_file()
+                    bandwidth=self.download_file(socksport)
                     print bandwidth
+                    c.close()
                     p.stdout.close()
                     os.unlink(os.path.join(os.getcwd(), torrc))
                     rmtree(tordir)
@@ -125,7 +179,7 @@ usemicrodescriptors 0
                 if re.search("%", o):
                     # Keep updating the timeout if there is progress
                     tupdate = time.time()
-                    print o
+                    #print o
                     continue
 
             except IOError:
@@ -139,6 +193,7 @@ usemicrodescriptors 0
                 socket.wait_read(p.stdout.fileno(), timeout=ct)
             except:
                 print "%s bridge does not work (%s s timeout)" % (bridge, timeout)
+                self.failures.append(bridge)
                 p.stdout.close()
                 os.unlink(os.path.join(os.getcwd(), torrc))
                 rmtree(tordir)
@@ -158,21 +213,38 @@ usemicrodescriptors 0
 
         return self.connect(bridge)
 
+    def clean(self):
+        for infile in glob.glob('tor_*'):
+            os.remove(infile)
+
+    def print_failures(self):
+        if self.failures:
+            for item in self.failures:
+                print "Offline : %s" % item
+        else:
+            print "All online"
+
+    # For logging TorCtl event msgs
+    #class LogHandler:
+    #def msg(self, severity, message):
+    #   print "[%s] %s"%(severity, message)
+       
 def run(ooni):
     """
     Run the test
     """
+
     config = ooni.config
     urls = []
 
     bridges = BridgeTAsset(os.path.join(config.main.assetdir, \
-                                            config.tests.tor_bridges))
+                                        config.tests.tor_bridges))
 
     assets = [bridges]
 
     bridget = BridgeT(ooni)
     ooni.logger.info("Starting bridget test")
     bridget.run(assets)
+    bridget.print_failures()
+    bridget.clean()
     ooni.logger.info("Testing completed!")
-
-
