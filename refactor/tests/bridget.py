@@ -47,7 +47,7 @@ class SocksiPyConnection(httplib.HTTPConnection):
         if isinstance(self.timeout, float):
             self.sock.settimeout(self.timeout)
         self.sock.connect((self.host, self.port))
-            
+
 class SocksiPyHandler(urllib2.HTTPHandler):
     def __init__(self, *args, **kwargs):
         self.args = args
@@ -55,12 +55,12 @@ class SocksiPyHandler(urllib2.HTTPHandler):
         urllib2.HTTPHandler.__init__(self)
 
     def http_open(self, req):
-        def build(host, port=None, strict=None, timeout=0):    
+        def build(host, port=None, strict=None, timeout=0):
             conn = SocksiPyConnection(*self.args, host=host, port=port,
                                       strict=strict, timeout=timeout, **self.kw)
             return conn
         return self.do_open(build, req)
-    
+
 class BridgeTAsset(Asset):
     def __init__(self, file=None):
         self = Asset.__init__(self, file)
@@ -71,7 +71,7 @@ class BridgeT(Plugoo):
     timeout = 20
     # These are the modules that should be torified
     modules = [urllib2]
-    
+
 
     def writetorrc(self, bridge):
         self.failures = []
@@ -97,10 +97,10 @@ DataDirectory %s
 usemicrodescriptors 0
 """ % (socksport, bridge, datadir)
         print torrc
-        
+
         with open(randomname, "wb") as f:
             f.write(torrc)
-        
+
         os.mkdir(datadir)
         return (randomname, datadir, controlport, socksport)
 
@@ -114,9 +114,7 @@ usemicrodescriptors 0
                 ret[cfield[0]] = ' '.join(cfield[1:])
         return ret
 
-<<<<<<< HEAD
-=======
-    #Can't use @torify as it doesn't support concurrency right now 
+    #Can't use @torify as it doesn't support concurrency right now
     def download_file(self, socksport):
         time_start=time.time()
 
@@ -130,18 +128,12 @@ usemicrodescriptors 0
         print (time_end-time_start)
         return len(data)/(time_end-time_start)
 
->>>>>>> remotes/gsathya/fix-utils.py
     def connect(self, bridge, timeout=None):
         if not timeout:
             if self.config.tests.tor_bridges_timeout:
                 self.timeout = self.config.tests.tor_bridges_timeout
             timeout = self.timeout
-<<<<<<< HEAD
-        torrc, tordir, controlport = self.writetorrc(bridge)
-=======
-            #self.download_file()
         torrc, tordir, controlport, socksport = self.writetorrc(bridge)
->>>>>>> remotes/gsathya/fix-utils.py
         cmd = ["tor", "-f", torrc]
 
         tupdate = time.time()
@@ -228,7 +220,7 @@ usemicrodescriptors 0
     #class LogHandler:
     #def msg(self, severity, message):
     #   print "[%s] %s"%(severity, message)
-       
+
 def run(ooni):
     """
     Run the test
