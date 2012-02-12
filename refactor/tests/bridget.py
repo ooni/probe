@@ -84,18 +84,11 @@ usemicrodescriptors 0
                 ret[cfield[0]] = ' '.join(cfield[1:])
         return ret
 
-    @torify
-    def download_file(self):
-        f = urllib2.urlopen('http://check.torproject.org')
-        print f.readlines()
-
-
     def connect(self, bridge, timeout=None):
         if not timeout:
             if self.config.tests.tor_bridges_timeout:
                 self.timeout = self.config.tests.tor_bridges_timeout
             timeout = self.timeout
-        self.download_file()
         torrc, tordir, controlport = self.writetorrc(bridge)
         cmd = ["tor", "-f", torrc]
 
