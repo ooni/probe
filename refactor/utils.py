@@ -63,7 +63,7 @@ def get_logger(config):
     console.setFormatter(formatter)
     logging.getLogger('').addHandler(console)
 
-    return logging.getLogger('ooni-probe')
+    return logging.getLogger('ooniprobe')
 
 def parse_asset(asset):
     parsed = Storage()
@@ -80,7 +80,7 @@ def parse_asset(asset):
                         parsed[n] = v.split(",")
                     else:
                         parsed[n] = v
-                        
+
                 elif line.startswith("#"):
                     continue
                 else:
@@ -112,4 +112,21 @@ def import_test(name, config):
         return test_name, test
 
     return None, None
+
+class Log():
+    def __init__(self, file=None):
+        if file:
+            self.fh = open(file)
+
+    def __iter__(self):
+        return self
+
+    def next(self):
+        try:
+            line = self.fh.readline()
+            while not line.startswith("---"):
+                line = self.fh.readline()
+        except:
+            raise StopIteration
+
 

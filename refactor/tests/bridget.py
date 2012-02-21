@@ -82,6 +82,8 @@ class BridgeT(Plugoo):
         datadir = "/tmp/" + randomname
         if bridge.startswith("obfs://"):
             obfsbridge = bridge.split("//")[1]
+
+            self.logger.debug("Genearting torrc file for obfs bridge")
             torrc = """SocksPort %s
 UseBridges 1
 Bridge obfs2 %s
@@ -90,6 +92,7 @@ ClientTransportPlugin obfs2 exec /usr/local/bin/obfsproxy --managed
 ControlPort %s
 """ % (socksport, obfsbridge, datadir, controlport)
         else:
+            self.logger.debug("Generating torrc file for bridge")
             torrc = """SocksPort %s
 UseBridges 1
 bridge %s
@@ -97,7 +100,8 @@ DataDirectory %s
 usemicrodescriptors 0
 ControlPort %s
 """ % (socksport, bridge, datadir, controlport)
-        print torrc
+        #print torrc
+
 
         with open(randomname, "wb") as f:
             f.write(torrc)
@@ -117,17 +121,15 @@ ControlPort %s
 
     #Can't use @torify as it doesn't support concurrency right now
     def download_file(self, socksport):
-        time_start=time.time()
-
         opener = urllib2.build_opener(SocksiPyHandler(socks.PROXY_TYPE_SOCKS5,
                                                       '127.0.0.1', int(socksport)))
-        f = opener.open('http://check.torproject.org')
-        data= f.readlines()
-        print data
-        print len(data)
+
+        time_start=time.time()
+        f = opener.open('http://38.229.72.16/bwauth.torproject.org/256k')
+        f.read()
         time_end = time.time()
         print (time_end-time_start)
-        return len(data)/(time_end-time_start)
+        return str(256/(time_end-time_start)) + " KB/s"
 
     def connect(self, bridge, timeout=None):
         if not timeout:
@@ -150,6 +152,7 @@ ControlPort %s
         except:
             self.logger.error("Unable to set file descriptor to non blocking")
 
+        self.logger.info("Testing bridge: %s" % bridge)
         while True:
             o = ""
             try:
@@ -158,15 +161,17 @@ ControlPort %s
                     self.logger.debug(str(o))
                 if re.search("100%", o):
                     self.logger.info("Success in connecting to %s" % bridge)
+
                     print "%s bridge works" % bridge
-                    print "%s controlport" % controlport
+                    # print "%s controlport" % controlport
                     try:
                         c = TorCtl.connect('127.0.0.1', controlport)
                         bridgeinfo = self.parsebridgeinfo(c.get_info('dir/server/all')['dir/server/all'])
-                        bandwidth=self.download_file(socksport)
+                        bandwidth = self.download_file(socksport)
                     except:
                         self.logger.error("Error in connecting to Tor Control port")
-                    print bandwidth
+
+                    self.logger.info("Bandwidth: %s" % bandwidth)
                     c.close()
                     p.stdout.close()
                     os.unlink(os.path.join(os.getcwd(), torrc))
@@ -182,6 +187,7 @@ ControlPort %s
 
                 if re.search("%", o):
                     # Keep updating the timeout if there is progress
+                    self.logger.debug("Updating time...")
                     tupdate = time.time()
                     #print o
                     continue
@@ -189,13 +195,17 @@ ControlPort %s
             except IOError:
                 ex = sys.exc_info()[1]
                 if ex[0] != errno.EAGAIN:
+                    self.logger.error("Error IOError: EAGAIN")
                     raise
                 sys.exc_clear()
+
             try:
                 # Set the timeout for the socket wait
                 ct = timeout-(time.time() - tupdate)
                 socket.wait_read(p.stdout.fileno(), timeout=ct)
+
             except:
+                self.logger.info("%s bridge does not work (%s s timeout)" % (bridge, timeout))
                 print "%s bridge does not work (%s s timeout)" % (bridge, timeout)
                 self.failures.append(bridge)
                 p.stdout.close()

@@ -12,7 +12,7 @@
 """
 
 import os
-
+from datetime import datetime
 import yaml
 
 try:
@@ -94,6 +94,13 @@ class Report:
         self.scp = scp
         self.config = ooni.config.report
         self.logger = ooni.logger
+
+        if self.config.timestamp:
+            tmp = self.file.split('.')
+            self.file = '.'.join(tmp[:-1]) + "-" + \
+                        datetime.now().isoformat('-') + '.' + \
+                        tmp[-1]
+            print self.file
 
         try:
             import paramiko
