@@ -96,7 +96,7 @@ bridge %s
 DataDirectory %s
 usemicrodescriptors 0
 ControlPort %s
-""" % (socksport, bridge, datadir)
+""" % (socksport, bridge, datadir, controlport)
         print torrc
 
         with open(randomname, "wb") as f:
