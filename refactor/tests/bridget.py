@@ -95,6 +95,7 @@ UseBridges 1
 bridge %s
 DataDirectory %s
 usemicrodescriptors 0
+ControlPort %s
 """ % (socksport, bridge, datadir)
         print torrc
 
@@ -137,23 +138,34 @@ usemicrodescriptors 0
         cmd = ["tor", "-f", torrc]
 
         tupdate = time.time()
-        p = Popen(cmd, stdout=PIPE)
+        try:
+            p = Popen(cmd, stdout=PIPE)
+        except:
+            self.logger.error("Error in starting Tor (do you have tor installed?)")
+
         # XXX this only works on UNIX (do we care?)
         # Make file reading non blocking
-        fcntl.fcntl(p.stdout, fcntl.F_SETFL, os.O_NONBLOCK)
+        try:
+            fcntl.fcntl(p.stdout, fcntl.F_SETFL, os.O_NONBLOCK)
+        except:
+            self.logger.error("Unable to set file descriptor to non blocking")
 
         while True:
             o = ""
             try:
                 o = p.stdout.read(4096)
                 if o:
-                    print o
+                    self.logger.debug(str(o))
                 if re.search("100%", o):
+                    self.logger.info("Success in connecting to %s" % bridge)
                     print "%s bridge works" % bridge
                     print "%s controlport" % controlport
-                    c = TorCtl.connect('127.0.0.1', controlport)
-                    bridgeinfo = self.parsebridgeinfo(c.get_info('dir/server/all')['dir/server/all'])
-                    bandwidth=self.download_file(socksport)
+                    try:
+                        c = TorCtl.connect('127.0.0.1', controlport)
+                        bridgeinfo = self.parsebridgeinfo(c.get_info('dir/server/all')['dir/server/all'])
+                        bandwidth=self.download_file(socksport)
+                    except:
+                        self.logger.error("Error in connecting to Tor Control port")
                     print bandwidth
                     c.close()
                     p.stdout.close()
