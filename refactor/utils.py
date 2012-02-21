@@ -4,6 +4,10 @@
 
 import imp
 import logging
+try:
+    import yaml
+except:
+    print "Error in importing YAML"
 
 class Storage(dict):
     """
@@ -114,6 +118,11 @@ def import_test(name, config):
     return None, None
 
 class Log():
+    """
+    This is a class necessary for parsing YAML log files.
+    It is required because pyYaml has a bug in parsing
+    log format YAML files.
+    """
     def __init__(self, file=None):
         if file:
             self.fh = open(file)
@@ -122,10 +131,15 @@ class Log():
         return self
 
     def next(self):
+        lines = []
         try:
             line = self.fh.readline()
+            if not line:
+                raise StopIteration
             while not line.startswith("---"):
+                lines.append(line)
                 line = self.fh.readline()
+            return lines
         except:
             raise StopIteration
 
