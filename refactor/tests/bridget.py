@@ -140,6 +140,8 @@ ControlPort %s
         cmd = ["tor", "-f", torrc]
 
         tupdate = time.time()
+        debugupdate = time.time()
+
         try:
             p = Popen(cmd, stdout=PIPE)
         except:
@@ -154,6 +156,8 @@ ControlPort %s
 
         self.logger.info("Testing bridge: %s" % bridge)
         while True:
+            if (time.time() - debugupdate) > 40:
+                self.logger.debug("ANTANI: %s %s" % (bridge, o))
             o = ""
             try:
                 o = p.stdout.read(4096)
