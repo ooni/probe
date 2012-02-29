@@ -36,6 +36,9 @@ try:
 except:
     print "Error TorCtl not installed!"
 
+__plugoo__ = "BridgeT"
+__desc__ = "BridgeT, for testing Tor Bridge reachability"
+
 class SocksiPyConnection(httplib.HTTPConnection):
     def __init__(self, proxytype, proxyaddr, proxyport = None, rdns = True,
                  username = None, password = None, *args, **kwargs):

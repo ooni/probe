@@ -7,6 +7,9 @@ import os
 import plugoo
 from plugoo import Plugoo, Asset
 
+__plugoo__ = "DNST"
+__desc__ = "DNS censorship detection test"
+
 class DNSTAsset(Asset):
     def __init__(self, file=None):
         self = Asset.__init__(self, file)

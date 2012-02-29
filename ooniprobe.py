@@ -1,5 +1,5 @@
-# -*- coding: UTF-8
 #!/usr/bin/env python
+# -*- coding: UTF-8
 """
     ooni-probe
     **********
@@ -19,15 +19,18 @@
 import imp
 import os
 import sys
+import argparse
 
 from pprint import pprint
 
 import plugoo
 from utils import Storage, parse_asset, import_test, get_logger
 from config import Config
+from logo import getlogo
 
 class ooni(object):
-    """ooni-probe is a suite designed to run tests on your
+    """
+    ooni-probe is a suite designed to run tests on your
     network to detect censorship.
     This is the main class that is used to start ooni probe
     select the assets and run tests.
@@ -46,13 +49,14 @@ class ooni(object):
         self.get_assets()
 
         self.tests = Storage()
-        self.load_tests()
+        #self.load_tests()
 
         self.runtests = self.config.tests.run.split(",")
 
 
     def get_assets(self):
-        """Parse all the assets in the asset directory.
+        """
+        Parse all the assets in the asset directory.
         Assets can optionaly contain the ooni-probe asset file
         format: #:<something> <something_else>, that will then
         be used to render the asset details to the user.
@@ -65,7 +69,8 @@ class ooni(object):
                 self.assets.append(parse_asset(asset))
 
     def list_assets(self):
-        """Enumerate all the assets in the directory specified
+        """
+        Enumerate all the assets in the directory specified
         in the config file
         """
         print "[-] There are a total of %s assets loaded" % len(self.assets)
@@ -80,7 +85,8 @@ class ooni(object):
             print ""
 
     def load_tests(self):
-        """Iterate through the plugoos insite the folder specified by the
+        """
+        Iterate through the plugoos insite the folder specified by the
         config file and instantiate them.
         """
         pluginfiles = [fname[:-3] for fname in os.listdir(self.config.main.testdir)\
@@ -108,8 +114,10 @@ class ooni(object):
                 print "Failed to load the test %s %s" % (name, e)
 
     def list_tests(self):
-        """Print the loaded plugoonis to screen
         """
+        Print the loaded plugoonis to screen
+        """
+        self.load_tests()
         print "[-] There are a total of %s tests available" % len(self.tests)
         for name, test in self.tests.items():
             print "    name: %s" % name
@@ -121,8 +129,10 @@ class ooni(object):
 
 
     def run_tests(self):
-        """Run all the tests that have been loaded
         """
+        Run all the tests that have been loaded
+        """
+        self.load_tests()
         for name in self.runtests:
             print "running %s" % name
             try:
@@ -131,12 +141,41 @@ class ooni(object):
                 print "ERR: %s" % e
 
     def run_test(self, test):
-        """Run a single test
         """
+        Run a single test
+        """
+        self.load_tests()
         self.tests[test].module.run(self)
 
 if __name__ == "__main__":
+
     o = ooni()
-    o.list_tests()
-    o.run_test("bridget")
+
+    parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter,
+                                    description=getlogo()+'\n\n Open Observatory of Network Interference.')
+    parser.add_argument('-t', '--list-tests', help='List all the available tests',
+            action='store_true', dest='list_tests')
+
+    parser.add_argument('-l', '--list-assets', help='List all the assets',
+            action='store_true', dest='list_assets')
+
+    parser.add_argument('-r', '--run', help='Run a certain test', action='store')
+
+    parser.add_argument('-a', '--asset', help='Use this asset for the test', action='store')
+
+    parser.add_argument('--runall', help='Run all the tests in the config', action='store_true')
+
+    args = parser.parse_args()
+
+    if args.list_tests:
+        o.list_tests()
+
+    if args.list_assets:
+        o.list_assets()
+
+    if args.run:
+        o.run_test(args.run)
+
+    elif args.runall:
+        o.run_tests()
 

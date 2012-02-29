@@ -15,6 +15,9 @@ from plugoo import Plugoo, Asset
 
 import socket
 
+__plugoo__ = "Traceroute"
+__desc__ = "Performs TTL walking tests"
+
 class TracerouteAsset(Asset):
     def __init__(self, file=None):
         self = Asset.__init__(self, file)
