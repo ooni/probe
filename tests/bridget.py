@@ -72,6 +72,41 @@ class BridgeT(Plugoo):
     # These are the modules that should be torified
     modules = [urllib2]
 
+    def tor_greater_than(self, version):
+        """
+        Checks if the currently installed version of Tor is greater
+        than the required version.
+
+        :version The version of Tor to check against for greater than or equal
+        """
+        fullstring = os.popen("tor --version").read().split('\n')[-2]
+        v_array = fullstring.split(' ')[2].split('-')
+        minor = v_array[1:]
+        v_array = v_array[0].split('.')
+        minor_p = version.split('-')[1:]
+        v_array_p = version.split('-')[0].split('.')
+
+        for i, x in enumerate(v_array):
+            try:
+                if int(x) > int(v_array_p[i]):
+                    self.logger.notice("The Tor version is greater than %s" % version)
+                    return True
+                elif int(x) == int(v_array_p[i]):
+                    self.logger.debug("The Tor version is greater than %s" % version)
+                    print "CONTINUE"
+                    continue
+                else:
+                    self.logger.warn("You run an outdated version of Tor: %s (< %s)" % (fullstring, version))
+                    return False
+            except:
+
+                self.logger.error("Error in parsing your Tor version string: %s" % fullstring)
+                return False
+
+        self.logger.notice("The Tor version is equal to %s" % version)
+        return True
+        # XXX currently don't consider the minor parts of the version
+        # (alpha, dev, beta, etc.)
 
     def writetorrc(self, bridge):
         self.failures = []
@@ -93,15 +128,22 @@ ControlPort %s
 """ % (socksport, obfsbridge, datadir, controlport)
         else:
             self.logger.debug("Generating torrc file for bridge")
-            torrc = """SocksPort %s
+            if self.tor_greater_than('0.2.2'):
+
+                torrc = """SocksPort %s
 UseBridges 1
 bridge %s
 DataDirectory %s
 usemicrodescriptors 0
 ControlPort %s
 """ % (socksport, bridge, datadir, controlport)
-        #print torrc
-
+            else:
+                torrc = """SocksPort %s
+UseBridges 1
+bridge %s
+DataDirectory %s
+ControlPort %s
+""" % (socksport, bridge, datadir, controlport)
 
         with open(randomname, "wb") as f:
             f.write(torrc)
