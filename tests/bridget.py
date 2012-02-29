@@ -17,6 +17,7 @@ import random
 import re
 import glob
 import socks
+import socket
 from shutil import rmtree
 from subprocess import Popen, PIPE
 from datetime import datetime
@@ -89,30 +90,48 @@ class BridgeT(Plugoo):
         for i, x in enumerate(v_array):
             try:
                 if int(x) > int(v_array_p[i]):
-                    self.logger.notice("The Tor version is greater than %s" % version)
+                    self.logger.info("The Tor version is greater than %s" % version)
                     return True
                 elif int(x) == int(v_array_p[i]):
                     self.logger.debug("The Tor version is greater than %s" % version)
-                    print "CONTINUE"
                     continue
                 else:
                     self.logger.warn("You run an outdated version of Tor: %s (< %s)" % (fullstring, version))
                     return False
             except:
-
                 self.logger.error("Error in parsing your Tor version string: %s" % fullstring)
                 return False
 
-        self.logger.notice("The Tor version is equal to %s" % version)
+        self.logger.info("The Tor version is equal to %s" % version)
         return True
         # XXX currently don't consider the minor parts of the version
         # (alpha, dev, beta, etc.)
 
+    def free_port(self, port):
+        s = socket.socket()
+        try:
+            s.bind(('127.0.0.1', port))
+            s.close()
+            return True
+        except:
+            self.logger.warn("The randomly chosen port was already taken!")
+            s.close()
+            return False
+
     def writetorrc(self, bridge):
         self.failures = []
+        prange = (49152, 65535)
+
         # register Tor to an ephemeral port
-        socksport = random.randint(49152, 65535)
-        controlport = random.randint(49152, 65535)
+        socksport = random.randint(prange[0], prange[1])
+        # Keep on trying to get a new port if the chosen one is already
+        # taken.
+        while not self.free_port(socksport):
+            socksport = random.randint(prange[0], prange[1])
+        controlport = random.randint(prange[0], prange[1])
+        while not self.free_port(controlport):
+            controlport = random.randint(prange[0], prange[1])
+
         randomname = "tor_"+str(random.randint(0, 424242424242))
         datadir = "/tmp/" + randomname
         if bridge.startswith("obfs://"):
