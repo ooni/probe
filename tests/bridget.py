@@ -177,9 +177,17 @@ ControlPort %s
 
                     self.logger.info("Bandwidth: %s" % bandwidth)
                     c.close()
-                    p.stdout.close()
-                    os.unlink(os.path.join(os.getcwd(), torrc))
-                    rmtree(tordir)
+                    try:
+                        p.stdout.close()
+                    except:
+                        self.logger.error("Error in closing stdout FD.")
+
+                    try:
+                        os.unlink(os.path.join(os.getcwd(), torrc))
+                        rmtree(tordir)
+                    except:
+                        self.logger.error("Error in unlinking files.")
+
                     p.terminate()
                     return {
                             'Time': datetime.now(),
