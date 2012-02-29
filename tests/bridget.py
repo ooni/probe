@@ -30,6 +30,7 @@ import fcntl
 from plugoo import Plugoo, Asset, torify
 import urllib2
 import httplib
+import json
 
 try:
     from TorCtl import TorCtl
@@ -177,7 +178,12 @@ ControlPort %s
         for x in output.split("\n"):
             cfield = x.split(' ')
             if cfield[0] in fields:
-                ret[cfield[0]] = ' '.join(cfield[1:])
+                #not sure if hellais did this on purpose, but this overwrites
+                #the previous entries. For ex, 'opt' has multiple entries and
+                #only the last value is stored
+                ret[cfield[0]] = ' '.join(cfield[1:]) 
+                if cfield[1] == 'fingerprint':
+                    ret['fingerprint'] = ''.join(cfield[2:])
         return ret
 
     #Can't use @torify as it doesn't support concurrency right now
@@ -192,7 +198,21 @@ ControlPort %s
         print (time_end-time_start)
         return str(256/(time_end-time_start)) + " KB/s"
 
+    def is_public(self, fp):
+        conn = httplib.HTTPConnection("85.214.195.203")
+        conn.request("GET", "/summary/search/"+str(fp))
+        response = conn.getresponse()
+        if response.status == 200:
+            reply = json.loads(response.read())
+            conn.close()
+            if reply['bridges'] or reply['relays']:
+                return True
+        return False
+            
     def connect(self, bridge, timeout=None):
+        bridgeinfo = None
+        bandwidth = None
+        public = None
         if not timeout:
             if self.config.tests.tor_bridges_timeout:
                 self.timeout = self.config.tests.tor_bridges_timeout
@@ -232,12 +252,15 @@ ControlPort %s
                     try:
                         c = TorCtl.connect('127.0.0.1', controlport)
                         bridgeinfo = self.parsebridgeinfo(c.get_info('dir/server/all')['dir/server/all'])
-                        bandwidth = self.download_file(socksport)
+                        c.close()
                     except:
                         self.logger.error("Error in connecting to Tor Control port")
 
+                    public = self.is_public(bridgeinfo['fingerprint'])
+                    self.logger.info("Public: %s" % public)
+                    bandwidth = self.download_file(socksport)
                     self.logger.info("Bandwidth: %s" % bandwidth)
-                    c.close()
+
                     try:
                         p.stdout.close()
                     except:
@@ -255,7 +278,8 @@ ControlPort %s
                             'Bridge': bridge,
                             'Working': True,
                             'Descriptor': bridgeinfo,
-                            'Calculated bandwidth': bandwidth
+                            'Calculated bandwidth': bandwidth,
+                            'Public': public
                             }
 
                 if re.search("%", o):
