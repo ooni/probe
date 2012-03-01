@@ -37,6 +37,8 @@ try:
 except:
     print "Error TorCtl not installed!"
 
+ONIONOO_URL="http://85.214.195.203/summary/search/"
+
 class SocksiPyConnection(httplib.HTTPConnection):
     def __init__(self, proxytype, proxyaddr, proxyport = None, rdns = True,
                  username = None, password = None, *args, **kwargs):
@@ -198,15 +200,12 @@ ControlPort %s
         print (time_end-time_start)
         return str(256/(time_end-time_start)) + " KB/s"
 
-    def is_public(self, fp):
-        conn = httplib.HTTPConnection("85.214.195.203")
-        conn.request("GET", "/summary/search/"+str(fp))
-        response = conn.getresponse()
-        if response.status == 200:
-            reply = json.loads(response.read())
-            conn.close()
-            if reply['bridges'] or reply['relays']:
-                return True
+    def is_public(self, fp, socksport):
+        opener = urllib2.build_opener(SocksiPyHandler(socks.PROXY_TYPE_SOCKS5,'127.0.0.1',int(socksport)))
+        response = opener.open(str(ONIONOO_URL)+str(fp))
+        reply = json.loads(response.read())
+        if reply['bridges'] or reply['relays']:
+            return True
         return False
             
     def connect(self, bridge, timeout=None):
@@ -256,7 +255,7 @@ ControlPort %s
                     except:
                         self.logger.error("Error in connecting to Tor Control port")
 
-                    public = self.is_public(bridgeinfo['fingerprint'])
+                    public = self.is_public(bridgeinfo['fingerprint'], socksport)
                     self.logger.info("Public: %s" % public)
                     bandwidth = self.download_file(socksport)
                     self.logger.info("Bandwidth: %s" % bandwidth)
