@@ -127,6 +127,12 @@ class BridgeT(Plugoo):
             return False
 
     def writetorrc(self, bridge):
+        """
+        Write the torrc file for the tor process to be used
+        to test the bridge.
+
+        :bridge the bridge to be tested
+        """
         self.failures = []
         prange = (49152, 65535)
 
@@ -152,7 +158,8 @@ Bridge obfs2 %s
 DataDirectory %s
 ClientTransportPlugin obfs2 exec /usr/local/bin/obfsproxy --managed
 ControlPort %s
-""" % (socksport, obfsbridge, datadir, controlport)
+Log info file %s
+""" % (socksport, obfsbridge, datadir, controlport, os.path.join(datadir,'tor.log'))
         else:
             self.logger.debug("Generating torrc file for bridge")
             if self.tor_greater_than('0.2.3.2'):
@@ -163,14 +170,16 @@ bridge %s
 DataDirectory %s
 usemicrodescriptors 0
 ControlPort %s
-""" % (socksport, bridge, datadir, controlport)
+Log info file %s
+""" % (socksport, bridge, datadir, controlport, os.path.join(datadir,'tor.log'))
             else:
                 torrc = """SocksPort %s
 UseBridges 1
 bridge %s
 DataDirectory %s
 ControlPort %s
-""" % (socksport, bridge, datadir, controlport)
+Log info file %s
+""" % (socksport, bridge, datadir, controlport, os.path.join(datadir,'tor.log'))
 
         with open(randomname, "wb") as f:
             f.write(torrc)
@@ -306,6 +315,9 @@ ControlPort %s
                 socket.wait_read(p.stdout.fileno(), timeout=ct)
 
             except:
+                lfh = open(os.path.join(tordir, 'tor.log'), 'r')
+                log = lfh.readlines()
+                lfh.close()
                 self.logger.info("%s bridge does not work (%s s timeout)" % (bridge, timeout))
                 print "%s bridge does not work (%s s timeout)" % (bridge, timeout)
                 self.failures.append(bridge)
@@ -317,7 +329,8 @@ ControlPort %s
                         'Time': datetime.now(),
                         'Bridge': bridge,
                         'Working': False,
-                        'Descriptor': {}
+                        'Descriptor': {},
+                        'Log': log
                         }
 
     def experiment(self, *a, **kw):
