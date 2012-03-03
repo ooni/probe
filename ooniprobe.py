@@ -179,3 +179,6 @@ if __name__ == "__main__":
     elif args.runall:
         o.run_tests()
 
+    elif len(sys.argv) < 2:
+        parser.print_help()
+
