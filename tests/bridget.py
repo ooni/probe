@@ -241,8 +241,6 @@ ControlPort %s
 
         self.logger.info("Testing bridge: %s" % bridge)
         while True:
-            if (time.time() - debugupdate) > 40:
-                self.logger.debug("ANTANI: %s %s" % (bridge, o))
             o = ""
             try:
                 o = p.stdout.read(4096)
