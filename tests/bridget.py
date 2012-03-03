@@ -98,19 +98,19 @@ class BridgeT(Plugoo):
                     break
 
                 if int(x) > int(v_array_p[i]):
-                    self.logger.info("The Tor version is greater than %s" % version)
+                    self.logger.debug("The Tor version is greater than %s" % version)
                     return True
                 elif int(x) == int(v_array_p[i]):
                     self.logger.debug("The Tor version is greater than %s" % version)
                     continue
                 else:
-                    self.logger.warn("You run an outdated version of Tor: %s (< %s)" % (fullstring, version))
+                    self.logger.debug("You run an outdated version of Tor: %s (< %s)" % (fullstring, version))
                     return False
             except:
                 self.logger.error("Error in parsing your Tor version string: %s" % fullstring)
                 return False
 
-        self.logger.info("The Tor version is equal to %s" % version)
+        self.logger.debug("The Tor version is equal to %s" % version)
         return True
         # XXX currently don't consider the minor parts of the version
         # (alpha, dev, beta, etc.)
