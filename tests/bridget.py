@@ -260,8 +260,10 @@ ControlPort %s
                     except:
                         self.logger.error("Error in connecting to Tor Control port")
 
-                    public = self.is_public(bridgeinfo['fingerprint'], socksport)
-                    self.logger.info("Public: %s" % public)
+                    # XXX disable the public checking
+                    #public = self.is_public(bridgeinfo['fingerprint'], socksport)
+                    #self.logger.info("Public: %s" % public)
+
                     bandwidth = self.download_file(socksport)
                     self.logger.info("Bandwidth: %s" % bandwidth)
 
