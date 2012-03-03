@@ -94,6 +94,9 @@ class BridgeT(Plugoo):
 
         for i, x in enumerate(v_array):
             try:
+                if i > len(v_array_p):
+                    break
+
                 if int(x) > int(v_array_p[i]):
                     self.logger.info("The Tor version is greater than %s" % version)
                     return True
@@ -152,7 +155,7 @@ ControlPort %s
 """ % (socksport, obfsbridge, datadir, controlport)
         else:
             self.logger.debug("Generating torrc file for bridge")
-            if self.tor_greater_than('0.2.2'):
+            if self.tor_greater_than('0.2.3.2'):
 
                 torrc = """SocksPort %s
 UseBridges 1
