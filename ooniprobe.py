@@ -86,7 +86,7 @@ class ooni(object):
 
     def load_tests(self):
         """
-        Iterate through the plugoos insite the folder specified by the
+        Iterate through the plugoos inside the folder specified by the
         config file and instantiate them.
         """
         pluginfiles = [fname[:-3] for fname in os.listdir(self.config.main.testdir)\
