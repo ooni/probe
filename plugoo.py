@@ -26,7 +26,8 @@ import itertools
 import gevent
 
 class Asset:
-    """This is an ooni-probe asset. It is a python
+    """
+    This is an ooni-probe asset. It is a python
     iterator object, allowing it to be efficiently looped.
     To create your own custom asset your should subclass this
     and override the next_asset method and the len method for
@@ -106,7 +107,7 @@ class Report:
             import paramiko
         except:
             self.scp = None
-            self.logger.warn("Could not import paramiko. SCP will not be disabled")
+            self.logger.warn("Could not import paramiko. SCP will be disabled")
 
     def __call__(self, data):
         """
@@ -231,6 +232,44 @@ class Report:
         self.logger.info("Reporting to %s" % type)
         getattr(self, type+"_report").__call__(data)
 
+class Worker():
+    """
+    The worker is responsible for keeping track
+    of WorkUnits. Generating them, reading them.
+    This allows for resume support and dispatching
+    work units to remote OONI control centers.
+    """
+    def __init__(self, status=None):
+        self.status = 0
+        if status:
+            self.resumeStatus(status)
+
+    def resumeStatus(self, status):
+        pass
+
+    def next(self):
+        pass
+
+class WorkUnits():
+    """
+    This is a unit of work. It is associated with a node on
+    which it should be performed and a set of tasks to fulfil.
+    """
+    def __init__(self):
+        pass
+
+    def __iter__(self):
+        return self
+
+    def next(self):
+        try:
+            return self
+        except:
+            raise StopIteration
+
+
+
+
 class Plugoo():
     def __init__(self, ooni):
         self.config = ooni.config
@@ -323,7 +362,8 @@ class Plugoo():
                 jobs = []
 
 class torify(object):
-    """This is the torify decorator. It should be used to
+    """
+    This is the torify decorator. It should be used to
     decorate functions that should use to for connecting to
     the interwebz. The suggary syntax is the following:
     @torify([urllib2])
