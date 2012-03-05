@@ -1,10 +1,21 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8
+"""
+    nodes
+    *****
 
-from binascii import hexlify
-from ooniprobe import ooni
+    This contains all the code related to Nodes
+    both network and code execution.
+
+    :copyright: (c) 2012 by Arturo Filastò.
+    :license: see LICENSE for more details.
+
+"""
+
 import os
-try: 
+from binascii import hexlify
+
+try:
     import paramiko
 except:
     print "Error: module paramiko is not installed."
@@ -91,7 +102,7 @@ class PlanetLab(Node, CodeExecNode):
     def _api_auth(self):
         api_server = xmlrpclib.ServerProxy('https://www.planet-lab.org/PLCAPI/')
         auth = {}
-        ## should be changed to separate node.conf file   
+        ## should be changed to separate node.conf file
         auth['Username'] = self.config.main.pl_username
         auth['AuthString'] = self.config.main.pl_password
         auth['AuthMethod'] = "password"
@@ -140,7 +151,7 @@ class PlanetLab(Node, CodeExecNode):
         pass
 
     def ssh_and_run_(slicename, machinename, command):
-        """Attempt to make a standard OpenSSH client to PL node, and run   
+        """Attempt to make a standard OpenSSH client to PL node, and run
         commands from a .conf file."""
 
         ## needs a way to specify 'ssh -l <slicename> <machinename>'
@@ -157,9 +168,9 @@ class PlanetLab(Node, CodeExecNode):
     def send_files_to_node(directory, files):
         """Attempt to rsync a tree to the PL node."""
         pass
-    
+
     def add_unit:
         pass
-    
+
     def get_status:
         pass
