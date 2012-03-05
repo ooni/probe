@@ -5,16 +5,18 @@ except:
 import gevent
 import os
 import plugoo
-from plugoo import Plugoo, Asset
+from plugoo.assets import Asset
+from plugoo.tests import Test
+
 
 __plugoo__ = "DNST"
 __desc__ = "DNS censorship detection test"
 
 class DNSTAsset(Asset):
     def __init__(self, file=None):
-        self = Asset.__init__(self, file)
+        self = asset.__init__(self, file)
 
-class DNST(Plugoo):
+class DNST(Test):
     def lookup(self, hostname, ns):
         res = resolver.Resolver(configure=False)
         res.nameservers = [ns]

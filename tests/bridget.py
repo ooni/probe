@@ -23,11 +23,11 @@ from subprocess import Popen, PIPE
 from datetime import datetime
 
 import shutil
-import plugoo
 import gevent
 from gevent import socket
 import fcntl
-from plugoo import Plugoo, Asset, torify
+from plugoo.assets import Asset
+from plugoo.tests import Test
 import urllib2
 import httplib
 import json
@@ -71,7 +71,7 @@ class BridgeTAsset(Asset):
     def __init__(self, file=None):
         self = Asset.__init__(self, file)
 
-class BridgeT(Plugoo):
+class BridgeT(Test):
     # This is the timeout value after which
     # we will give up
     timeout = 20
@@ -368,11 +368,11 @@ def run(ooni):
     bridges = BridgeTAsset(os.path.join(config.main.assetdir, \
                                         config.tests.tor_bridges))
 
-    assets = [bridges]
+    bridgelist = [bridges]
 
     bridget = BridgeT(ooni)
     ooni.logger.info("Starting bridget test")
-    bridget.run(assets)
+    bridget.run(bridgelist)
     bridget.print_failures()
     bridget.clean()
     ooni.logger.info("Testing completed!")
