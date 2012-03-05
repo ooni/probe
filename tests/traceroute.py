@@ -11,7 +11,8 @@ try:
 except:
     print "Error: traceroute plugin requires scapy to be installed (http://www.secdev.org/projects/scapy)"
 
-from plugoo import Plugoo, Asset
+from plugoo.assets import Asset
+from plugoo.tests import Test
 
 import socket
 
@@ -20,10 +21,10 @@ __desc__ = "Performs TTL walking tests"
 
 class TracerouteAsset(Asset):
     def __init__(self, file=None):
-        self = Asset.__init__(self, file)
+        self = asset.__init__(self, file)
 
 
-class Traceroute(Plugoo):
+class Traceroute(Test):
     """A *very* quick and dirty traceroute implementation, UDP and TCP
     """
     def traceroute(self, dst, dst_port=3880, src_port=3000, proto="tcp", max_hops=30):

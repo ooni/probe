@@ -64,3 +64,8 @@ class CodeExecNode(Node):
 
     def add_unit(self):
         pass
+
+    def get_status(self):
+        pass
+
+

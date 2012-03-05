@@ -96,7 +96,8 @@ class ooni(object):
             test_name = fname
             if not self.config.main.testdir in sys.path:
                 sys.path.insert(0, self.config.main.testdir)
-
+            #print "Fname: %s\n__import__(%s)" % (fname, fname)
+            #print sys.path
             module = __import__(fname)
             try:
                 test.name = module.__plugoo__
