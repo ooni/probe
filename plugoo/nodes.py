@@ -1,9 +1,21 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8
 
+from binascii import hexlify
+from ooniprobe import ooni
 import os
+try: 
+    import paramiko
+except:
+    print "Error: module paramiko is not installed."
+from pprint import pprint
+try:
+    import pyXMLRPCssh
+except:
+    print "Error: module pyXMLRPCssh is not installed."
 import sys
 import socks
+import xmlrpclib
 
 class Node(object):
     def __init__(self, address, port):
@@ -68,4 +80,86 @@ class CodeExecNode(Node):
     def get_status(self):
         pass
 
+class PlanetLab(Node, CodeExecNode):
+    def __init__(self, address, auth_creds, ooni):
+        self.auth_creds = auth_creds
 
+        self.config = ooni.config
+        self.logger = ooni.logger
+        self.name = "PlanetLab"
+
+    def _api_auth(self):
+        api_server = xmlrpclib.ServerProxy('https://www.planet-lab.org/PLCAPI/')
+        auth = {}
+        ## should be changed to separate node.conf file   
+        auth['Username'] = self.config.main.pl_username
+        auth['AuthString'] = self.config.main.pl_password
+        auth['AuthMethod'] = "password"
+        authorized = api_server.AuthCheck(auth)
+
+        if authorized:
+            print 'We are authorized!'
+            return auth
+        else:
+            print 'Authorization failed. Please check your settings for pl_username and pl_password in the ooni-probe.conf file.'
+
+    def _search_for_nodes(self, node_filter=None):
+        api_server = xmlrpclib.ServerProxy('https://www.planet-lab.org/PLCAPI/', allow_none=True)
+        node_filter = {'hostname': '*.cert.org.cn'}
+        return_fields = ['hostname', 'site_id']
+        all_nodes = api_server.GetNodes(self.api_auth(), node_filter, boot_state_filter)
+        pprint(all_nodes)
+        return all_nodes
+
+    def _add_nodes_to_slice(self):
+        api_server = xmlrpclib.ServerProxy('https://www.planet-lab.org/PLCAPI/', allow_none=True)
+        all_nodes = self.search_for_nodes()
+        for node in all_nodes:
+            api_server.AddNode(self.api_auth(), node['site_id'], all_nodes)
+            print 'Adding nodes %s' % node['hostname']
+
+    def _auth_login(slicename, machinename):
+        """Attempt to authenticate to the given PL node, slicename and
+        machinename, using any of the private keys in ~/.ssh/ """
+
+        agent = paramiko.Agent()
+        agent_keys = agent.get_keys()
+        if len(agent_keys) == 0:
+            return
+
+        for key in agent_keys:
+            print 'Trying ssh-agent key %s' % hexlify(key.get_fingerprint()),
+            try:
+                paramiko.transport.auth_publickey(machinename, slicename)
+                print 'Public key authentication to PlanetLab node %s successful.' % machinename,
+                return
+            except paramiko.SSHException:
+                print 'Public key authentication to PlanetLab node %s failed.' % machinename,
+
+    def _get_command:
+        pass
+
+    def ssh_and_run_(slicename, machinename, command):
+        """Attempt to make a standard OpenSSH client to PL node, and run   
+        commands from a .conf file."""
+
+        ## needs a way to specify 'ssh -l <slicename> <machinename>'
+        ## with public key authentication.
+
+        command = PlanetLab.get_command()
+
+        client = paramiko.SSHClient()
+        client.load_system_host_keys()
+        client.connect(machinename)
+
+        stdin, stdout, stderr = client.exec_command(command)
+
+    def send_files_to_node(directory, files):
+        """Attempt to rsync a tree to the PL node."""
+        pass
+    
+    def add_unit:
+        pass
+    
+    def get_status:
+        pass
