@@ -1,0 +1,253 @@
+Hacking on OONI
+***************
+
+This documents gives guidelines on where to start looking
+for helping out in developing OONI and what guidelines you
+should follow when writing code.
+
+We try to follow the general python best practices and styling
+guides as specified in PEP.
+
+    Beautiful is better than ugly.
+    Explicit is better than implicit.
+    Simple is better than complex.
+    Complex is better than complicated.
+    Flat is better than nested.
+    Sparse is better than dense.
+    Readability counts.
+    Special cases aren't special enough to break the rules.
+    Although practicality beats purity.
+    Errors should never pass silently.
+    Unless explicitly silenced.
+    In the face of ambiguity, refuse the temptation to guess.
+    There should be one-- and preferably only one --obvious way to do it.
+    Although that way may not be obvious at first unless you're Dutch.
+    Now is better than never.
+    Although never is often better than *right* now.
+    If the implementation is hard to explain, it's a bad idea.
+    If the implementation is easy to explain, it may be a good idea.
+    Namespaces are one honking great idea -- let's do more of those!
+
+                                       - Tim Peters, The Zen of Python
+
+Code Structure
+---------
+
+- HACKING
+    The document you are currently reading.
+
+- assets/
+    Where we store all the asset files that are
+    used when running OONI tests.
+
+- config.py
+    Parts of the code related to parsing OONI
+    configuration files and making them accessible
+    to other components of the software.
+
+- logo.py
+    File containing some funny ASCII art. Yes, we
+    do enjoy ASCII art and are not afraid to admit it!
+
+- nodes.conf
+    The configuration file for nodes. This contains the
+    list of network and code execution nodes that can be
+    used to run tests off of.
+
+- ooniprobe.py
+    The main OONI-probe command line interface. This is
+    responsible for parsing the command line arguments and
+    passing the arguments to the underlying components.
+
+- ooni-probe.conf
+    The main OONI-probe configuration file. This can be used
+    to configure your OONI CLI, tell it where it should report
+    to, where the asset files are located, what should be used
+    for control, etc.
+
+- plugoo/__init__.py
+    All the necessary "goo" for making OONI probe work. This
+    means loading Assets, creating Reports, running Tests,
+    interacting with Nodes.
+
+- plugoo/assets.py
+    This is a python object representation of the data that is
+    located inside the asset directory.
+
+- plugoo/nodes.py
+    The part of code responsible for interacting with OONI Nodes.
+    Nodes can be Network or Code Execution. Network nodes are
+    capable of receiving packets and fowarding them onto their
+    network. This means that to run a test on X network nodes you
+    consume X*test_cost bandwith. Code Execution nodes accept units
+    of work, they are therefore capable of receiving a set of tests
+    that should be completed by a set of Network nodes or run locally.
+
+- plugoo/reports.py
+    Takes care of transforming the output of a test into a report. This
+    may mean pushing the result data to a remote backend or simply writing
+    a local file.
+
+- plugoo/tests.py
+    The main OONI probe test class. This provides all the necessary scaffold
+    to write your own test based on the OONI paradigm.
+
+- tests/
+    Contains all the "offical" OONI tests that are shipped.
+
+- utils.py
+    Helper functions that don't fit into any place, but are not big enough to
+    be a dependency by themselves.
+
+Style guide
+-----------
+
+This is an extract of the most important parts of PEP-8. When in doubt on
+what code style should be followed first consult this doc, then PEP-8 and
+if all fails use your best judgement or ask for help.
+    - Art.
+
+Indentation
+...........
+
+    Use 4 spaces per indentation level.
+
+    This can be setup in vi with:
+        set tabstop=4
+        set shiftwidth=4
+        set expandtab
+
+
+    Continuation lines should be wrapper like this:
+
+        foo = long_function_name(var_one, var_two,
+                                 var_three, var_four)
+
+    or this:
+
+        def long_function_name(var_one,
+                    var_two, var_three,
+                    var_four):
+            print(var_one)
+
+
+    They should NOT be wrapper like this:
+
+        foo = long_function_name(var_one, var_two,
+                var_three, var_four)
+
+    and NOT like this:
+
+        # See how it creates confusion with what is inside the function?
+        def long_function_name(var_one,
+            var_two, var_three,
+            var_four):
+            print(var_one)
+
+
+Tabs or Spaces?
+...............
+
+Everytime you insert a \t into any piece of code a kitten dies.
+
+Only spaces. Please.
+
+(code should be run with python -tt)
+
+Maximum Line Length
+...................
+
+Maximum of 79 characters. 72 characters for long blocks of text is recommended.
+
+Blank Lines
+...........
+
+Separate top-level function and class definitions with two blank lines.
+
+Method definitions inside of class are separated by a single blank line.
+
+
+Encoding
+........
+
+Always use UTF-8 encoding. This can be specified by add the encoding cookie
+to the beginning of your python files:
+
+    # -*- coding: UTF-8
+
+All identifiers should be ASCII-only. All doc strings and comments should also
+only be in ASCII. Non ASCII characters are allowed when they are related to
+testing non-ASCII features or for the names of authors.
+
+
+Imports
+.......
+
+Import should be one per line as so:
+
+    import os
+    import sys
+    from subprocess import Popen, PIPE
+
+Imports are always at the top of the file just after any module comments
+and docstrings, berfore module globals and constants.
+
+Imports should be grouped in the following order:
+
+1. standard library imports
+2. related third party imports
+3. local application/library specific imports
+
+You should put a blank line between each group of imports.
+
+
+Comments
+........
+
+Comments should always be up to date with the code. Don't have
+comments that contraddict with the code.
+
+Comments should always be written in English.
+
+Blocks comments are indented to the same level of the code that
+they refer to. They start with # and are followed by a single space.
+
+Use inline comments sparingly. # Gotcha?
+
+
+Documentation strings
+.....................
+
+Write docstrings for all public modules, functions, classes and
+methods. Even better if you write them also for non-public methods.
+
+Place docstrings under the def.
+
+For a better overview on how to write docstrings consult: PEP-257
+
+
+Naming convention
+.................
+
+Avoid using 'l' (lowercase letter el), 'O' (uppercase letter oh) or
+I (uppercase letter eye) as single character variable names.
+
+Module names should have short, all-lowercase names. Underscores can be
+used in the module name if it improves readability. Python packages should
+also have short, all-lowercase names, although the use of underscores is
+discouraged.
+
+Class names should follow the CapWords convention.
+Note: When using abbreviations in CapWords, capitalize all the letters
+      of the abbreviation.  Thus HTTPServerError is better than
+      HttpServerError.
+
+Exception names should follow the class names convention as exceptions
+should be classes.
+
+Function names should be all lowercase with words separated by underscores
+to improve readability. The same goes for Global Variable names.
+
+Method names should be all lowercase. Non-public methods should start with
+an underscore. The same applies to instance variables.
+
