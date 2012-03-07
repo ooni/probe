@@ -26,17 +26,19 @@ class Test:
         pass
 
     def experiment(self, *a, **b):
-        """Override this method to write your own
+        """
+        Override this method to write your own
         Plugoo.
         """
         pass
 
     def load_assets(self, assets):
-        """Takes as input an array of Asset objects and
+        """
+        Takes as input an array of Asset objects and
         outputs an iterator for the loaded assets.
+
         example:
         assets = [hostlist, portlist, requestlist]
-
         """
         asset_count = len(assets)
         bigsize = 0
@@ -62,16 +64,6 @@ class Test:
                     yield (x,) + comb
             else:
                 yield (x)
-
-    def srun(self, assets=None, buffer=10, timeout=2):
-        self.logger.info("Starting %s", self.name)
-        if assets:
-            self.logger.debug("Running through tests")
-            for i, data in enumerate(self.load_assets(assets)):
-                args = {'data': data}
-                ret = self.experiment(**args)
-                print ret
-                self.report(ret)
 
     def run(self, assets=None, buffer=10, timeout=100000):
         self.logger.info("Starting %s", self.name)
@@ -101,5 +93,7 @@ class Test:
                     self.report(job.value)
                     job.kill()
                 jobs = []
+        else:
+            self.logger.error("No Assets! Dying!")
 
 

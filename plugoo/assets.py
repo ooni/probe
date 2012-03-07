@@ -1,5 +1,6 @@
 class Asset:
-    """This is an ooni-probe asset. It is a python
+    """
+    This is an ooni-probe asset. It is a python
     iterator object, allowing it to be efficiently looped.
     To create your own custom asset your should subclass this
     and override the next_asset method and the len method for
@@ -16,7 +17,8 @@ class Asset:
         return self
 
     def len(self):
-        """Returns the length of the asset
+        """
+        Returns the length of the asset
         """
         for i, l in enumerate(self.fh):
             pass
@@ -25,7 +27,8 @@ class Asset:
         return i + 1
 
     def next_asset(self):
-        """Return the next asset.
+        """
+        Return the next asset.
         """
         # XXX this is really written with my feet.
         #     clean me up please...

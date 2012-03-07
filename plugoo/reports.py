@@ -87,7 +87,8 @@ class Report:
 
 
     def tcp_report(self, data):
-        """This connect to the specified tcp server
+        """
+        This connect to the specified tcp server
         and writes the data passed as argument.
         """
         host, port = self.tcp.split(":")
@@ -105,7 +106,9 @@ class Report:
 
 
     def scp_report(self, data, rfile=None, mode='a+'):
-        """Push data to the remote ssh server.
+        """
+        Push data to the remote ssh server.
+
         :rfile the remote filename to write
         :data the raw data content that should be written
         :mode in what mode the file should be created
@@ -160,7 +163,8 @@ class Report:
 
 
     def send_report(self, data, type):
-        """This sends the report using the
+        """
+        This sends the report using the
         specified type.
         """
         #print "Reporting %s to %s" % (data, type)

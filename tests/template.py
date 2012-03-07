@@ -5,6 +5,8 @@
     This is a Test template, to be used when writing your
     own OONI probe Tests.
 """
+import os
+
 from plugoo.assets import Asset
 from plugoo.tests import Test
 
@@ -18,7 +20,7 @@ class TestTemplateAsset(Asset):
     and should be passed on instantiation to the test.
     """
     def __init__(self, file=None):
-        self = asset.__init__(self, file)
+        self = Asset.__init__(self, file)
 
 
 class TestTemplate(Test):
@@ -32,13 +34,13 @@ class TestTemplate(Test):
         on the "dirty" network and should be compared with the
         control.
         """
-        pass
+        return False
 
     def control(self):
         """
         Fill this up with the control related code.
         """
-        pass
+        return True
 
 def run(ooni):
     """
