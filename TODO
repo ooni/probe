@@ -1,0 +1,40 @@
+This is a list of things to be done on ooni-probe.
+
+Once you have completed something you should add a
+note to this file stating what you have done under
+the item.
+
+Migrate code from old
+---------------------
+
+Migrate all the interesting parts of the old code to the new.
+
+It's important to make the new code asych and based on gevent.
+It should respect the design goals of the new ooni-probe model.
+
+* All the parts related to HTTP and Squid (old/ooni/http.py)
+effort: low, skill: medium
+
+* All the captive portal detection tests (old/ooni/http.py
+  and old/ooni/dnsooni.py)
+effort: low, skill: low
+
+* All the DNS censorship detection tests (old/ooni/dnsooni.py)
+effort: medium, skill: medium
+
+* Misc scripts to detect censorship that are not written in any
+  version of OONI.
+effort: low-medium, skill: low-medium
+
+New things to develop
+---------------------
+
+These are either components specific to the new refactor of ooni
+or that we haven't yet figured out how they should work.
+
+* Design and implement the Worker and the Unit of Work classes
+
+* Design and implement the Node Factory
+
+* Design and implement the Network Node and the Code Exec node classes
+
