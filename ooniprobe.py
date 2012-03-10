@@ -135,36 +135,40 @@ class ooni(object):
         """
         self.load_tests()
         for name in self.runtests:
-            print "running %s" % name
+             self.logger.info("running %s" % name)
             try:
                 self.tests[name].module.run(self)
             except Exception, e:
-                print "ERR: %s" % e
+                self.logger.error("ERR: %s" % e)
 
-    def run_test(self, test):
+    def run_test(self, test, asset):
         """
         Run a single test
         """
         self.load_tests()
-        self.tests[test].module.run(self)
+        self.tests[test].module.run(self, asset)
 
 if __name__ == "__main__":
 
     o = ooni()
 
     parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter,
-                                    description=getlogo()+'\n\n Open Observatory of Network Interference.')
+                                     description=getlogo() +
+                                     '\n\n Open Observatory of Network Interference.')
+
     parser.add_argument('-t', '--list-tests', help='List all the available tests',
-            action='store_true', dest='list_tests')
+                        action='store_true', dest='list_tests')
 
     parser.add_argument('-l', '--list-assets', help='List all the assets',
-            action='store_true', dest='list_assets')
+                        action='store_true', dest='list_assets')
 
     parser.add_argument('-r', '--run', help='Run a certain test', action='store')
 
-    parser.add_argument('-a', '--asset', help='Use this asset for the test', action='store')
+    parser.add_argument('-a', '--asset', help='Use this asset for the test',
+                        action='store')
 
-    parser.add_argument('--runall', help='Run all the tests in the config', action='store_true')
+    parser.add_argument('--runall', help='Run all the tests in the config',
+                        action='store_true')
 
     args = parser.parse_args()
 
@@ -175,7 +179,7 @@ if __name__ == "__main__":
         o.list_assets()
 
     if args.run:
-        o.run_test(args.run)
+        o.run_test(args.run, args.asset)
 
     elif args.runall:
         o.run_tests()

@@ -12,10 +12,10 @@ class Test:
     This is a ooni probe Test.
     Also known as a Plugoo!
     """
-    def __init__(self, ooni):
+    def __init__(self, ooni, name="test"):
         self.config = ooni.config
         self.logger = ooni.logger
-        self.name = "test"
+        self.name = name
         self.report = Report(ooni,
                              scp=ooni.config.report.ssh,
                              file=ooni.config.report.file,
@@ -75,7 +75,7 @@ class Test:
                 # Append to the job queue
                 jobs.append(gevent.spawn(self.experiment, **args))
                 # If the buffer is full run the jobs
-                if i % buffer == (buffer-1):
+                if i % buffer == (buffer - 1):
                     # Run the jobs with the selected timeout
                     gevent.joinall(jobs, timeout=timeout)
                     for job in jobs:

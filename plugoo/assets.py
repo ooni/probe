@@ -45,4 +45,3 @@ class Asset:
         except:
             raise StopIteration
 
-
