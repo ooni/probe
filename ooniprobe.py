@@ -135,7 +135,7 @@ class ooni(object):
         """
         self.load_tests()
         for name in self.runtests:
-             self.logger.info("running %s" % name)
+            self.logger.info("running %s" % name)
             try:
                 self.tests[name].module.run(self)
             except Exception, e:

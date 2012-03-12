@@ -11,7 +11,7 @@
 
 """
 
-__all__ = ['assets', 'reports', 'nodes']
+__all__ = ['assets', 'nodes', 'reports', 'tests']
 
 import os
 from datetime import datetime
