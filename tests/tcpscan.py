@@ -7,7 +7,7 @@
 """
 import os
 import socket
-
+from datetime import datetime
 import socks
 
 from plugoo.assets import Asset
@@ -50,7 +50,9 @@ class TCPScan(Test):
         finally:
             s.close()
 
-        return (addr, res)
+        return {'Time': datetime.now(),
+                'Address': addr,
+                'Status': res}
 
     def control(self):
         """
