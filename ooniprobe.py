@@ -141,12 +141,15 @@ class ooni(object):
             except Exception, e:
                 self.logger.error("ERR: %s" % e)
 
-    def run_test(self, test, asset):
+    def run_test(self, test, asset=None):
         """
         Run a single test
         """
         self.load_tests()
-        self.tests[test].module.run(self, asset)
+        if asset:
+            self.tests[test].module.run(self, asset)
+        else:
+            self.tests[test].module.run(self)
 
 if __name__ == "__main__":
 

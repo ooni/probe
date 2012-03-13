@@ -21,7 +21,7 @@ __desc__ = "Performs TTL walking tests"
 
 class TracerouteAsset(Asset):
     def __init__(self, file=None):
-        self = asset.__init__(self, file)
+        self = Asset.__init__(self, file)
 
 
 class Traceroute(Test):

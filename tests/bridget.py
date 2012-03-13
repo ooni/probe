@@ -357,7 +357,7 @@ Log info file %s
     #def msg(self, severity, message):
     #   print "[%s] %s"%(severity, message)
 
-def run(ooni):
+def run(ooni, assets=None):
     """
     Run the test
     """
