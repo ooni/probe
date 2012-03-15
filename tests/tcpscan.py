@@ -6,7 +6,7 @@
 
 """
 import os
-import socket
+from gevent import socket
 from datetime import datetime
 import socks
 
