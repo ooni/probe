@@ -26,6 +26,13 @@ class Asset:
         self.fh.seek(0)
         return i + 1
 
+    def parse_line(self, line):
+        """
+        Override this method if you need line
+        by line parsing of an Asset.
+        """
+        return line.replace('\n','')
+
     def next_asset(self):
         """
         Return the next asset.
@@ -34,7 +41,9 @@ class Asset:
         #     clean me up please...
         line = self.fh.readline()
         if line:
-            return line.replace('\n','')
+            parsed_line = self.parse_line(line)
+            if parsed_line:
+                return parsed_line
         else:
             self.fh.seek(0)
             raise StopIteration
