@@ -41,7 +41,9 @@ class Asset:
         #     clean me up please...
         line = self.fh.readline()
         if line:
-            return self.parse_line(line)
+            parsed_line = self.parse_line(line)
+            if parsed_line:
+                return parsed_line
         else:
             self.fh.seek(0)
             raise StopIteration
