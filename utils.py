@@ -61,7 +61,7 @@ def get_logger(config):
                     filemode='w')
 
     console = logging.StreamHandler()
-    console.setLevel(logging.INFO)
+    console.setLevel(getattr(logging, config.consoleloglevel.upper()))
     # Set the console logger to a different format
     formatter = logging.Formatter('%(name)-12s: %(levelname)-8s %(message)s')
     console.setFormatter(formatter)
