@@ -20,7 +20,10 @@ import httplib
 # appearing on the wire.
 monkey.patch_socket()
 
-from BeautifulSoup import BeautifulSoup
+try:
+    from BeautifulSoup import BeautifulSoup
+except:
+    print "BeautifulSoup-3.2.1 is missing. Try doing: # easy_install beautifulsoup"
 
 from plugoo.assets import Asset
 from plugoo.tests import Test
