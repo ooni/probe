@@ -23,7 +23,7 @@ monkey.patch_socket()
 try:
     from BeautifulSoup import BeautifulSoup
 except:
-    print "BeautifulSoup-3.2.1 is missing. Try doing: # easy_install beautifulsoup"
+    print "BeautifulSoup-3.2.1 is missing. Please see https://crate.io/packages/BeautifulSoup/"
 
 from plugoo.assets import Asset
 from plugoo.tests import Test
