@@ -42,7 +42,7 @@ class Report:
             import paramiko
         except:
             self.scp = None
-            self.logger.warn("Could not import paramiko. SCP will not be disabled")
+            self.logger.warn("Could not import paramiko. SCP will be disabled")
 
     def __call__(self, data):
         """

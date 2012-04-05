@@ -170,7 +170,7 @@ Method definitions inside of class are separated by a single blank line.
 Encoding
 ........
 
-Always use UTF-8 encoding. This can be specified by add the encoding cookie
+Always use UTF-8 encoding. This can be specified by adding the encoding cookie
 to the beginning of your python files:
 
     # -*- coding: UTF-8
