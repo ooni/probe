@@ -18,6 +18,12 @@ from urlparse import urlparse
 from plugoo.assets import Asset
 from plugoo.tests import Test
 
+try:
+    from gevent import monkey
+    monkey.patch_socket()
+except ImportError:
+    print "The gevent module was not found. https://crate.io/packages/gevent/"
+
 __plugoo__ = "captiveportal"
 __desc__ = "Captive portal detection test"
 
@@ -124,13 +130,8 @@ class CaptivePortal(Test):
         string, in order to emulate the test as it would occur on the
         device it was intended for. Vendor tests are defined in the
         format: 
-        [experimental_url, control_response, control_code, ua, test_name]
+        [exp_url, ctrl_result, ctrl_code, ua, test_name]
         """
-        cm = self.http_content_match_fuzzy_opt
-        sm = self.http_status_code_match
-        snm = self.http_status_code_no_match
-        
-        log = self.logger
 
         vendor_tests = [['http://www.apple.com/library/test/success.html',
                          'Success',
@@ -148,54 +149,43 @@ class CaptivePortal(Test):
                          'Microsoft NCSI',
                          'MS HTTP Captive Portal',]]
 
-        log.debug("Getting vendor test data")
+        cm = self.http_content_match_fuzzy_opt
+        sm = self.http_status_code_match
+        snm = self.http_status_code_no_match
+        log = self.logger
         
+        def compare_content(status_func, exp_url, ctrl_result, ctrl_code, headers, 
+                            test_name, fuzzy):
+            log.info("Running the %s test..." % test_name)
+            content_match, exp_code = cm(exp_url, ctrl_result, headers, fuzzy)
+            status_match = status_func(exp_code, ctrl_code)
+            if status_match and content_match:
+                log.info("The %s test was unable to detect a captive portal." % test_name)
+            else:
+                log.info("The %s test shows that your network is filtered." % test_name)
+
         for vt in vendor_tests:
-            experiment_url = vt[0]
-            control_result = vt[1]
-            control_code = vt[2]
-            ua = vt[3]
+            exp_url = vt[0]
+            ctrl_result = vt[1]
+            ctrl_code = vt[2]
+            headers = {'User-Agent': vt[3]}
             test_name = vt[4]
 
             if test_name == "MS HTTP Captive Portal":
-                log.info("Running the %s test..." % test_name)
-                content_match, experiment_code = cm(experiment_url, control_result,
-                                                    headers={'User-Agent': ua})
-                status_match = sm(experiment_code, control_code)
-                if status_match and content_match:
-                    log.info("The %s test was unable to detect a captive portal."
-                             % test_name)
-                else:
-                    log.info("The %s test shows that your network is filtered." 
-                             % test_name)
+                fuzzy = False
+                compare_content(sm, exp_url, ctrl_result, ctrl_code, headers, 
+                                test_name, fuzzy)
                 
             elif test_name == "Apple HTTP Captive Portal":
-                log.info("Running the %s test..." % test_name)
-                content_fuzzy_match, experiment_code = cm(experiment_url, 
-                                                          control_result,
-                                                          headers={'User-Agent': ua},
-                                                          fuzzy=True)
-                status_match = sm(experiment_code, control_code)
-                if status_match and content_fuzzy_match:
-                    log.info("The %s test was unable to detect a captive portal."
-                             % test_name)
-                else:
-                    log.info("The %s test shows that your network is filtered." 
-                             % test_name)
+                fuzzy = True
+                compare_content(sm, exp_url, ctrl_result, ctrl_code, headers, 
+                                test_name, fuzzy)
                 
             elif test_name == "W3 Captive Portal":
-                log.info("Running the %s test..." % test_name)
-                content_fuzzy_match, experiment_code = cm(experiment_url, 
-                                                          control_result,
-                                                          headers={'User-Agent': ua},
-                                                          fuzzy=True)
-                status_no_match = snm(experiment_code, control_code)
-                if status_no_match and content_fuzzy_match:
-                    log.info("The %s test was unable to detect a captive portal."
-                             % test_name)
-                else:
-                    log.info("The %s test shows that your network is filtered." 
-                             % test_name)
+                fuzzy = True
+                compare_content(snm, exp_url, ctrl_result, ctrl_code, headers, 
+                                test_name, fuzzy)
+                
             else:
                 log.warn("Ooni is trying to run an undefined CP vendor test.")
 
