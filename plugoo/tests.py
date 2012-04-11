@@ -78,7 +78,7 @@ class Test:
         if assets:
             self.logger.debug("Running through tests")
 
-            if extradata and extradata['index']:
+            if extradata and 'index' in extradata:
                 index = extradata['index']
             else:
                 index = None
