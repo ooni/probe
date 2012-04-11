@@ -111,4 +111,52 @@ class Test:
         else:
             self.logger.error("No Assets! Dying!")
 
+class TwistedTest:
+    pass
+
+
+class WorkUnit:
+    pass
+
+class WorkUnitFactory:
+
+    asset_looped = False
+    rules = None
+
+    def __init__(self, rules, assets, nodes):
+        self.rules = rules
+        self.nodes = nodes
+        self.nodes_gen = nodes()
+
+    def next(self):
+        if asset_looped:
+            node = self.nodes()
+        yield WorkUnit(assets, node)
+
+
+class TwistedTestFactory:
+
+    test = TwistedTest
+    assets = None
+
+    def __init__(self, assets, nodes,
+                 rule="*", idx=0):
+        """
+        """
+        self.assets = assets
+        self.nodes = nodes
+        self.rule = rule
+        self.idx = idx
+
+    def process_rules(self):
+
+
+    def build_test(self):
+        """
+        Returns a TwistedTest instance
+        """
+        workunit = self.workunit.next()
+        t = self.test(workunit)
+        t.factory = self
+        return t
 
