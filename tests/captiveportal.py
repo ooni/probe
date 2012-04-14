@@ -27,7 +27,8 @@ except ImportError:
 
 try:
     from gevent import monkey
-    monkey.patch_socket(dns=False)
+    monkey.patch_all(socket=True, dns=False, time=True, select=False, thread=True, 
+                     os=True, ssl=True, httplib=False, aggressive=True)
 except ImportError:
     print "The gevent module was not found. https://crate.io/packages/gevent/"
 
@@ -62,7 +63,7 @@ class CaptivePortal(Test):
         Test.__init__(self, ooni, name='test')
         self.default_ua = ooni.config.tests.default_ua
 
-    def http_fetch(self, url, headers=None):
+    def http_fetch(self, url, headers={}):
         """
         Parses an HTTP url, fetches it, and returns a urllib2 response
         object.
@@ -134,6 +135,13 @@ class CaptivePortal(Test):
             return False
         return True
 
+    def http_headers(self, experiment_url):
+        """
+        Return only the headers of an HTTP response.
+        """
+        response = self.http_fetch(url)
+        return response.headers
+
     def dns_resolve(self, hostname, nameserver=None):
         """
         Resolves hostname though nameserver ns to its corresponding
@@ -147,18 +155,40 @@ class CaptivePortal(Test):
         else:
             res = resolver.Resolver()
         
-        try:
+        def __addresses__(hostname):
             answer = res.query(hostname)
             response = []
             for addr in answer:
                 response.append(addr.address)
             return response
-        except resolver.NXDOMAIN as e:
+
+        # This is gross and needs to be cleaned up, but it
+        # was the best way I could find to handle all the
+        # exceptions properly.
+        try:
+            answer = res.query(hostname)
+            response = []
+            for addr in answer:
+                response.append(addr.address)
+            #response = __addresses__(hostname)
+            return response
+        except resolver.NoNameservers as nns:
+            res.nameservers = ['8.8.8.8']
+            try:
+                answer = res.query(hostname)
+                response = []
+                for addr in answer:
+                    response.append(addr.address)
+                #response = __addresses__(hostname)
+                return response
+            except resolver.NXDOMAIN as nx:
+                log.info("DNS resolution for %s returned NXDOMAIN" % hostname)
+                response = ['NXDOMAIN']
+                return response
+        except resolver.NXDOMAIN as nx:
             log.info("DNS resolution for %s returned NXDOMAIN" % hostname)
             response = ['NXDOMAIN']
             return response
-        except:
-            return False
         
     def dns_resolve_match(self, experiment_hostname, control_address):
         """
@@ -178,7 +208,8 @@ class CaptivePortal(Test):
                              "experiment response '%s'" % control_address, address)
                 return False, experiment_address
         else:
-            return None
+            log.debug("dns_resolve() for %s failed" % experiment_hostname)
+            return None, experiment_address
             
     def get_random_url_safe_string(self, length):
         """
@@ -258,13 +289,14 @@ class CaptivePortal(Test):
             random_hostname = self.get_random_hostname(hostname_length)
             response_match, response_address = self.dns_resolve_match(random_hostname,
                                                                       control[0])
-            if response_match is False:
-                log.info("Strangely, DNS resolution of the random hostname")
-                log.ingo("%s actually points to %s" 
-                         % (random_hostname, response_address))
-                responses = responses + response_address
-            else:
-                responses = responses + response_address
+            for address in response_address:
+                if response_match is False:
+                    log.info("Strangely, DNS resolution of the random hostname")
+                    log.info("%s actually points to %s" 
+                             % (random_hostname, response_address))
+                    responses = responses + [address]
+                else:
+                    responses = responses + [address]
 
         intersection = set(responses) & set(control)
         relative_complement = set(responses) - set(control)
@@ -275,24 +307,24 @@ class CaptivePortal(Test):
                      % hostname_count)
             return True, relative_complement
         elif (len(intersection) == 1) and (len(r) > 1):
-            log.info("Something odd happened. Some random hostnames correctly " \
-                         "resolved to NXDOMAIN, but several others resolved " \
-                         "to the following addresses: %s" % relative_complement)
+            log.info("Something odd happened. Some random hostnames correctly")
+            log.info("resolved to NXDOMAIN, but several others resolved to")
+            log.info("to the following addresses: %s" % relative_complement)
             return False, relative_complement
         elif (len(intersection) == 0) and (len(r) == 1):
             log.info("All random hostnames resolved to the IP address ")
             log.info("'%s', which is indicative of a captive portal." % r)
             return False, relative_complement
         else:
-            log.debug("Apparently, pigs are flying on your network, 'cause a " \
-                          "bunch of hostnames made from 32-byte random strings " \
-                          "just magically resolved to a bunch of random addresses. " \
-                          "That is definitely highly improbable. In fact, my napkin " \
-                          "tells me that the probability of just one of those " \
-                          "hostnames resolving to an address is 1.68e-59, making" \
-                          "it nearly twice as unlikely as an MD5 hash collision. " \
-                          "Either someone is seriously messing with your network, " \
-                          "or else you are witnessing the impossible. %s" % r)
+            log.debug("Apparently, pigs are flying on your network, 'cause a")
+            log.debug("bunch of hostnames made from 32-byte random strings")
+            log.debug("just magically resolved to a bunch of random addresses.")
+            log.debug("That is definitely highly improbable. In fact, my napkin")
+            log.debug("tells me that the probability of just one of those")
+            log.degug("hostnames resolving to an address is 1.68e-59, making")
+            log.debug("it nearly twice as unlikely as an MD5 hash collision.")
+            log.debug("Either someone is seriously messing with your network,")
+            log.debug("or else you are witnessing the impossible. %s" % r)
             return False, relative_complement
 
     def google_dns_cp_test(self):
@@ -342,6 +374,7 @@ class CaptivePortal(Test):
         """
         self.google_dns_cp_test()
         self.ms_dns_cp_test()
+
         return
 
     def run_vendor_tests(self, *a, **kw):
@@ -380,8 +413,10 @@ class CaptivePortal(Test):
                             test_name, fuzzy):
             log.info("")
             log.info("Running the %s test..." % test_name)
+
             content_match, exp_code = cm(exp_url, ctrl_result, headers, fuzzy)
             status_match = status_func(exp_code, ctrl_code)
+
             if status_match and content_match:
                 log.info("The %s test was unable to detect " % test_name)
                 log.info("a captive portal.")
@@ -441,8 +476,8 @@ class CaptivePortal(Test):
         
         log = self.logger
 
-        #tally = kw['tally']
-        #tally_marks = kw['tally_marks']
+        tally = kw['tally']
+        tally_marks = kw['tally_marks']
         
         if test_name == "user-defined":
             log.info("Running %s test for '%s'..." % (test_name, experiment_url))
@@ -465,17 +500,17 @@ class CaptivePortal(Test):
                     log.info("which could indicate a captive portal.")
                     
                     ## TODO return exp_content and compare HTTP headers
-                    #tally = tally + 1
-                    #tally_marks.append([experiment_url, experiment_code, 
-                    #                    control_result, control_code])
+                    tally = tally + 1
+                    tally_marks.append([experiment_url, experiment_code, 
+                                        control_result, control_code])
                     return False, test_name
             else:
                 log.info("The content comparison test for ")
                 log.info("'%s'" % experiment_url)
                 log.info("shows that your HTTP traffic is filtered.")
-                #tally = tally + 1
-                #tally_marks.append([experiment_url, experiment_code, 
-                #                    control_result, control_code])
+                tally = tally + 1
+                tally_marks.append([experiment_url, experiment_code, 
+                                    control_result, control_code])
                 return False, test_name
         
         else:
@@ -512,6 +547,9 @@ def run(ooni):
 
     Either vendor tests or user-defined tests can be run, or both.
     """
+    #tally = Storage(tally=0)
+    #tally_marks = Storage(tally_marks=[])
+
     config = ooni.config
     log = ooni.logger
 
@@ -523,19 +561,20 @@ def run(ooni):
     
     captiveportal = CaptivePortal(ooni)
     log.info("Starting captive portal test...")
-    captiveportal.run(assets, {'index': 1})
-    #captiveportal.run(assets, {'index': 1, 'tally': tally, 
-    #                           'tally_marks': tally_marks})
+    #captiveportal.run(assets, {'index': 1})
+    captiveportal.run(assets, {'index': 1, 'tally': 0, 
+                               'tally_marks': []})
     
     if config.tests.do_captive_portal_vendor_tests:
+        log.info("")
         log.info("Running vendor tests...")
         captiveportal.run_vendor_tests()
 
     if config.tests.do_captive_portal_vendor_dns_tests:
+        log.info("")
         log.info("Running vendor DNS-based tests...")
         captiveportal.run_vendor_dns_tests()
 
-    #captiveportal.confirmed_kill_count({'tally': tally, 
-    #                                    'tally_marks': tally_marks})
+    #captiveportal.confirmed_kill_count()
 
     log.info("Captive portal test finished!")
