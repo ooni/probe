@@ -35,10 +35,6 @@ except ImportError:
 __plugoo__ = "captiveportal"
 __desc__ = "Captive portal detection test"
 
-# TODO make tally marker system to display all detected
-# censorship event at the end of the test.
-#tally = 0
-#tally_marks = []
 
 class CaptivePortalAsset(Asset):
     """
@@ -56,11 +52,11 @@ class CaptivePortal(Test):
     Compares content and status codes of HTTP responses, and attempts
     to determine if content has been altered.
 
-    TODO: compare headers, random URL requests with control obtained
-    through Tor.
+    TODO: compare headers, compare 0x20 dns requests with authoritative
+    server answers.
     """
-    def __init__(self, ooni):
-        Test.__init__(self, ooni, name='test')
+    def __init__(self, ooni, name=__plugoo__):
+        Test.__init__(self, ooni, name)
         self.default_ua = ooni.config.tests.default_ua
 
     def http_fetch(self, url, headers={}):
@@ -71,7 +67,8 @@ class CaptivePortal(Test):
         url = urlparse(url).geturl()
         request = urllib2.Request(url, None, headers)
         response = urllib2.urlopen(request)
-        return response
+        response_headers = dict(response.headers)
+        return response, response_headers
  
     def http_content_match_fuzzy_opt(self, experimental_url, control_result,
                                      headers=None, fuzzy=False):
@@ -82,7 +79,8 @@ class CaptivePortal(Test):
         True, the response_content is compared with a regex of the
         control_result. If the response_content from the
         experimental_url and the control_result match, returns True
-        with the HTTP status code, False and status code if otherwise.
+        with the HTTP status code and headers; False, status code, and
+        headers if otherwise.
         """
         log = self.logger
 
@@ -90,7 +88,7 @@ class CaptivePortal(Test):
             default_ua = self.default_ua
             headers = {'User-Agent': default_ua}
 
-        response = self.http_fetch(experimental_url, headers)
+        response, response_headers = self.http_fetch(experimental_url, headers)
         response_content = response.read()
         response_code = response.code
         if response_content is not None:
@@ -101,23 +99,23 @@ class CaptivePortal(Test):
                     log.info("Fuzzy HTTP content comparison for experiment URL")
                     log.info("'%s'" % experimental_url)
                     log.info("does not match!")
-                    return False, response_code
+                    return False, response_code, response_headers
                 else:
                     log.info("Fuzzy HTTP content comparison of experiment URL")
                     log.info("'%s'" % experimental_url)
                     log.info("and the expected control result yielded a match.")
-                    return True, response_code
+                    return True, response_code, response_headers
             else:
                 if str(response_content) != str(control_result):
                     log.info("HTTP content comparison of experiment URL")
                     log.info("'%s'" % experimental_url)
                     log.info("and the expected control result do not match.")
-                    return False, response_code
+                    return False, response_code, response_headers
                 else:
-                    return True, response_code
+                    return True, response_code, response_headers
         else:
             log.warn("HTTP connection appears to have failed.")
-        return False, False
+        return False, False, False
     
     def http_status_code_match(self, experiment_code, control_code):
         """
@@ -135,13 +133,6 @@ class CaptivePortal(Test):
             return False
         return True
 
-    def http_headers(self, experiment_url):
-        """
-        Return only the headers of an HTTP response.
-        """
-        response = self.http_fetch(url)
-        return response.headers
-
     def dns_resolve(self, hostname, nameserver=None):
         """
         Resolves hostname though nameserver ns to its corresponding
@@ -155,13 +146,6 @@ class CaptivePortal(Test):
         else:
             res = resolver.Resolver()
         
-        def __addresses__(hostname):
-            answer = res.query(hostname)
-            response = []
-            for addr in answer:
-                response.append(addr.address)
-            return response
-
         # This is gross and needs to be cleaned up, but it
         # was the best way I could find to handle all the
         # exceptions properly.
@@ -170,7 +154,6 @@ class CaptivePortal(Test):
             response = []
             for addr in answer:
                 response.append(addr.address)
-            #response = __addresses__(hostname)
             return response
         except resolver.NoNameservers as nns:
             res.nameservers = ['8.8.8.8']
@@ -179,7 +162,6 @@ class CaptivePortal(Test):
                 response = []
                 for addr in answer:
                     response.append(addr.address)
-                #response = __addresses__(hostname)
                 return response
             except resolver.NXDOMAIN as nx:
                 log.info("DNS resolution for %s returned NXDOMAIN" % hostname)
@@ -332,20 +314,22 @@ class CaptivePortal(Test):
         Google Chrome resolves three 10-byte random hostnames.
         """
         log = self.logger
+        subtest = "Google Chrome DNS-based"
+
         log.info("")
         log.info("Running the Google Chrome DNS-based captive portal test...")
 
-        gmatch, g_dns_result = self.compare_random_hostnames(3, 10)
+        gmatch, google_dns_result = self.compare_random_hostnames(3, 10)
 
         if gmatch:
             log.info("Google Chrome DNS-based captive portal test did not")
             log.info("detect a captive portal.")
-            return g_dns_result
+            return google_dns_result
         else:
             log.info("Google Chrome DNS-based captive portal test believes")
             log.info("you are in a captive portal, or else something very")
             log.info("odd is happening with your DNS.")
-            return g_dns_result
+            return google_dns_result
         
     def ms_dns_cp_test(self):
         """
@@ -353,9 +337,11 @@ class CaptivePortal(Test):
         to the same address.
         """
         log = self.logger
+        subtest = "Microsoft NCSI DNS-based"
+
         log.info("")
-        log.info("Running the Microsoft NCSI DNS-based captive")
-        log.info("portal test...")
+        log.info("Running the Microsoft NCSI DNS-based captive portal")
+        log.info("test...")
 
         msmatch, ms_dns_result = self.dns_resolve_match("dns.msftncsi.com", 
                                                         "131.107.255.255")
@@ -409,42 +395,40 @@ class CaptivePortal(Test):
         snm = self.http_status_code_no_match
         log = self.logger
         
-        def compare_content(status_func, exp_url, ctrl_result, ctrl_code, headers, 
-                            test_name, fuzzy):
+        def compare_content(status_func, fuzzy, experiment_url, control_result, 
+                            control_code, headers, test_name):
             log.info("")
             log.info("Running the %s test..." % test_name)
 
-            content_match, exp_code = cm(exp_url, ctrl_result, headers, fuzzy)
-            status_match = status_func(exp_code, ctrl_code)
+            content_match, experiment_code, experiment_headers = cm(experiment_url, 
+                                                                    control_result, 
+                                                                    headers, fuzzy)
+            status_match = status_func(experiment_code, control_code)
 
             if status_match and content_match:
-                log.info("The %s test was unable to detect " % test_name)
+                log.info("The %s test was unable to detect" % test_name)
                 log.info("a captive portal.")
             else:
                 log.info("The %s test shows that your network" % test_name)
                 log.info("is filtered.")
 
         for vt in vendor_tests:
-            exp_url = vt[0]
-            ctrl_result = vt[1]
-            ctrl_code = vt[2]
+            experiment_url = vt[0]
+            control_result = vt[1]
+            control_code = vt[2]
             headers = {'User-Agent': vt[3]}
             test_name = vt[4]
 
+            args = (experiment_url, control_result, control_code, headers, test_name)
+
             if test_name == "MS HTTP Captive Portal":
-                fuzzy = False
-                compare_content(sm, exp_url, ctrl_result, ctrl_code, headers, 
-                                test_name, fuzzy)
+                compare_content(sm, False, *args)
                 
             elif test_name == "Apple HTTP Captive Portal":
-                fuzzy = True
-                compare_content(sm, exp_url, ctrl_result, ctrl_code, headers, 
-                                test_name, fuzzy)
+                compare_content(sm, True, *args)
                 
             elif test_name == "W3 Captive Portal":
-                fuzzy = True
-                compare_content(snm, exp_url, ctrl_result, ctrl_code, headers, 
-                                test_name, fuzzy)
+                compare_content(snm, True, *args)
                 
             else:
                 log.warn("Ooni is trying to run an undefined CP vendor test.")
@@ -475,13 +459,11 @@ class CaptivePortal(Test):
         snm = self.http_status_code_no_match
         
         log = self.logger
-
-        tally = kw['tally']
-        tally_marks = kw['tally_marks']
         
         if test_name == "user-defined":
             log.info("Running %s test for '%s'..." % (test_name, experiment_url))
-            content_match, experiment_code = cm(experiment_url, control_result)
+            content_match, experiment_code, experiment_headers = cm(experiment_url, 
+                                                                    control_result)
             status_match = sm(experiment_code, control_code)
             if status_match and content_match:
                 log.info("The %s test for '%s'" % (test_name, experiment_url))
@@ -490,50 +472,26 @@ class CaptivePortal(Test):
             elif status_match and not content_match:
                 log.info("Retrying '%s' with fuzzy match enabled."
                          % experiment_url)
-                content_fuzzy_match, experiment_code = cm(experiment_url, 
-                                                          control_result,
-                                                          fuzzy=True)
-                if content_fuzzy_match:
+                fuzzy_match, experiment_code, experiment_headers = cm(experiment_url, 
+                                                                      control_result,
+                                                                      fuzzy=True)
+                if fuzzy_match:
                     return True, test_name
                 else:
                     log.info("Found modified content on '%s'," % experiment_url)
                     log.info("which could indicate a captive portal.")
                     
-                    ## TODO return exp_content and compare HTTP headers
-                    tally = tally + 1
-                    tally_marks.append([experiment_url, experiment_code, 
-                                        control_result, control_code])
                     return False, test_name
             else:
                 log.info("The content comparison test for ")
                 log.info("'%s'" % experiment_url)
                 log.info("shows that your HTTP traffic is filtered.")
-                tally = tally + 1
-                tally_marks.append([experiment_url, experiment_code, 
-                                    control_result, control_code])
                 return False, test_name
         
         else:
             log.warn("Ooni is trying to run an undefined captive portal test.")
             return False, test_name
         
-    def confirmed_kill_count(self, *a, **kw):
-        """
-        Yeah, sounds scary. And it is. 
- 
-        This returns a tally count for detected censorship events and the
-        experiment results which upped the count.
-        """
-        log = self.logger
-
-        tally = kw['tally']
-        tally_marks = kw['tally_marks']
-        
-        log.info("")
-        log.info("OONI-probe captive portal test detected %d potential " % tally)
-        log.info("censorship events.") 
-        log.info("Events which were flagged as potential censorship:")
-        log.info("%s" % tally_marks)
 
 def run(ooni):
     """
@@ -547,11 +505,9 @@ def run(ooni):
 
     Either vendor tests or user-defined tests can be run, or both.
     """
-    #tally = Storage(tally=0)
-    #tally_marks = Storage(tally_marks=[])
-
     config = ooni.config
     log = ooni.logger
+    tally = ooni.tally
 
     assets = []
     if (os.path.isfile(os.path.join(config.main.assetdir,
@@ -561,9 +517,8 @@ def run(ooni):
     
     captiveportal = CaptivePortal(ooni)
     log.info("Starting captive portal test...")
-    #captiveportal.run(assets, {'index': 1})
-    captiveportal.run(assets, {'index': 1, 'tally': 0, 
-                               'tally_marks': []})
+    captiveportal.run(assets, {'index': 1, 'tally': tally.count, 
+                               'tally_marks': tally.marks})
     
     if config.tests.do_captive_portal_vendor_tests:
         log.info("")
@@ -574,7 +529,5 @@ def run(ooni):
         log.info("")
         log.info("Running vendor DNS-based tests...")
         captiveportal.run_vendor_dns_tests()
-
-    #captiveportal.confirmed_kill_count()
 
     log.info("Captive portal test finished!")

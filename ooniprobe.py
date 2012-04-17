@@ -51,6 +51,10 @@ class ooni(object):
         self.tests = Storage()
         #self.load_tests()
 
+        self.tally = Storage()
+        self.tally.count = 0
+        self.tally.marks = Storage()
+
         self.runtests = self.config.tests.run.split(",")
 
 
