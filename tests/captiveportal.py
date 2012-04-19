@@ -12,6 +12,7 @@
 """
 import base64
 import os
+import random
 import re
 import string
 import urllib2
@@ -51,9 +52,6 @@ class CaptivePortal(Test):
     """
     Compares content and status codes of HTTP responses, and attempts
     to determine if content has been altered.
-
-    TODO: compare headers, compare 0x20 dns requests with authoritative
-    server answers.
     """
     def __init__(self, ooni, name=__plugoo__):
         Test.__init__(self, ooni, name)
@@ -135,42 +133,43 @@ class CaptivePortal(Test):
 
     def dns_resolve(self, hostname, nameserver=None):
         """
-        Resolves hostname though nameserver ns to its corresponding
-        address(es). If ns is not given, use local DNS resolver.
+        Resolves hostname(s) though nameserver to corresponding
+        address(es). hostname may be either a single hostname string,
+        or a list of strings. If nameserver is not given, use local
+        DNS resolver, and if that fails try using 8.8.8.8.
         """
         log = self.logger
 
+        if isinstance(hostname, str):
+            hostname = [hostname]
+        
         if nameserver is not None:
             res = resolver.Resolver(configure=False)
             res.nameservers = [nameserver]
         else:
             res = resolver.Resolver()
         
-        # This is gross and needs to be cleaned up, but it
-        # was the best way I could find to handle all the
-        # exceptions properly.
-        try:
-            answer = res.query(hostname)
-            response = []
-            for addr in answer:
-                response.append(addr.address)
-            return response
-        except resolver.NoNameservers as nns:
-            res.nameservers = ['8.8.8.8']
+        response = []
+        answer = None
+
+        for hn in hostname:
             try:
-                answer = res.query(hostname)
-                response = []
-                for addr in answer:
-                    response.append(addr.address)
-                return response
-            except resolver.NXDOMAIN as nx:
-                log.info("DNS resolution for %s returned NXDOMAIN" % hostname)
-                response = ['NXDOMAIN']
-                return response
-        except resolver.NXDOMAIN as nx:
-            log.info("DNS resolution for %s returned NXDOMAIN" % hostname)
-            response = ['NXDOMAIN']
-            return response
+                answer = res.query(hn)
+            except resolver.NoNameservers:
+                res.nameservers = ['8.8.8.8']
+                try:
+                    answer = res.query(hn)
+                except resolver.NXDOMAIN:
+                    log.info("DNS resolution for %s returned NXDOMAIN" % hn)
+                    response.append('NXDOMAIN')
+            except resolver.NXDOMAIN:
+                log.info("DNS resolution for %s returned NXDOMAIN" % hn)
+                response.append('NXDOMAIN')
+            finally:
+                if answer:
+                    for addr in answer:
+                        response.append(addr.address)
+        return response
         
     def dns_resolve_match(self, experiment_hostname, control_address):
         """
@@ -186,13 +185,118 @@ class CaptivePortal(Test):
             if len(set(experiment_address) & set([control_address])) > 0:
                 return True, experiment_address
             else:
-                log.info("DNS comparison of control '%s' does not match " \
-                             "experiment response '%s'" % control_address, address)
+                log.info("DNS comparison of control '%s' does not" % control_address)
+                log.info("match experiment response '%s'" % experiment_address)
                 return False, experiment_address
         else:
             log.debug("dns_resolve() for %s failed" % experiment_hostname)
             return None, experiment_address
             
+    def get_auth_nameservers(self, hostname):
+        """
+        Many CPs set a nameserver to be used. Let's query that
+        nameserver for the authoritative nameservers of hostname.
+
+        The equivalent of:
+        $ dig +short NS ooni.nu
+        """
+        res = resolver.Resolver()
+        answer = res.query(hostname, 'NS')
+        auth_nameservers = []
+        for auth in answer:
+            auth_nameservers.append(auth.to_text())
+        return auth_nameservers
+
+    def hostname_to_0x20(self, hostname):
+        """
+        MaKEs yOur HOsTnaME lOoK LiKE THis.
+
+        For more information, see: 
+        D. Dagon, et. al. "Increased DNS Forgery Resistance 
+        Through 0x20-Bit Encoding". Proc. CSS, 2008.
+        """
+        hostname_0x20 = ''
+        for char in hostname:
+            l33t = random.choice(['caps', 'nocaps'])
+            if l33t == 'caps':
+                hostname_0x20 = hostname_0x20 + char.capitalize()
+            else:
+                hostname_0x20 = hostname_0x20 + char.lower()
+        return hostname_0x20
+
+    def check_0x20_to_auth_ns(self, hostname, sample_size=None):
+        """
+        Resolve a 0x20 DNS request for hostname over hostname's
+        authoritative nameserver(s), and check to make sure that
+        the capitalization in the 0x20 request matches that of the
+        response. Also, check the serial numbers of the SOA (Start
+        of Authority) records on the authoritative nameservers to
+        make sure that they match.
+
+        If sample_size is given, a random sample equal to that number
+        of authoritative nameservers will be queried; default is 5.
+        """
+        log = self.logger
+        log.info("")
+        log.info("Testing random capitalization of DNS queries...")
+        log.info("Testing that Start of Authority serial numbers match...")
+
+        auth_nameservers = self.get_auth_nameservers(hostname)
+
+        if sample_size is None:
+            sample_size = 5
+            resolved_auth_ns = random.sample(self.dns_resolve(auth_nameservers),
+                                             sample_size)
+
+        querynames = []
+        answernames = []
+        serials = []
+
+        # Even when gevent monkey patching is on, the requests here
+        # are sent without being 0x20'd, so we need to 0x20 them.
+        hostname = self.hostname_to_0x20(hostname)
+                
+        for auth_ns in resolved_auth_ns:
+            res = resolver.Resolver(configure=False)
+            res.nameservers = [auth_ns]
+            try:
+                answer = res.query(hostname, 'SOA')
+            except resolver.Timeout:
+                continue
+            querynames.append(answer.qname.to_text())
+            answernames.append(answer.rrset.name.to_text())
+            for soa in answer:
+                serials.append(str(soa.serial))
+
+        if len(set(querynames).intersection(answernames)) == 1:
+            log.info("Capitalization in DNS queries and responses match.")
+            name_match = True
+        else:
+            log.info("The random capitalization '%s' used in" % hostname)
+            log.info("DNS queries to that hostname's authoritative")
+            log.info("nameservers does not match the capitalization in")
+            log.info("the response.")
+            name_match = False
+
+        if len(set(serials)) == 1:
+            log.info("Start of Authority serial numbers all match.")
+            serial_match = True
+        else:
+            log.info("Some SOA serial numbers did not match the rest!")
+            serial_match = False
+
+        ret = name_match, serial_match, querynames, answernames, serials
+
+        if name_match and serial_match:
+            log.info("Your DNS queries do not appear to be tampered.")
+            return ret
+        elif name_match or serial_match:
+            log.info("Something is tampering with your DNS queries.")
+            return ret
+        elif not name_match and not serial_match:
+            log.info("Your DNS queries are definitely being tampered with.")
+            return ret
+        
     def get_random_url_safe_string(self, length):
         """
         Returns a random url-safe string of specified length, where 
@@ -497,17 +601,26 @@ def run(ooni):
     """
     Runs the CaptivePortal(Test).
 
-    If do_captive_portal_vendor_tests is set to true, then vendor
-    specific captive portal tests will be run.
+    CONFIG OPTIONS 
+    -------------- 
 
-    If captive_portal = filename.txt, then user-specified tests
+    If "do_captive_portal_vendor_tests" is set to "true", then vendor
+    specific captive portal HTTP-based tests will be run.
+
+    If "do_captive_portal_dns_tests" is set to "true", then vendor
+    specific captive portal DNS-based tests will be run.
+
+    If "check_dns_requests" is set to "true", then Ooni-probe will
+    attempt to check that your DNS requests are not being tampered with
+    by a captive portal.
+
+    If "captive_portal" = "yourfilename.txt", then user-specified tests
     will be run.
 
-    Either vendor tests or user-defined tests can be run, or both.
+    Any combination of the above tests can be run.
     """
     config = ooni.config
     log = ooni.logger
-    tally = ooni.tally
 
     assets = []
     if (os.path.isfile(os.path.join(config.main.assetdir,
@@ -517,8 +630,7 @@ def run(ooni):
     
     captiveportal = CaptivePortal(ooni)
     log.info("Starting captive portal test...")
-    captiveportal.run(assets, {'index': 1, 'tally': tally.count, 
-                               'tally_marks': tally.marks})
+    captiveportal.run(assets, {'index': 1})
     
     if config.tests.do_captive_portal_vendor_tests:
         log.info("")
@@ -530,4 +642,10 @@ def run(ooni):
         log.info("Running vendor DNS-based tests...")
         captiveportal.run_vendor_dns_tests()
 
+    if config.tests.check_dns_requests:
+        log.info("")
+        log.info("Checking that DNS requests are not being tampered...")
+        captiveportal.check_0x20_to_auth_ns('ooni.nu')
+
+    log.info("")
     log.info("Captive portal test finished!")
