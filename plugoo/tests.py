@@ -106,57 +106,149 @@ class Test:
                     #print "JOB VAL: %s" % job.value
                     self.logger.info("Writing report(s)")
                     self.report(job.value)
-                    job.kill()
+                   job.kill()
                 jobs = []
         else:
             self.logger.error("No Assets! Dying!")
 
-class TwistedTest:
-    pass
-
-
 class WorkUnit:
-    pass
+    """
+    This is an object responsible for completing WorkUnits it will
+    return its result in a deferred.
 
-class WorkUnitFactory:
+    The execution of a unit of work should be Atomic.
 
-    asset_looped = False
-    rules = None
+    @Node node: This represents the node associated with the Work Unit
+    @Asset asset: This is the asset associated with the Work Unit
+    @Test test: This represents the Test to be with the specified assets
+    @ivar arguments: These are the extra attributes to be passsed to the Test
+    """
 
-    def __init__(self, rules, assets, nodes):
-        self.rules = rules
-        self.nodes = nodes
-        self.nodes_gen = nodes()
+    node = None
+    asset = None
+    test = None
+    arguments = None
+
+    def __init__(self, node, asset, test, arguments):
+        self.assetGenerator = asset()
+        self.Test = test
+        self.node = node
+        self.arguments = arguments
+
+    def next():
+        """
+        Launches the Unit of Work with the specified assets on the node.
+        """
+        try:
+           asset = self.assetGenerator.next()
+           yield self.Test(asset, self.node, self.arguments)
+        except StopIteration:
+            raise StopIteration
+
+
+class ITest(Interface):
+    """
+    This interface represents an OONI test. It fires a deferred on completion.
+    """
+
+    deferred = Attribute("""This will be fired on test completion""")
+    node = Attribute("""This represents the node that will run the test""")
+    arguments = Attribute("""These are the arguments to be passed to the test for it's execution""")
+
+    def startTest():
+        """
+        Launches the Test with the specified arguments on a node.
+        """
+
+class WorkGenerator:
+    """
+    Factory responsible for creating units of work.
+    """
+    node = LocalNode
+    size = 10
+
+    def __init__(self, assets):
+        self.assets = assets()
 
     def next(self):
-        if asset_looped:
-            node = self.nodes()
-        yield WorkUnit(assets, node)
+        # Plank asset
+        p_asset = []
+        for i in xrange(0, self.size):
+            p_asset.append(self.assets.next())
+        yield WorkUnit(p_asset)
 
+def spawnDeferredTests(workunit, n):
+    def callback(result):
+        pass
+
+    def errback(reason):
+        pass
+
+    # XXX find more elegant solution to having 2 generators
+    workgenA = WorkGenerator(assets)
+
+    for workunit in workgen:
+        deferredList = []
+        workunitB = workunit
+        for i in range(n):
+            try:
+                test = workunit.next()
+            except StopIteration:
+                pass
+
+            deferred = test.deferred
+            deferred.addCallback(callback).addErrback(errback)
+
+            deferredList.append(deferred)
+            test.startTest()
+
+
+class HTTPRequestTest(HTTPClient):
+    """
+    This is an example of how I would like to be able to write a test.
+
+    *BEWARE* this actually does not currently work, it's just an example of the
+    kind of API that I am attempting to achieve to simplify the writing of
+    tests.
+
+    """
+    implements(ITest)
+
+    def startTest():
+        # The response object should also contain the request
+        """
+        response = {'response': {'headers': ..., 'content': ...,
+        'runtime': ..., 'timestamp': ...},
+        'request': {'headers': ..., 'content', 'timestamp', ...}
+        }
+        """
+        response = self.http_request(address, headers)
+        if response.headers['content'].matches("Some string"):
+            self.censorship = True
+            return response
+        else:
+            self.censorship = False
+            return response
 
 class TwistedTestFactory:
 
     test = TwistedTest
-    assets = None
 
-    def __init__(self, assets, nodes,
-                 rule="*", idx=0):
+    def __init__(self, assets, node,
+                 idx=0):
         """
         """
         self.assets = assets
-        self.nodes = nodes
-        self.rule = rule
+        self.node = node
         self.idx = idx
-
-    def process_rules(self):
-
+        self.workunit = WorkUnitFactory(assets)
 
     def build_test(self):
         """
         Returns a TwistedTest instance
         """
         workunit = self.workunit.next()
-        t = self.test(workunit)
+        t = self.test(node, workunit)
         t.factory = self
         return t
 
