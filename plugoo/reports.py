@@ -50,8 +50,9 @@ class Report:
         data to the reporting system
         """
         #print "Writing report(s)"
-        dump = '--- \n'
-        dump += yaml.dump(data)
+        #dump = '--- \n'
+        dump = yaml.dump([data])
+        #dump += yaml.dump(data)
         reports = []
 
         if self.file:
