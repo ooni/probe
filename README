@@ -3,8 +3,21 @@ ooni-probe - Open Observatory of Network Interference
 "The Net interprets censorship as damage and routes around it."
                 - John Gilmore; TIME magazine (6 December 1993)
 
-The goal of ooni-probe is to collect data about censorship around
-the world.
+OONI, the Open Observatory of Network Interference, is a global observation
+network which aims is to collect high quality data using open methodologies,
+using Free and Open Source Software (FL/OSS) to share observations and data
+about the various types, methods, and amounts of network tampering in the world.
+
+With the belief that unfettered access to information is a intrinsic human right,
+OONI seeks to observe levels of surveillance, censorship, and network discrimination
+in order for people worldwide to have a clearer understanding of the ways in
+which their access to information is filtered.
+
+The end goal of OONI is to collect data which can show an accurate
+topology of network interference and censorship. Through this topology, it will be
+possible to see what the internet looks like from nearly any location, including
+what sites are censored, or have been tampered with, and by whom. We're calling
+it filternet.
 
 OONI uses open methodologies and the data will be provided in raw
 format to allow any researcher to indipendently draw their conclusions

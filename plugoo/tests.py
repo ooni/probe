@@ -111,12 +111,14 @@ class Test:
         else:
             self.logger.error("No Assets! Dying!")
 
-class WorkUnit:
+class WorkUnit(object):
     """
     This is an object responsible for completing WorkUnits it will
     return its result in a deferred.
 
     The execution of a unit of work should be Atomic.
+
+    Reporting to the OONI-net happens on completion of a Unit of Work.
 
     @Node node: This represents the node associated with the Work Unit
     @Asset asset: This is the asset associated with the Work Unit
@@ -151,6 +153,11 @@ class ITest(Interface):
     This interface represents an OONI test. It fires a deferred on completion.
     """
 
+    shortName = Attribute("""A short user facing description for this test""")
+    description = Attribute("""A string containing a longer description for the test""")
+
+    requirements = Attribtue("""What is required to run this this test, for example raw socket access or UDP or TCP""")
+
     deferred = Attribute("""This will be fired on test completion""")
     node = Attribute("""This represents the node that will run the test""")
     arguments = Attribute("""These are the arguments to be passed to the test for it's execution""")
@@ -160,9 +167,12 @@ class ITest(Interface):
         Launches the Test with the specified arguments on a node.
         """
 
-class WorkGenerator:
+class WorkGenerator(object):
     """
     Factory responsible for creating units of work.
+
+    This shall be run on the machine running OONI-cli. The returned WorkUnits
+    can either be run locally or on a remote OONI Node or Network Node.
     """
     node = LocalNode
     size = 10
@@ -230,7 +240,7 @@ class HTTPRequestTest(HTTPClient):
             self.censorship = False
             return response
 
-class TwistedTestFactory:
+class TwistedTestFactory(object):
 
     test = TwistedTest
 
