@@ -15,6 +15,7 @@ class Test:
     def __init__(self, ooni, name="test"):
         self.config = ooni.config
         self.logger = ooni.logger
+        self.tally = ooni.tally
         self.name = name
         self.report = Report(ooni,
                              scp=ooni.config.report.ssh,
