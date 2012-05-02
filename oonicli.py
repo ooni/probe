@@ -63,7 +63,7 @@ class StupidAsset(object):
         return self.idx
 
 
-def runTest(test, options):
+def runTest(test, options, global_options):
     asset = None
     if options['asset']:
         print options['asset']
@@ -73,7 +73,10 @@ def runTest(test, options):
     wgen = work.WorkGenerator(asset, plugoo[test].__class__,
             dict(options), start=options['resume'])
 
-    worker = work.Worker()
+    if global_options['parallelism']:
+        wgen.size = int(global_options['parallelism'])
+        worker = work.Worker(wgen.size)
+
     for x in wgen:
         worker.push(x)
 
@@ -92,7 +95,8 @@ class Options(usage.Options):
     ]
 
     optParameters = [
-        ['node', 'n', 'localhost:31415', 'Select target node'],
+        ['parallelism', 'n', 10, "Specify the number of parallel tests to run"],
+        ['target-node', 't', 'localhost:31415', 'Select target node'],
         ['ooninet', 'o', 'localhost:4242', "Select OONI-net address for reporting"],
         ['password', 'p', 'opennetwork', "Specify the password for authentication"],
     ]
@@ -129,8 +133,10 @@ if not config.subCommand:
     sys.exit(1)
 
 if config['local']:
-    runTest(config.subCommand, config.subOptions)
+    runTest(config.subCommand, config.subOptions, config)
 
 else:
-    print "The test will be run on the node %s" % config['node']
+    print "This feature is currently not supported. :("
+    print "Use -l to run the test locally."
+    sys.exit(0)
 
