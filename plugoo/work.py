@@ -31,10 +31,13 @@ class Worker(object):
         self._queued = []
 
     def _run(self, r):
+        print "RUNNING"
         self._running -= 1
         if self._running < self.maxconcurrent and self._queued:
             workunit, d = self._queued.pop(0)
             for work in workunit:
+                print "Going over workunits bis"
+                print work
                 self._running += 1
                 actuald = work.startTest().addBoth(self._run)
         if isinstance(r, failure.Failure):
@@ -48,8 +51,11 @@ class Worker(object):
         return r
 
     def push(self, workunit):
+        print "PUSHING"
         if self._running < self.maxconcurrent:
             for work in workunit:
+                print "Going over work units"
+                print dir(work)
                 self._running += 1
                 work.startTest().addBoth(self._run)
             return
@@ -102,9 +108,15 @@ class WorkUnit(object):
         Launches the Unit of Work with the specified assets on the node.
         """
         try:
-           asset = self.assetGenerator.next()
-           return self.Test(asset, self.node, self.arguments)
+            asset = self.assetGenerator.next()
+            print "Next shit.."
+            print asset
+            ret = self.Test(asset, self.arguments)
+            print type(ret)
+            print repr(ret)
+            return ret
         except StopIteration:
+            print "Stopped iteration!"
             raise StopIteration
 
 

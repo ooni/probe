@@ -126,7 +126,7 @@ class ITest(Interface):
 
     #deferred = Attribute("""This will be fired on test completion""")
     #node = Attribute("""This represents the node that will run the test""")
-    arguments = Attribute("""These are the arguments to be passed to the test for it's execution""")
+    options = Attribute("""These are the arguments to be passed to the test for it's execution""")
 
     def startTest():
         """
@@ -164,9 +164,8 @@ class HTTPRequestTest(object):
         pass
 
 class TwistedTest(object):
-    def __init__(self, asset, node, arguments, ooninet=None):
+    def __init__(self, asset, arguments, ooninet=None):
         self.asset = asset
-        self.node = node
         self.arguments = arguments
         self.start_time = datetime.now()
         #self.ooninet = ooninet
@@ -187,11 +186,6 @@ class TwistedTest(object):
         result = {}
         reactor.callLater(2.0, self.finished, result)
         return self.d
-
-
-class StupidTest(TwistedTest):
-    def __repr__(self):
-        return "<StupidTest %s %s %s>" % (self.arguments, self.asset, self.node)
 
 class TwistedTestFactory(object):
 

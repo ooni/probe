@@ -1,5 +1,5 @@
 from twisted.internet import reactor
-from plugoo import *
+from plugoo import work, tests
 
 class StupidAsset(object):
     def __init__(self):
@@ -14,7 +14,7 @@ class StupidAsset(object):
         self.idx += 1
         return self.idx
 
-wgen = work.WorkGenerator(StupidAsset, tests.StupidTest, {'bla': 'aaa'}, start=0)
+wgen = work.WorkGenerator(StupidAsset, tests.StupidTest(None, None, None, None), {'bla': 'aaa'}, start=0)
 worker = work.Worker()
 for x in wgen:
     print "------"
