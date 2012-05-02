@@ -4,7 +4,7 @@ from twisted.plugin import IPlugin
 from plugoo.tests import ITest, TwistedTest
 
 class SkelArgs(usage.Options):
-    optParameters = [['assets', 'a', None, 'Asset file'],
+    optParameters = [['asset', 'a', None, 'Asset file'],
                      ['resume', 'r', 0, 'Resume at this index']]
 
 class SkelTest(TwistedTest):

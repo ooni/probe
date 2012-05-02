@@ -9,7 +9,7 @@
 #
 
 import sys
-from plugoo import tests, work
+from plugoo import tests, work, assets
 
 from twisted.python import usage
 from twisted.plugin import getPlugins
@@ -62,20 +62,20 @@ class StupidAsset(object):
         self.idx += 1
         return self.idx
 
+
 def runTest(test, options):
-    pprint(test)
-    wgen = work.WorkGenerator(StupidAsset, plugoo[test].__class__,
-            dict(options),
-            start=options['resume'])
+    asset = None
+    if options['asset']:
+        print options['asset']
+        asset = assets.Asset(options['asset'])
+        print asset
+
+    wgen = work.WorkGenerator(asset, plugoo[test].__class__,
+            dict(options), start=options['resume'])
 
     worker = work.Worker()
     for x in wgen:
-        print "------"
-        print "Work unit"
-        print "------"
-        print x.serialize()
         worker.push(x)
-        print "------"
 
     reactor.run()
 

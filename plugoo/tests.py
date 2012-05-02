@@ -171,10 +171,11 @@ class TwistedTest(object):
         #self.ooninet = ooninet
 
     def __repr__(self):
-        return "<TwistedTest %s %s %s>" % (self.arguments, self.asset, self.node)
+        return "<TwistedTest %s %s>" % (self.arguments, self.asset)
 
     def finished(self, result):
         #self.ooninet.report(result)
+        print "FINIHSED"
         self.end_time = datetime.now()
         result['start_time'] = self.start_time
         result['end_time'] = self.end_time
@@ -182,6 +183,7 @@ class TwistedTest(object):
         return self.d.callback(result)
 
     def startTest(self):
+        print "Starting test"
         self.d = defer.Deferred()
         result = {}
         reactor.callLater(2.0, self.finished, result)
@@ -189,7 +191,7 @@ class TwistedTest(object):
 
 class TwistedTestFactory(object):
 
-    test = StupidTest
+    test = None
 
     def __init__(self, assets, node,
                  idx=0):

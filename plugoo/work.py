@@ -31,13 +31,10 @@ class Worker(object):
         self._queued = []
 
     def _run(self, r):
-        print "RUNNING"
         self._running -= 1
         if self._running < self.maxconcurrent and self._queued:
             workunit, d = self._queued.pop(0)
             for work in workunit:
-                print "Going over workunits bis"
-                print work
                 self._running += 1
                 actuald = work.startTest().addBoth(self._run)
         if isinstance(r, failure.Failure):
@@ -51,11 +48,8 @@ class Worker(object):
         return r
 
     def push(self, workunit):
-        print "PUSHING"
         if self._running < self.maxconcurrent:
             for work in workunit:
-                print "Going over work units"
-                print dir(work)
                 self._running += 1
                 work.startTest().addBoth(self._run)
             return
@@ -83,11 +77,13 @@ class WorkUnit(object):
     test = None
     arguments = None
 
-    def __init__(self, node, asset, test, idx, arguments=None):
+    def __init__(self, asset, test, idx, arguments=None):
         self.asset = asset
-        self.assetGenerator = iter(asset)
+        if not asset:
+            self.assetGenerator = iter([1])
+        else:
+            self.assetGenerator = iter(asset)
         self.Test = test
-        self.node = node
         self.arguments = arguments
         self.idx = idx
 
@@ -109,14 +105,9 @@ class WorkUnit(object):
         """
         try:
             asset = self.assetGenerator.next()
-            print "Next shit.."
-            print asset
             ret = self.Test(asset, self.arguments)
-            print type(ret)
-            print repr(ret)
             return ret
         except StopIteration:
-            print "Stopped iteration!"
             raise StopIteration
 
 
@@ -127,14 +118,14 @@ class WorkGenerator(object):
     This shall be run on the machine running OONI-cli. The returned WorkUnits
     can either be run locally or on a remote OONI Node or Network Node.
     """
-    node = LocalNode
     size = 10
 
     def __init__(self, asset, test, arguments=None, start=None):
-        self.assetGenerator = asset()
+        self.assetGenerator = asset
         self.Test = test
         self.arguments = arguments
         self.idx = 0
+        self.end = False
         if start:
             self.skip(start)
 
@@ -148,11 +139,24 @@ class WorkGenerator(object):
             self.idx += 1
 
     def next(self):
+        if self.end:
+            raise StopIteration
+
+        if not self.assetGenerator:
+            self.end = True
+            return WorkUnit(None, self.Test, self.idx, self.arguments)
+
         # Plank asset
         p_asset = []
         for i in xrange(0, self.size):
-            p_asset.append(self.assetGenerator.next())
-        self.idx += 1
-        return WorkUnit(self.node, p_asset, self.Test, self.idx, self.arguments)
+            try:
+                asset = self.assetGenerator.next()
+                p_asset.append(asset)
+                print asset
+            except StopIteration:
+                self.end = True
+                break
 
+        self.idx += 1
+        return WorkUnit(p_asset, self.Test, self.idx, self.arguments)
 
