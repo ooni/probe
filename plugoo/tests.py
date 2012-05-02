@@ -1,10 +1,13 @@
 import os
 from datetime import datetime
 import yaml
+from zope.interface import Interface, Attribute
 
 import logging
 import itertools
 import gevent
+from twisted.internet import reactor, defer
+from twisted.python import failure
 from plugoo.reports import Report
 
 class Test:
@@ -106,47 +109,10 @@ class Test:
                     #print "JOB VAL: %s" % job.value
                     self.logger.info("Writing report(s)")
                     self.report(job.value)
-                   job.kill()
+                    job.kill()
                 jobs = []
         else:
             self.logger.error("No Assets! Dying!")
-
-class WorkUnit(object):
-    """
-    This is an object responsible for completing WorkUnits it will
-    return its result in a deferred.
-
-    The execution of a unit of work should be Atomic.
-
-    Reporting to the OONI-net happens on completion of a Unit of Work.
-
-    @Node node: This represents the node associated with the Work Unit
-    @Asset asset: This is the asset associated with the Work Unit
-    @Test test: This represents the Test to be with the specified assets
-    @ivar arguments: These are the extra attributes to be passsed to the Test
-    """
-
-    node = None
-    asset = None
-    test = None
-    arguments = None
-
-    def __init__(self, node, asset, test, arguments):
-        self.assetGenerator = asset()
-        self.Test = test
-        self.node = node
-        self.arguments = arguments
-
-    def next():
-        """
-        Launches the Unit of Work with the specified assets on the node.
-        """
-        try:
-           asset = self.assetGenerator.next()
-           yield self.Test(asset, self.node, self.arguments)
-        except StopIteration:
-            raise StopIteration
-
 
 class ITest(Interface):
     """
@@ -156,10 +122,10 @@ class ITest(Interface):
     shortName = Attribute("""A short user facing description for this test""")
     description = Attribute("""A string containing a longer description for the test""")
 
-    requirements = Attribtue("""What is required to run this this test, for example raw socket access or UDP or TCP""")
+    requirements = Attribute("""What is required to run this this test, for example raw socket access or UDP or TCP""")
 
-    deferred = Attribute("""This will be fired on test completion""")
-    node = Attribute("""This represents the node that will run the test""")
+    #deferred = Attribute("""This will be fired on test completion""")
+    #node = Attribute("""This represents the node that will run the test""")
     arguments = Attribute("""These are the arguments to be passed to the test for it's execution""")
 
     def startTest():
@@ -167,53 +133,8 @@ class ITest(Interface):
         Launches the Test with the specified arguments on a node.
         """
 
-class WorkGenerator(object):
-    """
-    Factory responsible for creating units of work.
-
-    This shall be run on the machine running OONI-cli. The returned WorkUnits
-    can either be run locally or on a remote OONI Node or Network Node.
-    """
-    node = LocalNode
-    size = 10
-
-    def __init__(self, assets):
-        self.assets = assets()
-
-    def next(self):
-        # Plank asset
-        p_asset = []
-        for i in xrange(0, self.size):
-            p_asset.append(self.assets.next())
-        yield WorkUnit(p_asset)
-
-def spawnDeferredTests(workunit, n):
-    def callback(result):
-        pass
-
-    def errback(reason):
-        pass
-
-    # XXX find more elegant solution to having 2 generators
-    workgenA = WorkGenerator(assets)
-
-    for workunit in workgen:
-        deferredList = []
-        workunitB = workunit
-        for i in range(n):
-            try:
-                test = workunit.next()
-            except StopIteration:
-                pass
-
-            deferred = test.deferred
-            deferred.addCallback(callback).addErrback(errback)
-
-            deferredList.append(deferred)
-            test.startTest()
-
-
-class HTTPRequestTest(HTTPClient):
+#class HTTPRequestTest(HTTPClient):
+class HTTPRequestTest(object):
     """
     This is an example of how I would like to be able to write a test.
 
@@ -221,9 +142,9 @@ class HTTPRequestTest(HTTPClient):
     kind of API that I am attempting to achieve to simplify the writing of
     tests.
 
-    """
     implements(ITest)
 
+    """
     def startTest():
         # The response object should also contain the request
         """
@@ -231,7 +152,6 @@ class HTTPRequestTest(HTTPClient):
         'runtime': ..., 'timestamp': ...},
         'request': {'headers': ..., 'content', 'timestamp', ...}
         }
-        """
         response = self.http_request(address, headers)
         if response.headers['content'].matches("Some string"):
             self.censorship = True
@@ -240,9 +160,42 @@ class HTTPRequestTest(HTTPClient):
             self.censorship = False
             return response
 
+        """
+        pass
+
+class TwistedTest(object):
+    def __init__(self, asset, node, arguments, ooninet=None):
+        self.asset = asset
+        self.node = node
+        self.arguments = arguments
+        self.start_time = datetime.now()
+        #self.ooninet = ooninet
+
+    def __repr__(self):
+        return "<TwistedTest %s %s %s>" % (self.arguments, self.asset, self.node)
+
+    def finished(self, result):
+        #self.ooninet.report(result)
+        self.end_time = datetime.now()
+        result['start_time'] = self.start_time
+        result['end_time'] = self.end_time
+        result['run_time'] = self.end_time - self.start_time
+        return self.d.callback(result)
+
+    def startTest(self):
+        self.d = defer.Deferred()
+        result = {}
+        reactor.callLater(2.0, self.finished, result)
+        return self.d
+
+
+class StupidTest(TwistedTest):
+    def __repr__(self):
+        return "<StupidTest %s %s %s>" % (self.arguments, self.asset, self.node)
+
 class TwistedTestFactory(object):
 
-    test = TwistedTest
+    test = StupidTest
 
     def __init__(self, assets, node,
                  idx=0):
