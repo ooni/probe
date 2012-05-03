@@ -18,7 +18,7 @@ def run(target, src_port, dst_port):
     settings = dict(hop_callback=None,
                     timeout=2,
                     max_tries=3,
-                    max_hops=30)
+                    max_hops=30, proto="tcp")
     try:
         target = socket.gethostbyname(target)
     except Exception, e:
@@ -29,4 +29,4 @@ def run(target, src_port, dst_port):
     reactor.run()
     return res
 
-print run("google.com")
+print run("8.8.8.8", 80, 80)

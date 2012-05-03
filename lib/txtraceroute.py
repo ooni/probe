@@ -81,6 +81,71 @@ class iphdr(object):
                (self.tos, self.ttl, self.id, self.frag, self.proto,
                 self.length, self.src, self.dst)
 
+class tcphdr(object):
+    def __init__(self, data="", dport=4242, sport=4242):
+        self.seq = 123132
+        self.hlen = 44
+        self.flags = 2
+        self.wsize = 200
+        self.cksum = 123
+        self.options = 0
+        self.mss = 1460
+        self.dport = dport
+        self.sport = sport
+
+    def assemble(self):
+        header = struct.pack("!HHL", self.sport, self.dport, self.seq)
+        header += '\00\00\00\00'
+        header += struct.pack("!HHH", (self.hlen & 0xff) << 10 | (self.flags &
+            0xff), self.wsize, self.cksum)
+        # XXX There is something wrong here fixme
+        options = struct.pack("!LBBBBBB", self.mss, 1, 3, 3, 1, 1, 1)
+        options += struct.pack("!BBL", 8, 10, 1209452188)
+        options += '\00'*4
+        options += struct.pack("!BB", 4, 2)
+        options += '\00'
+        return header+options
+
+    @classmethod
+    def checksum(self, data):
+        pass
+
+    def disassemble(self, data):
+        tcp = tcphdr()
+        pkt = struct.unpack("!HHLH", data[:20])
+        tcp.sport, tcp.dport, tcp.seq = pkt[:3]
+        tcp.hlen = (pkt[4] >> 10 ) & 0xff
+        tcp.flags = pkf[4] & 0xff
+        tcp.wsize, tcp.cksum = struct.unpack("!HH", data[20:28])
+        return tcp
+
+class udphdr(object):
+    def __init__(self, data="", dport=4242, sport=4242):
+        self.dport = dport
+        self.sport = sport
+        self.cksum = 0
+        self.length = 0
+        self.data = data
+
+    def assemble(self):
+        self.length = len(self.data) + 8
+        part1 = struct.pack("!HHH", self.sport, self.dport, self.length)
+        cksum = self.checksum(self.data)
+        cksum = struct.pack("!H", cksum)
+        return part1 + cksum + self.data
+
+    @classmethod
+    def checksum(self, data):
+        # XXX implement proper checksum
+        cksum = 0
+        return cksum
+
+    def disassemble(self, data):
+        udp = udphdr()
+        pkt = struct.unpack("!HHHH", data)
+        udp.src_port, udp.dst_port, udp.length, udp.cksum = pkt
+        return udp
+
 class icmphdr(object):
     def __init__(self, data=""):
         self.type = 8
@@ -142,7 +207,8 @@ def reverse_lookup(ip):
 
 
 class Hop(object):
-    def __init__(self, target, ttl):
+    def __init__(self, target, ttl, proto="icmp"):
+        self.proto = proto
         self.found = False
         self.tries = 0
         self.last_try = 0
@@ -156,9 +222,18 @@ class Hop(object):
         self.ip.ttl = ttl
         self.ip.id += ttl
 
-        self.icmp = icmphdr("traceroute")
-        self.icmp.id = self.ip.id
-        self.ip.data = self.icmp.assemble()
+        if proto is "icmp":
+            self.icmp = icmphdr("traceroute")
+            self.icmp.id = self.ip.id
+            self.ip.data = self.icmp.assemble()
+        elif proto is "udp":
+            self.udp = udphdr("blabla")
+            self.ip.data = self.udp.assemble()
+            self.ip.proto = socket.IPPROTO_UDP
+        elif proto is "tcp":
+            self.tcp = tcphdr()
+            self.ip.data = self.tcp.assemble()
+            self.ip.proto = socket.IPPROTO_TCP
 
         self._pkt = self.ip.assemble()
 
@@ -214,7 +289,7 @@ class TracerouteProtocol(object):
         reactor.addWriter(self)
 
         # send 1st probe packet
-        self.out_queue.append(Hop(self.target, 1))
+        self.out_queue.append(Hop(self.target, 1, settings.get("proto")))
 
     def logPrefix(self):
         return "TracerouteProtocol(%s)" % self.target
@@ -253,7 +328,7 @@ class TracerouteProtocol(object):
                 self.deferred.callback(self.hops)
                 self.deferred = None
         else:
-            self.out_queue.append(Hop(self.target, ttl))
+            self.out_queue.append(Hop(self.target, ttl, self.settings.get("proto")))
 
     def doRead(self):
         if not self.waiting or not self.hops:
