@@ -33,6 +33,10 @@ class Node(object):
         self.address = address
         self.port = port
 
+class LocalNode(object):
+    def __init__(self):
+        pass
+
 """
 []: node = NetworkNode("192.168.0.112", 5555, "SOCKS5")
 []: node_socket = node.wrap_socket()
@@ -91,7 +95,7 @@ class CodeExecNode(Node):
     def get_status(self):
         pass
 
-class PlanetLab(Node, CodeExecNode):
+class PlanetLab(CodeExecNode):
     def __init__(self, address, auth_creds, ooni):
         self.auth_creds = auth_creds
 
@@ -147,7 +151,7 @@ class PlanetLab(Node, CodeExecNode):
             except paramiko.SSHException:
                 print 'Public key authentication to PlanetLab node %s failed.' % machinename,
 
-    def _get_command:
+    def _get_command():
         pass
 
     def ssh_and_run_(slicename, machinename, command):
@@ -169,8 +173,8 @@ class PlanetLab(Node, CodeExecNode):
         """Attempt to rsync a tree to the PL node."""
         pass
 
-    def add_unit:
+    def add_unit():
         pass
 
-    def get_status:
+    def get_status():
         pass

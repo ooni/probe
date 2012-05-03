@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8
 """
-    ooni-probe
+    ooniprobe
     **********
 
     Open Observatory of Network Interference
@@ -152,7 +152,6 @@ class ooni(object):
             self.tests[test].module.run(self)
 
 if __name__ == "__main__":
-
     o = ooni()
 
     parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter,
