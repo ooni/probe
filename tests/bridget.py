@@ -241,13 +241,6 @@ Log info file %s
         except:
             self.logger.error("Error in starting Tor (do you have tor installed?)")
 
-        # XXX this only works on UNIX (do we care?)
-        # Make file reading non blocking
-        try:
-            fcntl.fcntl(p.stdout, fcntl.F_SETFL, os.O_NONBLOCK)
-        except:
-            self.logger.error("Unable to set file descriptor to non blocking")
-
         self.logger.info("Testing bridge: %s" % bridge)
         while True:
             o = ""
@@ -308,6 +301,7 @@ Log info file %s
                     self.logger.error("Error IOError: EAGAIN")
                     raise
                 sys.exc_clear()
+                print "In this exception 1"
 
             try:
                 # Set the timeout for the socket wait
@@ -376,3 +370,4 @@ def run(ooni, assets=None):
     bridget.print_failures()
     bridget.clean()
     ooni.logger.info("Testing completed!")
+

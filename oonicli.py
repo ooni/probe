@@ -40,9 +40,6 @@ def retrieve_plugoo():
             print "Plugin Broken"
             print bi
             error = True
-        except BrokenMethodImplementation, bmi:
-            print "Plugin Broken"
-            error = True
     if error != False:
         print "Plugin Loaded!"
     return d

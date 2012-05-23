@@ -5,7 +5,8 @@ from plugoo.tests import ITest, TwistedTest
 
 class SkelArgs(usage.Options):
     optParameters = [['asset', 'a', None, 'Asset file'],
-                     ['resume', 'r', 0, 'Resume at this index']]
+                     ['resume', 'r', 0, 'Resume at this index'],
+                     ['other', 'o', None, 'Other arguments']]
 
 class SkelTest(TwistedTest):
     implements(IPlugin, ITest)

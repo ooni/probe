@@ -81,7 +81,7 @@ class Test:
         if assets:
             self.logger.debug("Running through tests")
 
-            if extradata['index']:
+            if extradata and 'index' in extradata:
                 index = extradata['index']
             else:
                 index = None
@@ -168,10 +168,16 @@ class TwistedTest(object):
         self.asset = asset
         self.arguments = arguments
         self.start_time = datetime.now()
+        self._parse_arguments()
         #self.ooninet = ooninet
 
     def __repr__(self):
         return "<TwistedTest %s %s>" % (self.arguments, self.asset)
+
+    def _parse_arguments(self):
+        print self.arguments
+        if self.arguments and 'test' in self.arguments:
+            self.test = self.arguments['test']
 
     def finished(self, result):
         #self.ooninet.report(result)
@@ -182,12 +188,30 @@ class TwistedTest(object):
         result['run_time'] = self.end_time - self.start_time
         return self.d.callback(result)
 
+    def _do_experiment(self):
+        self.d_experiment = defer.Deferred()
+        self.d_experiment.addCallback(self._do_control)
+        self.experiment()
+        return self.d
+
+    def _do_control(self, exp):
+        self.control(exp)
+        self.finished(dict())
+
+    def control(self, exp):
+        print "Doing control..."
+
+    def experiment(self):
+        print "Doing experiment"
+        self.d_experiment.callback(None)
+
     def startTest(self):
-        print "Starting test"
+        print "Starting test %s" % repr(self)
         self.d = defer.Deferred()
         result = {}
-        reactor.callLater(2.0, self.finished, result)
-        return self.d
+        #reactor.callLater(2.0, self.finished, result)
+        # Start experiment
+        return self._do_experiment()
 
 class TwistedTestFactory(object):
 
