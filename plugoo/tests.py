@@ -186,20 +186,16 @@ class TwistedTest(object):
         result['start_time'] = self.start_time
         result['end_time'] = self.end_time
         result['run_time'] = self.end_time - self.start_time
-        return self.d.callback(result)
 
     def _do_experiment(self):
-        self.d_experiment = defer.Deferred()
-        self.d_experiment.addCallback(self._do_control)
-        self.experiment()
+        self.d = defer.maybeDeferred(self.experiment)
+        self.d.addCallback(self.control)
+        self.d.addCallback(self.finished)
         return self.d
-
-    def _do_control(self, exp):
-        self.control(exp)
-        self.finished(dict())
 
     def control(self, exp):
         print "Doing control..."
+        self.d.callback(result)
 
     def experiment(self):
         print "Doing experiment"
@@ -207,10 +203,6 @@ class TwistedTest(object):
 
     def startTest(self):
         print "Starting test %s" % repr(self)
-        self.d = defer.Deferred()
-        result = {}
-        #reactor.callLater(2.0, self.finished, result)
-        # Start experiment
         return self._do_experiment()
 
 class TwistedTestFactory(object):
