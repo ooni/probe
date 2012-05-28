@@ -1,0 +1,2 @@
+2012-05-29 01:32:22,811 ooniprobe    INFO     Started ooni-probe
+2012-05-29 01:32:22,972 ooniprobe    WARNING  Soft fail 'module' object has no attribute '__plugoo__'

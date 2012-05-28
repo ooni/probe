@@ -1,0 +1,22 @@
+from zope.interface import implements
+from twisted.python import usage
+from twisted.plugin import IPlugin
+from plugoo.tests import ITest, TwistedTest
+
+class SkelArgs(usage.Options):
+    optParameters = [['hosts', 'f', None, 'Hostname asset file'],
+                     ['dnsservers', 'd', None, 'DNS server asset file'],
+                     ['resume', 'r', 0, 'Resume at this index'],
+                     ['other', 'o', None, 'Other arguments']]
+
+class SkelTest(TwistedTest):
+    implements(IPlugin, ITest)
+
+    shortName = "skeleton"
+    description = "Skeleton plugin"
+    requirements = None
+    options = SkelArgs
+
+# We need to instantiate it otherwise getPlugins does not detect it
+# XXX Find a way to load plugins without instantiating them.
+skel = SkelTest(None, None)
