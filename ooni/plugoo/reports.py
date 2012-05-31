@@ -35,11 +35,7 @@ class Report:
         #                tmp[-1]
         #    print self.file
 
-        try:
-            import paramiko
-        except:
-            self.scp = None
-            log.err("Could not import paramiko. SCP will not be disabled")
+        self.scp = None
 
     def __call__(self, data):
         """
