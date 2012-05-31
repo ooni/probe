@@ -4,11 +4,7 @@ import os
 import yaml
 
 import itertools
-<<<<<<< HEAD
 import log
-=======
-from ooni.utils import log, date, net
->>>>>>> * Fix some bugs in Daphn3
 
 class Report:
     """This is the ooni-probe reporting mechanism. It allows
