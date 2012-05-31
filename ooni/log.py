@@ -22,10 +22,15 @@ def _get_log_level(level):
 
 def start(logfile=None, loglevel=None, logstdout=True):
     if log.defaultObserver:
+        print "%s" % logstdout
         loglevel = _get_log_level(loglevel)
-        logfile = logfile
         file = open(logfile, 'a') if logfile else sys.stderr
-        log.startLogging(file, setStdout=logstdout)
+        observer = log.FileLogObserver(file)
+        if logstdout:
+            log.startLogging(sys.stdout)
+        else:
+            log.startLogging()
+        log.addObserver(observer.emit)
         msg("Started OONI")
 
 def msg(message, level=INFO, **kw):
