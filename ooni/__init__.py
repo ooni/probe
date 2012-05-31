@@ -1,1 +1,1 @@
-__all__ = ['plugoo', 'utils', 'config', 'logo', 'lib']
+__all__ = ['plugoo', 'utils', 'config', 'logo', 'lib', 'log']

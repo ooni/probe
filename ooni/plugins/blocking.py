@@ -2,8 +2,8 @@ from zope.interface import implements
 from twisted.python import usage
 from twisted.plugin import IPlugin
 
-from ooni.plugoo.assets import Asset
-from ooni.plugoo.tests import ITest, OONITest
+from plugoo.assets import Asset
+from plugoo.tests import ITest, TwistedTest
 
 class BlockingArgs(usage.Options):
     optParameters = [['asset', 'a', None, 'Asset file'],

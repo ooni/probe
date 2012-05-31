@@ -7,11 +7,9 @@ import itertools
 from twisted.internet import reactor, defer, threads
 from twisted.python import failure
 
-from ooni.utils import log
-from ooni.utils import date
-from ooni.plugoo import assets, work
-from ooni.plugoo.reports import Report
-from ooni.plugoo.interface import ITest
+import log
+from plugoo import assets, work
+from plugoo.reports import Report
 
 
 class OONITest(object):
