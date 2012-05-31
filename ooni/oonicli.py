@@ -9,7 +9,6 @@
 #
 
 import sys
-from plugoo import tests, work, assets
 
 from twisted.python import usage
 from twisted.plugin import getPlugins
@@ -19,8 +18,10 @@ from zope.interface.exceptions import BrokenImplementation
 from zope.interface.exceptions import BrokenMethodImplementation
 from zope.interface.verify import verifyObject
 from pprint import pprint
-from logo import getlogo
-import plugins
+
+from ooni.plugoo import tests, work, assets
+from ooni.logo import getlogo
+from ooni import plugins
 
 __version__ = "0.0.1-prealpha"
 
@@ -46,33 +47,20 @@ def retrieve_plugoo():
 
 plugoo = retrieve_plugoo()
 
-class StupidAsset(object):
-    def __init__(self):
-        self.idx = 0
-
-    def __iter__(self):
-        return self
-
-    def next(self):
-        if self.idx > 30:
-            raise StopIteration
-        self.idx += 1
-        return self.idx
-
-
 def runTest(test, options, global_options):
-    asset = None
-    if options['asset']:
-        print options['asset']
-        asset = assets.Asset(options['asset'])
-        print asset
 
-    wgen = work.WorkGenerator(asset, plugoo[test].__class__,
-            dict(options), start=options['resume'])
+    parallelism = int(global_options['parallelism'])
+    worker = work.Worker(parallelism)
+    test = plugoo[test].__class__
 
-    if global_options['parallelism']:
-        wgen.size = int(global_options['parallelism'])
-        worker = work.Worker(wgen.size)
+    #if options['asset']:
+    #    print options['asset']
+    #    asset = assets.Asset(options['asset'])
+    #    print asset
+
+    wgen = work.WorkGenerator(test(options, global_options),
+                              dict(options),
+                              start=options['resume'])
 
     for x in wgen:
         worker.push(x)
@@ -86,16 +74,17 @@ class Options(usage.Options):
         subCommands.append([test, None, plugoo[test].options, "Run the %s test" % test])
 
     optFlags = [
-        ['local', 'l', "If the test should be run locally (without having oonid running)"],
-        ['status', 'x', 'Show current state'],
-        ['restart', 'r', 'Restart OONI']
+        #['remote', 'r', "If the test should be run remotely (not supported)"],
+        #['status', 'x', 'Show current state'],
+        #['restart', 'r', 'Restart OONI']
     ]
 
     optParameters = [
         ['parallelism', 'n', 10, "Specify the number of parallel tests to run"],
-        ['target-node', 't', 'localhost:31415', 'Select target node'],
-        ['ooninet', 'o', 'localhost:4242', "Select OONI-net address for reporting"],
-        ['password', 'p', 'opennetwork', "Specify the password for authentication"],
+        #['target-node', 't', 'localhost:31415', 'Select target node'],
+        ['output', 'o', 'report.log', "Specify output report file"],
+        ['log', 'l', 'oonicli.log', "Specify output log file"],
+        #['password', 'p', 'opennetwork', "Specify the password for authentication"],
     ]
 
     def opt_version(self):
@@ -116,24 +105,11 @@ class Options(usage.Options):
 config = Options()
 config.parseOptions()
 
-if config['status']:
-    print "oonid is not running."
-    sys.exit(0)
-
-if config['restart']:
-    print "Restarting oonid."
-    sys.exit(0)
-
 if not config.subCommand:
     print "Error! No Test Specified."
     config.opt_help()
     sys.exit(1)
 
-if config['local']:
-    runTest(config.subCommand, config.subOptions, config)
+runTest(config.subCommand, config.subOptions, config)
 
-else:
-    print "This feature is currently not supported. :("
-    print "Use -l to run the test locally."
-    sys.exit(0)
 

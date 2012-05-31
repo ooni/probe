@@ -15,7 +15,14 @@ class SkelTest(TwistedTest):
     description = "Skeleton plugin"
     requirements = None
     options = SkelArgs
+    blocking = False
+
+    def load_assets(self):
+        if self.local_options:
+            return {'asset': open(self.local_options['asset'])}
+        else:
+            return {}
 
 # We need to instantiate it otherwise getPlugins does not detect it
 # XXX Find a way to load plugins without instantiating them.
-skel = SkelTest(None, None)
+skel = SkelTest(None, None, None)

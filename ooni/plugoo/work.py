@@ -10,15 +10,16 @@
     :license: see LICENSE for more details.
 
 """
-from datetime import datetime
+import itertools
 import yaml
+from datetime import datetime
 
 from zope.interface import Interface, Attribute
 
 from twisted.python import failure
 from twisted.internet import reactor, defer
 
-from plugoo.nodes import LocalNode
+from ooni.plugoo.nodes import LocalNode
 
 class Worker(object):
     """
@@ -34,9 +35,9 @@ class Worker(object):
         self._running -= 1
         if self._running < self.maxconcurrent and self._queued:
             workunit, d = self._queued.pop(0)
-            for work in workunit:
-                self._running += 1
-                actuald = work.startTest().addBoth(self._run)
+            asset, test, idx = workunit
+            self._running += 1
+            actuald = test.startTest(asset).addBoth(self._run)
         if isinstance(r, failure.Failure):
             r.trap()
 
@@ -44,14 +45,13 @@ class Worker(object):
         print r['start_time']
         print r['end_time']
         print r['run_time']
-        print repr(r)
         return r
 
     def push(self, workunit):
         if self._running < self.maxconcurrent:
-            for work in workunit:
-                self._running += 1
-                work.startTest().addBoth(self._run)
+            asset, test, idx = workunit
+            self._running += 1
+            test.startTest(asset).addBoth(self._run)
             return
         d = defer.Deferred()
         self._queued.append((workunit, d))
@@ -59,6 +59,8 @@ class Worker(object):
 
 class WorkUnit(object):
     """
+    XXX This is currently not implemented for KISS sake.
+
     This is an object responsible for completing WorkUnits it will
     return its result in a deferred.
 
@@ -77,21 +79,21 @@ class WorkUnit(object):
     test = None
     arguments = None
 
-    def __init__(self, asset, test, idx, arguments=None):
+    def __init__(self, asset, assetNames, test, idx):
         self.asset = asset
         if not asset:
             self.assetGenerator = iter([1])
         else:
             self.assetGenerator = iter(asset)
         self.Test = test
-        self.arguments = arguments
+        self.assetNames = assetNames
         self.idx = idx
 
     def __iter__(self):
         return self
 
     def __repr__(self):
-        return "<WorkUnit %s %s %s>" % (self.arguments, self.Test, self.idx)
+        return "<WorkUnit %s %s %s>" % (self.assetNames, self.Test, self.idx)
 
     def serialize(self):
         """
@@ -105,7 +107,7 @@ class WorkUnit(object):
         """
         try:
             asset = self.assetGenerator.next()
-            ret = self.Test(asset, self.arguments)
+            ret = self.Test.set_asset(asset)
             return ret
         except StopIteration:
             raise StopIteration
@@ -120,10 +122,12 @@ class WorkGenerator(object):
     """
     size = 10
 
-    def __init__(self, asset, test, arguments=None, start=None):
-        self.assetGenerator = asset
+    def __init__(self, test, arguments=None, start=None):
         self.Test = test
-        self.arguments = arguments
+
+        self.assetGenerator = itertools.product(*self.Test.assets.values())
+        self.assetNames = self.Test.assets.keys()
+
         self.idx = 0
         self.end = False
         if start:
@@ -139,12 +143,32 @@ class WorkGenerator(object):
             self.idx += 1
 
     def next(self):
+        if not self.assetGenerator:
+            self.end = True
+            return (self.assetNames, self.Test, self.idx)
+
+        try:
+            asset = self.assetGenerator.next()
+            ret = {}
+            for i, v in enumerate(asset):
+                ret[self.assetNames[i]] = v
+        except StopIteration:
+            raise StopIteration
+
+        self.idx += 1
+        print "IDX:%s" % self.idx
+        return (ret, self.Test, self.idx)
+
+    def p_next(self):
+        """
+        XXX This is not used for KISS sake.
+        """
         if self.end:
             raise StopIteration
 
         if not self.assetGenerator:
             self.end = True
-            return WorkUnit(None, self.Test, self.idx, self.arguments)
+            return WorkUnit(None, self.assetNames, self.Test, self.idx)
 
         # Plank asset
         p_asset = []
@@ -152,11 +176,13 @@ class WorkGenerator(object):
             try:
                 asset = self.assetGenerator.next()
                 p_asset.append(asset)
-                print asset
+                print p_asset
             except StopIteration:
+                if self.asset_num > 1:
+                    pass
                 self.end = True
                 break
 
         self.idx += 1
-        return WorkUnit(p_asset, self.Test, self.idx, self.arguments)
+        return WorkUnit(p_asset, self.assetNames, self.Test, self.idx)
 

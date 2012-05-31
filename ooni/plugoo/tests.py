@@ -6,9 +6,13 @@ from zope.interface import Interface, Attribute
 import logging
 import itertools
 import gevent
-from twisted.internet import reactor, defer
+
+from twisted.internet import reactor, defer, threads
 from twisted.python import failure
-from plugoo.reports import Report
+
+from ooni.plugoo import assets, work
+from ooni.plugoo.reports import Report
+
 
 class Test:
     """
@@ -128,102 +132,64 @@ class ITest(Interface):
     #node = Attribute("""This represents the node that will run the test""")
     options = Attribute("""These are the arguments to be passed to the test for it's execution""")
 
-    def startTest():
+    blocking = Attribute("""True or False, stating if the test should be run in a thread or not.""")
+
+    def startTest(asset):
         """
         Launches the Test with the specified arguments on a node.
         """
 
-#class HTTPRequestTest(HTTPClient):
-class HTTPRequestTest(object):
-    """
-    This is an example of how I would like to be able to write a test.
-
-    *BEWARE* this actually does not currently work, it's just an example of the
-    kind of API that I am attempting to achieve to simplify the writing of
-    tests.
-
-    implements(ITest)
-
-    """
-    def startTest():
-        # The response object should also contain the request
-        """
-        response = {'response': {'headers': ..., 'content': ...,
-        'runtime': ..., 'timestamp': ...},
-        'request': {'headers': ..., 'content', 'timestamp', ...}
-        }
-        response = self.http_request(address, headers)
-        if response.headers['content'].matches("Some string"):
-            self.censorship = True
-            return response
-        else:
-            self.censorship = False
-            return response
-
-        """
-        pass
-
 class TwistedTest(object):
-    def __init__(self, asset, arguments, ooninet=None):
-        self.asset = asset
-        self.arguments = arguments
-        self.start_time = datetime.now()
-        self._parse_arguments()
+    blocking = False
+
+    def __init__(self, local_options, global_options, ooninet=None):
+        self.local_options = local_options
+        self.global_options = global_options
+        self.assets = self.load_assets()
         #self.ooninet = ooninet
 
+    def load_assets(self):
+        """
+        This method should be overriden by the test writer to provide the logic
+        for loading their assets.
+        """
+        return {'asset': None}
+
     def __repr__(self):
-        return "<TwistedTest %s %s>" % (self.arguments, self.asset)
+        return "<TwistedTest %s %s %s>" % (self.options, self.global_options,
+                                           self.assets)
 
-    def _parse_arguments(self):
-        print self.arguments
-        if self.arguments and 'test' in self.arguments:
-            self.test = self.arguments['test']
-
-    def finished(self, result):
+    def finished(self, control):
         #self.ooninet.report(result)
-        print "FINIHSED"
         self.end_time = datetime.now()
+        result = {}
         result['start_time'] = self.start_time
         result['end_time'] = self.end_time
         result['run_time'] = self.end_time - self.start_time
+        result['control'] = control
+        print "FINISHED", result
+        return result
 
-    def _do_experiment(self):
-        self.d = defer.maybeDeferred(self.experiment)
-        self.d.addCallback(self.control)
+    def _do_experiment(self, args):
+        if self.blocking:
+            self.d = threads.deferToThread(self.experiment, args)
+        else:
+            self.d = defer.maybeDeferred(self.experiment, args)
+
+        self.d.addCallback(self.control, args)
         self.d.addCallback(self.finished)
         return self.d
 
-    def control(self, exp):
+    def control(self, result, args):
         print "Doing control..."
-        self.d.callback(result)
+        return result
 
-    def experiment(self):
+    def experiment(self, args):
         print "Doing experiment"
-        self.d_experiment.callback(None)
+        return {}
 
-    def startTest(self):
-        print "Starting test %s" % repr(self)
-        return self._do_experiment()
-
-class TwistedTestFactory(object):
-
-    test = None
-
-    def __init__(self, assets, node,
-                 idx=0):
-        """
-        """
-        self.assets = assets
-        self.node = node
-        self.idx = idx
-        self.workunit = WorkUnitFactory(assets)
-
-    def build_test(self):
-        """
-        Returns a TwistedTest instance
-        """
-        workunit = self.workunit.next()
-        t = self.test(node, workunit)
-        t.factory = self
-        return t
+    def startTest(self, args):
+        self.start_time = datetime.now()
+        print "Starting test %s" % self.__class__
+        return self._do_experiment(args)
 
