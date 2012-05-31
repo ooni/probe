@@ -89,6 +89,8 @@ class HTTPHostTest(TwistedTest):
         return censored
 
     def httplib_test(self, control_server, host):
+        censored = None
+        response = None
         try:
             conn = httplib.HTTPConnection(control_server)
             conn.putrequest("GET", "", skip_host=True, skip_accept_encoding=True)
@@ -100,7 +102,6 @@ class HTTPHostTest(TwistedTest):
             censored = self.is_censored(response)
         except Exception, e:
             censored = "Error! %s" % e
-            respopnse = None
 
         return (censored, response)
 

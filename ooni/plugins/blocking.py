@@ -8,7 +8,7 @@ from ooni.plugoo.tests import ITest, TwistedTest
 class BlockingArgs(usage.Options):
     optParameters = [['asset', 'a', None, 'Asset file'],
                      ['resume', 'r', 0, 'Resume at this index'],
-                     ['other', 'o', None, 'Other arguments']]
+                     ['shit', 'o', None, 'Other arguments']]
 
 class BlockingTest(TwistedTest):
     implements(IPlugin, ITest)

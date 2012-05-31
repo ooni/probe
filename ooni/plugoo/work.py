@@ -38,13 +38,18 @@ class Worker(object):
             asset, test, idx = workunit
             self._running += 1
             actuald = test.startTest(asset).addBoth(self._run)
+
         if isinstance(r, failure.Failure):
             r.trap()
 
-        print "Callback fired!"
         print r['start_time']
         print r['end_time']
         print r['run_time']
+
+        if self._running == 0 and not self._queued:
+            print "I am done."
+            reactor.stop()
+
         return r
 
     def push(self, workunit):

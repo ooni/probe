@@ -19,9 +19,9 @@ from zope.interface.exceptions import BrokenMethodImplementation
 from zope.interface.verify import verifyObject
 from pprint import pprint
 
-from ooni.plugoo import tests, work, assets
+from ooni.plugoo import tests, work, assets, reports
 from ooni.logo import getlogo
-from ooni import plugins
+from ooni import plugins, log
 
 __version__ = "0.0.1-prealpha"
 
@@ -52,13 +52,15 @@ def runTest(test, options, global_options):
     parallelism = int(global_options['parallelism'])
     worker = work.Worker(parallelism)
     test = plugoo[test].__class__
+    report = reports.Report(global_options['output'])
 
     #if options['asset']:
     #    print options['asset']
     #    asset = assets.Asset(options['asset'])
     #    print asset
+    log.start(global_options['log'], 1)
 
-    wgen = work.WorkGenerator(test(options, global_options),
+    wgen = work.WorkGenerator(test(options, global_options, report),
                               dict(options),
                               start=options['resume'])
 

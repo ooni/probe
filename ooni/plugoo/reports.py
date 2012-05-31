@@ -2,9 +2,8 @@ import os
 from datetime import datetime
 import yaml
 
-import logging
 import itertools
-import gevent
+from ooni import log
 
 class Report:
     """This is the ooni-probe reporting mechanism. It allows
@@ -20,29 +19,27 @@ class Report:
          inbound connection and accept a stream of data (think of it
          as a `nc -l -p <port> > filename.txt`)
     """
-    def __init__(self, ooni,
-                 scp="127.0.0.1:22",
-                 file="test.report",
-                 tcp="127.0.0.1:9000"):
+    def __init__(self, file="test.report",
+                 scp=None,
+                 tcp=None):
 
         self.file = file
         self.tcp = tcp
         self.scp = scp
-        self.config = ooni.config.report
-        self.logger = ooni.logger
+        #self.config = ooni.config.report
 
-        if self.config.timestamp:
-            tmp = self.file.split('.')
-            self.file = '.'.join(tmp[:-1]) + "-" + \
-                        datetime.now().isoformat('-') + '.' + \
-                        tmp[-1]
-            print self.file
+        #if self.config.timestamp:
+        #    tmp = self.file.split('.')
+        #    self.file = '.'.join(tmp[:-1]) + "-" + \
+        #                datetime.now().isoformat('-') + '.' + \
+        #                tmp[-1]
+        #    print self.file
 
         try:
             import paramiko
         except:
             self.scp = None
-            self.logger.warn("Could not import paramiko. SCP will not be disabled")
+            log.err("Could not import paramiko. SCP will not be disabled")
 
     def __call__(self, data):
         """
@@ -64,13 +61,9 @@ class Report:
         if self.scp:
             reports.append("scp")
 
-        jobs = [gevent.spawn(self.send_report, *(dump, report)) for report in reports]
-        gevent.joinall(jobs)
-        ret = []
-        for job in jobs:
-            #print job.value
-            ret.append(job.value)
-        return ret
+        #XXX make this non blocking
+        for report in reports:
+            self.send_report(dump, report)
 
     def file_report(self, data, file=None, mode='a+'):
         """
@@ -169,7 +162,7 @@ class Report:
         specified type.
         """
         #print "Reporting %s to %s" % (data, type)
-        self.logger.info("Reporting to %s" % type)
+        log.msg("Reporting to %s" % type)
         getattr(self, type+"_report").__call__(data)
 
 

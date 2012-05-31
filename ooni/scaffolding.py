@@ -5,6 +5,7 @@ This script should be used for creating the scaffolding for a test.
 """
 import os
 import sys
+from ooni import log
 
 test_template = """\"\"\"
 This is a self genrated test created by scaffolding.py.
@@ -52,7 +53,7 @@ test_vars = {'testName': None, 'testShortname': None}
 test_vars['testName'] = raw_input('Test Name: ')
 test_vars['testShortname'] = raw_input("Test Short Name: ")
 
-fname = test_vars['testShortname']+'.py'
+fname = os.path.join('plugins', test_vars['testShortname']+'.py')
 
 if os.path.exists(fname):
     print 'WARNING! File named "%s" already exists.' % fname

@@ -10,6 +10,7 @@ import gevent
 from twisted.internet import reactor, defer, threads
 from twisted.python import failure
 
+from ooni import log
 from ooni.plugoo import assets, work
 from ooni.plugoo.reports import Report
 
@@ -142,10 +143,11 @@ class ITest(Interface):
 class TwistedTest(object):
     blocking = False
 
-    def __init__(self, local_options, global_options, ooninet=None):
+    def __init__(self, local_options, global_options, report, ooninet=None):
         self.local_options = local_options
         self.global_options = global_options
         self.assets = self.load_assets()
+        self.report = report
         #self.ooninet = ooninet
 
     def load_assets(self):
@@ -167,7 +169,8 @@ class TwistedTest(object):
         result['end_time'] = self.end_time
         result['run_time'] = self.end_time - self.start_time
         result['control'] = control
-        print "FINISHED", result
+        log.msg("FINISHED %s" % result)
+        self.report(result)
         return result
 
     def _do_experiment(self, args):
@@ -181,15 +184,15 @@ class TwistedTest(object):
         return self.d
 
     def control(self, result, args):
-        print "Doing control..."
+        log.msg("Doing control")
         return result
 
     def experiment(self, args):
-        print "Doing experiment"
+        log.msg("Doing experiment")
         return {}
 
     def startTest(self, args):
         self.start_time = datetime.now()
-        print "Starting test %s" % self.__class__
+        log.msg("Starting test %s" % self.__class__)
         return self._do_experiment(args)
 

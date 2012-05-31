@@ -2,6 +2,7 @@ from zope.interface import implements
 from twisted.python import usage
 from twisted.plugin import IPlugin
 from plugoo.tests import ITest, TwistedTest
+from ooni import log
 
 class SkelArgs(usage.Options):
     optParameters = [['asset', 'a', None, 'Asset file'],
