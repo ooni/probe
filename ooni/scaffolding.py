@@ -15,13 +15,13 @@ Safe hacking :).
 from zope.interface import implements
 from twisted.python import usage
 from twisted.plugin import IPlugin
-from plugoo.tests import ITest, TwistedTest
+from plugoo.tests import ITest, OONITest
 
 class %(testName)sArgs(usage.Options):
     optParameters = [['asset', 'a', None, 'Asset file'],
                      ['resume', 'r', 0, 'Resume at this index']]
 
-class %(testName)sTest(TwistedTest):
+class %(testName)sTest(OONITest):
     implements(IPlugin, ITest)
 
     shortName = "%(testShortname)s"

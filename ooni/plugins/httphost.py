@@ -19,7 +19,7 @@ from twisted.python import usage
 from twisted.plugin import IPlugin
 
 from ooni.plugoo.assets import Asset
-from ooni.plugoo.tests import ITest, TwistedTest
+from ooni.plugoo.tests import ITest, OONITest
 
 class HTTPHostArgs(usage.Options):
     optParameters = [['asset', 'a', None, 'Asset file'],
@@ -49,7 +49,7 @@ class HTTPHostAsset(Asset):
         return line.split(',')[1].replace('\n','')
 
 
-class HTTPHostTest(TwistedTest):
+class HTTPHostTest(OONITest):
     implements(IPlugin, ITest)
 
     shortName = "httphost"

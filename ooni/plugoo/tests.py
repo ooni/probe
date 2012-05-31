@@ -16,7 +16,7 @@ from ooni.plugoo.reports import Report
 from ooni.plugoo.interface import ITest
 
 
-class TwistedTest(object):
+class OONITest(object):
     blocking = False
 
     def __init__(self, local_options, global_options, report, ooninet=None):
@@ -34,7 +34,7 @@ class TwistedTest(object):
         return {'asset': None}
 
     def __repr__(self):
-        return "<TwistedTest %s %s %s>" % (self.options, self.global_options,
+        return "<OONITest %s %s %s>" % (self.options, self.global_options,
                                            self.assets)
 
     def finished(self, control):

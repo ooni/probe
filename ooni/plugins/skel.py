@@ -1,7 +1,7 @@
 from zope.interface import implements
 from twisted.python import usage
 from twisted.plugin import IPlugin
-from plugoo.tests import ITest, TwistedTest
+from plugoo.tests import ITest, OONITest
 from ooni import log
 
 class SkelArgs(usage.Options):
@@ -9,7 +9,7 @@ class SkelArgs(usage.Options):
                      ['resume', 'r', 0, 'Resume at this index'],
                      ['other', 'o', None, 'Other arguments']]
 
-class SkelTest(TwistedTest):
+class SkelTest(OONITest):
     implements(IPlugin, ITest)
 
     shortName = "skeleton"

@@ -3,14 +3,14 @@ from twisted.python import usage
 from twisted.plugin import IPlugin
 
 from ooni.plugoo.assets import Asset
-from ooni.plugoo.tests import ITest, TwistedTest
+from ooni.plugoo.tests import ITest, OONITest
 
 class BlockingArgs(usage.Options):
     optParameters = [['asset', 'a', None, 'Asset file'],
                      ['resume', 'r', 0, 'Resume at this index'],
                      ['shit', 'o', None, 'Other arguments']]
 
-class BlockingTest(TwistedTest):
+class BlockingTest(OONITest):
     implements(IPlugin, ITest)
 
     shortName = "blocking"
