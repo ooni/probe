@@ -44,7 +44,7 @@ class OONITest(object):
         result['start_time'] = self.start_time
         result['end_time'] = self.end_time
         result['run_time'] = self.end_time - self.start_time
-        result['control'] = control
+        result['result'] = control
         log.msg("FINISHED %s" % result)
         self.report(result)
         return result
