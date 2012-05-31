@@ -21,6 +21,11 @@ effort: low, skill: low
 
 * All the DNS censorship detection tests (old/ooni/dnsooni.py)
 effort: medium, skill: medium
+    - The dnstamper test fulfills this requirement, although
+      there are several improvements which could be made, namely
+      figuring out if there is a pattern to the reverse resolved
+      names and parsing them in some manner to determine if that
+      server is authorized to serve the requested page.
 
 * Misc scripts to detect censorship that are not written in any
   version of OONI (old/ooni/plugins/old_stuff_to_convert/)
