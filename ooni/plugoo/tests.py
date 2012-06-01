@@ -53,7 +53,7 @@ class OONITest(object):
         if self.blocking:
             self.d = threads.deferToThread(self.experiment, args)
         else:
-            self.d = defer.maybeDeferred(self.experiment, args)
+            self.d = self.experiment(args)
 
         self.d.addCallback(self.control, args)
         self.d.addCallback(self.finished)

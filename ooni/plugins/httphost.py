@@ -107,7 +107,6 @@ class HTTPHostTest(OONITest):
 
     def experiment(self, args):
         control_server = self.local_options['controlserver']
-        print args
         censored = self.httplib_test(control_server, args['asset'])
         return {'control': control_server,
                 'host': args['asset'],

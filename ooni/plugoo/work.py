@@ -129,6 +129,7 @@ class WorkGenerator(object):
         self.Test = test
 
         if self.Test.assets and self.Test.assets.values()[0]:
+            print self.Test.assets
             self.assetGenerator = itertools.product(*self.Test.assets.values())
         else:
             self.assetGenerator = None
