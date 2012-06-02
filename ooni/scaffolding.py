@@ -15,27 +15,31 @@ Safe hacking :).
 from zope.interface import implements
 from twisted.python import usage
 from twisted.plugin import IPlugin
-from plugoo.tests import ITest, OONITest
+from ooni.plugoo.tests import ITest, OONITest
+from ooni.plugoo.assets import Asset
+from ooni import log
 
-class %(testName)sArgs(usage.Options):
+class %(testShortname)sArgs(usage.Options):
     optParameters = [['asset', 'a', None, 'Asset file'],
                      ['resume', 'r', 0, 'Resume at this index']]
 
-class %(testName)sTest(OONITest):
+class %(testShortname)sTest(OONITest):
     implements(IPlugin, ITest)
 
-    shortName = "%(testShortname)s"
+    shortName = "%(testSNlower)s"
     description = "%(testName)s"
     requirements = None
-    options = %(testName)sArgs
+    options = %(testShortname)sArgs
     blocking = True
 
     def control(self, experiment_result, args):
         # What you return here ends up inside of the report.
+        log.msg("Running control")
         return {}
 
     def experiment(self, args):
         # What you return here gets handed as input to control
+        log.msg("Running experiment")
         return {}
 
     def load_assets(self):
@@ -46,14 +50,15 @@ class %(testName)sTest(OONITest):
 
 # We need to instantiate it otherwise getPlugins does not detect it
 # XXX Find a way to load plugins without instantiating them.
-%(testShortname)s = %(testName)sTest(None, None, None)
+%(testShortname)s = %(testShortname)sTest(None, None, None)
 """
 
 test_vars = {'testName': None, 'testShortname': None}
 test_vars['testName'] = raw_input('Test Name: ')
 test_vars['testShortname'] = raw_input("Test Short Name: ")
+test_vars['testSNlower'] = test_vars['testShortname'].lower()
 
-fname = os.path.join('plugins', test_vars['testShortname']+'.py')
+fname = os.path.join('plugins', test_vars['testSNlower']+'.py')
 
 if os.path.exists(fname):
     print 'WARNING! File named "%s" already exists.' % fname

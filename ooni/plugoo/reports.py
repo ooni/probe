@@ -1,9 +1,8 @@
 import os
-from datetime import datetime
 import yaml
 
 import itertools
-from ooni import log
+from ooni import log, date
 
 class Report:
     """This is the ooni-probe reporting mechanism. It allows
@@ -19,10 +18,11 @@ class Report:
          inbound connection and accept a stream of data (think of it
          as a `nc -l -p <port> > filename.txt`)
     """
-    def __init__(self, file="test.report",
+    def __init__(self, testname=None, file="report.log",
                  scp=None,
                  tcp=None):
 
+        self.testname = testname
         self.file = file
         self.tcp = tcp
         self.scp = scp
@@ -36,16 +36,21 @@ class Report:
         #    print self.file
 
         self.scp = None
+        self.write_header()
 
-    def __call__(self, data):
-        """
-        This should be invoked every time you wish to write some
-        data to the reporting system
-        """
-        #print "Writing report(s)"
-        #dump = '--- \n'
-        dump = yaml.dump([data])
-        #dump += yaml.dump(data)
+    def write_header(self):
+        pretty_date = date.pretty_date()
+        header = "# OONI Probe Report for Test %s\n" % self.testname
+        header += "# %s\n\n" % pretty_date
+        self._write_to_report(header)
+        # XXX replace this with something proper
+        test_details = {'start_time': date.now(),
+                        'asn': 'ASN-1234',
+                        'test_name': self.testname,
+                        'addr': '1234'}
+        self(test_details)
+
+    def _write_to_report(self, dump):
         reports = []
 
         if self.file:
@@ -60,6 +65,18 @@ class Report:
         #XXX make this non blocking
         for report in reports:
             self.send_report(dump, report)
+
+    def __call__(self, data):
+        """
+        This should be invoked every time you wish to write some
+        data to the reporting system
+        """
+        #print "Writing report(s)"
+        #dump = '--- \n'
+        dump = yaml.dump([data])
+        #dump += yaml.dump(data)
+
+        self._write_to_report(dump)
 
     def file_report(self, data, file=None, mode='a+'):
         """

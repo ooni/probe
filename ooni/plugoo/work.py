@@ -19,8 +19,6 @@ from zope.interface import Interface, Attribute
 from twisted.python import failure
 from twisted.internet import reactor, defer
 
-from ooni.plugoo.nodes import LocalNode
-
 class Worker(object):
     """
     This is the core of OONI. It takes as input Work Units and
@@ -130,7 +128,12 @@ class WorkGenerator(object):
     def __init__(self, test, arguments=None, start=None):
         self.Test = test
 
-        self.assetGenerator = itertools.product(*self.Test.assets.values())
+        if self.Test.assets and self.Test.assets.values()[0]:
+            print self.Test.assets
+            self.assetGenerator = itertools.product(*self.Test.assets.values())
+        else:
+            self.assetGenerator = None
+
         self.assetNames = self.Test.assets.keys()
 
         self.idx = 0
@@ -148,6 +151,9 @@ class WorkGenerator(object):
             self.idx += 1
 
     def next(self):
+        if self.end:
+            raise StopIteration
+
         if not self.assetGenerator:
             self.end = True
             return (self.assetNames, self.Test, self.idx)
@@ -161,7 +167,6 @@ class WorkGenerator(object):
             raise StopIteration
 
         self.idx += 1
-        print "IDX:%s" % self.idx
         return (ret, self.Test, self.idx)
 
     def p_next(self):

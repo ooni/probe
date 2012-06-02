@@ -59,12 +59,12 @@ def runTest(test, options, global_options):
 
     parallelism = int(global_options['parallelism'])
     worker = work.Worker(parallelism)
-    test = plugoo[test].__class__
-    report = reports.Report(global_options['output'])
+    test_class = plugoo[test].__class__
+    report = reports.Report(test, global_options['output'])
 
     log.start(global_options['log'], 1)
 
-    wgen = work.WorkGenerator(test(options, global_options, report),
+    wgen = work.WorkGenerator(test_class(options, global_options, report),
                               dict(options),
                               start=options['resume'])
 
