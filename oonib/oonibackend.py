@@ -16,19 +16,19 @@ from twisted.web import resource, server, static
 from twisted.web.microdom import escape
 from twisted.names import dns
 
-from backend.httpbackend import HTTPBackend
-from backend.dnsbackend import ProxyDNSServer
+from oonib.httpbackend import HTTPBackend
+from oonib.dnsbackend import ProxyDNSServer
 
 # This tells twisted to set the
 server.version = "Apache"
 
 application = service.Application('oonibackend')
 serviceCollection = service.IServiceCollection(application)
-internet.TCPServer(8000, server.Site(HTTPBackend())).setServiceParent(serviceCollection)
+internet.TCPServer(2000, server.Site(HTTPBackend())).setServiceParent(serviceCollection)
 
 # Start the DNS Server related services
 TCPDNSServer = ProxyDNSServer()
 internet.TCPServer(8002, TCPDNSServer).setServiceParent(serviceCollection)
 UDPFactory = dns.DNSDatagramProtocol(TCPDNSServer)
-internet.UDPServer(5353, UDPFactory).setServiceParent(serviceCollection)
+internet.UDPServer(5354, UDPFactory).setServiceParent(serviceCollection)
 
