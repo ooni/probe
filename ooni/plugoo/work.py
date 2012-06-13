@@ -54,8 +54,8 @@ class Worker(object):
         if self._running < self.maxconcurrent:
             asset, test, idx = workunit
             self._running += 1
-            test.startTest(asset).addBoth(self._run)
-            return
+            return test.startTest(asset).addBoth(self._run)
+
         d = defer.Deferred()
         self._queued.append((workunit, d))
         return d

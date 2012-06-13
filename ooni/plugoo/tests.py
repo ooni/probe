@@ -19,12 +19,19 @@ from ooni.plugoo.interface import ITest
 class OONITest(object):
     blocking = False
 
-    def __init__(self, local_options, global_options, report, ooninet=None):
+    def __init__(self, local_options, global_options, report, ooninet=None,
+            reactor=None):
         self.local_options = local_options
         self.global_options = global_options
         self.assets = self.load_assets()
         self.report = report
         #self.ooninet = ooninet
+        self.reactor = reactor
+        self.initialize()
+        self.result = {}
+
+    def initialize(self):
+        pass
 
     def load_assets(self):
         """
@@ -40,11 +47,11 @@ class OONITest(object):
     def finished(self, control):
         #self.ooninet.report(result)
         self.end_time = datetime.now()
-        result = {}
+        result = self.result
         result['start_time'] = self.start_time
         result['end_time'] = self.end_time
         result['run_time'] = self.end_time - self.start_time
-        result['result'] = control
+        result['control'] = control
         log.msg("FINISHED %s" % result)
         self.report(result)
         return result

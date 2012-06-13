@@ -64,7 +64,8 @@ def runTest(test, options, global_options):
 
     log.start(global_options['log'], 1)
 
-    wgen = work.WorkGenerator(test_class(options, global_options, report),
+    wgen = work.WorkGenerator(test_class(options, global_options, report,
+                                         reactor=reactor),
                               dict(options),
                               start=options['resume'])
 
