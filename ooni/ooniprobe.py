@@ -63,11 +63,14 @@ def runTest(test, options, global_options):
     report = reports.Report(test, global_options['output'])
 
     log.start(global_options['log'], 1)
+    resume = 0
+    if 'resume' in options:
+        resume = options['resume']
 
     wgen = work.WorkGenerator(test_class(options, global_options, report,
                                          reactor=reactor),
                               dict(options),
-                              start=options['resume'])
+                              start=resume)
 
     for x in wgen:
         worker.push(x)
