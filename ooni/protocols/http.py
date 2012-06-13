@@ -5,7 +5,6 @@ from twisted.plugin import IPlugin
 from twisted.internet import protocol, defer
 from ooni.plugoo.tests import ITest, OONITest
 from ooni.plugoo.assets import Asset
-from ooni.protocols.useragents import useragents
 from ooni import log
 
 useragents = [("Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.8.1.6) Gecko/20070725 Firefox/2.0.0.6", "Firefox 2.0, Windows XP"),
