@@ -1,4 +1,4 @@
-all: txtorcon txtraceroute
+all: txtorcon txtraceroute txscapy
 
 txtraceroute:
 	echo "Processing dependency txtraceroute..."
@@ -11,4 +11,10 @@ txtorcon:
 	git clone https://github.com/meejah/txtorcon.git txtorcon.git
 	mv txtorcon.git/txtorcon txtorcon
 	rm -rf txtorcon.git
+
+txscapy:
+	echo "Processing dependency txscapy"
+	git clone https://github.com/hellais/txscapy.git txscapy.git
+	mv txscapy.git/txscapy.py txscapy.py
+	rm -rf txscapy.git
 
