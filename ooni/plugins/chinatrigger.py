@@ -74,7 +74,10 @@ class ChinaTriggerTest(ScapyTest):
         Slightly changed mutate function.
         """
         ret = pkt[:idx-1]
-        ret += chr(random.randint(0, 256))
+        mutation = chr(random.randint(0, 256))
+        while mutation == pkt[idx]:
+            mutation = chr(random.randint(0, 256))
+        ret += mutation
         ret += pkt[idx:]
         return ret
 
