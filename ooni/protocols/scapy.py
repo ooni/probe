@@ -15,6 +15,7 @@ class ScapyTest(OONITest):
     """
 
     receive = True
+    timeout = None
     pcapfile = 'scapytest.pcap'
     def initialize(self, reactor=None):
 
@@ -28,10 +29,15 @@ class ScapyTest(OONITest):
     def experiment(self, args):
         log.msg("Running experiment")
         if self.receive:
-            d = txsr(self.build_packets(), pcapfile=self.pcapfile)
+            log.msg("Sending and receiving packets.")
+            d = txsr(self.build_packets(), pcapfile=self.pcapfile,
+                    timeout=self.timeout)
         else:
+            log.msg("Sending packets.")
             d = txsend(self.build_packets())
+
         def finished(data):
+            log.msg("Finished sending")
             return data
 
         d.addCallback(finished)
