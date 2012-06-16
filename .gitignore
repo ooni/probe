@@ -6,3 +6,4 @@ proxy-lists/ips.txt
 proxy-lists/italy-dns-ips.txt
 proxy-lists/italy-http-ips.txt
 private/*
+/ooni/plugins/dropin.cache

@@ -1,4 +1,0 @@
-install libdnet-1.12
-sudo pip install pylibpcap
-sudo pip install pcapy
-sudo pip install scapy
