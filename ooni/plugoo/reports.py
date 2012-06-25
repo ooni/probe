@@ -1,7 +1,7 @@
+from __future__ import with_statement
+
 import os
 import yaml
-
-from __future__ import with_statement
 
 import itertools
 from ooni import log, date
