@@ -138,6 +138,7 @@ class CaptivePortal(OONITest):
         or a list of strings. If nameserver is not given, use local
         DNS resolver, and if that fails try using 8.8.8.8.
         """
+
         if isinstance(hostname, str):
             hostname = [hostname]
 
@@ -146,6 +147,7 @@ class CaptivePortal(OONITest):
             res.nameservers = [nameserver]
         else:
             res = resolver.Resolver()
+
         response = []
         answer = None
 
@@ -186,6 +188,7 @@ class CaptivePortal(OONITest):
         else:
             log.debug("dns_resolve() for %s failed" % experiment_hostname)
             return None, experiment_address
+
     def get_auth_nameservers(self, hostname):
         """
         Many CPs set a nameserver to be used. Let's query that
@@ -204,6 +207,7 @@ class CaptivePortal(OONITest):
     def hostname_to_0x20(self, hostname):
         """
         MaKEs yOur HOsTnaME lOoK LiKE THis.
+
         For more information, see:
         D. Dagon, et. al. "Increased DNS Forgery Resistance
         Through 0x20-Bit Encoding". Proc. CSS, 2008.
@@ -247,6 +251,7 @@ class CaptivePortal(OONITest):
         # Even when gevent monkey patching is on, the requests here
         # are sent without being 0x20'd, so we need to 0x20 them.
         hostname = self.hostname_to_0x20(hostname)
+
         for auth_ns in resolved_auth_ns:
             res = resolver.Resolver(configure=False)
             res.nameservers = [auth_ns]
@@ -300,6 +305,7 @@ class CaptivePortal(OONITest):
             length = 256
 
         random_ascii = base64.urlsafe_b64encode(os.urandom(int(length)))
+
         while not random_ascii[:1].isalpha():
             random_ascii = base64.urlsafe_b64encode(os.urandom(int(length)))
 
@@ -324,6 +330,7 @@ class CaptivePortal(OONITest):
         # if it doesn't start with a letter, chuck it.
         while not random_sld[:1].isalpha():
             random_sld = self.get_random_url_safe_string(length)
+
         tld_list = ['.com', '.net', '.org', '.info', '.test', '.invalid']
         random_tld = urllib2.random.choice(tld_list)
         random_hostname = random_sld + random_tld
