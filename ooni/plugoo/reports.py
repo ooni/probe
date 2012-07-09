@@ -1,3 +1,5 @@
+from __future__ import with_statement
+
 import os
 import yaml
 
@@ -84,14 +86,8 @@ class Report:
         """
         if not file:
             file = self.file
-        try:
-            f = open(file, mode)
+        with open(file, mode) as f:
             f.write(data)
-        except Exception, e:
-            raise e
-        finally:
-            f.close()
-
 
     def tcp_report(self, data):
         """
