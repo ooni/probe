@@ -10,14 +10,37 @@ class ITest(Interface):
 
     requirements = Attribute("""What is required to run this this test, for example raw socket access or UDP or TCP""")
 
-    #deferred = Attribute("""This will be fired on test completion""")
-    #node = Attribute("""This represents the node that will run the test""")
     options = Attribute("""These are the arguments to be passed to the test for it's execution""")
 
     blocking = Attribute("""True or False, stating if the test should be run in a thread or not.""")
 
-    def startTest(asset):
+    def control(experiment_result, args):
         """
-        Launches the Test with the specified arguments on a node.
+        @param experiment_result: The result returned by the experiment method.
+
+        @param args: the keys of this dict are the names of the assets passed in
+        from load_assets. The value is one item of the asset.
+
+        Must return a dict containing what should be written to the report.
+        Anything returned by control ends up inside of the YAMLOONI report.
+        """
+
+    def experiment(args):
+        """
+        Perform all the operations that are necessary to running a test.
+
+        @param args: the keys of this dict are the names of the assets passed in
+        from load_assets. The value is one item of the asset.
+
+        Must return a dict containing the values to be passed to control.
+        """
+
+    def load_assets():
+        """
+        Load the assets that should be passed to the Test. These are the inputs
+        to the OONI test.
+        Must return a dict that has as keys the asset names and values the
+        asset contents.
+        If the test does not have any assets it should return an empty dict.
         """
 

@@ -44,7 +44,7 @@ class Report:
         header += "# %s\n\n" % pretty_date
         self._write_to_report(header)
         # XXX replace this with something proper
-        test_details = {'start_time': date.now(),
+        test_details = {'start_time': str(date.now()),
                         'asn': 'ASN-1234',
                         'test_name': self.testname,
                         'addr': '1234'}

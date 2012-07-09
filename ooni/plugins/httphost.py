@@ -23,7 +23,7 @@ from ooni.plugoo.tests import ITest, OONITest
 
 class HTTPHostArgs(usage.Options):
     optParameters = [['asset', 'a', None, 'Asset file'],
-                     ['controlserver', 'c', None, 'Specify the control server'],
+                     ['controlserver', 'c', 'google.com', 'Specify the control server'],
                      ['resume', 'r', 0, 'Resume at this index'],
                      ['other', 'o', None, 'Other arguments']]
     def control(self, experiment_result, args):
@@ -61,7 +61,7 @@ class HTTPHostTest(OONITest):
 
     def check_response(self, response):
         soup = BeautifulSoup(response)
-        if soup.head.title.string == "WikiLeaks":
+        if soup.head.title.string == "Blocked":
             # Response indicates censorship
             return True
         else:
@@ -107,13 +107,14 @@ class HTTPHostTest(OONITest):
 
     def experiment(self, args):
         control_server = self.local_options['controlserver']
-        censored = self.httplib_test(control_server, args['asset'])
+        url = 'http://torproject.org/' if not 'asset' in args else args['asset']
+        censored = self.httplib_test(control_server, url)
         return {'control': control_server,
-                'host': args['asset'],
+                'host': url,
                 'censored': censored}
 
     def load_assets(self):
-        if self.local_options:
+        if self.local_options and self.local_options['asset']:
             return {'asset': Asset(self.local_options['asset'])}
         else:
             return {}

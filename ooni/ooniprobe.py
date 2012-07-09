@@ -71,7 +71,6 @@ def runTest(test, options, global_options):
                                          reactor=reactor),
                               dict(options),
                               start=resume)
-
     for x in wgen:
         worker.push(x)
 

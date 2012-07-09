@@ -12,7 +12,8 @@ from ooni.protocols import http
 from ooni import log
 
 class httptArgs(usage.Options):
-    optParameters = [['urls', 'u', None, 'Urls file'],
+    optParameters = [['urls', 'f', None, 'Urls file'],
+                     ['url', 'u', 'http://torproject.org/', 'Test single site'],
                      ['resume', 'r', 0, 'Resume at this index']]
 
 class httptTest(http.HTTPTest):
@@ -30,7 +31,7 @@ class httptTest(http.HTTPTest):
         return {}
 
     def load_assets(self):
-        if self.local_options:
+        if self.local_options and self.local_options['urls']:
             return {'url': Asset(self.local_options['urls'])}
         else:
             return {}

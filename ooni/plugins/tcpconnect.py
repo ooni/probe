@@ -15,7 +15,7 @@ from ooni.plugoo.assets import Asset
 from ooni import log
 
 class tcpconnectArgs(usage.Options):
-    optParameters = [['blabla', 'a', None, 'Asset file'],
+    optParameters = [['asset', 'a', None, 'File containing IP:PORT combinations, one per line.'],
                      ['resume', 'r', 0, 'Resume at this index']]
 
 class tcpconnectTest(OONITest):
@@ -28,7 +28,10 @@ class tcpconnectTest(OONITest):
     blocking = False
 
     def experiment(self, args):
-        host, port = args['blabla'].split(':')
+        try:
+            host, port = args['asset'].split(':')
+        except:
+            raise Exception("Error in parsing asset. Wrong format?")
         class DummyFactory(Factory):
             def buildProtocol(self, addr):
                 return Protocol()
@@ -53,7 +56,7 @@ class tcpconnectTest(OONITest):
 
     def load_assets(self):
         if self.local_options:
-            return {'blabla': Asset(self.local_options['blabla'])}
+            return {'asset': Asset(self.local_options['asset'])}
         else:
             return {}
 

@@ -32,7 +32,7 @@ class ChinaTriggerTest(ScapyTest):
 
     shortName = "chinatrigger"
     description = "Triggers the chinese probes into scanning"
-    requirements = None
+    requirements = ['root']
     options = scapyArgs
     blocking = False
 

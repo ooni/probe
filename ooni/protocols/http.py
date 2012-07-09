@@ -30,7 +30,6 @@ class BodyReceiver(protocol.Protocol):
     def connectionLost(self, reason):
         self.finished.callback(self.data)
 
-
 from twisted.web.http_headers import Headers
 class HTTPTest(OONITest):
     """
@@ -77,7 +76,9 @@ class HTTPTest(OONITest):
 
     def experiment(self, args):
         log.msg("Running experiment")
-        d = self.build_request(args['url'])
+        url = self.local_options['url'] if 'url' not in args else args['url']
+
+        d = self.build_request(url)
         def finished(data):
             return data
 

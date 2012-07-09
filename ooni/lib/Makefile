@@ -1,4 +1,4 @@
-all: txtorcon txtraceroute txscapy
+all: txtorcon txtraceroute txscapy rfc3339
 
 txtraceroute:
 	echo "Processing dependency txtraceroute..."
@@ -17,4 +17,10 @@ txscapy:
 	git clone https://github.com/hellais/txscapy.git txscapy.git
 	mv txscapy.git/txscapy.py txscapy.py
 	rm -rf txscapy.git
+
+rfc3339:
+	echo "Processing RFC3339 dependency"
+	hg clone https://bitbucket.org/henry/rfc3339 rfc3339
+	mv rfc3339/rfc3339.py rfc3339.py
+	rf -rf rfc3339
 
