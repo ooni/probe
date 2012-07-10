@@ -6,7 +6,6 @@ Safe hacking :).
 from zope.interface import implements
 from twisted.python import usage
 from twisted.plugin import IPlugin
-from twisted.internet import reactor
 from twisted.internet.protocol import Factory, Protocol
 from twisted.internet.endpoints import TCP4ClientEndpoint
 
@@ -48,7 +47,7 @@ class tcpconnectTest(OONITest):
             return {'result': False, 'target': [host, port]}
 
         # What you return here gets handed as input to control
-        point = TCP4ClientEndpoint(reactor, host, int(port))
+        point = TCP4ClientEndpoint(self.reactor, host, int(port))
         d = point.connect(DummyFactory())
         d.addCallback(gotProtocol)
         d.addErrback(gotError)

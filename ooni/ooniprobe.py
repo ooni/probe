@@ -55,8 +55,17 @@ def retrieve_plugoo():
 
 plugoo = retrieve_plugoo()
 
-def runTest(test, options, global_options):
+def runTest(test, options, global_options, reactor=None):
+    """
+    Run an OONI probe test by name.
 
+    @param test: a string specifying the test name as specified inside of
+                 shortName.
+
+    @param options: the local options to be passed to the test.
+
+    @param global_options: the global options for OONI
+    """
     parallelism = int(global_options['parallelism'])
     worker = work.Worker(parallelism)
     test_class = plugoo[test].__class__
@@ -64,6 +73,8 @@ def runTest(test, options, global_options):
 
     log.start(global_options['log'], 1)
     resume = 0
+    if not options:
+        options = {}
     if 'resume' in options:
         resume = options['resume']
 
@@ -74,7 +85,6 @@ def runTest(test, options, global_options):
     for x in wgen:
         worker.push(x)
 
-    reactor.run()
 
 class Options(usage.Options):
     tests = plugoo.keys()
@@ -111,14 +121,15 @@ class Options(usage.Options):
         return getlogo() + '\n' + self.getSynopsis() + '\n' + \
                self.getUsage(width=None).replace("Commands:", "Tests:")
 
-config = Options()
-config.parseOptions()
+if __name__ == "__main__":
+    config = Options()
+    config.parseOptions()
 
-if not config.subCommand:
-    print "Error! No Test Specified."
-    config.opt_help()
-    sys.exit(1)
+    if not config.subCommand:
+        print "Error! No Test Specified."
+        config.opt_help()
+        sys.exit(1)
 
-runTest(config.subCommand, config.subOptions, config)
-
+    runTest(config.subCommand, config.subOptions, config)
+    reactor.run()
 

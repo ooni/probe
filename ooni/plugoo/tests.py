@@ -79,6 +79,8 @@ class OONITest(object):
         not we expect it to return a Deferred.
 
         @param args: the asset line(s) that we are working on.
+
+        returns a deferred.
         """
         if self.blocking:
             self.d = threads.deferToThread(self.experiment, args)
@@ -98,15 +100,7 @@ class OONITest(object):
         @param args: the asset(s) lines that we are working on.
         """
         log.msg("Doing control")
-
-        if self.blocking:
-            return result
-
-        def end(cb):
-            return result
-        d = defer.Deferred()
-        d.addCallback(end)
-        return d
+        return result
 
     def experiment(self, args):
         """

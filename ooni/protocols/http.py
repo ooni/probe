@@ -41,13 +41,10 @@ class HTTPTest(OONITest):
     """
     randomize_ua = True
 
-    def initialize(self, reactor=None):
+    def initialize(self):
         from twisted.web.client import Agent
         import yaml
 
-        if not self.reactor:
-            from twisted.internet import reactor
-            self.reactor = reactor
         self.agent = Agent(self.reactor)
         self.request = {}
         self.response = {}
