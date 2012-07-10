@@ -25,11 +25,23 @@ class Worker(object):
     runs them concurrently.
     """
     def __init__(self, maxconcurrent=10):
+        """
+        @param maxconcurrent: how many test instances should be run
+                              concurrently.
+        """
         self.maxconcurrent = maxconcurrent
         self._running = 0
         self._queued = []
 
     def _run(self, r):
+        """
+        Check if we should start another test because we are below maximum
+        concurrency.
+
+        This function is called every time a test finishes running.
+
+        @param r: the return value of a previous test.
+        """
         self._running -= 1
         if self._running < self.maxconcurrent and self._queued:
             workunit, d = self._queued.pop(0)
@@ -38,6 +50,7 @@ class Worker(object):
             actuald = test.startTest(asset).addBoth(self._run)
 
         if isinstance(r, failure.Failure):
+            # XXX probably we should be doing something to retry test running
             r.trap()
 
         if self._running == 0 and not self._queued:
@@ -46,6 +59,15 @@ class Worker(object):
         return r
 
     def push(self, workunit):
+        """
+        Add a test to the test queue and run it if we are not maxed out on
+        concurrency.
+
+        @param workunit: a tuple containing the (asset, test, idx), where asset
+                         is the line of the asset(s) we are working on, test
+                         is an instantiated test and idx is the index we are
+                         currently at.
+        """
         if self._running < self.maxconcurrent:
             asset, test, idx = workunit
             self._running += 1
@@ -83,6 +105,11 @@ class WorkGenerator(object):
         return self
 
     def skip(self, start):
+        """
+        Skip the first x number of lines of the asset.
+
+        @param start: int how many items we should skip.
+        """
         for j in xrange(0, start-1):
             for i in xrange(0, self.size):
                 self.assetGenerator.next()

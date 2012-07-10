@@ -93,14 +93,12 @@ class CaptivePortal(OONITest):
             if fuzzy:
                 pattern = re.compile(control_result)
                 match = pattern.search(response_content)
+                log.msg("Fuzzy HTTP content comparison for experiment URL")
+                log.msg("'%s'" % experimental_url)
                 if not match:
-                    log.msg("Fuzzy HTTP content comparison for experiment URL")
-                    log.msg("'%s'" % experimental_url)
                     log.msg("does not match!")
                     return False, response_code, response_headers
                 else:
-                    log.msg("Fuzzy HTTP content comparison of experiment URL")
-                    log.msg("'%s'" % experimental_url)
                     log.msg("and the expected control result yielded a match.")
                     return True, response_code, response_headers
             else:
