@@ -25,7 +25,7 @@ from twisted.plugin import IPlugin
 from ooni.plugoo.assets import Asset
 from ooni.plugoo.tests import ITest, OONITest
 from ooni.protocols import http
-from ooni import log
+from ooni.utils import log
 
 try:
     from dns import resolver

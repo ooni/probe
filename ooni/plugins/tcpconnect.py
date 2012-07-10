@@ -11,7 +11,7 @@ from twisted.internet.endpoints import TCP4ClientEndpoint
 
 from ooni.plugoo.tests import ITest, OONITest
 from ooni.plugoo.assets import Asset
-from ooni import log
+from ooni.utils import log
 
 class tcpconnectArgs(usage.Options):
     optParameters = [['asset', 'a', None, 'File containing IP:PORT combinations, one per line.'],

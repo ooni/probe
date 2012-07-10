@@ -17,19 +17,20 @@
 #
 
 import sys
-
-from twisted.python import usage
-from twisted.plugin import getPlugins
-from twisted.internet import reactor
-
-from zope.interface.exceptions import BrokenImplementation
-from zope.interface.exceptions import BrokenMethodImplementation
-from zope.interface.verify import verifyObject
 from pprint import pprint
 
+from twisted.python import usage
+from twisted.internet import reactor
+from twisted.plugin import getPlugins
+
+from zope.interface.verify import verifyObject
+from zope.interface.exceptions import BrokenImplementation
+from zope.interface.exceptions import BrokenMethodImplementation
+
 from ooni.plugoo import tests, work, assets, reports
-from ooni.logo import getlogo
-from ooni import plugins, log
+from ooni.utils.logo import getlogo
+from ooni.utils import log
+from ooni import plugins
 
 __version__ = "0.0.1-prealpha"
 

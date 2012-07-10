@@ -9,7 +9,7 @@ from twisted.plugin import IPlugin
 from ooni.plugoo.tests import ITest, OONITest
 from ooni.plugoo.assets import Asset
 from ooni.protocols import http
-from ooni import log
+from ooni.utils import log
 
 class httptArgs(usage.Options):
     optParameters = [['urls', 'f', None, 'Urls file'],
