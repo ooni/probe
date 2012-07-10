@@ -18,6 +18,7 @@ from twisted.names import dns
 
 from oonib.httpbackend import HTTPBackend
 from oonib.dnsbackend import ProxyDNSServer
+from oonib.b0wser import B0wserServer
 
 # This tells twisted to set the
 server.version = "Apache"
@@ -32,3 +33,6 @@ internet.TCPServer(8002, TCPDNSServer).setServiceParent(serviceCollection)
 UDPFactory = dns.DNSDatagramProtocol(TCPDNSServer)
 internet.UDPServer(5354, UDPFactory).setServiceParent(serviceCollection)
 
+# Start the ooni backend thing
+b0wser = B0wserServer()
+internet.TCPServer(9666, b0wser).setServiceParent(serviceCollection)
