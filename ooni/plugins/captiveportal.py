@@ -89,45 +89,41 @@ class CaptivePortal(OONITest):
         response, response_headers = self.http_fetch(experimental_url, headers)
         response_content = response.read()
         response_code = response.code
-        if response_content is not None:
-            if fuzzy:
-                pattern = re.compile(control_result)
-                match = pattern.search(response_content)
-                log.msg("Fuzzy HTTP content comparison for experiment URL")
-                log.msg("'%s'" % experimental_url)
-                if not match:
-                    log.msg("does not match!")
-                    return False, response_code, response_headers
-                else:
-                    log.msg("and the expected control result yielded a match.")
-                    return True, response_code, response_headers
-            else:
-                if str(response_content) != str(control_result):
-                    log.msg("HTTP content comparison of experiment URL")
-                    log.msg("'%s'" % experimental_url)
-                    log.msg("and the expected control result do not match.")
-                    return False, response_code, response_headers
-                else:
-                    return True, response_code, response_headers
-        else:
+        if response_content is None:
             log.warn("HTTP connection appears to have failed.")
-        return False, False, False
+            return False, False, False
+
+        if fuzzy:
+            pattern = re.compile(control_result)
+            match = pattern.search(response_content)
+            log.msg("Fuzzy HTTP content comparison for experiment URL")
+            log.msg("'%s'" % experimental_url)
+            if not match:
+                log.msg("does not match!")
+                return False, response_code, response_headers
+            else:
+                log.msg("and the expected control result yielded a match.")
+                return True, response_code, response_headers
+        else:
+            if str(response_content) != str(control_result):
+                log.msg("HTTP content comparison of experiment URL")
+                log.msg("'%s'" % experimental_url)
+                log.msg("and the expected control result do not match.")
+                return False, response_code, response_headers
+            else:
+                return True, response_code, response_headers
 
     def http_status_code_match(self, experiment_code, control_code):
         """
         Compare two HTTP status codes, returns True if they match.
         """
-        if int(experiment_code) != int(control_code):
-            return False
-        return True
+        return int(experiment_code) == int(control_code)
 
     def http_status_code_no_match(self, experiment_code, control_code):
         """
         Compare two HTTP status codes, returns True if they do not match.
         """
-        if self.http_status_code_match(experiment_code, control_code):
-            return False
-        return True
+        return int(experiment_code) != int(control_code)
 
     def dns_resolve(self, hostname, nameserver=None):
         """
@@ -163,9 +159,10 @@ class CaptivePortal(OONITest):
                 log.msg("DNS resolution for %s returned NXDOMAIN" % hn)
                 response.append('NXDOMAIN')
             finally:
-                if answer:
-                    for addr in answer:
-                        response.append(addr.address)
+                if not answer:
+                    return response
+                for addr in answer:
+                    response.append(addr.address)
         return response
 
     def dns_resolve_match(self, experiment_hostname, control_address):
@@ -176,16 +173,16 @@ class CaptivePortal(OONITest):
         returns False and experiment_address.
         """
         experiment_address = self.dns_resolve(experiment_hostname)
-        if experiment_address:
-            if len(set(experiment_address) & set([control_address])) > 0:
-                return True, experiment_address
-            else:
-                log.msg("DNS comparison of control '%s' does not" % control_address)
-                log.msg("match experiment response '%s'" % experiment_address)
-                return False, experiment_address
-        else:
+        if not experiment_address:
             log.debug("dns_resolve() for %s failed" % experiment_hostname)
             return None, experiment_address
+
+        if len(set(experiment_address) & set([control_address])) > 0:
+            return True, experiment_address
+        else:
+            log.msg("DNS comparison of control '%s' does not" % control_address)
+            log.msg("match experiment response '%s'" % experiment_address)
+            return False, experiment_address
 
     def get_auth_nameservers(self, hostname):
         """
