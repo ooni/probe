@@ -24,11 +24,12 @@ class Worker(object):
     This is the core of OONI. It takes as input Work Units and
     runs them concurrently.
     """
-    def __init__(self, maxconcurrent=10):
+    def __init__(self, maxconcurrent=10, reactor=reactor):
         """
         @param maxconcurrent: how many test instances should be run
                               concurrently.
         """
+        self.reactor = reactor
         self.maxconcurrent = maxconcurrent
         self._running = 0
         self._queued = []
@@ -54,7 +55,7 @@ class Worker(object):
             r.trap()
 
         if self._running == 0 and not self._queued:
-            reactor.stop()
+            self.reactor.stop()
 
         return r
 

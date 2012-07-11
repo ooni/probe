@@ -56,7 +56,7 @@ def retrieve_plugoo():
 
 plugoo = retrieve_plugoo()
 
-def runTest(test, options, global_options, reactor=None):
+def runTest(test, options, global_options, reactor=reactor):
     """
     Run an OONI probe test by name.
 
@@ -68,7 +68,7 @@ def runTest(test, options, global_options, reactor=None):
     @param global_options: the global options for OONI
     """
     parallelism = int(global_options['parallelism'])
-    worker = work.Worker(parallelism)
+    worker = work.Worker(parallelism, reactor=reactor)
     test_class = plugoo[test].__class__
     report = reports.Report(test, global_options['output'])
 
