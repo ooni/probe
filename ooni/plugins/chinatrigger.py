@@ -10,7 +10,7 @@ from twisted.internet import protocol, defer
 from ooni.plugoo.tests import ITest, OONITest
 from ooni.plugoo.assets import Asset
 from ooni.utils import log
-from ooni.protocols.scapy import ScapyTest
+from ooni.protocols.scapyproto import ScapyTest
 
 from ooni.lib.txscapy import txsr, txsend
 

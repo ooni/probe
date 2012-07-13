@@ -1,7 +1,11 @@
+from twisted.internet import protocol, defer
+from twisted.internet.error import ConnectionDone
+
 from ooni.utils import log
+from ooni.plugoo import reports
 
 import sys
-from scapy.all import * # XXX recommended way of importing scapy?
+from scapy.all import *
 import yaml
 
 def get_b0wser_dictionary_from_pcap(filename):
@@ -23,12 +27,12 @@ def get_b0wser_dictionary_from_pcap(filename):
     """
     pcap assumptions:
 
-    pcap only contains packets exchanged between a Tor client and a Tor
-    server. (This assumption makes sure that there are only two IP
-    addresses in the pcap file)
+    pcap only contains packets exchanged between a Tor client and a Tor server.
+    (This assumption makes sure that there are only two IP addresses in the
+    pcap file)
 
-    The first packet of the pcap is sent from the client to the server.
-    (This assumption is used to get the IP address of the client.)
+    The first packet of the pcap is sent from the client to the server. (This
+    assumption is used to get the IP address of the client.)
 
     All captured packets are TLS packets: that is TCP session
     establishment/teardown packets should be filtered out (no SYN/SYN+ACK)
@@ -59,7 +63,7 @@ def get_b0wser_dictionary_from_pcap(filename):
         else:
             raise("Detected third IP address! pcap is corrupted.")
 
-    return yaml.dump(messages)
+    return messages
 
 class Mutator:
     idx = 0
@@ -115,7 +119,8 @@ class Mutator:
         returns True if another mutation is available.
         returns False if all the possible mutations have been done.
         """
-        if self.step > len(self.steps):
+        if (self.step + 1) > len(self.steps):
+            # Hack to stop once we have gone through all the steps
             self.waiting = True
             return False
 
@@ -123,7 +128,10 @@ class Mutator:
         current_idx = self.idx
         current_step = self.step
         current_data = self.steps[current_step]['data']
-        data_to_receive = self.steps[current_step]['wait']
+        try:
+            data_to_receive = len(self.steps[current_step +1 ]['data'])
+        except:
+            print "No more data to receive"
 
         if self.waiting and self.waiting_step == data_to_receive:
             log.debug("I am no longer waiting.")
@@ -170,14 +178,14 @@ class B0wserProtocol(protocol.Protocol):
     For every instance of protocol there is only 1 mutation.
     Once the last step is reached the connection is closed on the serverside.
     """
-    steps = [{'data': "STEP1", 'wait': 4},
-             {'data': "STEP2", 'wait': 4},
-             {'data': "STEP3", 'wait': 4}]
+    steps = []
     mutator = None
 
+    role = 'client'
     state = 0
     total_states = len(steps) - 1
     received_data = 0
+    to_receive_data = 0
     report = reports.Report('b0wser', 'b0wser.yamlooni')
 
     def next_state(self):
@@ -185,8 +193,12 @@ class B0wserProtocol(protocol.Protocol):
         This is called once I have completed one step of the protocol and need
         to proceed to the next step.
         """
-        data = self.mutator.get_mutation(self.state)
-        self.transport.write(data)
+        if self.role is self.steps[self.state]['sender']:
+            data = self.mutator.get_mutation(self.state)
+            self.transport.write(data)
+            self.to_receive_data = 0
+        else:
+            self.to_receive_data = len(self.steps[self.state]['data'])
         self.state += 1
         self.received_data = 0
 
@@ -204,8 +216,9 @@ class B0wserProtocol(protocol.Protocol):
             self.report(report)
             self.transport.loseConnection()
             return
+
         self.received_data += len(data)
-        if self.received_data >= self.steps[self.state]['wait']:
+        if self.received_data >= self.to_receive_data:
             print "Moving to next state %s" % self.state
             self.next_state()
 
@@ -234,7 +247,7 @@ class B0wserProtocol(protocol.Protocol):
         or it may be because of a censorship event.
         """
         report = {'reason': reason, 'proto_state': self.state,
-                'mutator_state': self.mutator.state(), 'trigger': None}
+                'trigger': None, 'mutator_state': self.mutator.state()}
 
         if self.state < self.total_states:
             report['trigger'] = 'did not finish state walk'
