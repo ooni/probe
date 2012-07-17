@@ -25,7 +25,9 @@ class B0wserServer(protocol.ServerFactory):
             print "Moving on to next mutation"
             if not self.mutations[addr.host].next_mutation():
                 self.mutations.pop(addr.host)
-            else:
-                p.mutator = self.mutations[addr.host]
+        try:
+            p.mutator = self.mutations[addr.host]
+        except:
+            pass
         return p
 

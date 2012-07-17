@@ -24,6 +24,7 @@ class OONITest(object):
     """
     # By default we set this to False, meaning that we don't block
     blocking = False
+    reactor = None
 
     def __init__(self, local_options, global_options, report, ooninet=None,
             reactor=None):
@@ -31,12 +32,13 @@ class OONITest(object):
         self.local_options = local_options
         # These are the options global to all of OONI
         self.global_options = global_options
-        self.assets = self.load_assets()
         self.report = report
         #self.ooninet = ooninet
         self.reactor = reactor
-        self.initialize()
         self.result = {}
+
+        self.initialize()
+        self.assets = self.load_assets()
 
     def initialize(self):
         """

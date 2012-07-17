@@ -62,14 +62,23 @@ class b0wserTest(OONITest):
     options = b0wserArgs
     blocking = False
 
+    local_options = None
+
+    steps = None
     def initialize(self):
+        if not self.local_options:
+            return
         #pass
         self.factory = B0wserClientFactory()
+        self.steps = b0wser.get_b0wser_dictionary_from_pcap(self.local_options['pcap'])
+
+    def control(self, exp_res, args):
+        mutation = self.factory.mutator.get_mutation(0)
+        return {'mutation_number': args['mutation'], 'value': mutation}
 
     def experiment(self, args):
-        steps = b0wser.get_b0wser_dictionary_from_pcap(self.local_options['pcap'])
-        print steps
-        self.factory.steps = steps
+        log.msg("Doing mutation %s" % args['mutation'])
+        self.factory.steps = self.steps
         host = self.local_options['host']
         port = int(self.local_options['port'])
         log.msg("Connecting to %s:%s" % (host, port))
@@ -78,7 +87,13 @@ class b0wserTest(OONITest):
         #return endpoint.connect(B0wserClientFactory)
 
     def load_assets(self):
-        return {}
+        if not self.steps:
+            print "No asset!"
+            return {}
+        mutations = 0
+        for x in self.steps:
+            mutations += len(x['data'])
+        return {'mutation': range(mutations)}
 
 # We need to instantiate it otherwise getPlugins does not detect it
 # XXX Find a way to load plugins without instantiating them.

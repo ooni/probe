@@ -101,7 +101,9 @@ class Mutator:
 
         Returns a dict containg the packet index and the step number.
         """
-        return {'idx': self.idx, 'step': self.step}
+        print "[Mutator.state()] Giving out my internal state."
+        current_state =  {'idx': self.idx, 'step': self.step}
+        return current_state
 
     def next_mutation(self):
         """
@@ -121,6 +123,8 @@ class Mutator:
         """
         if (self.step + 1) > len(self.steps):
             # Hack to stop once we have gone through all the steps
+            print "[Mutator.next_mutation()] I believe I have gone over all steps"
+            print "                          Stopping!"
             self.waiting = True
             return False
 
@@ -130,20 +134,24 @@ class Mutator:
         current_data = self.steps[current_step]['data']
         try:
             data_to_receive = len(self.steps[current_step +1 ]['data'])
+            print "[Mutator.next_mutation()] Managed to receive some data."
         except:
-            print "No more data to receive"
+            print "[Mutator.next_mutation()] No more data to receive."
 
         if self.waiting and self.waiting_step == data_to_receive:
+            print "[Mutator.next_mutation()] I am no longer waiting"
             log.debug("I am no longer waiting.")
             self.waiting = False
             self.waiting_step = 0
             self.idx = 0
 
         elif self.waiting:
+            print "[Mutator.next_mutation()] Waiting some more."
             log.debug("Waiting some more.")
             self.waiting_step += 1
 
         elif current_idx >= len(current_data):
+            print "[Mutator.next_mutation()] Entering waiting mode."
             log.debug("Entering waiting mode.")
             self.step += 1
             self.idx = 0
@@ -164,7 +172,7 @@ class Mutator:
         returns the mutated packet for the specified step.
         """
         if step != self.step or self.waiting:
-            log.debug("I am not going to do anything :)")
+            log.debug("[Mutator.get_mutation()] I am not going to do anything :)")
             return self.steps[step]['data']
 
         data = self.steps[step]['data']
@@ -193,12 +201,19 @@ class B0wserProtocol(protocol.Protocol):
         This is called once I have completed one step of the protocol and need
         to proceed to the next step.
         """
+        if not self.mutator:
+            print "[B0wserProtocol.next_state] No mutator. There is no point to stay on this earth."
+            self.transport.loseConnection()
+            return
         if self.role is self.steps[self.state]['sender']:
+            print "[B0wserProtocol.next_state] I am a sender"
             data = self.mutator.get_mutation(self.state)
             self.transport.write(data)
             self.to_receive_data = 0
         else:
+            print "[B0wserProtocol.next_state] I am a receiver"
             self.to_receive_data = len(self.steps[self.state]['data'])
+
         self.state += 1
         self.received_data = 0
 
@@ -209,6 +224,10 @@ class B0wserProtocol(protocol.Protocol):
 
         @param data: the data that has been sent by the client.
         """
+        if not self.mutator:
+            print "I don't have a mutator. My life means nothing."
+            self.transport.loseConnection()
+            return
         if len(self.steps) <= self.state:
             print "I have reached the end of the state machine"
             print "Censorship fingerprint bruteforced!"
@@ -246,6 +265,9 @@ class B0wserProtocol(protocol.Protocol):
         The connection was closed. This may be because of a legittimate reason
         or it may be because of a censorship event.
         """
+        if not self.mutator:
+            print "Terminated because of little interest in life."
+            return
         report = {'reason': reason, 'proto_state': self.state,
                 'trigger': None, 'mutator_state': self.mutator.state()}
 
