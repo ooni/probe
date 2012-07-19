@@ -29,7 +29,7 @@
 import os
 
 from twisted.names import client, dns
-from twisted.internet import reactor
+from twisted.internet import reactor, defer
 from twisted.internet.error import CannotListenError
 from twisted.internet.protocol import Factory, Protocol
 from twisted.python import usage
@@ -80,7 +80,8 @@ class DNSTamperResolver(client.Resolver):
     [4] http://comments.gmane.org/gmane.comp.python.twisted/22794
     """
     def __init__(self):
-        super(DNSTamperResolver, self).__init__()
+        super(DNSTamperResolver, self).__init__(self, resolv, servers,
+                                                timeout, reactor)
         #client.Resolver.__init__(self)
 
         if self.local_options['port']:
@@ -117,13 +118,29 @@ class DNSTamperTest(OONITest):
     requirements = None
     options = DNSTamperArgs
     blocking = False
-    
-    if self.local_options['localservers']:
-        ## client.createResolver() turns None into '/etc/resolv.conf' 
-        ## on posix systems, ignored on Windows.
-        self.resolvconf = None
-    else:
-        self.resolvconf = ''
+
+    #def __init__(self, local_options, global_options, 
+    #             report, ooninet=None, reactor=None):
+    #    super(DNSTamperTest, self).__init__(local_options, global_options,
+    #                                        report, ooninet, reactor)
+    #
+    #    if self.reactor is None:
+    #        self.reactor = reactor
+    #
+    #    if self.local_options:
+    #        if self.local_options['localservers']:
+    #        ## client.createResolver() turns None into '/etc/resolv.conf' 
+    #        ## on posix systems, ignored on Windows.
+    #            self.resolvconf = None
+    #        else:
+    #            self.resolvconf = ''
+
+    def initialize(self):
+        if self.local_options:
+            if self.local_options['localservers']:
+                self.resolvconf = None
+            else:
+                self.resolvconf = ''
 
     def load_assets(self):
         assets = {}
@@ -199,9 +216,13 @@ class DNSTamperTest(OONITest):
 
         if self.local_options['usereverse']:
             exp_reversed = self.reverse_lookup(exp_address, test_server)
-            return exp_address, hostname, test_server, exp_reversed
+
+            ## XXX trying to fix errors:
+            #d = defer.Deferred()
+            
+            return (exp_address, hostname, test_server, exp_reversed)
         else:
-            return exp_address, hostname, test_server, False
+            return (exp_address, hostname, test_server, False)
 
     def control(self, experiment_result):
         (exp_address, hostname, test_server, exp_reversed) = experiment_result
