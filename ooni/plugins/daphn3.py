@@ -10,18 +10,18 @@ from twisted.internet import protocol, endpoints
 
 from ooni.plugoo.tests import ITest, OONITest
 from ooni.plugoo.assets import Asset
-from ooni.protocols import b0wser
+from ooni.protocols import daphn3
 from ooni.utils import log
 
-class B0wserClientProtocol(b0wser.B0wserProtocol):
+class Daphn3ClientProtocol(daphn3.Daphn3Protocol):
     def connectionMade(self):
         self.next_state()
 
     def connectionLost(self, reason):
         print "LOST!"
 
-class B0wserClientFactory(protocol.ClientFactory):
-    protocol = B0wserClientProtocol
+class Daphn3ClientFactory(protocol.ClientFactory):
+    protocol = Daphn3ClientProtocol
     mutator = None
     steps = None
 
@@ -32,7 +32,7 @@ class B0wserClientFactory(protocol.ClientFactory):
             p.steps = self.steps
 
         if not self.mutator:
-            self.mutator = b0wser.Mutator(p.steps)
+            self.mutator = daphn3.Mutator(p.steps)
             p.mutator = self.mutator
         else:
             print "Moving on to next mutation"
@@ -47,19 +47,19 @@ class B0wserClientFactory(protocol.ClientFactory):
     def clientConnectionLost(self, reason):
         print "Connection Lost."
 
-class b0wserArgs(usage.Options):
+class daphn3Args(usage.Options):
     optParameters = [['pcap', 'f', None, 'PCAP file to take as input'],
                      ['host', 'h', None, 'Target Hostname'],
                      ['port', 'p', None, 'Target port number'],
                      ['resume', 'r', 0, 'Resume at this index']]
 
-class b0wserTest(OONITest):
+class daphn3Test(OONITest):
     implements(IPlugin, ITest)
 
-    shortName = "b0wser"
-    description = "b0wser"
+    shortName = "daphn3"
+    description = "daphn3"
     requirements = None
-    options = b0wserArgs
+    options = daphn3Args
     blocking = False
 
     local_options = None
@@ -69,8 +69,8 @@ class b0wserTest(OONITest):
         if not self.local_options:
             return
         #pass
-        self.factory = B0wserClientFactory()
-        self.steps = b0wser.get_b0wser_dictionary_from_pcap(self.local_options['pcap'])
+        self.factory = Daphn3ClientFactory()
+        self.steps = daphn3.get_daphn3_dictionary_from_pcap(self.local_options['pcap'])
 
     def control(self, exp_res, args):
         mutation = self.factory.mutator.get_mutation(0)
@@ -84,7 +84,7 @@ class b0wserTest(OONITest):
         log.msg("Connecting to %s:%s" % (host, port))
         endpoint = endpoints.TCP4ClientEndpoint(self.reactor, host, port)
         return endpoint.connect(self.factory)
-        #return endpoint.connect(B0wserClientFactory)
+        #return endpoint.connect(Daphn3ClientFactory)
 
     def load_assets(self):
         if not self.steps:
@@ -97,4 +97,4 @@ class b0wserTest(OONITest):
 
 # We need to instantiate it otherwise getPlugins does not detect it
 # XXX Find a way to load plugins without instantiating them.
-b0wsertest = b0wserTest(None, None, None)
+daphn3test = daphn3Test(None, None, None)

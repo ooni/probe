@@ -8,7 +8,7 @@ import sys
 from scapy.all import *
 import yaml
 
-def get_b0wser_dictionary_from_pcap(filename):
+def get_daphn3_dictionary_from_pcap(filename):
     """
     @param filename: Filesystem path to the pcap.
 
@@ -179,9 +179,9 @@ class Mutator:
         print "Mutating %s with idx %s" % (data, self.idx)
         return self._mutate(data, self.idx)
 
-class B0wserProtocol(protocol.Protocol):
+class Daphn3Protocol(protocol.Protocol):
     """
-    This implements the B0wser protocol for the server side.
+    This implements the Daphn3 protocol for the server side.
     It gets instanced once for every client that connects to the oonib.
     For every instance of protocol there is only 1 mutation.
     Once the last step is reached the connection is closed on the serverside.
@@ -194,7 +194,7 @@ class B0wserProtocol(protocol.Protocol):
     total_states = len(steps) - 1
     received_data = 0
     to_receive_data = 0
-    report = reports.Report('b0wser', 'b0wser.yamlooni')
+    report = reports.Report('daphn3', 'daphn3.yamlooni')
 
     def next_state(self):
         """
@@ -202,16 +202,16 @@ class B0wserProtocol(protocol.Protocol):
         to proceed to the next step.
         """
         if not self.mutator:
-            print "[B0wserProtocol.next_state] No mutator. There is no point to stay on this earth."
+            print "[Daphn3Protocol.next_state] No mutator. There is no point to stay on this earth."
             self.transport.loseConnection()
             return
         if self.role is self.steps[self.state]['sender']:
-            print "[B0wserProtocol.next_state] I am a sender"
+            print "[Daphn3Protocol.next_state] I am a sender"
             data = self.mutator.get_mutation(self.state)
             self.transport.write(data)
             self.to_receive_data = 0
         else:
-            print "[B0wserProtocol.next_state] I am a receiver"
+            print "[Daphn3Protocol.next_state] I am a receiver"
             self.to_receive_data = len(self.steps[self.state]['data'])
 
         self.state += 1

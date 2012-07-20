@@ -2,18 +2,18 @@ from twisted.internet import protocol
 from twisted.internet.error import ConnectionDone
 
 from ooni.plugoo import reports
-from ooni.protocols.b0wser import Mutator, B0wserProtocol
+from ooni.protocols.daphn3 import Mutator, daphn3Protocol
 
-class B0wserServer(protocol.ServerFactory):
+class daphn3Server(protocol.ServerFactory):
     """
-    This is the main class that deals with the b0wser server side component.
+    This is the main class that deals with the daphn3 server side component.
     We keep track of global state of every client here.
     Every client is identified by their IP address and the state of mutation is
     stored by using their IP address as a key. This may lead to some bugs if
     two different clients are sharing the same IP, but hopefully the
     probability of such thing is not that likely.
     """
-    protocol = B0wserProtocol
+    protocol = daphn3Protocol
     mutations = {}
     def buildProtocol(self, addr):
         p = self.protocol()
