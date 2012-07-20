@@ -71,6 +71,15 @@ class HTTPTest(OONITest):
         """
         pass
 
+    def processRedirect(self, location):
+        """
+        Handle a redirection via a 3XX HTTP status code.
+
+        @param location: the url that is being redirected to.
+        """
+        pass
+
+
     def experiment(self, args):
         log.msg("Running experiment")
         url = self.local_options['url'] if 'url' not in args else args['url']
@@ -85,7 +94,15 @@ class HTTPTest(OONITest):
 
     def _cbResponse(self, response):
         self.response['headers'] = list(response.headers.getAllRawHeaders())
+        self.response['code'] = response.code
+        self.response['length'] = response.length
+        self.response['version'] = response.length
+
+        if str(self.response['code']).startswith('3'):
+            self.processRedirect(response.headers.getRawHeaders('Location')[0])
         self.processResponseHeaders(self.response['headers'])
+        self.result['response'] = self.response
+
         finished = defer.Deferred()
         response.deliverBody(BodyReceiver(finished))
         finished.addCallback(self._processResponseBody)
