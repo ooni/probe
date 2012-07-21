@@ -70,7 +70,7 @@ class daphn3Test(OONITest):
             return
         #pass
         self.factory = Daphn3ClientFactory()
-        self.steps = daphn3.get_daphn3_dictionary_from_pcap(self.local_options['pcap'])
+        self.steps = daphn3.read_pcap(self.local_options['pcap'])
 
     def control(self, exp_res, args):
         mutation = self.factory.mutator.get_mutation(0)

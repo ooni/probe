@@ -8,7 +8,7 @@ import sys
 from scapy.all import *
 import yaml
 
-def get_daphn3_dictionary_from_pcap(filename):
+def read_pcap(filename):
     """
     @param filename: Filesystem path to the pcap.
 

@@ -1,8 +1,11 @@
 from twisted.internet import protocol
 from twisted.internet.error import ConnectionDone
 
+from oonib.common import config
+
 from ooni.plugoo import reports
 from ooni.protocols.daphn3 import Mutator, Daphn3Protocol
+from ooni.protocols.daphn3 import read_pcap
 
 class Daphn3Server(protocol.ServerFactory):
     """
@@ -18,6 +21,7 @@ class Daphn3Server(protocol.ServerFactory):
     def buildProtocol(self, addr):
         p = self.protocol()
         p.factory = self
+        p.factory.steps = read_pcap(config.daphn3.pcap_file)
 
         if addr.host not in self.mutations:
             self.mutations[addr.host] = Mutator(p.steps)
