@@ -2,9 +2,9 @@ from twisted.internet import protocol
 from twisted.internet.error import ConnectionDone
 
 from ooni.plugoo import reports
-from ooni.protocols.daphn3 import Mutator, daphn3Protocol
+from ooni.protocols.daphn3 import Mutator, Daphn3Protocol
 
-class daphn3Server(protocol.ServerFactory):
+class Daphn3Server(protocol.ServerFactory):
     """
     This is the main class that deals with the daphn3 server side component.
     We keep track of global state of every client here.
@@ -13,7 +13,7 @@ class daphn3Server(protocol.ServerFactory):
     two different clients are sharing the same IP, but hopefully the
     probability of such thing is not that likely.
     """
-    protocol = daphn3Protocol
+    protocol = Daphn3Protocol
     mutations = {}
     def buildProtocol(self, addr):
         p = self.protocol()
