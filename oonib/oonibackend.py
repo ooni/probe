@@ -16,19 +16,13 @@ from twisted.web import resource, server, static
 from twisted.web.microdom import escape
 from twisted.names import dns
 
-from ooni.utils import Storage
-from ooni.utils.config import Config
-
+from oonib.common import config
 from oonib.backends.http import HTTPBackend
 from oonib.backends.dns import ProxyDNSServer
 from oonib.backends.daphn3 import Daphn3Server
 
-config = Storage()
-config.main = Config('main', 'oonibackend.conf')
-config.daphn3 = Config('daphn3', 'oonibackend.conf')
-
 # This tells twisted to set the
-server.version = "Apache"
+server.version = config.main.server_version
 
 application = service.Application('oonibackend')
 serviceCollection = service.IServiceCollection(application)
