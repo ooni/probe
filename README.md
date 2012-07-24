@@ -1,4 +1,4 @@
-ooni-probe - Open Observatory of Network Interference
+# ooni-probe - Open Observatory of Network Interference
 
 "The Net interprets censorship as damage and routes around it."
                 - John Gilmore; TIME magazine (6 December 1993)
@@ -7,6 +7,29 @@ OONI, the Open Observatory of Network Interference, is a global observation
 network which aims is to collect high quality data using open methodologies,
 using Free and Open Source Software (FL/OSS) to share observations and data
 about the various types, methods, and amounts of network tampering in the world.
+
+# Let's get started with this already!
+
+To run OONI-probe without having to install it you must tell python that it can
+import modules from the root of ooni-probe.
+
+You must therefore run from the root of the repo:
+
+    export PYTHONPATH=$PYTHONPATH:`pwd`
+
+Then to see what tests are available:
+
+    cd ooni
+    python ooniprobe.py
+
+If you see some errors see INSTALL to install the missing dependencies.
+
+To list the help for a specific test:
+
+    python ooniprobe.py httpt --help
+
+
+# More details
 
 With the belief that unfettered access to information is a intrinsic human right,
 OONI seeks to observe levels of surveillance, censorship, and network discrimination
@@ -32,7 +55,7 @@ tests and collecting data on censorship.
 OONI revolves around three major concepts: Assets, Tests and
 Reports.
 
-# Assets
+## Assets
 
 Assets are the inputs used inside Tests to detect censorship events.
 These can be URL lists, keywords, ip addresses, packets or any kind
@@ -41,7 +64,7 @@ In the python specific implementation this is represented as a python
 iterable object. This means that the Testing framework will be able
 to iterate through every element in the Asset.
 
-# Tests
+## Tests
 
 This is the core of OONI. These are the actual tests that will be run
 using as input (if an input is required) the Assets.
@@ -55,7 +78,7 @@ that may be useful when developing censorship detection tests. For example
 it is possible to make a request over the Tor network easily or use a fast
 and flexible non-blocking HTTP client implementation.
 
-# Reports
+## Reports
 
 This is the data that is collected from the test. OONI probe provides a
 flexible means of storing results and uploading this data to a remote
