@@ -2,6 +2,8 @@
 * Twisted: http://twistedmatrix.com/trac/
 * PyYAML: http://pyyaml.org/
 * Scapy: http://www.secdev.org/projects/scapy/
+    * pypcap: http://code.google.com/p/pypcap/
+    * libdnet: http://code.google.com/p/libdnet/
 
 Optional:
 * BeautifulSoup: http://www.crummy.com/software/BeautifulSoup/
@@ -11,4 +13,50 @@ Optional:
 On debian you can install all the dependecies with apt-get with this command:
 
     apt-get install python-twisted python-twisted-names python-yaml python-scapy python-beautifulsoup
+
+## The "hard" way
+
+This involves installing the dependencies installable via easy_install/pip and
+the ones that are not by building them from source.
+
+"simple" dependencies via easy_install:
+
+    sudo easy_install pyyaml
+    sudo easy_install twisted
+    sudo easy_install beautifulsoup
+
+"simple" dependencies via pip:
+
+    sudo pip install pyyaml
+    sudo pip install twisted
+    sudo pip install beautifulsoup
+
+
+
+libdnet:
+
+    wget http://libdnet.googlecode.com/files/libdnet-1.12.tgz
+    tar xzf libdnet-1.12.tgz
+    cd libdnet-1.12
+    ./configure  && make
+    cd python/
+    sudo python setup.py install
+    cd ../../ && rm -rf libdnet-1.12*
+
+pypcap:
+
+    svn checkout http://pypcap.googlecode.com/svn/trunk/ pypcap-read-only
+    cd pypcap-read-only/
+    sudo pip install pyrex
+    make
+    sudo python setup.py install
+    cd ../ && rm -rf pypcap-read-only
+
+scapy:
+
+    wget http://www.secdev.org/projects/scapy/files/scapy-latest.zip
+    unzip scapy-latest.zip
+    cd scapy-2.2.0/
+    sudo python setup.py install
+    cd ../ && rm -rf scapy-*
 
