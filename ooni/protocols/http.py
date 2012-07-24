@@ -5,7 +5,7 @@ from twisted.plugin import IPlugin
 from twisted.internet import protocol, defer
 from ooni.plugoo.tests import ITest, OONITest
 from ooni.plugoo.assets import Asset
-from ooni import log
+from ooni.utils import log
 
 useragents = [("Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.8.1.6) Gecko/20070725 Firefox/2.0.0.6", "Firefox 2.0, Windows XP"),
               ("Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1)", "Internet Explorer 7, Windows Vista"),
@@ -30,7 +30,6 @@ class BodyReceiver(protocol.Protocol):
     def connectionLost(self, reason):
         self.finished.callback(self.data)
 
-
 from twisted.web.http_headers import Headers
 class HTTPTest(OONITest):
     """
@@ -42,13 +41,10 @@ class HTTPTest(OONITest):
     """
     randomize_ua = True
 
-    def initialize(self, reactor=None):
+    def initialize(self):
         from twisted.web.client import Agent
         import yaml
 
-        if not self.reactor:
-            from twisted.internet import reactor
-            self.reactor = reactor
         self.agent = Agent(self.reactor)
         self.request = {}
         self.response = {}
@@ -75,9 +71,20 @@ class HTTPTest(OONITest):
         """
         pass
 
+    def processRedirect(self, location):
+        """
+        Handle a redirection via a 3XX HTTP status code.
+
+        @param location: the url that is being redirected to.
+        """
+        pass
+
+
     def experiment(self, args):
         log.msg("Running experiment")
-        d = self.build_request(args['url'])
+        url = self.local_options['url'] if 'url' not in args else args['url']
+
+        d = self.build_request(url)
         def finished(data):
             return data
 
@@ -87,7 +94,15 @@ class HTTPTest(OONITest):
 
     def _cbResponse(self, response):
         self.response['headers'] = list(response.headers.getAllRawHeaders())
+        self.response['code'] = response.code
+        self.response['length'] = response.length
+        self.response['version'] = response.length
+
+        if str(self.response['code']).startswith('3'):
+            self.processRedirect(response.headers.getRawHeaders('Location')[0])
         self.processResponseHeaders(self.response['headers'])
+        self.result['response'] = self.response
+
         finished = defer.Deferred()
         response.deliverBody(BodyReceiver(finished))
         finished.addCallback(self._processResponseBody)

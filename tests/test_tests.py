@@ -13,9 +13,7 @@ class TestsTestCase(unittest.TestCase):
         self.errbackResults = None
 
     def _callback(self, *args, **kw):
-        print "BBB"
-        print args, kw
-        print "CCCC"
+        #print args, kw
         self.callbackResults = args, kw
 
     def _errback(self, *args, **kw):
@@ -31,14 +29,17 @@ class TestsTestCase(unittest.TestCase):
         class DummyTest(tests.OONITest):
             blocking = False
             def experiment(self, args):
-                def cb(aaa):
+                def bla(a):
+                    print a
                     return test_dict
-                d = defer.Deferred()
-                d.addCallback(cb)
-                d.callback(None)
-                return d
+                d2 = defer.Deferred()
+                d2.addCallback(bla)
+                from twisted.internet import reactor
+                reactor.callLater(0.1, d2.callback, None)
+                return d2
 
         test = DummyTest(None, None, self.dummyreport)
         yield test.startTest(None).addCallback(self._callback)
         self.assertEqual(self.callbackResults[0][0]['control'], test_dict)
+        return
 

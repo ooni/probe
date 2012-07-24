@@ -1,8 +1,10 @@
+from __future__ import with_statement
+
 import os
 import yaml
 
 import itertools
-from ooni import log, date
+from ooni.utils import log, date
 
 class Report:
     """This is the ooni-probe reporting mechanism. It allows
@@ -44,7 +46,7 @@ class Report:
         header += "# %s\n\n" % pretty_date
         self._write_to_report(header)
         # XXX replace this with something proper
-        test_details = {'start_time': date.now(),
+        test_details = {'start_time': str(date.now()),
                         'asn': 'ASN-1234',
                         'test_name': self.testname,
                         'addr': '1234'}
@@ -84,14 +86,8 @@ class Report:
         """
         if not file:
             file = self.file
-        try:
-            f = open(file, mode)
+        with open(file, mode) as f:
             f.write(data)
-        except Exception, e:
-            raise e
-        finally:
-            f.close()
-
 
     def tcp_report(self, data):
         """

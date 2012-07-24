@@ -18,6 +18,8 @@ effort: low, skill: medium
 * All the captive portal detection tests (old/ooni/http.py
   and old/ooni/dnsooni.py)
 effort: low, skill: low
+    - The captiveportal test is a port of the old code, plus
+      a couple new methods for testing.
 
 * All the DNS censorship detection tests (old/ooni/dnsooni.py)
 effort: medium, skill: medium

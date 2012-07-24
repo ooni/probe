@@ -5,7 +5,7 @@ This script should be used for creating the scaffolding for a test.
 """
 import os
 import sys
-from ooni import log
+from ooni.utils import log
 
 test_template = """\"\"\"
 This is a self genrated test created by scaffolding.py.
@@ -17,7 +17,7 @@ from twisted.python import usage
 from twisted.plugin import IPlugin
 from ooni.plugoo.tests import ITest, OONITest
 from ooni.plugoo.assets import Asset
-from ooni import log
+from ooni.utils import log
 
 class %(testShortname)sArgs(usage.Options):
     optParameters = [['asset', 'a', None, 'Asset file'],

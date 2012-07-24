@@ -1,5 +1,5 @@
 import ConfigParser
-from utils import Storage
+from ooni.utils import Storage
 
 class Config(Storage):
     """

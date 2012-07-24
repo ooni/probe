@@ -6,16 +6,15 @@ Safe hacking :).
 from zope.interface import implements
 from twisted.python import usage
 from twisted.plugin import IPlugin
-from twisted.internet import reactor
 from twisted.internet.protocol import Factory, Protocol
 from twisted.internet.endpoints import TCP4ClientEndpoint
 
 from ooni.plugoo.tests import ITest, OONITest
 from ooni.plugoo.assets import Asset
-from ooni import log
+from ooni.utils import log
 
 class tcpconnectArgs(usage.Options):
-    optParameters = [['blabla', 'a', None, 'Asset file'],
+    optParameters = [['asset', 'a', None, 'File containing IP:PORT combinations, one per line.'],
                      ['resume', 'r', 0, 'Resume at this index']]
 
 class tcpconnectTest(OONITest):
@@ -28,7 +27,10 @@ class tcpconnectTest(OONITest):
     blocking = False
 
     def experiment(self, args):
-        host, port = args['blabla'].split(':')
+        try:
+            host, port = args['asset'].split(':')
+        except:
+            raise Exception("Error in parsing asset. Wrong format?")
         class DummyFactory(Factory):
             def buildProtocol(self, addr):
                 return Protocol()
@@ -45,7 +47,7 @@ class tcpconnectTest(OONITest):
             return {'result': False, 'target': [host, port]}
 
         # What you return here gets handed as input to control
-        point = TCP4ClientEndpoint(reactor, host, int(port))
+        point = TCP4ClientEndpoint(self.reactor, host, int(port))
         d = point.connect(DummyFactory())
         d.addCallback(gotProtocol)
         d.addErrback(gotError)
@@ -53,7 +55,7 @@ class tcpconnectTest(OONITest):
 
     def load_assets(self):
         if self.local_options:
-            return {'blabla': Asset(self.local_options['blabla'])}
+            return {'asset': Asset(self.local_options['asset'])}
         else:
             return {}
 

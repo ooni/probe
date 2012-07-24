@@ -27,11 +27,16 @@ class BlockingTest(OONITest):
 
     def experiment(self, args):
         import urllib
-        req = urllib.urlopen(args['asset'])
+        url = 'http://torproject.org/' if not 'asset' in args else args['asset']
+        try:
+            req = urllib.urlopen(url)
+        except:
+            return {'error': 'Connection failed!'}
+
         return {'page': req.readlines()}
 
     def load_assets(self):
-        if self.local_options:
+        if self.local_options and self.local_options['asset']:
             return {'asset': Asset(self.local_options['asset'])}
         else:
             return {}

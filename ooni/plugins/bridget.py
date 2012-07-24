@@ -8,7 +8,7 @@ from twisted.python import usage
 from twisted.plugin import IPlugin
 from twisted.internet import reactor
 
-from ooni import log
+from ooni.utils import log
 from ooni.plugoo.tests import ITest, OONITest
 from ooni.plugoo.assets import Asset
 

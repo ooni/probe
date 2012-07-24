@@ -17,19 +17,20 @@
 #
 
 import sys
-
-from twisted.python import usage
-from twisted.plugin import getPlugins
-from twisted.internet import reactor
-
-from zope.interface.exceptions import BrokenImplementation
-from zope.interface.exceptions import BrokenMethodImplementation
-from zope.interface.verify import verifyObject
 from pprint import pprint
 
+from twisted.python import usage
+from twisted.internet import reactor
+from twisted.plugin import getPlugins
+
+from zope.interface.verify import verifyObject
+from zope.interface.exceptions import BrokenImplementation
+from zope.interface.exceptions import BrokenMethodImplementation
+
 from ooni.plugoo import tests, work, assets, reports
-from ooni.logo import getlogo
-from ooni import plugins, log
+from ooni.utils.logo import getlogo
+from ooni.utils import log
+from ooni import plugins
 
 __version__ = "0.0.1-prealpha"
 
@@ -55,15 +56,26 @@ def retrieve_plugoo():
 
 plugoo = retrieve_plugoo()
 
-def runTest(test, options, global_options):
+def runTest(test, options, global_options, reactor=reactor):
+    """
+    Run an OONI probe test by name.
 
+    @param test: a string specifying the test name as specified inside of
+                 shortName.
+
+    @param options: the local options to be passed to the test.
+
+    @param global_options: the global options for OONI
+    """
     parallelism = int(global_options['parallelism'])
-    worker = work.Worker(parallelism)
+    worker = work.Worker(parallelism, reactor=reactor)
     test_class = plugoo[test].__class__
     report = reports.Report(test, global_options['output'])
 
     log.start(global_options['log'], 1)
     resume = 0
+    if not options:
+        options = {}
     if 'resume' in options:
         resume = options['resume']
 
@@ -71,11 +83,9 @@ def runTest(test, options, global_options):
                                          reactor=reactor),
                               dict(options),
                               start=resume)
-
     for x in wgen:
         worker.push(x)
 
-    reactor.run()
 
 class Options(usage.Options):
     tests = plugoo.keys()
@@ -112,14 +122,15 @@ class Options(usage.Options):
         return getlogo() + '\n' + self.getSynopsis() + '\n' + \
                self.getUsage(width=None).replace("Commands:", "Tests:")
 
-config = Options()
-config.parseOptions()
+if __name__ == "__main__":
+    config = Options()
+    config.parseOptions()
 
-if not config.subCommand:
-    print "Error! No Test Specified."
-    config.opt_help()
-    sys.exit(1)
+    if not config.subCommand:
+        print "Error! No Test Specified."
+        config.opt_help()
+        sys.exit(1)
 
-runTest(config.subCommand, config.subOptions, config)
-
+    runTest(config.subCommand, config.subOptions, config)
+    reactor.run()
 

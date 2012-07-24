@@ -99,7 +99,7 @@ class PlanetLab(CodeExecNode):
     def __init__(self, address, auth_creds, ooni):
         self.auth_creds = auth_creds
 
-        self.config = ooni.config
+        self.config = ooni.utils.config
         self.logger = ooni.logger
         self.name = "PlanetLab"
 
