@@ -1,12 +1,13 @@
+import sys
+import yaml
+
 from twisted.internet import protocol, defer
 from twisted.internet.error import ConnectionDone
 
+from scapy.all import *
+
 from ooni.utils import log
 from ooni.plugoo import reports
-
-import sys
-from scapy.all import *
-import yaml
 
 def read_pcap(filename):
     """
@@ -65,6 +66,12 @@ def read_pcap(filename):
 
     return messages
 
+def read_yaml(filename):
+    f = open(filename)
+    obj = yaml.load(f)
+    f.close()
+    return obj
+
 class Mutator:
     idx = 0
     step = 0
@@ -74,10 +81,10 @@ class Mutator:
 
     def __init__(self, steps):
         """
-        @param steps: array of dicts containing as keys data and wait. Data is
-                      the content of the ith packet to be sent and wait is how
-                      much we should wait before mutating the packet of the
-                      next step.
+        @param steps: array of dicts for the steps that must be gone over by
+                      the mutator. Looks like this:
+                      [{"sender": "client", "data": "\xde\xad\xbe\xef"},
+                       {"sender": "server", "data": "\xde\xad\xbe\xef"}]
         """
         self.steps = steps
 
@@ -105,7 +112,7 @@ class Mutator:
         current_state =  {'idx': self.idx, 'step': self.step}
         return current_state
 
-    def next_mutation(self):
+    def next(self):
         """
         Increases by one the mutation state.
 
@@ -121,9 +128,9 @@ class Mutator:
         returns True if another mutation is available.
         returns False if all the possible mutations have been done.
         """
-        if (self.step + 1) > len(self.steps):
+        if (self.step) == len(self.steps):
             # Hack to stop once we have gone through all the steps
-            print "[Mutator.next_mutation()] I believe I have gone over all steps"
+            print "[Mutator.next()] I believe I have gone over all steps"
             print "                          Stopping!"
             self.waiting = True
             return False
@@ -132,35 +139,40 @@ class Mutator:
         current_idx = self.idx
         current_step = self.step
         current_data = self.steps[current_step]['data']
-        try:
-            data_to_receive = len(self.steps[current_step +1 ]['data'])
-            print "[Mutator.next_mutation()] Managed to receive some data."
-        except:
-            print "[Mutator.next_mutation()] No more data to receive."
+
+        if 0:
+            print "current_step: %s" % current_step
+            print "current_idx: %s" % current_idx
+            print "current_data: %s" % current_data
+            print "steps: %s" % len(self.steps)
+            print "waiting_step: %s" % self.waiting_step
+
+        data_to_receive = len(self.steps[current_step]['data'])
 
         if self.waiting and self.waiting_step == data_to_receive:
-            print "[Mutator.next_mutation()] I am no longer waiting"
+            print "[Mutator.next()] I am no longer waiting"
             log.debug("I am no longer waiting.")
             self.waiting = False
             self.waiting_step = 0
             self.idx = 0
 
         elif self.waiting:
-            print "[Mutator.next_mutation()] Waiting some more."
+            print "[Mutator.next()] Waiting some more."
             log.debug("Waiting some more.")
             self.waiting_step += 1
 
         elif current_idx >= len(current_data):
-            print "[Mutator.next_mutation()] Entering waiting mode."
+            print "[Mutator.next()] Entering waiting mode."
             log.debug("Entering waiting mode.")
             self.step += 1
             self.idx = 0
             self.waiting = True
+
         log.debug("current index %s" % current_idx)
         log.debug("current data %s" % len(current_data))
         return True
 
-    def get_mutation(self, step):
+    def get(self, step):
         """
         Returns the current packet to be sent to the wire.
         If no mutation is necessary it will return the plain data.
@@ -172,11 +184,11 @@ class Mutator:
         returns the mutated packet for the specified step.
         """
         if step != self.step or self.waiting:
-            log.debug("[Mutator.get_mutation()] I am not going to do anything :)")
+            log.debug("[Mutator.get()] I am not going to do anything :)")
             return self.steps[step]['data']
 
         data = self.steps[step]['data']
-        print "Mutating %s with idx %s" % (data, self.idx)
+        #print "Mutating %s with idx %s" % (data, self.idx)
         return self._mutate(data, self.idx)
 
 class Daphn3Protocol(protocol.Protocol):
@@ -205,11 +217,13 @@ class Daphn3Protocol(protocol.Protocol):
             print "[Daphn3Protocol.next_state] No mutator. There is no point to stay on this earth."
             self.transport.loseConnection()
             return
+
         if self.role is self.steps[self.state]['sender']:
             print "[Daphn3Protocol.next_state] I am a sender"
-            data = self.mutator.get_mutation(self.state)
+            data = self.mutator.get(self.state)
             self.transport.write(data)
             self.to_receive_data = 0
+
         else:
             print "[Daphn3Protocol.next_state] I am a receiver"
             self.to_receive_data = len(self.steps[self.state]['data'])
@@ -228,11 +242,8 @@ class Daphn3Protocol(protocol.Protocol):
             print "I don't have a mutator. My life means nothing."
             self.transport.loseConnection()
             return
-        if len(self.steps) <= self.state:
-            print "I have reached the end of the state machine"
-            print "Censorship fingerprint bruteforced!"
-            report = {'mutator_state': self.mutator.state()}
-            self.report(report)
+
+        if len(self.steps) == self.state:
             self.transport.loseConnection()
             return
 
@@ -256,7 +267,7 @@ class Daphn3Protocol(protocol.Protocol):
         print "The connection was closed because of %s" % report['reason']
         print "State %s, Mutator %s" % (report['proto_state'],
                                         report['mutator_state'])
-        self.mutator.next_mutation()
+        self.mutator.next()
 
 
 
@@ -274,6 +285,13 @@ class Daphn3Protocol(protocol.Protocol):
         if self.state < self.total_states:
             report['trigger'] = 'did not finish state walk'
             self.censorship_detected(report)
+
+        else:
+            print "I have reached the end of the state machine"
+            print "Censorship fingerprint bruteforced!"
+            report = {'mutator_state': self.mutator.state()}
+            self.report(report)
+            return
 
         if reason.check(ConnectionDone):
             print "Connection closed cleanly"

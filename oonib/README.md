@@ -2,8 +2,8 @@
 
 The extra dependencies necessary to run OONIB are:
 
+* twisted-names
 * cyclone: https://github.com/fiorix/cyclone
-*
 
 # Generate self signed certs for OONIB
 

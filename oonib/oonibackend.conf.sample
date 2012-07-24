@@ -8,3 +8,4 @@ ssl_private_key = /path/to/private.key
 ssl_certificate = /path/to/certificate.crt
 [daphn3]
 pcap_file = /path/to/server.pcap
+yaml_file = /path/to/server.yaml

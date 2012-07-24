@@ -1,11 +1,11 @@
 from twisted.internet import protocol
 from twisted.internet.error import ConnectionDone
 
-from oonib.common import config
+from oonib.lib import config
 
 from ooni.plugoo import reports
 from ooni.protocols.daphn3 import Mutator, Daphn3Protocol
-from ooni.protocols.daphn3 import read_pcap
+from ooni.protocols.daphn3 import read_pcap, read_yaml
 
 class Daphn3Server(protocol.ServerFactory):
     """
@@ -21,13 +21,22 @@ class Daphn3Server(protocol.ServerFactory):
     def buildProtocol(self, addr):
         p = self.protocol()
         p.factory = self
-        p.factory.steps = read_pcap(config.daphn3.pcap_file)
+
+        if config.daphn3.yaml_file:
+            steps = read_yaml(config.daphn3.yaml_file)
+        elif config.daphn3.pcap_file:
+            steps = read_pcap(config.daphn3.pcap_file)
+        else:
+            print "Error! No PCAP, nor YAML file provided."
+            steps = None
+
+        p.factory.steps = steps
 
         if addr.host not in self.mutations:
             self.mutations[addr.host] = Mutator(p.steps)
         else:
             print "Moving on to next mutation"
-            if not self.mutations[addr.host].next_mutation():
+            if not self.mutations[addr.host].next():
                 self.mutations.pop(addr.host)
         try:
             p.mutator = self.mutations[addr.host]

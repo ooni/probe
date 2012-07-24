@@ -43,12 +43,22 @@ class Worker(object):
 
         @param r: the return value of a previous test.
         """
-        self._running -= 1
+        if self._running > 0:
+            self._running -= 1
+
         if self._running < self.maxconcurrent and self._queued:
             workunit, d = self._queued.pop(0)
             asset, test, idx = workunit
-            self._running += 1
-            actuald = test.startTest(asset).addBoth(self._run)
+            while test.ended and workunit:
+                try:
+                    workunit, d = self._queued.pop(0)
+                    asset, test, idx = workunit
+                except:
+                    workunit = None
+
+            if not test.ended:
+                self._running += 1
+                actuald = test.startTest(asset).addBoth(self._run)
 
         if isinstance(r, failure.Failure):
             # XXX probably we should be doing something to retry test running
@@ -71,8 +81,9 @@ class Worker(object):
         """
         if self._running < self.maxconcurrent:
             asset, test, idx = workunit
-            self._running += 1
-            return test.startTest(asset).addBoth(self._run)
+            if not test.ended:
+                self._running += 1
+                return test.startTest(asset).addBoth(self._run)
 
         d = defer.Deferred()
         self._queued.append((workunit, d))

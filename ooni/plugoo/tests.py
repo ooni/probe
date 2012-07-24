@@ -25,6 +25,7 @@ class OONITest(object):
     # By default we set this to False, meaning that we don't block
     blocking = False
     reactor = None
+    tool = False
 
     def __init__(self, local_options, global_options, report, ooninet=None,
             reactor=None):
@@ -57,6 +58,12 @@ class OONITest(object):
     def __repr__(self):
         return "<OONITest %s %s %s>" % (self.options, self.global_options,
                                            self.assets)
+
+    def end(self):
+        """
+        State that the current test should finish.
+        """
+        self.ended = True
 
     def finished(self, control):
         """

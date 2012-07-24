@@ -79,13 +79,21 @@ def runTest(test, options, global_options, reactor=reactor):
     if 'resume' in options:
         resume = options['resume']
 
-    wgen = work.WorkGenerator(test_class(options, global_options, report,
-                                         reactor=reactor),
+    test = test_class(options, global_options, report, reactor=reactor)
+    if test.tool:
+        test.runTool()
+        return
+
+    if test.end:
+        return
+
+    wgen = work.WorkGenerator(test,
                               dict(options),
                               start=resume)
     for x in wgen:
         worker.push(x)
 
+    reactor.run()
 
 class Options(usage.Options):
     tests = plugoo.keys()
@@ -132,5 +140,4 @@ if __name__ == "__main__":
         sys.exit(1)
 
     runTest(config.subCommand, config.subOptions, config)
-    reactor.run()
 
