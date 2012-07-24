@@ -1,0 +1,14 @@
+# Dependencies
+* Twisted: http://twistedmatrix.com/trac/
+* PyYAML: http://pyyaml.org/
+* Scapy: http://www.secdev.org/projects/scapy/
+
+Optional:
+* BeautifulSoup: http://www.crummy.com/software/BeautifulSoup/
+
+# Installation
+
+On debian you can install all the dependecies with apt-get with this command:
+
+    apt-get install python-twisted python-twisted-names python-yaml python-scapy python-beautifulsoup
+

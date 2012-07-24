@@ -10,8 +10,10 @@ from datetime import datetime
 
 import urllib2
 import httplib
-
-from BeautifulSoup import BeautifulSoup
+try:
+    from BeautifulSoup import BeautifulSoup
+except:
+    print "Beautiful Soup not installed. HTTPHost may not work"
 
 # XXX reduce boilerplating.
 from zope.interface import implements
