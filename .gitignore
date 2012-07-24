@@ -7,3 +7,4 @@ proxy-lists/italy-dns-ips.txt
 proxy-lists/italy-http-ips.txt
 private/*
 /ooni/plugins/dropin.cache
+oonib/oonibackend.conf

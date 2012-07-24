@@ -4,5 +4,7 @@ dns_udp_port = 5354
 dns_tcp_port = 8002
 daphn3_port = 9666
 server_version = Apache
+ssl_private_key = /path/to/private.key
+ssl_certificate = /path/to/certificate.crt
 [daphn3]
-pcap_file = /Users/y/Documents/workspace/ooni-probe.new/oonib/server.pcap
+pcap_file = /path/to/server.pcap

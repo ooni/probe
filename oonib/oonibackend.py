@@ -18,6 +18,7 @@ from twisted.names import dns
 
 from oonib.common import config
 from oonib.backends.http import HTTPBackend
+from oonib.backends.ssl import SSLContext
 from oonib.backends.dns import ProxyDNSServer
 from oonib.backends.daphn3 import Daphn3Server
 
@@ -26,7 +27,15 @@ server.version = config.main.server_version
 
 application = service.Application('oonibackend')
 serviceCollection = service.IServiceCollection(application)
-internet.TCPServer(int(config.main.http_port), server.Site(HTTPBackend())).setServiceParent(serviceCollection)
+
+internet.TCPServer(int(config.main.http_port),
+                   server.Site(HTTPBackend())
+                  ).setServiceParent(serviceCollection)
+
+internet.SSLServer(int(config.main.ssl_port),
+                   server.Site(HTTPBackend()),
+                   SSLContext(config),
+                  ).setServiceParent(serviceCollection)
 
 # Start the DNS Server related services
 TCPDNSServer = ProxyDNSServer()
