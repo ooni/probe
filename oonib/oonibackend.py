@@ -16,11 +16,11 @@ from twisted.web import resource, server, static
 from twisted.web.microdom import escape
 from twisted.names import dns
 
-from oonib.common import config
-from oonib.backends.http import HTTPBackend
-from oonib.backends.ssl import SSLContext
-from oonib.backends.dns import ProxyDNSServer
-from oonib.backends.daphn3 import Daphn3Server
+from oonib.lib import config
+from oonib.testhelpers.http import HTTPBackend
+from oonib.lib.ssl import SSLContext
+from oonib.testhelpers.dns import ProxyDNSServer
+from oonib.testhelpers.daphn3 import Daphn3Server
 
 # This tells twisted to set the
 server.version = config.main.server_version
