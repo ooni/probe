@@ -81,8 +81,13 @@ class Report:
         """
         This reports to a file in YAML format
         """
-        with open(self.file, 'a+') as f:
-            f.write(data)
+        if not file:
+            file = self.file
+        try:
+            with open(file, mode) as f:
+                f.write(data)
+        except Exception, e:
+            raise e
 
     def send_report(self, data, type):
         """

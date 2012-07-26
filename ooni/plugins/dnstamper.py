@@ -18,12 +18,14 @@
     load balancing on major global sites such as google, facebook, and
     youtube, etc.
 
-    :copyright: (c) 2012 Arturo Filastò, Isis Lovecruft
+    :author: Isis Lovecruft, Arturo Filastò
     :license: see LICENSE for more details
 
-    TODO: 
-    * Switch to using Twisted's DNS builtins instead of dnspython
-    * 
+    TODO:
+         * Use OONI log instead of print
+         * Finish porting to twisted
+         * Finish the client.Resolver() subclass and test it
+         * Use the DNS tests from captiveportal
 """
 
 import os
@@ -52,13 +54,20 @@ class AlexaAsset(Asset):
         return line.split(',')[1].replace('\n','')
 
 class DNSTamperArgs(usage.Options):
-    optParameters = [['asset', 'a', None, 'Asset file of hostnames to resolve'],
-                     ['controlserver', 'c', '8.8.8.8', 'Known good DNS server'],
-                     ['testservers', 't', None, 'Asset file of DNS servers to test'],
-                     ['localservers', 'l', False, 'Also test local servers'],
-                     ['port', 'p', None, 'Local UDP port to send queries over'],
-                     ['usereverse', 'r', False, 'Also try reverse DNS resolves'],
-                     ['resume', 's', 0, 'Resume at this index in the asset file']]
+    optParameters = [['hostnames', 'h', None, 
+                      'Asset file of hostnames to resolve'],
+                     ['controlserver', 'c', '8.8.8.8', 
+                      'Known good DNS server'],
+                     ['testservers', 't', None, 
+                      'Asset file of DNS servers to test'],
+                     ['localservers', 'l', False, 
+                      'Also test local servers'],
+                     ['port', 'p', None, 
+                      'Local UDP port to send queries over'],
+                     ['usereverse', 'r', False, 
+                      'Also try reverse DNS resolves'],
+                     ['resume', 's', 0, 
+                      'Resume at this index in the asset file']]
 
 class DNSTamperResolver(client.Resolver):
     """
@@ -137,23 +146,43 @@ class DNSTamperTest(OONITest):
 
     def initialize(self):
         if self.local_options:
+
+            ## client.createResolver() turns 'None' into '/etc/resolv.conf' on
+            ## posix systems, ignored on Windows.
             if self.local_options['localservers']:
                 self.resolvconf = None
             else:
                 self.resolvconf = ''
+        else:
+            pass
+
+        self.d = defer.Deferred()
 
     def load_assets(self):
         assets = {}
+
         if self.local_options:
-            if self.local_options['asset']:
-                assetf = self.local_options['asset']
+
+            if self.local_options['hostnames']:
+                assetf = self.local_options['hostnames']
                 if assetf == 'top-1m.txt':
-                    assets.update({'asset': AlexaAsset(assetf)})
+                    assets['hostnames'] = AlexaAsset(assetf)
+                    #assets.update({'asset': AlexaAsset(assetf)})
                 else:
-                    assets.update({'asset': Asset(assetf)})
-            elif self.local_options['testservers']:
-                assets.update({'testservers': 
-                               Asset(self.local_options['testservers'])})
+                    assets['hostnames'] = Asset(assetf)
+                    #assets.update({'asset': Asset(assetf)})
+            else:
+                #default_hostnames = ['google.com', 'torrentz.eu', 'ooni.nu', 
+                #                     'twitter.com', 'baidu.com']
+                #assets.update({'asset': [host for host in default_hostnames]})
+                print "Error! We need a file containing the hostnames that we should test DNS for!"
+
+            if self.local_options['testservers']:
+                #assets['testservers'] = Asset(self.local_options['testservers'])
+                self.testservers = Asset(self.local_options['testservers'])
+            else:
+                self.testservers = ['209.244.0.3', '208.67.222.222', '156.154.70.1']
+
         return assets
 
     def lookup(self, hostname, nameserver):
@@ -164,7 +193,6 @@ class DNSTamperTest(OONITest):
         def got_result(result):
             log.msg('Resolved %s through %s to %s' 
                     % (hostname, nameserver, result))
-            #reactor.stop()
             return {'resolved': True,
                     'domain': hostname,
                     'nameserver': nameserver,
@@ -172,7 +200,6 @@ class DNSTamperTest(OONITest):
 
         def got_error(err):
             log.msg(err.printTraceback())
-            #reactor.stop()
             return {'resolved': False,
                     'domain': hostname,
                     'nameserver': nameserver,
@@ -182,10 +209,8 @@ class DNSTamperTest(OONITest):
                                     servers=[(nameserver, 53)])
         d = res.getHostByName(hostname)
         d.addCallbacks(got_result, got_error)
+        
         return d
-
-        ## XXX MAY ALSO BE:
-        #answer = res.getAddress(servers=[('nameserver', 53)])
 
     def reverse_lookup(self, address, nameserver):
         """
@@ -206,26 +231,33 @@ class DNSTamperTest(OONITest):
         """
         Compares the lookup() sets of the control and experiment groups.
         """
-        test_server = self.local_options['testservers']
-        hostname = args['asset']
-        exp_address = self.lookup(hostname, test_server)
+        hostnames = args
+
+        for hostname in hostnames:
+            for testserver in self.testservers:
+                #exp_address = self.lookup(hostname, testserver)
+                self.d.addCallback(self.lookup, hostname, testserver)
+
+        #print self.assets['hostnames']
+        #hostname = args
+        #exp_address = self.lookup(hostname, testserver)
 
         #return {'control': control_server,
         #        'domain': args['asset'],
         #        'experiment_address': address}
 
         if self.local_options['usereverse']:
-            exp_reversed = self.reverse_lookup(exp_address, test_server)
+            exp_reversed = self.reverse_lookup(exp_address, testserver)
 
             ## XXX trying to fix errors:
             #d = defer.Deferred()
             
-            return (exp_address, hostname, test_server, exp_reversed)
+            return (exp_address, hostname, testserver, exp_reversed)
         else:
-            return (exp_address, hostname, test_server, False)
+            return (exp_address, hostname, testserver, False)
 
     def control(self, experiment_result):
-        (exp_address, hostname, test_server, exp_reversed) = experiment_result
+        (exp_address, hostname, testserver, exp_reversed) = experiment_result
         control_server = self.local_options['controlserver']
         ctrl_address = self.lookup(hostname, control_server)
         
