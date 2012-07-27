@@ -26,6 +26,7 @@ class OONITest(object):
     blocking = False
     reactor = None
     tool = False
+    ended = False
 
     def __init__(self, local_options, global_options, report, ooninet=None,
             reactor=None):

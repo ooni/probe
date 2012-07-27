@@ -84,7 +84,8 @@ def runTest(test, options, global_options, reactor=reactor):
         test.runTool()
         return
 
-    if test.end:
+    if test.ended:
+        print "Ending prematurely"
         return
 
     wgen = work.WorkGenerator(test,

@@ -136,6 +136,8 @@ class daphn3Test(OONITest):
         #return endpoint.connect(Daphn3ClientFactory)
 
     def load_assets(self):
+        if not self.local_options:
+            return {}
         if not self.steps:
             print "Error: No assets!"
             self.end()
