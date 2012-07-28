@@ -22,10 +22,10 @@
     :license: see LICENSE for more details
 
     TODO:
-         * Use OONI log instead of print
          * Finish porting to twisted
          * Finish the client.Resolver() subclass and test it
          * Use the DNS tests from captiveportal
+         * Use plugoo/reports.py for final data
 """
 
 import os
@@ -56,11 +56,11 @@ class AlexaAsset(Asset):
 class DNSTamperArgs(usage.Options):
     optParameters = [['hostnames', 'h', None, 
                       'Asset file of hostnames to resolve'],
-                     ['controlserver', 'c', '8.8.8.8', 
+                     ['controlresolver', 'c', '8.8.8.8', 
                       'Known good DNS server'],
-                     ['testservers', 't', None, 
+                     ['testresolvers', 't', None, 
                       'Asset file of DNS servers to test'],
-                     ['localservers', 'l', False, 
+                     ['localresolvers', 'l', False, 
                       'Also test local servers'],
                      ['port', 'p', None, 
                       'Local UDP port to send queries over'],
@@ -120,6 +120,9 @@ class DNSTamperResolver(client.Resolver):
                 return proto
 
 class DNSTamperTest(OONITest):
+    """
+    XXX fill me in
+    """
     implements(IPlugin, ITest)
 
     shortName = "dnstamper"
@@ -127,136 +130,163 @@ class DNSTamperTest(OONITest):
     requirements = None
     options = DNSTamperArgs
     blocking = False
+    
+    def __init__(self, local_options, global_options, 
+                 report, ooninet=None, reactor=None):
+        super(DNSTamperTest, self).__init__(local_options, global_options,
+                                            report, ooninet, reactor)
 
-    #def __init__(self, local_options, global_options, 
-    #             report, ooninet=None, reactor=None):
-    #    super(DNSTamperTest, self).__init__(local_options, global_options,
-    #                                        report, ooninet, reactor)
-    #
-    #    if self.reactor is None:
-    #        self.reactor = reactor
-    #
-    #    if self.local_options:
-    #        if self.local_options['localservers']:
-    #        ## client.createResolver() turns None into '/etc/resolv.conf' 
-    #        ## on posix systems, ignored on Windows.
-    #            self.resolvconf = None
-    #        else:
-    #            self.resolvconf = ''
+    def __repr__(self):
+        represent = "DNSTamperTest(OONITest): local_options=%r, " \
+            "global_options=%r, assets=%r" % (self.local_options, 
+                                              self.global_options, 
+                                              self.assets)
+        return represent
 
     def initialize(self):
         if self.local_options:
-
             ## client.createResolver() turns 'None' into '/etc/resolv.conf' on
             ## posix systems, ignored on Windows.
-            if self.local_options['localservers']:
+            if self.local_options['localresolvers']:
                 self.resolvconf = None
             else:
                 self.resolvconf = ''
-        else:
-            pass
-
-        self.d = defer.Deferred()
 
     def load_assets(self):
         assets = {}
 
+        default_hostnames = ['baidu.com', 'torrentz.eu', 'twitter.com', 
+                             'ooni.nu', 'google.com', 'torproject.org']
+        default_resolvers = ['209.244.0.3', '208.67.222.222']
+
+        def asset_file(asset_option):
+            return self.local_options[asset_option]
+
+        def list_to_asset(list_):
+            def next(list_):
+                host = list_.pop()
+                if host is not None:
+                    yield str(host)
+            while len(list_) > 0:
+                next(list_)
+
         if self.local_options:
-
-            if self.local_options['hostnames']:
-                assetf = self.local_options['hostnames']
-                if assetf == 'top-1m.txt':
-                    assets['hostnames'] = AlexaAsset(assetf)
-                    #assets.update({'asset': AlexaAsset(assetf)})
-                else:
-                    assets['hostnames'] = Asset(assetf)
-                    #assets.update({'asset': Asset(assetf)})
+            if asset_file('hostnames'):
+                with asset_file('hostnames') as hosts_file:
+                    ## The default filename for the Alexa Top 1 Million:
+                    if hosts_file is 'top-1m.txt':
+                        assets.update({'hostnames': AlexaAsset(hosts_file)})
+                    else:
+                        assets.update({'hostnames': Asset(hosts_file)})
             else:
-                #default_hostnames = ['google.com', 'torrentz.eu', 'ooni.nu', 
-                #                     'twitter.com', 'baidu.com']
-                #assets.update({'asset': [host for host in default_hostnames]})
-                print "Error! We need a file containing the hostnames that we should test DNS for!"
+                log.msg("Error! We need an asset file containing the " + 
+                        "hostnames that we should test DNS with! Please use " + 
+                        "the '-h' option. Using pre-defined hostnames...")
+                assets.update({'hostnames': list_to_asset(default_hostnames)})
 
-            if self.local_options['testservers']:
-                #assets['testservers'] = Asset(self.local_options['testservers'])
-                self.testservers = Asset(self.local_options['testservers'])
+            if asset_file('testresolvers'):
+                with asset_file('testresolvers') as resolver_file:
+                    assets.update({'testresolvers': Asset(resolver_file)})
             else:
-                self.testservers = ['209.244.0.3', '208.67.222.222', '156.154.70.1']
+                assets.update({'testresolvers': 
+                               list_to_asset(default_resolvers)})
 
         return assets
 
-    def lookup(self, hostname, nameserver):
+    def lookup(self, hostname, resolver):
         """
-        Resolves a hostname through a DNS nameserver to the corresponding
-        IP addresses.
+        Resolves a hostname through a DNS nameserver to the corresponding IP
+        addresses.
         """
-        def got_result(result):
+        def got_result(result, hostname, resolver):
+            ## XXX is there a report class that we should be using?
             log.msg('Resolved %s through %s to %s' 
-                    % (hostname, nameserver, result))
-            return {'resolved': True,
-                    'domain': hostname,
-                    'nameserver': nameserver,
-                    'address': result}
+                    % (hostname, resolver, result))
+            outcome = {'resolved': True,
+                       'domain': hostname,
+                       'nameserver': resolver,
+                       'address': result }
+            log.msg(outcome)
+            return result
 
-        def got_error(err):
+        def got_error(err, hostname, resolver):
             log.msg(err.printTraceback())
-            return {'resolved': False,
-                    'domain': hostname,
-                    'nameserver': nameserver,
-                    'address': err}
+            outcome = {'resolved': False,
+                       'domain': hostname,
+                       'nameserver': resolver,
+                       'address': err }
+            log.msg(outcome)
+            return err
 
         res = client.createResolver(resolvconf=self.resolvconf, 
-                                    servers=[(nameserver, 53)])
-        d = res.getHostByName(hostname)
-        d.addCallbacks(got_result, got_error)
-        
-        return d
+                                    servers=[(resolver, 53)])
 
-    def reverse_lookup(self, address, nameserver):
+        ## XXX should we do self.d.addCallback(resHostByName, hostname)?
+        #d = res.getHostByName(hostname)
+        #d.addCallbacks(got_result, got_error)
+
+        #d = defer.Deferred()
+        #d.addCallback(res.getHostByName, hostname)
+
+        #d = res.getHostByName(hostname)
+        #d.addCallback(got_result, result, hostname, resolver) 
+        #d.addErrback(got_error, err, hostname, resolver)
+
+        res.addCallback(getHostByName, hostname)
+        res.addCallback(got_result, result, hostname, resolver)
+        res.addErrback(got_error, err, hostname, resolver)
+
+        if self.local_options['usereverse']:
+            #d.addCallback(self.reverse_lookup, result, resolver)
+            #d.addErrback(log.msg(err.printTraceback()))
+
+            #d.addCallback(self.reverse_lookup, result, resolver)
+            #d.addErrback(log.msg(err.printTraceback()))
+
+            res.addCallback(self.reverse_lookup, result, resolver)
+            res.addErraback(log.msg(err.printTraceback()))
+        
+        return res
+
+    def reverse_lookup(self, address, resolver):
         """
         Attempt to do a reverse DNS lookup to determine if the control and exp
         sets from a positive result resolve to the same domain, in order to
         remove false positives due to GeoIP load balancing.
         """
         res = client.createResolver(resolvconf=self.resolvconf, 
-                                    servers=[(nameserver, 53)])
+                                    servers=[(resolver, 53)])
         ptr = '.'.join(addr.split('.')[::-1]) + '.in-addr.arpa'
-        d = res.lookupPointer(ptr)
-        d.addCallback(lambda (ans, auth, add): util.println(ans[0].payload.name))
-        d.addErrback(log.err)
-        d.addBoth(lambda r: reactor.stop())
-        return d
+        reverse = res.lookupPointer(ptr)
+        reverse.addCallback(lambda (address, auth, add): 
+                            util.println(address[0].payload.name))
+        reverse.addErrback(log.err)
+
+        ## XXX do we need to stop the reactor?
+        #d.addBoth(lambda r: reactor.stop())
+
+        return reverse
         
     def experiment(self, args):
         """
         Compares the lookup() sets of the control and experiment groups.
         """
-        hostnames = args
+        for hostname in args:
+            for testresolver in self.assets['testresolvers']:
+                addressd = defer.Deferred()
+                addressd.addCallback(self.lookup, hostname, testresolver)
+                addressd.addErrback(log.err)
 
-        for hostname in hostnames:
-            for testserver in self.testservers:
-                #exp_address = self.lookup(hostname, testserver)
-                self.d.addCallback(self.lookup, hostname, testserver)
+                #addressd = self.lookup(hostname, testresolver)
 
-        #print self.assets['hostnames']
-        #hostname = args
-        #exp_address = self.lookup(hostname, testserver)
+                #self.d.addCallback(self.lookup, hostname, testserver)
 
-        #return {'control': control_server,
-        #        'domain': args['asset'],
-        #        'experiment_address': address}
+                print "%s" % type(addressd)
 
-        if self.local_options['usereverse']:
-            exp_reversed = self.reverse_lookup(exp_address, testserver)
+                return addressd
 
-            ## XXX trying to fix errors:
-            #d = defer.Deferred()
-            
-            return (exp_address, hostname, testserver, exp_reversed)
-        else:
-            return (exp_address, hostname, testserver, False)
-
-    def control(self, experiment_result):
+    def control(self, experiment_result, args):
+        print "EXPERIMENT RESULT IS %s" % experiment_result
         (exp_address, hostname, testserver, exp_reversed) = experiment_result
         control_server = self.local_options['controlserver']
         ctrl_address = self.lookup(hostname, control_server)
