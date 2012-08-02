@@ -16,31 +16,29 @@ from ooni.utils import log
 
 class Daphn3ClientProtocol(daphn3.Daphn3Protocol):
     def connectionMade(self):
-        print "I have made a connection!"
         self.next_state()
-
-    def connectionLost(self, reason):
-        pass
 
 class Daphn3ClientFactory(protocol.ClientFactory):
     protocol = Daphn3ClientProtocol
     mutator = None
     steps = None
     test = None
-    report = reports.Report('daphn3', 'daphn3.yamlooni')
 
     def buildProtocol(self, addr):
         p = self.protocol()
-        p.report = self.report
         p.factory = self
+        p.test = self.test
+
         if self.steps:
             p.steps = self.steps
 
         if not self.mutator:
             self.mutator = daphn3.Mutator(p.steps)
+
         else:
             print "Moving on to next mutation"
             self.mutator.next()
+
         p.mutator = self.mutator
         return p
 
@@ -48,6 +46,7 @@ class Daphn3ClientFactory(protocol.ClientFactory):
         print "We failed connecting the the OONIB"
         print "Cannot perform test. Perhaps it got blocked?"
         print "Please report this to tor-assistants@torproject.org"
+        self.test.result['error'] = ('Failed in connecting to OONIB', reason)
         self.test.end(d)
 
     def clientConnectionLost(self, reason):
@@ -108,15 +107,16 @@ class daphn3Test(OONITest):
     def control(self, exp_res, args):
         try:
             mutation = self.factory.mutator.get(0)
+            self.result['censored'] = False
         except:
             mutation = None
-        return {'mutation_number': args['mutation'], 'value': mutation}
+
+        return {'mutation_number': args['mutation'],
+                'value': mutation}
 
     def _failure(self, *argc, **kw):
-        print "We failed connecting the the OONIB"
-        print "Cannot perform test. Perhaps it got blocked?"
-        print "Please report this to tor-assistants@torproject.org"
-        print "Traceback: %s %s" % (argc, kw)
+        self.result['censored'] = True
+        self.result['error'] = ('Failed in connecting', (argc, kw))
         self.end()
 
     def experiment(self, args):
@@ -133,7 +133,6 @@ class daphn3Test(OONITest):
         d = endpoint.connect(self.factory)
         d.addErrback(self._failure)
         return d
-        #return endpoint.connect(Daphn3ClientFactory)
 
     def load_assets(self):
         if not self.steps:

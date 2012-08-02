@@ -26,6 +26,7 @@ class OONITest(object):
     blocking = False
     reactor = None
     tool = False
+    ended = False
 
     def __init__(self, local_options, global_options, report, ooninet=None,
             reactor=None):
@@ -65,7 +66,7 @@ class OONITest(object):
         """
         self.ended = True
 
-    def finished(self, control):
+    def finished(self, return_value):
         """
         The Test has finished running, we must now calculate the test runtime
         and add all time data to the report.
@@ -76,7 +77,7 @@ class OONITest(object):
         result['start_time'] = str(self.start_time)
         result['end_time'] = str(self.end_time)
         result['run_time'] = str(self.end_time - self.start_time)
-        result['control'] = control
+        result['return_value'] = return_value
         log.msg("FINISHED %s" % result)
         self.report(result)
         return result

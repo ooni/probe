@@ -33,6 +33,7 @@ class bridgetTest(OONITest):
         from ooni.lib.txtorcon import DEFAULT_VALUE, launch_tor
         def updates(prog, tag, summary):
             log.msg("%d%%: %s" % (prog, summary))
+            return
 
         def setup_failed(args):
             log.msg("Setup Failed.")
@@ -45,15 +46,18 @@ class bridgetTest(OONITest):
             return report
 
         config = TorConfig()
-        config.SocksPort = 9999
-        config.OrPort = 1234
+        import random
+        config.SocksPort = random.randint(1024, 2**16)
+        config.ControlPort = random.randint(1024, 2**16)
+
         if 'bridge' in args:
             config.UseBridges = 1
             config.Bridge = args['bridge']
         config.save()
+        print config.create_torrc()
         report = {'tor_config': config.config}
         log.msg("Starting Tor")
-        d = launch_tor(config, reactor, progress_updates=updates)
+        d = launch_tor(config, self.reactor, progress_updates=updates)
         d.addCallback(setup_complete)
         d.addErrback(setup_failed)
         return d

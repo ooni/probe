@@ -44,3 +44,12 @@ class ITest(Interface):
         If the test does not have any assets it should return an empty dict.
         """
 
+    def end():
+        """
+        This can be called at any time to terminate the execution of all of
+        these test instances.
+
+        What this means is that no more test instances with new parameters will
+        be created. A report will be written.
+        """
+

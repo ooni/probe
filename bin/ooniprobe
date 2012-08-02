@@ -1,4 +1,5 @@
 #!/bin/sh
-ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && cd .. && pwd )"
+ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+echo $ROOT
 export PYTHONPATH=$PYTHONPATH:$ROOT
-python $ROOT/ooni/ooniprobe.py
+python $ROOT/ooni/ooniprobe.py $1

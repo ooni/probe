@@ -4,7 +4,7 @@ import os
 import yaml
 
 import itertools
-from ooni.utils import log, date
+from ooni.utils import log, date, net
 
 class Report:
     """This is the ooni-probe reporting mechanism. It allows
@@ -46,10 +46,11 @@ class Report:
         header += "# %s\n\n" % pretty_date
         self._write_to_report(header)
         # XXX replace this with something proper
+        address = net.getClientAddress()
         test_details = {'start_time': str(date.now()),
-                        'asn': 'ASN-1234',
+                        'asn': address['asn'],
                         'test_name': self.testname,
-                        'addr': '1234'}
+                        'addr': address['ip']}
         self(test_details)
 
     def _write_to_report(self, dump):
@@ -73,97 +74,15 @@ class Report:
         This should be invoked every time you wish to write some
         data to the reporting system
         """
-        #print "Writing report(s)"
-        #dump = '--- \n'
         dump = yaml.dump([data])
-        #dump += yaml.dump(data)
-
         self._write_to_report(dump)
 
-    def file_report(self, data, file=None, mode='a+'):
+    def file_report(self, data):
         """
         This reports to a file in YAML format
         """
-        if not file:
-            file = self.file
-        with open(file, mode) as f:
+        with open(self.file, 'a+') as f:
             f.write(data)
-
-    def tcp_report(self, data):
-        """
-        This connect to the specified tcp server
-        and writes the data passed as argument.
-        """
-        host, port = self.tcp.split(":")
-        tcp = socket.getprotobyname('tcp')
-        send_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM, tcp)
-        try:
-            send_socket.connect((host, int(port)))
-            send_socket.send(data)
-
-        except Exception, e:
-            raise e
-
-        finally:
-            send_socket.close()
-
-
-    def scp_report(self, data, rfile=None, mode='a+'):
-        """
-        Push data to the remote ssh server.
-
-        :rfile the remote filename to write
-        :data the raw data content that should be written
-        :mode in what mode the file should be created
-        """
-        if not rfile:
-            rfile = self.file
-        host, port = self.scp.split(":")
-        transport = paramiko.Transport((host, port))
-
-        # The remote path of the remote file to write
-        rfpath = os.path.join(self.config.ssh_rpath, rfile)
-
-        try:
-            username = self.config.ssh_username
-        except:
-            raise "No username provided"
-
-        # Load the local known host key file
-        transport.load_host_keys(os.path.expanduser("~/.ssh/known_hosts"))
-
-        # We prefer to use an ssh keyfile fo authentication
-        if self.config.ssh_keyfile:
-            keyfile = os.path.expanduser(self.config.ssh_keyfile)
-            key = paramiko.RSAKey.from_private_key_file(keylocfile)
-            try:
-                transport.connect(username=username, pkey=key)
-            except Exception, e:
-                raise e
-
-        # If not even a password is fine
-        elif self.config.ssh_password:
-            try:
-                transport.connect(username=username, password=self.config.ssh_password)
-            except Exception, e:
-                raise e
-
-        # ... but no authentication, that is madness!
-        else:
-            raise "No key or password provided for ssh"
-
-        sftp = paramiko.SFTPClient.from_transport(transport)
-        try:
-            sftp = ssh.open_sftp()
-            remote_file = sftp.file(rfile, mode)
-            remote_file.set_pipelined(True)
-            remote_file.write(data)
-
-        except Exception, e:
-            raise e
-        sftp.close()
-        transport.close()
-
 
     def send_report(self, data, type):
         """

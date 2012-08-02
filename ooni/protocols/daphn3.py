@@ -208,6 +208,8 @@ class Daphn3Protocol(protocol.Protocol):
     to_receive_data = 0
     report = reports.Report('daphn3', 'daphn3.yamlooni')
 
+    test = None
+
     def next_state(self):
         """
         This is called once I have completed one step of the protocol and need
@@ -267,9 +269,10 @@ class Daphn3Protocol(protocol.Protocol):
         print "The connection was closed because of %s" % report['reason']
         print "State %s, Mutator %s" % (report['proto_state'],
                                         report['mutator_state'])
+        if self.test:
+            self.test.result['censored'] = True
+            self.test.result['state'] = report
         self.mutator.next()
-
-
 
     def connectionLost(self, reason):
         """
@@ -289,8 +292,12 @@ class Daphn3Protocol(protocol.Protocol):
         else:
             print "I have reached the end of the state machine"
             print "Censorship fingerprint bruteforced!"
-            report = {'mutator_state': self.mutator.state()}
-            self.report(report)
+            if self.test:
+                print "In the test thing"
+                self.test.result['censored'] = False
+                self.test.result['state'] = report
+                self.test.result['state_walk_finished'] = True
+                self.test.report(self.test.result)
             return
 
         if reason.check(ConnectionDone):

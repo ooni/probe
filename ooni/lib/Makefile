@@ -12,6 +12,10 @@ txtorcon:
 	mv txtorcon.git/txtorcon txtorcon
 	rm -rf txtorcon.git
 
+clean:
+	rm -rf txtorcon
+	rm -rf txtraceroute.py
+
 #txscapy:
 #	echo "Processing dependency txscapy"
 #	git clone https://github.com/hellais/txscapy.git txscapy.git
