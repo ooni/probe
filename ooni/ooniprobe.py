@@ -94,8 +94,6 @@ def runTest(test, options, global_options, reactor=reactor):
     for x in wgen:
         worker.push(x)
 
-    reactor.run()
-
 class Options(usage.Options):
     tests = plugoo.keys()
     subCommands = []
@@ -141,4 +139,6 @@ if __name__ == "__main__":
         sys.exit(1)
 
     runTest(config.subCommand, config.subOptions, config)
+
+    reactor.run()
 

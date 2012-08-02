@@ -40,6 +40,6 @@ class TestsTestCase(unittest.TestCase):
 
         test = DummyTest(None, None, self.dummyreport)
         yield test.startTest(None).addCallback(self._callback)
-        self.assertEqual(self.callbackResults[0][0]['control'], test_dict)
+        self.assertEqual(self.callbackResults[0][0]['return_value'], test_dict)
         return
 
