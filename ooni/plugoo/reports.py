@@ -4,7 +4,11 @@ import os
 import yaml
 
 import itertools
+<<<<<<< HEAD
 import log
+=======
+from ooni.utils import log, date, net
+>>>>>>> * Fix some bugs in Daphn3
 
 class Report:
     """This is the ooni-probe reporting mechanism. It allows
@@ -81,13 +85,8 @@ class Report:
         """
         This reports to a file in YAML format
         """
-        if not file:
-            file = self.file
-        try:
-            with open(file, mode) as f:
-                f.write(data)
-        except Exception, e:
-            raise e
+        with open(self.file, 'a+') as f:
+            f.write(data)
 
     def send_report(self, data, type):
         """
