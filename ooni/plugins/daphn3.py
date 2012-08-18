@@ -136,6 +136,8 @@ class daphn3Test(OONITest):
         return d
 
     def load_assets(self):
+        if not self.local_options:
+            return {}
         if not self.steps:
             print "Error: No assets!"
             self.end()
