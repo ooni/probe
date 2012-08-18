@@ -31,6 +31,7 @@ try:
     from dns import resolver
 except ImportError:
     print "The dnspython module was not found. https://crate.io/packages/dnspython/"
+    resolver = None
 
 __plugoo__ = "captiveportal"
 __desc__ = "Captive portal detection test"
@@ -132,7 +133,10 @@ class CaptivePortal(OONITest):
         or a list of strings. If nameserver is not given, use local
         DNS resolver, and if that fails try using 8.8.8.8.
         """
-
+        if not resolver:
+            log.msg("dnspython is not installed.\
+                    Cannot perform DNS Resolve test")
+            return []
         if isinstance(hostname, str):
             hostname = [hostname]
 
@@ -192,6 +196,11 @@ class CaptivePortal(OONITest):
         The equivalent of:
         $ dig +short NS ooni.nu
         """
+        if not resolver:
+            log.msg("dnspython not installed.")
+            log.msg("Cannot perform test.")
+            return []
+
         res = resolver.Resolver()
         answer = res.query(hostname, 'NS')
         auth_nameservers = []
@@ -211,9 +220,9 @@ class CaptivePortal(OONITest):
         for char in hostname:
             l33t = random.choice(['caps', 'nocaps'])
             if l33t == 'caps':
-                hostname_0x20 = hostname_0x20 + char.capitalize()
+                hostname_0x20 += char.capitalize()
             else:
-                hostname_0x20 = hostname_0x20 + char.lower()
+                hostname_0x20 += char.lower()
         return hostname_0x20
 
     def check_0x20_to_auth_ns(self, hostname, sample_size=None):
@@ -394,7 +403,7 @@ class CaptivePortal(OONITest):
             log.debug("just magically resolved to a bunch of random addresses.")
             log.debug("That is definitely highly improbable. In fact, my napkin")
             log.debug("tells me that the probability of just one of those")
-            log.degug("hostnames resolving to an address is 1.68e-59, making")
+            log.debug("hostnames resolving to an address is 1.68e-59, making")
             log.debug("it nearly twice as unlikely as an MD5 hash collision.")
             log.debug("Either someone is seriously messing with your network,")
             log.debug("or else you are witnessing the impossible. %s" % r)

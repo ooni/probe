@@ -40,6 +40,7 @@ class Daphn3ClientFactory(protocol.ClientFactory):
             self.mutator.next()
 
         p.mutator = self.mutator
+        p.current_state = self.mutator.state()
         return p
 
     def clientConnectionFailed(self, reason):

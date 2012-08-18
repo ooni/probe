@@ -40,6 +40,7 @@ class Daphn3Server(protocol.ServerFactory):
                 self.mutations.pop(addr.host)
         try:
             p.mutator = self.mutations[addr.host]
+            p.current_state = p.mutator.state()
         except:
             pass
         return p

@@ -201,6 +201,8 @@ class Daphn3Protocol(protocol.Protocol):
     steps = []
     mutator = None
 
+    current_state = None
+
     role = 'client'
     state = 0
     total_states = len(steps) - 1
@@ -283,7 +285,7 @@ class Daphn3Protocol(protocol.Protocol):
             print "Terminated because of little interest in life."
             return
         report = {'reason': reason, 'proto_state': self.state,
-                'trigger': None, 'mutator_state': self.mutator.state()}
+                'trigger': None, 'mutator_state': self.current_state}
 
         if self.state < self.total_states:
             report['trigger'] = 'did not finish state walk'
