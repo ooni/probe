@@ -17,6 +17,7 @@ class domclassArgs(usage.Options):
                      ['fileb', 'b', None, 'Corpus file'],
                      ['asset', 'a', None, 'URL List'],
                      ['resume', 'r', 0, 'Resume at this index']]
+
 alltags = ['A', 'ABBR', 'ACRONYM', 'ADDRESS', 'APPLET', 'AREA', 'B', 'BASE',
            'BASEFONT', 'BD', 'BIG', 'BLOCKQUOTE', 'BODY', 'BR', 'BUTTON', 'CAPTION',
            'CENTER', 'CITE', 'CODE', 'COL', 'COLGROUP', 'DD', 'DEL', 'DFN', 'DIR', 'DIV',
@@ -38,12 +39,10 @@ commontags = ['A', 'B', 'BLOCKQUOTE', 'BODY', 'BR', 'BUTTON', 'CAPTION',
            'STRIKE', 'STRONG', 'STYLE', 'SUB', 'SUP', 'TABLE', 'TBODY', 'TD',
            'TEXTAREA', 'TFOOT', 'TH', 'THEAD', 'TITLE', 'TR', 'TT', 'U', 'UL']
 
-thetags = ['A',
-           'DIV',
-           'FRAME', 'H1', 'H2',
-           'H3', 'H4', 'IFRAME ', 'INPUT', 'LABEL','LI', 'P', 'SCRIPT', 'SPAN',
-           'STYLE',
-           'TR']
+thetags = ['A', 'DIV', 'FRAME', 'H1', 'H2',
+           'H3', 'H4', 'IFRAME ', 'INPUT',
+           'LABEL','LI', 'P', 'SCRIPT', 'SPAN',
+           'STYLE', 'TR']
 
 def compute_matrix(dataset):
     import itertools
@@ -65,15 +64,26 @@ def compute_matrix(dataset):
             y = len(thetags)
 
         matrix[x,y] += 1
+
+    for x in xrange(len(thetags) + 1):
+        possibilities = 0
+        for y in matrix[x]:
+            possibilities += y
+
+        for i in xrange(len(matrix[x])):
+            if possibilities != 0:
+                matrix[x][i] = matrix[x][i]/possibilities
+
     ret['matrix'] = matrix
     ret['eigen'] = numpy.linalg.eigvals(matrix)
     return ret
 
-def readDOM(fn):
+def readDOM(content=None, filename=None):
     from bs4 import BeautifulSoup
-    #f = open(fn)
-    #content = ''.join(f.readlines())
-    content = fn
+    if filename:
+        f = open(filename)
+        content = ''.join(f.readlines())
+
     dom = BeautifulSoup(content)
     couples = []
     for x in dom.findAll():
@@ -90,17 +100,19 @@ class domclassTest(HTTPTest):
     options = domclassArgs
     blocking = False
 
+    tool = True
+
     def runTool(self):
         import yaml, numpy
-        site_a = readDOM(self.local_options['file'])
-        site_b = readDOM(self.local_options['fileb'])
+        site_a = readDOM(filename=self.local_options['file'])
+        site_b = readDOM(filename=self.local_options['fileb'])
         a = compute_matrix(site_a)
-        self.result['eigenvalues'] = str(a['eigen'])
-        self.result['matrix'] = str(a['matrix'])
-        self.result['content'] = data[:200]
+        self.result['eigenvalues'] = a['eigen']
+        #self.result['matrix'] = str(a['matrix']
+        #self.result['content'] = data[:200]
         b = compute_matrix(site_b)
-        print "A: %s" % a
-        print "B: %s" % b
+        #print "A: %s" % a
+        #print "B: %s" % b
         correlation = numpy.vdot(a['eigen'],b['eigen'])
         correlation /= numpy.linalg.norm(a['eigen'])*numpy.linalg.norm(b['eigen'])
         correlation = (correlation + 1)/2
@@ -116,17 +128,17 @@ class domclassTest(HTTPTest):
             self.result['eigenvalues'] = None
             self.result['matrix'] = None
         else:
-            self.result['eigenvalues'] = str(a['eigen'])
-            self.result['matrix'] = str(a['matrix'])
+            self.result['eigenvalues'] = a['eigen']
+            #self.result['matrix'] = str(a['matrix'])
         #self.result['content'] = data[:200]
         #b = compute_matrix(site_b)
         print "A: %s" % a
-        return a
+        return a['eigen']
         #print "B: %s" % b
         #correlation = numpy.vdot(a['eigen'],b['eigen'])
         #correlation /= numpy.linalg.norm(a['eigen'])*numpy.linalg.norm(b['eigen'])
         #correlation = (correlation + 1)/2
-        # print "Corelation: %s" % correlation
+        #print "Corelation: %s" % correlation
 
 # We need to instantiate it otherwise getPlugins does not detect it
 # XXX Find a way to load plugins without instantiating them.
