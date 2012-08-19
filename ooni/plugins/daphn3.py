@@ -84,7 +84,7 @@ class daphn3Test(OONITest):
         if not self.local_options:
             self.end()
             return
-        #pass
+
         self.factory = Daphn3ClientFactory()
         self.factory.test = self
 
