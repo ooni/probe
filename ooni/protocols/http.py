@@ -40,12 +40,17 @@ class HTTPTest(OONITest):
     and once the request body has been received.
     """
     randomize_ua = True
+    follow_redirects = False
 
     def initialize(self):
         from twisted.web.client import Agent
         import yaml
 
         self.agent = Agent(self.reactor)
+        if self.follow_redirects:
+            from twisted.web.client import RedirectAgent
+            self.agent = RedirectAgent(self.agent)
+
         self.request = {}
         self.response = {}
 
