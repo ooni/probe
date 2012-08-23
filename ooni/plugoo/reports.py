@@ -93,4 +93,53 @@ class Report:
         log.msg("Reporting to %s" % type)
         getattr(self, type+"_report").__call__(data)
 
+class NewReport(object):
+    filename = 'report.log'
+    startTime = None
+    endTime = None
+    testName = None
+    ipAddr = None
+    asnAddr = None
+
+    def _open():
+        self.fp = open(self.filename, 'a+')
+
+    @property
+    def header():
+        pretty_date = date.pretty_date()
+        report_header = "# OONI Probe Report for Test %s\n" % self.testName
+        report_header += "# %s\n\n" % pretty_date
+        test_details = {'start_time': self.startTime,
+                        'asn': asnAddr,
+                        'test_name': self.testName,
+                        'addr': ipAddr}
+        report_header += yaml.dump([test_details])
+        return report_header
+
+    def create():
+        """
+        Create a new report by writing it's header.
+        """
+        self.fp = open(self.filename, 'w+')
+        self.fp.write(self.header)
+
+    def exists():
+        """
+        Returns False if the file does not exists.
+        """
+        return os.path.exists(self.filename)
+
+    def write(data):
+        """
+        Write a report to the file.
+
+        :data: python data structure to be written to report.
+        """
+        if not self.exists():
+            self.create()
+        else:
+            self._open()
+        yaml_encoded_data = yaml.dump([data])
+        self.fp.write(yaml_encoded_data)
+        self.fp.close()
 

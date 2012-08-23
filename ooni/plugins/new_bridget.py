@@ -3,19 +3,26 @@ This is a self genrated test created by scaffolding.py.
 you will need to fill it up with all your necessities.
 Safe hacking :).
 """
+from exceptions import Exception
+from datetime import datetime
 from zope.interface import implements
 from twisted.python import usage
 from twisted.plugin import IPlugin
-from twisted.internet import reactor
+from twisted.internet import reactor, task
 
 from ooni.utils import log
 from ooni.plugoo.tests import ITest, OONITest
 from ooni.plugoo.assets import Asset
 
+from ooni.lib.txtorcon import TorProtocolFactory, TorConfig, TorState
+from ooni.lib.txtorcon import DEFAULT_VALUE, launch_tor
+
 class bridgetArgs(usage.Options):
     optParameters = [['bridges', 'b', None, 'List of bridges to scan'],
                      ['relays', 'f', None, 'List of relays to scan'],
-                     ['resume', 'r', 0, 'Resume at this index']]
+                     ['resume', 'r', 0, 'Resume at this index'],
+                     ['timeout', 't', 5, 'Timeout in seconds after which to consider a bridge not working']
+                    ]
 
 class bridgetTest(OONITest):
     implements(IPlugin, ITest)
@@ -28,22 +35,38 @@ class bridgetTest(OONITest):
 
     def experiment(self, args):
         log.msg("Doing test")
-        # What you return here gets handed as input to control
-        from ooni.lib.txtorcon import TorProtocolFactory, TorConfig, TorState
-        from ooni.lib.txtorcon import DEFAULT_VALUE, launch_tor
-        def updates(prog, tag, summary):
-            log.msg("%d%%: %s" % (prog, summary))
+        last_update = datetime.now()
+        tor_log = []
+
+        def check_timeout():
+            log.msg("Checking for timeout")
+            time_since_update = datetime.now() - last_update
+            if time_since_update.seconds > self.local_options['timeout']:
+                log.msg("Timed out when connecting to %s" % args)
+                l.stop()
+                self.result['reason'] = 'timeout'
+                d.errback(args)
             return
 
-        def setup_failed(args):
+        def updates(prog, tag, summary):
+            tor_log.append((prog, tag, summary))
+            last_update = datetime.now()
+            log.msg("%d%%: %s" % (prog, summary))
+
+        def setup_failed(failure):
             log.msg("Setup Failed.")
-            report.update({'failed': args})
-            return report
+            if not self.result['reason']:
+                self.result['reason'] = 'unknown'
+            self.result['input'] = args
+            self.result['result'] = 'failed'
+            self.result['tor_log'] = tor_log
+            return
 
         def setup_complete(proto):
             log.msg("Setup Complete.")
-            report.update({'success': args})
-            return report
+            self.result['input'] = args
+            self.result['result'] = 'success'
+            return
 
         config = TorConfig()
         import random
@@ -53,11 +76,17 @@ class bridgetTest(OONITest):
         if 'bridge' in args:
             config.UseBridges = 1
             config.Bridge = args['bridge']
+
         config.save()
-        print config.create_torrc()
-        report = {'tor_config': config.config}
-        log.msg("Starting Tor")
-        d = launch_tor(config, self.reactor, progress_updates=updates)
+
+        print config.config
+        self.result['tor_config'] = config.config
+        log.msg("Starting Tor connecting to %s" % args['bridge'])
+
+        l = task.LoopingCall(check_timeout)
+        l.start(1.0)
+
+        d = launch_tor(config, self.reactor, control_port=config.ControlPort, progress_updates=updates)
         d.addCallback(setup_complete)
         d.addErrback(setup_failed)
         return d

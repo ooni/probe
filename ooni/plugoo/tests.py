@@ -99,6 +99,7 @@ class OONITest(object):
 
         self.d.addCallback(self.control, args)
         self.d.addCallback(self.finished)
+        self.d.addErrback(self.finished)
         return self.d
 
     def control(self, result, args):

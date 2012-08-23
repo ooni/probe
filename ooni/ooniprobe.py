@@ -76,23 +76,26 @@ def runTest(test, options, global_options, reactor=reactor):
     resume = 0
     if not options:
         options = {}
+
     if 'resume' in options:
         resume = options['resume']
 
     test = test_class(options, global_options, report, reactor=reactor)
+
     if test.tool:
         test.runTool()
-        return
 
     if test.ended:
-        print "Ending prematurely"
-        return
+        print "Ending test"
+        return None
 
     wgen = work.WorkGenerator(test,
                               dict(options),
                               start=resume)
     for x in wgen:
         worker.push(x)
+
+    return True
 
 class Options(usage.Options):
     tests = plugoo.keys()
@@ -138,7 +141,6 @@ if __name__ == "__main__":
         config.opt_help()
         sys.exit(1)
 
-    runTest(config.subCommand, config.subOptions, config)
-
-    reactor.run()
+    if runTest(config.subCommand, config.subOptions, config):
+        reactor.run()
 
