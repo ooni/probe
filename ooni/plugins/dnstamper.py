@@ -154,10 +154,10 @@ class DNSTamperTest(OONITest):
 
     def load_assets(self):
         assets = {}
-
-        default_hostnames = ['baidu.com', 'torrentz.eu', 'twitter.com', 
-                             'ooni.nu', 'google.com', 'torproject.org']
-        default_resolvers = ['209.244.0.3', '208.67.222.222']
+        
+        #default_hostnames = ['baidu.com', 'torrentz.eu', 'twitter.com', 
+        #                     'ooni.nu', 'google.com', 'torproject.org']
+        #default_resolvers = ['209.244.0.3', '208.67.222.222']
 
         def asset_file(asset_option):
             return self.local_options[asset_option]
@@ -172,24 +172,25 @@ class DNSTamperTest(OONITest):
 
         if self.local_options:
             if asset_file('hostnames'):
-                with asset_file('hostnames') as hosts_file:
-                    ## The default filename for the Alexa Top 1 Million:
-                    if hosts_file is 'top-1m.txt':
-                        assets.update({'hostnames': AlexaAsset(hosts_file)})
-                    else:
-                        assets.update({'hostnames': Asset(hosts_file)})
+                ## The default filename for the Alexa Top 1 Million:
+                if assets_file('hostnames') is 'top-1m.txt':
+                    assets.update({'hostnames': 
+                                   AlexaAsset(assets_file('hostnames'))})
+                else:
+                    assets.update({'hostnames': 
+                                   Asset(assets_file('hostnames'))})
             else:
                 log.msg("Error! We need an asset file containing the " + 
                         "hostnames that we should test DNS with! Please use " + 
                         "the '-h' option. Using pre-defined hostnames...")
-                assets.update({'hostnames': list_to_asset(default_hostnames)})
+                #assets.update({'hostnames': list_to_asset(default_hostnames)})
 
             if asset_file('testresolvers'):
-                with asset_file('testresolvers') as resolver_file:
-                    assets.update({'testresolvers': Asset(resolver_file)})
-            else:
                 assets.update({'testresolvers': 
-                               list_to_asset(default_resolvers)})
+                               Asset(asset_file('testresolvers'))})
+            #else:
+            #    assets.update({'testresolvers': 
+            #                   list_to_asset(asset_file('testresolvers'))})
 
         return assets
 
@@ -273,9 +274,12 @@ class DNSTamperTest(OONITest):
         """
         for hostname in args:
             for testresolver in self.assets['testresolvers']:
-                addressd = defer.Deferred()
-                addressd.addCallback(self.lookup, hostname, testresolver)
-                addressd.addErrback(log.err)
+                #addressd = defer.Deferred()
+                #addressd.addCallback(self.lookup, hostname, testresolver)
+                #addressd.addErrback(log.err)
+
+                self.d.addCallback(self.lookup, hostname, testresolver)
+                self.d.addErrback(log.err)
 
                 #addressd = self.lookup(hostname, testresolver)
 
@@ -283,7 +287,7 @@ class DNSTamperTest(OONITest):
 
                 print "%s" % type(addressd)
 
-                return addressd
+                return self.d
 
     def control(self, experiment_result, args):
         print "EXPERIMENT RESULT IS %s" % experiment_result
