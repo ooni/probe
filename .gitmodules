@@ -1,9 +1,9 @@
 [submodule "ooni/lib/txscapy"]
 	path = ooni/lib/txscapy
-	url = git://github.com/hellais/txscapy.git
+	url = https://github.com/isislovecruft/txscapy.git
 [submodule "ooni/lib/txtraceroute"]
 	path = ooni/lib/txtraceroute
-	url = git://github.com/hellais/txtraceroute.git
+	url = https://github.com/isislovecruft/txtraceroute.git
 [submodule "ooni/lib/txtorcon"]
 	path = ooni/lib/txtorcon
-	url = git://github.com/meejah/txtorcon.git
+	url = https://github.com/isislovecruft/txtorcon.git
