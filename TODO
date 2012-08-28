@@ -15,20 +15,6 @@ It should respect the design goals of the new ooni-probe model.
 * All the parts related to HTTP and Squid (old/ooni/http.py)
 effort: low, skill: medium
 
-* All the captive portal detection tests (old/ooni/http.py
-  and old/ooni/dnsooni.py)
-effort: low, skill: low
-    - The captiveportal test is a port of the old code, plus
-      a couple new methods for testing.
-
-* All the DNS censorship detection tests (old/ooni/dnsooni.py)
-effort: medium, skill: medium
-    - The dnstamper test fulfills this requirement, although
-      there are several improvements which could be made, namely
-      figuring out if there is a pattern to the reverse resolved
-      names and parsing them in some manner to determine if that
-      server is authorized to serve the requested page.
-
 * Misc scripts to detect censorship that are not written in any
   version of OONI (old/ooni/plugins/old_stuff_to_convert/)
 effort: low-medium, skill: low-medium
@@ -45,3 +31,15 @@ or that we haven't yet figured out how they should work.
 
 * Design and implement the Network Node and the Code Exec node classes
 
+New things to test
+------------------
+
+Please check that the submodules are working correctly. From ../ooni-probe/,
+do:
+
+$ git submodules init && git submodules update
+
+Make sure that they clone correctly, and run a few ooni tests to make sure
+the import statements haven't broken.
+
+Write unittests for *all of the things*. Can anyone suggest a good framework?
