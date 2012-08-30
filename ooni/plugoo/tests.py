@@ -7,7 +7,7 @@ import itertools
 from twisted.internet import reactor, defer, threads
 from twisted.python import failure
 
-import log
+from ooni import log
 from plugoo import assets, work
 from plugoo.reports import Report
 

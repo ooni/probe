@@ -27,9 +27,9 @@ from zope.interface.verify import verifyObject
 from zope.interface.exceptions import BrokenImplementation
 from zope.interface.exceptions import BrokenMethodImplementation
 
-from plugoo import tests, work, assets, reports
-from logo import getlogo
-import plugins, log
+from ooni.plugoo import tests, work, assets, reports
+from ooni.logo import getlogo
+from ooni import plugins, log
 
 __version__ = "0.0.1-prealpha"
 
