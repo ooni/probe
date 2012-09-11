@@ -1,13 +1,11 @@
 from twisted.trial import reporter
 
-class TestResult(reporter.TestResult):
-    """
-    Accumulates the results of several ooni.nettest.TestCases.
+class OONIReporter(reporter.Reporter):
 
-    The output format of a TestResult is YAML and it will contain all the basic
-    information that a test result should contain.
-    """
-    def __init__(self):
-        super(TestResult, self).__init__()
+    def startTest(self, test, input=None):
+        print "Running %s" % test
+        print "Input %s" % input
+        self._input = input
+        super(OONIReporter, self).startTest(test)
 
 

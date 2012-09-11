@@ -22,19 +22,8 @@ from twisted.python.filepath import FilePath
 from twisted import plugin
 from twisted.python.util import spewer
 from twisted.python.compat import set
-from twisted.trial import runner, itrial, reporter
-
-
-# Yea, this is stupid.  Leave it for for command-line compatibility for a
-# while, though.
-TBFORMAT_MAP = {
-    'plain': 'default',
-    'default': 'default',
-    'emacs': 'brief',
-    'brief': 'brief',
-    'cgitb': 'verbose',
-    'verbose': 'verbose'
-    }
+from twisted.trial import itrial
+from ooni import runner, reporter
 
 
 def _parseLocalVariables(line):
@@ -98,26 +87,6 @@ def isTestFile(filename):
             and os.path.splitext(basename)[1] == ('.py'))
 
 
-def _reporterAction():
-    return usage.CompleteList([p.longOpt for p in
-                               plugin.getPlugins(itrial.IReporter)])
-
-class Options(usage.Options):
-
-    optParameters = [
-        ['parallelism', 'n', 10, "Specify the number of parallel tests to run"],
-        ['output', 'o', 'report.log', "Specify output report file"],
-        ['log', 'l', 'oonicli.log', "Specify output log file"]
-    ]
-
-    def opt_version(self):
-        """
-        Display OONI version and exit.
-        """
-        print "OONI version:", __version__
-        sys.exit(0)
-
-
 class Options(usage.Options, app.ReactorSelectionMixin):
     synopsis = """%s [options] [[file|package|module|TestCase|testmethod]...]
     """ % (os.path.basename(sys.argv[0]),)
@@ -136,12 +105,11 @@ class Options(usage.Options, app.ReactorSelectionMixin):
                 ["nopm", None, "don't automatically jump into debugger for "
                  "postmorteming of exceptions"],
                 ["dry-run", 'n', "do everything but run the tests"],
-                ["force-gc", None, "Have Trial run gc.collect() before and "
+                ["force-gc", None, "Have OONI run gc.collect() before and "
                  "after each test case."],
                 ["profile", None, "Run tests under the Python profiler"],
                 ["unclean-warnings", None,
                  "Turn dirty reactor errors into warnings"],
-                ["until-failure", "u", "Repeat test until it fails"],
                 ["no-recurse", "N", "Don't recurse into packages"],
                 ['help-reporters', None,
                  "Help on available output plugins (reporters)"]
@@ -153,13 +121,12 @@ class Options(usage.Options, app.ReactorSelectionMixin):
          "Run tests in random order using the specified seed"],
         ['temp-directory', None, '_trial_temp',
          'Path to use as working directory for tests.'],
-        ['reporter', None, 'verbose',
+        ['reporter', None, 'default',
          'The reporter to use for this test run.  See --help-reporters for '
          'more info.']]
 
     compData = usage.Completions(
         optActions={"tbformat": usage.CompleteList(["plain", "emacs", "cgitb"]),
-                    "reporter": _reporterAction,
                     "logfile": usage.CompleteFiles(descr="log file name"),
                     "random": usage.Completer(descr="random seed")},
         extraActions=[usage.CompleteFiles(
@@ -167,7 +134,7 @@ class Options(usage.Options, app.ReactorSelectionMixin):
                 repeat=True)],
         )
 
-    fallbackReporter = reporter.TreeReporter
+    fallbackReporter = reporter.OONIReporter
     tracer = None
 
     def __init__(self):
@@ -208,7 +175,7 @@ class Options(usage.Options, app.ReactorSelectionMixin):
         # value to the test suite as a module.
         #
         # This parameter allows automated processes (like Buildbot) to pass
-        # a list of files to Trial with the general expectation of "these files,
+        # a list of files to OONI with the general expectation of "these files,
         # whatever they are, will get tested"
         if not os.path.isfile(filename):
             sys.stderr.write("File %r doesn't exist\n" % (filename,))
@@ -300,21 +267,11 @@ class Options(usage.Options, app.ReactorSelectionMixin):
         self['tests'].update(args)
 
 
-    def _loadReporterByName(self, name):
-        for p in plugin.getPlugins(itrial.IReporter):
-            qual = "%s.%s" % (p.module, p.klass)
-            if p.longOpt == name:
-                return reflect.namedAny(qual)
-        raise usage.UsageError("Only pass names of Reporter plugins to "
-                               "--reporter. See --help-reporters for "
-                               "more info.")
-
-
     def postOptions(self):
         # Only load reporters now, as opposed to any earlier, to avoid letting
         # application-defined plugins muck up reactor selecting by importing
         # t.i.reactor and causing the default to be installed.
-        self['reporter'] = self._loadReporterByName(self['reporter'])
+        self['reporter'] = reporter.OONIReporter
 
         if 'tbformat' not in self:
             self['tbformat'] = 'default'
@@ -338,8 +295,8 @@ def _initialDebugSetup(config):
 def _getSuite(config):
     loader = _getLoader(config)
     recurse = not config['no-recurse']
+    print "loadByNames %s" % config['tests']
     return loader.loadByNames(config['tests'], recurse)
-
 
 
 def _getLoader(config):
@@ -349,8 +306,6 @@ def _getLoader(config):
         randomer.seed(config['random'])
         loader.sorter = lambda x : randomer.random()
         print 'Running tests shuffled with seed %d\n' % config['random']
-    if not config['until-failure']:
-        loader.suiteFactory = runner.DestructiveTestSuite
     return loader
 
 
@@ -358,10 +313,11 @@ def _getLoader(config):
 def _makeRunner(config):
     mode = None
     if config['debug']:
-        mode = runner.TrialRunner.DEBUG
+        mode = runner.OONIRunner.DEBUG
     if config['dry-run']:
-        mode = runner.TrialRunner.DRY_RUN
-    return runner.TrialRunner(config['reporter'],
+        mode = runner.OONIRunner.DRY_RUN
+    print "using %s" % config['reporter']
+    return runner.OONIRunner(config['reporter'],
                               mode=mode,
                               profile=config['profile'],
                               logfile=config['logfile'],
@@ -384,10 +340,7 @@ def run():
     _initialDebugSetup(config)
     trialRunner = _makeRunner(config)
     suite = _getSuite(config)
-    if config['until-failure']:
-        test_result = trialRunner.runUntilFailure(suite)
-    else:
-        test_result = trialRunner.run(suite)
+    test_result = trialRunner.run(suite)
     if config.tracer:
         sys.settrace(None)
         results = config.tracer.results()

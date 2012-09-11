@@ -22,6 +22,7 @@ class OONITest(object):
     developer to benefit from OONIs reporting system and command line argument
     parsing system.
     """
+    name = "oonitest"
     # By default we set this to False, meaning that we don't block
     blocking = False
     reactor = None
