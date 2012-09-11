@@ -27,7 +27,7 @@ class bridgetArgs(usage.Options):
 class bridgetTest(OONITest):
     implements(IPlugin, ITest)
 
-    shortName = "bridget"
+    shortName = "newbridget"
     description = "bridget"
     requirements = None
     options = bridgetArgs

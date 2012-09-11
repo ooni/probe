@@ -84,17 +84,20 @@ class HTTPTest(OONITest):
         """
         pass
 
-
-    def experiment(self, args):
-        log.msg("Running experiment")
-        url = self.local_options['url'] if 'url' not in args else args['url']
-
+    def doRequest(self, url):
         d = self.build_request(url)
         def finished(data):
             return data
 
         d.addCallback(self._cbResponse)
         d.addCallback(finished)
+        return d
+
+    def experiment(self, args):
+        log.msg("Running experiment")
+        url = self.local_options['url'] if 'url' not in args else args['url']
+
+        d = self.doRequest(url)
         return d
 
     def _cbResponse(self, response):
