@@ -269,19 +269,15 @@ class BridgetTest(OONITest):
         else:
             return None
 
-    def bootstrap_tor(self, config, args):
+    def experiment(self, args):
         """
-        Launch a Tor process with the TorConfig instance returned from
-        initialize().
+        XXX fill me in
+        """
+        log.msg("BridgeT: initiating test ... ")
 
-        Returns a Deferred which callbacks with a TorProcessProtocol connected
-        to the fully-bootstrapped Tor; this has a txtorcon.TorControlProtocol
-        instance as .protocol.
-        """
         from ooni.lib.txtorcon import TorProtocolFactory, TorConfig, TorState
         from ooni.lib.txtorcon import DEFAULT_VALUE, launch_tor
 
-        log.msg("Tor config: %s" % config)
         log.msg("Starting Tor ...")        
 
         def setup_failed(args):
@@ -296,6 +292,14 @@ class BridgetTest(OONITest):
             report.update({'success': args})
 
         def bootstrap(c):
+            """
+            Launch a Tor process with the TorConfig instance returned from
+            initialize().
+
+            Returns a Deferred which callbacks with a TorProcessProtocol connected
+            to the fully-bootstrapped Tor; this has a txtorcon.TorControlProtocol
+            instance as .protocol.
+            """
             conf = TorConfig(c)
             conf.post_bootstrap.addCallback(setup_complete).addErrback(setup_failed)
             log.msg("Tor process connected, bootstrapping ...")
@@ -303,50 +307,43 @@ class BridgetTest(OONITest):
         def updates(prog, tag, summary):
             log.msg("%d%%: %s" % (prog, summary))
 
-        ## :return: a Deferred which callbacks with a TorProcessProtocol
-        ##          connected to the fully-bootstrapped Tor; this has a 
-        ##          txtorcon.TorControlProtocol instance as .protocol.
-        deferred = launch_tor(config, reactor, progress_updates=updates,
-                              tor_binary=self.tor_binary)
-        deferred.addCallback(bootstrap, config)
-        deferred.addErrback(setup_failed)
-
-        #print "Tor process ID: %s" % d.transport.pid
-        return deferred
-
-    def experiment(self, args):
-        """
-        XXX fill me in
-        """
-        log.msg("BridgeT: initiating test ... ")
-
-        def reconfigure_failed(args):
-
         def reconfigure_controller(proto, args):
             ## if bridges and relays, use one bridge then build a circuit 
             ## from the relays
-            if args['bridge']:
-                print args
-                print args['bridge']
-                #d.addCallback(CustomCircuit(state))
-                proto.set_conf('Bridge', args['bridge'])
+            print args
+            print args['bridge']
+            #d.addCallback(CustomCircuit(state))
+            proto.set_conf('Bridge', args['bridge'])
+            
             ## if bridges only, try one bridge at a time, but don't build
             ## circuits, just return
             ## if relays only, build circuits from relays
+
+        def reconfigure_failed(proto, args):
+            log.msg("Reconfiguring Tor config with args %s failed" % args)
+            reactor.stop()
         
         ## XXX see txtorcon.TorControlProtocol.add_event_listener
         ## we may not need full CustomCircuit class
 
-        d = defer.Deferred() ## 1 make deferred
+        ## :return: a Deferred which callbacks with a TorProcessProtocol
+        ##          connected to the fully-bootstrapped Tor; this has a 
+        ##          txtorcon.TorControlProtocol instance as .protocol.
+
+        print args
+        d = launch_tor(self.config, reactor, progress_updates=updates,
+                       tor_binary=self.tor_binary)
+        d.addCallback(reconfigure_controller, args)
+        d.addErrback(reconfigure_failed, args)
+        d.addCallback(bootstrap, self.config)
+        d.addErrback(setup_failed)
+
         d.addCallback(self.bootstrap_tor, self.config) ## 2 blastoff
           ## 3 reconfigure
           ## 4 build circuits
-        
-        #d = self.bootstrap_tor(self.config, args).addCallback(configure,
-        ##c = CustomCircuit(state)
-        #d.addCallback(configure, d.protocol)
-        #d.addErrback(err)
-        #return d
+
+        #print "Tor process ID: %s" % d.transport.pid
+        return d
 
 ## So that getPlugins() can register the Test:
 bridget = BridgetTest(None, None, None)
