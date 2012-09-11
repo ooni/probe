@@ -139,6 +139,19 @@ class CustomCircuit(CircuitListenerMixin):
 
         return self.state.build_circuit(path).addCallback(AppendWaiting(self, deferred_to_callback)).addErrback(log.err)
 
+class BridgetAsset(Asset):
+    """
+    Class for parsing bridge assets so that they can be commented out.
+    """
+    def __init__(self, file=None):
+        self = Asset.__init__(self, file)
+
+    def parse_line(self, line):
+        if line.startswith('#'):
+            return
+        else:
+            return line.replace('\n','')
+
 class BridgetTest(OONITest):
     """
     XXX fill me in
@@ -177,10 +190,18 @@ class BridgetTest(OONITest):
         in the form IP:ORport. We don't want to load relays as assets, because
         it's inefficient to test them one at a time.
         """
-        assets = {}
+        assets = []
         if self.local_options:
             if self.local_options['bridges']:
-                assets.update({'bridge': Asset(self.local_options['bridges'])})
+                #assets.update({'bridge': 
+                #               BridgetAsset(self.local_options['bridges'])})
+                with open(self.local_options['bridges'] as bridge_file):
+                    for line in bridge_file.readlines():
+                        if line.startswith('#'):
+                            continue
+                        else:
+                            bridge = line.replace('\n','')
+                            assets.append(bridge)
         return assets
 
     def initialize(self):
@@ -259,12 +280,6 @@ class BridgetTest(OONITest):
 
             print self.config.create_torrc()
             report = {'tor_config': self.config.config}
-            #log.msg("Starting Tor")
-            #
-            #self.tor_process_protocol = self.bootstrap_tor(self.config)
-            #self.d = self.bootstrap_tor(self.d, self.config, 
-            #                            self.reactor, self.report)
-            #return self.d
             return self.config
         else:
             return None
@@ -338,8 +353,6 @@ class BridgetTest(OONITest):
         d.addCallback(bootstrap, self.config)
         d.addErrback(setup_failed)
 
-        d.addCallback(self.bootstrap_tor, self.config) ## 2 blastoff
-          ## 3 reconfigure
           ## 4 build circuits
 
         #print "Tor process ID: %s" % d.transport.pid
