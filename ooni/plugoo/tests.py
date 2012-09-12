@@ -5,6 +5,7 @@ from zope.interface import Interface, Attribute
 import logging
 import itertools
 from twisted.internet import reactor, defer, threads
+## XXX why is this imported and not used?
 from twisted.python import failure
 
 from ooni.utils import log
@@ -51,14 +52,14 @@ class OONITest(object):
 
     def load_assets(self):
         """
-        This method should be overriden by the test writer to provide the logic
-        for loading their assets.
+        This method should be overriden by the test writer to provide the
+        logic for loading their assets.
         """
         return {}
 
     def __repr__(self):
         return "<OONITest %s %s %s>" % (self.options, self.global_options,
-                                           self.assets)
+                                        self.assets)
 
     def end(self):
         """
