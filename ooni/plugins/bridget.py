@@ -34,23 +34,40 @@ from ooni.plugoo.assets     import Asset
 
 
 class BridgetArgs(usage.Options):
+
+    def portCheck(number):
+        number = int(number)
+        if number not in range(1024, 65535):
+            raise ValueError("Port out of range")
+    portCheck.coerceDoc = "Ports must be between 1024 and 65535"
+
     optParameters = [
-        ['bridges', 'b', None, 
-         'List of bridges to scan (IP:ORport)'],
-        ['relays', 'f', None, 
-         'List of relays to scan (IP)'],
-        ['socks', 's', 9049,
+        ['bridges', 'b', None,
+         'List of bridges to scan <IP>:<ORport>'],
+        ['relays', 'f', None,
+         'List of relays to scan <IP>'],
+        ['socks', 's', 9049, portCheck,
          'Tor SocksPort to use'],
-        ['control', 'c', 9052, 
+        ['control', 'c', 9052, portCheck,
          'Tor ControlPort to use'],
-        ['random', 'x', False, 
-         'Randomize control and socks ports'],
-        ['tor-path', 'p', '/usr/sbin/tor',
+        ['tor-path', 'p', None,
          'Path to the Tor binary to use'],
+        ['data-dir', 'd', None,
+         'Tor DataDirectory to use'],
         ['transport', 't', None, 
-         'Tor ClientTransportPlugin string. Requires -b.'],
-        ['resume', 'r', 0, 
+         'Tor ClientTransportPlugin'],
+        ['resume', 'r', 0,
          'Resume at this index']]
+    optFlags = [['random', 'x', 'Randomize control and socks ports']]
+
+    def postOptions(self):
+        if self['transport'] and not self['bridges']:
+            e = "Pluggable transport requires the bridges option"
+            raise usage.UsageError, e
+        if self['socks'] and self['control']:
+            if self['random']:
+                e = "Unable to use random and specific ports simultaneously"
+                raise usageError, e
 
 class CustomCircuit(CircuitListenerMixin):
     implements(IStreamAttacher)
@@ -158,14 +175,12 @@ class BridgetTest(OONITest):
 
     :ivar config: 
         An :class:`ooni.lib.txtorcon.TorConfig` instance.
-    :ivar use_bridges:
-        A boolean integer [0|1]. 
-    :ivar entry_nodes:
-        A string of all provided relays to test. We have to do this
-        because txtorcon.TorState().entry_guards won't build a custom
-        circuit if the first hop isn't in the torrc's EntryNodes.
     :ivar relay_list:
-        The same as :ivar entry_nodes: but in list form.
+        A list of all provided relays to test. We have to do this because
+        txtorcon.TorState().entry_guards won't build a custom circuit if the
+        first hop isn't in the torrc's EntryNodes.
+    :ivar bridge_list:
+        A list of all provided bridges to test.
     :ivar socks_port:
         Integer for Tor's SocksPort.
     :ivar control_port:
@@ -179,77 +194,84 @@ class BridgetTest(OONITest):
     implements(IPlugin, ITest)
 
     shortName = "bridget"
-    description = "Use a Tor process to test connecting to bridges/relays"
+    description = "Use a Tor process to test connecting to bridges and relays"
     requirements = None
     options = BridgetArgs
     blocking = False
 
     def load_assets(self):
         """
-        Load bridges from file given in user options. Bridges should be given
-        in the form IP:ORport. We don't want to load relays as assets, because
-        it's inefficient to test them one at a time.
+        Load bridges and/or relays from files given in user options. Bridges
+        should be given in the form IP:ORport. We don't want to load these as
+        assets, because it's inefficient to start a Tor process for each one.
         """
-        assets = []
+        assets           = {}
+        self.bridge_list = []
+        self.relay_list  = []
+
+        ## XXX fix me
+        ## we should probably find a more memory nice way to load addresses,
+        ## in case the files are really large
         if self.local_options:
             if self.local_options['bridges']:
-                #assets.update({'bridge': 
-                #               BridgetAsset(self.local_options['bridges'])})
-                with open(self.local_options['bridges'] as bridge_file):
+                log.msg("Loading bridge information from %s ..." 
+                        % self.local_options['bridges'])
+                with open(self.local_options['bridges']) as bridge_file:
                     for line in bridge_file.readlines():
                         if line.startswith('#'):
                             continue
                         else:
-                            bridge = line.replace('\n','')
-                            assets.append(bridge)
-        return assets
+                            self.bridge_list.append(line.replace('\n',''))
+                assets.update({'bridges': self.bridge_list})
 
-    def initialize(self):
-        """
-        Extra initialization steps. We only want one child Tor process
-        running, so we need to deal with the creation of the torrc only once,
-        before the experiment runs.
-        """
-        self.relay_list     = []
-        ## XXX why doesn't the default set in the options work?
-        self.socks_port     = 9049
-        self.control_port   = 9052
-
-        if self.local_options:
-            try:
-                from ooni.lib.txtorcon import TorConfig
-            except:
-                log.msg("Could not import TorConfig class from txtorcon")
-                raise
-
-            options             = self.local_options
-            self.config         = TorConfig()
-            self.socks_port     = options['socks']
-            self.control_port   = options['control']
-
-            if options['bridges']:
-                log.msg("Using Bridges ...")
-                self.config.UseBridges = 1
-                
-            if options['relays']:
-                '''
-                Stupid hack for when testing only relays (and not bridges):
-                Tor doesn't use EntryNodes when UseBridges is enabled, but
-                txtorcon requires config.state.entry_guards to make a custom
-                circuit, so we should list them as EntryNodes anyway.
-                '''
-                log.msg("Using relays ...")
-
+            if self.local_options['relays']:
+                log.msg("Loading relay information from %s  ..."
+                        % self.local_options['relays'])
                 with open(options['relays']) as relay_file:
                     for line in relay_file.readlines():
                         if line.startswith('#'):
                             continue
                         else:
-                            relay = line.replace('\n', '') ## not assets because
-                            self.relay_list.append(relay)  ## we don't want to 
-                                                           ## test one at a time
-                        self.config.EntryNodes = ','
-                        self.config.EntryNodes.join(relay_list)
+                            self.relay_list.append(line.replace('\n',''))
+                assets.update({'relays': self.relay_list})
+        return assets
+
+    def initialize(self):
+        """
+        Extra initialization steps. We only want one child Tor process
+        running, so we need to deal with the creation of TorConfig() only
+        once, before the experiment runs.
+        """
+        self.socks_port     = 9049
+        self.control_port   = 9052
+        self.tor_binary     = '/usr/sbin/tor'
+        self.data_directory = None
+
+        if self.local_options:
+            try:
+                from ooni.lib.txtorcon import TorConfig
+            except:
+                e = "Could not import TorConfig class from txtorcon!"
+                raise ImportError, e
+
+            options             = self.local_options
+            self.config         = TorConfig()
+
+            if options['bridges']:
+                self.config.UseBridges = 1
+                
+            if options['relays']:
+                ## Stupid hack for testing only relays:
+                ## Tor doesn't use EntryNodes when UseBridges is enabled, but
+                ## config.state.entry_guards needs to include the first hop to
+                ## build a custom circuit.
+                self.config.EntryNodes = ','.join(relay_list)
+
+            if options['socks']:
+                self.socks_port = options['socks']
+                
+            if options['control']:
+                self.control_port = options['control']
 
             if options['random']:
                 log.msg("Using randomized ControlPort and SocksPort ...")
@@ -259,14 +281,14 @@ class BridgetTest(OONITest):
             if options['tor-path']:
                 self.tor_binary = options['tor-path']
 
+            if options['data-dir']:
+                self.config.DataDirectory = options['data-dir']
+
             if options['transport']:
-                '''
-                ClientTransportPlugin transport socks4|socks5 IP:PORT
-                ClientTransportPlugin transport exec path-to-binary [options]
-                '''
+                ## ClientTransportPlugin transport socks4|socks5 IP:PORT
+                ## ClientTransportPlugin transport exec path-to-binary [options]
                 if not options['bridges']:
-                    e = "To test pluggable transports, you must provide a file"
-                    e = e+"with a list of bridge IP:ORPorts. See \'-b' option."
+                    e = "You must use the bridge option to test a transport."
                     raise usage.UsageError("%s" % e)
                     
                 log.msg("Using pluggable transport ...")
@@ -280,15 +302,22 @@ class BridgetTest(OONITest):
 
             print self.config.create_torrc()
             report = {'tor_config': self.config.config}
-            return self.config
-        else:
-            return None
 
     def experiment(self, args):
         """
         XXX fill me in
+
+        :param args:
+            The :class:`ooni.plugoo.asset.Asset <Asset>` line currently being
+            used.
+        :meth launch_tor:
+            Returns a Deferred which callbacks with a
+            :class:`ooni.lib.txtorcon.torproto.TorProcessProtocol
+            <TorProcessProtocol>` connected to the fully-bootstrapped Tor;
+            this has a :class:`ooni.lib.txtorcon.torcontol.TorControlProtocol
+            <TorControlProtocol>` instance as .protocol.
         """
-        log.msg("BridgeT: initiating test ... ")
+        log.msg("Bridget: initiating test ... ")
 
         from ooni.lib.txtorcon import TorProtocolFactory, TorConfig, TorState
         from ooni.lib.txtorcon import DEFAULT_VALUE, launch_tor
@@ -306,54 +335,54 @@ class BridgetTest(OONITest):
             state.post_bootstrap.addCallback(state_complete).addErrback(setup_failed)
             report.update({'success': args})
 
-        def bootstrap(c):
+        def bootstrap(ctrl):
             """
             Launch a Tor process with the TorConfig instance returned from
             initialize().
-
-            Returns a Deferred which callbacks with a TorProcessProtocol connected
-            to the fully-bootstrapped Tor; this has a txtorcon.TorControlProtocol
-            instance as .protocol.
             """
-            conf = TorConfig(c)
+            conf = TorConfig(ctrl)
             conf.post_bootstrap.addCallback(setup_complete).addErrback(setup_failed)
             log.msg("Tor process connected, bootstrapping ...")
 
         def updates(prog, tag, summary):
             log.msg("%d%%: %s" % (prog, summary))
 
-        def reconfigure_controller(proto, args):
+        def reconfigure_controller(conf, bridge):
             ## if bridges and relays, use one bridge then build a circuit 
-            ## from the relays
-            print args
-            print args['bridge']
-            #d.addCallback(CustomCircuit(state))
-            proto.set_conf('Bridge', args['bridge'])
-            
-            ## if bridges only, try one bridge at a time, but don't build
-            ## circuits, just return
-            ## if relays only, build circuits from relays
+            ## from three relays
+            conf.Bridge = bridge
+            ## XXX do we need a SIGHUP to restart?                
 
-        def reconfigure_failed(proto, args):
+        ## XXX see txtorcon.TorControlProtocol.add_event_listener we may not
+        ## need full CustomCircuit class
+        
+        ## if bridges only, try one bridge at a time, but don't build
+        ## circuits, just return
+
+        ## if relays only, build circuits from relays
+
+        def reconfigure_failed(args):
             log.msg("Reconfiguring Tor config with args %s failed" % args)
             reactor.stop()
         
-        ## XXX see txtorcon.TorControlProtocol.add_event_listener
-        ## we may not need full CustomCircuit class
+        if len(self.bridge_list) >= 1:
+            for bridge in self.bridge_list:
+                try:
+                    print "BRIDGE IS %s" % bridge
+                    reconfigure_controller(self.config, bridge)
+                except:
+                    reconfigure_failed(bridge)
 
         ## :return: a Deferred which callbacks with a TorProcessProtocol
         ##          connected to the fully-bootstrapped Tor; this has a 
         ##          txtorcon.TorControlProtocol instance as .protocol.
-
-        print args
-        d = launch_tor(self.config, reactor, progress_updates=updates,
+        d = launch_tor(self.config, 
+                       reactor, 
+                       progress_updates=updates,
                        tor_binary=self.tor_binary)
-        d.addCallback(reconfigure_controller, args)
-        d.addErrback(reconfigure_failed, args)
         d.addCallback(bootstrap, self.config)
         d.addErrback(setup_failed)
-
-          ## 4 build circuits
+        ## 4 build circuits
 
         #print "Tor process ID: %s" % d.transport.pid
         return d
@@ -362,6 +391,20 @@ class BridgetTest(OONITest):
 bridget = BridgetTest(None, None, None)
 
 ## ISIS' NOTES
+## -----------
+## self.config.save() only needs to be called if Tor is already running.
 ## 
-## 
-## 
+## need to add transport type to torrc Bridge line:
+##       Bridge <transport> IP:ORPort <fingerprint>
+##
+## TODO:
+##       o  add option for any kwarg=arg self.config setting
+##       o  add DataDirectory option?
+##       o  cleanup documentation
+##       o  check if bridges are public relays
+##       o  take bridge_desc file as input, also be able to give same
+##          format as output
+##       o  change the stupid name
+##
+## FIX:
+##     data directory is not found, or permissions aren't right
