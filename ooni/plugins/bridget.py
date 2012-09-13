@@ -16,9 +16,10 @@ from __future__             import with_statement
 from zope.interface         import implements
 from twisted.python         import usage
 from twisted.plugin         import IPlugin
-from twisted.internet       import reactor, error
+from twisted.internet       import defer, error, reactor
 
 import random
+import sys
 
 try:
     from ooni.lib.txtorcon  import CircuitListenerMixin, IStreamAttacher
@@ -61,9 +62,11 @@ class BridgetArgs(usage.Options):
     optFlags = [['random', 'x', 'Randomize control and socks ports']]
 
     def postOptions(self):
+        ## We can't test pluggable transports without bridges
         if self['transport'] and not self['bridges']:
             e = "Pluggable transport requires the bridges option"
             raise usage.UsageError, e
+        ## We can't use random and static port simultaneously
         if self['socks'] and self['control']:
             if self['random']:
                 e = "Unable to use random and specific ports simultaneously"
@@ -199,43 +202,6 @@ class BridgetTest(OONITest):
     options = BridgetArgs
     blocking = False
 
-    def load_assets(self):
-        """
-        Load bridges and/or relays from files given in user options. Bridges
-        should be given in the form IP:ORport. We don't want to load these as
-        assets, because it's inefficient to start a Tor process for each one.
-        """
-        assets           = {}
-        self.bridge_list = []
-        self.relay_list  = []
-
-        ## XXX fix me
-        ## we should probably find a more memory nice way to load addresses,
-        ## in case the files are really large
-        if self.local_options:
-            if self.local_options['bridges']:
-                log.msg("Loading bridge information from %s ..." 
-                        % self.local_options['bridges'])
-                with open(self.local_options['bridges']) as bridge_file:
-                    for line in bridge_file.readlines():
-                        if line.startswith('#'):
-                            continue
-                        else:
-                            self.bridge_list.append(line.replace('\n',''))
-                assets.update({'bridges': self.bridge_list})
-
-            if self.local_options['relays']:
-                log.msg("Loading relay information from %s  ..."
-                        % self.local_options['relays'])
-                with open(options['relays']) as relay_file:
-                    for line in relay_file.readlines():
-                        if line.startswith('#'):
-                            continue
-                        else:
-                            self.relay_list.append(line.replace('\n',''))
-                assets.update({'relays': self.relay_list})
-        return assets
-
     def initialize(self):
         """
         Extra initialization steps. We only want one child Tor process
@@ -256,6 +222,10 @@ class BridgetTest(OONITest):
 
             options             = self.local_options
             self.config         = TorConfig()
+
+            ## Don't run the experiment if we don't have anything to test
+            if not options['bridges'] and not options['relays']:
+                self.suicide = True
 
             if options['bridges']:
                 self.config.UseBridges = 1
@@ -300,8 +270,42 @@ class BridgetTest(OONITest):
             self.config.ControlPort = self.control_port
             self.config.save()
 
-            print self.config.create_torrc()
-            report = {'tor_config': self.config.config}
+    def load_assets(self):
+        """
+        Load bridges and/or relays from files given in user options. Bridges
+        should be given in the form IP:ORport. We don't want to load these as
+        assets, because it's inefficient to start a Tor process for each one.
+        """
+        assets           = {}
+        self.bridge_list = []
+        self.relay_list  = []
+
+        ## XXX fix me
+        ## we should probably find a more memory nice way to load addresses,
+        ## in case the files are really large
+        if self.local_options:
+            if self.local_options['bridges']:
+                log.msg("Loading bridge information from %s ..." 
+                        % self.local_options['bridges'])
+                with open(self.local_options['bridges']) as bridge_file:
+                    for line in bridge_file.readlines():
+                        if line.startswith('#'):
+                            continue
+                        else:
+                            self.bridge_list.append(line.replace('\n',''))
+                assets.update({'bridges': self.bridge_list})
+
+            if self.local_options['relays']:
+                log.msg("Loading relay information from %s  ..."
+                        % self.local_options['relays'])
+                with open(options['relays']) as relay_file:
+                    for line in relay_file.readlines():
+                        if line.startswith('#'):
+                            continue
+                        else:
+                            self.relay_list.append(line.replace('\n',''))
+                assets.update({'relays': self.relay_list})
+        return assets
 
     def experiment(self, args):
         """
@@ -317,23 +321,8 @@ class BridgetTest(OONITest):
             this has a :class:`ooni.lib.txtorcon.torcontol.TorControlProtocol
             <TorControlProtocol>` instance as .protocol.
         """
-        log.msg("Bridget: initiating test ... ")
-
         from ooni.lib.txtorcon import TorProtocolFactory, TorConfig, TorState
         from ooni.lib.txtorcon import DEFAULT_VALUE, launch_tor
-
-        log.msg("Starting Tor ...")        
-
-        def setup_failed(args):
-            log.msg("Setup Failed.")
-            report.update({'failed': args})
-            reactor.stop()
-
-        def setup_complete(proto):
-            log.msg("Setup Complete: %s" % proto)
-            state = TorState(proto.tor_protocol)
-            state.post_bootstrap.addCallback(state_complete).addErrback(setup_failed)
-            report.update({'success': args})
 
         def bootstrap(ctrl):
             """
@@ -341,51 +330,74 @@ class BridgetTest(OONITest):
             initialize().
             """
             conf = TorConfig(ctrl)
-            conf.post_bootstrap.addCallback(setup_complete).addErrback(setup_failed)
+            conf.post_bootstrap.addCallback(setup_done).addErrback(setup_fail)
             log.msg("Tor process connected, bootstrapping ...")
 
-        def updates(prog, tag, summary):
-            log.msg("%d%%: %s" % (prog, summary))
-
-        def reconfigure_controller(conf, bridge):
+        def reconf_controller(conf, bridge):
             ## if bridges and relays, use one bridge then build a circuit 
             ## from three relays
             conf.Bridge = bridge
             ## XXX do we need a SIGHUP to restart?                
 
-        ## XXX see txtorcon.TorControlProtocol.add_event_listener we may not
-        ## need full CustomCircuit class
-        
-        ## if bridges only, try one bridge at a time, but don't build
-        ## circuits, just return
+            ## XXX see txtorcon.TorControlProtocol.add_event_listener we
+            ## may not need full CustomCircuit class
 
-        ## if relays only, build circuits from relays
+            ## if bridges only, try one bridge at a time, but don't build
+            ## circuits, just return
+            ## if relays only, build circuits from relays
 
-        def reconfigure_failed(args):
+        def reconf_fail(args):
             log.msg("Reconfiguring Tor config with args %s failed" % args)
             reactor.stop()
-        
-        if len(self.bridge_list) >= 1:
-            for bridge in self.bridge_list:
-                try:
-                    print "BRIDGE IS %s" % bridge
-                    reconfigure_controller(self.config, bridge)
-                except:
-                    reconfigure_failed(bridge)
 
-        ## :return: a Deferred which callbacks with a TorProcessProtocol
-        ##          connected to the fully-bootstrapped Tor; this has a 
-        ##          txtorcon.TorControlProtocol instance as .protocol.
-        d = launch_tor(self.config, 
-                       reactor, 
-                       progress_updates=updates,
-                       tor_binary=self.tor_binary)
-        d.addCallback(bootstrap, self.config)
-        d.addErrback(setup_failed)
-        ## 4 build circuits
+        def setup_fail(args):
+            log.msg("Setup Failed.")
+            report.update({'failed': args})
+            reactor.stop()
 
-        #print "Tor process ID: %s" % d.transport.pid
-        return d
+        def setup_done(proto):
+            log.msg("Setup Complete: %s" % proto)
+            state = TorState(proto.tor_protocol)
+            state.post_bootstrap.addCallback(state_complete).addErrback(setup_fail)
+            report.update({'success': args})
+
+        def updates(prog, tag, summary):
+            log.msg("%d%%: %s" % (prog, summary))
+
+        if len(args) == 0:
+            log.msg("Bridget needs lists of bridges and/or relays to test!")
+            log.msg("Exiting ...")
+            d = sys.exit()
+            return d
+
+        else:
+            if len(self.bridge_list) >= 1:
+                for bridge in self.bridge_list:
+                    try:
+                        print "BRIDGE IS %s" % bridge
+                        reconf_controller(self.config, bridge)
+                    except:
+                        reconf_fail(bridge)
+
+            log.msg("Bridget: initiating test ... ")
+            log.msg("Using the following as our torrc:\n%s" 
+                    % self.config.create_torrc())
+            report = {'tor_config': self.config.config}
+            log.msg("Starting Tor ...")        
+
+            ## :return: a Deferred which callbacks with a TorProcessProtocol
+            ##          connected to the fully-bootstrapped Tor; this has a 
+            ##          txtorcon.TorControlProtocol instance as .protocol.
+            d = launch_tor(self.config, 
+                           reactor, 
+                           progress_updates=updates,
+                           tor_binary=self.tor_binary)
+            d.addCallback(bootstrap, self.config)
+            d.addErrback(setup_fail)
+            ## now build circuits
+
+            #print "Tor process ID: %s" % d.transport.pid
+            return d
 
 ## So that getPlugins() can register the Test:
 bridget = BridgetTest(None, None, None)
@@ -399,7 +411,6 @@ bridget = BridgetTest(None, None, None)
 ##
 ## TODO:
 ##       o  add option for any kwarg=arg self.config setting
-##       o  add DataDirectory option?
 ##       o  cleanup documentation
 ##       o  check if bridges are public relays
 ##       o  take bridge_desc file as input, also be able to give same
