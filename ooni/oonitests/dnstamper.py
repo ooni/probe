@@ -20,29 +20,28 @@
 
     :copyright: (c) 2012 Arturo Filastò, Isis Lovecruft
     :license: see LICENSE for more details
-"""
 
-try:
-    from dns import resolver, reversename
-except:
-    print "Error: dnspython is not installed! (http://www.dnspython.org/)"
-try:
-    import gevent
-except:
-    print "Error: gevent is not installed! (http://www.gevent.org/)"
+    TODO: 
+    * Switch to using Twisted's DNS builtins instead of dnspython
+    * 
+"""
 
 import os
 
-import plugoo
-from plugoo.assets import Asset
-from plugoo.tests import Test
+from twisted.names import client
+from twisted.internet import reactor
+from twisted.internet.protocol import Factory, Protocol
+from twisted.python import usage
+from twisted.plugin import IPlugin
+from zope.interface import implements
 
-__plugoo__ = "DNST"
-__desc__ = "DNS censorship detection test"
+from ooni.plugoo.assets import Asset
+from ooni.plugoo.tests import ITest, OONITest
+from ooni import log
 
 class Top1MAsset(Asset):
     """
-    Class for parsing top-1m.txt as an asset.
+    Class for parsing the Alexa top-1m.txt as an asset.
     """
     def __init__(self, file=None):
         self = Asset.__init__(self, file)
@@ -51,22 +50,67 @@ class Top1MAsset(Asset):
         self = Asset.parse_line(self, line)
         return line.split(',')[1].replace('\n','')
 
-class DNSTAsset(Asset):
+class DNSTamperAsset(Asset):
     """
     Creates DNS testing specific Assets.
     """
     def __init__(self, file=None):
         self = Asset.__init__(self, file)
 
-class DNST(Test):
-    def lookup(self, hostname, ns):
+class DNSTamperArgs(usage.Options):
+    optParameters = [['asset', 'a', None, 'Asset file of hostnames to resolve'],
+                     ['controlserver', 'c', '8.8.8.8', 'Known good DNS server'],
+                     ['testservers', 't', None, 'Asset file of the DNS servers to test'],
+                     ['resume', 'r', 0, 'Resume at this index in the asset file']]
+'''
+    def control(self, experiment_result, args):
+        print "Experiment Result:", experiment_result
+        print "Args", args
+        return experiment_result
+
+    def experiment(self, args):
+'''        
+
+class DNSTamperTest(OONITest):
+    implements(IPlugin, ITest)
+
+    shortName = "DNSTamper"
+    description = "DNS censorship detection test"
+    requirements = None
+    options = DNSTamperArgs
+    blocking = False
+    
+    def load_assets(self):
+        if self.local_options:
+            if self.local_options['asset']:
+                assetf = self.local_options['asset']
+                if assetf == 'top-1m.txt':
+                    return {'asset': Top1MAsset(assetf)}
+                else:
+                    return {'asset': DNSTamperAsset(assetf)}
+        else:
+            return {}
+
+    def lookup(self, hostname, nameserver):
         """
-        Resolves a hostname through a DNS nameserver, ns, to the corresponding
-        IP address(es).
+        Resolves a hostname through a DNS nameserver to the corresponding
+        IP addresses.
         """
-        res = resolver.Resolver(configure=False)
-        res.nameservers = [ns]
-        answer = res.query(hostname)
+        def got_result(result):
+            #self.logger.log(result)
+            print result
+            reactor.stop()
+
+        def got_failure(failure):
+            failure.printTraceback()
+            reactor.stop()
+
+        res = client.createResolver(servers=[(nameserver, 53)])
+        d = res.getHostByName(hostname)
+        d.addCallbacks(got_result, got_failure)
+
+        ## XXX MAY ALSO BE:
+        #answer = res.getAddress(servers=[('nameserver', 53)])
 
         ret = []
 
@@ -75,14 +119,13 @@ class DNST(Test):
 
         return ret
 
-    def reverse_lookup(self, ip, ns):
+    def reverse_lookup(self, ip, nameserver):
         """
         Attempt to do a reverse DNS lookup to determine if the control and exp
         sets from a positive result resolve to the same domain, in order to
         remove false positives due to GeoIP load balancing.
         """
-        res = resolver.Resolver(configure=False)
-        res.nameservers = [ns]
+        res = client.createResolver(servers=nameserver)
         n = reversename.from_address(ip)
         revn = res.query(n, "PTR").__iter__().next().to_text()[:-1]
 
@@ -131,26 +174,27 @@ class DNST(Test):
                 print "\n"
                 return result
 
-def run(ooni):
-    """
-    Run the test.
-    """
-    config = ooni.config
-    urls = []
+#def run(ooni):
+#    """
+#    Run the test.
+#    """
+#    config = ooni.config
+#    urls = []
+#
+#    if (config.tests.dns_experiment == "top-1m.txt"):
+#        dns_experiment = Top1MAsset(os.path.join(config.main.assetdir,
+#                                                 config.tests.dns_experiment))
+#    else:
+#        dns_experiment = DNSTAsset(os.path.join(config.main.assetdir,
+#                                                config.tests.dns_experiment))
+#    dns_experiment_dns = DNSTAsset(os.path.join(config.main.assetdir,
+#                                                config.tests.dns_experiment_dns))
+#
+#    assets = [dns_experiment, dns_experiment_dns]
+#
+#    dnstest = DNST(ooni)
+#    ooni.logger.info("Beginning dnstamper test...")
+#    dnstest.run(assets, {'index': 1})
+#    ooni.logger.info("Dnstamper test completed!")
 
-    if (config.tests.dns_experiment == "top-1m.txt"):
-        dns_experiment = Top1MAsset(os.path.join(config.main.assetdir,
-                                                 config.tests.dns_experiment))
-    else:
-        dns_experiment = DNSTAsset(os.path.join(config.main.assetdir,
-                                                config.tests.dns_experiment))
-    dns_experiment_dns = DNSTAsset(os.path.join(config.main.assetdir,
-                                                config.tests.dns_experiment_dns))
-
-    assets = [dns_experiment, dns_experiment_dns]
-
-    dnstest = DNST(ooni)
-    ooni.logger.info("Beginning dnstamper test...")
-    dnstest.run(assets, {'index': 1})
-    ooni.logger.info("Dnstamper test completed!")
-
+dnstamper = DNSTamperTest(None, None, None)

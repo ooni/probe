@@ -5,13 +5,12 @@ from zope.interface import Interface, Attribute
 import logging
 import itertools
 from twisted.internet import reactor, defer, threads
+## XXX why is this imported and not used?
 from twisted.python import failure
 
-from ooni.utils import log
-from ooni.utils import date
-from ooni.plugoo import assets, work
-from ooni.plugoo.reports import Report
-from ooni.plugoo.interface import ITest
+from ooni import log
+from plugoo import assets, work
+from plugoo.reports import Report
 
 
 class OONITest(object):
@@ -51,14 +50,15 @@ class OONITest(object):
 
     def load_assets(self):
         """
-        This method should be overriden by the test writer to provide the logic
-        for loading their assets.
+        This method should be overriden by the test writer to provide the
+        logic for loading their assets.
         """
         return {}
 
     def __repr__(self):
-        return "<OONITest %s %s %s>" % (self.options, self.global_options,
-                                           self.assets)
+        return "<OONITest %s %s %s>" % (self.local_options, 
+                                        self.global_options,
+                                        self.assets)
 
     def end(self):
         """
@@ -132,6 +132,11 @@ class OONITest(object):
         @param args: the asset(s) lines that we are working on.
         """
         self.start_time = date.now()
-        log.msg("Starting test %s" % self.__class__)
+
+        if self.shortName:
+            log.msg("Starting test %s" % self.shortName)
+        else:
+            log.msg("Starting test %s" % self.__class__)
+
         return self._do_experiment(args)
 

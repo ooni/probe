@@ -28,9 +28,8 @@ from zope.interface.exceptions import BrokenImplementation
 from zope.interface.exceptions import BrokenMethodImplementation
 
 from ooni.plugoo import tests, work, assets, reports
-from ooni.utils.logo import getlogo
-from ooni.utils import log
-from ooni import plugins
+from ooni.logo import getlogo
+from ooni import plugins, log
 
 __version__ = "0.0.1-prealpha"
 
@@ -72,7 +71,13 @@ def runTest(test, options, global_options, reactor=reactor):
     test_class = plugoo[test].__class__
     report = reports.Report(test, global_options['output'])
 
-    log.start(global_options['log'], 1)
+    log_to_stdout = True
+    if global_options['quiet']:
+        log_to_stdout = False
+
+    log.start(log_to_stdout,
+              global_options['log'],
+              global_options['verbosity'])
     resume = 0
     if not options:
         options = {}
@@ -106,7 +111,8 @@ class Options(usage.Options):
     optFlags = [
         #['remote', 'r', "If the test should be run remotely (not supported)"],
         #['status', 'x', 'Show current state'],
-        #['restart', 'r', 'Restart OONI']
+        #['restart', 'r', 'Restart OONI'],
+        ['quiet', 'q', "Don't log to stdout"]
     ]
 
     optParameters = [
@@ -114,6 +120,7 @@ class Options(usage.Options):
         #['target-node', 't', 'localhost:31415', 'Select target node'],
         ['output', 'o', 'report.log', "Specify output report file"],
         ['log', 'l', 'oonicli.log', "Specify output log file"],
+        ['verbosity', 'v', 1, "Specify the logging level"],
         #['password', 'p', 'opennetwork', "Specify the password for authentication"],
     ]
 
@@ -137,7 +144,7 @@ if __name__ == "__main__":
     config.parseOptions()
 
     if not config.subCommand:
-        print "Error! No Test Specified."
+        #print "Error! No Test Specified."
         config.opt_help()
         sys.exit(1)
 

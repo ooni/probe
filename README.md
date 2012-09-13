@@ -6,27 +6,33 @@
 OONI, the Open Observatory of Network Interference, is a global observation
 network which aims is to collect high quality data using open methodologies,
 using Free and Open Source Software (FL/OSS) to share observations and data
-about the various types, methods, and amounts of network tampering in the world.
+about the various types, methods, and amounts of network tampering in the
+world.
 
 # Let's get started with this already!
 
-To run OONI-probe without having to install it you must tell python that it can
-import modules from the root of ooni-probe.
+To run OONI-probe without having to install it you must tell python that it
+can import modules from the root of ooni-probe, as well as initialize the
+included submodules.
 
-You must therefore run from the root of the repo:
+From the root directory of the repo (.../ooni-probe/), initialize the submodules by doing:
 
-    export PYTHONPATH=$PYTHONPATH:`pwd`
+    $ git submodule init && git submodule update
+
+Next, you will need to tell Python that OONI is part of its path:
+
+    $ export PYTHONPATH=$PYTHONPATH:`pwd`
 
 Then to see what tests are available:
 
-    cd ooni
-    python ooniprobe.py
+    $ cd ooni
+    $ python ooniprobe.py
 
 If you see some errors see INSTALL to install the missing dependencies.
 
 To list the help for a specific test:
 
-    python ooniprobe.py httpt --help
+    $ python ooniprobe.py httpt --help
 
 
 # More details
