@@ -58,7 +58,8 @@ class OONITest(object):
         return {}
 
     def __repr__(self):
-        return "<OONITest %s %s %s>" % (self.options, self.global_options,
+        return "<OONITest %s %s %s>" % (self.local_options, 
+                                        self.global_options,
                                         self.assets)
 
     def end(self):
@@ -132,6 +133,11 @@ class OONITest(object):
         @param args: the asset(s) lines that we are working on.
         """
         self.start_time = date.now()
-        log.msg("Starting test %s" % self.__class__)
+
+        if self.shortName:
+            log.msg("Starting test %s" % self.shortName)
+        else:
+            log.msg("Starting test %s" % self.__class__)
+
         return self._do_experiment(args)
 
