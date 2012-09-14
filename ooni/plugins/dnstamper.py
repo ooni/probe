@@ -38,9 +38,9 @@ from twisted.python import usage
 from twisted.plugin import IPlugin
 from zope.interface import implements
 
-from ooni.plugoo.assets import Asset
-from ooni.plugoo.tests import ITest, OONITest
-from ooni import log
+from plugoo.assets import Asset
+from plugoo.tests import ITest, OONITest
+from utils import log
 
 class AlexaAsset(Asset):
     """

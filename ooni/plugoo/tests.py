@@ -8,9 +8,10 @@ from twisted.internet import reactor, defer, threads
 ## XXX why is this imported and not used?
 from twisted.python import failure
 
-from ooni import log
+from utils import log, date
 from plugoo import assets, work
 from plugoo.reports import Report
+from plugoo.interface import ITest
 
 
 class OONITest(object):

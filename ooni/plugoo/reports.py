@@ -4,7 +4,7 @@ import os
 import yaml
 
 import itertools
-import log
+from utils import log, date, net
 
 class Report:
     """This is the ooni-probe reporting mechanism. It allows
