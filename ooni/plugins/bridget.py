@@ -406,16 +406,15 @@ bridget = BridgetTest(None, None, None)
 ## -----------
 ## self.config.save() only needs to be called if Tor is already running.
 ## 
-## need to add transport type to torrc Bridge line:
-##       Bridge <transport> IP:ORPort <fingerprint>
-##
 ## TODO:
 ##       o  add option for any kwarg=arg self.config setting
 ##       o  cleanup documentation
+##       x  add DataDirectory option
 ##       o  check if bridges are public relays
 ##       o  take bridge_desc file as input, also be able to give same
 ##          format as output
-##       o  change the stupid name
 ##
 ## FIX:
-##     data directory is not found, or permissions aren't right
+##       o  DataDirectory is not found, or permissions aren't right
+##       o  Bridge line needs generation of transport properties
+##              Bridge <transport> IP:ORPort <fingerprint>
