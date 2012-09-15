@@ -1,4 +1,4 @@
-all: txtorcon txtraceroute
+all: txtorcon
 
 txtraceroute:
 	echo "Processing dependency txtraceroute..."
@@ -14,13 +14,19 @@ txtorcon:
 
 clean:
 	rm -rf txtorcon
-	rm -rf txtraceroute.py
+#	rm -rf txtraceroute.py
+#	rm -rf txscapy.py
 
-#txscapy:
-#	echo "Processing dependency txscapy"
-#	git clone https://github.com/hellais/txscapy.git txscapy.git
-#	mv txscapy.git/txscapy.py txscapy.py
-#	rm -rf txscapy.git
+cleanall:
+	rm -rf txtorcon
+	rm -rf txtraceroute.py
+	rm -rf txscapy.py
+
+txscapy:
+	echo "Processing dependency txscapy"
+	git clone https://github.com/hellais/txscapy.git txscapy.git
+	mv txscapy.git/txscapy.py txscapy.py
+	rm -rf txscapy.git
 
 #rfc3339:
 #	echo "Processing RFC3339 dependency"

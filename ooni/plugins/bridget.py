@@ -13,21 +13,16 @@
 # :version: 0.1.0-alpha
 
 from __future__             import with_statement
-from zope.interface         import implements
+from os                     import getcwd
+from os.path                import isfile
+from os.path                import join as pj
 from twisted.python         import usage
 from twisted.plugin         import IPlugin
 from twisted.internet       import defer, error, reactor
+from zope.interface         import implements
 
 import random
 import sys
-
-try:
-    from ooni.lib.txtorcon  import CircuitListenerMixin, IStreamAttacher
-except:
-    print "BridgeT requires txtorcon: https://github.com/meejah/txtorcon.git"
-    print "Your copy of OONI should have it included, if you're seeing this"
-    print "message, please file a bug report."
-    log.msg ("Bridget: Unable to import from ooni.lib.txtorcon")
 
 from ooni.utils             import log
 from ooni.plugoo.tests      import ITest, OONITest
@@ -35,11 +30,11 @@ from ooni.plugoo.assets     import Asset
 
 
 class BridgetArgs(usage.Options):
-
     def portCheck(number):
         number = int(number)
         if number not in range(1024, 65535):
             raise ValueError("Port out of range")
+
     portCheck.coerceDoc = "Ports must be between 1024 and 65535"
 
     optParameters = [
@@ -71,93 +66,6 @@ class BridgetArgs(usage.Options):
             if self['random']:
                 e = "Unable to use random and specific ports simultaneously"
                 raise usageError, e
-
-class CustomCircuit(CircuitListenerMixin):
-    implements(IStreamAttacher)
-
-    from txtorcon.interface import IRouterContainer, ICircuitContainer
-
-    def __init__(self, state):
-        self.state = state
-        self.waiting_circuits = []
-        
-    def waiting_on(self, circuit):
-        for (circid, d) in self.waiting_circuits:
-            if circuit.id == circid:
-                return true
-        return False
-
-    def circuit_extend(self, circuit, router):
-        "ICircuitListener"
-        if circuit.purpose != 'GENERAL':
-            return
-        if self.waiting_on(circuit):
-            log.msg("Circuit %d (%s)" % (circuit.id, router.id_hex))
-            
-    def circuit_built(self, circuit):
-        "ICircuitListener"
-        if circuit.purpose != 'GENERAL':
-            return
-        
-        log.msg("Circuit %s built ..." % circuit.id)
-        log.msg("Full path of %s: %s" % (circuit.id, circuit.path))
-
-        for (circid, d) in self.waiting_circuits:
-            if circid == circuit.id:
-                self.waiting_circuits.remove(circid, d)
-                d.callback(circuit)
-
-    def circuit_failed(self, circuit, reason):
-        if self.waiting_on(circuit):
-            log.msg("A circuit we requested %s failed for reason %s" %
-                    (circuit.id, reason))
-            circid, d = None, None
-            for x in self.waiting_circuits:
-                if x[0] == circuit.id:
-                    circid, d, stream_cc = x
-            if d is None:
-                raise Exception("Expected to find circuit.")
-
-            self.waiting_circuits.remove((circid, d))
-            log.msg("Trying to build a circuit for %s" % circid)
-            self.request_circuit_build(d)
-
-    def check_circuit_route(self, circuit, router):
-        if router in circuit.path:
-            #router.update() ## XXX can i use without args? no.
-            TorInfo.dump(self)
-
-    def request_circuit_build(self, deferred):
-        entries = self.state.entry_guards.value()
-        relays  = self.state.routers.values()
-
-        log.msg("We have these nodes listed as entry guards:") 
-        log.msg("%s" % entries)
-        log.msg("We have these nodes listed as relays:")
-        log.msg("%s" % relays)
-
-        path = [random.choice(entries),
-                random.choice(relays),
-                random.choice(relays)]
-
-        log.msg("Requesting a circuit: %s" 
-                % '-->'.join(map(lambda x: x.location.countrycode, path)))
-        
-        class AppendWaiting:
-            def __init__(self, attacher, deferred):
-                self.attacher = attacher
-                self.d        = deferred
-
-            def __call__(self, circuit):
-                """
-                Return from build_circuit is a Circuit, however, we want to
-                wait until it is built before we can issue an attach on it and
-                callback to the Deferred we issue here.
-                """
-                log.msg("Circuit %s is in progress ..." % circuit.id)
-                self.attacher.waiting_circuits.append((circuit.id, self.d))
-
-        return self.state.build_circuit(path).addCallback(AppendWaiting(self, deferred_to_callback)).addErrback(log.err)
 
 class BridgetAsset(Asset):
     """
@@ -214,18 +122,25 @@ class BridgetTest(OONITest):
         self.data_directory = None
 
         if self.local_options:
-            try:
-                from ooni.lib.txtorcon import TorConfig
-            except:
-                e = "Could not import TorConfig class from txtorcon!"
-                raise ImportError, e
+            options = self.local_options
 
-            options             = self.local_options
-            self.config         = TorConfig()
-
-            ## Don't run the experiment if we don't have anything to test
             if not options['bridges'] and not options['relays']:
                 self.suicide = True
+                return
+
+            try:
+                from ooni.lib.txtorcon import TorConfig
+            except ImportError:
+                log.msg ("Bridget: Unable to import from ooni.lib.txtorcon")
+                wd, tx = getcwd(), 'lib/txtorcon/torconfig.py'
+                chk = pj(wd,tx) if wd.endswith('ooni') else pj(wd,'ooni/'+tx)
+                try:
+                    assert isfile(chk)
+                except:
+                    log.msg("Error: Some OONI libraries are missing!")
+                    log.msg("Please go to /ooni/lib/ and do \"make all\"")
+
+            self.config = TorConfig()
 
             if options['bridges']:
                 self.config.UseBridges = 1
@@ -284,26 +199,23 @@ class BridgetTest(OONITest):
         ## we should probably find a more memory nice way to load addresses,
         ## in case the files are really large
         if self.local_options:
-            if self.local_options['bridges']:
-                log.msg("Loading bridge information from %s ..." 
-                        % self.local_options['bridges'])
-                with open(self.local_options['bridges']) as bridge_file:
-                    for line in bridge_file.readlines():
+            @staticmethod
+            def make_asset_list(opt, lst):
+                log.msg("Loading information from %s ..." % opt)
+                with open(opt) as opt_file:
+                    for line in opt_file.readline():
                         if line.startswith('#'):
                             continue
                         else:
-                            self.bridge_list.append(line.replace('\n',''))
-                assets.update({'bridges': self.bridge_list})
+                            lst.append(line.replace('\n',''))
 
+            if self.local_options['bridges']:
+                make_asset_list(self.local_options['bridges'], 
+                                self.bridge_list)
+                assets.update({'bridges': self.bridge_list})
             if self.local_options['relays']:
-                log.msg("Loading relay information from %s  ..."
-                        % self.local_options['relays'])
-                with open(options['relays']) as relay_file:
-                    for line in relay_file.readlines():
-                        if line.startswith('#'):
-                            continue
-                        else:
-                            self.relay_list.append(line.replace('\n',''))
+                make_asset_list(self.local_options['relays'],
+                                self.relay_list)
                 assets.update({'relays': self.relay_list})
         return assets
 
@@ -321,8 +233,20 @@ class BridgetTest(OONITest):
             this has a :class:`ooni.lib.txtorcon.torcontol.TorControlProtocol
             <TorControlProtocol>` instance as .protocol.
         """
-        from ooni.lib.txtorcon import TorProtocolFactory, TorConfig, TorState
-        from ooni.lib.txtorcon import DEFAULT_VALUE, launch_tor
+        try:
+            from ooni.lib.txtorcon import CircuitListenerMixin, IStreamAttacher
+            from ooni.lib.txtorcon import TorProtocolFactory, TorConfig, TorState
+            from ooni.lib.txtorcon import DEFAULT_VALUE, launch_tor
+        except ImportError:
+            log.msg("Error: Unable to import from ooni.lib.txtorcon")
+            wd, tx = getcwd(), 'lib/txtorcon/torconfig.py'
+            chk = pj(wd,tx) if wd.endswith('ooni') else pj(wd,'ooni/'+tx)
+            try:
+                assert isfile(chk)
+            except:
+                log.msg("Error: Some OONI libraries are missing!")
+                log.msg("       Please go to /ooni/lib/ and do \"make all\"")
+                return sys.exit()
 
         def bootstrap(ctrl):
             """
@@ -365,12 +289,102 @@ class BridgetTest(OONITest):
             log.msg("%d%%: %s" % (prog, summary))
 
         if len(args) == 0:
-            log.msg("Bridget needs lists of bridges and/or relays to test!")
+            log.msg("Bridget can't run without bridges or relays to test!")
             log.msg("Exiting ...")
-            d = sys.exit()
-            return d
-
+            return sys.exit()
         else:
+
+            class CustomCircuit(CircuitListenerMixin):
+                implements(IStreamAttacher)
+
+                from txtorcon.interface import IRouterContainer
+                from txtorcon.interface import ICircuitContainer
+            
+                def __init__(self, state):
+                    self.state = state
+                    self.waiting_circuits = []
+
+                def waiting_on(self, circuit):
+                    for (circid, d) in self.waiting_circuits:
+                        if circuit.id == circid:
+                            return true
+                    return False
+
+                def circuit_extend(self, circuit, router):
+                    "ICircuitListener"
+                    if circuit.purpose != 'GENERAL':
+                        return
+                    if self.waiting_on(circuit):
+                        log.msg("Circuit %d (%s)" 
+                                % (circuit.id, router.id_hex))
+
+                def circuit_built(self, circuit):
+                    "ICircuitListener"
+                    if circuit.purpose != 'GENERAL':
+                        return
+                    log.msg("Circuit %s built ..." % circuit.id)
+                    log.msg("Full path of %s: %s" % (circuit.id, circuit.path))
+                    for (circid, d) in self.waiting_circuits:
+                        if circid == circuit.id:
+                            self.waiting_circuits.remove(circid, d)
+                            d.callback(circuit)
+
+                def circuit_failed(self, circuit, reason):
+                    if self.waiting_on(circuit):
+                        log.msg("A circuit we requested %s failed for reason %s" 
+                                % (circuit.id, reason))
+                        circid, d = None, None
+                        for x in self.waiting_circuits:
+                            if x[0] == circuit.id:
+                                circid, d, stream_cc = x
+                        if d is None:
+                            raise Exception("Expected to find circuit.")
+
+                        self.waiting_circuits.remove((circid, d))
+                        log.msg("Trying to build a circuit for %s" % circid)
+                        self.request_circuit_build(d)
+
+                def check_circuit_route(self, circuit, router):
+                    if router in circuit.path:
+                        #router.update() ## XXX can i use without args? no.
+                        TorInfo.dump(self)
+
+                def request_circuit_build(self, deferred):
+                    entries = self.state.entry_guards.value()
+                    relays  = self.state.routers.values()
+                    log.msg("We have these nodes listed as entry guards:") 
+                    log.msg("%s" % entries)
+                    log.msg("We have these nodes listed as relays:")
+                    log.msg("%s" % relays)
+                    path = [random.choice(entries),
+                            random.choice(relays),
+                            random.choice(relays)]
+                    log.msg("Requesting a circuit: %s" 
+                            % '-->'.join(map(lambda x: x.location.countrycode, 
+                                             path)))
+
+                    class AppendWaiting:
+                        def __init__(self, attacher, deferred):
+                            self.attacher = attacher
+                            self.d        = deferred
+
+                        def __call__(self, circuit):
+                            """
+                            Return from build_circuit is a Circuit, however,
+                            we want to wait until it is built before we can
+                            issue an attach on it and callback to the Deferred
+                            we issue here.
+                            """
+                            log.msg("Circuit %s is in progress ..." % circuit.id)
+                            self.attacher.waiting_circuits.append((circuit.id, 
+                                                                   self.d))
+
+                    fin = self.state.build_circuit(path)
+                    fin.addCallback(AppendWaiting(self, deferred_to_callback))
+                    fin.addErrback(log.err)
+                    return fin
+
+
             if len(self.bridge_list) >= 1:
                 for bridge in self.bridge_list:
                     try:
