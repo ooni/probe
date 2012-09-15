@@ -200,11 +200,11 @@ class BridgetTest(OONITest):
         ## we should probably find a more memory nice way to load addresses,
         ## in case the files are really large
         if self.local_options:
-            @staticmethod
+
             def make_asset_list(opt, lst):
                 log.msg("Loading information from %s ..." % opt)
                 with open(opt) as opt_file:
-                    for line in opt_file.readline():
+                    for line in opt_file.readlines():
                         if line.startswith('#'):
                             continue
                         else:
@@ -389,7 +389,7 @@ class BridgetTest(OONITest):
             if len(self.bridge_list) >= 1:
                 for bridge in self.bridge_list:
                     try:
-                        print "BRIDGE IS %s" % bridge
+                        log.msg("Current Bridge: %s" % bridge)
                         reconf_controller(self.config, bridge)
                     except:
                         reconf_fail(bridge)
@@ -421,6 +421,10 @@ bridget = BridgetTest(None, None, None)
 ## -----------
 ## self.config.save() only needs to be called if Tor is already running.
 ## 
+## to test gid, uid, and euid:
+## with open('/proc/self/state') as uidfile:
+##     print uidfile.read(1000)
+##
 ## TODO:
 ##       o  add option for any kwarg=arg self.config setting
 ##       o  cleanup documentation
@@ -428,6 +432,9 @@ bridget = BridgetTest(None, None, None)
 ##       o  check if bridges are public relays
 ##       o  take bridge_desc file as input, also be able to give same
 ##          format as output
+##       o  Add assychronous timout for deferred, so that we don't wait 
+##          forever for bridges that don't work.
+##       o  Add mechanism for testing through another host
 ##
 ## FIX:
 ##       o  DataDirectory is not found, or permissions aren't right

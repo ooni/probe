@@ -8,3 +8,4 @@ proxy-lists/italy-http-ips.txt
 private/*
 /ooni/plugins/dropin.cache
 oonib/oonibackend.conf
+ooni/lib/txtorcon
