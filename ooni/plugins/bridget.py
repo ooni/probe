@@ -29,47 +29,48 @@ from ooni.plugoo.tests      import ITest, OONITest
 from ooni.plugoo.assets     import Asset
 
 
+def portCheck(number):
+    number = int(number)
+    if number not in range(1024, 65535):
+        raise ValueError("Port out of range")
+
+portCheckAllowed     = "must be between 1024 and 65535."
+sockCheck, ctrlCheck = portCheck, portCheck
+sockCheck.coerceDoc  = "Port to use for Tor's SocksPort, " + portCheckAllowed
+ctrlCheck.coerceDoc  = "Port to use for Tor's ControlPort, " + portCheckAllowed
+
+
 class BridgetArgs(usage.Options):
-    def portCheck(number):
-        number = int(number)
-        if number not in range(1024, 65535):
-            raise ValueError("Port out of range")
-
-    portCheck.coerceDoc = "Ports must be between 1024 and 65535"
-
     optParameters = [
         ['bridges', 'b', None,
-         'List of bridges to scan <IP>:<ORport>'],
+         'File listing bridge IP:ORPorts to test'],
         ['relays', 'f', None,
-         'List of relays to scan <IP>'],
-        ['socks', 's', 9049, portCheck,
-         'Tor SocksPort to use'],
-        ['control', 'c', 9052, portCheck,
-         'Tor ControlPort to use'],
-        ['tor-path', 'p', None,
+         'File listing relay IPs to test'],
+        ['socks', 's', 9049, None, portCheck],
+        ['control', 'c', 9052, None, portCheck],
+        ['torpath', 'p', None,
          'Path to the Tor binary to use'],
-        ['data-dir', 'd', None,
+        ['datadir', 'd', None,
          'Tor DataDirectory to use'],
         ['transport', 't', None, 
          'Tor ClientTransportPlugin'],
         ['resume', 'r', 0,
          'Resume at this index']]
-    optFlags = [['random', 'x', 'Randomize control and socks ports']]
+    optFlags = [
+        ['random', 'x', 'Use random ControlPort and SocksPort']]
 
     def postOptions(self):
-        ## We can't test pluggable transports without bridges
         if self['transport'] and not self['bridges']:
             e = "Pluggable transport requires the bridges option"
             raise usage.UsageError, e
-        ## We can't use random and static port simultaneously
         if self['socks'] and self['control']:
             if self['random']:
                 e = "Unable to use random and specific ports simultaneously"
-                raise usageError, e
+                raise usage.usageError, e
 
 class BridgetAsset(Asset):
     """
-    Class for parsing bridge assets so that they can be commented out.
+    Class for parsing bridget Assets ignoring commented out lines.
     """
     def __init__(self, file=None):
         self = Asset.__init__(self, file)
@@ -163,11 +164,11 @@ class BridgetTest(OONITest):
                 self.socks_port   = random.randint(1024, 2**16)
                 self.control_port = random.randint(1024, 2**16)
 
-            if options['tor-path']:
-                self.tor_binary = options['tor-path']
+            if options['torpath']:
+                self.tor_binary = options['torpath']
 
-            if options['data-dir']:
-                self.config.DataDirectory = options['data-dir']
+            if options['datadir']:
+                self.config.DataDirectory = options['datadir']
 
             if options['transport']:
                 ## ClientTransportPlugin transport socks4|socks5 IP:PORT
