@@ -116,6 +116,7 @@ class Options(usage.Options, app.ReactorSelectionMixin):
                 ]
 
     optParameters = [
+        ["reportfile", "o", "report.yaml", "report file name"],
         ["logfile", "l", "test.log", "log file name"],
         ["random", "z", None,
          "Run tests in random order using the specified seed"],
@@ -292,7 +293,7 @@ def _initialDebugSetup(config):
 
 
 
-def _getSuite(config):
+def _getSuites(config):
     loader = _getLoader(config)
     recurse = not config['no-recurse']
     print "loadByNames %s" % config['tests']
@@ -300,14 +301,13 @@ def _getSuite(config):
 
 
 def _getLoader(config):
-    loader = runner.TestLoader()
+    loader = runner.NetTestLoader()
     if config['random']:
         randomer = random.Random()
         randomer.seed(config['random'])
         loader.sorter = lambda x : randomer.random()
         print 'Running tests shuffled with seed %d\n' % config['random']
     return loader
-
 
 
 def _makeRunner(config):
@@ -318,6 +318,7 @@ def _makeRunner(config):
         mode = runner.OONIRunner.DRY_RUN
     print "using %s" % config['reporter']
     return runner.OONIRunner(config['reporter'],
+                              reportfile=config["reportfile"],
                               mode=mode,
                               profile=config['profile'],
                               logfile=config['logfile'],
@@ -328,24 +329,6 @@ def _makeRunner(config):
                               forceGarbageCollection=config['force-gc'])
 
 
-if 0:
-    loader = runner.TestLoader()
-    loader.suiteFactory = TestSuite
-
-    for inputUnit in InputUnitFactory(FooTest.inputs):
-        print inputUnit
-
-    suite = loader.loadClass(FooTest)
-
-    reporterFactory = ReporterFactory(open('reporting.log', 'a+'), testSuite=suite)
-    reporterFactory.writeHeader()
-    #testUnitReport = OONIReporter(open('reporting.log', 'a+'))
-    #testUnitReport.writeHeader(FooTest)
-    for inputUnit in InputUnitFactory(FooTest.inputs):
-        testUnitReport = reporterFactory.create()
-        suite(testUnitReport, inputUnit)
-        testUnitReport.done()
-
 def run():
     if len(sys.argv) == 1:
         sys.argv.append("--help")
@@ -354,15 +337,10 @@ def run():
         config.parseOptions()
     except usage.error, ue:
         raise SystemExit, "%s: %s" % (sys.argv[0], ue)
+
     _initialDebugSetup(config)
     trialRunner = _makeRunner(config)
-    suite = _getSuite(config)
-    print suite
-    test_result = trialRunner.run(suite)
-    if config.tracer:
-        sys.settrace(None)
-        results = config.tracer.results()
-        results.write_results(show_missing=1, summary=False,
-                              coverdir=config.coverdir().path)
-    sys.exit(not test_result.wasSuccessful())
+    suites = _getSuites(config)
+    for suite in suites:
+        test_result = trialRunner.run(suite)
 

@@ -1,13 +1,18 @@
+import os
+import sys
 import types
 import time
 import inspect
 
 from twisted.internet import defer
-from twisted.python import reflect
+from twisted.python import reflect, log, failure
 from twisted.trial import unittest
 from twisted.trial.runner import TrialRunner, TestLoader
-from twisted.trial.runner import isPackage, isTestCase
+from twisted.trial.runner import isPackage, isTestCase, ErrorHolder
+from twisted.trial.runner import filenameToModule, _importFromFile
 
+from ooni.reporter import ReporterFactory
+from ooni.input import InputUnitFactory
 from ooni import nettest
 from ooni.plugoo import tests as oonitests
 
@@ -32,6 +37,7 @@ def adaptLegacyTest(obj):
     """
     class LegacyOONITest(nettest.TestCase):
         pass
+
 
 
 class LoggedSuite(nettest.TestSuite):
@@ -98,16 +104,7 @@ class NetTestLoader(object):
 
     def __init__(self):
         self.suiteFactory = nettest.TestSuite
-        self.sorter = name
         self._importErrors = []
-
-    def sort(self, xs):
-        """
-        Sort the given things using L{sorter}.
-
-        @param xs: A list of test cases, class or modules.
-        """
-        return sorted(xs, key=self.sorter)
 
 
     def findTestClasses(self, module):
@@ -180,12 +177,12 @@ class NetTestLoader(object):
         if not isTestCase(klass):
             raise ValueError("%r is not a test case" % (klass,))
         names = self.getTestCaseNames(klass)
-        print "Names %s" % names
-        tests = self.sort([self._makeCase(klass, self.methodPrefix+name)
-                           for name in names])
-        print "Tests %s" % tests
+        tests = []
+        for name in names:
+            tests.append(self._makeCase(klass, self.methodPrefix+name))
+
         suite = self.suiteFactory(tests)
-        print "Suite: %s" % suite
+        suite.inputs = klass.inputs
         return suite
     loadTestsFromTestCase = loadClass
 
@@ -289,17 +286,25 @@ class NetTestLoader(object):
 
         @return: A C{TestCase} or C{TestSuite}.
         """
+        print "Loading anything! %s" % thing
+        ret = None
         if isinstance(thing, types.ModuleType):
             if isPackage(thing):
-                return self.loadPackage(thing, recurse)
-            return self.loadModule(thing)
+                ret = self.loadPackage(thing, recurse)
+            ret = self.loadModule(thing)
         elif isinstance(thing, types.ClassType):
-            return self.loadClass(thing)
+            ret = self.loadClass(thing)
         elif isinstance(thing, type):
-            return self.loadClass(thing)
+            ret = self.loadClass(thing)
         elif isinstance(thing, types.MethodType):
-            return self.loadMethod(thing)
-        raise TypeError("No loader for %r. Unrecognized type" % (thing,))
+            ret = self.loadMethod(thing)
+        if not ret:
+            raise TypeError("No loader for %r. Unrecognized type" % (thing,))
+        try:
+            ret.inputs = ret.inputs
+        except:
+            ret.inputs = [None]
+        return ret
 
     def loadByName(self, name, recurse=False):
         """
@@ -312,6 +317,7 @@ class NetTestLoader(object):
 
         @param name: The fully-qualified name of a Python object.
         """
+        print "Load by Name!"
         try:
             thing = self.findByName(name)
         except:
@@ -326,6 +332,7 @@ class NetTestLoader(object):
         suite returned will have no duplicate tests, even if the same object
         is named twice.
         """
+        print "Load by Names!"
         things = []
         errors = []
         for name in names:
@@ -336,7 +343,8 @@ class NetTestLoader(object):
         suites = [self.loadAnything(thing, recurse)
                   for thing in self._uniqueTests(things)]
         suites.extend(errors)
-        return self.suiteFactory(suites)
+        return suites
+        #return self.suiteFactory(suites)
 
 
     def _uniqueTests(self, things):
@@ -353,8 +361,6 @@ class NetTestLoader(object):
             else:
                 entries.append((thing,))
         return [entry[0] for entry in set(entries)]
-
-
 
 
 class OONIRunner(object):
@@ -407,6 +413,7 @@ class OONIRunner(object):
         return reporter
 
     def __init__(self, reporterFactory,
+                 reportfile="report.yaml",
                  mode=None,
                  logfile='test.log',
                  stream=sys.stdout,
@@ -417,6 +424,7 @@ class OONIRunner(object):
                  workingDirectory=None,
                  forceGarbageCollection=False):
         self.reporterFactory = reporterFactory
+        self._reportfile = reportfile
         self.logfile = logfile
         self.mode = mode
         self.stream = stream
@@ -449,12 +457,21 @@ class OONIRunner(object):
         self._logFileObserver = log.FileLogObserver(logFile)
         log.startLoggingWithObserver(self._logFileObserver.emit, 0)
 
-    def run(self, test, inputs):
+    def run(self, test):
         """
         Run the test or suite and return a result object.
         """
-        for input in inputs:
-            self._runWithInput(test, input)
+        print test
+        inputs = test.inputs
+        reporterFactory = ReporterFactory(open(self._reportfile, 'a+'),
+                testSuite=test)
+        reporterFactory.writeHeader()
+        #testUnitReport = OONIReporter(open('reporting.log', 'a+'))
+        #testUnitReport.writeHeader(FooTest)
+        for inputUnit in InputUnitFactory(inputs):
+            testUnitReport = reporterFactory.create()
+            test(testUnitReport, inputUnit)
+            testUnitReport.done()
 
     def _runWithInput(self, test, input):
         """
@@ -482,3 +499,5 @@ class OONIRunner(object):
         done = getattr(result, 'done', None)
         result.done()
         return result
+
+
