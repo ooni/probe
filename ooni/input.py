@@ -43,7 +43,7 @@ class InputUnit(object):
     passed onto a TestCase.
     """
     def __init__(self, inputs=[]):
-        self._inputs = inputs
+        self._inputs = iter(inputs)
 
     def __repr__(self):
         return "<%s inputs=%s>" % (self.__class__, self._inputs)
@@ -53,7 +53,13 @@ class InputUnit(object):
             self._inputs.append(input)
 
     def __iter__(self):
-        return iter(self._inputs)
+        return self
+
+    def next(self):
+        try:
+            return self._inputs.next()
+        except:
+            raise StopIteration
 
     def append(self, input):
         self._inputs.append(input)

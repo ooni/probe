@@ -4,7 +4,7 @@ import types
 import time
 import inspect
 
-from twisted.internet import defer
+from twisted.internet import defer, reactor
 from twisted.python import reflect, log, failure
 from twisted.trial import unittest
 from twisted.trial.runner import TrialRunner, TestLoader
@@ -27,7 +27,7 @@ def isLegacyTest(obj):
     except TypeError:
         return False
 
-def adaptLegacyTest(obj):
+def adaptLegacyTest(obj, inputs=[None]):
     """
     We take a legacy OONITest class and convert it into a nettest.TestCase.
     This allows backward compatibility of old OONI tests.
@@ -36,8 +36,18 @@ def adaptLegacyTest(obj):
     older test cases compatible with the new OONI.
     """
     class LegacyOONITest(nettest.TestCase):
-        pass
+        inputs = [1]
+        original_test = obj
 
+        def test_start_legacy_test(self):
+            print "bla bla bla"
+            my_test = self.original_test()
+            print my_test
+            print "foobat"
+            my_test.startTest(self.input)
+            print "HHAHAHA"
+
+    return LegacyOONITest
 
 
 class LoggedSuite(nettest.TestSuite):
@@ -93,11 +103,14 @@ class OONISuite(nettest.TestSuite):
             self._bail()
 
 
-class NetTestLoader(object):
+class NetTestLoader(TestLoader):
     """
     Reponsible for finding the modules that can work as tests and running them.
     If we detect that a certain test is written using the legacy OONI API we
     will wrap it around a next gen class to make it work here too.
+
+    XXX This class needs to be cleaned up a *lot* of all the things we actually
+    don't need.
     """
     methodPrefix = 'test'
     modulePrefix = 'test_'
@@ -106,66 +119,18 @@ class NetTestLoader(object):
         self.suiteFactory = nettest.TestSuite
         self._importErrors = []
 
-
     def findTestClasses(self, module):
         classes = []
         for name, val in inspect.getmembers(module):
-            try:
-                inputs = val.inputs
-            except:
-                inputs = None
             if isTestCase(val):
-                classes.append((val, inputs))
+                classes.append(val)
             # This is here to allow backward compatibility with legacy OONI
             # tests.
             elif isLegacyTest(val):
-                #val = adaptLegacyTest(val)
-                classes.append((val, inputs))
+                print "adapting! %s" % val
+                val = adaptLegacyTest(val)
+                classes.append(val)
         return classes
-
-    def findByName(self, name):
-        """
-        Return a Python object given a string describing it.
-
-        @param name: a string which may be either a filename or a
-        fully-qualified Python name.
-
-        @return: If C{name} is a filename, return the module. If C{name} is a
-        fully-qualified Python name, return the object it refers to.
-        """
-        if os.path.exists(name):
-            return filenameToModule(name)
-        return reflect.namedAny(name)
-
-
-    def loadModule(self, module):
-        """
-        Return a test suite with all the tests from a module.
-
-        Included are TestCase subclasses and doctests listed in the module's
-        __doctests__ module. If that's not good for you, put a function named
-        either C{testSuite} or C{test_suite} in your module that returns a
-        TestSuite, and I'll use the results of that instead.
-
-        If C{testSuite} and C{test_suite} are both present, then I'll use
-        C{testSuite}.
-        """
-        ## XXX - should I add an optional parameter to disable the check for
-        ## a custom suite.
-        ## OR, should I add another method
-        if not isinstance(module, types.ModuleType):
-            raise TypeError("%r is not a module" % (module,))
-        if hasattr(module, 'testSuite'):
-            return module.testSuite()
-        elif hasattr(module, 'test_suite'):
-            return module.test_suite()
-
-        suite = self.suiteFactory()
-        for testClass, inputs in self.findTestClasses(module):
-            testCases = self.loadClass(testClass)
-
-        return testCases
-    loadTestsFromModule = loadModule
 
     def loadClass(self, klass):
         """
@@ -182,186 +147,50 @@ class NetTestLoader(object):
             tests.append(self._makeCase(klass, self.methodPrefix+name))
 
         suite = self.suiteFactory(tests)
-        suite.inputs = klass.inputs
+        print "**+*"
+        print tests
+        print "**+*"
+
         return suite
     loadTestsFromTestCase = loadClass
 
-    def getTestCaseNames(self, klass):
-        """
-        Given a class that contains C{TestCase}s, return a list of names of
-        methods that probably contain tests.
-        """
-        return reflect.prefixedMethodNames(klass, self.methodPrefix)
-
-    def loadMethod(self, method):
-        """
-        Given a method of a C{TestCase} that represents a test, return a
-        C{TestCase} instance for that test.
-        """
-        if not isinstance(method, types.MethodType):
-            raise TypeError("%r not a method" % (method,))
-        return self._makeCase(method.im_class, _getMethodNameInClass(method))
-
-    def _makeCase(self, klass, methodName):
-        return klass(methodName)
-
-    def loadPackage(self, package, recurse=False):
-        """
-        Load tests from a module object representing a package, and return a
-        TestSuite containing those tests.
-
-        Tests are only loaded from modules whose name begins with 'test_'
-        (or whatever C{modulePrefix} is set to).
-
-        @param package: a types.ModuleType object (or reasonable facsimilie
-        obtained by importing) which may contain tests.
-
-        @param recurse: A boolean.  If True, inspect modules within packages
-        within the given package (and so on), otherwise, only inspect modules
-        in the package itself.
-
-        @raise: TypeError if 'package' is not a package.
-
-        @return: a TestSuite created with my suiteFactory, containing all the
-        tests.
-        """
-        if not isPackage(package):
-            raise TypeError("%r is not a package" % (package,))
-        pkgobj = modules.getModule(package.__name__)
-        if recurse:
-            discovery = pkgobj.walkModules()
-        else:
-            discovery = pkgobj.iterModules()
-        discovered = []
-        for disco in discovery:
-            if disco.name.split(".")[-1].startswith(self.modulePrefix):
-                discovered.append(disco)
-        suite = self.suiteFactory()
-        for modinfo in self.sort(discovered):
+    def findAllInputs(self, thing):
+        testClasses = self.findTestClasses(thing)
+        # XXX will there ever be more than 1 test class with inputs?
+        for klass in testClasses:
             try:
-                module = modinfo.load()
+                inputs = klass.inputs
             except:
-                thingToAdd = ErrorHolder(modinfo.name, failure.Failure())
-            else:
-                thingToAdd = self.loadModule(module)
-            suite.addTest(thingToAdd)
-        return suite
+                pass
+        return inputs
 
-    def loadDoctests(self, module):
+    def loadByNamesWithInput(self, names, recurse=False):
         """
-        Return a suite of tests for all the doctests defined in C{module}.
-
-        @param module: A module object or a module name.
-        """
-        if isinstance(module, str):
-            try:
-                module = reflect.namedAny(module)
-            except:
-                return ErrorHolder(module, failure.Failure())
-        if not inspect.ismodule(module):
-            warnings.warn("trial only supports doctesting modules")
-            return
-        extraArgs = {}
-        if sys.version_info > (2, 4):
-            # Work around Python issue2604: DocTestCase.tearDown clobbers globs
-            def saveGlobals(test):
-                """
-                Save C{test.globs} and replace it with a copy so that if
-                necessary, the original will be available for the next test
-                run.
-                """
-                test._savedGlobals = getattr(test, '_savedGlobals', test.globs)
-                test.globs = test._savedGlobals.copy()
-            extraArgs['setUp'] = saveGlobals
-        return doctest.DocTestSuite(module, **extraArgs)
-
-    def loadAnything(self, thing, recurse=False):
-        """
-        Given a Python object, return whatever tests that are in it. Whatever
-        'in' might mean.
-
-        @param thing: A Python object. A module, method, class or package.
-        @param recurse: Whether or not to look in subpackages of packages.
-        Defaults to False.
-
-        @return: A C{TestCase} or C{TestSuite}.
-        """
-        print "Loading anything! %s" % thing
-        ret = None
-        if isinstance(thing, types.ModuleType):
-            if isPackage(thing):
-                ret = self.loadPackage(thing, recurse)
-            ret = self.loadModule(thing)
-        elif isinstance(thing, types.ClassType):
-            ret = self.loadClass(thing)
-        elif isinstance(thing, type):
-            ret = self.loadClass(thing)
-        elif isinstance(thing, types.MethodType):
-            ret = self.loadMethod(thing)
-        if not ret:
-            raise TypeError("No loader for %r. Unrecognized type" % (thing,))
-        try:
-            ret.inputs = ret.inputs
-        except:
-            ret.inputs = [None]
-        return ret
-
-    def loadByName(self, name, recurse=False):
-        """
-        Given a string representing a Python object, return whatever tests
-        are in that object.
-
-        If C{name} is somehow inaccessible (e.g. the module can't be imported,
-        there is no Python object with that name etc) then return an
-        L{ErrorHolder}.
-
-        @param name: The fully-qualified name of a Python object.
-        """
-        print "Load by Name!"
-        try:
-            thing = self.findByName(name)
-        except:
-            return ErrorHolder(name, failure.Failure())
-        return self.loadAnything(thing, recurse)
-    loadTestsFromName = loadByName
-
-    def loadByNames(self, names, recurse=False):
-        """
-        Construct a TestSuite containing all the tests found in 'names', where
+        Construct a OONITestSuite containing all the tests found in 'names', where
         names is a list of fully qualified python names and/or filenames. The
         suite returned will have no duplicate tests, even if the same object
         is named twice.
+
+        This test suite will have set the attribute inputs to the inputs found
+        inside of the tests.
         """
-        print "Load by Names!"
+        inputs = []
         things = []
         errors = []
         for name in names:
             try:
-                things.append(self.findByName(name))
+                thing = self.findByName(name)
+                things.append(thing)
             except:
                 errors.append(ErrorHolder(name, failure.Failure()))
-        suites = [self.loadAnything(thing, recurse)
-                  for thing in self._uniqueTests(things)]
+        suites = []
+        for thing in self._uniqueTests(things):
+            inputs.append(self.findAllInputs(thing))
+            suite = self.loadAnything(thing, recurse)
+            suites.append(suite)
+
         suites.extend(errors)
-        return suites
-        #return self.suiteFactory(suites)
-
-
-    def _uniqueTests(self, things):
-        """
-        Gather unique suite objects from loaded things. This will guarantee
-        uniqueness of inherited methods on TestCases which would otherwise hash
-        to same value and collapse to one test unexpectedly if using simpler
-        means: e.g. set().
-        """
-        entries = []
-        for thing in things:
-            if isinstance(thing, types.MethodType):
-                entries.append((thing, thing.im_class))
-            else:
-                entries.append((thing,))
-        return [entry[0] for entry in set(entries)]
-
+        return inputs, suites
 
 class OONIRunner(object):
     """
@@ -457,47 +286,17 @@ class OONIRunner(object):
         self._logFileObserver = log.FileLogObserver(logFile)
         log.startLoggingWithObserver(self._logFileObserver.emit, 0)
 
-    def run(self, test):
+    def run(self, tests, inputs=[None]):
         """
         Run the test or suite and return a result object.
         """
-        print test
-        inputs = test.inputs
         reporterFactory = ReporterFactory(open(self._reportfile, 'a+'),
-                testSuite=test)
+                testSuite=tests)
         reporterFactory.writeHeader()
-        #testUnitReport = OONIReporter(open('reporting.log', 'a+'))
-        #testUnitReport.writeHeader(FooTest)
         for inputUnit in InputUnitFactory(inputs):
+            testSuiteFactory = nettest.TestSuiteFactory(inputUnit, tests, nettest.TestSuite)
             testUnitReport = reporterFactory.create()
-            test(testUnitReport, inputUnit)
+            for suite in testSuiteFactory:
+                suite(testUnitReport)
             testUnitReport.done()
-
-    def _runWithInput(self, test, input):
-        """
-        Private helper that runs the given test with the given input.
-        """
-        result = self._makeResult()
-        # decorate the suite with reactor cleanup and log starting
-        # This should move out of the runner and be presumed to be
-        # present
-        suite = TrialSuite([test])
-        startTime = time.time()
-
-        ## XXX replace this with the actual way of running the test.
-        run = lambda: suite.run(result)
-
-        oldDir = self._setUpTestdir()
-        try:
-            self._setUpLogFile()
-            run()
-        finally:
-            self._tearDownLogFile()
-            self._tearDownTestdir(oldDir)
-
-        endTime = time.time()
-        done = getattr(result, 'done', None)
-        result.done()
-        return result
-
 

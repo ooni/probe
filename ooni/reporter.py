@@ -89,7 +89,7 @@ class OONIReporter(OReporter):
 
     def getTestIndex(self, test):
         try:
-            idx = test.idx
+            idx = test._idx
         except:
             idx = 0
         return idx
@@ -109,7 +109,8 @@ class OONIReporter(OReporter):
         self._tests[idx]['input'] = test.input
         self._tests[idx]['idx'] = idx
         self._tests[idx]['name'] = test.name
-        self._tests[idx]['test'] = test
+        #self._tests[idx]['test'] = test
+        print "Now starting %s" % self._tests[idx]
 
 
     def stopTest(self, test):

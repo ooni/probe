@@ -17,12 +17,13 @@ import sys, os, random, gc, time, warnings
 
 from twisted.internet import defer
 from twisted.application import app
-from twisted.python import usage, reflect, failure
+from twisted.python import usage, reflect, failure, log
 from twisted.python.filepath import FilePath
 from twisted import plugin
 from twisted.python.util import spewer
 from twisted.python.compat import set
 from twisted.trial import itrial
+from twisted.trial import runner as irunner
 from ooni import runner, reporter
 
 
@@ -104,10 +105,8 @@ class Options(usage.Options, app.ReactorSelectionMixin):
                  "callback stack traces"],
                 ["nopm", None, "don't automatically jump into debugger for "
                  "postmorteming of exceptions"],
-                ["dry-run", 'n', "do everything but run the tests"],
                 ["force-gc", None, "Have OONI run gc.collect() before and "
                  "after each test case."],
-                ["profile", None, "Run tests under the Python profiler"],
                 ["unclean-warnings", None,
                  "Turn dirty reactor errors into warnings"],
                 ["no-recurse", "N", "Don't recurse into packages"],
@@ -118,9 +117,7 @@ class Options(usage.Options, app.ReactorSelectionMixin):
     optParameters = [
         ["reportfile", "o", "report.yaml", "report file name"],
         ["logfile", "l", "test.log", "log file name"],
-        ["random", "z", None,
-         "Run tests in random order using the specified seed"],
-        ['temp-directory', None, '_trial_temp',
+        ['temp-directory', None, '_ooni_temp',
          'Path to use as working directory for tests.'],
         ['reporter', None, 'default',
          'The reporter to use for this test run.  See --help-reporters for '
@@ -129,7 +126,7 @@ class Options(usage.Options, app.ReactorSelectionMixin):
     compData = usage.Completions(
         optActions={"tbformat": usage.CompleteList(["plain", "emacs", "cgitb"]),
                     "logfile": usage.CompleteFiles(descr="log file name"),
-                    "random": usage.Completer(descr="random seed")},
+                    },
         extraActions=[usage.CompleteFiles(
                 "*.py", descr="file | module | package | TestCase | testMethod",
                 repeat=True)],
@@ -238,20 +235,6 @@ class Options(usage.Options, app.ReactorSelectionMixin):
                 "argument to recursionlimit must be an integer")
 
 
-    def opt_random(self, option):
-        try:
-            self['random'] = long(option)
-        except ValueError:
-            raise usage.UsageError(
-                "Argument to --random must be a positive integer")
-        else:
-            if self['random'] < 0:
-                raise usage.UsageError(
-                    "Argument to --random must be a positive integer")
-            elif self['random'] == 0:
-                self['random'] = long(time.time() * 100)
-
-
     def opt_without_module(self, option):
         """
         Fake the lack of the specified modules, separated with commas.
@@ -283,7 +266,6 @@ class Options(usage.Options, app.ReactorSelectionMixin):
             failure.DO_POST_MORTEM = False
 
 
-
 def _initialDebugSetup(config):
     # do this part of debug setup first for easy debugging of import failures
     if config['debug']:
@@ -292,35 +274,22 @@ def _initialDebugSetup(config):
         defer.setDebugging(True)
 
 
-
-def _getSuites(config):
-    loader = _getLoader(config)
+def _getSuitesAndInputs(config):
+    #loader = irunner.TestLoader()
+    loader = runner.NetTestLoader()
     recurse = not config['no-recurse']
     print "loadByNames %s" % config['tests']
-    return loader.loadByNames(config['tests'], recurse)
-
-
-def _getLoader(config):
-    loader = runner.NetTestLoader()
-    if config['random']:
-        randomer = random.Random()
-        randomer.seed(config['random'])
-        loader.sorter = lambda x : randomer.random()
-        print 'Running tests shuffled with seed %d\n' % config['random']
-    return loader
-
+    inputs, suites = loader.loadByNamesWithInput(config['tests'], recurse)
+    return inputs, suites
 
 def _makeRunner(config):
     mode = None
     if config['debug']:
         mode = runner.OONIRunner.DEBUG
-    if config['dry-run']:
-        mode = runner.OONIRunner.DRY_RUN
     print "using %s" % config['reporter']
     return runner.OONIRunner(config['reporter'],
                               reportfile=config["reportfile"],
                               mode=mode,
-                              profile=config['profile'],
                               logfile=config['logfile'],
                               tracebackFormat=config['tbformat'],
                               realTimeErrors=config['rterrors'],
@@ -340,7 +309,8 @@ def run():
 
     _initialDebugSetup(config)
     trialRunner = _makeRunner(config)
-    suites = _getSuites(config)
-    for suite in suites:
-        test_result = trialRunner.run(suite)
+    inputs, testSuites = _getSuitesAndInputs(config)
+    log.startLogging(sys.stdout)
+    for i, suite in enumerate(testSuites):
+        test_result = trialRunner.run(suite, inputs[i])
 
