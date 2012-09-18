@@ -328,6 +328,23 @@ def _makeRunner(config):
                               forceGarbageCollection=config['force-gc'])
 
 
+if 0:
+    loader = runner.TestLoader()
+    loader.suiteFactory = TestSuite
+
+    for inputUnit in InputUnitFactory(FooTest.inputs):
+        print inputUnit
+
+    suite = loader.loadClass(FooTest)
+
+    reporterFactory = ReporterFactory(open('reporting.log', 'a+'), testSuite=suite)
+    reporterFactory.writeHeader()
+    #testUnitReport = OONIReporter(open('reporting.log', 'a+'))
+    #testUnitReport.writeHeader(FooTest)
+    for inputUnit in InputUnitFactory(FooTest.inputs):
+        testUnitReport = reporterFactory.create()
+        suite(testUnitReport, inputUnit)
+        testUnitReport.done()
 
 def run():
     if len(sys.argv) == 1:
@@ -340,6 +357,7 @@ def run():
     _initialDebugSetup(config)
     trialRunner = _makeRunner(config)
     suite = _getSuite(config)
+    print suite
     test_result = trialRunner.run(suite)
     if config.tracer:
         sys.settrace(None)

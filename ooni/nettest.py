@@ -18,6 +18,29 @@ def _iterateTests(testSuiteOrCase):
                 yield subtest
 
 
+class TestSuite(pyunit.TestSuite):
+    inputUnit = [None]
+    def __repr__(self):
+        return "<%s input=%s, tests=%s>" % (self.__class__, self.inputUnit, list(self))
+
+    def run(self, result, inputUnit=[None]):
+        """
+        Call C{run} on every member of the suite.
+        """
+        # we implement this because Python 2.3 unittest defines this code
+        # in __call__, whereas 2.4 defines the code in run.
+        idx = 0
+        for input, test in itertools.product(inputUnit, self._tests):
+            if result.shouldStop:
+                break
+            self.inputUnit = inputUnit
+            test.input = input
+            test.idx = idx
+            test(result)
+            idx += 1
+
+        return result
+
 class TestCase(unittest.TestCase):
     """
     A test case represents the minimum
@@ -63,46 +86,5 @@ class TestCase(unittest.TestCase):
                 result.addError(self, failure.Failure())
 
         result.stopTest(self)
-
-
-class TestSuite(pyunit.TestSuite):
-    """
-    Extend the standard library's C{TestSuite} with support for the visitor
-    pattern and a consistently overrideable C{run} method.
-    """
-
-    def __init__(self, tests=(), inputs=()):
-        self._tests = []
-        self._inputs = []
-        self.addTests(tests, inputs)
-        print "Adding %s %s" % (tests, inputs)
-
-
-    def __call__(self, result):
-        return self.run(result)
-
-    def __repr__(self):
-        return "<%s input=%s tests=%s>" % (self.__class__,
-                self._inputs, list(self))
-
-    def run(self, result, input=None):
-        """
-        Call C{run} on every member of the suite.
-        """
-        for test in self._tests:
-            if result.shouldStop:
-                break
-            return test(result, None)
-
-    def addTests(self, tests, inputs=[]):
-        if isinstance(tests, basestring):
-            raise TypeError("tests must be and iterable of tests not a string")
-        for test in tests:
-            self.addTest(test, inputs)
-
-    def addTest(self, test, inputs=[]):
-        #print "Adding: %s" % test
-        super(TestSuite, self).addTest(test)
-        self._inputs = inputs
 
 
