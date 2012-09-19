@@ -14,22 +14,20 @@
 
 from __future__                 import with_statement
 from functools                  import wraps, partial
+from random                     import randint
 from twisted.python             import usage
 from twisted.plugin             import IPlugin
 from twisted.internet           import defer, error, reactor
-from twisted.internet.endpoints import TCP4ClientEndpoint
 from zope.interface             import implements
 
 from ooni.utils                 import log
 from ooni.plugoo.tests          import ITest, OONITest
 from ooni.plugoo.assets         import Asset
 
-import tempfile
 import os
-import random
-import shutil
 import signal
 import sys
+
 
 def timer(secs, e=None):
     def decorator(func):
@@ -75,16 +73,15 @@ class ValueChecker(object):
             raise ValueError("Port out of range")
 
     sock_check, ctrl_check = port_check, port_check
-    port_check_allowed     = "must be between 1024 and 65535."
-    sock_check.coerceDoc   = "Port to use for Tor's SocksPort, "   + port_check_allowed
-    ctrl_check.coerceDoc   = "Port to use for Tor's ControlPort, " + port_check_allowed
+    allowed                = "must be between 1024 and 65535."
+    sock_check.coerceDoc   = "Port to use for Tor's SocksPort, "   +allowed
+    ctrl_check.coerceDoc   = "Port to use for Tor's ControlPort, " +allowed
 
     def uid_check(pluggable_transport):
-        """Check that we are not root when trying to use pluggable transports."""
+        """Check that we're not root when trying to use pluggable transports."""
         uid, gid = os.getuid(), os.getgid()
         if uid == 0 and gid == 0:
-            log.msg("Error: Running bridget as root with --transport=%s not allowed."
-                    % pluggable_transport)
+            log.msg("Error: Running bridget as root with transports not allowed.")
             log.msg("Dropping privileges to normal user...")
             os.setgid(1000)
             os.setuid(1000)
@@ -242,18 +239,22 @@ class BridgetTest(OONITest):
             if options['bridges']:
                 self.config.UseBridges = 1
                 make_asset_list(options['bridges'], self.bridges)
+
             if options['relays']:
                 ## first hop must be in TorState().entry_guards to build circuits
                 self.config.EntryNodes = ','.join(relay_list)
                 make_asset_list(options['relays'], self.relays)
+
             if options['socks']:
                 self.socks_port = options['socks']
             if options['control']:
                 self.control_port = options['control']
+
             if options['random']:
                 log.msg("Using randomized ControlPort and SocksPort ...")
-                self.socks_port   = random.randint(1024, 2**16)
-                self.control_port = random.randint(1024, 2**16)
+                self.socks_port   = randint(1024, 2**16)
+                self.control_port = randint(1024, 2**16)
+
             if options['torpath']:
                 self.tor_binary = options['torpath']
 
@@ -274,9 +275,9 @@ class BridgetTest(OONITest):
                 else:
                     raise PTNotFoundException
 
-            config.SocksPort                 = self.socks_port
-            config.ControlPort               = self.control_port
-            config.CookieAuthentication      = 1
+            self.config.SocksPort            = self.socks_port
+            self.config.ControlPort          = self.control_port
+            self.config.CookieAuthentication = 1
 
     def load_assets(self):
         """
@@ -302,12 +303,19 @@ class BridgetTest(OONITest):
             The :class:`BridgetAsset` line currently being used.
         """
         try:
-            from ooni.utils         import circuit
+            from tempfile import mkstemp, mkdtemp
+            from shutil   import rmtree
+
+            from twisted.internet.endpoints import TCP4ClientEndpoint
+
+            from ooni.utils        import circuit
             from ooni.lib.txtorcon import TorProcessProtocol
             from ooni.lib.txtorcon import TorProtocolFactory
             from ooni.lib.txtorcon import TorConfig, TorState
+
         except ImportError:
             raise TxtorconImportError
+
         except TxtorconImportError:
             ## XXX is this something we should add to the reactor?
             sys.exit()
@@ -330,19 +338,19 @@ class BridgetTest(OONITest):
                 try:
                     os.unlink(temp)
                 except OSError:
-                    shutil.rmtree(temp, ignore_errors=True)
+                    rmtree(temp, ignore_errors=True)
 
-        @timer(self.circuit_timeout)
+        #@timer(self.circuit_timeout)
         def reconfigure_bridge(state, bridge, use_pt=False, pt_type=None):
             """Rewrite the Bridge line in our torrc."""
             log.msg("Current Bridge: %s" % bridge)                        
             if use_pt is False:
-                new = state.protocol.set_conf('Bridge', bridge)
+                state.protocol.set_conf('Bridge', bridge)
             elif use_pt and pt_type is not None:
-                new = state.protocol.set_conf('Bridge', pt_type +' '+ bridge)
+                state.protocol.set_conf('Bridge', pt_type +' '+ bridge)
             else:
                 raise PTNotFoundException
-            return new
+            return state.callback
 
         def reconfigure_fail(*param):
             log.msg("Reconfiguring TorConfig with parameters %s failed" % param)
@@ -358,7 +366,7 @@ class BridgetTest(OONITest):
             if len(both) > 0:
                 for bridge in both:
                     bridge_list.remove(bridge)
-            return state
+            return state.callback
 
         def remove_relays_fail(state):
             log.msg("Unable to remove public relays from the bridge list.")
@@ -429,6 +437,9 @@ class BridgetTest(OONITest):
             attacher.request_circuit_build(d)
             return d
 
+        def state_attach_fail(state):
+            log.msg("Attaching custom circuit builder failed.")
+
         def updates(prog, tag, summary):
             log.msg("%d%%: %s" % (prog, summary))
 
@@ -443,12 +454,12 @@ class BridgetTest(OONITest):
             delete_list = []
 
             if data_dir is None:
-                data_dir = tempfile.mkdtemp(prefix='bridget-tordata')
+                data_dir = mkdtemp(prefix='bridget-tordata')
                 delete_list.append(data_dir)
             conf.DataDirectory = data_dir
             #conf.__OwningControllerProcess = os.getpid()
 
-            (fd, torrc) = tempfile.mkstemp(dir=data_dir)
+            (fd, torrc) = mkstemp(dir=data_dir)
             delete_list.append(torrc)
             os.write(fd, conf.create_torrc())
             os.close(fd)
@@ -459,10 +470,20 @@ class BridgetTest(OONITest):
 
         while self.bridges_remaining() > 0:
             self.current_bridge = self.bridges.pop()
-            #current_ip = self.current_bridge.split(':', 1)[0]
-            #print "CURRENT BRIDGE IP %s" % current_ip
+            if self.config.config.has_key('Bridge'):
+                log.msg("We now have %d untested bridges..." 
+                        % self.bridges_remaining())
+                reconf = defer.Deferred()
+                reconf.addCallback(reconfigure_bridge, state,
+                                   self.current_bridge, self.use_pt,
+                                   self.pt_type)
+                reconf.addErrback(reconfigure_fail)
+                state.chainDeferred(reconf)
+                #reconfigure_bridge(state, self.current_bridge, 
+                #                   self.use_pt, self.pt_type)
+                #current_ip = self.current_bridge.split(':', 1)[0]
 
-            if not self.config.config.has_key('Bridge'):
+            else:
                 self.config.Bridge = self.current_bridge
                 (torrc, self.data_directory, to_delete) = write_torrc(
                     self.config, self.data_directory)
@@ -477,11 +498,12 @@ class BridgetTest(OONITest):
                                   self.data_directory)
                 state.addCallback(setup_done)
                 state.addErrback(setup_fail)
-                state.addCallback(remove_relays, self.bridges)
-                state.addErrback(remove_relays_fail)
-                state.addCallback(state_attach, self.bridges)
-                ## XXX write state_attach_fail()
-                state.addErrback(state_attach_fail)
+                state.addBoth(remove_relays, self.bridges)
+                #state.addCallback(remove_relays, self.bridges)
+                #state.addErrback(remove_relays_fail)
+                #state.addCallback(state_attach, self.bridges)
+                #state.addErrback(state_attach_fail)
+            return state
 
             ## XXX see txtorcon.TorControlProtocol.add_event_listener we
             ##     may not need full CustomCircuit class
@@ -490,21 +512,19 @@ class BridgetTest(OONITest):
             ## o if bridges only, try one bridge at a time, but don't build
             ##   circuits, just return
             ## o if relays only, build circuits from relays
-            else:
-                log.msg("We now have %d untested bridges..." 
-                        % self.bridges_remaining())
-                try:
-                    state.addCallback(reconfigure_bridge, self.current_bridge, 
-                                      self.use_pt, self.pt_type)
-                    state.addErrback(reconfigure_fail)
-                except TimeoutError:
-                    log.msg("Adding %s to unreachable bridges..." 
-                            % self.current_bridge)
-                    self.bridges_down.append(self.current_bridge)
-                else:
-                    log.msg("Adding %s to reachable bridges..." 
-                            % self.current_bridge)
-                    self.bridges_up.append(self.current_bridge)
+            #else:
+            #    try:
+            #        state.addCallback(reconfigure_bridge, self.current_bridge, 
+            #                          self.use_pt, self.pt_type)
+            #        state.addErrback(reconfigure_fail)
+            #    except TimeoutError:
+            #        log.msg("Adding %s to unreachable bridges..." 
+            #                % self.current_bridge)
+            #        self.bridges_down.append(self.current_bridge)
+            #    else:
+            #        log.msg("Adding %s to reachable bridges..." 
+            #                % self.current_bridge)
+            #        self.bridges_up.append(self.current_bridge)
 
         reactor.run()
         ## now build circuits
@@ -518,12 +538,9 @@ bridget = BridgetTest(None, None, None)
 ## TODO:
 ##       o  cleanup documentation
 ##       x  add DataDirectory option
-##       o  check if bridges are public relays
+##       x  check if bridges are public relays
 ##       o  take bridge_desc file as input, also be able to give same
 ##          format as output
-##       o  Add assychronous timout for deferred, so that we don't wait 
+##       x  Add assychronous timout for deferred, so that we don't wait 
 ##          forever for bridges that don't work.
 ##       o  Add mechanism for testing through another host
-##
-## FIX:
-##       o  DataDirectory is not found, or permissions aren't right
