@@ -3,77 +3,163 @@
 # 
 #  +-----------+
 #  |  BRIDGET  |
-#  |        +----------------------------------------------+
-#  +--------| Use a slave Tor process to test making a Tor |
-#           | connection to a list of bridges or relays.   |
-#           +----------------------------------------------+
+#  |        +--------------------------------------------+
+#  +--------| Use a Tor process to test making a Tor     |
+#           | connection to a list of bridges or relays. |
+#           +--------------------------------------------+
 #
-# :authors: Arturo Filasto, Isis Lovecruft
+# :authors: Isis Lovecruft, Arturo Filasto
 # :licence: see included LICENSE
 # :version: 0.1.0-alpha
 
-from __future__             import with_statement
-from functools              import wraps
-from os                     import getcwd
-from os.path                import isfile
-from os.path                import join as pj
-from twisted.python         import usage
-from twisted.plugin         import IPlugin
-from twisted.internet       import defer, error, reactor
-from zope.interface         import implements
+from __future__                 import with_statement
+from functools                  import wraps, partial
+from twisted.python             import usage
+from twisted.plugin             import IPlugin
+from twisted.internet           import defer, error, reactor
+from twisted.internet.endpoints import TCP4ClientEndpoint
+from zope.interface             import implements
 
+from ooni.utils                 import log
+from ooni.plugoo.tests          import ITest, OONITest
+from ooni.plugoo.assets         import Asset
+
+import tempfile
+import os
 import random
+import shutil
 import signal
 import sys
 
-from ooni.utils             import log
-from ooni.plugoo.tests      import ITest, OONITest
-from ooni.plugoo.assets     import Asset
+def timer(secs, e=None):
+    def decorator(func):
+        def _timer(signum, frame):
+            raise TimeoutError, e
+        def wrapper(*args, **kwargs):
+            signal.signal(signal.SIGALRM, _timer)
+            signal.alarm(secs)
+            try:
+                res = func(*args, **kwargs)
+            finally:
+                signal.alarm(0)
+            return res
+        return wraps(func)(wrapper)
+    return decorator
 
 
-def portCheck(number):
-    number = int(number)
-    if number not in range(1024, 65535):
-        raise ValueError("Port out of range")
+class MissingAssetException(Exception):
+    """Raised when neither there are neither bridges nor relays to test."""
+    def __init__(self):
+        log.msg("Bridget can't run without bridges or relays to test!")
+        return sys.exit()
 
-portCheckAllowed     = "must be between 1024 and 65535."
-sockCheck, ctrlCheck = portCheck, portCheck
-sockCheck.coerceDoc  = "Port to use for Tor's SocksPort, "   + portCheckAllowed
-ctrlCheck.coerceDoc  = "Port to use for Tor's ControlPort, " + portCheckAllowed
+class PTNoBridgesException(Exception):
+    """Raised when a pluggable transport is specified, but no bridges."""
+    def __init__(self):
+        log.msg("Pluggable transport requires the bridges option")
+        return sys.exit()
 
+class PTNotFoundException(Exception):
+    def __init__(self, transport_type):
+        m  = "Pluggable Transport type %s was unaccounted " % transport_type
+        m += "for, please contact isis(at)torproject(dot)org and it will "
+        m += "get included."
+        log.msg("%s" % m)
+        return sys.exit()
+
+class ValueChecker(object):
+    def port_check(self, number):
+        """Check that given ports are in the allowed range."""
+        number = int(number)
+        if number not in range(1024, 65535):
+            raise ValueError("Port out of range")
+
+    sock_check, ctrl_check = port_check, port_check
+    port_check_allowed     = "must be between 1024 and 65535."
+    sock_check.coerceDoc   = "Port to use for Tor's SocksPort, "   + port_check_allowed
+    ctrl_check.coerceDoc   = "Port to use for Tor's ControlPort, " + port_check_allowed
+
+    def uid_check(pluggable_transport):
+        """Check that we are not root when trying to use pluggable transports."""
+        uid, gid = os.getuid(), os.getgid()
+        if uid == 0 and gid == 0:
+            log.msg("Error: Running bridget as root with --transport=%s not allowed."
+                    % pluggable_transport)
+            log.msg("Dropping privileges to normal user...")
+            os.setgid(1000)
+            os.setuid(1000)
+
+    def dir_check(d):
+        """Check that the given directory exists."""
+        if not os.isdir(d):
+            raise ValueError("%s doesn't exist, or has wrong permissions" % d)
+
+    def file_check(f):
+        if not os.isfile(f):
+            raise ValueError("%s does not exist, or has wrong permissions" % f)
+
+class RandomPortException(Exception):
+    """Raised when using a random port conflicts with configured ports."""
+    def __init__(self):
+        log.msg("Unable to use random and specific ports simultaneously")
+        return sys.exit()
+
+class TimeoutError(Exception):
+    """Raised when a timer runs out."""
+    pass
+
+class TxtorconImportError(ImportError):
+    """Raised when /ooni/lib/txtorcon cannot be imported from."""
+    cwd, tx = os.getcwd(), 'lib/txtorcon/torconfig.py'
+    try:
+        log.msg("Unable to import from ooni.lib.txtorcon")
+        if cwd.endswith('ooni'):
+            check = os.path.join(cwd, tx)
+        else:
+            check = os.path.join(cwd, 'ooni/'+tx)
+        assert isfile(check)
+    except:
+        log.msg("Error: Some OONI libraries are missing!")
+        log.msg("Please go to /ooni/lib/ and do \"make all\"")
 
 class BridgetArgs(usage.Options):
+    """Commandline options."""
+    vc = ValueChecker()
+
     optParameters = [
         ['bridges', 'b', None,
          'File listing bridge IP:ORPorts to test'],
         ['relays', 'f', None,
          'File listing relay IPs to test'],
-        ['socks', 's', 9049, None, portCheck],
-        ['control', 'c', 9052, None, portCheck],
+        ['socks', 's', 9049, None, vc.sock_check],
+        ['control', 'c', 9052, None, vc.ctrl_check],
         ['torpath', 'p', None,
          'Path to the Tor binary to use'],
         ['datadir', 'd', None,
          'Tor DataDirectory to use'],
-        ['transport', 't', None, 
+        ['transport', 't', None,
          'Tor ClientTransportPlugin'],
         ['resume', 'r', 0,
          'Resume at this index']]
-    optFlags = [
-        ['random', 'x', 'Use random ControlPort and SocksPort']]
+    optFlags = [['random', 'x', 'Use random ControlPort and SocksPort']]
 
     def postOptions(self):
-        if self['transport'] and not self['bridges']:
-            e = "Pluggable transport requires the bridges option"
-            raise usage.UsageError, e
-        if self['socks'] and self['control']:
+        if not self['bridges'] and not self['relays']:
+            raise MissingAssetException
+        if self['transport']:
+            vc.uid_check(self['transport'])
+            if not self['bridges']:
+                raise PTNoBridgesException
+        if self['socks'] or self['control']:
             if self['random']:
-                e = "Unable to use random and specific ports simultaneously"
-                raise usage.usageError, e
+                raise RandomPortException
+        if self['datadir']:
+            vc.dir_check(self['datadir'])
+        if self['torpath']:
+            vc.file_check(self['torpath'])
 
 class BridgetAsset(Asset):
-    """
-    Class for parsing bridget Assets ignoring commented out lines.
-    """
+    """Class for parsing bridget Assets ignoring commented out lines."""
     def __init__(self, file=None):
         self = Asset.__init__(self, file)
 
@@ -89,17 +175,15 @@ class BridgetTest(OONITest):
 
     :ivar config: 
         An :class:`ooni.lib.txtorcon.TorConfig` instance.
-    :ivar relay_list:
-        A list of all provided relays to test. We have to do this because
-        txtorcon.TorState().entry_guards won't build a custom circuit if the
-        first hop isn't in the torrc's EntryNodes.
-    :ivar bridge_list:
+    :ivar relays:
+        A list of all provided relays to test.
+    :ivar bridges:
         A list of all provided bridges to test.
     :ivar socks_port:
         Integer for Tor's SocksPort.
     :ivar control_port:
         Integer for Tor's ControlPort.
-    :ivar plug_transport:
+    :ivar transport:
         String defining the Tor's ClientTransportPlugin, for testing 
         a bridge's pluggable transport functionality.
     :ivar tor_binary:
@@ -116,99 +200,83 @@ class BridgetTest(OONITest):
     def initialize(self):
         """
         Extra initialization steps. We only want one child Tor process
-        running, so we need to deal with the creation of TorConfig() only
-        once, before the experiment runs.
+        running, so we need to deal with most of the TorConfig() only once,
+        before the experiment runs.
         """
         self.socks_port      = 9049
         self.control_port    = 9052
+        self.circuit_timeout = 90
         self.tor_binary      = '/usr/sbin/tor'
         self.data_directory  = None
-        self.circuit_timeout = 90
+        self.use_pt          = False
+        self.pt_type         = None
+
+        self.bridges, self.bridges_up, self.bridges_down = ([] for i in range(3))
+        self.bridges_remaining  = lambda: len(self.bridges)
+        self.bridges_down_count = lambda: len(self.bridges_down)
+        self.current_bridge     = None
+
+        self.relays, self.relays_up, self.relays_down = ([] for i in range(3))
+        self.relays_remaining   = lambda: len(self.relays)
+        self.relays_down_count  = lambda: len(self.relays_down)
+        self.current_relay      = None
+
+        def make_asset_list(opt, lst):
+            log.msg("Loading information from %s ..." % opt)
+            with open(opt) as opt_file:
+                for line in opt_file.readlines():
+                    if line.startswith('#'):
+                        continue
+                    else:
+                        lst.append(line.replace('\n',''))
 
         if self.local_options:
-            options = self.local_options
-
-            if not options['bridges'] and not options['relays']:
-                self.suicide = True
-                return
-
             try:
                 from ooni.lib.txtorcon import TorConfig
             except ImportError:
-                log.msg ("Bridget: Unable to import from ooni.lib.txtorcon")
-                wd, tx = getcwd(), 'lib/txtorcon/torconfig.py'
-                chk = pj(wd,tx) if wd.endswith('ooni') else pj(wd,'ooni/'+tx)
-                try:
-                    assert isfile(chk)
-                except:
-                    log.msg("Error: Some OONI libraries are missing!")
-                    log.msg("Please go to /ooni/lib/ and do \"make all\"")
+                raise TxtorconImportError
 
-            self.config = TorConfig()
+            options = self.local_options
+            config  = self.config = TorConfig()
 
             if options['bridges']:
                 self.config.UseBridges = 1
-                
+                make_asset_list(options['bridges'], self.bridges)
             if options['relays']:
-                ## Stupid hack for testing only relays:
-                ## Tor doesn't use EntryNodes when UseBridges is enabled, but
-                ## config.state.entry_guards needs to include the first hop to
-                ## build a custom circuit.
+                ## first hop must be in TorState().entry_guards to build circuits
                 self.config.EntryNodes = ','.join(relay_list)
-
+                make_asset_list(options['relays'], self.relays)
             if options['socks']:
                 self.socks_port = options['socks']
-                
             if options['control']:
                 self.control_port = options['control']
-
             if options['random']:
                 log.msg("Using randomized ControlPort and SocksPort ...")
                 self.socks_port   = random.randint(1024, 2**16)
                 self.control_port = random.randint(1024, 2**16)
-
             if options['torpath']:
                 self.tor_binary = options['torpath']
 
-            if options['datadir']:
-                self.config.DataDirectory = options['datadir']
+            if self.local_options['datadir']:
+                self.data_directory = local_options['datadir']
+            else:
+                self.data_directory = None
 
             if options['transport']:
-                ## ClientTransportPlugin transport socks4|socks5 IP:PORT
+                self.use_pt = True
+                log.msg("Using ClientTransportPlugin %s" % options['transport'])
+                [self.pt_type, pt_exec] = options['transport'].split(' ', 1)
+
                 ## ClientTransportPlugin transport exec path-to-binary [options]
-                if not options['bridges']:
-                    e = "You must use the bridge option to test a transport."
-                    raise usage.UsageError("%s" % e)
+                ## XXX we need a better way to deal with all PTs
+                if self.pt_type == "obfs2":
+                    config.ClientTransportPlugin = self.pt_type + " " + pt_exec
                 else:
-                    ## XXX fixme there's got to be a better way to check the exec
-                    ##
-                    ## we could use:
-                    ##    os.setgid( NEW_GID )
-                    ##    os.setuid( NEW_UID )
-                    ## to drop any and all privileges
-                    assert type(options['transport']) is str
-                    [self.pt_type, 
-                     self.pt_exec] = options['transport'].split(' ', 1)
-                    log.msg("Using ClientTransportPlugin %s %s" 
-                            % (self.pt_type, self.pt_exec))
-                    self.pt_use = True
+                    raise PTNotFoundException
 
-                    ## XXX fixme we need a better way to deal with all PTs
-                    if self.pt_type == "obfs2":
-                        self.ctp = self.pt_type +" "+ self.pt_exec
-                    else:
-                        m  = "Pluggable Transport type %s was " % self.pt_type
-                        m += "unaccounted for, please contact isis (at) "
-                        m += "torproject (dot) org, with info and it'll get "
-                        m += "included."
-                        log.msg("%s" % m)
-                        self.ctp = None
-            else:
-                self.pt_use = False
-
-            self.config.SocksPort   = self.socks_port
-            self.config.ControlPort = self.control_port
-            self.config.save()
+            config.SocksPort                 = self.socks_port
+            config.ControlPort               = self.control_port
+            config.CookieAuthentication      = 1
 
     def load_assets(self):
         """
@@ -216,32 +284,14 @@ class BridgetTest(OONITest):
         should be given in the form IP:ORport. We don't want to load these as
         assets, because it's inefficient to start a Tor process for each one.
         """
-        assets           = {}
-        self.bridge_list = []
-        self.relay_list  = []
-
-        ## XXX fix me
-        ## we should probably find a more memory nice way to load addresses,
-        ## in case the files are really large
+        assets = {}
         if self.local_options:
-
-            def make_asset_list(opt, lst):
-                log.msg("Loading information from %s ..." % opt)
-                with open(opt) as opt_file:
-                    for line in opt_file.readlines():
-                        if line.startswith('#'):
-                            continue
-                        else:
-                            lst.append(line.replace('\n',''))
-
             if self.local_options['bridges']:
-                make_asset_list(self.local_options['bridges'], 
-                                self.bridge_list)
-                assets.update({'bridges': self.bridge_list})
+                assets.update({'bridge': 
+                               BridgetAsset(self.local_options['bridges'])})
             if self.local_options['relays']:
-                make_asset_list(self.local_options['relays'],
-                                self.relay_list)
-                assets.update({'relays': self.relay_list})
+                assets.update({'relay': 
+                               BridgetAsset(self.local_options['relays'])})
         return assets
 
     def experiment(self, args):
@@ -249,55 +299,69 @@ class BridgetTest(OONITest):
         XXX fill me in
 
         :param args:
-            The :class:`ooni.plugoo.asset.Asset <Asset>` line currently being
-            used.
-        :meth launch_tor:
-            Returns a Deferred which callbacks with a
-            :class:`ooni.lib.txtorcon.torproto.TorProcessProtocol
-            <TorProcessProtocol>` connected to the fully-bootstrapped Tor;
-            this has a :class:`ooni.lib.txtorcon.torcontol.TorControlProtocol
-            <TorControlProtocol>` instance as .protocol.
+            The :class:`BridgetAsset` line currently being used.
         """
         try:
-            from ooni.lib.txtorcon import CircuitListenerMixin, IStreamAttacher
-            from ooni.lib.txtorcon import TorProtocolFactory, TorConfig, TorState
-            from ooni.lib.txtorcon import DEFAULT_VALUE, launch_tor
+            from ooni.utils         import circuit
+            from ooni.lib.txtorcon import TorProcessProtocol
+            from ooni.lib.txtorcon import TorProtocolFactory
+            from ooni.lib.txtorcon import TorConfig, TorState
         except ImportError:
-            log.msg("Error: Unable to import from ooni.lib.txtorcon")
-            wd, tx = getcwd(), 'lib/txtorcon/torconfig.py'
-            chk = pj(wd,tx) if wd.endswith('ooni') else pj(wd,'ooni/'+tx)
-            try:
-                assert isfile(chk)
-            except:
-                log.msg("Error: Some OONI libraries are missing!")
-                log.msg("       Please go to /ooni/lib/ and do \"make all\"")
-                return sys.exit()
+            raise TxtorconImportError
+        except TxtorconImportError:
+            ## XXX is this something we should add to the reactor?
+            sys.exit()
 
         def bootstrap(ctrl):
             """
             Launch a Tor process with the TorConfig instance returned from
-            initialize().
+            initialize() and write_torrc().
             """
             conf = TorConfig(ctrl)
             conf.post_bootstrap.addCallback(setup_done).addErrback(setup_fail)
             log.msg("Tor process connected, bootstrapping ...")
 
-        def reconf_controller(conf, bridge):
-            ## if bridges and relays, use one bridge then build a circuit 
-            ## from three relays
-            conf.Bridge = ""
-            ## XXX do we need a SIGHUP to restart?                
+        def delete_temp(delete_list):
+            """
+            Given a list of files or directories to delete, delete all and 
+            suppress all errors.
+            """
+            for temp in delete_list:
+                try:
+                    os.unlink(temp)
+                except OSError:
+                    shutil.rmtree(temp, ignore_errors=True)
 
-            ## XXX see txtorcon.TorControlProtocol.add_event_listener we
-            ## may not need full CustomCircuit class
+        @timer(self.circuit_timeout)
+        def reconfigure_bridge(state, bridge, use_pt=False, pt_type=None):
+            """Rewrite the Bridge line in our torrc."""
+            log.msg("Current Bridge: %s" % bridge)                        
+            if use_pt is False:
+                new = state.protocol.set_conf('Bridge', bridge)
+            elif use_pt and pt_type is not None:
+                new = state.protocol.set_conf('Bridge', pt_type +' '+ bridge)
+            else:
+                raise PTNotFoundException
+            return new
 
-            ## if bridges only, try one bridge at a time, but don't build
-            ## circuits, just return
-            ## if relays only, build circuits from relays
-
-        def reconf_fail(args):
-            log.msg("Reconfiguring Tor config with args %s failed" % args)
+        def reconfigure_fail(*param):
+            log.msg("Reconfiguring TorConfig with parameters %s failed" % param)
             reactor.stop()
+
+        def remove_relays(state, bridge_list):
+            """
+            Remove bridges from our bridge list which are also listed as
+            public relays.
+            """
+            ips = map(lambda addr: addr.split(':',1)[0], bridge_list)
+            both = set(state.relays.values()).intersection(ips)
+            if len(both) > 0:
+                for bridge in both:
+                    bridge_list.remove(bridge)
+            return state
+
+        def remove_relays_fail(state):
+            log.msg("Unable to remove public relays from the bridge list.")
 
         def setup_fail(args):
             log.msg("Setup Failed.")
@@ -310,152 +374,148 @@ class BridgetTest(OONITest):
             state.post_bootstrap.addCallback(state_complete).addErrback(setup_fail)
             report.update({'success': args})
 
+        def start_tor(reactor, update, torrc, to_delete, control_port, 
+                      tor_binary, data_directory):
+            """
+            Create a TCP4ClientEndpoint at our control_port, and connect
+            it to our reactor and a spawned Tor process. Compare with 
+            :meth:`txtorcon.launch_tor` for differences.
+            """
+            ## XXX do we need self.reactor?
+            end_point = TCP4ClientEndpoint(reactor, 'localhost', control_port)
+            connection_creator = partial(end_point.connect, TorProtocolFactory())
+            process_protocol = TorProcessProtocol(connection_creator, updates)
+            process_protocol.to_delete = to_delete
+            reactor.addSystemEventTrigger('before', 'shutdown', 
+                                          partial(delete_temp, to_delete))
+            try:
+                transport = reactor.spawnProcess(process_protocol, 
+                                                 tor_binary,
+                                                 args=(tor_binary,'-f',torrc),
+                                                 env={'HOME': data_directory},
+                                                 path=data_directory)
+                transport.closeStdin()
+            except RuntimeError, e:
+                process_protocol.connected_cb.errback(e)
+            finally:
+                return process_protocol.connected_cb
+
+        def state_complete(state):
+            """Called when we've got a TorState."""
+            log.msg("We've completely booted up a Tor version %s at PID %d" 
+                    % (state.protocol.version, state.tor_pid))
+
+            log.msg("This Tor has the following %d Circuits:" 
+                    % len(state.circuits))
+            for circ in state.circuits.values():
+                log.msg("%s" % circ)
+
+            return state
+
+        def state_attach(state, relay_list):
+            log.msg("Setting up custom circuit builder...")
+            attacher = CustomCircuit(state)
+            state.set_attacher(attacher, reactor)
+            state.add_circuit_listener(attacher)
+
+            for circ in state.circuits.values():
+                for relay in circ.path:
+                    try:
+                        relay_list.remove(relay)
+                    except KeyError:
+                        continue
+            ## XXX how do we attach to circuits with bridges?
+            d = defer.Deferred()
+            attacher.request_circuit_build(d)
+            return d
+
         def updates(prog, tag, summary):
             log.msg("%d%%: %s" % (prog, summary))
 
-        if not self.circuit_timeout:
-            self.circuit_timeout = 90
-            
-        class TimeoutError(Exception):
-            pass
+        def write_torrc(conf, data_dir=None):
+            """
+            Create a torrc in our data_directory. If we don't yet have a 
+            data_directory, create a temporary one. Any temporary files or
+            folders are added to delete_list.
 
-        def stupid_timer(secs, e=None):
-            def decorator(func):
-                def _timer(signum, frame):
-                    raise TimeoutError, e
-                def wrapper(*args, **kwargs):
-                    signal.signal(signal.SIGALRM, _timer)
-                    signal.alarm(secs)
-                    try:
-                        res = func(*args, **kwargs)
-                    finally:
-                        signal.alarm(0)
-                    return res
-                return wraps(func)(wrapper)
-            return decorator
+            :return: delete_list, data_dir, torrc
+            """
+            delete_list = []
+
+            if data_dir is None:
+                data_dir = tempfile.mkdtemp(prefix='bridget-tordata')
+                delete_list.append(data_dir)
+            conf.DataDirectory = data_dir
+            #conf.__OwningControllerProcess = os.getpid()
+
+            (fd, torrc) = tempfile.mkstemp(dir=data_dir)
+            delete_list.append(torrc)
+            os.write(fd, conf.create_torrc())
+            os.close(fd)
+            return torrc, data_dir, delete_list
         
-        @stupid_timer(self.circuit_timeout)
-        def _launch_tor_and_report_bridge_status(_config, 
-                                                 _reactor, 
-                                                 _updates, 
-                                                 _binary,
-                                                 _callback,
-                                                 _callback_arg,
-                                                 _errback):
-            """The grossest Python function you've ever seen."""
 
-            log.msg("Starting Tor ...")        
-            ## :return: a Deferred which callbacks with a TorProcessProtocol
-            ##          connected to the fully-bootstrapped Tor; this has a 
-            ##          txtorcon.TorControlProtocol instance as .protocol.
-            proc_proto = launch_tor(_config, _reactor, progress_updates=_updates, 
-                                    tor_binary=_binary).addCallback(_callback,
-                                                                    _callback_arg).addErrback(_errback)
-            return proc_proto
-                    ## now build circuits
+        log.msg("Bridget: initiating test ... ")
 
+        while self.bridges_remaining() > 0:
+            self.current_bridge = self.bridges.pop()
+            #current_ip = self.current_bridge.split(':', 1)[0]
+            #print "CURRENT BRIDGE IP %s" % current_ip
 
+            if not self.config.config.has_key('Bridge'):
+                self.config.Bridge = self.current_bridge
+                (torrc, self.data_directory, to_delete) = write_torrc(
+                    self.config, self.data_directory)
+        
+                log.msg("Starting Tor ...")        
+                log.msg("Using the following as our torrc:\n%s" 
+                        % self.config.create_torrc())
+                report = {'tor_config': self.config.create_torrc()}
 
-        if len(args) == 0:
-            log.msg("Bridget can't run without bridges or relays to test!")
-            log.msg("Exiting ...")
-            return sys.exit()
-        else:
-            log.msg("Bridget: initiating test ... ")
-            self.london_bridge          = []
-            self.working_bridge         = []
+                state = start_tor(reactor, updates, torrc, to_delete,
+                                  self.control_port, self.tor_binary, 
+                                  self.data_directory)
+                state.addCallback(setup_done)
+                state.addErrback(setup_fail)
+                state.addCallback(remove_relays, self.bridges)
+                state.addErrback(remove_relays_fail)
+                state.addCallback(state_attach, self.bridges)
+                ## XXX write state_attach_fail()
+                state.addErrback(state_attach_fail)
 
-            if len(self.bridge_list) >= 1:
-                self.untested_bridge_count  = len(self.bridge_list)
-                self.burnt_bridge_count     = len(self.london_bridge)
-                self.current_bridge         = None
-
-            ## while bridges are in the bucket
-            while self.config.UseBridges and self.untested_bridge_count > 0:
+            ## XXX see txtorcon.TorControlProtocol.add_event_listener we
+            ##     may not need full CustomCircuit class
+            ## o if bridges and relays, use one bridge then build a circuit 
+            ##   from three relays
+            ## o if bridges only, try one bridge at a time, but don't build
+            ##   circuits, just return
+            ## o if relays only, build circuits from relays
+            else:
+                log.msg("We now have %d untested bridges..." 
+                        % self.bridges_remaining())
                 try:
-                    ## if the user wanted to use pluggable transports
-                    assert self.pt_use is True
-                except AssertionError as no_use_pt:
-                    ## if the user didn't want to use pluggable transports
-                    log.msg("Configuring Bridge line without pluggable transport")
-                    log.msg("%s" % no_use_pt)
-                    self.pt_good = False
+                    state.addCallback(reconfigure_bridge, self.current_bridge, 
+                                      self.use_pt, self.pt_type)
+                    state.addErrback(reconfigure_fail)
+                except TimeoutError:
+                    log.msg("Adding %s to unreachable bridges..." 
+                            % self.current_bridge)
+                    self.bridges_down.append(self.current_bridge)
                 else:
-                    ## user wanted PT, and we recognized transport
-                    if self.ctp is not None:
-                        try:
-                            assert self.ctp is str
-                        except AssertionError as not_a_string:
-                            log.msg("Error: ClientTransportPlugin string unusable: %s" 
-                                    % not_a_string)
-                            log.msg("       Exiting ...")
-                            sys.exit()
-                        else:
-                            ## configure the transport
-                            self.config.ClientTransportPlugin = self.ctp
-                            self.pt_good = True
-                    ## user wanted PT, but we didn't recognize it
-                    else:
-                        log.msg("Error: Unable to use ClientTransportPlugin %s %s" 
-                                % (self.pt_type, self.pt_exec))
-                        log.msg("       Exiting...")
-                        sys.exit()
-                ## whether or not we're using a pluggable transport, we need
-                ## to set the Bridge line
-                finally:
-                    log.msg("We now have %d bridges in our list..." 
-                            % self.untested_bridge_count)
-                    self.current_bridge = self.bridge_list.pop()
-                    self.untested_bridge_count -= 1
+                    log.msg("Adding %s to reachable bridges..." 
+                            % self.current_bridge)
+                    self.bridges_up.append(self.current_bridge)
 
-                    log.msg("Current Bridge: %s" % self.current_bridge)
-                    
-                    if self.pt_good:
-                        self.config.Bridge = self.pt_type +" "+ self.current_bridge
-                    else:
-                        self.config.Bridge = self.current_bridge
-                        
-                    log.msg("Using the following as our torrc:\n%s" 
-                            % self.config.create_torrc())
-                    report = {'tor_config': self.config.create_torrc()}
-                    self.config.save()
+        reactor.run()
+        ## now build circuits
 
-                    try:
-                        _launch_tor_and_report_bridge_status(self.config,
-                                                             reactor,
-                                                             updates,
-                                                             self.tor_binary,
-                                                             bootstrap,
-                                                             self.config,
-                                                             setup_fail)
-                    except TimeoutError:
-                        log.msg("Adding %s to bad bridges..." % self.current_bridge)
-                        self.london_bridge.append(self.current_bridge)
-                    else:
-                        log.msg("Adding %s to good bridges..." % self.current_bridge)
-                        self.working_bridge.append(self.current_bridge)
-
-            d = defer.Deferred()
-            d.addCallback(log.msg, 'Working Bridges:\n%s\nUnreachable Bridges:\n%s\n'
-                          % (self.working_bridge, self.london_bridge))
-            return d
-
-        def control(self, exp_res):
-            exp_res
 
 ## So that getPlugins() can register the Test:
 bridget = BridgetTest(None, None, None)
 
 ## ISIS' NOTES
 ## -----------
-## self.config.save() only needs to be called if Tor is already running.
-## 
-## to test gid, uid, and euid:
-## with open('/proc/self/state') as uidfile:
-##     print uidfile.read(1000)
-##
 ## TODO:
-##       o  add option for any kwarg=arg self.config setting
 ##       o  cleanup documentation
 ##       x  add DataDirectory option
 ##       o  check if bridges are public relays
