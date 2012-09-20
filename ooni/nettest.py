@@ -1,5 +1,4 @@
 import itertools
-
 from twisted.python import log
 from twisted.trial import unittest, itrial
 
@@ -42,35 +41,29 @@ class TestSuiteFactory(object):
         self._idx += 1
         return new_test_suite
 
-class TestSuite(pyunit.TestSuite):
-    def __init__(self, tests=()):
-        self._tests = []
-        self.input = None
-        self._idx = 0
-        self.addTests(tests)
-
-    def __repr__(self):
-        return "<%s input=%s tests=%s>" % (self.__class__,
-                self.input, self._tests)
-
-    def run(self, result):
-        """
-        Call C{run} on every member of the suite.
-        """
-        # we implement this because Python 2.3 unittest defines this code
-        # in __call__, whereas 2.4 defines the code in run.
-        for i, test in enumerate(self._tests):
+class InputTestSuite(pyunit.TestSuite):
+    def run(self, result, idx=0):
+        self._idx = idx
+        while self._tests:
             if result.shouldStop:
                 break
-            test.input = self.input
-            test._idx = self._idx + i
-            test(result)
-
+            test = self._tests.pop(0)
+            try:
+                test.input = self.input
+                test._idx = self._idx
+                print "IDX: %s" % self._idx
+                test(result)
+            except:
+                test(result)
+            self._idx += 1
         return result
 
 class TestCase(unittest.TestCase):
     name = "DefaultTestName"
-    inputs = [None]
+    inputs = []
+
+    def getOptions(self):
+        return {'inputs': self.inputs}
 
     def __repr__(self):
         return "<%s inputs=%s>" % (self.__class__, self.inputs)

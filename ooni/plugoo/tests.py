@@ -133,6 +133,7 @@ class OONITest(object):
         @param args: the asset(s) lines that we are working on.
         """
         self.start_time = date.now()
+        print "FOWID"
         log.msg("Starting test %s" % self.__class__)
         return self._do_experiment(args)
 

@@ -15,6 +15,15 @@
 
 import sys, os, random, gc, time, warnings
 
+import unittest
+import inspect
+
+from ooni.input import InputUnitFactory
+from ooni.reporter import ReporterFactory
+from ooni.nettest import InputTestSuite
+from ooni.plugoo import tests
+from ooni import nettest, runner, reporter
+
 from twisted.internet import defer
 from twisted.application import app
 from twisted.python import usage, reflect, failure, log
@@ -24,7 +33,6 @@ from twisted.python.util import spewer
 from twisted.python.compat import set
 from twisted.trial import itrial
 from twisted.trial import runner as irunner
-from ooni import runner, reporter
 
 
 def _parseLocalVariables(line):
@@ -132,11 +140,10 @@ class Options(usage.Options, app.ReactorSelectionMixin):
                 repeat=True)],
         )
 
-    fallbackReporter = reporter.OONIReporter
     tracer = None
 
     def __init__(self):
-        self['tests'] = set()
+        self['test'] = None
         usage.Options.__init__(self)
 
 
@@ -178,7 +185,10 @@ class Options(usage.Options, app.ReactorSelectionMixin):
         if not os.path.isfile(filename):
             sys.stderr.write("File %r doesn't exist\n" % (filename,))
             return
+
         filename = os.path.abspath(filename)
+        self['test'] = filename
+
         if isTestFile(filename):
             self['tests'].add(filename)
         else:
@@ -248,7 +258,10 @@ class Options(usage.Options, app.ReactorSelectionMixin):
 
 
     def parseArgs(self, *args):
-        self['tests'].update(args)
+        try:
+            self['test'] = args[0]
+        except:
+            raise usage.UsageError("No test filename specified!")
 
 
     def postOptions(self):
@@ -265,39 +278,6 @@ class Options(usage.Options, app.ReactorSelectionMixin):
                                        "--nopm ")
             failure.DO_POST_MORTEM = False
 
-
-def _initialDebugSetup(config):
-    # do this part of debug setup first for easy debugging of import failures
-    if config['debug']:
-        failure.startDebugMode()
-    if config['debug'] or config['debug-stacktraces']:
-        defer.setDebugging(True)
-
-
-def _getSuitesAndInputs(config):
-    #loader = irunner.TestLoader()
-    loader = runner.NetTestLoader()
-    recurse = not config['no-recurse']
-    print "loadByNames %s" % config['tests']
-    inputs, suites = loader.loadByNamesWithInput(config['tests'], recurse)
-    return inputs, suites
-
-def _makeRunner(config):
-    mode = None
-    if config['debug']:
-        mode = runner.OONIRunner.DEBUG
-    print "using %s" % config['reporter']
-    return runner.OONIRunner(config['reporter'],
-                              reportfile=config["reportfile"],
-                              mode=mode,
-                              logfile=config['logfile'],
-                              tracebackFormat=config['tbformat'],
-                              realTimeErrors=config['rterrors'],
-                              uncleanWarnings=config['unclean-warnings'],
-                              workingDirectory=config['temp-directory'],
-                              forceGarbageCollection=config['force-gc'])
-
-
 def run():
     if len(sys.argv) == 1:
         sys.argv.append("--help")
@@ -307,10 +287,10 @@ def run():
     except usage.error, ue:
         raise SystemExit, "%s: %s" % (sys.argv[0], ue)
 
-    _initialDebugSetup(config)
-    trialRunner = _makeRunner(config)
-    inputs, testSuites = _getSuitesAndInputs(config)
-    log.startLogging(sys.stdout)
-    for i, suite in enumerate(testSuites):
-        test_result = trialRunner.run(suite, inputs[i])
+    file_name = os.path.abspath('nettests/simpletest.py')
+    classes = runner.findTestClassesFromFile(config['test'])
+    casesList, options = runner.loadTestsAndOptions(classes)
+    for idx, cases in enumerate(casesList):
+        orunner = runner.ORunner(cases, options[idx])
+        orunner.run()
 
