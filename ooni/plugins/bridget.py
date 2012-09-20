@@ -341,55 +341,91 @@ class BridgetTest(OONITest):
                     rmtree(temp, ignore_errors=True)
 
         #@timer(self.circuit_timeout)
+        @defer.inlineCallbacks
         def reconfigure_bridge(state, bridge, use_pt=False, pt_type=None):
-            """Rewrite the Bridge line in our torrc."""
-            log.msg("Current Bridge: %s" % bridge)                        
-            if use_pt is False:
-                state.protocol.set_conf('Bridge', bridge)
-            elif use_pt and pt_type is not None:
-                state.protocol.set_conf('Bridge', pt_type +' '+ bridge)
-            else:
-                raise PTNotFoundException
-            return state.callback
+            """
+            Rewrite the Bridge line in our torrc. If use of pluggable
+            transports was specified, rewrite the line as:
+                Bridge <transport_type> <ip>:<orport>
+            Otherwise, rewrite in the standard form.
+            """
+            log.msg("Current Bridge: %s" % bridge)
+            try:
+                if use_pt is False:
+                    reset_tor = yield state.protocol.set_conf('Bridge', bridge)
+                elif use_pt and pt_type is not None:
+                    reset_tor = yield state.protocol.set_conf('Bridge', 
+                                                          pt_type +' '+ bridge)
+                else:
+                    raise PTNotFoundException
+
+                controller_response = reset_tor.callback
+                if not controller_response:
+                    defer.returnValue((state.callback, None))
+                else:
+                    defer.returnValue((state.callback, controller_response)) 
+            except Exception, e:
+                log.msg("Reconfiguring torrc Bridge line failed with %s" % bridge)
 
         def reconfigure_fail(*param):
             log.msg("Reconfiguring TorConfig with parameters %s failed" % param)
             reactor.stop()
 
-        def remove_relays(state, bridge_list):
+        @defer.inlineCallbacks
+        def remove_public_relays(state, bridges):
             """
             Remove bridges from our bridge list which are also listed as
             public relays.
             """
-            ips = map(lambda addr: addr.split(':',1)[0], bridge_list)
-            both = set(state.relays.values()).intersection(ips)
+            IPs = map(lambda addr: addr.split(':',1)[0], bridges)
+            both = set(state.routers.values()).intersection(IPs)
+
+            def __remove_line__(node, bridges=bridges):
+                for line in bridges:
+                    if line.startswith(node):
+                        log.msg("Removing %s because it is a public relay" % node)
+                        bridges.remove(line)
+
             if len(both) > 0:
-                for bridge in both:
-                    bridge_list.remove(bridge)
-            return state.callback
+                try:
+                    updated = yield map(lambda node: __remove_line__(node), both)
+                    if not updated:
+                        ## XXX do these need to be state.callback?
+                        defer.returnValue(state)
+                    else:
+                        defer.returnValue(state)
+                except Exception, e:
+                    log.msg("Unable to remove public relays from bridge list:\n%s"
+                            % both)
+                    log.err(e)
 
-        def remove_relays_fail(state):
-            log.msg("Unable to remove public relays from the bridge list.")
-
-        def setup_fail(args):
-            log.msg("Setup Failed.")
-            report.update({'failed': args})
+        def setup_fail(proto, bridge_list, relay_list):
+            log.err("Setup Failed: %s" % proto)
+            log.err("We were given bridge list:\n%s\nAnd our relay list:\n%s\n"
+                    % (bridge_list, relay_list))
+            report.update({'setup_fail': 'FAILED', 
+                           'proto': proto, 
+                           'bridge_list': bridge_list, 
+                           'relay_list': relay_list})
             reactor.stop()
 
-        def setup_done(proto):
+        def setup_done(proto, bridge_list, relay_list):
             log.msg("Setup Complete: %s" % proto)
             state = TorState(proto.tor_protocol)
             state.post_bootstrap.addCallback(state_complete).addErrback(setup_fail)
-            report.update({'success': args})
+            if bridge_list is not None:
+                state.post_bootstrap.addCallback(remove_public_relays, bridge_list)
+            if relay_list is not None:
+                raise NotImplemented
+            #report.update({'success': args})
 
-        def start_tor(reactor, update, torrc, to_delete, control_port, 
-                      tor_binary, data_directory):
+        def start_tor(reactor, update, torrc, to_delete, control_port, tor_binary, 
+                      data_directory, bridge_list=None, relay_list=None):
             """
             Create a TCP4ClientEndpoint at our control_port, and connect
             it to our reactor and a spawned Tor process. Compare with 
             :meth:`txtorcon.launch_tor` for differences.
             """
-            ## XXX do we need self.reactor?
             end_point = TCP4ClientEndpoint(reactor, 'localhost', control_port)
             connection_creator = partial(end_point.connect, TorProtocolFactory())
             process_protocol = TorProcessProtocol(connection_creator, updates)
@@ -406,9 +442,9 @@ class BridgetTest(OONITest):
             except RuntimeError, e:
                 process_protocol.connected_cb.errback(e)
             finally:
-                return process_protocol.connected_cb
+                return process_protocol.connected_cb, bridge_list, relay_list
 
-        def state_complete(state):
+        def state_complete(state, bridge_list=None, relay_list=None):
             """Called when we've got a TorState."""
             log.msg("We've completely booted up a Tor version %s at PID %d" 
                     % (state.protocol.version, state.tor_pid))
@@ -418,7 +454,12 @@ class BridgetTest(OONITest):
             for circ in state.circuits.values():
                 log.msg("%s" % circ)
 
-            return state
+            if bridge_list is not None and relay_list is None:
+                return state, bridge_list
+            elif bridge_list is None and relay_list is not None:
+                raise NotImplemented
+            else:
+                return state, None
 
         def state_attach(state, relay_list):
             log.msg("Setting up custom circuit builder...")
@@ -426,12 +467,12 @@ class BridgetTest(OONITest):
             state.set_attacher(attacher, reactor)
             state.add_circuit_listener(attacher)
 
-            for circ in state.circuits.values():
-                for relay in circ.path:
-                    try:
-                        relay_list.remove(relay)
-                    except KeyError:
-                        continue
+            #for circ in state.circuits.values():
+            #    for relay in circ.path:
+            #        try:
+            #            relay_list.remove(relay)
+            #        except KeyError:
+            #            continue
             ## XXX how do we attach to circuits with bridges?
             d = defer.Deferred()
             attacher.request_circuit_build(d)
@@ -457,7 +498,6 @@ class BridgetTest(OONITest):
                 data_dir = mkdtemp(prefix='bridget-tordata')
                 delete_list.append(data_dir)
             conf.DataDirectory = data_dir
-            #conf.__OwningControllerProcess = os.getpid()
 
             (fd, torrc) = mkstemp(dir=data_dir)
             delete_list.append(torrc)
@@ -468,8 +508,16 @@ class BridgetTest(OONITest):
 
         log.msg("Bridget: initiating test ... ")
 
-        while self.bridges_remaining() > 0:
-            self.current_bridge = self.bridges.pop()
+        #while self.bridges_remaining() > 0:
+        while args['bridge']:
+
+            #self.current_bridge = self.bridges.pop()
+            self.current_bridge = args['bridge']
+            try:
+                self.bridges.remove(self.current_bridge)
+            except ValueError, ve:
+                log.err(ve)
+                
             if self.config.config.has_key('Bridge'):
                 log.msg("We now have %d untested bridges..." 
                         % self.bridges_remaining())
@@ -479,9 +527,6 @@ class BridgetTest(OONITest):
                                    self.pt_type)
                 reconf.addErrback(reconfigure_fail)
                 state.chainDeferred(reconf)
-                #reconfigure_bridge(state, self.current_bridge, 
-                #                   self.use_pt, self.pt_type)
-                #current_ip = self.current_bridge.split(':', 1)[0]
 
             else:
                 self.config.Bridge = self.current_bridge
@@ -499,10 +544,7 @@ class BridgetTest(OONITest):
                 state.addCallback(setup_done)
                 state.addErrback(setup_fail)
                 state.addBoth(remove_relays, self.bridges)
-                #state.addCallback(remove_relays, self.bridges)
-                #state.addErrback(remove_relays_fail)
-                #state.addCallback(state_attach, self.bridges)
-                #state.addErrback(state_attach_fail)
+
             return state
 
             ## XXX see txtorcon.TorControlProtocol.add_event_listener we

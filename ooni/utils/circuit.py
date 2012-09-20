@@ -3,26 +3,26 @@
 # ----------
 # Utilities for working with Tor circuits.
 #
-# This code is largely taken from the txtorcon documentation, and as
-# such any and all credit should go to meejah.
+# This code is largely taken from attach_streams_by_country.py in the txtorcon
+# documentation, and as such any and all credit should go to meejah. Minor
+# adjustments have been made to use OONI's logging system, and to build custom
+# circuits without actually attaching streams.
 #
-# :author: Mike Warren, Isis Lovecruft
+# :author: Meejah, Isis Lovecruft
 # :license: see included license file
 # :version: 0.1.0-alpha
 #
-from zope.interface    import implements
-
-from ooni.lib.txtorcon import CircuitListenerMixin, IStreamAttacher
-from ooni.utils        import log
 
 import random
+
+from ooni.lib.txtorcon import CircuitListenerMixin, IStreamAttacher
+from ooni.lib.txtorcon import TorInfo
+from ooni.utils        import log
+from zope.interface    import implements
 
 
 class CustomCircuit(CircuitListenerMixin):
     implements(IStreamAttacher)
-
-    from txtorcon.interface import IRouterContainer
-    from txtorcon.interface import ICircuitContainer
 
     def __init__(self, state):
         self.state = state
