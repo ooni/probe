@@ -360,16 +360,25 @@ class BridgetTest(OONITest):
                     raise PTNotFoundException
 
                 controller_response = reset_tor.callback
-                if not controller_response:
-                    defer.returnValue((state.callback, None))
-                else:
-                    defer.returnValue((state.callback, controller_response)) 
-            except Exception, e:
-                log.msg("Reconfiguring torrc Bridge line failed with %s" % bridge)
 
-        def reconfigure_fail(*param):
-            log.msg("Reconfiguring TorConfig with parameters %s failed" % param)
-            reactor.stop()
+                #if not controller_response:
+                #    defer.returnValue((state.callback, None))
+                #else:
+                #    defer.returnValue((state.callback, controller_response)) 
+                if controller_response == 'OK':
+                    defer.returnValue(state.callback)
+                else:
+                    log.msg("TorControlProtocol responded with error:\n%s\n"
+                            % controller_response)
+                    defer.returnValue(state.callback)
+                
+            except Exception, e:
+                log.msg("Reconfiguring torrc with Bridge line %s failed:\n%s\n" 
+                        % (bridge, e))
+
+        def reconfigure_fail(state, bridge, bad):
+            log.msg("Reconfiguring TorConfig with parameters %s failed" % state)
+            bad.append(bridge)
 
         @defer.inlineCallbacks
         def remove_public_relays(state, bridges):
@@ -398,6 +407,44 @@ class BridgetTest(OONITest):
                     log.msg("Unable to remove public relays from bridge list:\n%s"
                             % both)
                     log.err(e)
+
+        def request_circuit_build(state, deferred, path=None):
+            if path is None:
+                if relays_remaining() > 0:
+                    first, middle,last = (state.relays.pop()
+                                          for i in range(3))
+                else:
+                    first = random.choice(state.entry_guards.values())
+                    middle, last = (random.choice(state.routers.values())
+                                    for i in range(2))
+                path = [first, middle, last]
+            else:
+                assert type(path) is list, "Circuit path must be a list of routers!"
+                assert len(path) >= 3, "Circuits must be at least three hops!"
+
+            log.msg("Requesting a circuit: %s"
+                    % '->'.join(map(lambda node: node, path)))
+
+            class AppendWaiting:
+                def __init__(self, attacher, deferred):
+                    self.attacher = attacher
+                    self.d        = deferred
+                def __call__(self, circ):
+                    """
+                    Return from build_circuit is a Circuit, however,
+                    we want to wait until it is built before we can
+                    issue an attach on it and callback to the Deferred
+                    we issue here.
+                    """
+                    log.msg("Circuit %s is in progress ..." % circ.id)
+                    self.attacher.waiting_circuits.append((circ.id, self.d))
+
+            return self.state.build_circuit(path).addCallback(
+                AppendWaiting(self, deferred)).addErrback(
+                log.err)
+
+        def attacher_extend_circuit(attacher, deferred, router):
+            
 
         def setup_fail(proto, bridge_list, relay_list):
             log.err("Setup Failed: %s" % proto)
@@ -508,27 +555,17 @@ class BridgetTest(OONITest):
 
         log.msg("Bridget: initiating test ... ")
 
-        #while self.bridges_remaining() > 0:
-        while args['bridge']:
+        while self.bridges_remaining() > 0:
 
-            #self.current_bridge = self.bridges.pop()
-            self.current_bridge = args['bridge']
+            self.current_bridge = self.bridges.pop()
+            #self.current_bridge = args['bridge']
+
             try:
                 self.bridges.remove(self.current_bridge)
             except ValueError, ve:
                 log.err(ve)
                 
-            if self.config.config.has_key('Bridge'):
-                log.msg("We now have %d untested bridges..." 
-                        % self.bridges_remaining())
-                reconf = defer.Deferred()
-                reconf.addCallback(reconfigure_bridge, state,
-                                   self.current_bridge, self.use_pt,
-                                   self.pt_type)
-                reconf.addErrback(reconfigure_fail)
-                state.chainDeferred(reconf)
-
-            else:
+            if not self.config.config.has_key('Bridge'):
                 self.config.Bridge = self.current_bridge
                 (torrc, self.data_directory, to_delete) = write_torrc(
                     self.config, self.data_directory)
@@ -538,14 +575,48 @@ class BridgetTest(OONITest):
                         % self.config.create_torrc())
                 report = {'tor_config': self.config.create_torrc()}
 
-                state = start_tor(reactor, updates, torrc, to_delete,
-                                  self.control_port, self.tor_binary, 
-                                  self.data_directory)
+                state = start_tor(reactor, updates, torrc, to_delete, 
+                                  self.control_port, 
+                                  self.tor_binary, 
+                                  self.data_directory, 
+                                  bridge_list=self.bridges)
                 state.addCallback(setup_done)
                 state.addErrback(setup_fail)
-                state.addBoth(remove_relays, self.bridges)
+                state.addCallback(remove_public_relays, self.bridges)
+
+            else:
+                log.msg("We now have %d untested bridges..." 
+                        % self.bridges_remaining())
+                reconf = defer.Deferred()
+                reconf.addCallback(reconfigure_bridge, state,
+                                   self.current_bridge, self.use_pt,
+                                   self.pt_type)
+                reconf.addErrback(reconfigure_fail, state,
+                                  self.current_bridge, self.bridges_down)
+                state.chainDeferred(reconf)
+                #all = []
+                #reconf = reconfigure_bridge(state, self.current_bridge,
+                #                            self.use_pt, self.pt_type)
+                #reconf.addCallback(reconfigure_done)
+                #reconf.addErrback(reconfigure_fail)
+                #state.DeferredList(all)
+
+            while self.relays_remaining() >= 3:
+                #path = list(self.relays.pop() for i in range(3))
+                #log.msg("Trying path %s" % '->'.join(map(lambda node: node, path)))
+                self.current_relay = self.relays.pop()
+                for circ in state.circuits.values():
+                    for node in circ.path:
+                        if node == self.current_relay:
+                            self.relays_up.append(self.current_relay)
+                    try:
+                        ext = attacher_extend_circuit(state.attacher, circ, 
+                                                      self.current_relay)
+                        
 
             return state
+        ## still need to attach attacher to state
+        ## then build circuits
 
             ## XXX see txtorcon.TorControlProtocol.add_event_listener we
             ##     may not need full CustomCircuit class
@@ -569,7 +640,6 @@ class BridgetTest(OONITest):
             #        self.bridges_up.append(self.current_bridge)
 
         reactor.run()
-        ## now build circuits
 
 
 ## So that getPlugins() can register the Test:

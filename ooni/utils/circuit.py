@@ -9,7 +9,7 @@
 # circuits without actually attaching streams.
 #
 # :author: Meejah, Isis Lovecruft
-# :license: see included license file
+# :license: see included LICENSE file
 # :version: 0.1.0-alpha
 #
 
@@ -24,9 +24,10 @@ from zope.interface    import implements
 class CustomCircuit(CircuitListenerMixin):
     implements(IStreamAttacher)
 
-    def __init__(self, state):
+    def __init__(self, state, relays=None):
         self.state = state
         self.waiting_circuits = []
+        self.relays = relays
 
     def waiting_on(self, circuit):
         for (circid, d) in self.waiting_circuits:
@@ -54,12 +55,12 @@ class CustomCircuit(CircuitListenerMixin):
 
     def circuit_failed(self, circuit, reason):
         if self.waiting_on(circuit):
-            log.msg("A circuit we requested %s failed for reason %s" 
+            log.msg("Circuit %s failed for reason %s" 
                     % (circuit.id, reason))
             circid, d = None, None
-            for x in self.waiting_circuits:
-                if x[0] == circuit.id:
-                    circid, d = x
+            for c in self.waiting_circuits:
+                if c[0] == circuit.id:
+                    circid, d = c
             if d is None:
                 raise Exception("Expected to find circuit.")
 
@@ -72,15 +73,19 @@ class CustomCircuit(CircuitListenerMixin):
             #router.update() ## XXX can i use without args? no.
             TorInfo.dump(self)
 
-    def request_circuit_build(self, deferred):
-        if self.state.relays_remaining() > 0:
-            first, middle,last = (self.state.relays.pop()
-                                  for i in range(3))
+    def request_circuit_build(self, deferred, path=None):
+        if path is None:
+            if self.state.relays_remaining() > 0:
+                first, middle,last = (self.state.relays.pop()
+                                      for i in range(3))
+            else:
+                first = random.choice(self.state.entry_guards.values())
+                middle, last = (random.choice(self.state.routers.values())
+                                for i in range(2))
+            path = [first, middle, last]
         else:
-            first = random.choice(self.state.entry_guards.values())
-            middle, last = (random.choice(self.state.routers.values())
-                            for i in range(2))
-        path = [first, middle, last]
+            assert type(path) is list, "Circuit path must be a list of routers!"
+            assert len(path) >= 3, "Circuits must be at least three hops!"
 
         log.msg("Requesting a circuit: %s" 
                 % '->'.join(map(lambda node: node, path)))
@@ -100,5 +105,5 @@ class CustomCircuit(CircuitListenerMixin):
                 self.attacher.waiting_circuits.append((circ.id, self.d))
 
         return self.state.build_circuit(path).addCallback(
-            AppendWaiting(self, deferred_to_callback)).addErrback(
+            AppendWaiting(self, deferred)).addErrback(
             log.err)
