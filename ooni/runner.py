@@ -85,13 +85,18 @@ def adaptLegacyTest(obj, config):
             args = {}
             args[self.key] = self.input
             result = yield my_test.startTest(args)
-            print "Finished!"
-            print result
+            self.report['result'] = result
 
     return LegacyOONITest
 
 
 def findTestClassesFromConfig(config):
+    """
+    Takes as input the command line config parameters and returns the test
+    case classes.
+    If it detects that a certain test class is using the old OONIProbe format,
+    then it will adapt it to the new testing system.
+    """
     filename = config['test']
 
     classes = []
@@ -105,12 +110,20 @@ def findTestClassesFromConfig(config):
     return classes
 
 def makeTestCases(klass, tests, methodPrefix):
+    """
+    Takes a class some tests and returns the test cases. methodPrefix is how
+    the test case functions should be prefixed with.
+    """
     cases = []
     for test in tests:
         cases.append(klass(methodPrefix+test))
     return cases
 
 def loadTestsAndOptions(classes):
+    """
+    Takes a list of classes and returnes their testcases and options.
+    Legacy tests will be adapted.
+    """
     methodPrefix = 'test'
     suiteFactory = InputTestSuite
     options = []
@@ -132,6 +145,12 @@ def loadTestsAndOptions(classes):
     return testCases, options
 
 class ORunner(object):
+    """
+    This is a specialized runner used by the ooniprobe command line tool.
+    I am responsible for reading the inputs from the test files and splitting
+    them in input units. I also create all the report instances required to run
+    the tests.
+    """
     def __init__(self, cases, options=None, config=None):
         self.baseSuite = InputTestSuite
         self.cases = cases

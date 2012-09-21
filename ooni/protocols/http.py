@@ -56,7 +56,7 @@ class HTTPTest(OONITest):
 
     def _processResponseBody(self, data):
         self.response['body'] = data
-        #self.result['response'] = self.response
+        self.result['response'] = self.response
         self.processResponseBody(data)
 
     def processResponseBody(self, data):
@@ -127,7 +127,7 @@ class HTTPTest(OONITest):
         if self.randomize_ua:
             self.randomize_useragent()
 
-        #self.result['request'] = self.request
+        self.result['request'] = self.request
         self.result['url'] = url
         return self.agent.request(self.request['method'], self.request['url'],
                                   Headers(self.request['headers']),

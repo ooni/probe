@@ -138,12 +138,14 @@ class OONIReporter(OReporter):
         # This is here for allowing reporting of legacy tests.
         # XXX In the future this should be removed.
         try:
-            self._tests[idx]['report'] = list(test.legacy_report)
+            report = list(test.legacy_report)
         except:
             # XXX I put a dict() here so that the object is re-instantiated and I
             #     actually end up with the report I want. This could either be a
             #     python bug or a yaml bug.
-            self._tests[idx]['report'] = dict(test.report)
+            report = dict(test.report)
+
+        self._tests[idx]['report'] = report
 
 
     def done(self):
