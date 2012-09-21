@@ -9,7 +9,7 @@ class InputUnitFactory(object):
     """
     inputUnitSize = 3
     def __init__(self, inputs=[]):
-        self._inputs = inputs
+        self._inputs = iter(inputs)
         self._idx = 0
         self._ended = False
 
@@ -21,16 +21,13 @@ class InputUnitFactory(object):
             raise StopIteration
 
         last_element_idx = self._idx + self.inputUnitSize
-        input_unit_elements = self._inputs[self._idx:last_element_idx]
-        try:
-            # XXX hack to fail when we reach the end of the list
-            antani = self._inputs[last_element_idx]
-        except:
-            if len(input_unit_elements) > 0:
+        input_unit_elements = []
+        for i in xrange(last_element_idx):
+            try:
+                input_unit_elements.append(self._inputs.next())
+            except:
                 self._ended = True
-                return InputUnit(input_unit_elements)
-            else:
-                raise StopIteration
+                break
 
         self._idx += self.inputUnitSize
 

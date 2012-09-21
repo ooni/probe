@@ -11,6 +11,10 @@ from twisted.trial import unittest, reporter, runner
 pyunit =  __import__('unittest')
 
 class OReporter(pyunit.TestResult):
+    """
+    This is an extension of the unittest TestResult. It adds support for
+    reporting to yaml format.
+    """
     def __init__(self, stream=sys.stdout, tbformat='default', realtime=False,
                  publisher=None, testSuite=None):
         super(OReporter, self).__init__()
@@ -45,6 +49,10 @@ class OReporter(pyunit.TestResult):
 
 
 class ReporterFactory(OReporter):
+    """
+    This is a reporter factory. It emits new instances of Reports. It is also
+    responsible for writing the OONI Report headers.
+    """
     def __init__(self, stream=sys.stdout, tbformat='default', realtime=False,
                  publisher=None, testSuite=None):
         super(ReporterFactory, self).__init__(stream=stream,
@@ -77,6 +85,14 @@ class ReporterFactory(OReporter):
 
 
 class OONIReporter(OReporter):
+    """
+    This is a special reporter that has knowledge about the fact that there can
+    exist more test runs of the same kind per run.
+    These multiple test runs are kept track of through idx.
+
+    An instance of such reporter should be created per InputUnit. Every input
+    unit will invoke size_of_input_unit * test_cases times startTest().
+    """
     def __init__(self, stream=sys.stdout, tbformat='default', realtime=False,
                  publisher=None):
         super(OONIReporter, self).__init__(stream=stream,
@@ -119,10 +135,16 @@ class OONIReporter(OReporter):
         idx = self.getTestIndex(test)
 
         self._tests[idx]['lastTime'] = self._getTime() - self._tests[idx]['testStarted']
-        # XXX I put a dict() here so that the object is re-instantiated and I
-        #     actually end up with the report I want. This could either be a
-        #     python bug or a yaml bug.
-        self._tests[idx]['report'] = dict(test.report)
+        # This is here for allowing reporting of legacy tests.
+        # XXX In the future this should be removed.
+        try:
+            self._tests[idx]['report'] = list(test.legacy_report)
+        except:
+            # XXX I put a dict() here so that the object is re-instantiated and I
+            #     actually end up with the report I want. This could either be a
+            #     python bug or a yaml bug.
+            self._tests[idx]['report'] = dict(test.report)
+
 
     def done(self):
         """

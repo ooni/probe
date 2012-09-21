@@ -25,19 +25,19 @@ class OONITest(object):
     name = "oonitest"
     # By default we set this to False, meaning that we don't block
     blocking = False
-    reactor = None
+    reactor = reactor
     tool = False
     ended = False
 
     def __init__(self, local_options, global_options, report, ooninet=None,
-            reactor=None):
+            my_reactor=reactor):
         # These are the options that are read through the tests suboptions
         self.local_options = local_options
         # These are the options global to all of OONI
         self.global_options = global_options
         self.report = report
         #self.ooninet = ooninet
-        self.reactor = reactor
+        self.reactor = my_reactor
         self.result = {}
 
         self.initialize()
@@ -133,7 +133,6 @@ class OONITest(object):
         @param args: the asset(s) lines that we are working on.
         """
         self.start_time = date.now()
-        print "FOWID"
         log.msg("Starting test %s" % self.__class__)
         return self._do_experiment(args)
 

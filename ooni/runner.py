@@ -15,6 +15,7 @@ from ooni.reporter import ReporterFactory
 from ooni.input import InputUnitFactory
 from ooni.nettest import InputTestSuite
 from ooni import nettest
+from ooni.utils import log
 from ooni.plugoo import tests as oonitests
 
 def isTestCase(thing):
@@ -37,7 +38,7 @@ def isLegacyTest(obj):
     except TypeError:
         return False
 
-def adaptLegacyTest(obj, inputs=[None]):
+def adaptLegacyTest(obj, config):
     """
     We take a legacy OONITest class and convert it into a nettest.TestCase.
     This allows backward compatibility of old OONI tests.
@@ -45,30 +46,62 @@ def adaptLegacyTest(obj, inputs=[None]):
     XXX perhaps we could implement another extra layer that makes the even
     older test cases compatible with the new OONI.
     """
+    class legacy_reporter(object):
+        def __init__(self, report_target):
+            self.report_target = report_target
+
+        def __call__(self, what):
+            self.report_target.append(what)
+
     class LegacyOONITest(nettest.TestCase):
-        inputs = [None]
-        original_test = obj
+        try:
+            name = obj.shortName
+        except:
+            name = "LegacyOONITest"
+
+        originalTest = obj
+
+        subOptions = obj.options()
+        subOptions.parseOptions(config['subArgs'])
+
+        test_class = obj(None, None, None, None)
+        test_class.local_options = subOptions
+        assets = test_class.load_assets()
+
+        # XXX here we are only taking assets that are set to one item only.
+        for key, inputs in assets.items():
+            pass
+
+        inputs = inputs
+        local_options = subOptions
 
         @defer.inlineCallbacks
         def test_start_legacy_test(self):
-            print "bla bla bla"
-            print self.original_test
-            my_test = self.original_test(None, None, None)
-            yield my_test.startTest(self.input)
+
+            self.legacy_report = []
+
+            my_test = self.originalTest(None, None, None)
+            my_test.report = legacy_reporter(self.legacy_report)
+            args = {}
+            args[self.key] = self.input
+            result = yield my_test.startTest(args)
+            print "Finished!"
+            print result
 
     return LegacyOONITest
 
 
-def findTestClassesFromFile(filename):
+def findTestClassesFromConfig(config):
+    filename = config['test']
+
     classes = []
 
-    print "FILENAME %s" % filename
     module = filenameToModule(filename)
     for name, val in inspect.getmembers(module):
         if isTestCase(val):
             classes.append(val)
         elif isLegacyTest(val):
-            classes.append(adaptLegacyTest(val))
+            classes.append(adaptLegacyTest(val, config))
     return classes
 
 def makeTestCases(klass, tests, methodPrefix):
@@ -99,13 +132,17 @@ def loadTestsAndOptions(classes):
     return testCases, options
 
 class ORunner(object):
-    def __init__(self, cases, options=None):
+    def __init__(self, cases, options=None, config=None):
         self.baseSuite = InputTestSuite
         self.cases = cases
         self.options = options
         self.inputs = options['inputs']
-        self.reporterFactory = ReporterFactory(open('foo.log', 'a+'),
-                testSuite=self.baseSuite(self.cases))
+        try:
+            reportFile = open(config['reportfile'], 'a+')
+        except:
+            reportFile = open('report.yaml', 'a+')
+        self.reporterFactory = ReporterFactory(reportFile,
+                                    testSuite=self.baseSuite(self.cases))
 
     def runWithInputUnit(self, inputUnit):
         idx = 0
@@ -126,6 +163,7 @@ class ORunner(object):
         result.done()
 
     def run(self):
+        log.start()
         self.reporterFactory.writeHeader()
 
         for inputUnit in InputUnitFactory(self.inputs):

@@ -73,9 +73,9 @@ class Options(usage.Options, app.ReactorSelectionMixin):
     def parseArgs(self, *args):
         try:
             self['test'] = args[0]
+            self['subArgs'] = args[1:]
         except:
             raise usage.UsageError("No test filename specified!")
-
 
     def postOptions(self):
         self['reporter'] = reporter.OONIReporter
@@ -90,9 +90,11 @@ def run():
     except usage.error, ue:
         raise SystemExit, "%s: %s" % (sys.argv[0], ue)
 
-    classes = runner.findTestClassesFromFile(config['test'])
+    classes = runner.findTestClassesFromConfig(config)
+
     casesList, options = runner.loadTestsAndOptions(classes)
     for idx, cases in enumerate(casesList):
-        orunner = runner.ORunner(cases, options[idx])
+        orunner = runner.ORunner(cases, options[idx], config)
         orunner.run()
+
 
