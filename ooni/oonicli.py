@@ -42,7 +42,8 @@ class Options(usage.Options, app.ReactorSelectionMixin):
                 "network tests. These are loaded from modules, packages and"
                 "files listed on the command line")
 
-    optFlags = [["help", "h"]]
+    optFlags = [["help", "h"],
+                ]
 
     optParameters = [
         ["reportfile", "o", "report.yaml", "report file name"],
@@ -63,6 +64,10 @@ class Options(usage.Options, app.ReactorSelectionMixin):
         self['test'] = None
         usage.Options.__init__(self)
 
+    def opt_asciilulz(self):
+        from ooni.utils import logo
+        print logo.getlogo()
+
     def opt_spew(self):
         """
         Print an insanely verbose log of everything that happens.  Useful
@@ -73,6 +78,7 @@ class Options(usage.Options, app.ReactorSelectionMixin):
     def parseArgs(self, *args):
         try:
             self['test'] = args[0]
+
             self['subArgs'] = args[1:]
         except:
             raise usage.UsageError("No test filename specified!")
@@ -96,5 +102,4 @@ def run():
     for idx, cases in enumerate(casesList):
         orunner = runner.ORunner(cases, options[idx], config)
         orunner.run()
-
 
