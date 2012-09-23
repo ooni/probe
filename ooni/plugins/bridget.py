@@ -189,7 +189,7 @@ class BridgetTest(OONITest):
     implements(IPlugin, ITest)
 
     shortName    = "bridget"
-    description  = "Use a Tor process to test connecting to bridges and relays"
+    description  = "Use a Tor process to test connecting to bridges or relays"
     requirements = None
     options      = BridgetArgs
     blocking     = False
@@ -218,7 +218,7 @@ class BridgetTest(OONITest):
         self.relays_down_count  = lambda: len(self.relays_down)
         self.current_relay      = None
 
-        def make_asset_list(opt, lst):
+        def __make_asset_list__(opt, lst):
             log.msg("Loading information from %s ..." % opt)
             with open(opt) as opt_file:
                 for line in opt_file.readlines():
@@ -238,12 +238,12 @@ class BridgetTest(OONITest):
 
             if options['bridges']:
                 self.config.UseBridges = 1
-                make_asset_list(options['bridges'], self.bridges)
+                __make_asset_list__(options['bridges'], self.bridges)
 
             if options['relays']:
-                ## first hop must be in TorState().entry_guards to build circuits
+                ## first hop must be in TorState().guards to build circuits
                 self.config.EntryNodes = ','.join(relay_list)
-                make_asset_list(options['relays'], self.relays)
+                __make_asset_list__(options['relays'], self.relays)
 
             if options['socks']:
                 self.socks_port = options['socks']
@@ -279,6 +279,7 @@ class BridgetTest(OONITest):
             self.config.ControlPort          = self.control_port
             self.config.CookieAuthentication = 1
 
+    '''
     def load_assets(self):
         """
         Load bridges and/or relays from files given in user options. Bridges
@@ -294,6 +295,7 @@ class BridgetTest(OONITest):
                 assets.update({'relay': 
                                BridgetAsset(self.local_options['relays'])})
         return assets
+    '''
 
     def experiment(self, args):
         """
@@ -353,6 +355,7 @@ class BridgetTest(OONITest):
             log.err(tie)
             sys.exit()
 
+        ## XXX qu'est-que fuck? ou est utiliser ce fonction? 
         def bootstrap(ctrl):
             """
             Launch a Tor process with the TorConfig instance returned from
@@ -388,19 +391,19 @@ class BridgetTest(OONITest):
                 #else:
                 #    defer.returnValue((state.callback, controller_response)) 
                 if controller_response == 'OK':
-                    defer.returnValue(state.callback)
+                    defer.returnValue((state.callback, controller_response))
                 else:
-                    log.msg("TorControlProtocol responded with error:\n%s",
-                            controller_response)
-                    defer.returnValue(state.callback)
+                    log.msg("TorControlProtocol responded with error:\n%s"
+                            % controller_response)
+                    defer.returnValue((state.callback, None))
                 
             except Exception, e:
-                log.msg("Reconfiguring torrc with Bridge line %s failed:\n%s",
-                        bridge, e)
+                log.msg("Reconfiguring torrc with Bridge line %s failed:\n%s"
+                        % (bridge, e))
 
         def reconfigure_fail(state, bridge, bad):
-            log.msg("Reconfiguring TorConfig with parameters %s failed", 
-                    state)
+            log.msg("Reconfiguring TorConfig with parameters %s failed"
+                    % state)
             bad.append(bridge)
 
         @defer.inlineCallbacks
@@ -416,8 +419,8 @@ class BridgetTest(OONITest):
                 for line in bridges:
                     if line.startswith(node):
                         try:
-                            log.msg("Removing %s because it is a public relay",
-                                    node)
+                            log.msg("Removing %s because it is a public relay"
+                                    % node)
                             bridges.remove(line)
                         except ValueError, ve:
                             log.err(ve)
@@ -432,8 +435,8 @@ class BridgetTest(OONITest):
                     else:
                         defer.returnValue(state)
                 except Exception, e:
-                    log.msg("Removing public relays from bridge list failed:\n%s",
-                            both)
+                    log.msg("Removing public relays from bridge list failed:\n%s"
+                            % both)
                     log.err(e)
                 except ValueError, ve:
                     log.err(ve)
@@ -444,22 +447,22 @@ class BridgetTest(OONITest):
             raise NotImplemented
             #attacher.extend_circuit
 
-        def state_complete(state, bridge_list=None, relay_list=None):
-            """Called when we've got a TorState."""
-            log.msg("We've completely booted up a Tor version %s at PID %d" 
-                    % (state.protocol.version, state.tor_pid))
-
-            log.msg("This Tor has the following %d Circuits:" 
-                    % len(state.circuits))
-            for circ in state.circuits.values():
-                log.msg("%s" % circ)
-
-            if bridge_list is not None and relay_list is None:
-                return state, bridge_list
-            elif bridge_list is None and relay_list is not None:
-                raise NotImplemented
-            else:
-                return state, None
+        #def state_complete(state, bridge_list=None, relay_list=None):
+        #    """Called when we've got a TorState."""
+        #    log.msg("We've completely booted up a Tor version %s at PID %d" 
+        #            % (state.protocol.version, state.tor_pid))
+        #
+        #    log.msg("This Tor has the following %d Circuits:" 
+        #            % len(state.circuits))
+        #    for circ in state.circuits.values():
+        #        log.msg("%s" % circ)
+        #
+        #    if bridge_list is not None and relay_list is None:
+        #        return state, bridge_list
+        #    elif bridge_list is None and relay_list is not None:
+        #        raise NotImplemented
+        #    else:
+        #        return state, None
 
         def state_attach(state, path):
             log.msg("Setting up custom circuit builder...")
@@ -481,7 +484,7 @@ class BridgetTest(OONITest):
             return d
 
         def state_attach_fail(state):
-            log.err("Attaching custom circuit builder failed: %s", state)
+            log.err("Attaching custom circuit builder failed: %s" % state)
 
 
         log.msg("Bridget: initiating test ... ")
@@ -491,16 +494,13 @@ class BridgetTest(OONITest):
                 #self.current_bridge = bridge
                 
                 if not self.config.config.has_key('Bridge'):
-
                     self.config.Bridge = self.current_bridge
-
-                    state = start_tor(reactor,
+                    state = start_tor(self.reactor,
                                       self.config,
                                       self.control_port, 
                                       self.tor_binary, 
                                       self.data_directory)
                     state.addCallback(remove_public_relays, self.bridges)
-
                 else:
                     log.msg("We now have %d untested bridges..." 
                             % self.bridges_remaining())
@@ -511,7 +511,7 @@ class BridgetTest(OONITest):
                     reconf.addErrback(reconfigure_fail, state,
                                       self.current_bridge, self.bridges_down)
                     state.chainDeferred(reconf)
-                    state.callback()
+                    state.callback(controller_response)
                     #all = []
                     #reconf = reconfigure_bridge(state, self.current_bridge,
                     #                            self.use_pt, self.pt_type)
@@ -570,17 +570,14 @@ class BridgetTest(OONITest):
             #                % self.current_bridge)
             #        self.bridges_up.append(self.current_bridge)
 
-        reactor.run()
-
+        #reactor.run()
 
 ## So that getPlugins() can register the Test:
 bridget = BridgetTest(None, None, None)
 
+
 ## ISIS' NOTES
 ## -----------
-## nickm points out that the format operator '%', when used in log.LEVEL(),
-## forces string generation even when LEVEL is not used, increasing overhead;
-## we should do 'log.err("string with stuff %s", stuff)' instead.
 ##
 ## TODO:
 ##       o  cleanup documentation

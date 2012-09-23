@@ -24,12 +24,30 @@ from zope.interface    import implements
 def __setup_done__(proto):
     log.msg("Setup Complete: %s" % proto)
     state = TorState(proto.tor_protocol)
-    state.post_bootstrap.addCallback(state_complete).addErrback(__setup_fail__)
+    state.post_bootstrap.addCallback(__state_complete__)
+    state.post_bootstrap.addErrback(__setup_fail__)
 
 def __setup_fail__(proto):
     log.err("Setup Failed: %s" % proto)
     report.update({'setup_fail': proto})
     reactor.stop()
+
+def __state_complete__(state, bridge_list=None, relay_list=None):
+    """Called when we've got a TorState."""
+    log.msg("We've completely booted up a Tor version %s at PID %d"
+            % (state.protocol.version, state.tor_pid))
+
+    log.msg("This Tor has the following %d Circuits:"
+            % len(state.circuits))
+    for circ in state.circuits.values():
+        log.msg("%s" % circ)
+
+    if bridge_list is not None and relay_list is None:
+        return state, bridge_list
+    elif bridge_list is None and relay_list is not None:
+        raise NotImplemented
+    else:
+        return state, None
 
 def __updates__(_progress, _tag, _summary):
     log.msg("%d%%: %s", _progress, _summary)
@@ -134,7 +152,7 @@ def start_tor(reactor, config, control_port, tor_binary, data_dir,
     (torrc, data_dir, to_delete) = write_torrc(config, data_dir)
 
     log.msg("Starting Tor ...")
-    log.msg("Using the following as our torrc:\n%s", config.create_torrc())
+    log.msg("Using the following as our torrc:\n%s" % config.create_torrc())
     if report is None:
         report = {'torrc': config.create_torrc()}
     else:
@@ -144,6 +162,8 @@ def start_tor(reactor, config, control_port, tor_binary, data_dir,
     connection_creator = partial(end_point.connect, TorProtocolFactory())
     process_protocol = TorProcessProtocol(connection_creator, progress)
     process_protocol.to_delete = to_delete
+    process_protocol.addCallback(process_cb)
+    process_protocol.addErrback(process_eb)
 
     reactor.addSystemEventTrigger('before', 'shutdown',
                                   partial(delete_files_or_dirs, to_delete))
@@ -154,18 +174,15 @@ def start_tor(reactor, config, control_port, tor_binary, data_dir,
                                          env={'HOME': data_dir},
                                          path=data_dir)
         transport.closeStdin()
-    except RuntimeError, e:
-        log.err("Starting Tor failed: %s", e)
+    except RuntimeError as e:
+        log.err("Starting Tor failed: %s" % e)
         process_protocol.connected_cb.errback(e)
     except NotImplementedError, e:
         url = "http://starship.python.net/crew/mhammond/win32/Downloads.html"
-        log.err("Running bridget on Windows requires pywin32: %s", url)
+        log.err("Running bridget on Windows requires pywin32: %s" % url)
         process_protocol.connected_cb.errback(e)
 
-    proto = process_protocol.connected_cb     ## new defer.Deferred()
-    proto.addCallback(process_cb)
-    proto.addErrback(process_eb)
-    return proto
+    return process_protocol.connected_cb     ## new defer.Deferred()
     
 
 class CustomCircuit(CircuitListenerMixin):
@@ -187,14 +204,14 @@ class CustomCircuit(CircuitListenerMixin):
         if circuit.purpose != 'GENERAL':
             return
         if self.waiting_on(circuit):
-            log.msg("Circuit %d (%s)", circuit.id, router.id_hex)
+            log.msg("Circuit %d (%s)" % (circuit.id, router.id_hex))
 
     def circuit_built(self, circuit):
         "ICircuitListener"
         if circuit.purpose != 'GENERAL':
             return
-        log.msg("Circuit %s built ...", circuit.id)
-        log.msg("Full path of %s: %s", circuit.id, circuit.path)
+        log.msg("Circuit %s built ..." % circuit.id)
+        log.msg("Full path of %s: %s" % (circuit.id, circuit.path))
         for (circid, d) in self.waiting_circuits:
             if circid == circuit.id:
                 self.waiting_circuits.remove((circid, d))
@@ -202,7 +219,7 @@ class CustomCircuit(CircuitListenerMixin):
 
     def circuit_failed(self, circuit, reason):
         if self.waiting_on(circuit):
-            log.msg("Circuit %s failed for reason %s", circuit.id, reason)
+            log.msg("Circuit %s failed for reason %s" % (circuit.id, reason))
             circid, d = None, None
             for c in self.waiting_circuits:
                 if c[0] == circuit.id:
@@ -211,7 +228,7 @@ class CustomCircuit(CircuitListenerMixin):
                 raise Exception("Expected to find circuit.")
 
             self.waiting_circuits.remove((circid, d))
-            log.msg("Trying to build a circuit for %s", circid)
+            log.msg("Trying to build a circuit for %s" % circid)
             self.request_circuit_build(d)
 
     def check_circuit_route(self, router):
@@ -252,7 +269,7 @@ class CustomCircuit(CircuitListenerMixin):
                 issue an attach on it and callback to the Deferred
                 we issue here.
                 """
-                log.msg("Circuit %s is in progress ...", circ.id)
+                log.msg("Circuit %s is in progress ..." % circ.id)
                 self.attacher.waiting_circuits.append((circ.id, self.d))
 
         return self.state.build_circuit(path).addCallback(

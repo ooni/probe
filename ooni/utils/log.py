@@ -88,7 +88,9 @@ def start(logstdout, logfile=None, verbosity=None):
         log.msg("Starting OONI...")
 
 def debug(message, level="debug", **kw):
-    log.msg(message, logLevel=level, **kw)
+    print "[%s] %s" % (level, message)
+    ## If we want debug messages in the logfile:
+    #log.msg(message, logLevel=level, **kw)
 
 def msg(message, level="info", **kw):
     log.msg(message, logLevel=level, **kw)

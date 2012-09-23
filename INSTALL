@@ -1,5 +1,5 @@
 # Dependencies
-* Twisted: http://twistedmatrix.com/trac/
+* Twisted (>12.0.0): http://twistedmatrix.com/trac/
 * PyYAML: http://pyyaml.org/
 * Scapy: http://www.secdev.org/projects/scapy/
     * pypcap: http://code.google.com/p/pypcap/
@@ -7,6 +7,10 @@
 
 Optional:
 * BeautifulSoup: http://www.crummy.com/software/BeautifulSoup/
+* Dnspython[1]: http://www.dnspython.org/
+* Paramiko[2]: http://www.lag.net/paramiko/
+
+[1][2] These dependencies will soon be removed completely.
 
 # Installation
 
