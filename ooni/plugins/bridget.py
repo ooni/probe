@@ -66,33 +66,43 @@ class PTNotFoundException(Exception):
         return sys.exit()
 
 class ValueChecker(object):
-    def port_check(self, number):
+    def port_check(self, port):
         """Check that given ports are in the allowed range."""
-        number = int(number)
-        if number not in range(1024, 65535):
+        port = int(port)
+        if port not in range(1024, 65535):
             raise ValueError("Port out of range")
+            log.err()
 
     sock_check, ctrl_check = port_check, port_check
     allowed                = "must be between 1024 and 65535."
     sock_check.coerceDoc   = "Port to use for Tor's SocksPort, "   +allowed
     ctrl_check.coerceDoc   = "Port to use for Tor's ControlPort, " +allowed
 
-    def uid_check(pluggable_transport):
-        """Check that we're not root when trying to use pluggable transports."""
+    def uid_check(self, pluggable_transport):
+        """
+        Check that we're not root when trying to use pluggable transports. If
+        we are, setuid to normal user (1000) if we're running on a posix-based
+        system, and if we're Windows just tell the user that we can't be run
+        as root with the specified options and then exit.
+        """
         uid, gid = os.getuid(), os.getgid()
         if uid == 0 and gid == 0:
             log.msg("Error: Running bridget as root with transports not allowed.")
+        if os.name == 'posix':
             log.msg("Dropping privileges to normal user...")
             os.setgid(1000)
             os.setuid(1000)
+        else:
+            sys.exit(0)
 
-    def dir_check(d):
+    def dir_check(self, d):
         """Check that the given directory exists."""
-        if not os.isdir(d):
+        if not os.path.isdir(d):
             raise ValueError("%s doesn't exist, or has wrong permissions" % d)
 
-    def file_check(f):
-        if not os.isfile(f):
+    def file_check(self, f):
+        """Check that the given file exists."""
+        if not os.path.isfile(f):
             raise ValueError("%s does not exist, or has wrong permissions" % f)
 
 class RandomPortException(Exception):
@@ -121,8 +131,9 @@ class TxtorconImportError(ImportError):
 
 class BridgetArgs(usage.Options):
     """Commandline options."""
+    global vc
     vc = ValueChecker()
-
+        
     optParameters = [
         ['bridges', 'b', None,
          'File listing bridge IP:ORPorts to test'],
@@ -227,6 +238,17 @@ class BridgetTest(OONITest):
                     else:
                         lst.append(line.replace('\n',''))
 
+        def __parse_data_dir__(data_dir):
+            if data_dir.startswith('~'):
+                data_dir = os.path.expanduser(data_dir)
+            elif data_dir.startswith('/'):
+                data_dir = os.path.join(os.getcwd(), data_dir)
+            elif data_dir.startswith('./'):
+                data_dir = os.path.abspath(data_dir)
+            else:
+                data_dir = os.path.join(os.getcwd(), data_dir)
+            return data_dir
+
         if self.local_options:
             try:
                 from ooni.lib.txtorcon import TorConfig
@@ -258,17 +280,18 @@ class BridgetTest(OONITest):
             if options['torpath']:
                 self.tor_binary = options['torpath']
 
-            if self.local_options['datadir']:
-                self.data_directory = local_options['datadir']
+            if options['datadir']:
+                self.data_directory = __parse_data_dir__(options['datadir'])
             else:
                 self.data_directory = None
 
             if options['transport']:
                 self.use_pt = True
-                log.msg("Using ClientTransportPlugin %s" % options['transport'])
+                log.msg("Using ClientTransportPlugin %s" 
+                        % options['transport'])
                 [self.pt_type, pt_exec] = options['transport'].split(' ', 1)
 
-                ## ClientTransportPlugin transport exec path-to-binary [options]
+                ## ClientTransportPlugin transport exec pathtobinary [options]
                 ## XXX we need a better way to deal with all PTs
                 if self.pt_type == "obfs2":
                     config.ClientTransportPlugin = self.pt_type + " " + pt_exec
@@ -355,6 +378,7 @@ class BridgetTest(OONITest):
             log.err(tie)
             sys.exit()
 
+        '''
         ## XXX qu'est-que fuck? ou est utiliser ce fonction? 
         def bootstrap(ctrl):
             """
@@ -364,6 +388,7 @@ class BridgetTest(OONITest):
             conf = TorConfig(ctrl)
             conf.post_bootstrap.addCallback(setup_done).addErrback(setup_fail)
             log.msg("Tor process connected, bootstrapping ...")
+        '''
 
         @defer.inlineCallbacks
         def reconfigure_bridge(state, bridge, use_pt=False, pt_type=None):
@@ -385,13 +410,19 @@ class BridgetTest(OONITest):
                     raise PTNotFoundException
 
                 controller_response = reset_tor.callback
+                controller_response.addCallback(reconfigure_done,
+                                                bridge,
+                                                reachable)
+                controller_response.addErrback(reconfigure_fail,
+                                               bridge,
+                                               reachable)
 
                 #if not controller_response:
                 #    defer.returnValue((state.callback, None))
                 #else:
                 #    defer.returnValue((state.callback, controller_response)) 
                 if controller_response == 'OK':
-                    defer.returnValue((state.callback, controller_response))
+                    defer.returnValue((state, controller_response))
                 else:
                     log.msg("TorControlProtocol responded with error:\n%s"
                             % controller_response)
@@ -400,11 +431,16 @@ class BridgetTest(OONITest):
             except Exception, e:
                 log.msg("Reconfiguring torrc with Bridge line %s failed:\n%s"
                         % (bridge, e))
+                defer.returnValue((state.callback, e))
 
-        def reconfigure_fail(state, bridge, bad):
+        def reconfigure_done(response, bridge, reachable):
+            log.msg("Reconfiguring with 'Bridge %s' successful" % bridge)
+            reachable.append(bridge)
+
+        def reconfigure_fail(response, bridge, unreachable):
             log.msg("Reconfiguring TorConfig with parameters %s failed"
                     % state)
-            bad.append(bridge)
+            unreachable.append(bridge)
 
         @defer.inlineCallbacks
         def remove_public_relays(state, bridges):
@@ -423,7 +459,7 @@ class BridgetTest(OONITest):
                                     % node)
                             bridges.remove(line)
                         except ValueError, ve:
-                            log.err(ve)
+                            log.debug(ve)
 
             if len(both) > 0:
                 try:
@@ -446,23 +482,6 @@ class BridgetTest(OONITest):
             ## state.attacher.extend_circuit
             raise NotImplemented
             #attacher.extend_circuit
-
-        #def state_complete(state, bridge_list=None, relay_list=None):
-        #    """Called when we've got a TorState."""
-        #    log.msg("We've completely booted up a Tor version %s at PID %d" 
-        #            % (state.protocol.version, state.tor_pid))
-        #
-        #    log.msg("This Tor has the following %d Circuits:" 
-        #            % len(state.circuits))
-        #    for circ in state.circuits.values():
-        #        log.msg("%s" % circ)
-        #
-        #    if bridge_list is not None and relay_list is None:
-        #        return state, bridge_list
-        #    elif bridge_list is None and relay_list is not None:
-        #        raise NotImplemented
-        #    else:
-        #        return state, None
 
         def state_attach(state, path):
             log.msg("Setting up custom circuit builder...")
@@ -488,50 +507,65 @@ class BridgetTest(OONITest):
 
 
         log.msg("Bridget: initiating test ... ")
+        #defer.setDebugging(True)
 
         if self.bridges_remaining() > 0:
-            for self.current_bridge in self.bridges:
-                #self.current_bridge = bridge
+            if not 'Bridge' in self.config.config:
+                self.config.Bridge = self.bridges.pop()
+
+                ## Necessary for avoiding starting several processes:
+                self.config.save()
+                assert self.config.config.has_key('Bridge'), "NO BRIDGE"
+
+                state = start_tor(self.reactor, self.config, self.control_port,
+                                  self.tor_binary, self.data_directory)
+                #state.addCallback(remove_public_relays, self.bridges)
+                #state.callback
+                #rm_public_relays = defer.Deferred()
+                #rm_public_relays.addCallback(remove_public_relays, 
+                #                             self.bridges)
+                #state.chainDeferred(rm_public_relays)
+                #state = defer.DeferredList([state])
+                from ooni.utils.onion import __setup_done__, __setup_fail__
+                state.addCallback(__setup_done__)
+                state.addErrback(__setup_fail__)
                 
-                if not self.config.config.has_key('Bridge'):
-                    self.config.Bridge = self.current_bridge
-                    state = start_tor(self.reactor,
-                                      self.config,
-                                      self.control_port, 
-                                      self.tor_binary, 
-                                      self.data_directory)
-                    state.addCallback(remove_public_relays, self.bridges)
-                else:
-                    log.msg("We now have %d untested bridges..." 
-                            % self.bridges_remaining())
-                    reconf = defer.Deferred()
-                    reconf.addCallback(reconfigure_bridge, state,
-                                       self.current_bridge, self.use_pt,
-                                       self.pt_type)
-                    reconf.addErrback(reconfigure_fail, state,
-                                      self.current_bridge, self.bridges_down)
-                    state.chainDeferred(reconf)
-                    state.callback(controller_response)
-                    #all = []
-                    #reconf = reconfigure_bridge(state, self.current_bridge,
-                    #                            self.use_pt, self.pt_type)
-                    #reconf.addCallback(reconfigure_done)
-                    #reconf.addErrback(reconfigure_fail)
-                    #state.DeferredList(all)
 
-            if self.relays_remaining() != 0:
-                state.chainDeferred()
+        ## XXX Should do something like: if state.iscomplete
+        #if 'Bridge' in self.config.config:
+        if state and 'Bridge' in self.config.config:
+            all = []
+            for bridge in self.bridges:
+                self.current_bridge = bridge
+                log.msg("We now have %d untested bridges..." 
+                        % self.bridges_remaining())
+                #reconf = defer.Deferred()
+                #reconf.addCallback(reconfigure_bridge, state, 
+                #                   self.current_bridge, self.use_pt, 
+                #                   self.pt_type)
+                #reconf.addErrback(reconfigure_fail, state,
+                #                  self.current_bridge, self.bridges_down)
+                #state.chainDeferred(reconf)
+                #state.callback
 
-
+                reconf = reconfigure_bridge(state, 
+                                            self.current_bridge,
+                                            self.use_pt, 
+                                            self.pt_type)
+                all.append(reconf)
+            state.chainDeferred(defer.DeferredList(all))
+            #state.addCallback(defer.DeferredList(all))
+    
+        if self.relays_remaining() > 0:
             while self.relays_remaining() >= 3:
                 #path = list(self.relays.pop() for i in range(3))
-                #log.msg("Trying path %s" % '->'.join(map(lambda node: node, path)))
+                #log.msg("Trying path %s" % '->'.join(map(lambda node: 
+                #                                         node, path)))
                 self.current_relay = self.relays.pop()
                 for circ in state.circuits.values():
                     for node in circ.path:
                         if node == self.current_relay:
                             self.relays_up.append(self.current_relay)
-
                     if len(circ.path) < 3:
                         try:
                             parameters = (state.attacher, circ, 
@@ -545,32 +579,15 @@ class BridgetTest(OONITest):
                     else:
                         continue
 
-            return state
+        #return state
         ## still need to attach attacher to state
         ## then build circuits
 
-            ## XXX see txtorcon.TorControlProtocol.add_event_listener we
-            ##     may not need full CustomCircuit class
-            ## o if bridges and relays, use one bridge then build a circuit 
-            ##   from three relays
-            ## o if bridges only, try one bridge at a time, but don't build
-            ##   circuits, just return
-            ## o if relays only, build circuits from relays
-            #else:
-            #    try:
-            #        state.addCallback(reconfigure_bridge, self.current_bridge, 
-            #                          self.use_pt, self.pt_type)
-            #        state.addErrback(reconfigure_fail)
-            #    except TimeoutError:
-            #        log.msg("Adding %s to unreachable bridges..." 
-            #                % self.current_bridge)
-            #        self.bridges_down.append(self.current_bridge)
-            #    else:
-            #        log.msg("Adding %s to reachable bridges..." 
-            #                % self.current_bridge)
-            #        self.bridges_up.append(self.current_bridge)
 
-        #reactor.run()
+        reactor.run()
+
+    def control(self, experiment_result, args):
+        experiment_result.callback
 
 ## So that getPlugins() can register the Test:
 bridget = BridgetTest(None, None, None)
@@ -585,6 +602,6 @@ bridget = BridgetTest(None, None, None)
 ##       x  check if bridges are public relays
 ##       o  take bridge_desc file as input, also be able to give same
 ##          format as output
-##       x  Add assychronous timout for deferred, so that we don't wait 
+##       x  Add asynchronous timeout for deferred, so that we don't wait 
 ##          forever for bridges that don't work.
 ##       o  Add mechanism for testing through another host

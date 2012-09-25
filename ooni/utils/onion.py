@@ -17,7 +17,9 @@
 import random
 
 from ooni.lib.txtorcon import CircuitListenerMixin, IStreamAttacher
+from ooni.lib.txtorcon import TorState
 from ooni.utils        import log
+from twisted.internet  import defer
 from zope.interface    import implements
 
 
@@ -50,7 +52,7 @@ def __state_complete__(state, bridge_list=None, relay_list=None):
         return state, None
 
 def __updates__(_progress, _tag, _summary):
-    log.msg("%d%%: %s", _progress, _summary)
+    log.msg("%d%%: %s" % (_progress, _summary))
 
 def write_torrc(conf, data_dir=None):
     """
@@ -98,6 +100,7 @@ def delete_files_or_dirs(delete_list):
         except OSError:
             rmtree(temp, ignore_errors=True)
 
+@defer.inlineCallbacks
 def start_tor(reactor, config, control_port, tor_binary, data_dir,
               report=None, progress=__updates__, process_cb=__setup_done__,
               process_eb=__setup_fail__):
@@ -162,18 +165,17 @@ def start_tor(reactor, config, control_port, tor_binary, data_dir,
     connection_creator = partial(end_point.connect, TorProtocolFactory())
     process_protocol = TorProcessProtocol(connection_creator, progress)
     process_protocol.to_delete = to_delete
-    process_protocol.addCallback(process_cb)
-    process_protocol.addErrback(process_eb)
 
     reactor.addSystemEventTrigger('before', 'shutdown',
                                   partial(delete_files_or_dirs, to_delete))
     try:
-        transport = reactor.spawnProcess(process_protocol,
-                                         tor_binary,
-                                         args=(tor_binary,'-f',torrc),
-                                         env={'HOME': data_dir},
-                                         path=data_dir)
-        transport.closeStdin()
+        transport = yield reactor.spawnProcess(process_protocol,
+                                               tor_binary,
+                                               args=(tor_binary,'-f',torrc),
+                                               env={'HOME': data_dir},
+                                               path=data_dir)
+        if transport:
+            transport.closeStdin()
     except RuntimeError as e:
         log.err("Starting Tor failed: %s" % e)
         process_protocol.connected_cb.errback(e)
@@ -182,7 +184,23 @@ def start_tor(reactor, config, control_port, tor_binary, data_dir,
         log.err("Running bridget on Windows requires pywin32: %s" % url)
         process_protocol.connected_cb.errback(e)
 
-    return process_protocol.connected_cb     ## new defer.Deferred()
+    #proc_proto = process_protocol.connected_cb
+    #proc_proto.addCallback(process_cb)
+    #proc_proto.addErrback(process_eb)
+    #
+    #d = yield process_protocol.connected_cb.addCallback(
+    #    process_cb).addErrback(
+    #    process_eb)
+    #d = yield process_protocol.connected_cb
+    #d.addCallback(process_cb)
+    #d.addErrback(process_eb)
+    #
+    #defer.returnValue(d)
+
+    d = yield process_protocol.connected_cb
+    defer.returnValue(d)
+
+    #return process_protocol.connected_cb.addCallback(process_cb).addErrback(process_eb)
     
 
 class CustomCircuit(CircuitListenerMixin):
