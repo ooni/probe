@@ -370,7 +370,9 @@ class BridgetTest(OONITest):
             The :class:`BridgetAsset` line currently being used.
         """
         try:
-            from ooni.utils.onion  import start_tor, CustomCircuit
+            from ooni.utils.onion  import start_tor, singleton_semaphore
+            from ooni.utils.onion  import setup_done, setup_fail
+            from ooni.utils.onion  import CustomCircuit
             from ooni.lib.txtorcon import TorConfig, TorState
         except ImportError:
             raise TxtorconImportError
@@ -507,54 +509,49 @@ class BridgetTest(OONITest):
 
 
         log.msg("Bridget: initiating test ... ")
-        #defer.setDebugging(True)
+        d = defer.Deferred
+
+        if self.bridges_remaining() > 0 and not 'Bridge' in self.config.config:
+            self.config.Bridge = self.bridges.pop()
+
+            ## Necessary for avoiding starting several processes:
+            self.config.save()
+            assert self.config.config.has_key('Bridge'), "NO BRIDGE"
+
+            tor = start_tor(self.reactor, 
+                            self.config, 
+                            self.control_port, 
+                            self.tor_binary, 
+                            self.data_directory).addCallback(
+                setup_done).addErrback(
+                setup_fail)
+            self.tor_process_semaphore = True
+
+            run_once = d().addCallback(singleton_semaphore, tor)
+            run_once.addErrback(setup_fail)
+
+            only_bridges = d().addCallback(remove_public_relays, self.bridges)
+
+        state = defer.gatherResults([run_once, only_bridges], consumeErrors=True)
+        log.debug("%s" % state.callbacks)
 
         if self.bridges_remaining() > 0:
-            if not 'Bridge' in self.config.config:
-                self.config.Bridge = self.bridges.pop()
-
-                ## Necessary for avoiding starting several processes:
-                self.config.save()
-                assert self.config.config.has_key('Bridge'), "NO BRIDGE"
-
-                state = start_tor(self.reactor, self.config, self.control_port,
-                                  self.tor_binary, self.data_directory)
-                #state.addCallback(remove_public_relays, self.bridges)
-                #state.callback
-                #rm_public_relays = defer.Deferred()
-                #rm_public_relays.addCallback(remove_public_relays, 
-                #                             self.bridges)
-                #state.chainDeferred(rm_public_relays)
-                #state = defer.DeferredList([state])
-                from ooni.utils.onion import __setup_done__, __setup_fail__
-                state.addCallback(__setup_done__)
-                state.addErrback(__setup_fail__)
-                
-
-        ## XXX Should do something like: if state.iscomplete
-        #if 'Bridge' in self.config.config:
-        if state and 'Bridge' in self.config.config:
             all = []
             for bridge in self.bridges:
                 self.current_bridge = bridge
                 log.msg("We now have %d untested bridges..." 
                         % self.bridges_remaining())
-                #reconf = defer.Deferred()
-                #reconf.addCallback(reconfigure_bridge, state, 
-                #                   self.current_bridge, self.use_pt, 
-                #                   self.pt_type)
-                #reconf.addErrback(reconfigure_fail, state,
-                #                  self.current_bridge, self.bridges_down)
-                #state.chainDeferred(reconf)
-                #state.callback
-
-                reconf = reconfigure_bridge(state, 
-                                            self.current_bridge,
-                                            self.use_pt, 
-                                            self.pt_type)
-                all.append(reconf)
-            state.chainDeferred(defer.DeferredList(all))
-            #state.addCallback(defer.DeferredList(all))
+                reconf = d().addCallback(reconfigure_bridge, state, 
+                                         self.current_bridge,
+                                         self.use_pt, 
+                                         self.pt_type)
+                reconf.addCallback(reconfigure_done, self.current_bridge, 
+                                   self.bridges_up)
+                reconf.addErrback(reconfigure_fail, self.current_bridge, 
+                                  self.bridges_down)
+            all.append(reconf)
+        state.chainDeferred(defer.DeferredList(all))
+        log.debug("%s" % state.callbacks)
     
         if self.relays_remaining() > 0:
             while self.relays_remaining() >= 3:
@@ -568,23 +565,18 @@ class BridgetTest(OONITest):
                             self.relays_up.append(self.current_relay)
                     if len(circ.path) < 3:
                         try:
-                            parameters = (state.attacher, circ, 
-                                          self.current_relay)
-                            ext = attacher_extend_circuit(parameters)
+                            ext = attacher_extend_circuit(state.attacher, circ,
+                                                          self.current_relay)
                             ext.addCallback(attacher_extend_circuit_done, 
-                                            parameters)
+                                            state.attacher, circ, 
+                                            self.current_relay)
                         except Exception, e:
-                            log.msg("Extend circuit failed: %s %s" 
-                                    % (e, parameters))
+                            log.msg("Extend circuit failed: %s" % e)
                     else:
                         continue
 
-        #return state
-        ## still need to attach attacher to state
-        ## then build circuits
-
-
-        reactor.run()
+        #reactor.run()
+        return state
 
     def control(self, experiment_result, args):
         experiment_result.callback

@@ -23,18 +23,18 @@ from twisted.internet  import defer
 from zope.interface    import implements
 
 
-def __setup_done__(proto):
-    log.msg("Setup Complete: %s" % proto)
+def setup_done(proto):
+    log.msg("Setup Complete")
     state = TorState(proto.tor_protocol)
-    state.post_bootstrap.addCallback(__state_complete__)
-    state.post_bootstrap.addErrback(__setup_fail__)
+    state.post_bootstrap.addCallback(state_complete)
+    state.post_bootstrap.addErrback(setup_fail)
 
-def __setup_fail__(proto):
+def setup_fail(proto):
     log.err("Setup Failed: %s" % proto)
     report.update({'setup_fail': proto})
     reactor.stop()
 
-def __state_complete__(state, bridge_list=None, relay_list=None):
+def state_complete(state):
     """Called when we've got a TorState."""
     log.msg("We've completely booted up a Tor version %s at PID %d"
             % (state.protocol.version, state.tor_pid))
@@ -44,14 +44,10 @@ def __state_complete__(state, bridge_list=None, relay_list=None):
     for circ in state.circuits.values():
         log.msg("%s" % circ)
 
-    if bridge_list is not None and relay_list is None:
-        return state, bridge_list
-    elif bridge_list is None and relay_list is not None:
-        raise NotImplemented
-    else:
-        return state, None
+    return state
 
-def __updates__(_progress, _tag, _summary):
+def updates(_progress, _tag, _summary):
+    """Log updates on the Tor bootstrapping process.""" 
     log.msg("%d%%: %s" % (_progress, _summary))
 
 def write_torrc(conf, data_dir=None):
@@ -59,6 +55,11 @@ def write_torrc(conf, data_dir=None):
     Create a torrc in our data_dir. If we don't yet have a data_dir, create a
     temporary one. Any temporary files or folders are added to delete_list.
     
+    :param conf:
+        A :class:`ooni.lib.txtorcon.TorConfig` object, with all configuration
+        values saved.
+    :param data_dir:
+        The Tor DataDirectory to use.
     :return: torrc, data_dir, delete_list
     """
     try:
@@ -78,6 +79,7 @@ def write_torrc(conf, data_dir=None):
     delete_list.append(torrc)
     write(fd, conf.create_torrc())
     close(fd)
+
     return torrc, data_dir, delete_list
 
 def delete_files_or_dirs(delete_list):
@@ -101,9 +103,41 @@ def delete_files_or_dirs(delete_list):
             rmtree(temp, ignore_errors=True)
 
 @defer.inlineCallbacks
+def singleton_semaphore(deferred_process_init, callbacks=[], errbacks=[]):
+    """
+    Initialize a process only once, and do not return until
+    that initialization is complete.
+
+    :param deferred_process_init:
+        A deferred which returns a connected process via
+        :meth:`twisted.internet.reactor.spawnProcess`.
+    :param callbacks:
+        A list of callback functions to add to the initialized processes'
+        deferred.
+    :param errbacks:
+        A list of errback functions to add to the initialized processes'
+        deferred.
+    :return:
+        The final state of the :param deferred_process_init: after the
+        callback chain has completed. This should be a fully initialized
+        process connected to a :class:`twisted.internet.reactor`.
+    """
+    assert type(callbacks) is list
+    assert type(errbacks) is list
+
+    for cb in callbacks:
+        deferred_process_init.addCallback(cb)
+    for eb in errbacks:
+        deferred_process_init.addErrback(eb)
+
+    only_once = defer.DeferredSemaphore(1)
+    singleton = yield only_once.run(deferred_process_init)
+    defer.returnValue(singleton)
+
+@defer.inlineCallbacks
 def start_tor(reactor, config, control_port, tor_binary, data_dir,
-              report=None, progress=__updates__, process_cb=__setup_done__,
-              process_eb=__setup_fail__):
+              report=None, progress=updates, process_cb=setup_done,
+              process_eb=setup_fail):
     """
     Use a txtorcon.TorConfig() instance, config, to write a torrc to a
     tempfile in our DataDirectory, data_dir. If data_dir is None, a temp
@@ -139,7 +173,8 @@ def start_tor(reactor, config, control_port, tor_binary, data_dir,
         The function to errback to if 
         class:`ooni.lib.txtorcon.TorProcessProtocol` fails.
     :return:
-        A class:`ooni.lib.txtorcon.TorProcessProtocol` which callbacks with a
+        The result of the callback of a
+        class:`ooni.lib.txtorcon.TorProcessProtocol` which callbacks with a
         class:`txtorcon.TorControlProtocol` as .protocol.
     """
     try:
