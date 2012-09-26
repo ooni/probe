@@ -54,3 +54,8 @@ class Asset:
         except:
             raise StopIteration
 
+class MissingAssetException(Exception):
+    """Raised when an Asset necessary for running the Test is missing."""
+    def __init__(self, error_message):
+        log.msg(error_message)
+        return sys.exit()

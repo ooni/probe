@@ -44,11 +44,33 @@ def state_complete(state):
     for circ in state.circuits.values():
         log.msg("%s" % circ)
 
-    return state
+    #return state
 
 def updates(_progress, _tag, _summary):
     """Log updates on the Tor bootstrapping process.""" 
     log.msg("%d%%: %s" % (_progress, _summary))
+
+def parse_data_dir(data_dir):
+    """
+    Parse a string that a has been given as a DataDirectory and determine
+    its absolute path on the filesystem.
+    
+    :param data_dir:
+        A directory for Tor's DataDirectory, to be parsed.
+    :return:
+        The absolute path of :param:data_dir.
+    """
+    import os
+
+    if data_dir.startswith('~'):
+        data_dir = os.path.expanduser(data_dir)
+    elif data_dir.startswith('/'):
+        data_dir = os.path.join(os.getcwd(), data_dir)
+    elif data_dir.startswith('./'):
+        data_dir = os.path.abspath(data_dir)
+    else:
+        data_dir = os.path.join(os.getcwd(), data_dir)
+    return data_dir
 
 def write_torrc(conf, data_dir=None):
     """
@@ -101,38 +123,6 @@ def delete_files_or_dirs(delete_list):
             unlink(temp)
         except OSError:
             rmtree(temp, ignore_errors=True)
-
-@defer.inlineCallbacks
-def singleton_semaphore(deferred_process_init, callbacks=[], errbacks=[]):
-    """
-    Initialize a process only once, and do not return until
-    that initialization is complete.
-
-    :param deferred_process_init:
-        A deferred which returns a connected process via
-        :meth:`twisted.internet.reactor.spawnProcess`.
-    :param callbacks:
-        A list of callback functions to add to the initialized processes'
-        deferred.
-    :param errbacks:
-        A list of errback functions to add to the initialized processes'
-        deferred.
-    :return:
-        The final state of the :param deferred_process_init: after the
-        callback chain has completed. This should be a fully initialized
-        process connected to a :class:`twisted.internet.reactor`.
-    """
-    assert type(callbacks) is list
-    assert type(errbacks) is list
-
-    for cb in callbacks:
-        deferred_process_init.addCallback(cb)
-    for eb in errbacks:
-        deferred_process_init.addErrback(eb)
-
-    only_once = defer.DeferredSemaphore(1)
-    singleton = yield only_once.run(deferred_process_init)
-    defer.returnValue(singleton)
 
 @defer.inlineCallbacks
 def start_tor(reactor, config, control_port, tor_binary, data_dir,
@@ -237,7 +227,6 @@ def start_tor(reactor, config, control_port, tor_binary, data_dir,
 
     #return process_protocol.connected_cb.addCallback(process_cb).addErrback(process_eb)
     
-
 class CustomCircuit(CircuitListenerMixin):
     implements(IStreamAttacher)
 
@@ -328,3 +317,36 @@ class CustomCircuit(CircuitListenerMixin):
         return self.state.build_circuit(path).addCallback(
             AppendWaiting(self, deferred)).addErrback(
             log.err)
+
+class TxtorconImportError(ImportError):
+    """Raised when /ooni/lib/txtorcon cannot be imported from."""
+    from os import getcwd, path
+
+    cwd, tx = getcwd(), 'lib/txtorcon/torconfig.py'
+    try:
+        log.msg("Unable to import from ooni.lib.txtorcon")
+        if cwd.endswith('ooni'):
+            check = path.join(cwd, tx)
+        elif cwd.endswith('utils'):
+            check = path.join(cwd, '../'+tx)
+        else:
+            check = path.join(cwd, 'ooni/'+tx)
+        assert path.isfile(check)
+    except:
+        log.msg("Error: Some OONI libraries are missing!")
+        log.msg("Please go to /ooni/lib/ and do \"make all\"")
+
+class PTNoBridgesException(Exception):
+    """Raised when a pluggable transport is specified, but not bridges."""
+    def __init__(self):
+        log.msg("Pluggable transport requires the bridges option")
+        return sys.exit()
+
+class PTNotFoundException(Exception):
+    def __init__(self, transport_type):
+        m  = "Pluggable Transport type %s was unaccounted " % transport_type
+        m += "for, please contact isis(at)torproject(dot)org and it will "
+        m += "get included."
+        log.msg("%s" % m)
+        return sys.exit()
+

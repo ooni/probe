@@ -12,98 +12,25 @@
 # :licence: see included LICENSE
 # :version: 0.1.0-alpha
 
-from __future__                 import with_statement
-from random                     import randint
-from twisted.python             import usage
-from twisted.plugin             import IPlugin
-from twisted.internet           import defer, error, reactor
-from zope.interface             import implements
+from __future__             import with_statement
+from functools              import partial
+from random                 import randint
+from twisted.python         import usage
+from twisted.plugin         import IPlugin
+from twisted.internet       import defer, error, reactor
+from zope.interface         import implements
 
-from ooni.utils                 import log
-from ooni.plugoo.tests          import ITest, OONITest
-from ooni.plugoo.assets         import Asset
+from ooni.utils             import log, date
+from ooni.utils.config      import ValueChecker
+from ooni.utils.onion       import parse_data_dir
+from ooni.utils.onion       import TxtorconImportError
+from ooni.utils.onion       import PTNoBridgesException, PTNotFoundException
+from ooni.plugoo.tests      import ITest, OONITest
+from ooni.plugoo.assets     import Asset, MissingAssetException
 
 import os
 import sys
 
-
-def timer(secs, e=None):
-    import signal
-    import functools.wraps
-    def decorator(func):
-        def _timer(signum, frame):
-            raise TimeoutError, e
-        def wrapper(*args, **kwargs):
-            signal.signal(signal.SIGALRM, _timer)
-            signal.alarm(secs)
-            try:
-                res = func(*args, **kwargs)
-            finally:
-                signal.alarm(0)
-            return res
-        return functools.wraps(func)(wrapper)
-    return decorator
-
-
-class MissingAssetException(Exception):
-    """Raised when neither there are neither bridges nor relays to test."""
-    def __init__(self):
-        log.msg("Bridget can't run without bridges or relays to test!")
-        return sys.exit()
-
-class PTNoBridgesException(Exception):
-    """Raised when a pluggable transport is specified, but no bridges."""
-    def __init__(self):
-        log.msg("Pluggable transport requires the bridges option")
-        return sys.exit()
-
-class PTNotFoundException(Exception):
-    def __init__(self, transport_type):
-        m  = "Pluggable Transport type %s was unaccounted " % transport_type
-        m += "for, please contact isis(at)torproject(dot)org and it will "
-        m += "get included."
-        log.msg("%s" % m)
-        return sys.exit()
-
-class ValueChecker(object):
-    def port_check(self, port):
-        """Check that given ports are in the allowed range."""
-        port = int(port)
-        if port not in range(1024, 65535):
-            raise ValueError("Port out of range")
-            log.err()
-
-    sock_check, ctrl_check = port_check, port_check
-    allowed                = "must be between 1024 and 65535."
-    sock_check.coerceDoc   = "Port to use for Tor's SocksPort, "   +allowed
-    ctrl_check.coerceDoc   = "Port to use for Tor's ControlPort, " +allowed
-
-    def uid_check(self, pluggable_transport):
-        """
-        Check that we're not root when trying to use pluggable transports. If
-        we are, setuid to normal user (1000) if we're running on a posix-based
-        system, and if we're Windows just tell the user that we can't be run
-        as root with the specified options and then exit.
-        """
-        uid, gid = os.getuid(), os.getgid()
-        if uid == 0 and gid == 0:
-            log.msg("Error: Running bridget as root with transports not allowed.")
-        if os.name == 'posix':
-            log.msg("Dropping privileges to normal user...")
-            os.setgid(1000)
-            os.setuid(1000)
-        else:
-            sys.exit(0)
-
-    def dir_check(self, d):
-        """Check that the given directory exists."""
-        if not os.path.isdir(d):
-            raise ValueError("%s doesn't exist, or has wrong permissions" % d)
-
-    def file_check(self, f):
-        """Check that the given file exists."""
-        if not os.path.isfile(f):
-            raise ValueError("%s does not exist, or has wrong permissions" % f)
 
 class RandomPortException(Exception):
     """Raised when using a random port conflicts with configured ports."""
@@ -111,36 +38,22 @@ class RandomPortException(Exception):
         log.msg("Unable to use random and specific ports simultaneously")
         return sys.exit()
 
-class TimeoutError(Exception):
-    """Raised when a timer runs out."""
-    pass
-
-class TxtorconImportError(ImportError):
-    """Raised when /ooni/lib/txtorcon cannot be imported from."""
-    cwd, tx = os.getcwd(), 'lib/txtorcon/torconfig.py'
-    try:
-        log.msg("Unable to import from ooni.lib.txtorcon")
-        if cwd.endswith('ooni'):
-            check = os.path.join(cwd, tx)
-        else:
-            check = os.path.join(cwd, 'ooni/'+tx)
-        assert isfile(check)
-    except:
-        log.msg("Error: Some OONI libraries are missing!")
-        log.msg("Please go to /ooni/lib/ and do \"make all\"")
-
 class BridgetArgs(usage.Options):
     """Commandline options."""
     global vc
-    vc = ValueChecker()
+    vc = ValueChecker
         
+    allowed = "Port to use for Tor's %s, must be between 1024 and 65535."
+    sock_check = vc(allowed % "SocksPort").port_check
+    ctrl_check = vc(allowed % "ControlPort").port_check
+
     optParameters = [
         ['bridges', 'b', None,
          'File listing bridge IP:ORPorts to test'],
         ['relays', 'f', None,
          'File listing relay IPs to test'],
-        ['socks', 's', 9049, None, vc.sock_check],
-        ['control', 'c', 9052, None, vc.ctrl_check],
+        ['socks', 's', 9049, None, sock_check],
+        ['control', 'c', 9052, None, ctrl_check],
         ['torpath', 'p', None,
          'Path to the Tor binary to use'],
         ['datadir', 'd', None,
@@ -153,18 +66,20 @@ class BridgetArgs(usage.Options):
 
     def postOptions(self):
         if not self['bridges'] and not self['relays']:
-            raise MissingAssetException
+            raise MissingAssetException(
+                "Bridget can't run without bridges or relays to test!")
         if self['transport']:
-            vc.uid_check(self['transport'])
+            vc().uid_check(
+                "Can't run bridget as root with pluggable transports!")
             if not self['bridges']:
                 raise PTNoBridgesException
         if self['socks'] or self['control']:
             if self['random']:
                 raise RandomPortException
         if self['datadir']:
-            vc.dir_check(self['datadir'])
+            vc().dir_check(self['datadir'])
         if self['torpath']:
-            vc.file_check(self['torpath'])
+            vc().file_check(self['torpath'])
 
 class BridgetAsset(Asset):
     """Class for parsing bridget Assets ignoring commented out lines."""
@@ -211,6 +126,8 @@ class BridgetTest(OONITest):
         running, so we need to deal with most of the TorConfig() only once,
         before the experiment runs.
         """
+        self.d = defer.Deferred()
+
         self.socks_port      = 9049
         self.control_port    = 9052
         self.circuit_timeout = 90
@@ -219,6 +136,7 @@ class BridgetTest(OONITest):
         self.use_pt          = False
         self.pt_type         = None
 
+        ## XXX we should do report['bridges_up'].append(self.current_bridge)
         self.bridges, self.bridges_up, self.bridges_down = ([] for i in range(3))
         self.bridges_remaining  = lambda: len(self.bridges)
         self.bridges_down_count = lambda: len(self.bridges_down)
@@ -229,6 +147,9 @@ class BridgetTest(OONITest):
         self.relays_down_count  = lambda: len(self.relays_down)
         self.current_relay      = None
 
+        ## Make sure we don't use self.load_assets() for now: 
+        self.assets = {}
+
         def __make_asset_list__(opt, lst):
             log.msg("Loading information from %s ..." % opt)
             with open(opt) as opt_file:
@@ -237,17 +158,6 @@ class BridgetTest(OONITest):
                         continue
                     else:
                         lst.append(line.replace('\n',''))
-
-        def __parse_data_dir__(data_dir):
-            if data_dir.startswith('~'):
-                data_dir = os.path.expanduser(data_dir)
-            elif data_dir.startswith('/'):
-                data_dir = os.path.join(os.getcwd(), data_dir)
-            elif data_dir.startswith('./'):
-                data_dir = os.path.abspath(data_dir)
-            else:
-                data_dir = os.path.join(os.getcwd(), data_dir)
-            return data_dir
 
         if self.local_options:
             try:
@@ -281,7 +191,7 @@ class BridgetTest(OONITest):
                 self.tor_binary = options['torpath']
 
             if options['datadir']:
-                self.data_directory = __parse_data_dir__(options['datadir'])
+                self.data_directory = parse_data_dir(options['datadir'])
             else:
                 self.data_directory = None
 
@@ -294,7 +204,7 @@ class BridgetTest(OONITest):
                 ## ClientTransportPlugin transport exec pathtobinary [options]
                 ## XXX we need a better way to deal with all PTs
                 if self.pt_type == "obfs2":
-                    config.ClientTransportPlugin = self.pt_type + " " + pt_exec
+                    self.config.ClientTransportPlugin = self.pt_type+" "+pt_exec
                 else:
                     raise PTNotFoundException
 
@@ -302,7 +212,6 @@ class BridgetTest(OONITest):
             self.config.ControlPort          = self.control_port
             self.config.CookieAuthentication = 1
 
-    '''
     def load_assets(self):
         """
         Load bridges and/or relays from files given in user options. Bridges
@@ -318,7 +227,6 @@ class BridgetTest(OONITest):
                 assets.update({'relay': 
                                BridgetAsset(self.local_options['relays'])})
         return assets
-    '''
 
     def experiment(self, args):
         """
@@ -367,13 +275,14 @@ class BridgetTest(OONITest):
                                                 } of unreachable relays
 
         :param args:
-            The :class:`BridgetAsset` line currently being used.
+            The :class:`BridgetAsset` line currently being used. Except that it
+            in Bridget it doesn't, so it should be ignored and avoided.
         """
         try:
-            from ooni.utils.onion  import start_tor, singleton_semaphore
-            from ooni.utils.onion  import setup_done, setup_fail
-            from ooni.utils.onion  import CustomCircuit
-            from ooni.lib.txtorcon import TorConfig, TorState
+            from ooni.utils.process import singleton_semaphore
+            from ooni.utils.onion   import start_tor, setup_done, setup_fail
+            from ooni.utils.onion   import CustomCircuit
+            from ooni.lib.txtorcon  import TorConfig, TorState
         except ImportError:
             raise TxtorconImportError
         except TxtorconImportError, tie:
@@ -509,7 +418,7 @@ class BridgetTest(OONITest):
 
 
         log.msg("Bridget: initiating test ... ")
-        d = defer.Deferred
+        x = defer.Deferred
 
         if self.bridges_remaining() > 0 and not 'Bridge' in self.config.config:
             self.config.Bridge = self.bridges.pop()
@@ -527,13 +436,13 @@ class BridgetTest(OONITest):
                 setup_fail)
             self.tor_process_semaphore = True
 
-            run_once = d().addCallback(singleton_semaphore, tor)
+            run_once = x().addCallback(singleton_semaphore, tor)
             run_once.addErrback(setup_fail)
 
-            only_bridges = d().addCallback(remove_public_relays, self.bridges)
+            filter_bridges = x().addCallback(remove_public_relays, self.bridges)
 
-        state = defer.gatherResults([run_once, only_bridges], consumeErrors=True)
-        log.debug("%s" % state.callbacks)
+        state = defer.gatherResults([run_once, filter_bridges], consumeErrors=True)
+        log.debug("Current callbacks on TorState():\n%s" % state.callbacks)
 
         if self.bridges_remaining() > 0:
             all = []
@@ -541,7 +450,7 @@ class BridgetTest(OONITest):
                 self.current_bridge = bridge
                 log.msg("We now have %d untested bridges..." 
                         % self.bridges_remaining())
-                reconf = d().addCallback(reconfigure_bridge, state, 
+                reconf = x().addCallback(reconfigure_bridge, state, 
                                          self.current_bridge,
                                          self.use_pt, 
                                          self.pt_type)
@@ -549,10 +458,14 @@ class BridgetTest(OONITest):
                                    self.bridges_up)
                 reconf.addErrback(reconfigure_fail, self.current_bridge, 
                                   self.bridges_down)
-            all.append(reconf)
-        state.chainDeferred(defer.DeferredList(all))
-        log.debug("%s" % state.callbacks)
-    
+                all.append(reconf)
+
+        #state.chainDeferred(defer.DeferredList(all))
+        #state.chainDeferred(defer.gatherResults(all, consumeErrors=True))
+        n_plus_one_bridges = defer.gatherResults(all, consumeErrors=True)
+        state.chainDeferred(n_plus_one_bridges)
+        log.debug("Current callbacks on TorState():\n%s" % state.callbacks)
+
         if self.relays_remaining() > 0:
             while self.relays_remaining() >= 3:
                 #path = list(self.relays.pop() for i in range(3))
@@ -575,11 +488,16 @@ class BridgetTest(OONITest):
                     else:
                         continue
 
-        #reactor.run()
-        return state
+        state.callback(all)
+        self.reactor.run()
+        #return state
 
-    def control(self, experiment_result, args):
-        experiment_result.callback
+    def startTest(self, args):
+        self.start_time = date.now()
+        log.msg("Starting %s" % self.shortName)
+        self.do_science = self.experiment(args)
+        self.do_science.addCallback(self.finished).addErrback(log.err)
+        return self.do_science
 
 ## So that getPlugins() can register the Test:
 bridget = BridgetTest(None, None, None)
