@@ -279,8 +279,9 @@ class BridgetTest(OONITest):
             in Bridget it doesn't, so it should be ignored and avoided.
         """
         try:
-            from ooni.utils.process import singleton_semaphore
-            from ooni.utils.onion   import start_tor, setup_done, setup_fail
+            from ooni.utils         import process
+            from ooni.utils.onion   import start_tor, remove_public_relays
+            from ooni.utils.onion   import setup_done, setup_fail
             from ooni.utils.onion   import CustomCircuit
             from ooni.lib.txtorcon  import TorConfig, TorState
         except ImportError:
@@ -288,18 +289,6 @@ class BridgetTest(OONITest):
         except TxtorconImportError, tie:
             log.err(tie)
             sys.exit()
-
-        '''
-        ## XXX qu'est-que fuck? ou est utiliser ce fonction? 
-        def bootstrap(ctrl):
-            """
-            Launch a Tor process with the TorConfig instance returned from
-            initialize() and write_torrc().
-            """
-            conf = TorConfig(ctrl)
-            conf.post_bootstrap.addCallback(setup_done).addErrback(setup_fail)
-            log.msg("Tor process connected, bootstrapping ...")
-        '''
 
         @defer.inlineCallbacks
         def reconfigure_bridge(state, bridge, use_pt=False, pt_type=None):
@@ -312,7 +301,7 @@ class BridgetTest(OONITest):
             log.msg("Current Bridge: %s" % bridge)
             try:
                 if use_pt is False:
-                    reset_tor = yield state.protocol.set_conf('Bridge', 
+                    reset_tor = yield state.protocol.set_conf('Bridge',
                                                               bridge)
                 elif use_pt and pt_type is not None:
                     reset_tor = yield state.protocol.set_conf(
@@ -331,62 +320,29 @@ class BridgetTest(OONITest):
                 #if not controller_response:
                 #    defer.returnValue((state.callback, None))
                 #else:
-                #    defer.returnValue((state.callback, controller_response)) 
+                #    defer.returnValue((state.callback, controller_response))
                 if controller_response == 'OK':
                     defer.returnValue((state, controller_response))
                 else:
                     log.msg("TorControlProtocol responded with error:\n%s"
                             % controller_response)
                     defer.returnValue((state.callback, None))
-                
+
             except Exception, e:
                 log.msg("Reconfiguring torrc with Bridge line %s failed:\n%s"
                         % (bridge, e))
                 defer.returnValue((state.callback, e))
 
-        def reconfigure_done(response, bridge, reachable):
+        def reconfigure_done(state, bridge, reachable):
             log.msg("Reconfiguring with 'Bridge %s' successful" % bridge)
             reachable.append(bridge)
+            return state
 
-        def reconfigure_fail(response, bridge, unreachable):
+        def reconfigure_fail(state, bridge, unreachable):
             log.msg("Reconfiguring TorConfig with parameters %s failed"
                     % state)
             unreachable.append(bridge)
-
-        @defer.inlineCallbacks
-        def remove_public_relays(state, bridges):
-            """
-            Remove bridges from our bridge list which are also listed as
-            public relays.
-            """
-            IPs = map(lambda addr: addr.split(':',1)[0], bridges)
-            both = set(state.routers.values()).intersection(IPs)
-
-            def __remove_line__(node, bridges=bridges):
-                for line in bridges:
-                    if line.startswith(node):
-                        try:
-                            log.msg("Removing %s because it is a public relay"
-                                    % node)
-                            bridges.remove(line)
-                        except ValueError, ve:
-                            log.debug(ve)
-
-            if len(both) > 0:
-                try:
-                    updated = yield map(lambda node: 
-                                        __remove_line__(node), both)
-                    if not updated:
-                        ## XXX do these need to be state.callback?
-                        defer.returnValue(state)
-                    else:
-                        defer.returnValue(state)
-                except Exception, e:
-                    log.msg("Removing public relays from bridge list failed:\n%s"
-                            % both)
-                    log.err(e)
-                except ValueError, ve:
-                    log.err(ve)
+            return state
 
         def attacher_extend_circuit(attacher, deferred, router):
             ## XXX todo write me
@@ -417,54 +373,58 @@ class BridgetTest(OONITest):
             log.err("Attaching custom circuit builder failed: %s" % state)
 
 
+        ## Start the experiment
         log.msg("Bridget: initiating test ... ")
-        x = defer.Deferred
+        all_of_the_bridges = self.bridges
+        all_of_the_relays  = self.relays  ## Local copy of orginal lists
 
-        if self.bridges_remaining() > 0 and not 'Bridge' in self.config.config:
-            self.config.Bridge = self.bridges.pop()
-
-            ## Necessary for avoiding starting several processes:
-            self.config.save()
+        if self.bridges_remaining() >= 1 and not 'Bridge' in self.config.config:
+            ## XXX we should do self.bridges[0] + self.bridges[1:]
+            initial_bridge = all_of_the_bridges.pop()
+            self.config.Bridge = initial_bridge
+            self.config.save()            ## avoid starting several processes
             assert self.config.config.has_key('Bridge'), "NO BRIDGE"
 
-            tor = start_tor(self.reactor, 
-                            self.config, 
-                            self.control_port, 
-                            self.tor_binary, 
-                            self.data_directory).addCallback(
-                setup_done).addErrback(
-                setup_fail)
-            self.tor_process_semaphore = True
+            state = start_tor(self.reactor, self.config, 
+                              self.control_port, self.tor_binary, 
+                              self.data_directory).addCallbacks(
+                setup_done, 
+                errback=setup_fail)
+            state.addCallback(remove_public_relays, 
+                              self.bridges)
 
-            run_once = x().addCallback(singleton_semaphore, tor)
-            run_once.addErrback(setup_fail)
+            #controller = singleton_semaphore(bootstrap)
+            #controller = x().addCallback(singleton_semaphore, tor)
+            #controller.addErrback(setup_fail)
 
-            filter_bridges = x().addCallback(remove_public_relays, self.bridges)
+            #filter_bridges = remove_public_relays(self.bridges)
 
-        state = defer.gatherResults([run_once, filter_bridges], consumeErrors=True)
+        #bootstrap = defer.gatherResults([controller, filter_bridges], 
+        #                                consumeErrors=True)
         log.debug("Current callbacks on TorState():\n%s" % state.callbacks)
+        log.debug("TorState():\n%s" % state)
 
         if self.bridges_remaining() > 0:
             all = []
             for bridge in self.bridges:
-                self.current_bridge = bridge
-                log.msg("We now have %d untested bridges..." 
-                        % self.bridges_remaining())
-                reconf = x().addCallback(reconfigure_bridge, state, 
-                                         self.current_bridge,
-                                         self.use_pt, 
-                                         self.pt_type)
-                reconf.addCallback(reconfigure_done, self.current_bridge, 
-                                   self.bridges_up)
-                reconf.addErrback(reconfigure_fail, self.current_bridge, 
-                                  self.bridges_down)
-                all.append(reconf)
+                #self.current_bridge = bridge
+                new = defer.Deferred()
+                new.addCallback(reconfigure_bridge, state, bridge, 
+                                self.bridges_remaining(),
+                                self.bridges_up,
+                                self.bridges_down,
+                                use_pt=self.use_pt, 
+                                pt_type=self.pt_type)
+                all.append(new)
 
         #state.chainDeferred(defer.DeferredList(all))
         #state.chainDeferred(defer.gatherResults(all, consumeErrors=True))
-        n_plus_one_bridges = defer.gatherResults(all, consumeErrors=True)
-        state.chainDeferred(n_plus_one_bridges)
-        log.debug("Current callbacks on TorState():\n%s" % state.callbacks)
+            check_remaining = defer.DeferredList(all, consumeErrors=True)
+
+            #controller.chainDeferred(check_remaining)
+            #log.debug("Current callbacks on TorState():\n%s" 
+            #          % controller.callbacks)
+            state.chainDeferred(check_remaining)
 
         if self.relays_remaining() > 0:
             while self.relays_remaining() >= 3:

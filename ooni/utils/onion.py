@@ -13,6 +13,7 @@
 # :copyright: copyright (c) 2012 The Tor Project, Inc.
 # :version: 0.1.0-alpha
 #
+# XXX TODO add report keys for onion methods
 
 import random
 
@@ -31,24 +32,31 @@ def setup_done(proto):
 
 def setup_fail(proto):
     log.err("Setup Failed: %s" % proto)
-    report.update({'setup_fail': proto})
+    #report.update({'setup_fail': proto})
     reactor.stop()
 
 def state_complete(state):
     """Called when we've got a TorState."""
     log.msg("We've completely booted up a Tor version %s at PID %d"
             % (state.protocol.version, state.tor_pid))
-
     log.msg("This Tor has the following %d Circuits:"
             % len(state.circuits))
     for circ in state.circuits.values():
         log.msg("%s" % circ)
-
-    #return state
+    return state
 
 def updates(_progress, _tag, _summary):
     """Log updates on the Tor bootstrapping process.""" 
     log.msg("%d%%: %s" % (_progress, _summary))
+
+def bootstrap(ctrl):
+    """
+    Bootstrap Tor from an instance of
+    :class:`ooni.lib.txtorcon.TorControlProtocol`.
+    """
+    conf = TorConfig(ctrl)
+    conf.post_bootstrap.addCallback(setup_done).addErrback(setup_fail)
+    log.msg("Tor process connected, bootstrapping ...")
 
 def parse_data_dir(data_dir):
     """
@@ -124,7 +132,46 @@ def delete_files_or_dirs(delete_list):
         except OSError:
             rmtree(temp, ignore_errors=True)
 
+def remove_node_from_list(node, list):
+    for item in list:              ## bridges don't match completely
+        if item.startswith(node):  ## due to the :<port>.
+            try:
+                log.msg("Removing %s because it is a public relay" % node)
+                list.remove(line)
+            except ValueError, ve:
+                log.err(ve)
+
 @defer.inlineCallbacks
+def remove_public_relays(state, bridges):
+    """
+    Remove bridges from our bridge list which are also listed as public
+    relays. This must be called after Tor has fully bootstrapped and we have a
+    :class:`ooni.lib.txtorcon.TorState` with the
+    :attr:`ooni.lib.txtorcon.TorState.routers` attribute assigned.
+
+    XXX Does state.router.values() have all of the relays in the consensus, or
+    just the ones we know about so far?
+    """
+    IPs = map(lambda addr: addr.split(':',1)[0], bridges)
+    both = set(state.routers.values()).intersection(IPs)
+
+    if len(both) > 0:
+        try:
+            updated = yield map(lambda node: remove_node_from_list(node), 
+                                both)
+            if not updated:
+                ## XXX do these need to be state.callback?
+                defer.returnValue(state)
+            else:
+                defer.returnValue(state)
+        except Exception, e:
+            log.msg("Removing public relays from bridge list failed:\n%s"
+                    % both)
+            log.err(e)
+        except ValueError, ve:
+            log.err(ve)
+
+#@defer.inlineCallbacks
 def start_tor(reactor, config, control_port, tor_binary, data_dir,
               report=None, progress=updates, process_cb=setup_done,
               process_eb=setup_fail):
@@ -193,39 +240,35 @@ def start_tor(reactor, config, control_port, tor_binary, data_dir,
 
     reactor.addSystemEventTrigger('before', 'shutdown',
                                   partial(delete_files_or_dirs, to_delete))
+    #try:
+    #    transport = yield reactor.spawnProcess(process_protocol,
+    #                                           tor_binary,
+    #                                           args=(tor_binary,'-f',torrc),
+    #                                           env={'HOME': data_dir},
+    #                                           path=data_dir)
+    #    if transport:
+    #        transport.closeStdin()
+    #except RuntimeError as e:
+    #    log.err("Starting Tor failed: %s" % e)
+    #    process_protocol.connected_cb.errback(e)
+    #except NotImplementedError, e:
+    #    url = "http://starship.python.net/crew/mhammond/win32/Downloads.html"
+    #    log.err("Running bridget on Windows requires pywin32: %s" % url)
+    #    process_protocol.connected_cb.errback(e)
     try:
-        transport = yield reactor.spawnProcess(process_protocol,
-                                               tor_binary,
-                                               args=(tor_binary,'-f',torrc),
-                                               env={'HOME': data_dir},
-                                               path=data_dir)
-        if transport:
-            transport.closeStdin()
-    except RuntimeError as e:
-        log.err("Starting Tor failed: %s" % e)
-        process_protocol.connected_cb.errback(e)
-    except NotImplementedError, e:
-        url = "http://starship.python.net/crew/mhammond/win32/Downloads.html"
-        log.err("Running bridget on Windows requires pywin32: %s" % url)
+        transport = reactor.spawnProcess(process_protocol, 
+                                         tor_binary, 
+                                         args=(tor_binary,'-f',torrc),
+                                         path=data_dir)
+        transport.closeStdin()
+    except RuntimeError, e:
+        log.err(e)
         process_protocol.connected_cb.errback(e)
 
-    #proc_proto = process_protocol.connected_cb
-    #proc_proto.addCallback(process_cb)
-    #proc_proto.addErrback(process_eb)
-    #
-    #d = yield process_protocol.connected_cb.addCallback(
-    #    process_cb).addErrback(
-    #    process_eb)
+    return process_protocol.connected_cb
+
     #d = yield process_protocol.connected_cb
-    #d.addCallback(process_cb)
-    #d.addErrback(process_eb)
-    #
     #defer.returnValue(d)
-
-    d = yield process_protocol.connected_cb
-    defer.returnValue(d)
-
-    #return process_protocol.connected_cb.addCallback(process_cb).addErrback(process_eb)
     
 class CustomCircuit(CircuitListenerMixin):
     implements(IStreamAttacher)
