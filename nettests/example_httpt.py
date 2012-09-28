@@ -3,8 +3,8 @@
 # :authors: Arturo Filastò
 # :licence: see LICENSE
 
-from ooni.templates import http
-class Example(http.HTTPTest):
+from ooni.templates import httpt
+class Example(httpt.HTTPTest):
     inputs = ['http://google.com/', 'http://wikileaks.org/',
             'http://torproject.org/']
 
