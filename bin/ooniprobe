@@ -9,9 +9,10 @@
 
 
 import os, sys
+import copy_reg
 
 # This is a hack to overcome a bug in python
-from ooni.utils import patched_reduce_ex
+from ooni.utils.hacks import patched_reduce_ex
 copy_reg._reduce_ex = patched_reduce_ex
 
 sys.path[:] = map(os.path.abspath, sys.path)

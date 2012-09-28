@@ -6,4 +6,4 @@
 from ooni.templates import scapyt
 from scapy.all import *
 class ExampleScapy(scapyt.ScapyTest):
-    inputs = [IP()/TCP()]
+    inputs = [IP(dst='8.8.8.8')/UDP(), IP()/TCP()]
