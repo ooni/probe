@@ -45,6 +45,9 @@ class HTTPTest(TestCase):
     processResponseHeader that are invoked once the headers have been received
     and once the request body has been received.
     """
+    name = "HTTP Test"
+    version = 0.1
+
     randomizeUA = True
     followRedirects = False
 

@@ -17,7 +17,7 @@ def _get_log_level(level):
     else:
         ve = "Unknown log level: %s\n" % level
         ve += "Allowed levels: %s\n" % [word for word in english]
-        
+
         if type(level) is int:
             if 0 <= level <= 4:
                 return level
@@ -31,16 +31,16 @@ def _get_log_level(level):
 
 class OONITestFailure(Failure):
     """
-    For handling Exceptions asynchronously. 
+    For handling Exceptions asynchronously.
 
     Can be given an Exception as an argument, else will use the
     most recent Exception from the current stack frame.
     """
-    def __init__(self, exception=None, _type=None, 
+    def __init__(self, exception=None, _type=None,
                  _traceback=None, _capture=False):
         Failure.__init__(self, exc_value=exception, exc_type=_type,
                          exc_tb=_traceback, captureVars=_capture)
-    
+
 class OONILogObserver(log.FileLogObserver):
     """
     Supports logging level verbosity.
@@ -66,7 +66,7 @@ class OONILogObserver(log.FileLogObserver):
             return
 
         timeStr = self.formatTime(eventDict['time'])
-        fmtDict = {'system': eventDict['system'], 
+        fmtDict = {'system': eventDict['system'],
                    'text': text.replace('\n','\n\t')}
         msgStr  = log._safeFormat("[%(system)s] %(text)s\n", fmtDict)
 
@@ -91,6 +91,7 @@ def debug(message, level="debug", **kw):
     log.msg(message, logLevel=level, **kw)
 
 def msg(message, level="info", **kw):
+    print "Msg %s" % message
     log.msg(message, logLevel=level, **kw)
 
 def err(message, level="err", **kw):

@@ -4,7 +4,11 @@
 # :licence: see LICENSE
 
 from ooni.templates import httpt
-class Example(httpt.HTTPTest):
+class ExampleHTTP(httpt.HTTPTest):
+    name = "Example HTTP Test"
+    author = "Arturo Filastò"
+    version = 0.1
+
     inputs = ['http://google.com/', 'http://wikileaks.org/',
             'http://torproject.org/']
 

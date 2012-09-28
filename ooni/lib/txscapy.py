@@ -90,8 +90,7 @@ class Scapy(object):
     recv = False
 
     def __init__(self, pkts=None, maxPacketSize=8192, reactor=None, filter=None,
-            iface=None, nofilter=None, pcapfile=None):
-
+            iface=None, nofilter=None, pcapfile=None, *arg, **kw):
         if self.debug:
             log.startLogging(sys.stdout)
 
@@ -201,7 +200,7 @@ class Scapy(object):
 
         @param pkt: the packet that has been received.
         """
-        #pkt.show()
+        pkt.show()
 
 
     def doRead(self):
@@ -210,6 +209,8 @@ class Scapy(object):
         received packet.
         """
         pkt = self.socket.recv()
+        if not pkt:
+            return
         if self.pcapwriter and not self.write_only_answers:
             self.pcapwriter.write(pkt)
         self.processPacket(pkt)

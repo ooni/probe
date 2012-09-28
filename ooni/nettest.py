@@ -69,7 +69,7 @@ class TestCase(unittest.TestCase):
 
     * version: is the version string of the test.
     """
-    name = "IDidNotChangeTheName"
+    name = "I Did Not Change The Name"
     author = "John Doe <foo@example.com>"
     version = "0"
 
