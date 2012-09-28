@@ -46,5 +46,6 @@ Contents
     install
     tutorial
     writing_tests
+    api/*
 
 
