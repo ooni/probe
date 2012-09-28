@@ -9,28 +9,39 @@
 # :copyright: copyright (c) 2012, Isis Lovecruft, The Tor Project Inc.
 # 
 
-
 class TimeoutError(Exception):
     """Raised when a timer runs out."""
     pass
 
-def timeout(secs, e=None):
+def timeout(seconds, e=None):
     """
-    A decorator for blocking methods to cause them to timeout.
+    A decorator for blocking methods to cause them to timeout. Can be used
+    like this: 
+        @timeout(30)
+        def foo():
+            for x in xrange(1000000000):
+                print x
+    or like this:
+        ridiculous = timeout(30)(foo)
+
+    :param seconds:
+        Number of seconds to wait before raising :class:`TimeoutError`.
+    :param e:
+        Error message to pass to :class:`TimeoutError`. Default None.
     """
-    import signal
-    import functools.wraps
+    from signal    import alarm, signal, SIGALRM
+    from functools import wraps
+
     def decorator(func):
         def _timeout(signum, frame):
             raise TimeoutError, e
-
         def wrapper(*args, **kwargs):
-            signal.signal(signal.SIGALRM, _timeout)
-            signal.alarm(secs)
+            signal(SIGALRM, _timeout)
+            alarm(seconds)
             try:
                 res = func(*args, **kwargs)
             finally:
-                signal.alarm(0)
+                alarm(0)
             return res
-        return functools.wraps(func)(wrapper)
+        return wraps(func)(wrapper)
     return decorator

@@ -282,6 +282,7 @@ class BridgetTest(OONITest):
             from ooni.utils.onion   import start_tor, remove_public_relays
             from ooni.utils.onion   import setup_done, setup_fail
             from ooni.utils.onion   import CustomCircuit
+            from ooni.utils.timer   import timeout
             from ooni.lib.txtorcon  import TorConfig, TorState
         except ImportError:
             raise TxtorconImportError
@@ -365,19 +366,19 @@ class BridgetTest(OONITest):
             log.err("Attaching custom circuit builder failed: %s" % state)
 
 
-        log.msg("Bridget: initiating test ... ") ## Start the experiment
-        all_of_the_bridges = self.bridges['all']
-        all_of_the_relays  = self.relays['all']  ## Local copy of orginal lists
+        log.msg("Bridget: initiating test ... ")  ## Start the experiment
 
-        if self.bridges['remaining']() >= 1 and not 'Bridge' in self.config.config:
+        if self.bridges['remaining']() >= 1 \
+                and not 'Bridge' in self.config.config:
             self.bridges['current'] = self.bridges['all'][0]
             self.config.Bridge = self.bridges['current']
-                                                 ## avoid starting several
-            self.config.save()                   ## processes 
+                                                  ## avoid starting several
+            self.config.save()                    ## processes 
             assert self.config.config.has_key('Bridge'), "NO BRIDGE"
 
-            state = start_tor(reactor, self.config, self.control_port, 
-                              self.tor_binary, self.data_directory)
+            state = timeout(self.circuit_timeout)(start_tor(
+                    reactor, self.config, self.control_port, 
+                    self.tor_binary, self.data_directory))
             state.addCallbacks(setup_done, setup_fail)
             state.addCallback(remove_public_relays, self.bridges)
 
@@ -396,7 +397,8 @@ class BridgetTest(OONITest):
             all = []
             for bridge in self.bridges['all'][1:]:
                 self.bridges['current'] = bridge
-                new = defer.Deferred()
+                #new = defer.Deferred()
+                new = defer.waitForDeferred(state)
                 new.addCallback(reconfigure_bridge, state, self.bridges)
                 all.append(new)
 
