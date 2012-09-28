@@ -1,96 +1,50 @@
 .. OONI documentation master file.
 
-==========
-About OONI
-==========
+Welcome to the OONI documentation!
+==================================
+
+    The Net interprets censorship as damage and routes around it.
+                John Gilmore; TIME magazine (6 December 1993)
+
+OONI, the Open Observatory of Network Interference, is a global observation
+network which aims is to collect high quality data using open methodologies,
+using Free and Open Source Software (FL/OSS) to share observations and data
+about the various types, methods, and amounts of network tampering in the world.
 
 
-Dependencies
-************
+Getting started
+***************
 
-* Twisted: http://twistedmatrix.com/trac/
-* PyYAML: http://pyyaml.org/
-* Scapy: http://www.secdev.org/projects/scapy/
-    * pypcap: http://code.google.com/p/pypcap/
-    * libdnet: http://code.google.com/p/libdnet/
+If you choose to use virtualenv to setup your development environment you will
+need to do the following::
 
-*Optional*
+    virtualenv ENV
+    source ENV/bin/activate
+    pip install twisted Scapy pyyaml
 
-* BeautifulSoup: http://www.crummy.com/software/BeautifulSoup/
+To get the latest version of scapy you will need mercurial. You can then install
+it with::
 
-Installation
-************
+    pip install hg+http://hg.secdev.org/scapy
 
-On debian you can install all the dependecies with apt-get with this command:
+On debian you can install all the dependecies with apt-get with this command::
 
     apt-get install python-twisted python-twisted-names python-yaml python-scapy python-beautifulsoup
 
-*The "hard" way*
+Once you have installed all the dependencies OONI tests can be run like so::
 
-This involves installing the dependencies installable via easy_install/pip and
-the ones that are not by building them from source.
+    bin/ooniprobe path/to/test.py --cmd1 foo --cmd2 bar
 
-"simple" dependencies via easy_install:
 
-    sudo easy_install pyyaml
-    sudo easy_install twisted
-    sudo easy_install beautifulsoup
-
-"simple" dependencies via pip:
-
-    sudo pip install pyyaml
-    sudo pip install twisted
-    sudo pip install beautifulsoup
-
-libdnet:
-
-    wget http://libdnet.googlecode.com/files/libdnet-1.12.tgz
-    tar xzf libdnet-1.12.tgz
-    cd libdnet-1.12
-    ./configure  && make
-    cd python/
-    sudo python setup.py install
-    cd ../../ && rm -rf libdnet-1.12*
-
-pypcap:
-
-    svn checkout http://pypcap.googlecode.com/svn/trunk/ pypcap-read-only
-    cd pypcap-read-only/
-    sudo pip install pyrex
-    make
-    sudo python setup.py install
-    cd ../ && rm -rf pypcap-read-only
-
-scapy:
-
-    wget http://www.secdev.org/projects/scapy/files/scapy-latest.zip
-    unzip scapy-latest.zip
-    cd scapy-2.2.0/
-    sudo python setup.py install
-    cd ../ && rm -rf scapy-*
-
-Running
-*******
-
-To run ooni probe do
-
-$ export PYTHONPATH=`pwd`
-
-$ python ooni/ooniprobe.py
-
+Contents
+********
 
 .. toctree::
-   :maxdepth: 2
+    :maxdepth: 2
+    :glob:
 
-    intro
+    install
     tutorial
     writing_tests
-    ...
 
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
 

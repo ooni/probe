@@ -65,13 +65,14 @@ class httptTest(http.HTTPTest):
 
     def processRedirect(self, location):
         self.result['redirect'] = None
-        if self.local_options['rules']:
+        try:
+            rules_file = self.local_options['rules']
             import yaml
-            rules = yaml.load(open(self.local_options['rules']))
+            rules = yaml.load(open(rules_file))
             log.msg("Testing rules %s" % rules)
             redirect = self.testRules(rules, location)
             self.result['redirect'] = redirect
-        else:
+        except TypeError:
             log.msg("No rules file. Got a redirect, but nothing to do.")
 
 
@@ -90,4 +91,4 @@ class httptTest(http.HTTPTest):
 
 # We need to instantiate it otherwise getPlugins does not detect it
 # XXX Find a way to load plugins without instantiating them.
-httpt = httptTest(None, None, None)
+#httpt = httptTest(None, None, None)

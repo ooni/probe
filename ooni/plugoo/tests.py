@@ -21,14 +21,15 @@ class OONITest(object):
     developer to benefit from OONIs reporting system and command line argument
     parsing system.
     """
+    name = "oonitest"
     # By default we set this to False, meaning that we don't block
     blocking = False
-    reactor = None
+    reactor = reactor
     tool = False
     ended = False
 
     def __init__(self, local_options, global_options, report, ooninet=None,
-            reactor=None):
+            reactor=reactor):
         # These are the options that are read through the tests suboptions
         self.local_options = local_options
         # These are the options global to all of OONI

@@ -1,5 +1,11 @@
-#!/bin/sh
-ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-echo $ROOT
-export PYTHONPATH=$PYTHONPATH:$ROOT
-python $ROOT/ooni/ooniprobe.py $1
+#!/usr/bin/python2
+# startup script based on twisted trial
+# See http://twistedmatrix.com/
+import os, sys
+
+sys.path[:] = map(os.path.abspath, sys.path)
+
+sys.path.insert(0, os.path.abspath(os.getcwd()))
+
+from ooni.oonicli import run
+run()

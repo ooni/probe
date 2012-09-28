@@ -34,6 +34,16 @@ To list the help for a specific test:
 
     $ python ooniprobe.py httpt --help
 
+## Virtualenv way (Recommended)
+
+    virtualenv2 ENV/
+    source ENV/bin/activate
+    pip install twisted Scapy
+
+To install the most up to date scapy version (requires mercurial):
+
+    pip install hg+http://hg.secdev.org/scapy
+
 
 # More details
 

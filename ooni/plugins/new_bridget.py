@@ -196,8 +196,8 @@ class BridgetTest(OONITest):
     """
     implements(IPlugin, ITest)
 
-    shortName = "bridget"
-    description = "Use a Tor process to test connecting to bridges and relays"
+    shortName = "newbridget"
+    description = "bridget"
     requirements = None
     options = BridgetArgs
     blocking = False
