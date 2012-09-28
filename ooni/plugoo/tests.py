@@ -30,14 +30,14 @@ class OONITest(object):
     ended = False
 
     def __init__(self, local_options, global_options, report, ooninet=None,
-            my_reactor=reactor):
+            reactor=reactor):
         # These are the options that are read through the tests suboptions
         self.local_options = local_options
         # These are the options global to all of OONI
         self.global_options = global_options
         self.report = report
         #self.ooninet = ooninet
-        self.reactor = my_reactor
+        self.reactor = reactor
         self.result = {}
 
         self.initialize()
