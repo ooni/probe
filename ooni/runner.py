@@ -5,7 +5,8 @@ import time
 import inspect
 
 from twisted.internet import defer, reactor
-from twisted.python import reflect, log, failure
+from twisted.python import reflect, failure
+from twisted.python import log
 from twisted.trial import unittest
 from twisted.trial.runner import TrialRunner, TestLoader
 from twisted.trial.runner import isPackage, isTestCase, ErrorHolder
@@ -15,7 +16,7 @@ from ooni.reporter import ReporterFactory
 from ooni.input import InputUnitFactory
 from ooni.nettest import InputTestSuite
 from ooni import nettest
-from ooni.utils import log
+#from ooni.utils import log
 from ooni.plugoo import tests as oonitests
 
 def isTestCase(thing):
@@ -182,7 +183,8 @@ class ORunner(object):
         result.done()
 
     def run(self):
-        log.start()
+        log.startLogging(sys.stdout)
+        #log.start(True)
         self.reporterFactory.writeHeader()
 
         for inputUnit in InputUnitFactory(self.inputs):

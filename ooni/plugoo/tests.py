@@ -8,10 +8,10 @@ from twisted.internet import reactor, defer, threads
 ## XXX why is this imported and not used?
 from twisted.python import failure
 
-from utils import log, date
-from plugoo import assets, work
-from plugoo.reports import Report
-from plugoo.interface import ITest
+from ooni.utils import log, date
+from ooni.plugoo import assets, work
+from ooni.plugoo.reports import Report
+from ooni.plugoo.interface import ITest
 
 
 class OONITest(object):
@@ -58,7 +58,7 @@ class OONITest(object):
         return {}
 
     def __repr__(self):
-        return "<OONITest %s %s %s>" % (self.local_options, 
+        return "<OONITest %s %s %s>" % (self.local_options,
                                         self.global_options,
                                         self.assets)
 
