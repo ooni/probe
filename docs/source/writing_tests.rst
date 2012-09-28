@@ -74,3 +74,11 @@ To access the current input you can use the ``input`` attribute, for example::
 This will at each iteration over the list of inputs do something with the
 input.
 
+Backward compatibility
+----------------------
+
+All ooni tests written using the experiment(), control() pattern are supported,
+but all new tests should no longer be written using such pattern.
+
+Code in protocols should be refactored to follow the new API.
+
