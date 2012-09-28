@@ -9,6 +9,8 @@ from zope.interface import implements
 from twisted.python import usage
 from twisted.plugin import IPlugin
 from twisted.internet import protocol, defer
+from twisted.internet.ssl import ClientContextFactory
+
 from twisted.web.http_headers import Headers
 
 from ooni.nettest import TestCase
@@ -25,6 +27,11 @@ useragents = [("Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.8.1.6) Geck
               ("Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; en) Opera 8.0", "Opera 8.0, Windows XP"),
               ("Mozilla/4.0 (compatible; MSIE 6.0; MSIE 5.5; Windows NT 5.1) Opera 7.02 [en]", "Opera 7.02, Windows XP"),
               ("Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.7.5) Gecko/20060127 Netscape/8.1", "Netscape 8.1, Windows XP")]
+
+
+class WebClientContextFactory(ClientContextFactory):
+    def getContext(self, hostname, port):
+        return ClientContextFactory.getContext(self)
 
 class BodyReceiver(protocol.Protocol):
     def __init__(self, finished):
@@ -52,10 +59,16 @@ class HTTPTest(TestCase):
     followRedirects = False
 
     def setUp(self):
+        try:
+            import OpenSSL
+        except:
+            log.err("Warning! pyOpenSSL is not installed. https websites will"
+                     "not work")
         from twisted.web.client import Agent
         from twisted.internet import reactor
-        import yaml
+
         self.agent = Agent(reactor)
+
         if self.followRedirects:
             from twisted.web.client import RedirectAgent
             self.agent = RedirectAgent(self.agent)
@@ -96,6 +109,7 @@ class HTTPTest(TestCase):
     def doRequest(self, url):
         d = self.build_request(url)
         def finished(data):
+            #self.mainDefer.callback()
             return data
 
         d.addCallback(self._cbResponse)
@@ -144,7 +158,8 @@ class HTTPTest(TestCase):
 
         self.report['request'] = self.request
         self.report['url'] = url
-        return self.agent.request(self.request['method'], self.request['url'],
+        req = self.agent.request(self.request['method'], self.request['url'],
                                   Headers(self.request['headers']),
                                   self.request['body'])
+        return req
 

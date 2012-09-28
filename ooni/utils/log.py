@@ -91,7 +91,6 @@ def debug(message, level="debug", **kw):
     log.msg(message, logLevel=level, **kw)
 
 def msg(message, level="info", **kw):
-    print "Msg %s" % message
     log.msg(message, logLevel=level, **kw)
 
 def err(message, level="err", **kw):

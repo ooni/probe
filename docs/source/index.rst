@@ -20,7 +20,7 @@ need to do the following::
 
     virtualenv ENV
     source ENV/bin/activate
-    pip install twisted Scapy pyyaml
+    pip install twisted Scapy pyyaml pyOpenSSL
 
 To get the latest version of scapy you will need mercurial. You can then install
 it with::

@@ -11,3 +11,4 @@ class ExampleScapy(scapyt.ScapyTest):
     version = 0.1
 
     inputs = [IP(dst='8.8.8.8')/UDP(), IP()/TCP()]
+

@@ -38,7 +38,15 @@ To list the help for a specific test:
 
     virtualenv2 ENV/
     source ENV/bin/activate
-    pip install twisted Scapy
+    pip install twisted Scapy pyyaml
+
+The setup.py script of pyOpenSSL has some issues and it is therefore
+recommended to install it system wide with:
+
+    sudo pip install pyOpenSSL
+
+Note: be sure to do this over a secure network since pip does not by default
+use SSL...
 
 To install the most up to date scapy version (requires mercurial):
 
