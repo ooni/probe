@@ -68,17 +68,31 @@ def parse_data_dir(data_dir):
     :return:
         The absolute path of :param:data_dir.
     """
-    import os
+    from os import path, getcwd
+    import sys
+
+    try:
+        assert isinstance(data_dir, str), \
+            "Parameter type(data_dir) must be str"
+    except AssertionError, ae:
+        log.err(ae)
 
     if data_dir.startswith('~'):
-        data_dir = os.path.expanduser(data_dir)
+        data_dir = path.expanduser(data_dir)
     elif data_dir.startswith('/'):
-        data_dir = os.path.join(os.getcwd(), data_dir)
+        data_dir = path.join(getcwd(), data_dir)
     elif data_dir.startswith('./'):
-        data_dir = os.path.abspath(data_dir)
+        data_dir = path.abspath(data_dir)
     else:
-        data_dir = os.path.join(os.getcwd(), data_dir)
-    return data_dir
+        data_dir = path.join(getcwd(), data_dir)
+
+    try:
+        assert path.isdir(data_dir), "Could not find %s" % data_dir
+    except AssertionError, ae:
+        log.err(ae)
+        sys.exit(1)
+    else:
+        return data_dir
 
 def write_torrc(conf, data_dir=None):
     """
@@ -137,11 +151,10 @@ def remove_node_from_list(node, list):
         if item.startswith(node):  ## due to the :<port>.
             try:
                 log.msg("Removing %s because it is a public relay" % node)
-                list.remove(line)
+                list.remove(item)
             except ValueError, ve:
                 log.err(ve)
 
-@defer.inlineCallbacks
 def remove_public_relays(state, bridges):
     """
     Remove bridges from our bridge list which are also listed as public
@@ -151,25 +164,26 @@ def remove_public_relays(state, bridges):
 
     XXX Does state.router.values() have all of the relays in the consensus, or
     just the ones we know about so far?
+
+    XXX FIXME: There is a problem in that Tor needs a Bridge line to already be
+    configured in order to bootstrap. However, after bootstrapping, we grab the
+    microdescriptors of all the relays and check if any of our bridges are 
+    listed as public relays. Because of this, the first bridge does not get
+    checked for being a relay.
     """
-    IPs = map(lambda addr: addr.split(':',1)[0], bridges)
+    IPs = map(lambda addr: addr.split(':',1)[0], bridges['all'])
     both = set(state.routers.values()).intersection(IPs)
 
     if len(both) > 0:
         try:
-            updated = yield map(lambda node: remove_node_from_list(node), 
-                                both)
+            updated = map(lambda node: remove_node_from_list(node), both)
             if not updated:
-                ## XXX do these need to be state.callback?
                 defer.returnValue(state)
             else:
                 defer.returnValue(state)
         except Exception, e:
-            log.msg("Removing public relays from bridge list failed:\n%s"
-                    % both)
-            log.err(e)
-        except ValueError, ve:
-            log.err(ve)
+            log.err("Removing public relays %s from bridge list failed:\n%s"
+                    % (both, e))
 
 #@defer.inlineCallbacks
 def start_tor(reactor, config, control_port, tor_binary, data_dir,
@@ -259,6 +273,7 @@ def start_tor(reactor, config, control_port, tor_binary, data_dir,
         transport = reactor.spawnProcess(process_protocol, 
                                          tor_binary, 
                                          args=(tor_binary,'-f',torrc),
+                                         env={'HOME':data_dir},
                                          path=data_dir)
         transport.closeStdin()
     except RuntimeError, e:
@@ -337,8 +352,10 @@ class CustomCircuit(CircuitListenerMixin):
                                 for i in range(2))
             path = [first, middle, last]
         else:
-            assert type(path) is list, "Circuit path must be a list of relays!"
-            assert len(path) >= 3, "Circuits must be at least three hops!"
+            assert isinstance(path, list), \
+                "Circuit path must be a list of relays!"
+            assert len(path) >= 3, \
+                "Circuit path must be at least three hops!"
 
         log.msg("Requesting a circuit: %s" 
                 % '->'.join(map(lambda node: node, path)))

@@ -85,7 +85,8 @@ class ValueChecker(object):
             raise ValueError("Port out of range")
             log.err()
 
-    def uid_check(self, error_message):
+    @staticmethod
+    def uid_check(error_message):
         """
         Check that we're not root. If we are, setuid(1000) to normal user if
         we're running on a posix-based system, and if we're on Windows just
@@ -105,13 +106,15 @@ class ValueChecker(object):
         else:
             sys.exit(0)
 
-    def dir_check(self, d):
+    @staticmethod
+    def dir_check(d):
         """Check that the given directory exists."""
         if not os.path.isdir(d):
             raise ValueError("%s doesn't exist, or has wrong permissions" 
                              % d)
 
-    def file_check(self, f):
+    @staticmethod
+    def file_check(f):
         """Check that the given file exists."""
         if not os.path.isfile(f):
             raise ValueError("%s does not exist, or has wrong permissions" 
