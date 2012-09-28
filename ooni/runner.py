@@ -13,7 +13,7 @@ from twisted.trial.runner import isPackage, isTestCase, ErrorHolder
 from twisted.trial.runner import filenameToModule, _importFromFile
 
 from ooni.reporter import ReporterFactory
-from ooni.input import InputUnitFactory
+from ooni.inputunit import InputUnitFactory
 from ooni.nettest import InputTestSuite
 from ooni import nettest
 from ooni.utils import log

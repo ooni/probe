@@ -18,7 +18,7 @@ import sys, os, random, gc, time, warnings
 import unittest
 import inspect
 
-from ooni.input import InputUnitFactory
+from ooni.inputunit import InputUnitFactory
 from ooni.reporter import ReporterFactory
 from ooni.nettest import InputTestSuite
 from ooni.plugoo import tests
