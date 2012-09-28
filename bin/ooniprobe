@@ -1,7 +1,18 @@
 #!/usr/bin/python2
+# -*- encoding: utf-8 -*-
+#
 # startup script based on twisted trial
 # See http://twistedmatrix.com/
+#
+# :authors: Arturo Filastò
+# :licence: see LICENSE
+
+
 import os, sys
+
+# This is a hack to overcome a bug in python
+from ooni.utils import patched_reduce_ex
+copy_reg._reduce_ex = patched_reduce_ex
 
 sys.path[:] = map(os.path.abspath, sys.path)
 

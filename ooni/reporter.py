@@ -8,6 +8,15 @@ from datetime import datetime
 from twisted.python.util import OrderedDict, untilConcludes
 from twisted.trial import unittest, reporter, runner
 
+try:
+    from scapy.all import packet
+except:
+    class FooClass:
+        pass
+    packet = object
+    packet.Packet = FooClass
+
+
 pyunit =  __import__('unittest')
 
 class OReporter(pyunit.TestResult):
@@ -44,8 +53,8 @@ class OReporter(pyunit.TestResult):
         self._write('\n')
 
     def writeYamlLine(self, line):
-        self._write(yaml.dump([line]))
-
+        to_write = yaml.dump([line])
+        self._write(to_write)
 
 
 class ReporterFactory(OReporter):
@@ -122,7 +131,11 @@ class OONIReporter(OReporter):
 
         self._tests[idx] = {}
         self._tests[idx]['testStarted'] = self._getTime()
-        self._tests[idx]['input'] = test.input
+        if isinstance(test.input, packet.Packet):
+            test_input = repr(test.input)
+        else:
+            test_input = test.input
+        self._tests[idx]['input'] = test_input
         self._tests[idx]['idx'] = idx
         self._tests[idx]['name'] = test.name
         #self._tests[idx]['test'] = test

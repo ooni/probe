@@ -1,4 +1,5 @@
 *.pyc
+assets/*
 build/*
 package/*
 proxy-lists/ip-cc.txt
@@ -8,8 +9,4 @@ proxy-lists/italy-http-ips.txt
 private/*
 /ooni/plugins/dropin.cache
 oonib/oonibackend.conf
-<<<<<<< HEAD
-ooni/assets/*
-=======
 ooni/lib/txtorcon
->>>>>>> 21505f84aef5d60c7e138590a1a40e3df773d680
