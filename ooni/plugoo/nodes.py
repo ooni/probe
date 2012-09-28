@@ -7,7 +7,7 @@
     This contains all the code related to Nodes
     both network and code execution.
 
-    :copyright: (c) 2012 by Arturo Filastò.
+    :copyright: (c) 2012 by Arturo Filastò, Isis Lovecruft
     :license: see LICENSE for more details.
 
 """
@@ -20,10 +20,6 @@ try:
 except:
     print "Error: module paramiko is not installed."
 from pprint import pprint
-try:
-    import pyXMLRPCssh
-except:
-    print "Error: module pyXMLRPCssh is not installed."
 import sys
 import socks
 import xmlrpclib

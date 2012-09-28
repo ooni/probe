@@ -27,9 +27,11 @@ from zope.interface.verify import verifyObject
 from zope.interface.exceptions import BrokenImplementation
 from zope.interface.exceptions import BrokenMethodImplementation
 
-from ooni.plugoo import tests, work, assets, reports
-from ooni.logo import getlogo
-from ooni import plugins, log
+from plugoo import tests, work, assets, reports
+from plugoo.interface import ITest
+from utils.logo import getlogo
+from utils import log
+import plugins
 
 __version__ = "0.0.1-prealpha"
 
@@ -38,7 +40,7 @@ def retrieve_plugoo():
     Get all the plugins that implement the ITest interface and get the data
     associated to them into a dict.
     """
-    interface = tests.ITest
+    interface = ITest
     d = {}
     error = False
     for p in getPlugins(interface, plugins):

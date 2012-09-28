@@ -93,7 +93,6 @@ def debug(message, level="debug", **kw):
 def msg(message, level="info", **kw):
     log.msg(message, logLevel=level, **kw)
 
-## XXX fixme log.err messages get printed to stdout twice
 def err(message, level="err", **kw):
     log.err(message, logLevel=level, **kw)
 

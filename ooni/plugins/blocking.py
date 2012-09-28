@@ -3,7 +3,7 @@ from twisted.python import usage
 from twisted.plugin import IPlugin
 
 from plugoo.assets import Asset
-from plugoo.tests import ITest, TwistedTest
+from plugoo.tests import ITest, OONITest
 
 class BlockingArgs(usage.Options):
     optParameters = [['asset', 'a', None, 'Asset file'],
