@@ -3,9 +3,15 @@
 """
 This script should be used for creating the scaffolding for a test.
 """
+from __future__ import print_function
 import os
 import sys
 from ooni.utils import log
+
+print("!!!! This test writing strategy is now deprecated !!!")
+print("visit: https://ooni.readthedocs.org/en/latest/writing_tests.html "
+      "for new instructions")
+sys.exit(1)
 
 test_template = """\"\"\"
 This is a self genrated test created by scaffolding.py.
@@ -61,9 +67,9 @@ test_vars['testSNlower'] = test_vars['testShortname'].lower()
 fname = os.path.join('plugins', test_vars['testSNlower']+'.py')
 
 if os.path.exists(fname):
-    print 'WARNING! File named "%s" already exists.' % fname
+    print('WARNING! File named "%s" already exists.' % fname)
     if raw_input("Do you wish to continue (y/N)? ").lower() != 'y':
-        print "gotcha! Dying.."
+        print("gotcha! Dying..")
         sys.exit(0)
 
 fp = open(fname, 'w')
