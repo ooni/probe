@@ -34,39 +34,40 @@ class TestCase(unittest.TestCase):
     This is the monad of the OONI nettest universe. When you write a nettest
     you will subclass this object.
 
-    _inputs_ can be set to a static set of inputs. All the tests (the methods
-    starting with the "test_" prefix) will be run once per input.  At every run
-    the _input_ attribute of the TestCase instance will be set to the value of
-    the current iteration over inputs.  Any python iterable object can be set
-    to inputs.
+    * inputs: can be set to a static set of inputs. All the tests (the methods
+      starting with the "test_" prefix) will be run once per input.  At every run
+      the _input_ attribute of the TestCase instance will be set to the value of
+      the current iteration over inputs.  Any python iterable object can be set
+      to inputs.
 
-    _inputFile_ attribute should be set to an array containing the command line
-    argument that should be used as the input file. Such array looks like this:
+    * inputFile: attribute should be set to an array containing the command line
+      argument that should be used as the input file. Such array looks like
+      this:
 
-        ["commandlinearg", "c", "The description"]
+          ``["commandlinearg", "c", "The description"]``
 
-    The second value of such arrray is the shorthand for the command line arg.
-    The user will then be able to specify inputs to the test via:
+      The second value of such arrray is the shorthand for the command line arg.
+      The user will then be able to specify inputs to the test via:
 
-        ooniprobe mytest.py --commandlinearg path/to/file.txt
+          ``ooniprobe mytest.py --commandlinearg path/to/file.txt``
 
-    or
+      or
 
-        ooniprobe mytest.py -c path/to/file.txt
+          ``ooniprobe mytest.py -c path/to/file.txt``
 
 
-    _inputProcessor_ should be set to a function that takes as argument an
-    open file descriptor and it will yield the input to be passed to the test
-    instance.
+    * inputProcessor: should be set to a function that takes as argument an
+      open file descriptor and it will yield the input to be passed to the test
+      instance.
 
-    _name_ should be set to the name of the test.
+    * name: should be set to the name of the test.
 
-    _author_ should contain the name and contact details for the test author.
-    The format for such string is as follows:
+    * author: should contain the name and contact details for the test author.
+      The format for such string is as follows:
 
-        The Name <email@example.com>
+          ``The Name <email@example.com>``
 
-    _version_ is the version string of the test.
+    * version: is the version string of the test.
     """
     name = "IDidNotChangeTheName"
     author = "John Doe <foo@example.com>"
