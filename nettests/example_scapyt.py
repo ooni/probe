@@ -10,5 +10,6 @@ class ExampleScapy(scapyt.ScapyTest):
     author = "Arturo Filastò"
     version = 0.1
 
-    inputs = [IP(dst='8.8.8.8')/UDP(), IP()/TCP()]
+    inputs = [IP(dst="8.8.8.8")/TCP(dport=31337),
+            IP(dst="ooni.nu")/TCP(dport=31337)]
 

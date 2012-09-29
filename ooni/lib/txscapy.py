@@ -36,8 +36,8 @@ from scapy.all import RawPcapWriter, MTU, BasePacketList, conf
 class PcapWriter(RawPcapWriter):
     def __init__(self, filename, linktype=None, gz=False, endianness="",
                  append=False, sync=False):
-        RawPcapWriter.__init__(self, filename, linktype=None, gz=False,
-                               endianness="", append=False, sync=False)
+        RawPcapWriter.__init__(self, filename, linktype=linktype, gz=gz,
+                               endianness=endianness, append=append, sync=sync)
         fdesc.setNonBlocking(self.f)
 
     def _write_header(self, pkt):
@@ -90,7 +90,7 @@ class Scapy(object):
     recv = False
 
     def __init__(self, pkts=None, maxPacketSize=8192, reactor=None, filter=None,
-            iface=None, nofilter=None, pcapfile=None, *arg, **kw):
+            iface=None, nofilter=None, pcapfile=None, timeout=None, *arg, **kw):
         if self.debug:
             log.startLogging(sys.stdout)
 
@@ -102,7 +102,11 @@ class Scapy(object):
 
         if pkts:
             self._buildPacketQueues(pkts)
-            self._buildSocket()
+            try:
+                self._buildSocket()
+            except Exception, e:
+                log.err("Unable to build socket. Are you root?")
+                sys.exit()
 
         self.cthreads = 0
         self.mthreads = 80
@@ -121,6 +125,9 @@ class Scapy(object):
 
         if pcapfile:
             self.pcapwriter = PcapWriter(pcapfile)
+
+        if timeout and self.recv:
+            pass
 
     def _buildSocket(self, filter=None, iface=None, nofilter=None):
         self.socket = ScapySocket(filter, iface, nofilter)
@@ -213,6 +220,7 @@ class Scapy(object):
             return
         if self.pcapwriter and not self.write_only_answers:
             self.pcapwriter.write(pkt)
+
         self.processPacket(pkt)
 
         h = pkt.hashret()
@@ -251,7 +259,13 @@ class Scapy(object):
         """
         self.socket.send(pkt)
 
-    def sr(self, pkts, filter=None, iface=None, nofilter=0, *args, **kw):
+    def timeout(self, *arg, **kw):
+        if not self.done:
+            self._reactor.callLater(self.timeoutSeconds, self.timeout, None)
+        else:
+            self.deferred.callback(None)
+
+    def sr(self, pkts, filter=None, iface=None, nofilter=0, timeout=None, *args, **kw):
         """
         Wraps the scapy sr function.
 
@@ -271,6 +285,9 @@ class Scapy(object):
         @param iface:    listen answers only on the given interface
         """
         self.recv = True
+        if timeout:
+            self.timeoutSeconds = timeout
+            self._reactor.callLater(timeout, self.timeout, None)
         self._sendrcv(pkts, filter=filter, iface=iface, nofilter=nofilter)
 
     def send(self, pkts, filter=None, iface=None, nofilter=0, *args, **kw):
@@ -338,12 +355,16 @@ class Scapy(object):
         self.threadpool.stop()
         self.running = False
 
+@defer.inlineCallbacks
 def txsr(*args, **kw):
     tr = Scapy(*args, **kw)
     tr.sr(*args, **kw)
-    return tr.deferred
+    yield tr.deferred
+    tr.finalClose()
 
+@defer.inlineCallbacks
 def txsend(*arg, **kw):
     tr = Scapy(*arg, **kw)
     tr.send(*arg, **kw)
-    return tr.deferred
+    yield tr.deferred
+    tr.finalClose()

@@ -31,7 +31,7 @@ class ScapyTest(TestCase):
 
     receive = True
     timeout = 1
-    pcapfile = 'scapytest.pcap'
+    pcapfile = '/home/x/code/networking/ooni-probe/scapytest.pcap'
     input = IP()/TCP()
     reactor = None
     def setUp(self):
