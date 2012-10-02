@@ -279,10 +279,11 @@ class BridgetTest(OONITest):
         """
         try:
             from ooni.utils         import process
-            from ooni.utils.onion   import start_tor, remove_public_relays
-            from ooni.utils.onion   import setup_done, setup_fail
+            from ooni.utils.onion   import remove_public_relays, start_tor
+            from ooni.utils.onion   import start_tor_filter_nodes
+            from ooni.utils.onion   import setup_fail, setup_done
             from ooni.utils.onion   import CustomCircuit
-            from ooni.utils.timer   import timeout
+            from ooni.utils.timer   import deferred_timeout, TimeoutError
             from ooni.lib.txtorcon  import TorConfig, TorState
         except ImportError:
             raise TxtorconImportError
@@ -291,12 +292,20 @@ class BridgetTest(OONITest):
             sys.exit()
 
         def reconfigure_done(state, bridges):
+            """
+            Append :ivar:`bridges['current']` to the list 
+            :ivar:`bridges['up'].
+            """
             log.msg("Reconfiguring with 'Bridge %s' successful" 
                     % bridges['current'])
             bridges['up'].append(bridges['current'])
             return state
 
         def reconfigure_fail(state, bridges):
+            """
+            Append :ivar:`bridges['current']` to the list 
+            :ivar:`bridges['down'].
+            """
             log.msg("Reconfiguring TorConfig with parameters %s failed"
                     % state)
             bridges['down'].append(bridges['current'])
@@ -307,8 +316,28 @@ class BridgetTest(OONITest):
             """
             Rewrite the Bridge line in our torrc. If use of pluggable
             transports was specified, rewrite the line as:
-                Bridge <transport_type> <ip>:<orport>
-            Otherwise, rewrite in the standard form.
+                Bridge <transport_type> <IP>:<ORPort>
+            Otherwise, rewrite in the standard form:
+                Bridge <IP>:<ORPort>
+
+            :param state:
+                A fully bootstrapped instance of 
+                :class:`ooni.lib.txtorcon.TorState`.
+            :param bridges:
+                A dictionary of bridges containing the following keys:
+
+                bridges['remaining'] :: A function returning and int for the
+                                        number of remaining bridges to test.
+                bridges['current']   :: A string containing the <IP>:<ORPort>
+                                        of the current bridge.
+                bridges['use_pt']    :: A boolean, True if we're testing
+                                        bridges with a pluggable transport;
+                                        False otherwise.
+                bridges['pt_type']   :: If :ivar:`bridges['use_pt'] is True,
+                                        this is a string containing the type
+                                        of pluggable transport to test.
+            :return:
+                :param:`state`
             """
             log.msg("Current Bridge: %s" % bridges['current'])
             log.msg("We now have %d bridges remaining to test..." 
@@ -324,11 +353,11 @@ class BridgetTest(OONITest):
                     raise PTNotFoundException
 
                 if controller_response == 'OK':
-                    finish = reconfigure_done(state, bridges)
+                    finish = yield reconfigure_done(state, bridges)
                 else:
                     log.err("SETCONF for %s responded with error:\n %s"
                             % (bridges['current'], controller_response))
-                    finish = reconfigure_fail(state, bridges)
+                    finish = yield reconfigure_fail(state, bridges)
 
                 defer.returnValue(finish)
 
@@ -365,51 +394,46 @@ class BridgetTest(OONITest):
         def state_attach_fail(state):
             log.err("Attaching custom circuit builder failed: %s" % state)
 
-
         log.msg("Bridget: initiating test ... ")  ## Start the experiment
 
+        ## if we've at least one bridge, and our config has no 'Bridge' line
         if self.bridges['remaining']() >= 1 \
                 and not 'Bridge' in self.config.config:
+
+            ## configure our first bridge line
             self.bridges['current'] = self.bridges['all'][0]
             self.config.Bridge = self.bridges['current']
                                                   ## avoid starting several
             self.config.save()                    ## processes 
-            assert self.config.config.has_key('Bridge'), "NO BRIDGE"
+            assert self.config.config.has_key('Bridge'), "No Bridge Line"
 
-            state = timeout(self.circuit_timeout)(start_tor(
-                    reactor, self.config, self.control_port, 
-                    self.tor_binary, self.data_directory))
-            state.addCallbacks(setup_done, setup_fail)
-            state.addCallback(remove_public_relays, self.bridges)
-
-            #controller = singleton_semaphore(bootstrap)
-            #controller = x().addCallback(singleton_semaphore, tor)
+            ## start tor and remove bridges which are public relays
+            from ooni.utils.onion import start_tor_filter_nodes
+            state = start_tor_filter_nodes(reactor, self.config, 
+                                           self.control_port, self.tor_binary,
+                                           self.data_directory, self.bridges)
+            #controller = defer.Deferred()
+            #controller.addCallback(singleton_semaphore, tor)
             #controller.addErrback(setup_fail)
+            #bootstrap = defer.gatherResults([controller, filter_bridges], 
+            #                                consumeErrors=True)
 
-            #filter_bridges = remove_public_relays(self.bridges)
+            if state is not None:
+                log.debug("state:\n%s" % state)
+                log.debug("Current callbacks on TorState():\n%s" 
+                          % state.callbacks)
 
-        #bootstrap = defer.gatherResults([controller, filter_bridges], 
-        #                                consumeErrors=True)
-        log.debug("Current callbacks on TorState():\n%s" % state.callbacks)
-        log.debug("TorState():\n%s" % state)
-
+        ## if we've got more bridges
         if self.bridges['remaining']() >= 2:
-            all = []
+            #all = []
             for bridge in self.bridges['all'][1:]:
                 self.bridges['current'] = bridge
                 #new = defer.Deferred()
-                new = defer.waitForDeferred(state)
-                new.addCallback(reconfigure_bridge, state, self.bridges)
-                all.append(new)
-
-        #state.chainDeferred(defer.DeferredList(all))
-        #state.chainDeferred(defer.gatherResults(all, consumeErrors=True))
-            check_remaining = defer.DeferredList(all, consumeErrors=True)
-
-            #controller.chainDeferred(check_remaining)
-            #log.debug("Current callbacks on TorState():\n%s" 
-            #          % controller.callbacks)
-            state.chainDeferred(check_remaining)
+                #new.addCallback(reconfigure_bridge, state, self.bridges)
+                #all.append(new)
+            #check_remaining = defer.DeferredList(all, consumeErrors=True)
+            #state.chainDeferred(check_remaining)
+                state.addCallback(reconfigure_bridge, self.bridges)
 
         if self.relays['remaining']() > 0:
             while self.relays['remaining']() >= 3:
@@ -434,16 +458,26 @@ class BridgetTest(OONITest):
                         continue
 
         #state.callback(all)
-        self.reactor.run()
+        #self.reactor.run()
         return state
 
     def startTest(self, args):
+        """
+        Local override of :meth:`OONITest.startTest` to bypass calling 
+        self.control.
+
+        :param args:
+            The current line of :class:`Asset`, not used but kept for 
+            compatibility reasons.
+        :return:
+            A fired deferred which callbacks :meth:`experiment` and 
+            :meth:`OONITest.finished`. 
+        """
         self.start_time = date.now()
-        self.laboratory = defer.Deferred()
-        self.laboratory.addCallbacks(self.experiment, errback=log.err)
-        self.laboratory.addCallbacks(self.finished, errback=log.err)
-        self.laboratory.callback(args)
-        return self.laboratory
+        self.d = self.experiment(args)
+        self.d.addErrback(log.err)
+        self.d.addCallbacks(self.finished, log.err)
+        return self.d
 
 ## So that getPlugins() can register the Test:
 bridget = BridgetTest(None, None, None)
@@ -453,11 +487,10 @@ bridget = BridgetTest(None, None, None)
 ## -----------
 ##
 ## TODO:
-##       o  cleanup documentation
+##       x  cleanup documentation
 ##       x  add DataDirectory option
 ##       x  check if bridges are public relays
 ##       o  take bridge_desc file as input, also be able to give same
 ##          format as output
 ##       x  Add asynchronous timeout for deferred, so that we don't wait 
 ##          forever for bridges that don't work.
-##       o  Add mechanism for testing through another host
