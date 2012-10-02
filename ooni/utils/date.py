@@ -3,10 +3,10 @@ from datetime import datetime
 
 class odate(datetime):
     def __str__(self):
-        return rfc3339(self)
+        return "%s" % rfc3339(self)
 
     def __repr__(self):
-        return "'%s'" % rfc3339(self)
+        return "%s" % rfc3339(self)
 
     def from_rfc(self, datestr):
         pass

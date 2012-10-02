@@ -10,7 +10,14 @@ class ExampleHTTP(httpt.HTTPTest):
     version = 0.1
 
     inputs = ['http://google.com/', 'http://wikileaks.org/',
-            'http://torproject.org/']
+              'http://torproject.org/']
+
+    def test_http(self):
+        if self.input:
+            url = self.input
+            return self.doRequest(url)
+        else:
+            raise Exception("No input specified")
 
     def processResponseBody(self, body):
         # XXX here shall go your logic

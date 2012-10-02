@@ -84,7 +84,7 @@ class Scapy(object):
     """
     min = 2
     max = 6
-    debug = True
+    debug = False
     write_only_answers = False
     pcapwriter = None
     recv = False

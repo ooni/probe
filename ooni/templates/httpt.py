@@ -106,26 +106,24 @@ class HTTPTest(TestCase):
         """
         pass
 
-    def doRequest(self, url):
-        d = self.build_request(url)
-        def finished(data):
-            #self.mainDefer.callback()
-            return data
+    def doRequest(self, url, method="GET", headers=None, body=None):
+        try:
+            d = self.build_request(url, method, headers, body)
+        except Exception, e:
+            print e
+            self.report['error'] = e
 
+        def errback(data):
+            print data
+            #self.report["error"] = data
+
+        def finished(data):
+            return
+
+        d.addErrback(errback)
         d.addCallback(self._cbResponse)
         d.addCallback(finished)
         return d
-
-    def test_http(self):
-        log.msg("Running experiment")
-
-        if self.input:
-            url = self.input
-        else:
-            raise Exception("No input supplied")
-
-        self.mainDefer = self.doRequest(url)
-        return self.mainDefer
 
     def _cbResponse(self, response):
         self.response['headers'] = response.headers

@@ -17,8 +17,8 @@ from twisted.web.microdom import escape
 from twisted.names import dns
 
 from oonib.lib import config
-from oonib.testhelpers.http import HTTPBackend
 from oonib.lib.ssl import SSLContext
+from oonib.testhelpers.httph import HTTPBackend, DebugHTTPServer
 from oonib.testhelpers.dns import ProxyDNSServer
 from oonib.testhelpers.daphn3 import Daphn3Server
 
@@ -36,6 +36,9 @@ internet.SSLServer(int(config.main.ssl_port),
                    server.Site(HTTPBackend()),
                    SSLContext(config),
                   ).setServiceParent(serviceCollection)
+
+debugHTTPServer = DebugHTTPServer()
+internet.TCPServer(8090, debugHTTPServer).setServiceParent(serviceCollection)
 
 # Start the DNS Server related services
 TCPDNSServer = ProxyDNSServer()

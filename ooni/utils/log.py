@@ -73,7 +73,7 @@ class OONILogObserver(log.FileLogObserver):
         util.untilConcludes(self.write, timeStr + " " + msgStr)
         util.untilConcludes(self.flush)
 
-def start(logstdout, logfile=None, verbosity=None):
+def start(logfile=None, logstdout=True, verbosity=None):
     if log.defaultObserver:
         verbosity = _get_log_level(verbosity)
 

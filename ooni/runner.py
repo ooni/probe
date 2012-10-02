@@ -129,6 +129,8 @@ def loadTestsAndOptions(classes):
     suiteFactory = InputTestSuite
     options = []
     testCases = []
+    names = []
+
     for klass in classes:
         try:
             k = klass()
@@ -184,8 +186,8 @@ class ORunner(object):
 
     def run(self):
         #log.startLogging(sys.stdout)
-        log.start(True)
-        self.reporterFactory.writeHeader()
+        log.start()
+        self.reporterFactory.writeHeader(self.options)
 
         for inputUnit in InputUnitFactory(self.inputs):
             self.runWithInputUnit(inputUnit)

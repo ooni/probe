@@ -7,6 +7,7 @@ sys.path.insert(0, '/home/x/Documents/pen_drive_bitcoin2012/ooni-probe/ENV/lib/p
 from datetime import datetime
 from twisted.python.util import OrderedDict, untilConcludes
 from twisted.trial import unittest, reporter, runner
+from ooni.utils import date
 
 try:
     from scapy.all import packet
@@ -70,19 +71,19 @@ class ReporterFactory(OReporter):
         self._testSuite = testSuite
         self._reporters = []
 
-    def writeHeader(self):
-        pretty_date = "XXX Replace me with date.pretty_date()"
+    def writeHeader(self, options):
         self._writeln("###########################################")
-        self._writeln("# OONI Probe Report for Test %s" % "XXX replace with with the test suite name")
-        self._writeln("# %s" % pretty_date)
+        self._writeln("# OONI Probe Report for %s test" % options['name'])
+        self._writeln("# %s" % date.pretty_date())
         self._writeln("###########################################")
 
         address = {'asn': 'XXX replace me with ASN',
                    'ip': 'XXX replace me with IP'}
-        test_details = {'start_time': datetime.now(),
-                        'asn': address['asn'],
-                        'test_name': 'XXX replace me with the test name',
-                        'addr': address['ip']}
+        test_details = {'startTime': repr(date.now()),
+                        'probeASN': address['asn'],
+                        'testName': options['name'],
+                        'testVersion': options['version'],
+                        'probeIP': address['ip']}
         self.writeYamlLine(test_details)
         self._writeln('')
 
@@ -135,8 +136,9 @@ class OONIReporter(OReporter):
             test_input = repr(test.input)
         else:
             test_input = test.input
+
         self._tests[idx]['input'] = test_input
-        self._tests[idx]['idx'] = idx
+        #self._tests[idx]['idx'] = idx
         self._tests[idx]['name'] = test.name
         #self._tests[idx]['test'] = test
         print "Now starting %s" % self._tests[idx]

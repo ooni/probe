@@ -81,8 +81,11 @@ class TestCase(unittest.TestCase):
         if self.inputFile:
             fp = open(self.inputFile)
             self.inputs = inputProcessor(fp)
-
-        return {'inputs': self.inputs}
+        # XXX perhaps we may want to name and version to be inside of a
+        # different object that is not called options.
+        return {'inputs': self.inputs,
+                'name': self.name,
+                'version': self.version}
 
     def __repr__(self):
         return "<%s inputs=%s>" % (self.__class__, self.inputs)

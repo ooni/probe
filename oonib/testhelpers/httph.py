@@ -5,7 +5,7 @@ import string
 from twisted.application import internet, service
 from twisted.internet import protocol, reactor, defer
 from twisted.protocols import basic
-from twisted.web import resource, server, static
+from twisted.web import resource, server, static, http
 from twisted.web.microdom import escape
 
 server.version = "Apache"
@@ -71,4 +71,22 @@ class HTTPBackend(resource.Resource):
         self.putChild('returnheaders', HTTPReturnHeaders())
         self.putChild('sendheaders', HTTPSendHeaders())
 
+class DebugProtocol(http.HTTPChannel):
+    def headerReceived(self, line):
+        print "[HEADER] %s" % line
+        http.HTTPChannel.headerReceived(self, line)
+
+    def allContentReceived(self):
+        print self.requests[-1].getAllHeaders()
+        self.transport.loseConnection()
+        self.connectionLost("Normal closure")
+
+class DebugHTTPServer(http.HTTPFactory):
+    protocol = DebugProtocol
+
+    def buildProtocol(self, addr):
+        print "Got connection from %s" % addr
+        p = protocol.ServerFactory.buildProtocol(self, addr)
+        p.timeOut = self.timeOut
+        return p
 
