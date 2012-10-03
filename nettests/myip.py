@@ -7,7 +7,6 @@ from ooni.templates import httpt
 class MyIP(httpt.HTTPTest):
     inputs = ['https://check.torproject.org']
     def processResponseBody(self, body):
-        print "FOOOO"
         import re
         regexp = "Your IP address appears to be: <b>(.+?)<\/b>"
         match = re.search(regexp, body)

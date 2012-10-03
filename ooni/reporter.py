@@ -71,14 +71,20 @@ class ReporterFactory(OReporter):
         self._testSuite = testSuite
         self._reporters = []
 
-    def writeHeader(self, options):
+    def writeHeader(self, options, geodata={}):
         self._writeln("###########################################")
         self._writeln("# OONI Probe Report for %s test" % options['name'])
         self._writeln("# %s" % date.pretty_date())
         self._writeln("###########################################")
 
-        address = {'asn': 'XXX replace me with ASN',
-                   'ip': 'XXX replace me with IP'}
+        address = {'asn': 'unknown',
+                   'ip': 'unknown'}
+        if 'ip' in geodata:
+            address['ip'] = geodata['ip']
+
+        if 'asn' in geodata:
+            address['asn'] = geodata['asn']
+
         test_details = {'startTime': repr(date.now()),
                         'probeASN': address['asn'],
                         'testName': options['name'],
