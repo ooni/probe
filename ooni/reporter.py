@@ -3,7 +3,6 @@ import sys
 import yaml
 import itertools
 
-sys.path.insert(0, '/home/x/Documents/pen_drive_bitcoin2012/ooni-probe/ENV/lib/python2.7/site-packages')
 from datetime import datetime
 from twisted.python.util import OrderedDict, untilConcludes
 from twisted.trial import unittest, reporter, runner
