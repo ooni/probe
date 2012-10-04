@@ -8,10 +8,10 @@ from twisted.internet import reactor, defer, threads
 ## XXX why is this imported and not used?
 from twisted.python import failure
 
-from utils import log, date
-from plugoo import assets, work
-from plugoo.reports import Report
-from plugoo.interface import ITest
+from ooni.utils import log, date
+from ooni.plugoo import assets, work
+from ooni.plugoo.reports import Report
+from ooni.plugoo.interface import ITest
 
 
 class OONITest(object):
@@ -22,14 +22,15 @@ class OONITest(object):
     developer to benefit from OONIs reporting system and command line argument
     parsing system.
     """
+    name = "oonitest"
     # By default we set this to False, meaning that we don't block
     blocking = False
-    reactor = None
+    reactor = reactor
     tool = False
     ended = False
 
     def __init__(self, local_options, global_options, report, ooninet=None,
-            reactor=None):
+            reactor=reactor):
         # These are the options that are read through the tests suboptions
         self.local_options = local_options
         # These are the options global to all of OONI
@@ -56,7 +57,7 @@ class OONITest(object):
         return {}
 
     def __repr__(self):
-        return "<OONITest %s %s %s>" % (self.local_options, 
+        return "<OONITest %s %s %s>" % (self.local_options,
                                         self.global_options,
                                         self.assets)
 
@@ -99,6 +100,7 @@ class OONITest(object):
 
         self.d.addCallback(self.control, args)
         self.d.addCallback(self.finished)
+        self.d.addErrback(self.finished)
         return self.d
 
     def control(self, result, args):

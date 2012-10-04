@@ -29,6 +29,12 @@
 #          probability matrix B.
 #
 
+try:
+    import numpy
+except:
+    print "Error numpy not installed!"
+
+import yaml
 from zope.interface import implements
 from twisted.python import usage
 from twisted.plugin import IPlugin
@@ -41,7 +47,7 @@ class domclassArgs(usage.Options):
     optParameters = [['output', 'o', None, 'Output to write'],
                      ['file', 'f', None, 'Corpus file'],
                      ['fileb', 'b', None, 'Corpus file'],
-                     ['asset', 'a', None, 'URL List'],
+                     ['urls', 'u', None, 'URL List'],
                      ['resume', 'r', 0, 'Resume at this index']]
 
 # All HTML4 tags
@@ -81,7 +87,6 @@ def compute_probability_matrix(dataset):
     :dataset: an array of pairs representing the parent child relationships.
     """
     import itertools
-    import numpy
     ret = {}
     matrix = numpy.zeros((len(thetags) + 1, len(thetags) + 1))
 
@@ -156,15 +161,16 @@ class domclassTest(HTTPTest):
     #tool = True
 
     def runTool(self):
-        import yaml, numpy
         site_a = readDOM(filename=self.local_options['file'])
         site_b = readDOM(filename=self.local_options['fileb'])
+        a = {}
         a['matrix'] = compute_probability_matrix(site_a)
-        a['eigen'] = compute_eigenvalue(a['matrix'])
+        a['eigen'] = compute_eigenvalues(a['matrix'])
 
         self.result['eigenvalues'] = a['eigen']
+        b = {}
         b['matrix'] = compute_probability_matrix(site_b)
-        b['eigen'] = compute_eigenvalue(b['matrix'])
+        b['eigen'] = compute_eigenvalues(b['matrix'])
 
         #print "A: %s" % a
         #print "B: %s" % b
@@ -172,13 +178,15 @@ class domclassTest(HTTPTest):
         correlation /= numpy.linalg.norm(a['eigen'])*numpy.linalg.norm(b['eigen'])
         correlation = (correlation + 1)/2
         print "Corelation: %s" % correlation
+        self.end()
+        return a
 
     def processResponseBody(self, data):
-        import yaml, numpy
         site_a = readDOM(data)
         #site_b = readDOM(self.local_options['fileb'])
+        a = {}
         a['matrix'] = compute_probability_matrix(site_a)
-        a['eigen'] = compute_eigenvalue(a['matrix'])
+        a['eigen'] = compute_eigenvalues(a['matrix'])
 
 
         if len(data) == 0:
@@ -191,5 +199,18 @@ class domclassTest(HTTPTest):
         #b = compute_matrix(site_b)
         print "A: %s" % a
         return a['eigen']
+
+    def load_assets(self):
+        if self.local_options:
+            if self.local_options['file']:
+                self.tool = True
+                return {}
+            elif self.local_options['urls']:
+                return {'url': Asset(self.local_options['urls'])}
+            else:
+                self.end()
+                return {}
+        else:
+            return {}
 
 domclass = domclassTest(None, None, None)

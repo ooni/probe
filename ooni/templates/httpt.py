@@ -1,10 +1,19 @@
+# -*- encoding: utf-8 -*-
+#
+# :authors: Arturo Filastò
+# :licence: see LICENSE
+
 import random
+
 from zope.interface import implements
 from twisted.python import usage
 from twisted.plugin import IPlugin
 from twisted.internet import protocol, defer
-from ooni.plugoo.tests import ITest, OONITest
-from ooni.plugoo.assets import Asset
+from twisted.internet.ssl import ClientContextFactory
+
+from twisted.web.http_headers import Headers
+
+from ooni.nettest import TestCase
 from ooni.utils import log
 
 useragents = [("Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.8.1.6) Gecko/20070725 Firefox/2.0.0.6", "Firefox 2.0, Windows XP"),
@@ -19,6 +28,11 @@ useragents = [("Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.8.1.6) Geck
               ("Mozilla/4.0 (compatible; MSIE 6.0; MSIE 5.5; Windows NT 5.1) Opera 7.02 [en]", "Opera 7.02, Windows XP"),
               ("Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.7.5) Gecko/20060127 Netscape/8.1", "Netscape 8.1, Windows XP")]
 
+
+class WebClientContextFactory(ClientContextFactory):
+    def getContext(self, hostname, port):
+        return ClientContextFactory.getContext(self)
+
 class BodyReceiver(protocol.Protocol):
     def __init__(self, finished):
         self.finished = finished
@@ -30,8 +44,7 @@ class BodyReceiver(protocol.Protocol):
     def connectionLost(self, reason):
         self.finished.callback(self.data)
 
-from twisted.web.http_headers import Headers
-class HTTPTest(OONITest):
+class HTTPTest(TestCase):
     """
     A utility class for dealing with HTTP based testing. It provides methods to
     be overriden for dealing with HTTP based testing.
@@ -39,24 +52,33 @@ class HTTPTest(OONITest):
     processResponseHeader that are invoked once the headers have been received
     and once the request body has been received.
     """
-    randomize_ua = True
-    follow_redirects = False
+    name = "HTTP Test"
+    version = 0.1
 
-    def initialize(self):
+    randomizeUA = True
+    followRedirects = False
+
+    def setUp(self):
+        try:
+            import OpenSSL
+        except:
+            log.err("Warning! pyOpenSSL is not installed. https websites will"
+                     "not work")
         from twisted.web.client import Agent
-        import yaml
+        from twisted.internet import reactor
 
-        self.agent = Agent(self.reactor)
-        if self.follow_redirects:
+        self.agent = Agent(reactor)
+
+        if self.followRedirects:
             from twisted.web.client import RedirectAgent
             self.agent = RedirectAgent(self.agent)
-
         self.request = {}
         self.response = {}
 
     def _processResponseBody(self, data):
         self.response['body'] = data
-        self.result['response'] = self.response
+        self.report['response'] = self.response
+
         self.processResponseBody(data)
 
     def processResponseBody(self, data):
@@ -87,33 +109,40 @@ class HTTPTest(OONITest):
     def doRequest(self, url):
         d = self.build_request(url)
         def finished(data):
+            #self.mainDefer.callback()
             return data
 
         d.addCallback(self._cbResponse)
         d.addCallback(finished)
         return d
 
-    def experiment(self, args):
+    def test_http(self):
         log.msg("Running experiment")
-        url = self.local_options['url'] if 'url' not in args else args['url']
 
-        d = self.doRequest(url)
-        return d
+        if self.input:
+            url = self.input
+        else:
+            raise Exception("No input supplied")
+
+        self.mainDefer = self.doRequest(url)
+        return self.mainDefer
 
     def _cbResponse(self, response):
-        self.response['headers'] = list(response.headers.getAllRawHeaders())
+        self.response['headers'] = response.headers
         self.response['code'] = response.code
         self.response['length'] = response.length
         self.response['version'] = response.length
 
         if str(self.response['code']).startswith('3'):
             self.processRedirect(response.headers.getRawHeaders('Location')[0])
+
         self.processResponseHeaders(self.response['headers'])
-        #self.result['response'] = self.response
 
         finished = defer.Deferred()
         response.deliverBody(BodyReceiver(finished))
         finished.addCallback(self._processResponseBody)
+
+        return finished
 
     def randomize_useragent(self):
         user_agent = random.choice(useragents)
@@ -124,18 +153,13 @@ class HTTPTest(OONITest):
         self.request['url'] = url
         self.request['headers'] = headers if headers else {}
         self.request['body'] = body
-        if self.randomize_ua:
+        if self.randomizeUA:
             self.randomize_useragent()
 
-        self.result['request'] = self.request
-        self.result['url'] = url
-        return self.agent.request(self.request['method'], self.request['url'],
+        self.report['request'] = self.request
+        self.report['url'] = url
+        req = self.agent.request(self.request['method'], self.request['url'],
                                   Headers(self.request['headers']),
                                   self.request['body'])
-
-    def load_assets(self):
-        if self.local_options:
-            return {'url': Asset(self.local_options['asset'])}
-        else:
-            return {}
+        return req
 

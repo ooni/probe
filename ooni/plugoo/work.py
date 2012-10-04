@@ -19,8 +19,6 @@ from zope.interface import Interface, Attribute
 from twisted.python import failure
 from twisted.internet import reactor, defer
 
-from plugoo.nodes import LocalNode
-
 class Worker(object):
     """
     This is the core of OONI. It takes as input Work Units and

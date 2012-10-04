@@ -1,4 +1,5 @@
 *.pyc
+assets/*
 build/*
 package/*
 proxy-lists/ip-cc.txt

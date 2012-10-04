@@ -143,4 +143,3 @@ class Log():
         except:
             raise StopIteration
 
-

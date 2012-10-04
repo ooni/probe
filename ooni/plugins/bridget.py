@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- encoding: utf-8 -*-
-# 
+#
 #  +-----------+
 #  |  BRIDGET  |
 #  |        +--------------------------------------------+
@@ -94,7 +94,7 @@ class BridgetTest(OONITest):
     """
     XXX fill me in
 
-    :ivar config: 
+    :ivar config:
         An :class:`ooni.lib.txtorcon.TorConfig` instance.
     :ivar relays:
         A list of all provided relays to test.
@@ -485,7 +485,6 @@ bridget = BridgetTest(None, None, None)
 
 ## ISIS' NOTES
 ## -----------
-##
 ## TODO:
 ##       x  cleanup documentation
 ##       x  add DataDirectory option
@@ -493,4 +492,5 @@ bridget = BridgetTest(None, None, None)
 ##       o  take bridge_desc file as input, also be able to give same
 ##          format as output
 ##       x  Add asynchronous timeout for deferred, so that we don't wait 
+##       o  Add assychronous timout for deferred, so that we don't wait
 ##          forever for bridges that don't work.
