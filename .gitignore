@@ -1,5 +1,6 @@
 *.pyc
 assets/*
+ENV/*
 build/*
 package/*
 proxy-lists/ip-cc.txt
@@ -10,3 +11,6 @@ private/*
 /ooni/plugins/dropin.cache
 oonib/oonibackend.conf
 ooni/lib/txtorcon
+fluff/
+pcaps/
+oonib/data/*
