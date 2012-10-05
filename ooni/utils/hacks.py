@@ -11,7 +11,8 @@ def patched_reduce_ex(self, proto):
     located inside of copy_reg and is called _reduce_ex.
 
     Some background on the issue can be found here:
-    http://stackoverflow.com/questions/569754/how-to-tell-for-which-object-attribute-pickle-fails
+
+    http://stackoverflow.com/questions/569754/how-to-tell-for-which-object-attribute-pickle
     http://stackoverflow.com/questions/2049849/why-cant-i-pickle-this-object
 
     There was also an open bug on the pyyaml trac repo, but it got closed because

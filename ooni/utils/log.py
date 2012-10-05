@@ -38,7 +38,7 @@ class OONITestFailure(Failure):
     """
     def __init__(self, exception=None, _type=None,
                  _traceback=None, _capture=False):
-        Failure.__init__(self, exc_value=exception, exc_type=_type,
+        Failure.__init__(self, exc_type=_type,
                          exc_tb=_traceback, captureVars=_capture)
 
 class OONILogObserver(log.FileLogObserver):
@@ -88,13 +88,15 @@ def start(logfile=None, logstdout=True, verbosity=None):
         log.msg("Starting OONI...")
 
 def debug(message, level="debug", **kw):
-    log.msg(message, logLevel=level, **kw)
+    print "[%s] %s" % (level, message)
+    ## If we want debug messages in the logfile:
+    #log.msg(message, logLevel=level, **kw)
 
 def msg(message, level="info", **kw):
     log.msg(message, logLevel=level, **kw)
 
 def err(message, level="err", **kw):
-    log.err(message, logLevel=level, **kw)
+    log.err(logLevel=level, **kw)
 
-def fail(message, exception=None, level="crit", **kw):
+def fail(message, exception, level="crit", **kw):
     log.failure(message, OONITestFailure(exception, **kw), logLevel=level)

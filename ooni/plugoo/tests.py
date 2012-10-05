@@ -39,7 +39,6 @@ class OONITest(object):
         #self.ooninet = ooninet
         self.reactor = reactor
         self.result = {}
-
         self.initialize()
         self.assets = self.load_assets()
 
