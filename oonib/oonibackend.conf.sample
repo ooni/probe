@@ -1,4 +1,5 @@
 [main]
+reporting_port = 8888
 http_port = 8080
 dns_udp_port = 5354
 dns_tcp_port = 8002

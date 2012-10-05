@@ -1,7 +1,26 @@
+__all__ = ['Report', 'TestHelperTMP']
 from storm.twisted.transact import transact
 from storm.locals import *
 
-class Report(object):
+from oonib.report.db import getStore, transactor
+
+class OModel(object):
+
+    transactor = transactor
+
+    @transact
+    def create(query):
+        store = Store(database)
+        store.execute(query)
+        store.commit()
+
+    @transact
+    def save(self):
+        store = getStore()
+        store.add(self)
+        store.commit()
+
+class Report(OModel):
     """
     This represents an OONI Report as stored in the database.
 
@@ -27,6 +46,14 @@ class Report(object):
              than 100 we should append to the YAML data structure that is
              currently stored in such field.
     """
+    __storm_table__ = 'reports'
+
+    createQuery = "CREATE TABLE " + __storm_table__ +\
+                  "(id INTEGER PRIMARY KEY, report_id VARCHAR, software_name VARCHAR,"\
+                  "software_version VARCHAR, test_name VARCHAR, test_version VARCHAR,"\
+                  "progress VARCHAR, content VARCHAR)"
+
+
     id = Int(primary=True)
 
     report_id = Unicode()
@@ -39,3 +66,18 @@ class Report(object):
 
     content = Unicode()
 
+class TestHelperTMP(OModel):
+    __storm_table__ = 'testhelpertmp'
+
+    createQuery = "CREATE TABLE " + __storm_table__ +\
+                  "(id INTEGER PRIMARY KEY, report_id VARCHAR, test_helper VARCHAR,"\
+                  " client_ip VARCHAR, creation_time VARCHAR)"
+
+    id = Int(primary=True)
+
+    report_id = Unicode()
+
+    test_helper = Unicode()
+    client_ip = Unicode()
+
+    creation_time = Date()

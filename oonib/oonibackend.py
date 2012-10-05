@@ -16,6 +16,7 @@ from twisted.web import resource, server, static
 from twisted.web.microdom import escape
 from twisted.names import dns
 
+from oonib.report.api import reportingBackend
 from oonib.lib import config
 from oonib.lib.ssl import SSLContext
 from oonib.testhelpers.httph import HTTPBackend, DebugHTTPServer
@@ -28,11 +29,13 @@ server.version = config.main.server_version
 application = service.Application('oonibackend')
 serviceCollection = service.IServiceCollection(application)
 
-internet.TCPServer(int(config.main.http_port),
+if config.main.http_port:
+    internet.TCPServer(int(config.main.http_port),
                    server.Site(HTTPBackend())
                   ).setServiceParent(serviceCollection)
 
-internet.SSLServer(int(config.main.ssl_port),
+if config.main.ssl_port:
+    internet.SSLServer(int(config.main.ssl_port),
                    server.Site(HTTPBackend()),
                    SSLContext(config),
                   ).setServiceParent(serviceCollection)
@@ -41,11 +44,24 @@ debugHTTPServer = DebugHTTPServer()
 internet.TCPServer(8090, debugHTTPServer).setServiceParent(serviceCollection)
 
 # Start the DNS Server related services
-TCPDNSServer = ProxyDNSServer()
-internet.TCPServer(int(config.main.dns_tcp_port), TCPDNSServer).setServiceParent(serviceCollection)
-UDPFactory = dns.DNSDatagramProtocol(TCPDNSServer)
-internet.UDPServer(int(config.main.dns_udp_port), UDPFactory).setServiceParent(serviceCollection)
+if config.main.dns_tcp_port:
+    TCPDNSServer = ProxyDNSServer()
+    internet.TCPServer(int(config.main.dns_tcp_port),
+                       TCPDNSServer).setServiceParent(serviceCollection)
 
-# Start the ooni backend thing
-daphn3 = Daphn3Server()
-internet.TCPServer(int(config.main.daphn3_port), daphn3).setServiceParent(serviceCollection)
+if config.main.dns_udp_port:
+    UDPFactory = dns.DNSDatagramProtocol(TCPDNSServer)
+    internet.UDPServer(int(config.main.dns_udp_port),
+                       UDPFactory).setServiceParent(serviceCollection)
+
+# Start the OONI daphn3 backend
+if config.main.daphn3_port:
+    daphn3 = Daphn3Server()
+    internet.TCPServer(int(config.main.daphn3_port),
+                       daphn3).setServiceParent(serviceCollection)
+
+if config.main.reporting_port:
+    internet.TCPServer(int(config.main.reporting_port),
+                       reportingBackend).setServiceParent(serviceCollection)
+
+
