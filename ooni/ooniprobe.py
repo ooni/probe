@@ -12,8 +12,9 @@
 #    The goal of ooni-probe is to collect data about censorship around
 #    the world.
 #
-#    :copyright: (c) 2012 by Arturo Filastò
+#    :copyright: (c) 2012 by Arturo Filastò, Isis Lovecruft
 #    :license: see LICENSE for more details.
+#    :version: 0.0.1-pre-alpha
 #
 
 import sys
@@ -80,17 +81,17 @@ def runTest(test, options, global_options, reactor=reactor):
     log.start(log_to_stdout,
               global_options['log'],
               global_options['verbosity'])
+
     resume = 0
     if not options:
         options = {}
-
     if 'resume' in options:
         resume = options['resume']
 
     test = test_class(options, global_options, report, reactor=reactor)
-
     if test.tool:
         test.runTool()
+        return True
 
     if test.ended:
         print "Ending test"

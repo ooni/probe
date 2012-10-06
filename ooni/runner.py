@@ -161,7 +161,6 @@ def processTest(obj, config):
 
         options = Options()
         options.parseOptions(config['subArgs'])
-
         obj.localOptions = options
 
         if inputFile:

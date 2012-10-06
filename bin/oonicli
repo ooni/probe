@@ -1,0 +1,28 @@
+#!/usr/bin/env python
+# -*- encoding: utf-8 -*-
+###############################################################################
+#
+# oonicli
+# -----------------------
+#
+# Run the Twisted Trial (unittest module) based oonicli. Startup script based 
+# on twisted trial, see http://twistedmatrix.com/ .
+#
+# :authors: Arturo Filastò
+# :licence: see included LICENSE file
+# :version: 0.0.1-pre-alpha
+###############################################################################
+
+import os, sys
+import copy_reg
+
+# Hack to set the proper sys.path. Overcomes the export PYTHONPATH pain.
+sys.path[:] = map(os.path.abspath, sys.path)
+sys.path.insert(0, os.path.abspath(os.getcwd()))
+
+# This is a hack to overcome a bug in python
+from ooni.utils.hacks import patched_reduce_ex
+copy_reg._reduce_ex = patched_reduce_ex
+
+from ooni.oonicli import run
+run()

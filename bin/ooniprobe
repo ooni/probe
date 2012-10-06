@@ -1,23 +1,80 @@
-#!/usr/bin/env python
-# -*- encoding: utf-8 -*-
+#!/bin/bash
+##############################################################################
 #
-# startup script based on twisted trial
-# See http://twistedmatrix.com/
+# ooniprobe
+# -------------------
+# Setup environment variables and launch /ooni/ooniprobe.py without 
+# installing.
 #
-# :authors: Arturo Filastò
-# :licence: see LICENSE
+#-----------------------------------------------------------------------------
+# :authors: Isis Lovecruft, Arturo Filasto
+# :license: see included LICENSE file
+# :version: 0.0.1-pre-alpha
+#
+##############################################################################
 
+OONI_EXEC="ooniprobe.py"
+#OONI_EXEC="oonicli.py"
+OONI_PROCESS_NAME=$(echo $OONI_EXEC | sed s/\.py//)
 
-import os, sys
-import copy_reg
+OONI_SCRIPT_IS_HERE=$(dirname ${BASH_SOURCE[0]})
+OONI_BIN="$(cd $OONI_SCRIPT_IS_HERE && pwd)"
+OONI_REPO="$(cd $OONI_BIN"/.." && pwd)"
+OONI_DIR="$OONI_REPO/ooni"
 
-# Hack to set the proper sys.path. Overcomes the export PYTHONPATH pain.
-sys.path[:] = map(os.path.abspath, sys.path)
-sys.path.insert(0, os.path.abspath(os.getcwd()))
+OONI_PATH_ALREADY_SET=false
 
-# This is a hack to overcome a bug in python
-from ooni.utils.hacks import patched_reduce_ex
-copy_reg._reduce_ex = patched_reduce_ex
+function usage() {
+    echo "$0 - A simple wrapper around ooniprobe and oonicli to set"
+    echo "up environment variables, so that it can be run without installation."
+    echo;
+    echo "Usage: $0 [oonitest || file || script] [options]"
+    echo "All options and parameters are passed directly to ooniprobe, do"
+    echo "ooniprobe.py --help to see more."
+    echo;
+}
 
-from ooni.oonicli import run
-run()
+function check_pythonpath_for_ooni() {
+    pythonpaths="$(echo $PYTHONPATH | cut -d ':' -f '1-' --output-delimiter=' ')"
+    for dir in $pythonpaths; do
+        if [[ "x$dir" == "x$OONI_REPO" ]]; then
+            export OONI_PATH_ALREADY_SET=true
+        else
+            continue
+        fi
+    done
+}
+
+function add_ooni_to_pythonpath() {
+    if test ! $OONI_PATH_ALREADY_SET ; then
+        echo "Appending $OONI_REPO to PYTHONPATH..."
+        export PYTHONPATH=$PYTHONPATH:$OONI_REPO
+    fi
+}
+
+function add_exec_dir_to_stack() {
+    cwd_ending=$(echo $(pwd) | awk -F/ '{print $NF}')
+    if [[ "x$cwd_ending" == "xooni" ]]; then
+        pushd $(pwd) 2&>/dev/null       ## $(dirs -l -p -1)    
+    else
+        pushd $OONI_DIR 2&>/dev/null
+    fi
+    export OONI_RUN_PATH="$(popd)/$OONI_EXEC"
+}
+
+function run_ooni_in_background() {
+    ## :param $1: 
+    ##     The full path to the script to run, i.e. $OONI_RUN_PATH.   
+    coproc $1
+}
+
+if [[ "x$#" == "x0" ]]; then
+    usage
+else 
+    check_pythonpath_for_ooni
+    add_ooni_to_pythonpath
+    add_exec_dir_to_stack
+    OONI_START_CMD="python "$OONI_DIR"/"$OONI_EXEC" $@"
+    #run_ooni_in_background $OONI_START_CMD
+    $($OONI_START_CMD)
+fi
