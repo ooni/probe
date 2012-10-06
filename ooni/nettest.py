@@ -80,6 +80,8 @@ class TestCase(unittest.TestCase):
     report = {}
     report['errors'] = []
 
+    optParameters = None
+
     def getOptions(self):
         if self.inputFile:
             fp = open(self.inputFile)

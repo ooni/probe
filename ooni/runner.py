@@ -5,7 +5,7 @@ import time
 import inspect
 
 from twisted.internet import defer, reactor
-from twisted.python import reflect, failure
+from twisted.python import reflect, failure, usage
 
 from twisted.trial import unittest
 from twisted.trial.runner import TrialRunner, TestLoader
@@ -91,6 +91,16 @@ def adaptLegacyTest(obj, config):
 
     return LegacyOONITest
 
+def processTest(obj, config):
+    if obj.optParameters:
+        class Options(usage.Options):
+            optParameters = obj.optParameters
+
+        options = Options()
+        options.parseOptions(config['subArgs'])
+
+        obj.localOptions = options
+    return obj
 
 def findTestClassesFromConfig(config):
     """
@@ -106,7 +116,7 @@ def findTestClassesFromConfig(config):
     module = filenameToModule(filename)
     for name, val in inspect.getmembers(module):
         if isTestCase(val):
-            classes.append(val)
+            classes.append(processTest(val, config))
         elif isLegacyTest(val):
             classes.append(adaptLegacyTest(val, config))
     return classes
@@ -135,7 +145,8 @@ def loadTestsAndOptions(classes):
     for klass in classes:
         try:
             k = klass()
-            options.append(k.getOptions())
+            opts = k.getOptions()
+            options.append(opts)
         except AttributeError:
             options.append([])
 
