@@ -77,6 +77,9 @@ class TestCase(unittest.TestCase):
     inputFile = None
     inputProcessor = lineByLine
 
+    report = {}
+    report['errors'] = []
+
     def getOptions(self):
         if self.inputFile:
             fp = open(self.inputFile)

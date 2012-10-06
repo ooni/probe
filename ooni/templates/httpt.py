@@ -65,8 +65,15 @@ class HTTPTest(TestCase):
         self.agent = Agent(reactor)
 
         if self.followRedirects:
-            from twisted.web.client import RedirectAgent
-            self.agent = RedirectAgent(self.agent)
+            try:
+                from twisted.web.client import RedirectAgent
+                self.agent = RedirectAgent(self.agent)
+            except:
+                log.err("Warning! You are running an old version of twisted"\
+                        "(<= 10.1). I will not be able to follow redirects."\
+                        "This may make the testing less precise.")
+                self.report['errors'].append("Could not import RedirectAgent")
+
         self.request = {}
         self.response = {}
 
