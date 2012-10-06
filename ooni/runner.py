@@ -6,7 +6,7 @@ import inspect
 
 from twisted.internet import defer, reactor
 from twisted.python import reflect, failure
-#from twisted.python import log
+
 from twisted.trial import unittest
 from twisted.trial.runner import TrialRunner, TestLoader
 from twisted.trial.runner import isPackage, isTestCase, ErrorHolder

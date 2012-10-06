@@ -18,13 +18,8 @@ import string
 import urllib2
 from urlparse import urlparse
 
-from zope.interface import implements
-from twisted.python import usage
-from twisted.plugin import IPlugin
-
-from ooni.plugoo.assets import Asset
-from ooni.plugoo.tests import ITest, OONITest
-from ooni.protocols import http
+from ooni import nettest
+from ooni.templates import httpt
 from ooni.utils import log
 
 try:
@@ -36,28 +31,21 @@ except ImportError:
 __plugoo__ = "captiveportal"
 __desc__ = "Captive portal detection test"
 
-class CaptivePortalArgs(usage.Options):
-    optParameters = [['asset', 'a', None, 'Asset file'],
-                     ['resume', 'r', 0, 'Resume at this index'],
-                     ['experiment-url', 'e', 'http://google.com/', 'Experiment URL'],
-                     ['user-agent', 'u', random.choice(http.useragents),
-                                         'User agent for HTTP requests']
-                     ]
+optParameters = [['asset', 'a', None, 'Asset file'],
+                 ['experiment-url', 'e', 'http://google.com/', 'Experiment URL'],
+                 ['user-agent', 'u', random.choice(httpt.useragents),
+                  'User agent for HTTP requests']
+                ]
 
-class CaptivePortal(OONITest):
+class CaptivePortal(nettest.TestCase):
     """
     Compares content and status codes of HTTP responses, and attempts
     to determine if content has been altered.
     """
 
-    implements(IPlugin, ITest)
-
-    shortName = "captivep"
+    name = "captivep"
     description = "Captive Portal Test"
     requirements = None
-    options = CaptivePortalArgs
-    # Tells this to be blocking.
-    blocking = True
 
     def http_fetch(self, url, headers={}):
         """
@@ -549,7 +537,9 @@ class CaptivePortal(OONITest):
         in the experimental content. Returns True if matches are found,
         and False if otherwise.
         """
-        experiment_url = self.local_options['experiment-url']
+        # XXX put this back to being parametrized
+        #experiment_url = self.local_options['experiment-url']
+        experiment_url = 'http://google.com/'
         control_result = 'XX'
         control_code = 200
         ua = self.local_options['user-agent']
@@ -565,7 +555,8 @@ class CaptivePortal(OONITest):
         if status_match and content_match:
             log.msg("The test for '%s'" % experiment_url)
             log.msg("was unable to detect a captive portal.")
-            return experiment_result, True
+
+            self.report['result'] = True
 
         elif status_match and not content_match:
             log.msg("Retrying '%s' with fuzzy match enabled."
@@ -574,19 +565,20 @@ class CaptivePortal(OONITest):
                                                                   control_result,
                                                                   fuzzy=True)
             if fuzzy_match:
-                return experiment_result, True
+                self.report['result'] = True
             else:
                 log.msg("Found modified content on '%s'," % experiment_url)
                 log.msg("which could indicate a captive portal.")
 
-                return experiment_result, False
+                self.report['result'] = False
         else:
             log.msg("The content comparison test for ")
             log.msg("'%s'" % experiment_url)
             log.msg("shows that your HTTP traffic is filtered.")
-            return experiment_result, False
 
-    def experiment(self, args):
+            self.report['result'] = False
+
+    def test_captive_portal(self):
         """
         Runs the CaptivePortal(Test).
 
@@ -608,22 +600,21 @@ class CaptivePortal(OONITest):
 
         Any combination of the above tests can be run.
         """
-        report = {}
 
         log.msg("")
         log.msg("Running vendor tests...")
-        report['vendor_tests'] = self.run_vendor_tests()
+        self.report['vendor_tests'] = self.run_vendor_tests()
 
         log.msg("")
         log.msg("Running vendor DNS-based tests...")
-        report['vendor_dns_tests'] = self.run_vendor_dns_tests()
+        self.report['vendor_dns_tests'] = self.run_vendor_dns_tests()
 
         log.msg("")
         log.msg("Checking that DNS requests are not being tampered...")
-        report['check0x20'] = self.check_0x20_to_auth_ns('ooni.nu')
+        self.report['check0x20'] = self.check_0x20_to_auth_ns('ooni.nu')
 
         log.msg("")
         log.msg("Captive portal test finished!")
-        return report
 
-cp = CaptivePortal(None, None, None)
+        self.control(self.report)
+
