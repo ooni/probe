@@ -11,37 +11,25 @@
 
 from ooni.templates import httpt
 
-good_http_server = "http://127.0.0.1:8090/"
-
 class HTTPHost(httpt.HTTPTest):
     name = "HTTP Host"
     author = "Arturo Filastò"
     version = 0.1
 
+    optParameters = [['url', 'u', 'http://torproject.org/', 'Test single site'],
+                     ['backend', 'b', 'http://ooni.nu/test/', 'Test backend to use'],
+                     ]
 
-    inputs = ['google.com', 'wikileaks.org',
-              'torproject.org']
+    inputFile = ['urls', 'f', None, 'Urls file']
 
     def test_send_host_header(self):
         headers = {}
         headers["Host"] = [self.input]
-        return self.doRequest(good_http_server, headers=headers)
+        return self.doRequest(self.localOptions['backend'], headers=headers)
 
     def processResponseBody(self, body):
-        # XXX here shall go your logic
-        #     for processing the body
-        if 'blocked' in body:
-            self.report['censored'] = True
+        if 'not censored' in body:
+            self.report['trans_http_proxy'] = False
         else:
-            self.report['censored'] = False
-
-    def processResponseHeaders(self, headers):
-        # XXX place in here all the logic for handling the processing of HTTP
-        #     Headers.
-        if headers.hasHeader('location'):
-            self.report['redirect'] = True
-
-        server = headers.getRawHeaders("Server")
-        if server:
-            self.report['http_server'] = str(server.pop())
+            self.report['trans_http_proxy'] = True
 

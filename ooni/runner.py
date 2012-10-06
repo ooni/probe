@@ -96,10 +96,15 @@ def processTest(obj, config):
         class Options(usage.Options):
             optParameters = obj.optParameters
 
+        inputFile = obj.inputFile
+        Options.optParameters.append(inputFile)
+
         options = Options()
         options.parseOptions(config['subArgs'])
 
         obj.localOptions = options
+        obj.inputFile = options[inputFile[0]]
+
     return obj
 
 def findTestClassesFromConfig(config):

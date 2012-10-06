@@ -24,11 +24,6 @@ class InputTestSuite(pyunit.TestSuite):
             self._idx += 1
         return result
 
-def lineByLine(fp):
-    for x in fp.readlines():
-        yield x.strip()
-    fp.close()
-
 class TestCase(unittest.TestCase):
     """
     This is the monad of the OONI nettest universe. When you write a nettest
@@ -75,17 +70,22 @@ class TestCase(unittest.TestCase):
 
     inputs = [None]
     inputFile = None
-    inputProcessor = lineByLine
+
 
     report = {}
     report['errors'] = []
 
     optParameters = None
 
+    def inputProcessor(self, fp):
+        for x in fp.readlines():
+            yield x.strip()
+        fp.close()
+
     def getOptions(self):
         if self.inputFile:
             fp = open(self.inputFile)
-            self.inputs = inputProcessor(fp)
+            self.inputs = self.inputProcessor(fp)
         # XXX perhaps we may want to name and version to be inside of a
         # different object that is not called options.
         return {'inputs': self.inputs,
