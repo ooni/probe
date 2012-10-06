@@ -69,6 +69,7 @@ def adaptLegacyTest(obj, config):
         test_class.local_options = subOptions
         assets = test_class.load_assets()
 
+        inputs = [None]
         # XXX here we are only taking assets that are set to one item only.
         for key, inputs in assets.items():
             pass
