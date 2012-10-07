@@ -108,7 +108,7 @@ def compute_eigenvalues(matrix):
     """
     return numpy.linalg.eigvals(matrix)
 
-def readDOM(content=None, filename=None):
+def readDOM(content=None, filename=None, debug=False):
     """
     Parses the DOM of the HTML page and returns an array of parent, child
     pairs.
@@ -124,19 +124,29 @@ def readDOM(content=None, filename=None):
         content = ''.join(f.readlines())
         f.close()
 
-    start = time.time()
-    print "Running BeautifulSoup on content"
+    if debug:
+        start = time.time()
+        print "Running BeautifulSoup on content"
     dom = BeautifulSoup(content)
-    print "done in %s" % (time.time() - start)
+    if debug:
+        print "done in %s" % (time.time() - start)
 
-    start = time.time()
-    print "Creating couples matrix"
+    if debug:
+        start = time.time()
+        print "Creating couples matrix"
     couples = []
     for x in dom.findAll():
         couples.append((str(x.parent.name), str(x.name)))
-    print "done in %s" % (time.time() - start)
+    if debug:
+        print "done in %s" % (time.time() - start)
 
     return couples
+
+def compute_eigenvalues_from_DOM(*arg,**kw):
+    dom = readDOM(*arg, **kw)
+    probability_matrix = compute_probability_matrix(dom)
+    eigenvalues = compute_eigenvalues(probability_matrix)
+    return eigenvalues
 
 def compute_correlation(matrix_a, matrix_b):
     correlation = numpy.vdot(matrix_a, matrix_b)
@@ -192,13 +202,13 @@ def benchmark():
     """
     start = time.time()
     print "Read file B"
-    site_a = readDOM(filename='filea.txt')
+    site_a = readDOM(filename='filea.txt', debug=True)
     print "--------"
     print "total done in %s" % (time.time() - start)
 
     start = time.time()
     print "Read file A"
-    site_b = readDOM(filename='fileb.txt')
+    site_b = readDOM(filename='fileb.txt', debug=True)
     print "--------"
     print "total done in %s" % (time.time() - start)
 
@@ -233,4 +243,4 @@ def benchmark():
 
     print "Corelation: %s" % correlation
 
-benchmark()
+#benchmark()
