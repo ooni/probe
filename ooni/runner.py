@@ -208,7 +208,6 @@ class ORunner(object):
         result.done()
 
     def run(self):
-        #log.startLogging(sys.stdout)
         log.start()
 
         self.reporterFactory.options = self.options

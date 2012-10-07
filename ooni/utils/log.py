@@ -73,17 +73,13 @@ class OONILogObserver(log.FileLogObserver):
         util.untilConcludes(self.write, timeStr + " " + msgStr)
         util.untilConcludes(self.flush)
 
-def start(logfile=None, logstdout=True, verbosity=None):
+def start(logfile=None, verbosity=None):
     if log.defaultObserver:
         verbosity = _get_log_level(verbosity)
 
         ## Always log to file, keep level at info
         file = open(logfile, 'a') if logfile else stderr
         OONILogObserver(file, "info").start()
-
-        if logstdout is True:
-            observerooni = OONILogObserver(stdout, verbosity)
-            log.addObserver(observerooni.emit)
 
         log.msg("Starting OONI...")
 
