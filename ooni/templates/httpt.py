@@ -128,7 +128,7 @@ class HTTPTest(TestCase):
         return d
 
     def _cbResponse(self, response):
-        self.response['headers'] = response.headers
+        self.response['headers'] = list(response.headers.getAllRawHeaders())
         self.response['code'] = response.code
         self.response['length'] = response.length
         self.response['version'] = response.length

@@ -2,6 +2,12 @@ import time
 import sys
 import yaml
 import itertools
+import copy_reg
+
+from yaml.representer import *
+from yaml.emitter import *
+from yaml.serializer import *
+from yaml.resolver import *
 
 from datetime import datetime
 from twisted.python.util import OrderedDict, untilConcludes
@@ -19,6 +25,43 @@ except:
 
 
 pyunit =  __import__('unittest')
+
+class OSafeRepresenter(SafeRepresenter):
+    def represent_complex(self, data):
+        if data.imag == 0.0:
+            data = u'%r' % data.real
+        elif data.real == 0.0:
+            data = u'%rj' % data.imag
+        elif data.imag > 0:
+            data = u'%r+%rj' % (data.real, data.imag)
+        else:
+            data = u'%r%rj' % (data.real, data.imag)
+        return self.represent_scalar(u'tag:yaml.org,2002:python/complex', data)
+
+OSafeRepresenter.add_representer(complex,
+                                 OSafeRepresenter.represent_complex)
+
+class OSafeDumper(Emitter, Serializer, OSafeRepresenter, Resolver):
+
+    def __init__(self, stream,
+            default_style=None, default_flow_style=None,
+            canonical=None, indent=None, width=None,
+            allow_unicode=None, line_break=None,
+            encoding=None, explicit_start=None, explicit_end=None,
+            version=None, tags=None):
+        Emitter.__init__(self, stream, canonical=canonical,
+                indent=indent, width=width,
+                allow_unicode=allow_unicode, line_break=line_break)
+        Serializer.__init__(self, encoding=encoding,
+                explicit_start=explicit_start, explicit_end=explicit_end,
+                version=version, tags=tags)
+        OSafeRepresenter.__init__(self, default_style=default_style,
+                default_flow_style=default_flow_style)
+        Resolver.__init__(self)
+
+
+def safe_dump(data, stream=None, **kw):
+    return yaml.dump_all([data], stream, Dumper=OSafeDumper, **kw)
 
 class OReporter(pyunit.TestResult):
     """
@@ -56,7 +99,7 @@ class OReporter(pyunit.TestResult):
         self._write('\n')
 
     def writeYamlLine(self, line):
-        to_write = yaml.dump([line])
+        to_write = safe_dump([line])
         self._write(to_write)
 
 

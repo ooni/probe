@@ -16,7 +16,7 @@ from ooni.reporter import ReporterFactory
 from ooni.inputunit import InputUnitFactory
 from ooni.nettest import InputTestSuite
 from ooni import nettest
-from ooni.utils import log, geodata
+from ooni.utils import log, geodata, date
 from ooni.plugoo import tests as oonitests
 
 def isTestCase(thing):
@@ -92,7 +92,10 @@ def adaptLegacyTest(obj, config):
     return LegacyOONITest
 
 def processTest(obj, config):
-    if obj.optParameters:
+    if obj.optParameters or obj.inputFile:
+        if not obj.optParameters:
+            obj.optParameters = []
+
         class Options(usage.Options):
             optParameters = obj.optParameters
 
@@ -100,6 +103,7 @@ def processTest(obj, config):
         if inputFile:
             Options.optParameters.append(inputFile)
 
+        print Options.optParameters
         options = Options()
         options.parseOptions(config['subArgs'])
 
@@ -107,6 +111,12 @@ def processTest(obj, config):
 
         if inputFile:
             obj.inputFile = options[inputFile[0]]
+        try:
+            tmp_obj = obj()
+            tmp_obj.getOptions()
+        except usage.UsageError:
+            options.opt_help()
+
 
     return obj
 
@@ -157,7 +167,6 @@ def loadTestsAndOptions(classes):
             options.append(opts)
         except AttributeError:
             options.append([])
-
         tests = reflect.prefixedMethodNames(klass, methodPrefix)
         if tests:
             cases = makeTestCases(klass, tests, methodPrefix)
@@ -182,7 +191,8 @@ class ORunner(object):
         try:
             reportFile = open(config['reportfile'], 'a+')
         except:
-            reportFile = open('report.yaml', 'a+')
+            filename = 'report_'+date.timestamp()+'.yaml'
+            reportFile = open(filename, 'a+')
         self.reporterFactory = ReporterFactory(reportFile,
                                     testSuite=self.baseSuite(self.cases))
 

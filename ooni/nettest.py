@@ -1,5 +1,6 @@
 import itertools
-from twisted.python import log
+
+from twisted.python import log, usage
 from twisted.trial import unittest, itrial
 from twisted.internet import defer
 
@@ -84,13 +85,11 @@ class TestCase(unittest.TestCase):
         writing.
         """
         if result.reporterFactory.firstrun:
-            print "Running both!!"
             d1 = result.reporterFactory.writeHeader()
             d2 = unittest.TestCase.deferSetUp(self, ignored, result)
             dl = defer.DeferredList([d1, d2])
             return dl
         else:
-            print "Only one :P"
             return unittest.TestCase.deferSetUp(self, ignored, result)
 
     def inputProcessor(self, fp):
@@ -99,9 +98,13 @@ class TestCase(unittest.TestCase):
         fp.close()
 
     def getOptions(self):
-        if self.inputFile:
+        if type(self.inputFile) is str:
             fp = open(self.inputFile)
             self.inputs = self.inputProcessor(fp)
+        elif not self.inputs[0]:
+            pass
+        else:
+            raise usage.UsageError("No input file specified!")
         # XXX perhaps we may want to name and version to be inside of a
         # different object that is not called options.
         return {'inputs': self.inputs,

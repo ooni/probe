@@ -17,8 +17,9 @@ class DOMClassCollector(httpt.HTTPTest):
     author = "Arturo Filastò"
     version = 0.1
 
-    inputs = ['http://news.google.com/', 'http://wikileaks.org/']
-    #inputFile = ['f', 'file', None, 'The list of urls to build a domclass for']
+    followRedirects = True
+
+    inputFile = ['file', 'f', None, 'The list of urls to build a domclass for']
 
     def test_collect(self):
         if self.input:
@@ -29,5 +30,4 @@ class DOMClassCollector(httpt.HTTPTest):
 
     def processResponseBody(self, body):
         eigenvalues = domclass.compute_eigenvalues_from_DOM(content=body)
-        self.report['eigenvalues'] = eigenvalues
-
+        self.report['eigenvalues'] = eigenvalues.tolist()

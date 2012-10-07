@@ -46,7 +46,7 @@ class Options(usage.Options, app.ReactorSelectionMixin):
                 ]
 
     optParameters = [
-        ["reportfile", "o", "report.yaml", "report file name"],
+        ["reportfile", "o", None, "report file name"],
         ["logfile", "l", "test.log", "log file name"],
         ['temp-directory', None, '_ooni_temp',
          'Path to use as working directory for tests.']

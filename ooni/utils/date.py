@@ -20,3 +20,11 @@ def pretty_date():
     pretty = cur_time.strftime(d_format)
     return pretty
 
+def timestamp():
+    cur_time = datetime.utcnow()
+    d_format = "%d_%B_%Y_%H-%M-%S"
+    pretty = cur_time.strftime(d_format)
+    return pretty
+
+
+
