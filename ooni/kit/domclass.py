@@ -32,6 +32,7 @@
 import yaml
 import numpy
 from bs4 import BeautifulSoup
+import time
 
 # All HTML4 tags
 # XXX add link to W3C page where these came from
@@ -123,10 +124,17 @@ def readDOM(content=None, filename=None):
         content = ''.join(f.readlines())
         f.close()
 
+    start = time.time()
+    print "Running BeautifulSoup on content"
     dom = BeautifulSoup(content)
+    print "done in %s" % (time.time() - start)
+
+    start = time.time()
+    print "Creating couples matrix"
     couples = []
     for x in dom.findAll():
         couples.append((str(x.parent.name), str(x.name)))
+    print "done in %s" % (time.time() - start)
 
     return couples
 
@@ -138,66 +146,91 @@ def compute_correlation(matrix_a, matrix_b):
 
 def benchmark():
     """
-    Running some very basic benchmarks we assets this:
+    Running some very basic benchmarks on this input data:
 
-    Read file B
-    done in 0.74356508255
-    Read file A
-    done in 0.94336104393
-    Computing prob matrix
-    done in 0.0432229042053
-    Computing eigenvalues
-    done in 0.00188422203064
-    Corelation: 0.999999079331
-
-    this was with:
+    Data files:
     683 filea.txt
     678 fileb.txt
 
     diff file* | wc -l
     283
 
+    We get such results:
+
+    Read file B
+    Running BeautifulSoup on content
+    done in 0.768223047256
+    Creating couples matrix
+    done in 0.023903131485
+    --------
+    total done in 0.796372890472
+    Read file A
+    Running BeautifulSoup on content
+    done in 0.752885818481
+    Creating couples matrix
+    done in 0.0163578987122
+    --------
+    total done in 0.770951986313
+    Computing prob matrix
+    done in 0.0475239753723
+    Computing eigenvalues
+    done in 0.00161099433899
+    Computing prob matrix B
+    done in 0.0408289432526
+    Computing eigen B
+    done in 0.000268936157227
+    Computing correlation
+    done in 0.00016713142395
+    Corelation: 0.999999079331
 
     What this means is that the bottleneck is not in the maths, but is rather
     in the computation of the DOM tree matrix.
 
-    XXX We should focus on optimizing the parsing of the HTML and the
-    computation of the couple matrix.
+    XXX We should focus on optimizing the parsing of the HTML (this depends on
+    beautiful soup). Perhaps we can find and alternative to it that is
+    sufficient for us.
     """
-    import time
     start = time.time()
-
     print "Read file B"
     site_a = readDOM(filename='filea.txt')
-    print "done in %s" % (time.time() - start)
-    start = time.time()
+    print "--------"
+    print "total done in %s" % (time.time() - start)
 
+    start = time.time()
     print "Read file A"
     site_b = readDOM(filename='fileb.txt')
-    print "done in %s" % (time.time() - start)
-    start = time.time()
-
-
+    print "--------"
+    print "total done in %s" % (time.time() - start)
 
     a = {}
+    b = {}
+
+    start = time.time()
     print "Computing prob matrix"
     a['matrix'] = compute_probability_matrix(site_a)
-
     print "done in %s" % (time.time() - start)
     start = time.time()
 
     print "Computing eigenvalues"
     a['eigen'] = compute_eigenvalues(a['matrix'])
-
     print "done in %s" % (time.time() - start)
     start = time.time()
 
-
-    b = {}
+    start = time.time()
+    print "Computing prob matrix B"
     b['matrix'] = compute_probability_matrix(site_b)
-    b['eigen'] = compute_eigenvalues(b['matrix'])
+    print "done in %s" % (time.time() - start)
 
+    start = time.time()
+    print "Computing eigen B"
+    b['eigen'] = compute_eigenvalues(b['matrix'])
+    print "done in %s" % (time.time() - start)
+
+    start = time.time()
+    print "Computing correlation"
     correlation = compute_correlation(a['eigen'], b['eigen'])
+    print "done in %s" % (time.time() - start)
+
     print "Corelation: %s" % correlation
 
-#benchmark()
+benchmark()
