@@ -16,7 +16,7 @@ from ooni.reporter import ReporterFactory
 from ooni.inputunit import InputUnitFactory
 from ooni.nettest import InputTestSuite
 from ooni import nettest
-from ooni.utils import log
+from ooni.utils import log, geodata
 from ooni.plugoo import tests as oonitests
 
 def isTestCase(thing):
@@ -97,13 +97,16 @@ def processTest(obj, config):
             optParameters = obj.optParameters
 
         inputFile = obj.inputFile
-        Options.optParameters.append(inputFile)
+        if inputFile:
+            Options.optParameters.append(inputFile)
 
         options = Options()
         options.parseOptions(config['subArgs'])
 
         obj.localOptions = options
-        obj.inputFile = options[inputFile[0]]
+
+        if inputFile:
+            obj.inputFile = options[inputFile[0]]
 
     return obj
 
@@ -186,7 +189,10 @@ class ORunner(object):
     def runWithInputUnit(self, inputUnit):
         idx = 0
         result = self.reporterFactory.create()
+
         for input in inputUnit:
+            result.reporterFactory = self.reporterFactory
+
             suite = self.baseSuite(self.cases)
             suite.input = input
             suite(result, idx)
@@ -204,9 +210,9 @@ class ORunner(object):
     def run(self):
         #log.startLogging(sys.stdout)
         log.start()
-        self.reporterFactory.writeHeader(self.options)
+
+        self.reporterFactory.options = self.options
 
         for inputUnit in InputUnitFactory(self.inputs):
             self.runWithInputUnit(inputUnit)
-
 

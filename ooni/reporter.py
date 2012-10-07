@@ -6,7 +6,8 @@ import itertools
 from datetime import datetime
 from twisted.python.util import OrderedDict, untilConcludes
 from twisted.trial import unittest, reporter, runner
-from ooni.utils import date
+from twisted.internet import defer
+from ooni.utils import date, log, geodata
 
 try:
     from scapy.all import packet
@@ -24,6 +25,8 @@ class OReporter(pyunit.TestResult):
     This is an extension of the unittest TestResult. It adds support for
     reporting to yaml format.
     """
+    reporterFactory = None
+
     def __init__(self, stream=sys.stdout, tbformat='default', realtime=False,
                  publisher=None, testSuite=None):
         super(OReporter, self).__init__()
@@ -62,6 +65,8 @@ class ReporterFactory(OReporter):
     This is a reporter factory. It emits new instances of Reports. It is also
     responsible for writing the OONI Report headers.
     """
+    firstrun = True
+
     def __init__(self, stream=sys.stdout, tbformat='default', realtime=False,
                  publisher=None, testSuite=None):
         super(ReporterFactory, self).__init__(stream=stream,
@@ -70,25 +75,41 @@ class ReporterFactory(OReporter):
         self._testSuite = testSuite
         self._reporters = []
 
-    def writeHeader(self, options, geodata={}):
+    @defer.inlineCallbacks
+    def writeHeader(self):
+        self.firstrun = False
+        options = self.options
         self._writeln("###########################################")
         self._writeln("# OONI Probe Report for %s test" % options['name'])
         self._writeln("# %s" % date.pretty_date())
         self._writeln("###########################################")
 
-        address = {'asn': 'unknown',
-                   'ip': 'unknown'}
-        if 'ip' in geodata:
-            address['ip'] = geodata['ip']
+        client_geodata = {}
+        log.msg("Running geo IP lookup via check.torproject.org")
 
-        if 'asn' in geodata:
-            address['asn'] = geodata['asn']
+        client_ip = yield geodata.myIP()
+        try:
+            import txtorcon
+            client_location = txtorcon.util.NetLocation(client_ip)
+        except:
+            log.err("txtorcon is not installed. Geolocation lookup is not"\
+                    "supported")
+
+        client_geodata['ip'] = client_ip
+        client_geodata['asn'] = client_location.asn
+        client_geodata['city'] = client_location.city
+        client_geodata['countrycode'] = client_location.countrycode
 
         test_details = {'startTime': repr(date.now()),
-                        'probeASN': address['asn'],
+                        'probeASN': client_geodata['asn'],
+                        'probeCC': client_geodata['countrycode'],
+                        'probeIP': client_geodata['ip'],
+                        'probeLocation': {'city': client_geodata['city'],
+                                          'countrycode':
+                                          client_geodata['countrycode']},
                         'testName': options['name'],
                         'testVersion': options['version'],
-                        'probeIP': address['ip']}
+                        }
         self.writeYamlLine(test_details)
         self._writeln('')
 

@@ -1,6 +1,7 @@
 import itertools
 from twisted.python import log
 from twisted.trial import unittest, itrial
+from twisted.internet import defer
 
 pyunit = __import__('unittest')
 
@@ -71,11 +72,26 @@ class TestCase(unittest.TestCase):
     inputs = [None]
     inputFile = None
 
-
     report = {}
     report['errors'] = []
 
     optParameters = None
+
+    def deferSetUp(self, ignored, result):
+        """
+        If we have the reporterFactory set we need to write the header. If such
+        method is not present we will only run the test skipping header
+        writing.
+        """
+        if result.reporterFactory.firstrun:
+            print "Running both!!"
+            d1 = result.reporterFactory.writeHeader()
+            d2 = unittest.TestCase.deferSetUp(self, ignored, result)
+            dl = defer.DeferredList([d1, d2])
+            return dl
+        else:
+            print "Only one :P"
+            return unittest.TestCase.deferSetUp(self, ignored, result)
 
     def inputProcessor(self, fp):
         for x in fp.readlines():

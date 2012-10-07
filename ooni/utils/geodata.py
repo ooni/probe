@@ -17,11 +17,13 @@ class BodyReceiver(protocol.Protocol):
 def myIP():
     target_site = 'https://check.torproject.org/'
     regexp = "Your IP address appears to be: <b>(.+?)<\/b>"
-
     myAgent = Agent(reactor)
+
     result = yield myAgent.request('GET', target_site)
+
     finished = defer.Deferred()
     result.deliverBody(BodyReceiver(finished))
+
     body = yield finished
 
     match = re.search(regexp, body)
@@ -30,6 +32,5 @@ def myIP():
     except:
         myip = "unknown"
 
-    return myip
-
+    defer.returnValue(myip)
 
