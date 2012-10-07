@@ -94,18 +94,18 @@ def adaptLegacyTest(obj, config):
     return LegacyOONITest
 
 def processTest(obj, config):
-    if obj.optParameters or obj.inputFile:
+    inputFile = obj.inputFile
+
+    if obj.optParameters or inputFile:
         if not obj.optParameters:
             obj.optParameters = []
+
+        if inputFile:
+            obj.optParameters.append(inputFile)
 
         class Options(usage.Options):
             optParameters = obj.optParameters
 
-        inputFile = obj.inputFile
-        if inputFile:
-            Options.optParameters.append(inputFile)
-
-        print Options.optParameters
         options = Options()
         options.parseOptions(config['subArgs'])
 
