@@ -136,13 +136,62 @@ def compute_correlation(matrix_a, matrix_b):
     correlation = (correlation + 1)/2
     return correlation
 
-def example():
+def benchmark():
+    """
+    Running some very basic benchmarks we assets this:
+
+    Read file B
+    done in 0.74356508255
+    Read file A
+    done in 0.94336104393
+    Computing prob matrix
+    done in 0.0432229042053
+    Computing eigenvalues
+    done in 0.00188422203064
+    Corelation: 0.999999079331
+
+    this was with:
+    683 filea.txt
+    678 fileb.txt
+
+    diff file* | wc -l
+    283
+
+
+    What this means is that the bottleneck is not in the maths, but is rather
+    in the computation of the DOM tree matrix.
+
+    XXX We should focus on optimizing the parsing of the HTML and the
+    computation of the couple matrix.
+    """
+    import time
+    start = time.time()
+
+    print "Read file B"
     site_a = readDOM(filename='filea.txt')
+    print "done in %s" % (time.time() - start)
+    start = time.time()
+
+    print "Read file A"
     site_b = readDOM(filename='fileb.txt')
+    print "done in %s" % (time.time() - start)
+    start = time.time()
+
+
 
     a = {}
+    print "Computing prob matrix"
     a['matrix'] = compute_probability_matrix(site_a)
+
+    print "done in %s" % (time.time() - start)
+    start = time.time()
+
+    print "Computing eigenvalues"
     a['eigen'] = compute_eigenvalues(a['matrix'])
+
+    print "done in %s" % (time.time() - start)
+    start = time.time()
+
 
     b = {}
     b['matrix'] = compute_probability_matrix(site_b)
@@ -151,4 +200,4 @@ def example():
     correlation = compute_correlation(a['eigen'], b['eigen'])
     print "Corelation: %s" % correlation
 
-
+#benchmark()
