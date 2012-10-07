@@ -13,3 +13,19 @@ class ExampleScapy(scapyt.ScapyTest):
     inputs = [IP(dst="8.8.8.8")/TCP(dport=31337),
               IP(dst="ooni.nu")/TCP(dport=31337)]
 
+
+    def test_sendReceive(self):
+        log.msg("Running send receive")
+        if self.receive:
+            log.msg("Sending and receiving packets.")
+            d = self.sendReceivePackets(self.buildPackets())
+        else:
+            log.msg("Sending packets.")
+            d = self.sendPackets(self.buildPackets())
+
+        def finished(data):
+            log.msg("Finished sending")
+            return data
+
+        d.addCallback(finished)
+        return

@@ -103,7 +103,7 @@ class TestCase(unittest.TestCase):
             self.inputs = self.inputProcessor(fp)
         elif not self.inputs[0]:
             pass
-        else:
+        elif self.inputFile:
             raise usage.UsageError("No input file specified!")
         # XXX perhaps we may want to name and version to be inside of a
         # different object that is not called options.

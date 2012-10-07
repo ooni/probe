@@ -31,7 +31,7 @@ class ScapyTest(TestCase):
 
     receive = True
     timeout = 1
-    pcapfile = '/home/x/code/networking/ooni-probe/scapytest.pcap'
+    pcapfile = None
     input = IP()/TCP()
     reactor = None
     def setUp(self):
@@ -44,22 +44,14 @@ class ScapyTest(TestCase):
     def tearDown(self):
         self.reactor.stop()
 
-    def test_sendReceive(self):
-        log.msg("Running send receive")
-        if self.receive:
-            log.msg("Sending and receiving packets.")
-            d = txsr(self.buildPackets(), pcapfile=self.pcapfile,
-                     timeout=self.timeout, reactor=self.reactor)
-        else:
-            log.msg("Sending packets.")
-            d = txsend(self.buildPackets(), reactor=self.reactor)
+    def sendReceivePackets(self, packets):
+        d = txsr(packets, pcapfile=self.pcapfile,
+                     timeout=10, reactor=self.reactor)
 
-        def finished(data):
-            log.msg("Finished sending")
-            return data
-
-        d.addCallback(finished)
         return d
+
+    def sendPackets(self, packets):
+        return txsend(self.buildPackets(), reactor=self.reactor)
 
     def buildPackets(self):
         """

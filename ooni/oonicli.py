@@ -43,6 +43,8 @@ class Options(usage.Options, app.ReactorSelectionMixin):
                 "files listed on the command line")
 
     optFlags = [["help", "h"],
+                ['debug-stacktraces', 'B',
+                    'Report deferred creation and callback stack traces'],
                 ]
 
     optParameters = [
@@ -95,6 +97,13 @@ def run():
         config.parseOptions()
     except usage.error, ue:
         raise SystemExit, "%s: %s" % (sys.argv[0], ue)
+
+    if config['debug-stacktraces']:
+        defer.setDebugging(True)
+
+    #logFile = open(config['logfile'], 'w')
+    #logFileObserver = log.FileLogObserver(logFile)
+    #log.startLoggingWithObserver(logFileObserver.emit, 0)
 
     classes = runner.findTestClassesFromConfig(config)
 

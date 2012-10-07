@@ -7,6 +7,8 @@ import inspect
 from twisted.internet import defer, reactor
 from twisted.python import reflect, failure, usage
 
+from twisted.python import log as tlog
+
 from twisted.trial import unittest
 from twisted.trial.runner import TrialRunner, TestLoader
 from twisted.trial.runner import isPackage, isTestCase, ErrorHolder
@@ -183,7 +185,7 @@ class ORunner(object):
     them in input units. I also create all the report instances required to run
     the tests.
     """
-    def __init__(self, cases, options=None, config=None):
+    def __init__(self, cases, options=None, config=None, *arg, **kw):
         self.baseSuite = InputTestSuite
         self.cases = cases
         self.options = options
