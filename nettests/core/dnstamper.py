@@ -28,6 +28,9 @@ class DNSTamperTest(nettest.TestCase):
 
     description = "DNS censorship detection test"
     version = '0.2'
+
+    lookupTimeout = [1]
+
     requirements = None
     inputFile = ['file', 'f', None,
                  'Input file of list of hostnames to attempt to resolve']
@@ -126,10 +129,6 @@ class DNSTamperTest(nettest.TestCase):
             self.report['test_lookups'][resolver] = None
             self.test_a_lookups[resolver] = None
 
-    def createResolver(self, servers):
-        print "Creating resolver %s" % servers
-        return client.createResolver(servers=servers, resolvconf='')
-
     def test_lookup(self):
         print "Doing the test lookups on %s" % self.input
         list_of_ds = []
@@ -138,7 +137,7 @@ class DNSTamperTest(nettest.TestCase):
         resolver = [(self.localOptions['controlresolver'], 53)]
         res = client.createResolver(servers=resolver, resolvconf='')
 
-        control_r = res.lookupAddress(hostname, timeout=[1])
+        control_r = res.lookupAddress(hostname, timeout=self.lookupTimeout)
         control_r.addCallback(self.process_a_answers, 'control')
         control_r.addErrback(self.a_lookup_error, 'control')
 
@@ -148,7 +147,7 @@ class DNSTamperTest(nettest.TestCase):
             res = client.createResolver(servers=resolver, resolvconf='')
             #res = self.createResolver(servers=resolver)
 
-            d = res.lookupAddress(hostname, timeout=[1])
+            d = res.lookupAddress(hostname, timeout=self.lookupTimeout)
             d.addCallback(self.process_a_answers, test_resolver)
             d.addErrback(self.a_lookup_error, test_resolver)
             list_of_ds.append(d)
@@ -161,7 +160,7 @@ class DNSTamperTest(nettest.TestCase):
 
     def reverse_lookup(self, address, resolver):
         ptr = '.'.join(address.split('.')[::-1]) + '.in-addr.arpa'
-        r = resolver.lookupPointer(ptr)
+        r = resolver.lookupPointer(ptr, self.lookupTimeout)
         return r
 
     def do_reverse_lookups(self, result):
@@ -171,7 +170,8 @@ class DNSTamperTest(nettest.TestCase):
         resolver = [(self.localOptions['controlresolver'], 53)]
         res = self.createResolver(servers=resolver)
 
-        test_reverse = self.reverse_lookup(self.control_a_lookups[0], res)
+        test_reverse = self.reverse_lookup(self.control_a_lookups[0], res,
+                timeout=self.lookupTimeout)
         test_reverse.addCallback(self.process_ptr_answers, 'control')
         test_reverse.addErrback(self.ptr_lookup_error, 'control')
 
@@ -198,6 +198,7 @@ class DNSTamperTest(nettest.TestCase):
         for test, test_a_lookups in self.test_a_lookups.items():
             print "Now doing %s | %s" % (test, test_a_lookups)
             if not test_a_lookups:
+                self.report['tampering'][test] = 'unknown'
                 continue
 
             if set(test_a_lookups) & set(self.control_a_lookups):
@@ -212,4 +213,10 @@ class DNSTamperTest(nettest.TestCase):
                 # Reverse DNS on the results returned by returned
                 # which does not match the expected domainname
                 self.report['tampering'][test] = True
+
+        if len(self.test_a_lookups) == len(self.test_resolvers):
+            self.end()
+        else:
+            print "Still missing %s - %s" % (len(self.test_a_lookups),
+                    len(self.test_resolvers))
 
