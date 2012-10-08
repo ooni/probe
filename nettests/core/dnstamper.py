@@ -17,6 +17,7 @@
 # :licence: see LICENSE
 
 from ooni import nettest
+from ooni.utils import log
 from twisted.internet import defer
 from twisted.names import client
 
@@ -30,7 +31,7 @@ class DNSTamperTest(nettest.TestCase):
     inputFile = ['file', 'f', None,
                  'Input file of list of hostnames to attempt to resolve']
 
-    optParameters = [['controlresolver', 'c', '8.8.8.8',
+    optParameters = [['controlresolver', 'c', '4.4.4.4',
                       'Known good DNS server'],
                      ['testresolvers', 't', None,
                       'file containing list of DNS resolvers to test against']
@@ -52,15 +53,17 @@ class DNSTamperTest(nettest.TestCase):
         if not self.localOptions['testresolvers']:
             self.test_resolvers = ['8.8.8.8']
             return
+
         try:
             fp = open(self.localOptions['testresolvers'])
         except:
             raise usage.UsageError("Invalid test resolvers file")
 
-        self.test_resolvers = [x.strip() for x in fp.readlines]
+        self.test_resolvers = [x.strip() for x in fp.readlines()]
         fp.close()
 
     def process_a_answers(self, answers, resolver):
+        print "Processing A answers for %s" % resolver
         all_a = []
         a_a = []
         for answer in answers[0]:
@@ -79,9 +82,10 @@ class DNSTamperTest(nettest.TestCase):
         else:
             self.test_a_lookups[resolver] = a_a
             self.report['test_lookups'][resolver] = all_a
+        print "Done"
+        print self.report
 
     def process_ptr_answers(self, answers, resolver):
-        print "Processing PTR ANSWER for %s" % resolver
         name = None
         for answer in answers[0]:
             if answer.type is 12:
@@ -95,25 +99,31 @@ class DNSTamperTest(nettest.TestCase):
             self.test_reverse[resolver] = name
             self.report['test_reverse'][resolver] = name
 
-
     def ptr_lookup_error(self, failure, resolver):
+        log.err("There was an error in PTR lookup %s" % resolver)
         if resolver == 'control':
             self.report['control_reverse'] = None
         else:
             self.report['test_reverse'][resolver] = None
 
     def a_lookup_error(self, failure, resolver):
+        log.err("There was an error in A lookup %s" % resolver)
         if resolver == 'control':
             self.report['control_lookup'] = None
         else:
             self.report['test_lookups'][resolver] = None
 
+    def createResolver(self, servers):
+        print "Creating resolver %s" % servers
+        return client.createResolver(servers=servers, resolvconf='')
+
     def test_lookup(self):
+        print "Doing the test lookups on %s" % self.input
         list_of_ds = []
         hostname = self.input
 
         resolver = [(self.localOptions['controlresolver'], 53)]
-        res = client.createResolver(servers=resolver)
+        res = client.createResolver(servers=resolver, resolvconf='')
 
         control_r = res.lookupAllRecords(hostname)
         control_r.addCallback(self.process_a_answers, 'control')
@@ -122,8 +132,10 @@ class DNSTamperTest(nettest.TestCase):
         list_of_ds.append(control_r)
 
         for test_resolver in self.test_resolvers:
-            resolver = [(test_resolver,53)]
-            res = client.createResolver(servers=resolver)
+            print "Going for %s" % test_resolver
+            resolver = [(test_resolver, 53)]
+            res = client.createResolver(servers=resolver, resolvconf='')
+            #res = self.createResolver(servers=resolver)
 
             d = res.lookupAddress(hostname)
             d.addCallback(self.process_a_answers, test_resolver)
@@ -141,12 +153,11 @@ class DNSTamperTest(nettest.TestCase):
         return r
 
     def do_reverse_lookups(self, result):
-
-
+        print "Doing the reverse lookups"
         list_of_ds = []
 
         resolver = [(self.localOptions['controlresolver'], 53)]
-        res = client.createResolver(servers=resolver)
+        res = self.createResolver(servers=resolver)
 
         test_reverse = self.reverse_lookup(self.control_a_lookups[0], res)
         test_reverse.addCallback(self.process_ptr_answers, 'control')

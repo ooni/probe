@@ -20,7 +20,7 @@ class InputUnitFactory(object):
     This object is a python iterable, this means that it does not need to keep
     all the elements in memory to be able to produce InputUnits.
     """
-    inputUnitSize = 3
+    inputUnitSize = 10
     def __init__(self, inputs=[]):
         self._inputs = iter(inputs)
         self._idx = 0
@@ -30,19 +30,21 @@ class InputUnitFactory(object):
         return self
 
     def next(self):
+        input_unit_elements = []
+
         if self._ended:
             raise StopIteration
 
-        last_element_idx = self._idx + self.inputUnitSize
-        input_unit_elements = []
-        for i in xrange(last_element_idx):
+        for i in xrange(self._idx, self._idx + self.inputUnitSize):
             try:
                 input_unit_elements.append(self._inputs.next())
             except:
                 self._ended = True
                 break
-
         self._idx += self.inputUnitSize
+
+        if not input_unit_elements:
+            raise StopIteration
 
         return InputUnit(input_unit_elements)
 
