@@ -201,17 +201,14 @@ class DNSTamperTest(nettest.TestCase):
                 continue
 
             if set(test_a_lookups) & set(self.control_a_lookups):
-                print "IN here t0"
                 # Address has not tampered with on DNS server
                 self.report['tampering'][test] = False
 
             elif self.control_reverse and set([self.control_reverse]) & set([self.report['test_reverse'][test]]):
-                print "Noboar"
                 # Further testing has eliminated false positives
                 self.report['tampering'][test] = 'reverse-match'
 
             else:
-                print "FOOBAR!"
                 # Reverse DNS on the results returned by returned
                 # which does not match the expected domainname
                 self.report['tampering'][test] = True
