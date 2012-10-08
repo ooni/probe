@@ -103,8 +103,6 @@ def runTest(test, options, global_options, reactor=reactor):
     for x in wgen:
         worker.push(x)
 
-    return True
-
 class Options(usage.Options):
     tests = plugoo.keys()
     subCommands = []
@@ -145,10 +143,9 @@ if __name__ == "__main__":
     config.parseOptions()
 
     if not config.subCommand:
-        #print "Error! No Test Specified."
         config.opt_help()
         sys.exit(1)
 
-    if runTest(config.subCommand, config.subOptions, config):
-        reactor.run()
+    runTest(config.subCommand, config.subOptions, config)
+    reactor.run()
 
