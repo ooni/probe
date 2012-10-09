@@ -33,6 +33,7 @@ import yaml
 import numpy
 from bs4 import BeautifulSoup
 import time
+from ooni.utils.log import debug
 
 # All HTML4 tags
 # XXX add link to W3C page where these came from
@@ -108,7 +109,7 @@ def compute_eigenvalues(matrix):
     """
     return numpy.linalg.eigvals(matrix)
 
-def readDOM(content=None, filename=None, debug=False):
+def readDOM(content=None, filename=None, debug=False, parser="html.parser"):
     """
     Parses the DOM of the HTML page and returns an array of parent, child
     pairs.
@@ -126,8 +127,8 @@ def readDOM(content=None, filename=None, debug=False):
 
     if debug:
         start = time.time()
-        print "Running BeautifulSoup on content"
-    dom = BeautifulSoup(content)
+        debug("Running BeautifulSoup on content with parser '%s'" % parser)
+    dom = BeautifulSoup(content, parser)
     if debug:
         print "done in %s" % (time.time() - start)
 
