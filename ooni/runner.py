@@ -220,7 +220,7 @@ class ORunner(object):
         result.done()
 
     def run(self):
-        log.start()
+        #log.start()
 
         self.reporterFactory.options = self.options
 
