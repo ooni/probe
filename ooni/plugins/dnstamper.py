@@ -38,9 +38,9 @@ from twisted.python import usage
 from twisted.plugin import IPlugin
 from zope.interface import implements
 
-from plugoo.assets import Asset
-from plugoo.tests import ITest, OONITest
-from utils import log
+from ooni.plugoo.assets import Asset
+from ooni.plugoo.tests import ITest, OONITest
+from ooni.utils import log
 
 class AlexaAsset(Asset):
     """
@@ -183,14 +183,10 @@ class DNSTamperTest(OONITest):
                 log.msg("Error! We need an asset file containing the " + 
                         "hostnames that we should test DNS with! Please use " + 
                         "the '-h' option. Using pre-defined hostnames...")
-                #assets.update({'hostnames': list_to_asset(default_hostnames)})
 
             if asset_file('testresolvers'):
                 assets.update({'testresolvers': 
                                Asset(asset_file('testresolvers'))})
-            #else:
-            #    assets.update({'testresolvers': 
-            #                   list_to_asset(asset_file('testresolvers'))})
 
         return assets
 
@@ -200,23 +196,22 @@ class DNSTamperTest(OONITest):
         addresses.
         """
         def got_result(result, hostname, resolver):
-            ## XXX is there a report class that we should be using?
             log.msg('Resolved %s through %s to %s' 
                     % (hostname, resolver, result))
-            outcome = {'resolved': True,
+            report = {'resolved': True,
                        'domain': hostname,
                        'nameserver': resolver,
                        'address': result }
-            log.msg(outcome)
+            log.msg(report)
             return result
 
         def got_error(err, hostname, resolver):
             log.msg(err.printTraceback())
-            outcome = {'resolved': False,
+            report = {'resolved': False,
                        'domain': hostname,
                        'nameserver': resolver,
                        'address': err }
-            log.msg(outcome)
+            log.msg(report)
             return err
 
         res = client.createResolver(resolvconf=self.resolvconf, 
