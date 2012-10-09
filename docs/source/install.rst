@@ -42,6 +42,14 @@ Txtorcon has the following addtitional dependencies::
     
     apt-get install python-geoip python-ipaddr python-psutil  
 
+BeautifulSoup also supports alternate parsers. You may want these packages::
+
+    apt-get install python-lxml python-html5lib 
+
+Note, if you want to install lxml using pip or easy_install, you'll want to have libxslt as well::
+
+    apt-get install libxslt1-dev
+
 Python virtual environmentsa (virtualenv)
 -----------------------------------------
 
