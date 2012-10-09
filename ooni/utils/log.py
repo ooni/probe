@@ -94,5 +94,8 @@ def msg(message, level="info", **kw):
 def err(message, level="err", **kw):
     log.err(logLevel=level, **kw)
 
+def warn(message, level="warn", **kw):
+    log.msg(logLevel=level, **kw)
+
 def fail(message, exception, level="crit", **kw):
     log.failure(message, OONITestFailure(exception, **kw), logLevel=level)
