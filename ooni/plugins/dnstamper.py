@@ -173,12 +173,12 @@ class DNSTamperTest(OONITest):
         if self.local_options:
             if asset_file('hostnames'):
                 ## The default filename for the Alexa Top 1 Million:
-                if assets_file('hostnames') is 'top-1m.txt':
+                if asset_file('hostnames') == 'top-1m.txt':
                     assets.update({'hostnames': 
-                                   AlexaAsset(assets_file('hostnames'))})
+                                   AlexaAsset(asset_file('hostnames'))})
                 else:
                     assets.update({'hostnames': 
-                                   Asset(assets_file('hostnames'))})
+                                   Asset(asset_file('hostnames'))})
             else:
                 log.msg("Error! We need an asset file containing the " + 
                         "hostnames that we should test DNS with! Please use " + 
