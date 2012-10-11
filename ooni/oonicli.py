@@ -7,7 +7,7 @@
 #    oonicli is the next generation ooniprober. It based off of twisted's trial
 #    unit testing framework.
 #
-#    :copyright: (c) 2012 by Arturo Filastò
+#    :copyright: (c) 2012 by Arturo Filastò, Isis Lovecruft
 #    :license: see LICENSE for more details.
 #
 #    original copyright (c) by Twisted Matrix Laboratories.
@@ -106,8 +106,8 @@ def run():
     #log.startLoggingWithObserver(logFileObserver.emit, 0)
 
     classes = runner.findTestClassesFromConfig(config)
+    casesList, options = runner.loadTestsAndOptions(classes, config)
 
-    casesList, options = runner.loadTestsAndOptions(classes)
     for idx, cases in enumerate(casesList):
         orunner = runner.ORunner(cases, options[idx], config)
         orunner.run()
