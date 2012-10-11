@@ -112,8 +112,6 @@ class Options(usage.Options):
 
     optFlags = [
         #['remote', 'r', "If the test should be run remotely (not supported)"],
-        #['status', 'x', 'Show current state'],
-        #['restart', 'r', 'Restart OONI'],
         ['quiet', 'q', "Don't log to stdout"]
     ]
 
