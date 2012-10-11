@@ -9,9 +9,9 @@ from twisted.plugin import IPlugin
 from twisted.internet.protocol import Factory, Protocol
 from twisted.internet.endpoints import TCP4ClientEndpoint
 
-from plugoo.interface import ITest
-from plugoo.tests import OONITest
-from plugoo.assets import Asset
+from ooni.plugoo.interface import ITest
+from ooni.plugoo.tests import OONITest
+from ooni.plugoo.assets import Asset
 from ooni.utils import log
 
 class tcpconnectArgs(usage.Options):
