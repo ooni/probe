@@ -8,9 +8,11 @@ proxy-lists/ips.txt
 proxy-lists/italy-dns-ips.txt
 proxy-lists/italy-http-ips.txt
 private/*
-/ooni/plugins/dropin.cache
-oonib/oonibackend.conf
+ooni/assets/bridge*.txt
 ooni/lib/txtorcon
+ooni/plugins/dropin.cache
+ooni/report*.yaml
+oonib/oonibackend.conf
+oonib/data/*
 fluff/
 pcaps/
-oonib/data/*
