@@ -41,6 +41,101 @@ def isLegacyTest(obj):
     except TypeError:
         return False
 
+class legacy_reporter(object):
+    def __init__(self, report_target):
+        self.report_target = report_target
+
+    def __call__(self, what):
+        self.report_target.append(what)
+
+class LegacyOONITest(nettest.TestCase):
+    
+    ## we need bases so that inherited methods get parsed for prefixes too
+    from ooni.plugoo.tests import OONITest
+    __bases__ = (OONITest, )
+    
+    def __init__(self, obj, config):
+        super(LegacyOONITest, self).__init__()
+        self.originalTest = obj
+        log.debug("obj: %s" % obj)
+        log.debug("originalTest: %s" % self.originalTest)
+
+        self.subArgs = (None, )
+        if 'subArgs' in config:
+            self.subArgs = config['subArgs']
+
+        try:
+            self.name = self.originalTest.shortName
+        except:
+            self.was_named = False
+            self.name = "LegacyOONITest"
+
+        try:
+            self.subOptions = self.originalTest.options()
+        except AttributeError:
+            if self.was_named is False:
+                origClass    = self.originalTest.__class__
+                origClassStr = str(origClass)
+                fromModule   = origClassStr.rsplit('.', 2)[:-1]
+                #origNamespace = globals()[origClass]()
+                #origAttr      = getattr(origNamespace, fromModule)
+                log.debug("original class: %s" % origClassStr)
+                log.debug("from module: %s" % fromModule)
+                #log.debug("orginal namespace: %s" % origNamespace)
+                #log.debug("orginal attr: %s" % origAttr)
+
+                def _options_from_name_tag(method_name, 
+                                           orig_test=self.originalTest):
+                    return orig_test.method_name.options()
+
+                self.subOptions = _options_from_name_tag(fromModule,
+                                                         self.originalTest)
+            else:
+                self.subOptions = None
+                log.err("That test appears to have a name, but no options!")
+
+        if self.subOptions is not None:
+            self.subOptions.parseOptions(self.subArgs)
+            self.local_options = self.subOptions
+
+        self.legacy_test = self.originalTest(None, None, None, None)
+        ## xxx fix me
+        #my_test.global_options = config['Options']
+        self.legacy_test.local_options = self.subOptions
+        if self.was_named:
+            self.legacy_test.name = self.name
+        else:
+            self.legacy_test.name = fromModule
+        self.legacy_test.assets = self.legacy_test.load_assets()
+        self.legacy_test.report = legacy_reporter({})
+        self.legacy_test.initialize()
+        
+        inputs = []
+
+        if len(self.legacy_test.assets.items()) == 0:
+            inputs.append('internal_asset_handler')
+        else:
+            for key, inputs in self.legacy_test.assets.items():
+                pass
+        self.inputs = inputs
+
+    def __getattr__(self, name):
+        def method(*args):
+            log.msg("Call to unknown method %s.%s" % (self.originalTest, name))
+            if args:
+                log.msg("Unknown method %s parameters: %s" % str(args))
+        return method
+
+    @defer.inlineCallbacks
+    def test_start_legacy_test(self):
+        args = {}
+        for key, inputs in self.legacy_test.assets.items():
+            args[key] = inputs
+            result = yield self.legacy_test.startTest(args)
+            self.report.update({'result':  result})
+        ## xxx we need to retVal on the defer.inlineCallbacks, right?
+        defer.returnValue(self.report)
+
 def adaptLegacyTest(obj, config):
     """
     We take a legacy OONITest class and convert it into a nettest.TestCase.
@@ -49,49 +144,7 @@ def adaptLegacyTest(obj, config):
     XXX perhaps we could implement another extra layer that makes the even
     older test cases compatible with the new OONI.
     """
-    class legacy_reporter(object):
-        def __init__(self, report_target):
-            self.report_target = report_target
-
-        def __call__(self, what):
-            self.report_target.append(what)
-
-    class LegacyOONITest(nettest.TestCase):
-        try:
-            name = obj.shortName
-        except:
-            name = "LegacyOONITest"
-
-        originalTest = obj
-
-        subOptions = obj.options()
-        subOptions.parseOptions(config['subArgs'])
-
-        test_class = obj(None, None, None, None)
-        test_class.local_options = subOptions
-        assets = test_class.load_assets()
-
-        inputs = [None]
-        # XXX here we are only taking assets that are set to one item only.
-        for key, inputs in assets.items():
-            pass
-
-        inputs = inputs
-        local_options = subOptions
-
-        @defer.inlineCallbacks
-        def test_start_legacy_test(self):
-
-            self.legacy_report = []
-
-            my_test = self.originalTest(None, None, None)
-            my_test.report = legacy_reporter(self.legacy_report)
-            args = {}
-            args[self.key] = self.input
-            result = yield my_test.startTest(args)
-            self.report['result'] = result
-
-    return LegacyOONITest
+    return LegacyOONITest(obj, config)
 
 def processTest(obj, config):
     inputFile = obj.inputFile
@@ -118,7 +171,6 @@ def processTest(obj, config):
             tmp_obj.getOptions()
         except usage.UsageError:
             options.opt_help()
-
 
     return obj
 
@@ -151,7 +203,7 @@ def makeTestCases(klass, tests, methodPrefix):
         cases.append(klass(methodPrefix+test))
     return cases
 
-def loadTestsAndOptions(classes):
+def loadTestsAndOptions(classes, config):
     """
     Takes a list of classes and returnes their testcases and options.
     Legacy tests will be adapted.
@@ -162,19 +214,29 @@ def loadTestsAndOptions(classes):
     testCases = []
     names = []
 
+    from ooni.runner import LegacyOONITest
+    _old_klass_type = LegacyOONITest
+
     for klass in classes:
+
         try:
-            k = klass()
-            opts = k.getOptions()
-            options.append(opts)
-        except AttributeError:
-            options.append([])
-        tests = reflect.prefixedMethodNames(klass, methodPrefix)
-        if tests:
-            cases = makeTestCases(klass, tests, methodPrefix)
-            testCases.append(cases)
-        else:
-            options.pop()
+            assert not isinstance(klass, _old_klass_type)
+        except:
+            assert isinstance(klass, _old_klass_type)
+            #log.debug(type(klass))
+            #legacyTest = adaptLegacyTest(klass, config)
+            klass.test_start_legacy_test()
+        else: 
+            tests = reflect.prefixedMethodNames(klass, methodPrefix)
+            if tests:
+                cases = makeTestCases(klass, tests, methodPrefix)
+                testCases.append(cases)                
+            try:
+                k = klass()
+                opts = k.getOptions()
+                options.append(opts)
+            except AttributeError:
+                options.append([])
 
     return testCases, options
 
@@ -189,7 +251,21 @@ class ORunner(object):
         self.baseSuite = InputTestSuite
         self.cases = cases
         self.options = options
-        self.inputs = options['inputs']
+
+        try:
+            assert len(options) != 0, "Length of options is zero!"
+        except AssertionError, ae:
+            self.inputs = []
+            log.err(ae)
+        else:
+            first = options.pop()
+            if 'inputs' in first:
+                self.inputs = options['inputs']
+            else:
+                log.msg("Could not find inputs!")
+                log.msg("options[0] = %s" % first)
+                self.inputs = []
+
         try:
             reportFile = open(config['reportfile'], 'a+')
         except:
