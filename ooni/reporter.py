@@ -1,8 +1,9 @@
-import time
-import sys
-import yaml
-import itertools
 import copy_reg
+import itertools
+import logging
+import sys
+import time
+import yaml
 
 from yaml.representer import *
 from yaml.emitter import *
@@ -16,6 +17,9 @@ from twisted.internet import defer
 from ooni.utils import date, log, geodata
 
 try:
+    ## Get rid of the annoying "No route found for 
+    ## IPv6 destination warnings":
+    logging.getLogger("scapy.runtime").setLevel(logging.ERROR)
     from scapy.all import packet
 except:
     class FooClass:
