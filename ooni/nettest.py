@@ -98,9 +98,16 @@ class TestCase(unittest.TestCase):
         fp.close()
 
     def getOptions(self):
-        if type(self.inputFile) is str:
-            fp = open(self.inputFile)
-            self.inputs = self.inputProcessor(fp)
+        if self.inputFile:
+            try:
+                assert isinstance(self.inputFile, str)
+            except AssertionError, ae:
+                log.err(ae)
+            else:
+                if os.path.isfile(self.inputFile):
+                    print self.inputFile
+                    fp = open(self.inputFile)
+                    self.inputs = self.inputProcessor(fp)
         elif not self.inputs[0]:
             pass
         elif self.inputFile:
