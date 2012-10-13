@@ -49,11 +49,11 @@ class legacy_reporter(object):
         self.report_target.append(what)
 
 class LegacyOONITest(nettest.TestCase):
-    
+
     ## we need bases so that inherited methods get parsed for prefixes too
     from ooni.plugoo.tests import OONITest
     __bases__ = (OONITest, )
-    
+
     def __init__(self, obj, config):
         super(LegacyOONITest, self).__init__()
         self.originalTest = obj
@@ -84,7 +84,7 @@ class LegacyOONITest(nettest.TestCase):
                 #log.debug("orginal namespace: %s" % origNamespace)
                 #log.debug("orginal attr: %s" % origAttr)
 
-                def _options_from_name_tag(method_name, 
+                def _options_from_name_tag(method_name,
                                            orig_test=self.originalTest):
                     return orig_test.method_name.options()
 
@@ -109,7 +109,7 @@ class LegacyOONITest(nettest.TestCase):
         self.legacy_test.assets = self.legacy_test.load_assets()
         self.legacy_test.report = legacy_reporter({})
         self.legacy_test.initialize()
-        
+
         inputs = []
 
         if len(self.legacy_test.assets.items()) == 0:
@@ -225,11 +225,11 @@ def loadTestsAndOptions(classes, config):
             #log.debug(type(klass))
             #legacyTest = adaptLegacyTest(klass, config)
             klass.test_start_legacy_test()
-        else: 
+        else:
             tests = reflect.prefixedMethodNames(klass, methodPrefix)
             if tests:
                 cases = makeTestCases(klass, tests, methodPrefix)
-                testCases.append(cases)                
+                testCases.append(cases)
             try:
                 k = klass()
                 opts = k.getOptions()
@@ -257,13 +257,16 @@ class ORunner(object):
             self.inputs = []
             log.err(ae)
         else:
-            first = options.pop()
+            try:
+                first = options.pop(0)
+            except:
+                first = {}
             if 'inputs' in first:
                 self.inputs = options['inputs']
             else:
                 log.msg("Could not find inputs!")
                 log.msg("options[0] = %s" % first)
-                self.inputs = []
+                self.inputs = [None]
 
         try:
             reportFile = open(config['reportfile'], 'a+')
