@@ -1,4 +1,5 @@
 import itertools
+import os
 
 from twisted.python import log, usage
 from twisted.trial import unittest, itrial
@@ -120,5 +121,4 @@ class TestCase(unittest.TestCase):
 
     def __repr__(self):
         return "<%s inputs=%s>" % (self.__class__, self.inputs)
-
 
