@@ -3,23 +3,25 @@ import sys
 import types
 import time
 import inspect
+import yaml
 
 from twisted.internet import defer, reactor
-from twisted.python import reflect, failure, usage
+from twisted.python   import reflect, failure, usage
+from twisted.python   import log as tlog
 
-from twisted.python import log as tlog
-
-from twisted.trial import unittest
+from twisted.trial        import unittest
 from twisted.trial.runner import TrialRunner, TestLoader
 from twisted.trial.runner import isPackage, isTestCase, ErrorHolder
 from twisted.trial.runner import filenameToModule, _importFromFile
 
-from ooni.reporter import ReporterFactory
-from ooni.inputunit import InputUnitFactory
-from ooni.nettest import InputTestSuite
-from ooni import nettest
-from ooni.utils import log, geodata, date
-from ooni.plugoo import tests as oonitests
+from ooni              import nettest
+from ooni.inputunit    import InputUnitFactory
+from ooni.nettest      import InputTestSuite
+from ooni.plugoo       import tests as oonitests
+from ooni.reporter     import ReporterFactory
+from ooni.utils        import log, geodata, date
+from ooni.utils.legacy import LegacyOONITest
+from ooni.utils.legacy import start_legacy_test, adapt_legacy_test
 
 def isTestCase(thing):
     try:
@@ -41,112 +43,19 @@ def isLegacyTest(obj):
     except TypeError:
         return False
 
-class legacy_reporter(object):
-    def __init__(self, report_target):
-        self.report_target = report_target
-
-    def __call__(self, what):
-        self.report_target.append(what)
-
-class LegacyOONITest(nettest.TestCase):
-
-    ## we need bases so that inherited methods get parsed for prefixes too
-    from ooni.plugoo.tests import OONITest
-    __bases__ = (OONITest, )
-
-    def __init__(self, obj, config):
-        super(LegacyOONITest, self).__init__()
-        self.originalTest = obj
-        log.debug("obj: %s" % obj)
-        log.debug("originalTest: %s" % self.originalTest)
-
-        self.subArgs = (None, )
-        if 'subArgs' in config:
-            self.subArgs = config['subArgs']
-
-        try:
-            self.name = self.originalTest.shortName
-        except:
-            self.was_named = False
-            self.name = "LegacyOONITest"
-
-        try:
-            self.subOptions = self.originalTest.options()
-        except AttributeError:
-            if self.was_named is False:
-                origClass    = self.originalTest.__class__
-                origClassStr = str(origClass)
-                fromModule   = origClassStr.rsplit('.', 2)[:-1]
-                #origNamespace = globals()[origClass]()
-                #origAttr      = getattr(origNamespace, fromModule)
-                log.debug("original class: %s" % origClassStr)
-                log.debug("from module: %s" % fromModule)
-                #log.debug("orginal namespace: %s" % origNamespace)
-                #log.debug("orginal attr: %s" % origAttr)
-
-                def _options_from_name_tag(method_name,
-                                           orig_test=self.originalTest):
-                    return orig_test.method_name.options()
-
-                self.subOptions = _options_from_name_tag(fromModule,
-                                                         self.originalTest)
-            else:
-                self.subOptions = None
-                log.err("That test appears to have a name, but no options!")
-
-        if self.subOptions is not None:
-            self.subOptions.parseOptions(self.subArgs)
-            self.local_options = self.subOptions
-
-        self.legacy_test = self.originalTest(None, None, None, None)
-        ## xxx fix me
-        #my_test.global_options = config['Options']
-        self.legacy_test.local_options = self.subOptions
-        if self.was_named:
-            self.legacy_test.name = self.name
-        else:
-            self.legacy_test.name = fromModule
-        self.legacy_test.assets = self.legacy_test.load_assets()
-        self.legacy_test.report = legacy_reporter({})
-        self.legacy_test.initialize()
-
-        inputs = []
-
-        if len(self.legacy_test.assets.items()) == 0:
-            inputs.append('internal_asset_handler')
-        else:
-            for key, inputs in self.legacy_test.assets.items():
-                pass
-        self.inputs = inputs
-
-    def __getattr__(self, name):
-        def method(*args):
-            log.msg("Call to unknown method %s.%s" % (self.originalTest, name))
-            if args:
-                log.msg("Unknown method %s parameters: %s" % str(args))
-        return method
-
-    @defer.inlineCallbacks
-    def test_start_legacy_test(self):
-        args = {}
-        for key, inputs in self.legacy_test.assets.items():
-            args[key] = inputs
-            result = yield self.legacy_test.startTest(args)
-            self.report.update({'result':  result})
-        ## xxx we need to retVal on the defer.inlineCallbacks, right?
-        defer.returnValue(self.report)
-
-def adaptLegacyTest(obj, config):
-    """
-    We take a legacy OONITest class and convert it into a nettest.TestCase.
-    This allows backward compatibility of old OONI tests.
-
-    XXX perhaps we could implement another extra layer that makes the even
-    older test cases compatible with the new OONI.
-    """
-    return LegacyOONITest(obj, config)
-
 def processTest(obj, config):
+    """
+    Process the parameters and :class:`twisted.python.usage.Options` of a
+    :class:`ooni.nettest.Nettest`.
+
+    :param obj:
+        An uninstantiated old test, which should be a subclass of
+        :class:`ooni.plugoo.tests.OONITest`.
+    :param config:
+        A configured and instantiated :class:`twisted.python.usage.Options`
+        class.
+    """
+
     inputFile = obj.inputFile
 
     if obj.optParameters or inputFile:
@@ -179,9 +88,16 @@ def findTestClassesFromConfig(config):
     case classes.
     If it detects that a certain test class is using the old OONIProbe format,
     then it will adapt it to the new testing system.
-    """
-    filename = config['test']
 
+    :param config:
+        A configured and instantiated :class:`twisted.python.usage.Options`
+        class.
+    :return:
+        A list of class objects found in a file or module given on the
+        commandline.
+    """
+
+    filename = config['test']
     classes = []
 
     module = filenameToModule(filename)
@@ -189,7 +105,7 @@ def findTestClassesFromConfig(config):
         if isTestCase(val):
             classes.append(processTest(val, config))
         elif isLegacyTest(val):
-            classes.append(adaptLegacyTest(val, config))
+            classes.append(adapt_legacy_test(val, config))
     return classes
 
 def makeTestCases(klass, tests, methodPrefix):
@@ -197,6 +113,7 @@ def makeTestCases(klass, tests, methodPrefix):
     Takes a class some tests and returns the test cases. methodPrefix is how
     the test case functions should be prefixed with.
     """
+
     cases = []
     for test in tests:
         cases.append(klass(methodPrefix+test))
@@ -204,27 +121,28 @@ def makeTestCases(klass, tests, methodPrefix):
 
 def loadTestsAndOptions(classes, config):
     """
-    Takes a list of classes and returnes their testcases and options.
+    Takes a list of classes and returns their testcases and options.
     Legacy tests will be adapted.
     """
+
     methodPrefix = 'test'
     suiteFactory = InputTestSuite
     options = []
     testCases = []
     names = []
 
-    from ooni.runner import LegacyOONITest
     _old_klass_type = LegacyOONITest
 
     for klass in classes:
 
         try:
-            assert not isinstance(klass, _old_klass_type)
+            assert not isinstance(klass, _old_klass_type), "Legacy test detected"
         except:
             assert isinstance(klass, _old_klass_type)
-            #log.debug(type(klass))
-            #legacyTest = adaptLegacyTest(klass, config)
-            klass.test_start_legacy_test()
+            try:
+                start_legacy_test(klass)
+            except Exception, e:
+                log.err(e)
         else:
             tests = reflect.prefixedMethodNames(klass, methodPrefix)
             if tests:
@@ -234,8 +152,9 @@ def loadTestsAndOptions(classes, config):
                 k = klass()
                 opts = k.getOptions()
                 options.append(opts)
-            except AttributeError:
+            except AttributeError, ae:
                 options.append([])
+                log.err(ae)
 
     return testCases, options
 
@@ -274,17 +193,17 @@ class ORunner(object):
             filename = 'report_'+date.timestamp()+'.yaml'
             reportFile = open(filename, 'a+')
         self.reporterFactory = ReporterFactory(reportFile,
-                                    testSuite=self.baseSuite(self.cases))
+                                               testSuite=self.baseSuite(self.cases))
 
     def runWithInputUnit(self, inputUnit):
         idx = 0
         result = self.reporterFactory.create()
 
-        for input in inputUnit:
+        for inputs in inputUnit:
             result.reporterFactory = self.reporterFactory
 
             suite = self.baseSuite(self.cases)
-            suite.input = input
+            suite.input = inputs
             suite(result, idx)
 
             # XXX refactor all of this index bullshit to avoid having to pass
