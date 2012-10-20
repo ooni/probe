@@ -17,16 +17,14 @@ from twisted.internet import defer
 from ooni.utils import date, log, geodata
 
 try:
-    ## Get rid of the annoying "No route found for 
+    ## Get rid of the annoying "No route found for
     ## IPv6 destination warnings":
     logging.getLogger("scapy.runtime").setLevel(logging.ERROR)
     from scapy.all import packet
 except:
     class FooClass:
-        pass
-    packet = object
-    packet.Packet = FooClass
-
+        Packet = object
+    packet = FooClass
 
 pyunit =  __import__('unittest')
 

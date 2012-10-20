@@ -134,7 +134,7 @@ def makeTestCases(klass, tests, methodPrefix):
 
 def loadTestsAndOptions(classes, config):
     """
-    Takes a list of classes and returns their testcases and options.
+    Takes a list of test classes and returns their testcases and options.
     Legacy tests will be adapted.
     """
 
@@ -164,7 +164,7 @@ def loadTestsAndOptions(classes, config):
                 except AttributeError, ae:
                     options.append([])
                     log.err(ae)
-        elif not isinstance(klass, _old_klass_type):
+        else:
             tests = reflect.prefixedMethodNames(klass, methodPrefix)
             if tests:
                 cases = makeTestCases(klass, tests, methodPrefix)
@@ -176,11 +176,6 @@ def loadTestsAndOptions(classes, config):
             except AttributeError, ae:
                 options.append([])
                 log.err(ae)
-        else:
-            try:
-                raise RuntimeError, "Class is some strange type!"
-            except RuntimeError, re:
-                log.err(re)
 
     return testCases, options
 
