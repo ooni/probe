@@ -15,7 +15,9 @@ import inspect
 import os
 import yaml
 
-from twisted.internet  import defer
+from twisted.internet     import defer, reactor
+from twisted.python       import log as tplog
+from twisted.python.usage import Options as tpOptions
 
 from ooni              import nettest
 from ooni.plugoo.tests import OONITest
@@ -70,14 +72,13 @@ class LegacyOONITest(nettest.TestCase):
     from ooni.plugoo.tests import OONITest
     __bases__ = (OONITest, )
 
-
     def __getattr__(self, name):
         """
-        Override of builtin getattr for :class:`ooni.runner.LegacyTest` so that
-        method calls to a LegacyTest instance or its parent class OONITest do
-        not return unhandled errors, but rather report that the method is unknown.
+        Override of builtin getattr for :class:`ooni.runner.LegacyTest` so
+        that method calls to a LegacyTest instance or its parent class
+        OONITest do not return unhandled errors, but rather report that the
+        method is unknown.
         """
-
         def __unknown_method__(*a):
             log.msg("Call to unknown method %s.%s" % (self.originalTest, name))
             if a:
@@ -127,7 +128,6 @@ class LegacyOONITest(nettest.TestCase):
             An instance of :meth:`inspect.attrgetter` which searches for
             methods within a test class named 'options'.
         """
-
         original_test  = self.originalTest
         original_class = original_test.__class__
         class_string   = str(original_class)
@@ -145,7 +145,7 @@ class LegacyOONITest(nettest.TestCase):
         except KeyError, keyerr:
             log.debug(keyerr)
 
-        options = {}
+        options = tpOptions
         try:
             options = options_finder(getattr(original_class, test_class))
         except AttributeError:
@@ -153,10 +153,12 @@ class LegacyOONITest(nettest.TestCase):
         except Exception, e:
             log.err(e)
         finally:
-            return sub_options
+            return options()
 
     def __init__(self, obj, config):
         """
+        xxx fill me in
+
         :param obj:
             An uninstantiated old test, which should be a subclass of
             :class:`ooni.plugoo.tests.OONITest`.
@@ -169,23 +171,24 @@ class LegacyOONITest(nettest.TestCase):
         :ivar was_named:
         :attr subOptions:
         """
-
         super(LegacyOONITest, self).__init__()
         self.originalTest = obj
-
-        self.subArgs = (None, )
-        if 'subArgs' in config:
-            self.subArgs = config['subArgs']
-
-        self.name = 'LegacyOONITest'
-        self.was_named = False
+        self.start_time   = date.now()
+        self.name         = 'LegacyOONITest'
+        self.was_named    = False
         try:
-            self.name = self.originalTest.shortName
+            self.name      = self.originalTest.shortName
             self.was_named = True
         except AttributeError:
             if self.originalTest.name and self.originalTest.name != 'oonitest':
-                self.name = self.originalTest.name
+                self.name      = self.originalTest.name
                 self.was_named = True
+
+        if 'subArgs' in config:
+            self.subArgs = config['subArgs']
+        else:
+            self.subArgs = (None, )
+            log.msg("No suboptions to test %s found; continuing..."% self.name)
 
         try:
             self.subOptions = self.originalTest.options()
@@ -193,32 +196,47 @@ class LegacyOONITest(nettest.TestCase):
             if self.was_named is False:
                 self.subOptions = self.find_missing_options()
             else:
-                self.subOptions = {}
+                self.subOptions = None
                 log.msg("That test appears to have a name, but no options!")
 
-        self.legacy_test            = self.originalTest(None, None, None, None)
-        self.legacy_test.name       = self.name
-        print "self.legacy_test.name: %s" % self.legacy_test.name
-        print "self.name: %s" % self.name
-        self.legacy_test.start_time = date.now()
-
         if self.subOptions is not None:
-            self.subOptions.parseOptions(self.subArgs)
-            self.legacy_test.local_options = self.subOptions
-
-        self.reporter = []
-        self.legacy_test.report = LegacyReporter(report_target=self.reporter)
+            if len(self.subArgs) > 0:
+                self.subOptions.parseOptions(self.subArgs)
+                self.local_options = self.subOptions
+            else:
+                print self.subOptions
 
         if 'reportfile' in config:
             self.reporter_file = config['reportfile']
         else:
-            now = date.now()
-            time = date.rfc3339(now, utc=True, use_system_timezone=False)
-            filename = str(self.name) + "-" + str(time) + ".yaml"
+            filename = str(self.name) + "-" + str(date.timestamp()) + ".yaml"
             self.reporter_file = os.path.join(os.getcwd(), filename)
+        self.reporter = []
+        self.report = LegacyReporter(report_target=self.reporter)
 
-        self.legacy_test.initialize()
-        self.legacy_test.assets = self.legacy_test.load_assets()
+        self.legacy_test = self.originalTest(None, self.local_options,
+                                             None, self.report)
+        setattr(self.legacy_test, 'name', self.name)
+        setattr(self.legacy_test, 'start_time', self.start_time)
+
+        self.inputs = {}
+        for keys, values in self.legacy_test.assets.items():
+            self.inputs[keys] = values
+        setattr(self.legacy_test, 'inputs', self.inputs)
+
+    @defer.inlineCallbacks
+    def run_with_args(self, args):
+        """
+        Handler for calling :meth:`ooni.plugoo.tests.OONITest.startTest` with
+        each :param:`args` that, in the old framework, would have been
+        generated one line at a time by
+        :class:`ooni.plugoo.assets.Asset`. This function is wrapped with
+        :meth:`twisted.internet.defer.inlineCallbacks` so that the result of
+        each call to :meth:`ooni.plugoo.tests.OONITest.experiment` is returned
+        immediately as :ivar:`returned`.
+        """
+        result = yield self.legacy_test.startTest(args)
+        defer.returnValue(result)
 
 def adapt_legacy_test(obj, config):
     """
@@ -241,6 +259,10 @@ def adapt_legacy_test(obj, config):
 
 def report_legacy_test_to_file(legacy_test, file=None):
     """
+    xxx this function current does not get used, and could easily be handled
+        by ooni.runner.loadTestsAndOptions, or some other function in
+        ooni.runner.
+
     xxx fill me in
     """
     reporter_file = legacy_test.reporter_file
@@ -260,6 +282,21 @@ def report_legacy_test_to_file(legacy_test, file=None):
         log.msg("Finished reporting.")
 
 def log_legacy_test_results(result, legacy_test, args):
+    """
+    Callback function for deferreds in :func:`start_legacy_test` which
+    handles updating the legacy_test's :class:`legacy_test.report`.
+
+    :param result:
+        The possible result of a deferred which has been returned from
+        :meth:`ooni.plugoo.test.OONITest.experiment` and
+        :meth:`ooni.plugoo.test.OONITest.control`.
+    :param legacy_test:
+        The :class:`LegacyOONITest` which we're processing.
+    :param args:
+        The current inputs which we're giving to legacy_test.startTest().
+    :return:
+        The :param:`legacy_test`.
+    """
     if result:
         legacy_test.report({args: result})
         log.debug("Legacy test %s with args:\n%s\nreturned result:\n%s"
@@ -268,50 +305,53 @@ def log_legacy_test_results(result, legacy_test, args):
         legacy_test.report({args: None})
         log.debug("No results return for %s with args:\n%s"
                   % (legacy_test.name, args))
-
-@defer.inlineCallbacks
-def run_legacy_test_with_args(legacy_test, args):
-    """
-    Handler for calling :meth:`ooni.plugoo.tests.OONITest.startTest` with each
-    :param:`args` that, in the old framework, would have been generated one
-    line at a time by :class:`ooni.plugoo.assets.Asset`. This function is
-    wrapped with :meth:`twisted.internet.defer.inlineCallbacks` so that the
-    result of each call to :meth:`ooni.plugoo.tests.OONITest.experiment` is
-    returned immediately as :ivar:`returned`.
-    """
-
-    result = yield legacy_test.startTest(args)
-    defer.returnValue(result)
+    return legacy_test
 
 def start_legacy_test(legacy_test):
     """
-    xxx fill me in
+    This is the main function which should be used to call a legacy test, it
+    handles parsing the deprecated :class:`ooni.plugoo.assets.Asset` items as
+    inputs, and calls back to a custom, backwards-compatible Reporter.
 
-    need a list of startTest(args) which return deferreds
+    For each input to the legacy_test, this function creates a
+    :class:`twisted.internet.defer.Deferred` which has already received its
+    :meth:`callback`. The end result is a
+    :class:`twisted.internet.defer.gatherResults` of all the outcomes of
+    :param:`legacy_test` for each of the inputs.
+
+    :param legacy_test:
+        A :class:`LegacyOONITest` to process.
+    :ivar results:
+        A list of :class:`twisted.internet.defer.Deferred`s which gets
+        processed as a :class:`twisted.internet.defer.DeferredList`.
+    :ivar current_input:
+        The input we are current working on, i.e. what would have been 'args'
+        (as in, 'experiment(args)') in the old design.
+    :return:
+        A :class:`twisted.internet.defer.gatherResults`.
     """
-
     results = []
+    current_input = {}
 
-    if len(legacy_test.assets.items()) != 0:
-        for keys, values in legacy_test.assets.items():
+    if len(legacy_test.inputs) > 0:
+        for keys, values in legacy_test.inputs:
             for value in values:
-                args[keys] = value
-                log.debug("Running %s with args: %s" % (legacy_test.name,
-                                                        args))
-                d = run_legacy_test_with_args(args)
-                d.addCallback(log_legacy_test_results, legacy_test, args)
-                d.addErrback(log.err)
-                d.addCallback(report_legacy_test_to_file, legacy_test)
-                d.addErrback(log.err)
+                current_input[keys] = value
+                log.debug("Running %s with args: %s"
+                          % (legacy_test.name, current_input))
+                d = legacy_test.run_with_args(current_input)
+                d.addCallback(log_legacy_test_results, legacy_test,
+                              current_input)
+                d.addErrback(tplog.err)
                 results.append(d)
     else:
-        args['zero_input_test'] = True
-        log.debug("Running %s with args: %s" % (legacy_test.name, args))
-        d = run_legacy_test_with_args(args)
-        d.addCallback(log_legacy_test_results, legacy_test, args)
-        d.addErrback(log.err)
-        d.addCallback(report_legacy_test_to_file, legacy_test)
-        d.addErrback(log.err)
+        current_input['zero_input_test'] = True
+        log.debug("Running %s with current input: %s"
+                  % (legacy_test.name, current_input))
+        d = legacy_test.run_with_args(current_input)
+        d.addCallback(log_legacy_test_results, legacy_test, current_input)
+        d.addErrback(tplog.err)
         results.append(d)
 
-    defer.DeferredList(results)
+    dlist = defer.gatherResults(results)
+    return dlist

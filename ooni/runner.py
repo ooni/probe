@@ -1,3 +1,16 @@
+#-*- coding: utf-8 -*-
+#
+# runner.py
+# ---------
+# Handles running ooni.nettests as well as ooni.plugoo.tests.OONITests.
+#
+# :authors: Isis Lovecruft, Arturo Filasto
+# :license: see included LICENSE file
+# :copyright: (c) 2012 Isis Lovecruft, Arturo Filasto, The Tor Project, Inc.
+# :version: 0.1.0-pre-alpha
+#
+
+
 import os
 import sys
 import types
@@ -134,16 +147,24 @@ def loadTestsAndOptions(classes, config):
     _old_klass_type = LegacyOONITest
 
     for klass in classes:
-
-        try:
-            assert not isinstance(klass, _old_klass_type), "Legacy test detected"
-        except:
-            assert isinstance(klass, _old_klass_type)
+        if isinstance(klass, _old_klass_type):
             try:
-                start_legacy_test(klass)
+                cases = start_legacy_test(klass)
+                #cases.callback()
+                if cases:
+                    print cases
+                    return [], []
+                testCases.append(cases)
             except Exception, e:
                 log.err(e)
-        else:
+            else:
+                try:
+                    opts = klass.local_options
+                    options.append(opts)
+                except AttributeError, ae:
+                    options.append([])
+                    log.err(ae)
+        elif not isinstance(klass, _old_klass_type):
             tests = reflect.prefixedMethodNames(klass, methodPrefix)
             if tests:
                 cases = makeTestCases(klass, tests, methodPrefix)
@@ -155,6 +176,11 @@ def loadTestsAndOptions(classes, config):
             except AttributeError, ae:
                 options.append([])
                 log.err(ae)
+        else:
+            try:
+                raise RuntimeError, "Class is some strange type!"
+            except RuntimeError, re:
+                log.err(re)
 
     return testCases, options
 
@@ -220,4 +246,3 @@ class ORunner(object):
         self.reporterFactory.options = self.options
         for inputUnit in InputUnitFactory(self.inputs):
             self.runWithInputUnit(inputUnit)
-
