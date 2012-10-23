@@ -1,8 +1,0 @@
-
-This explains how to install the ooni-probe on Debian.
-
-To use this project you will need to install the following Debian packages:
-
-  python-beautifulsoup
-  python-dns
-

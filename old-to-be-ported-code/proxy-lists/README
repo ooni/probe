@@ -1,9 +1,0 @@
-This folder contains information on known proxies.
-
-Currently we know of one specific public source for these kinds of proxies:
-http://www.wikimedia.org/trusted-xff.html
-http://meta.wikimedia.org/wiki/XFF_project
-
-The current known set of Italian DNS servers is contained in 'italy-dns.txt'
-These DNS servers filter responses for certain blocklisted sites.
-
