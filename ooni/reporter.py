@@ -4,6 +4,7 @@ import logging
 import sys
 import time
 import yaml
+import traceback
 
 from yaml.representer import *
 from yaml.emitter import *
@@ -132,8 +133,7 @@ class ReporterFactory(OReporter):
         client_geodata = {}
         log.msg("Running geo IP lookup via check.torproject.org")
 
-        #client_ip = yield geodata.myIP()
-        client_ip = '127.0.0.1'
+        client_ip = yield geodata.myIP()
         try:
             import txtorcon
             client_location = txtorcon.util.NetLocation(client_ip)
@@ -200,6 +200,7 @@ class OONIReporter(OReporter):
         if not self._startTime:
             self._startTime = self._getTime()
 
+        log.debug("Starting test %s" % idx)
         test.report = {}
 
         self._tests[idx] = {}
@@ -215,6 +216,7 @@ class OONIReporter(OReporter):
 
 
     def stopTest(self, test):
+        log.debug("Stopping test")
         super(OONIReporter, self).stopTest(test)
 
         idx = self.getTestIndex(test)
@@ -224,11 +226,14 @@ class OONIReporter(OReporter):
         # XXX In the future this should be removed.
         try:
             report = list(test.legacy_report)
+            log.debug("Set the report to be a list")
         except:
             # XXX I put a dict() here so that the object is re-instantiated and I
             #     actually end up with the report I want. This could either be a
             #     python bug or a yaml bug.
             report = dict(test.report)
+            log.debug("Set the report to be a dict")
+
         log.debug("Adding to report %s" % report)
         self._tests[idx]['report'] = report
 
@@ -245,6 +250,7 @@ class OONIReporter(OReporter):
         Expects that L{_printErrors}, L{_writeln}, L{_write}, L{_printSummary}
         and L{_separator} are all implemented.
         """
+        log.debug("Test run concluded")
         if self._publisher is not None:
             self._publisher.removeObserver(self._observeWarnings)
         if self._startTime is not None:
@@ -261,13 +267,18 @@ class OONIReporter(OReporter):
         super(OONIReporter, self).addSuccess(test)
         #self.report['result'] = {'value': 'success'}
 
-    def addError(self, *args):
-        super(OONIReporter, self).addError(*args)
-        #self.report['result'] = {'value': 'error', 'args': args}
+    def addError(self, test, exception):
+        super(OONIReporter, self).addError(test, exception)
+        exc_type, exc_value, exc_traceback = exception
+        log.err(exc_type)
+        log.err(str(exc_value))
+        # XXX properly print out the traceback
+        for line in '\n'.join(traceback.format_tb(exc_traceback)).split("\n"):
+            log.err(line)
 
     def addFailure(self, *args):
         super(OONIReporter, self).addFailure(*args)
-        #self.report['result'] = {'value': 'failure', 'args': args}
+        log.warn(args)
 
     def addSkip(self, *args):
         super(OONIReporter, self).addSkip(*args)

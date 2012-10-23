@@ -54,6 +54,7 @@ class HTTPTest(TestCase):
     followRedirects = False
 
     def setUp(self):
+        log.debug("Setting up HTTPTest")
         try:
             import OpenSSL
         except:
@@ -76,12 +77,17 @@ class HTTPTest(TestCase):
 
         self.request = {}
         self.response = {}
+        log.debug("Finished test setup")
 
-    def _processResponseBody(self, data):
+    def _processResponseBody(self, data, body_processor):
+        log.debug("Processing response body")
         self.response['body'] = data
         self.report['response'] = self.response
 
-        self.processResponseBody(data)
+        if body_processor:
+            body_processor(data)
+        else:
+            self.processResponseBody(data)
 
     def processResponseBody(self, data):
         """
@@ -108,7 +114,25 @@ class HTTPTest(TestCase):
         """
         pass
 
-    def doRequest(self, url, method="GET", headers=None, body=None):
+    def doRequest(self, url, method="GET",
+                  headers=None, body=None, headers_processor=None,
+                  body_processor=None):
+        """
+        Perform an HTTP request with the specified method.
+
+        url: the full url path of the request
+        method: the HTTP Method to be used
+        headers: the request headers to be sent
+        body: the request body
+        headers_processor: a function to be used for processing the HTTP header
+                          responses (defaults to self.processResponseHeaders).
+                          This function takes as argument the HTTP headers as a
+                          dict.
+        body_processory: a function to be used for processing the HTTP response
+                         body (defaults to self.processResponseBody).
+                         This function takes the response body as an argument.
+        """
+        log.debug("Performing request %s %s %s" % (url, method, headers))
         try:
             d = self.build_request(url, method, headers, body)
         except Exception, e:
@@ -123,11 +147,17 @@ class HTTPTest(TestCase):
             return
 
         d.addErrback(errback)
-        d.addCallback(self._cbResponse)
+        d.addCallback(self._cbResponse, headers_processor, body_processor)
         d.addCallback(finished)
         return d
 
-    def _cbResponse(self, response):
+    def _cbResponse(self, response, headers_processor, body_processor):
+        log.debug("Got response %s" % response)
+        if not response:
+            self.report['response'] = None
+            log.err("We got an empty response")
+            return
+
         self.response['headers'] = list(response.headers.getAllRawHeaders())
         self.response['code'] = response.code
         self.response['length'] = response.length
@@ -136,11 +166,14 @@ class HTTPTest(TestCase):
         if str(self.response['code']).startswith('3'):
             self.processRedirect(response.headers.getRawHeaders('Location')[0])
 
-        self.processResponseHeaders(self.response['headers'])
+        if headers_processor:
+            headers_processor(self.response['headers'])
+        else:
+            self.processResponseHeaders(self.response['headers'])
 
         finished = defer.Deferred()
         response.deliverBody(BodyReceiver(finished))
-        finished.addCallback(self._processResponseBody)
+        finished.addCallback(self._processResponseBody, body_processor)
 
         return finished
 

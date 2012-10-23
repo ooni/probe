@@ -4,6 +4,9 @@
 
 import imp
 import logging
+import string
+import random
+
 try:
     import yaml
 except:
@@ -142,4 +145,33 @@ class Log():
             return lines
         except:
             raise StopIteration
+
+def randomSTR(length, num=True):
+    """
+    Returns a random all uppercase alfa-numerical (if num True) string long length
+    """
+    chars = string.ascii_uppercase
+    if num:
+        chars += string.digits
+    return ''.join(random.choice(chars) for x in range(length))
+
+def randomstr(length, num=True):
+    """
+    Returns a random all lowercase alfa-numerical (if num True) string long length
+    """
+    chars = string.ascii_lowercase
+    if num:
+        chars += string.digits
+    return ''.join(random.choice(chars) for x in range(length))
+
+def randomStr(length, num=True):
+    """
+    Returns a random a mixed lowercase, uppercase, alfanumerical (if num True)
+    string long length
+    """
+    chars = string.ascii_lowercase + string.ascii_uppercase
+    if num:
+        chars += string.digits
+    return ''.join(random.choice(chars) for x in range(length))
+
 

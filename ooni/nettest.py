@@ -1,7 +1,7 @@
 import itertools
 import os
 
-from twisted.trial import unittest, itrial
+from twisted.trial import unittest, itrial, util
 from twisted.internet import defer, utils
 from ooni.utils import log
 
@@ -13,19 +13,45 @@ class InputTestSuite(pyunit.TestSuite):
     and the tracking of current index via idx.
     """
     def run(self, result, idx=0):
+        log.debug("Running test suite")
         self._idx = idx
         while self._tests:
             if result.shouldStop:
+                log.debug("Detected that test should stop")
+                log.debug("Stopping...")
                 break
             test = self._tests.pop(0)
+
             try:
+                log.debug("Setting test attributes with %s %s" %
+                            (self.input, self._idx))
+
                 test.input = self.input
                 test._idx = self._idx
+            except Exception, e:
+                log.debug("Error in some stuff")
+                log.debug(e)
+                import sys
+                print sys.exc_info()
+
+            try:
+                log.debug("Running test")
                 test(result)
-            except:
+                log.debug("Ran.")
+            except Exception, e:
+                log.debug("Attribute error thing")
+                log.debug("Had some problems with _idx")
+                log.debug(e)
+                import traceback, sys
+                print sys.exc_info()
+                traceback.print_exc()
+                print e
+
                 test(result)
+
             self._idx += 1
         return result
+
 
 class TestCase(unittest.TestCase):
     """
@@ -96,19 +122,23 @@ class TestCase(unittest.TestCase):
         writing.
         """
         if result.reporterFactory.firstrun:
+            log.debug("Detecting first run. Writing report header.")
             d1 = result.reporterFactory.writeHeader()
             d2 = unittest.TestCase.deferSetUp(self, ignored, result)
             dl = defer.DeferredList([d1, d2])
             return dl
         else:
+            log.debug("Not first run. Running test setup directly")
             return unittest.TestCase.deferSetUp(self, ignored, result)
 
     def inputProcessor(self, fp):
+        log.debug("Running default input processor")
         for x in fp.readlines():
             yield x.strip()
         fp.close()
 
     def getOptions(self):
+        log.debug("Getting options for test")
         if self.inputFile:
             try:
                 assert isinstance(self.inputFile, str)
