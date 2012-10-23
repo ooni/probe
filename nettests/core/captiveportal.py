@@ -7,6 +7,25 @@
     captive portal. Code is taken, in part, from the old ooni-probe,
     which was written by Jacob Appelbaum and Arturo Filastò.
 
+    This module performs multiple tests that match specific vendor captive
+    portal tests. This is a basic internet captive portal filter tester written
+    for RECon 2011.
+
+    Read the following URLs to understand the captive portal detection process
+    for various vendors:
+
+    http://technet.microsoft.com/en-us/library/cc766017%28WS.10%29.aspx
+    http://blog.superuser.com/2011/05/16/windows-7-network-awareness/
+    http://isc.sans.org/diary.html?storyid=10312&
+    http://src.chromium.org/viewvc/chrome?view=rev&revision=74608
+    http://code.google.com/p/chromium-os/issues/detail?3281ttp,
+    http://crbug.com/52489
+    http://crbug.com/71736
+    https://bugzilla.mozilla.org/show_bug.cgi?id=562917
+    https://bugzilla.mozilla.org/show_bug.cgi?id=603505
+    http://lists.w3.org/Archives/Public/ietf-http-wg/2011JanMar/0086.html
+    http://tools.ietf.org/html/draft-nottingham-http-portal-02
+
     :copyright: (c) 2012 Isis Lovecruft
     :license: see LICENSE for more details
 """

@@ -235,13 +235,18 @@ class ORunner(object):
     def runWithInputUnit(self, inputUnit):
         idx = 0
         result = self.reporterFactory.create()
-
+        log.debug("Running test with input unit %s" % inputUnit)
         for inputs in inputUnit:
             result.reporterFactory = self.reporterFactory
 
+            log.debug("Running with %s" % inputs)
             suite = self.baseSuite(self.cases)
             suite.input = inputs
-            suite(result, idx)
+            try:
+                suite(result, idx)
+            except Exception, e:
+                log.err("Error in running test!")
+                log.err(e)
 
             # XXX refactor all of this index bullshit to avoid having to pass
             # this index around. Probably what I want to do is go and make
@@ -250,7 +255,9 @@ class ORunner(object):
             # We currently need to do this addition in order to get the number
             # of times the test cases that have run inside of the test suite.
             idx += (suite._idx - idx)
+            log.debug("I am now at the index %s" % idx)
 
+        log.debug("Finished")
         result.done()
 
     def run(self):

@@ -3,19 +3,9 @@
 import itertools
 import os
 
-from inspect                   import classify_class_attrs
-from pprint                    import pprint
-
-from twisted.internet          import defer, utils
-from twisted.python            import usage
-from twisted.trial             import unittest, itrial
-from zope.interface.exceptions import BrokenImplementation
-
-from ooni.inputunit            import InputUnitProcessor
-from ooni.utils                import log
-from ooni.utils.assertions     import isClass, isNotClass
-from ooni.utils.assertions     import isOldStyleClass, isNewStyleClass
-
+from twisted.trial import unittest, itrial, util
+from twisted.internet import defer, utils
+from ooni.utils import log
 
 pyunit = __import__('unittest')
 
@@ -25,19 +15,45 @@ class InputTestSuite(pyunit.TestSuite):
     and the tracking of current index via idx.
     """
     def run(self, result, idx=0):
+        log.debug("Running test suite")
         self._idx = idx
         while self._tests:
             if result.shouldStop:
+                log.debug("Detected that test should stop")
+                log.debug("Stopping...")
                 break
             test = self._tests.pop(0)
+
             try:
+                log.debug("Setting test attributes with %s %s" %
+                            (self.input, self._idx))
+
                 test.input = self.input
                 test._idx = self._idx
+            except Exception, e:
+                log.debug("Error in some stuff")
+                log.debug(e)
+                import sys
+                print sys.exc_info()
+
+            try:
+                log.debug("Running test")
                 test(result)
-            except:
+                log.debug("Ran.")
+            except Exception, e:
+                log.debug("Attribute error thing")
+                log.debug("Had some problems with _idx")
+                log.debug(e)
+                import traceback, sys
+                print sys.exc_info()
+                traceback.print_exc()
+                print e
+
                 test(result)
+
             self._idx += 1
         return result
+
 
 class TestCase(unittest.TestCase):
     """
@@ -123,60 +139,23 @@ class TestCase(unittest.TestCase):
         writing.
         """
         if result.reporterFactory.firstrun:
+            log.debug("Detecting first run. Writing report header.")
             d1 = result.reporterFactory.writeHeader()
             d2 = unittest.TestCase.deferSetUp(self, ignored, result)
             dl = defer.DeferredList([d1, d2])
             return dl
         else:
+            log.debug("Not first run. Running test setup directly")
             return unittest.TestCase.deferSetUp(self, ignored, result)
 
-    def _raaun(self, methodName, result):
-        from twisted.internet import reactor
-        method = getattr(self, methodName)
-        log.debug("Running %s" % methodName)
-        d = defer.maybeDeferred(
-                utils.runWithWarningsSuppressed, self._getSuppress(), method)
-        d.addBoth(lambda x : call.active() and call.cancel() or x)
-        return d
-
-    @staticmethod
-    def inputParser(inputs):
-        """Replace me with a custom function for parsing inputs."""
-        return inputs
-
-    def __input_file_processor__(self, fp):
-        """
-        I open :attr:inputFile if there is one, and return inputs one by one
-        after stripping them of whitespace and running them through the parser
-        :meth:`inputParser`.
-        """
-        for line in fp.readlines():
-            yield self.inputParser(line.strip())
+    def inputProcessor(self, fp):
+        log.debug("Running default input processor")
+        for x in fp.readlines():
+            yield x.strip()
         fp.close()
 
-    def __get_inputs__(self):
-        """
-        I am called from the ooni.runner and you probably should not override
-        me. I gather the internal inputs from an instantiated test class and
-        pass them to the rest of the runner.
-
-        If you are looking for a way to parse inputs from inputFile, see
-        :meth:`inputParser`.
-        """
-        processor = InputUnitProcessor(self.inputs,
-                                       input_filter=None,
-                                       catch_err=False)
-        processed = processor.process()
-
-        log.msg("Received direct inputs:\n%s" % inputs)
-        log.debug("Our InputUnitProcessor is %s" % processor)
-
-        #while processed is not StopIteration:
-        #    self.inputs = processed
-        #    yield self.inputs
-        #else:
-        #    if self.inputFile:
-
+    def getOptions(self):
+        log.debug("Getting options for test")
         if self.inputFile:
             try:
                 fp = open(self.inputFile) ## xxx fixme:
