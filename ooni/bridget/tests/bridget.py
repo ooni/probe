@@ -109,7 +109,7 @@ class BridgetTest(OONITest):
     :ivar control_port:
         Integer for Tor's ControlPort.
     :ivar transport:
-        String defining the Tor's ClientTransportPlugin, for testing 
+        String defining the Tor's ClientTransportPlugin, for testing
         a bridge's pluggable transport functionality.
     :ivar tor_binary:
         Path to the Tor binary to use, e.g. \'/usr/sbin/tor\'
@@ -144,7 +144,7 @@ class BridgetTest(OONITest):
                         lst.append(line.replace('\n',''))
 
         def __count_remaining__(which):
-            total, reach, unreach = map(lambda x: which[x], 
+            total, reach, unreach = map(lambda x: which[x],
                                         ['all', 'reachable', 'unreachable'])
             count = len(total) - reach() - unreach()
             return count
@@ -160,7 +160,7 @@ class BridgetTest(OONITest):
         self.bridges['pt_type']     = None
         self.bridges['use_pt']      = False
 
-        self.relays = {} 
+        self.relays = {}
         self.relays['all'], self.relays['up'], self.relays['down'] = \
             ([] for i in range(3))
         self.relays['reachable']   = lambda: len(self.relays['up'])
@@ -234,15 +234,15 @@ class BridgetTest(OONITest):
         assets = {}
         if self.local_options:
             if self.local_options['bridges']:
-                assets.update({'bridge': 
+                assets.update({'bridge':
                                BridgetAsset(self.local_options['bridges'])})
             if self.local_options['relays']:
-                assets.update({'relay': 
+                assets.update({'relay':
                                BridgetAsset(self.local_options['relays'])})
         return assets
 
     def experiment(self, args):
-        """    
+        """
         if bridges:
             1. configure first bridge line
             2a. configure data_dir, if it doesn't exist
@@ -255,13 +255,13 @@ class BridgetTest(OONITest):
             1a. configure the data_dir, if it doesn't exist
             1b. write torrc to a tempfile in data_dir
             2. start tor
-            3. remove any of our relays which are already part of current 
+            3. remove any of our relays which are already part of current
                circuits
             4a. attach CustomCircuit() to self.state
             4b. RELAY_EXTEND for each relay } if this fails, add
                                             } current relay to list
                                             } of unreachable relays
-            5. 
+            5.
         if bridges and relays:
             1. configure first bridge line
             2a. configure data_dir if it doesn't exist
@@ -297,17 +297,17 @@ class BridgetTest(OONITest):
 
         def reconfigure_done(state, bridges):
             """
-            Append :ivar:`bridges['current']` to the list 
+            Append :ivar:`bridges['current']` to the list
             :ivar:`bridges['up'].
             """
-            log.msg("Reconfiguring with 'Bridge %s' successful" 
+            log.msg("Reconfiguring with 'Bridge %s' successful"
                     % bridges['current'])
             bridges['up'].append(bridges['current'])
             return state
 
         def reconfigure_fail(state, bridges):
             """
-            Append :ivar:`bridges['current']` to the list 
+            Append :ivar:`bridges['current']` to the list
             :ivar:`bridges['down'].
             """
             log.msg("Reconfiguring TorConfig with parameters %s failed"
@@ -325,7 +325,7 @@ class BridgetTest(OONITest):
                 Bridge <IP>:<ORPort>
 
             :param state:
-                A fully bootstrapped instance of 
+                A fully bootstrapped instance of
                 :class:`ooni.lib.txtorcon.TorState`.
             :param bridges:
                 A dictionary of bridges containing the following keys:
@@ -344,7 +344,7 @@ class BridgetTest(OONITest):
                 :param:`state`
             """
             log.msg("Current Bridge: %s" % bridges['current'])
-            log.msg("We now have %d bridges remaining to test..." 
+            log.msg("We now have %d bridges remaining to test..."
                     % bridges['remaining']())
             try:
                 if bridges['use_pt'] is False:
@@ -408,23 +408,23 @@ class BridgetTest(OONITest):
             self.bridges['current'] = self.bridges['all'][0]
             self.config.Bridge = self.bridges['current']
                                                   ## avoid starting several
-            self.config.save()                    ## processes 
+            self.config.save()                    ## processes
             assert self.config.config.has_key('Bridge'), "No Bridge Line"
 
             ## start tor and remove bridges which are public relays
             from ooni.utils.onion import start_tor_filter_nodes
-            state = start_tor_filter_nodes(reactor, self.config, 
+            state = start_tor_filter_nodes(reactor, self.config,
                                            self.control_port, self.tor_binary,
                                            self.data_directory, self.bridges)
             #controller = defer.Deferred()
             #controller.addCallback(singleton_semaphore, tor)
             #controller.addErrback(setup_fail)
-            #bootstrap = defer.gatherResults([controller, filter_bridges], 
+            #bootstrap = defer.gatherResults([controller, filter_bridges],
             #                                consumeErrors=True)
 
             if state is not None:
                 log.debug("state:\n%s" % state)
-                log.debug("Current callbacks on TorState():\n%s" 
+                log.debug("Current callbacks on TorState():\n%s"
                           % state.callbacks)
 
         ## if we've got more bridges
@@ -442,7 +442,7 @@ class BridgetTest(OONITest):
         if self.relays['remaining']() > 0:
             while self.relays['remaining']() >= 3:
                 #path = list(self.relays.pop() for i in range(3))
-                #log.msg("Trying path %s" % '->'.join(map(lambda node: 
+                #log.msg("Trying path %s" % '->'.join(map(lambda node:
                 #                                         node, path)))
                 self.relays['current'] = self.relays['all'].pop()
                 for circ in state.circuits.values():
@@ -453,8 +453,8 @@ class BridgetTest(OONITest):
                         try:
                             ext = attacher_extend_circuit(state.attacher, circ,
                                                           self.relays['current'])
-                            ext.addCallback(attacher_extend_circuit_done, 
-                                            state.attacher, circ, 
+                            ext.addCallback(attacher_extend_circuit_done,
+                                            state.attacher, circ,
                                             self.relays['current'])
                         except Exception, e:
                             log.err("Extend circuit failed: %s" % e)
@@ -467,15 +467,15 @@ class BridgetTest(OONITest):
 
     def startTest(self, args):
         """
-        Local override of :meth:`OONITest.startTest` to bypass calling 
+        Local override of :meth:`OONITest.startTest` to bypass calling
         self.control.
 
         :param args:
-            The current line of :class:`Asset`, not used but kept for 
+            The current line of :class:`Asset`, not used but kept for
             compatibility reasons.
         :return:
-            A fired deferred which callbacks :meth:`experiment` and 
-            :meth:`OONITest.finished`. 
+            A fired deferred which callbacks :meth:`experiment` and
+            :meth:`OONITest.finished`.
         """
         self.start_time = date.now()
         self.d = self.experiment(args)
@@ -486,7 +486,6 @@ class BridgetTest(OONITest):
 ## So that getPlugins() can register the Test:
 #bridget = BridgetTest(None, None, None)
 
-
 ## ISIS' NOTES
 ## -----------
 ## TODO:
@@ -495,6 +494,6 @@ class BridgetTest(OONITest):
 ##       x  check if bridges are public relays
 ##       o  take bridge_desc file as input, also be able to give same
 ##          format as output
-##       x  Add asynchronous timeout for deferred, so that we don't wait 
+##       x  Add asynchronous timeout for deferred, so that we don't wait
 ##       o  Add assychronous timout for deferred, so that we don't wait
 ##          forever for bridges that don't work.
