@@ -1,98 +1,50 @@
-"""
-OONI logging facility.
-"""
-from sys                    import stderr, stdout
+# -*- encoding: utf-8 -*-
+#
+# :authors: Arturo Filastò
+# :licence: see LICENSE
 
-from twisted.python         import log, util
-from twisted.python.failure import Failure
+import sys
+import os
+import logging
 
-def _get_log_level(level):
-    english = ['debug', 'info', 'warn', 'err', 'crit']
+from twisted.python import log as txlog
+from twisted.python.logfile import DailyLogFile
 
-    levels = dict(zip(range(len(english)), english))
-    number = dict(zip(english, range(len(english))))
+from ooni.utils import otime
+from ooni import config
 
-    if not level:
-        return number['info']
+# XXX make this a config option
+log_file = "/tmp/ooniprobe.log"
+
+log_folder = os.path.join('/', *log_file.split('/')[:-1])
+log_filename = log_file.split('/')[-1]
+daily_logfile = DailyLogFile(log_filename, log_folder)
+
+def start():
+    txlog.msg("Starting OONI on %s (%s UTC)" %  (otime.prettyDateNow(),
+                                                 otime.utcPrettyDateNow()))
+    logging.basicConfig()
+    python_logging = txlog.PythonLoggingObserver()
+    if config.advanced.debug:
+        python_logging.logger.setLevel(logging.DEBUG)
     else:
-        ve = "Unknown log level: %s\n" % level
-        ve += "Allowed levels: %s\n" % [word for word in english]
+        python_logging.logger.setLevel(logging.INFO)
 
-        if type(level) is int:
-            if 0 <= level <= 4:
-                return level
-        elif type(level) is str:
-            if number.has_key(level.lower()):
-                return number[level]
-            else:
-                raise ValueError, ve
-        else:
-            raise ValueError, ve
+    txlog.startLoggingWithObserver(python_logging.emit)
 
-class OONITestFailure(Failure):
-    """
-    For handling Exceptions asynchronously.
+    txlog.addObserver(txlog.FileLogObserver(daily_logfile).emit)
 
-    Can be given an Exception as an argument, else will use the
-    most recent Exception from the current stack frame.
-    """
-    def __init__(self, exception=None, _type=None,
-                 _traceback=None, _capture=False):
-        Failure.__init__(self, exc_type=_type,
-                         exc_tb=_traceback, captureVars=_capture)
+def stop():
+    txlog.msg("Stopping OONI")
 
-class OONILogObserver(log.FileLogObserver):
-    """
-    Supports logging level verbosity.
-    """
-    def __init__(self, logfile, verb=None):
-        log.FileLogObserver.__init__(self, logfile)
-        self.level = _get_log_level(verb) if verb is not None else 1
-        assert type(self.level) is int
+def msg(msg, *arg, **kw):
+    txlog.msg(msg, logLevel=logging.INFO, *arg, **kw)
 
-    def emit(self, eventDict):
-        if 'logLevel' in eventDict:
-            msgLvl = _get_log_level(eventDict['logLevel'])
-            assert type(msgLvl) is int
-            ## only log our level and higher
-            if self.level <= msgLvl:
-                text = log.textFromEventDict(eventDict)
-            else:
-                text = None
-        else:
-            text = log.textFromEventDict(eventDict)
+def debug(msg, *arg, **kw):
+    txlog.msg(msg, logLevel=logging.DEBUG, *arg, **kw)
 
-        if text is None:
-            return
+def err(msg, *arg, **kw):
+    txlog.err(msg, logLevel=logging.ERROR, *arg, **kw)
 
-        timeStr = self.formatTime(eventDict['time'])
-        fmtDict = {'system': eventDict['system'],
-                   'text': text.replace('\n','\n\t')}
-        msgStr  = log._safeFormat("[%(system)s] %(text)s\n", fmtDict)
-
-        util.untilConcludes(self.write, timeStr + " " + msgStr)
-        util.untilConcludes(self.flush)
-
-def start(logfile=None, verbosity=None):
-    if log.defaultObserver:
-        verbosity = _get_log_level(verbosity)
-
-        ## Always log to file, keep level at info
-        file = open(logfile, 'a') if logfile else stderr
-        OONILogObserver(file, "info").start()
-
-        log.msg("Starting OONI...")
-
-def debug(message, level="debug", **kw):
-    print "[%s] %s" % (level, message)
-    ## If we want debug messages in the logfile:
-    #log.msg(message, logLevel=level, **kw)
-
-def msg(message, level="info", **kw):
-    log.msg(message, logLevel=level, **kw)
-
-def err(message, level="err", **kw):
-    log.err(logLevel=level, **kw)
-
-def fail(message, exception, level="crit", **kw):
-    log.failure(message, OONITestFailure(exception, **kw), logLevel=level)
+def exception(*msg):
+    logging.exception(msg)

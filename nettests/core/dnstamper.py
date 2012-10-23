@@ -27,7 +27,7 @@ class DNSTamperTest(nettest.TestCase):
     name = "DNS tamper"
 
     description = "DNS censorship detection test"
-    version = '0.2'
+    version = "0.2"
 
     lookupTimeout = [1]
 
@@ -38,8 +38,7 @@ class DNSTamperTest(nettest.TestCase):
     optParameters = [['controlresolver', 'c', '8.8.8.8',
                       'Known good DNS server'],
                      ['testresolvers', 't', None,
-                      'file containing list of DNS resolvers to test against']
-                     ]
+                      'file containing list of DNS resolvers to test against']]
 
     def setUp(self):
         self.report['test_lookups'] = {}
@@ -130,6 +129,24 @@ class DNSTamperTest(nettest.TestCase):
             self.test_a_lookups[resolver] = None
 
     def test_lookup(self):
+        """
+        We perform an A lookup on the DNS test servers for the domains to be
+        tested and an A lookup on the known good DNS server.
+
+        We then compare the results from test_resolvers and that from
+        control_resolver and see if the match up.
+        If they match up then no censorship is happening (tampering: false).
+
+        If they do not we do a reverse lookup (PTR) on the test_resolvers and
+        the control resolver for every IP address we got back and check to see
+        if anyone of them matches the control ones.
+
+        If they do then we take not of the fact that censorship is probably not
+        happening (tampering: reverse-match).
+
+        If they do not match then censorship is probably going on (tampering:
+        true).
+        """
         print "Doing the test lookups on %s" % self.input
         list_of_ds = []
         hostname = self.input

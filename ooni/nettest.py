@@ -3,7 +3,7 @@ import os
 
 from twisted.python import log, usage
 from twisted.trial import unittest, itrial
-from twisted.internet import defer
+from twisted.internet import defer, utils
 
 pyunit = __import__('unittest')
 
@@ -78,6 +78,15 @@ class TestCase(unittest.TestCase):
     report['errors'] = []
 
     optParameters = None
+
+    def _run(self, methodName, result):
+        from twisted.internet import reactor
+        method = getattr(self, methodName)
+        d = defer.maybeDeferred(
+                utils.runWithWarningsSuppressed, self._getSuppress(), method)
+        d.addBoth(lambda x : call.active() and call.cancel() or x)
+        return d
+
 
     def deferSetUp(self, ignored, result):
         """

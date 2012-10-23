@@ -238,6 +238,7 @@ class ORunner(object):
         result.done()
 
     def run(self):
+        log.start()
         self.reporterFactory.options = self.options
         for inputUnit in InputUnitFactory(self.inputs):
             self.runWithInputUnit(inputUnit)
