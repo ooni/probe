@@ -1,9 +1,9 @@
 import itertools
 import os
 
-from twisted.python import log, usage
 from twisted.trial import unittest, itrial
 from twisted.internet import defer, utils
+from ooni.utils import log
 
 pyunit = __import__('unittest')
 
@@ -79,9 +79,10 @@ class TestCase(unittest.TestCase):
 
     optParameters = None
 
-    def _run(self, methodName, result):
+    def _raaun(self, methodName, result):
         from twisted.internet import reactor
         method = getattr(self, methodName)
+        log.debug("Running %s" % methodName)
         d = defer.maybeDeferred(
                 utils.runWithWarningsSuppressed, self._getSuppress(), method)
         d.addBoth(lambda x : call.active() and call.cancel() or x)

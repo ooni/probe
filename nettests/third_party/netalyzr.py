@@ -13,15 +13,14 @@ import os
 
 class NetalyzrWrapperTest(nettest.TestCase):
     name = "NetalyzrWrapper"
-    type = "wrapper"
 
     def setUp(self):
-        cwd = os.path.join(os.path.abspath(__file__), '..')
+        cwd = os.path.abspath(os.path.join(os.path.abspath(__file__), '..'))
 
         # XXX set the output directory to something more uniform
         outputdir = os.path.join(cwd, '..', '..')
 
-        program_path = os.path.join(cwd, 'NetalyzrCLI')
+        program_path = os.path.join(cwd, 'NetalyzrCLI.jar')
         program = "java -jar %s " % program_path
 
         test_token = time.asctime(time.gmtime()).replace(" ", "_").strip()
@@ -35,8 +34,9 @@ class NetalyzrWrapperTest(nettest.TestCase):
         """
         This test simply wraps netalyzr and runs it from command line
         """
-        log.msg("running NetalyzrWrapper with command '%s'" % self.run_me)
+        log.msg("Running NetalyzrWrapper (this will take some time, be patient)")
+        log.debug("with command '%s'" % self.run_me)
         os.system(self.run_me)
         self.report['netalyzr_report'] = self.output_file
-        log.msg("finished running NetalzrWrapper")
+        log.debug("finished running NetalzrWrapper")
 

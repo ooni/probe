@@ -49,10 +49,7 @@ def isLegacyTest(obj):
     We do this for backward compatibility of the OONIProbe API.
     """
     try:
-        if issubclass(obj, oonitests.OONITest) and not obj == oonitests.OONITest:
-                return True
-        else:
-            return False
+        return issubclass(obj, oonitests.OONITest) and not obj == oonitests.OONITest
     except TypeError:
         return False
 
@@ -116,8 +113,10 @@ def findTestClassesFromConfig(config):
     module = filenameToModule(filename)
     for name, val in inspect.getmembers(module):
         if isTestCase(val):
+            log.debug("Detected TestCase %s" % val)
             classes.append(processTest(val, config))
         elif isLegacyTest(val):
+            log.debug("Detected Legacy Test %s" % val)
             classes.append(adapt_legacy_test(val, config))
     return classes
 
@@ -200,7 +199,8 @@ class ORunner(object):
             try:
                 first = options.pop(0)
             except:
-                first = {}
+                first = options
+
             if 'inputs' in first:
                 self.inputs = options['inputs']
             else:
@@ -238,7 +238,6 @@ class ORunner(object):
         result.done()
 
     def run(self):
-        log.start()
         self.reporterFactory.options = self.options
         for inputUnit in InputUnitFactory(self.inputs):
             self.runWithInputUnit(inputUnit)

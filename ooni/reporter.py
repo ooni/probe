@@ -132,7 +132,8 @@ class ReporterFactory(OReporter):
         client_geodata = {}
         log.msg("Running geo IP lookup via check.torproject.org")
 
-        client_ip = yield geodata.myIP()
+        #client_ip = yield geodata.myIP()
+        client_ip = '127.0.0.1'
         try:
             import txtorcon
             client_location = txtorcon.util.NetLocation(client_ip)
@@ -209,10 +210,8 @@ class OONIReporter(OReporter):
             test_input = test.input
 
         self._tests[idx]['input'] = test_input
-        #self._tests[idx]['idx'] = idx
         self._tests[idx]['name'] = test.name
-        #self._tests[idx]['test'] = test
-        print "Now starting %s" % self._tests[idx]
+        log.debug("Now starting %s" % self._tests[idx])
 
 
     def stopTest(self, test):
@@ -230,7 +229,7 @@ class OONIReporter(OReporter):
             #     actually end up with the report I want. This could either be a
             #     python bug or a yaml bug.
             report = dict(test.report)
-
+        log.debug("Adding to report %s" % report)
         self._tests[idx]['report'] = report
 
 
