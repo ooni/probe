@@ -36,6 +36,11 @@ class NetalyzrWrapperTest(nettest.TestCase):
         """
         log.msg("Running NetalyzrWrapper (this will take some time, be patient)")
         log.debug("with command '%s'" % self.run_me)
+        # XXX we probably want to use a processprotocol here to obtain the
+        # stdout from Netalyzr. This would allows us to visualize progress
+        # (currently there is no progress because the stdout of os.system is
+        # trapped by twisted) and to include the link to the netalyzr report
+        # directly in the OONI report, perhaps even downloading it.
         os.system(self.run_me)
         self.report['netalyzr_report'] = self.output_file
         log.debug("finished running NetalzrWrapper")
