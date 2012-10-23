@@ -16,3 +16,4 @@ oonib/oonibackend.conf
 oonib/data/*
 fluff/
 pcaps/
+report*.yaml
