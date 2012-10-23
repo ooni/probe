@@ -1,5 +1,0 @@
-edisontel 195.62.227.103
-albacom 217.220.32.47
-libero 212.141.54.178
-tin 62.211.65.19
-stop_page.csinfo.net. 212.48.170.80

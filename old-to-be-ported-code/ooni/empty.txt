@@ -1,9 +1,0 @@
-For reference these where the files that where empty:
-graph.py
-icmp.py
-keyword.py
-latency.py
-tcp.py
-traceroute.py
-udp.py
-
