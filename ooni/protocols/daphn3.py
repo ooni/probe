@@ -4,7 +4,7 @@ import yaml
 from twisted.internet import protocol, defer
 from twisted.internet.error import ConnectionDone
 
-from scapy.all import *
+from scapy.all import IP, Raw, rdpcap
 
 from ooni.utils import log
 from ooni.plugoo import reports
