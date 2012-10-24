@@ -67,7 +67,7 @@ def write_torrc(conf, data_dir=None):
     """
     Create a torrc in our data_dir. If we don't yet have a data_dir, create a
     temporary one. Any temporary files or folders are added to delete_list.
-    
+
     :param conf:
         A :class:`ooni.lib.txtorcon.TorConfig` object, with all configuration
         values saved.
@@ -82,12 +82,12 @@ def write_torrc(conf, data_dir=None):
         log.err(ie)
 
     delete_list = []
-    
+
     if data_dir is None:
         data_dir = mkdtemp(prefix='bridget-tordata')
         delete_list.append(data_dir)
     conf.DataDirectory = data_dir
-    
+
     (fd, torrc) = mkstemp(dir=data_dir)
     delete_list.append(torrc)
     write(fd, conf.create_torrc())
@@ -136,7 +136,7 @@ def remove_public_relays(state, bridges):
 
     XXX FIXME: There is a problem in that Tor needs a Bridge line to already be
     configured in order to bootstrap. However, after bootstrapping, we grab the
-    microdescriptors of all the relays and check if any of our bridges are 
+    microdescriptors of all the relays and check if any of our bridges are
     listed as public relays. Because of this, the first bridge does not get
     checked for being a relay.
     """
@@ -180,7 +180,7 @@ def state_complete(state):
     return state
 
 def updates(_progress, _tag, _summary):
-    """Log updates on the Tor bootstrapping process.""" 
+    """Log updates on the Tor bootstrapping process."""
     log.msg("%d%%: %s" % (_progress, _summary))
 
 def bootstrap(ctrl):
@@ -193,7 +193,7 @@ def bootstrap(ctrl):
     log.msg("Tor process connected, bootstrapping ...")
 
 def start_tor(reactor, config, control_port, tor_binary, data_dir,
-              report=None, progress=updates, 
+              report=None, progress=updates,
               process_cb=None, process_eb=None):
     """
     Use a txtorcon.TorConfig() instance, config, to write a torrc to a
@@ -223,11 +223,11 @@ def start_tor(reactor, config, control_port, tor_binary, data_dir,
         A non-blocking function to handle bootstrapping updates, which takes
         three parameters: _progress, _tag, and _summary.
     :param process_cb:
-        The function to callback to after 
+        The function to callback to after
         class:`ooni.lib.txtorcon.TorProcessProtocol` returns with the fully
         bootstrapped Tor process.
     :param process_eb:
-        The function to errback to if 
+        The function to errback to if
         class:`ooni.lib.txtorcon.TorProcessProtocol` fails.
     :return:
         The result of the callback of a
@@ -284,9 +284,9 @@ def start_tor(reactor, config, control_port, tor_binary, data_dir,
 def start_tor_filter_nodes(reactor, config, control_port, tor_binary,
                               data_dir, bridges):
     """
-    Bootstrap a Tor process and return a fully-setup 
+    Bootstrap a Tor process and return a fully-setup
     :class:`ooni.lib.txtorcon.TorState`. Then search for our bridges
-    to test in the list of known public relays, 
+    to test in the list of known public relays,
     :ivar:`ooni.lib.txtorcon.TorState.routers`, and remove any bridges
     which are known public relays.
 
@@ -296,7 +296,7 @@ def start_tor_filter_nodes(reactor, config, control_port, tor_binary,
         An instance of :class:`ooni.lib.txtorcon.TorConfig`.
     :param control_port:
         The port to use for Tor's ControlPort. If already configured in
-        the TorConfig instance, this can be given as 
+        the TorConfig instance, this can be given as
         TorConfig.config.ControlPort.
     :param tor_binary:
         The full path to the Tor binary to execute.
@@ -309,7 +309,7 @@ def start_tor_filter_nodes(reactor, config, control_port, tor_binary,
     :return:
         A fully initialized :class:`ooni.lib.txtorcon.TorState`.
     """
-    setup = yield start_tor(reactor, config, control_port, 
+    setup = yield start_tor(reactor, config, control_port,
                             tor_binary, data_dir,
                             process_cb=setup_done, process_eb=setup_fail)
     filter_nodes = yield remove_public_relays(setup, bridges)
@@ -333,7 +333,7 @@ def start_tor_with_timer(reactor, config, control_port, tor_binary, data_dir,
         An instance of :class:`ooni.lib.txtorcon.TorConfig`.
     :param control_port:
         The port to use for Tor's ControlPort. If already configured in
-        the TorConfig instance, this can be given as 
+        the TorConfig instance, this can be given as
         TorConfig.config.ControlPort.
     :param tor_binary:
         The full path to the Tor binary to execute.
@@ -347,7 +347,7 @@ def start_tor_with_timer(reactor, config, control_port, tor_binary, data_dir,
         The number of seconds to attempt to bootstrap the Tor process before
         raising a :class:`ooni.utils.timer.TimeoutError`.
     :return:
-        If the timeout limit is not exceeded, return a fully initialized 
+        If the timeout limit is not exceeded, return a fully initialized
         :class:`ooni.lib.txtorcon.TorState`, else return None.
     """
     error_msg = "Bootstrapping has exceeded the timeout limit..."
@@ -365,9 +365,9 @@ def start_tor_with_timer(reactor, config, control_port, tor_binary, data_dir,
     else:
         state = yield remove_public_relays(setup, bridges)
         defer.returnValue(state)
-    
+
 @defer.inlineCallbacks
-def start_tor_filter_nodes_with_timer(reactor, config, control_port, 
+def start_tor_filter_nodes_with_timer(reactor, config, control_port,
                                       tor_binary, data_dir, bridges, timeout):
     """
     Start bootstrapping a Tor process wrapped with an instance of the class
@@ -386,7 +386,7 @@ def start_tor_filter_nodes_with_timer(reactor, config, control_port,
         An instance of :class:`ooni.lib.txtorcon.TorConfig`.
     :param control_port:
         The port to use for Tor's ControlPort. If already configured in
-        the TorConfig instance, this can be given as 
+        the TorConfig instance, this can be given as
         TorConfig.config.ControlPort.
     :param tor_binary:
         The full path to the Tor binary to execute.
@@ -400,13 +400,13 @@ def start_tor_filter_nodes_with_timer(reactor, config, control_port,
         The number of seconds to attempt to bootstrap the Tor process before
         raising a :class:`ooni.utils.timer.TimeoutError`.
     :return:
-        If the timeout limit is not exceeded, return a fully initialized 
+        If the timeout limit is not exceeded, return a fully initialized
         :class:`ooni.lib.txtorcon.TorState`, else return None.
     """
     error_msg = "Bootstrapping has exceeded the timeout limit..."
     with_timeout = deferred_timeout(timeout, e=error_msg)(start_tor_filter_nodes)
     try:
-        state = yield with_timeout(reactor, config, control_port, 
+        state = yield with_timeout(reactor, config, control_port,
                                    tor_binary, data_dir, bridges)
     except TimeoutError, te:
         log.err(te)
@@ -416,16 +416,16 @@ def start_tor_filter_nodes_with_timer(reactor, config, control_port,
     #    defer.returnValue(None)
     else:
         defer.returnValue(state)
-    
+
 class CustomCircuit(CircuitListenerMixin):
     """
-    Utility class for controlling circuit building. See 
+    Utility class for controlling circuit building. See
     'attach_streams_by_country.py' in the txtorcon documentation.
 
     :param state:
         A fully bootstrapped instance of :class:`ooni.lib.txtorcon.TorState`.
     :param relays:
-        A dictionary containing a key 'all', which is a list of relays to 
+        A dictionary containing a key 'all', which is a list of relays to
         test connecting to.
     :ivar waiting_circuits:
         The list of circuits which we are waiting to attach to. You shouldn't
@@ -498,10 +498,10 @@ class CustomCircuit(CircuitListenerMixin):
 
     def check_circuit_route(self, router):
         """
-        Check if a relay is a hop in one of our already built circuits. 
+        Check if a relay is a hop in one of our already built circuits.
 
         :param router:
-            An item from the list 
+            An item from the list
             :func:`ooni.lib.txtorcon.TorState.routers.values()`.
         """
         for circ in self.state.circuits.values():
@@ -551,7 +551,7 @@ class CustomCircuit(CircuitListenerMixin):
             assert len(path) >= 3, \
                 "Circuit path must be at least three hops!"
 
-        log.msg("Requesting a circuit: %s" 
+        log.msg("Requesting a circuit: %s"
                 % '->'.join(map(lambda node: node, path)))
 
         class AppendWaiting:
@@ -575,7 +575,7 @@ class CustomCircuit(CircuitListenerMixin):
 class TxtorconImportError(ImportError):
     """
     Raised when ooni.lib.txtorcon cannot be imported from. Checks our current
-    working directory and the path given to see if txtorcon has been 
+    working directory and the path given to see if txtorcon has been
     initialized via /ooni/lib/Makefile.
     """
     from os import getcwd, path
@@ -609,25 +609,25 @@ class PTNotFoundException(Exception):
         return sys.exit()
 
 @defer.inlineCallbacks
-def __start_tor_with_timer__(reactor, config, control_port, tor_binary, 
+def __start_tor_with_timer__(reactor, config, control_port, tor_binary,
                              data_dir, bridges=None, relays=None, timeout=None,
                              retry=None):
     """
     A wrapper for :func:`start_tor` which wraps the bootstrapping of a Tor
-    process and its connection to a reactor with a 
-    :class:`twisted.internet.defer.Deferred` class decorator utility, 
+    process and its connection to a reactor with a
+    :class:`twisted.internet.defer.Deferred` class decorator utility,
     :func:`ooni.utils.timer.deferred_timeout`, and a mechanism for resets.
-    
+
     ## XXX fill me in
     """
     raise NotImplementedError
-    
+
     class RetryException(Exception):
-        pass    
+        pass
 
     import sys
     from ooni.utils.timer import deferred_timeout, TimeoutError
-    
+
     def __make_var__(old, default, _type):
         if old is not None:
             assert isinstance(old, _type)
@@ -635,15 +635,15 @@ def __start_tor_with_timer__(reactor, config, control_port, tor_binary,
         else:
             new = default
         return new
-    
+
     reactor = reactor
     timeout = __make_var__(timeout, 120, int)
     retry   = __make_var__(retry, 1, int)
 
     with_timeout = deferred_timeout(timeout)(start_tor)
-    
+
     @defer.inlineCallbacks
-    def __start_tor__(rc=reactor, cf=config, cp=control_port, tb=tor_binary, 
+    def __start_tor__(rc=reactor, cf=config, cp=control_port, tb=tor_binary,
                       dd=data_dir, br=bridges, rl=relays, cb=setup_done,
                       eb=setup_fail, af=remove_public_relays, retry=retry):
         try:
@@ -658,13 +658,13 @@ def __start_tor_with_timer__(reactor, config, control_port, tor_binary,
                 setup = yield eb(setup)
             else:
                 setup = setup
-    
+
             if br is not None:
                 state = af(setup,br)
             else:
                 state = setup
             defer.returnValue(state)
-    
+
     @defer.inlineCallbacks
     def __try_until__(tries):
         result = yield __start_tor__()

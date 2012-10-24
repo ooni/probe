@@ -1,7 +1,7 @@
 import ConfigParser
 import os
 
-from ooni.utils import Storage
+from ooni.utils import Storage, log
 
 class Config(Storage):
     """
@@ -110,12 +110,12 @@ class ValueChecker(object):
     def dir_check(d):
         """Check that the given directory exists."""
         if not os.path.isdir(d):
-            raise ValueError("%s doesn't exist, or has wrong permissions" 
+            raise ValueError("%s doesn't exist, or has wrong permissions"
                              % d)
 
     @staticmethod
     def file_check(f):
         """Check that the given file exists."""
         if not os.path.isfile(f):
-            raise ValueError("%s does not exist, or has wrong permissions" 
+            raise ValueError("%s does not exist, or has wrong permissions"
                              % f)
