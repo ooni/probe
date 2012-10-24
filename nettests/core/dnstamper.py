@@ -69,7 +69,7 @@ class DNSTamperTest(nettest.TestCase):
         fp.close()
 
     def process_a_answers(self, answers, resolver):
-        print "Processing A answers for %s" % resolver
+        log.msg("Processing A answers for %s" % resolver)
         all_a = []
         a_a = []
         for answer in answers[0]:
@@ -88,10 +88,10 @@ class DNSTamperTest(nettest.TestCase):
         else:
             self.test_a_lookups[resolver] = a_a
             self.report['test_lookups'][resolver] = all_a
-        print "Done"
+        log.msg("Done")
 
     def process_ptr_answers(self, answers, resolver):
-        print "Processing PTR answers for %s" % resolver
+        log.msg("Processing PTR answers for %s" % resolver)
         name = None
         for answer in answers[0]:
             if answer.type is 12:
@@ -107,15 +107,15 @@ class DNSTamperTest(nettest.TestCase):
 
     def ptr_lookup_error(self, failure, resolver):
     #def ptr_lookup_error(self, *arg, **kw):
-        print "There was an error in PTR lookup %s" % resolver
-        print failure
+        log.msg("There was an error in PTR lookup %s" % resolver)
+        log.msg(failure)
         if resolver == 'control':
             self.report['control_reverse'] = None
         else:
             self.report['test_reverse'][resolver] = None
 
     def a_lookup_error(self, failure, resolver):
-        print "There was an error in A lookup %s" % resolver
+        log.msg("There was an error in A lookup %s" % resolver)
 
         if failure.type is DNSQueryRefusedError:
             self.report['tampering'][resolver] = 'connection-refused'
@@ -147,7 +147,7 @@ class DNSTamperTest(nettest.TestCase):
         If they do not match then censorship is probably going on (tampering:
         true).
         """
-        print "Doing the test lookups on %s" % self.input
+        log.msg("Doing the test lookups on %s" % self.input)
         list_of_ds = []
         hostname = self.input
 
@@ -159,7 +159,7 @@ class DNSTamperTest(nettest.TestCase):
         control_r.addErrback(self.a_lookup_error, 'control')
 
         for test_resolver in self.test_resolvers:
-            print "Going for %s" % test_resolver
+            log.msg("Going for %s" % test_resolver)
             resolver = [(test_resolver, 53)]
             res = client.createResolver(servers=resolver, resolvconf='')
             #res = self.createResolver(servers=resolver)
@@ -181,7 +181,7 @@ class DNSTamperTest(nettest.TestCase):
         return r
 
     def do_reverse_lookups(self, result):
-        print "Doing the reverse lookups %s" % self.input
+        log.msg("Doing the reverse lookups %s" % self.input)
         list_of_ds = []
 
         resolver = [(self.localOptions['controlresolver'], 53)]
@@ -209,11 +209,11 @@ class DNSTamperTest(nettest.TestCase):
         return dl
 
     def compare_results(self, *arg, **kw):
-        print "Comparing results for %s" % self.input
-        print self.test_a_lookups
+        log.msg("Comparing results for %s" % self.input)
+        log.msg(self.test_a_lookups)
 
         for test, test_a_lookups in self.test_a_lookups.items():
-            print "Now doing %s | %s" % (test, test_a_lookups)
+            log.msg("Now doing %s | %s" % (test, test_a_lookups))
             if not test_a_lookups:
                 self.report['tampering'][test] = 'unknown'
                 continue
@@ -234,5 +234,8 @@ class DNSTamperTest(nettest.TestCase):
         if len(self.test_a_lookups) == len(self.test_resolvers):
             self.end()
         else:
-            print "Still missing %s - %s" % (len(self.test_a_lookups),
-                    len(self.test_resolvers))
+            missing_tests = len(self.test_a_lookups)
+            missing_resolvers = len(self.test_resolvers)
+            log.msg("Still missing %s resolvers and %s tests" %
+                    (missing_tests, missing_resolvers))
+
