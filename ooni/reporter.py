@@ -1,4 +1,3 @@
-import copy_reg
 import itertools
 import logging
 import sys
@@ -12,8 +11,8 @@ from yaml.serializer import *
 from yaml.resolver import *
 
 from datetime import datetime
-from twisted.python.util import OrderedDict, untilConcludes
-from twisted.trial import unittest, reporter, runner
+from twisted.python.util import untilConcludes
+from twisted.trial import reporter
 from twisted.internet import defer
 from ooni.utils import date, log, geodata
 
@@ -30,6 +29,11 @@ except:
 pyunit =  __import__('unittest')
 
 class OSafeRepresenter(SafeRepresenter):
+    """
+    This is a custom YAML representer that allows us to represent reports
+    safely.
+    It extends the SafeRepresenter to be able to also represent complex numbers
+    """
     def represent_complex(self, data):
         if data.imag == 0.0:
             data = u'%r' % data.real
@@ -45,7 +49,10 @@ OSafeRepresenter.add_representer(complex,
                                  OSafeRepresenter.represent_complex)
 
 class OSafeDumper(Emitter, Serializer, OSafeRepresenter, Resolver):
-
+    """
+    This is a modification of the YAML Safe Dumper to use our own Safe
+    Representer that supports complex numbers.
+    """
     def __init__(self, stream,
             default_style=None, default_flow_style=None,
             canonical=None, indent=None, width=None,
@@ -64,6 +71,9 @@ class OSafeDumper(Emitter, Serializer, OSafeRepresenter, Resolver):
 
 
 def safe_dump(data, stream=None, **kw):
+    """
+    Safely dump to a yaml file the specified data.
+    """
     return yaml.dump_all([data], stream, Dumper=OSafeDumper, **kw)
 
 class OReporter(pyunit.TestResult):
@@ -88,8 +98,8 @@ class OReporter(pyunit.TestResult):
     def _getTime(self):
         return time.time()
 
-    def _write(self, format, *args):
-        s = str(format)
+    def _write(self, format_string, *args):
+        s = str(format_string)
         assert isinstance(s, type(''))
         if args:
             self._stream.write(s % args)
@@ -97,8 +107,8 @@ class OReporter(pyunit.TestResult):
             self._stream.write(s)
         untilConcludes(self._stream.flush)
 
-    def _writeln(self, format, *args):
-        self._write(format, *args)
+    def _writeln(self, format_string, *args):
+        self._write(format_string, *args)
         self._write('\n')
 
     def writeYamlLine(self, line):

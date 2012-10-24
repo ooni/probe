@@ -13,28 +13,23 @@
 #    original copyright (c) by Twisted Matrix Laboratories.
 
 
-import sys, os, random, gc, time, warnings
+import sys
+import os
+import random
+import time
 
-import unittest
-import inspect
+from twisted.internet import defer
+from twisted.application import app
+from twisted.python import usage, failure
+from twisted.python.util import spewer
+
+from ooni import nettest, runner, reporter
 
 from ooni.inputunit import InputUnitFactory
 from ooni.reporter import ReporterFactory
 from ooni.nettest import InputTestSuite
-from ooni.plugoo import tests
-from ooni import nettest, runner, reporter
-
-from twisted.internet import defer
-from twisted.application import app
-from twisted.python import usage, reflect, failure
-from twisted.python.filepath import FilePath
-from twisted import plugin
-from twisted.python.util import spewer
-from twisted.python.compat import set
-from twisted.trial import itrial
-from twisted.trial import runner as irunner
-
 from ooni.utils import log
+
 
 class Options(usage.Options, app.ReactorSelectionMixin):
     synopsis = """%s [options] [[file|package|module|TestCase|testmethod]...]
