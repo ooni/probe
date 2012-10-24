@@ -191,9 +191,6 @@ class OONIReporter(OReporter):
                     tbformat=tbformat, realtime=realtime, publisher=publisher)
 
         self._tests = {}
-        self._publisher = publisher
-        if publisher is not None:
-            publisher.addObserver(self._observeWarnings)
 
     def getTestIndex(self, test):
         try:
@@ -261,8 +258,6 @@ class OONIReporter(OReporter):
         and L{_separator} are all implemented.
         """
         log.debug("Test run concluded")
-        if self._publisher is not None:
-            self._publisher.removeObserver(self._observeWarnings)
         if self._startTime is not None:
             self.report['startTime'] = self._startTime
             self.report['runTime'] = time.time() - self._startTime
@@ -274,11 +269,11 @@ class OONIReporter(OReporter):
         self.writeYamlLine(self.report)
 
     def addSuccess(self, test):
-        super(OONIReporter, self).addSuccess(test)
+        OONIReporter.addSuccess(self, test)
         #self.report['result'] = {'value': 'success'}
 
     def addError(self, test, exception):
-        super(OONIReporter, self).addError(test, exception)
+        OONIReporter.addError(self, test, exception)
         exc_type, exc_value, exc_traceback = exception
         log.err(exc_type)
         log.err(str(exc_value))
@@ -287,19 +282,19 @@ class OONIReporter(OReporter):
             log.err(line)
 
     def addFailure(self, *args):
-        super(OONIReporter, self).addFailure(*args)
+        OONIReporter.addFailure(self, *args)
         log.warn(args)
 
     def addSkip(self, *args):
-        super(OONIReporter, self).addSkip(*args)
+        OONIReporter.addSkip(self, *args)
         #self.report['result'] = {'value': 'skip', 'args': args}
 
     def addExpectedFailure(self, *args):
-        super(OONIReporter, self).addExpectedFailure(*args)
+        OONIReporter.addExpectedFailure(self, *args)
         #self.report['result'] = {'value': 'expectedFailure', 'args': args}
 
     def addUnexpectedSuccess(self, *args):
-        super(OONIReporter, self).addUnexpectedSuccess(*args)
+        OONIReporter.addUnexpectedSuccess(self, *args)
         #self.report['result'] = {'args': args, 'value': 'unexpectedSuccess'}
 
 
