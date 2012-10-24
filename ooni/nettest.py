@@ -1,8 +1,17 @@
-import itertools
+# -*- encoding: utf-8 -*-
+#
+# :authors: Arturo "hellais" Filastò <art@fuffa.org>
+# :licence: see LICENSE
+
+import sys
 import os
+import itertools
+import traceback
 
 from twisted.trial import unittest, itrial, util
 from twisted.internet import defer, utils
+from twisted.python import usage
+
 from ooni.utils import log
 
 pyunit = __import__('unittest')
@@ -12,6 +21,10 @@ class InputTestSuite(pyunit.TestSuite):
     This in an extension of a unittest test suite. It adds support for inputs
     and the tracking of current index via idx.
     """
+
+    # This is used to keep track of the tests that are associated with our
+    # special test suite
+    _tests = None
     def run(self, result, idx=0):
         log.debug("Running test suite")
         self._idx = idx
@@ -29,25 +42,16 @@ class InputTestSuite(pyunit.TestSuite):
                 test.input = self.input
                 test._idx = self._idx
             except Exception, e:
-                log.debug("Error in some stuff")
+                log.debug("Error in setting test attributes")
+                log.debug("This is probably because the test case you are "\
+                          "running is not a nettest")
                 log.debug(e)
-                import sys
-                print sys.exc_info()
 
-            try:
-                log.debug("Running test")
-                test(result)
-                log.debug("Ran.")
-            except Exception, e:
-                log.debug("Attribute error thing")
-                log.debug("Had some problems with _idx")
-                log.debug(e)
-                import traceback, sys
-                print sys.exc_info()
-                traceback.print_exc()
-                print e
-
-                test(result)
+            log.debug("Running test")
+            # XXX we may want in a future to put all of these tests inside of a
+            # thread pool and run them all in parallel
+            test(result)
+            log.debug("Ran.")
 
             self._idx += 1
         return result
@@ -94,7 +98,7 @@ class TestCase(unittest.TestCase):
     * version: is the version string of the test.
     """
     name = "I Did Not Change The Name"
-    author = "John Doe <foo@example.com>"
+    author = "Jane Doe <foo@example.com>"
     version = "0"
 
     inputs = [None]
@@ -104,16 +108,6 @@ class TestCase(unittest.TestCase):
     report['errors'] = []
 
     optParameters = None
-
-    def _raaun(self, methodName, result):
-        from twisted.internet import reactor
-        method = getattr(self, methodName)
-        log.debug("Running %s" % methodName)
-        d = defer.maybeDeferred(
-                utils.runWithWarningsSuppressed, self._getSuppress(), method)
-        d.addBoth(lambda x : call.active() and call.cancel() or x)
-        return d
-
 
     def deferSetUp(self, ignored, result):
         """

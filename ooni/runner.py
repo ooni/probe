@@ -123,7 +123,6 @@ def loadTestsAndOptions(classes, config):
     method_prefix = 'test'
     options = []
     test_cases = []
-    names = []
 
     _old_klass_type = LegacyOONITest
 
