@@ -9,7 +9,7 @@ from twisted.python import usage
 from twisted.plugin import IPlugin
 from twisted.internet import protocol, defer
 
-from scapy.all import *
+from scapy.all import IP, TCP
 
 from ooni.nettest import TestCase
 from ooni.utils import log
