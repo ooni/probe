@@ -1,10 +1,17 @@
-# -*- coding: utf-8 -*-
+# -*- encoding: utf-8 -*-
+#
+# :authors: Arturo "hellais" Filastò <art@fuffa.org>
+# :licence: see LICENSE
 
-import itertools
+import sys
 import os
+import itertools
+import traceback
 
 from twisted.trial import unittest, itrial, util
 from twisted.internet import defer, utils
+from twisted.python import usage
+
 from ooni.utils import log
 
 pyunit = __import__('unittest')
@@ -14,6 +21,10 @@ class InputTestSuite(pyunit.TestSuite):
     This in an extension of a unittest test suite. It adds support for inputs
     and the tracking of current index via idx.
     """
+
+    # This is used to keep track of the tests that are associated with our
+    # special test suite
+    _tests = None
     def run(self, result, idx=0):
         log.debug("Running test suite")
         self._idx = idx
@@ -31,25 +42,16 @@ class InputTestSuite(pyunit.TestSuite):
                 test.input = self.input
                 test._idx = self._idx
             except Exception, e:
-                log.debug("Error in some stuff")
+                log.debug("Error in setting test attributes")
+                log.debug("This is probably because the test case you are "\
+                          "running is not a nettest")
                 log.debug(e)
-                import sys
-                print sys.exc_info()
 
-            try:
-                log.debug("Running test")
-                test(result)
-                log.debug("Ran.")
-            except Exception, e:
-                log.debug("Attribute error thing")
-                log.debug("Had some problems with _idx")
-                log.debug(e)
-                import traceback, sys
-                print sys.exc_info()
-                traceback.print_exc()
-                print e
-
-                test(result)
+            log.debug("Running test")
+            # XXX we may want in a future to put all of these tests inside of a
+            # thread pool and run them all in parallel
+            test(result)
+            log.debug("Ran.")
 
             self._idx += 1
         return result
@@ -95,9 +97,9 @@ class TestCase(unittest.TestCase):
 
     * version: is the version string of the test.
     """
-    name    = "I Did Not Change The Name"
-    author  = "John Doe <foo@example.com>"
-    version = "0.0.0"
+    name = "I Did Not Change The Name"
+    author = "Jane Doe <foo@example.com>"
+    version = "0"
 
     inputFile = None
     inputs    = [None]
@@ -108,29 +110,6 @@ class TestCase(unittest.TestCase):
     optParameters = None
     optFlags      = None
     subCommands   = None
-
-    def setUpClass(self, *args, **kwargs):
-        """
-        Create a TestCase instance. This function is equivalent to '__init__'.
-        To add futher setup steps before a set of tests in a TestCase instance
-        run, create a function called 'setUp'.
-
-        Class attributes, such as `report`, `optParameters`, `name`, and
-        `author` should be overriden statically as class attributes in any
-        subclass of :class:`ooni.nettest.TestCase`, so that the calling
-        functions in ooni.runner can handle them correctly.
-        """
-        methodName = 'runTest'
-        if kwargs:
-            if 'methodName' in kwargs:
-                methodName = kwargs['methodName']
-
-        super(TestCase, self).__init__(methodName=methodName)
-
-        #for key, value in kwargs.items():
-        #    setattr(self.__class__, key, value)
-        #
-        #self.inputs = self.getInputs()
 
     def deferSetUp(self, ignored, result):
         """
