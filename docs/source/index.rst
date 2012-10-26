@@ -47,5 +47,6 @@ Contents
     tutorial
     writing_tests
     api/*
+    glossary
 
 
