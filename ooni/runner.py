@@ -9,7 +9,7 @@
 # :copyright: (c) 2012 Isis Lovecruft, Arturo Filasto, The Tor Project, Inc.
 # :version: 0.1.0-pre-alpha
 #
-
+import os
 import inspect
 
 from twisted.python import reflect, usage
@@ -50,6 +50,9 @@ def processTest(obj, config):
     """
 
     input_file = obj.inputFile
+    if obj.requiresRoot:
+        if os.getuid() != 0:
+            raise Exception("This test requires root to run")
 
     if obj.optParameters or input_file:
         if not obj.optParameters:

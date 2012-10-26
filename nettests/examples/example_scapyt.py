@@ -5,6 +5,7 @@
 
 from ooni.templates import scapyt
 from scapy.all import *
+
 class ExampleScapy(scapyt.ScapyTest):
     name = "Example Scapy Test"
     author = "Arturo Filastò"
@@ -13,6 +14,7 @@ class ExampleScapy(scapyt.ScapyTest):
     inputs = [IP(dst="8.8.8.8")/TCP(dport=31337),
               IP(dst="ooni.nu")/TCP(dport=31337)]
 
+    requiresRoot = True
 
     def test_sendReceive(self):
         log.msg("Running send receive")

@@ -96,6 +96,8 @@ class TestCase(unittest.TestCase):
           ``The Name <email@example.com>``
 
     * version: is the version string of the test.
+
+    * requiresRoot: set to True if the test must be run as root.
     """
     name = "I Did Not Change The Name"
     author = "Jane Doe <foo@example.com>"
@@ -108,8 +110,7 @@ class TestCase(unittest.TestCase):
     report['errors'] = []
 
     optParameters = None
-    optFlags      = None
-    subCommands   = None
+    requiresRoot = False
 
     def deferSetUp(self, ignored, result):
         """

@@ -1,5 +1,4 @@
 from . import config
-from . import input
 from . import inputunit
 from . import kit
 from . import lib
@@ -14,10 +13,9 @@ from . import utils
 from . import ooniprobe
 from . import plugoo
 from . import plugins
-from . import oonitests
 
-__all__ = ['config', 'input', 'inputunit', 'kit',
+__all__ = ['config', 'inputunit', 'kit',
            'lib', 'nettest', 'oonicli', 'reporter',
            'runner', 'templates', 'utils',
            # XXX below are legacy related modules
-           'ooniprobe', 'plugoo', 'plugins', 'oonitests']
+           'ooniprobe', 'plugoo', 'plugins']
