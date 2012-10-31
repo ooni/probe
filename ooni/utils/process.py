@@ -39,9 +39,9 @@ def singleton_semaphore(deferred_process_init,
         callback chain has completed. This should be a fully initialized
         process connected to a :class:`twisted.internet.reactor`.
     """
-    assert type(callbacks) is list
-    assert type(errbacks) is list
-    assert type(max_inits) is int
+    assert isinstance(callbacks, list)
+    assert isinstance(errbacks, list)
+    assert isinstance(max_inits, int)
 
     for cb in callbacks:
         deferred_process_init.addCallback(cb)
@@ -52,3 +52,22 @@ def singleton_semaphore(deferred_process_init,
     singleton = yield only_this_many.run(deferred_process_init)
     defer.returnValue(singleton)
 
+class Singleton(object):
+    """
+    Generic Class for creating Singleton subclasses.
+
+    Subclass me to create a singleton class, which will only ever have one
+    instance, regardless of how many times the subclass constructor is called.
+
+    Any subclass of me should override ``init`` rather than ``__init__``,
+    because the latter is called whenever the constructor is called.
+    """
+    def __new__(cls, *args, **kwds):
+        it = cls.__dict__.get("__it__")
+        if it is not None:
+            return it
+        cls.__it__ = it = object.__new__(cls)
+        it.init(*args, **kwds)
+        return it
+    def init(self, *args, **kwds):
+        pass
