@@ -44,13 +44,12 @@ class ScapyTest(TestCase):
     def tearDown(self):
         self.reactor.stop()
 
-    def sendReceivePackets(self, packets):
-        d = txsr(packets, pcapfile=self.pcapfile,
-                     timeout=10, reactor=self.reactor)
-
+    def sendReceivePackets(self, *kw):
+        d = txsr(packets=self.request, pcapfile=self.pcapfile,
+                 timeout=self.timeout, reactor=self.reactor)
         return d
 
-    def sendPackets(self, packets):
+    def sendPackets(self):
         return txsend(self.buildPackets(), reactor=self.reactor)
 
     def buildPackets(self):
