@@ -18,6 +18,8 @@ import time
 import inspect
 import yaml
 
+from pprint import pprint
+
 from twisted.internet import defer, reactor
 from twisted.python   import reflect, failure, usage
 from twisted.python   import log as tlog
@@ -53,45 +55,6 @@ def isLegacyTest(obj):
     except TypeError:
         return False
 
-def processTest(obj, config):
-    """
-    Process the parameters and :class:`twisted.python.usage.Options` of a
-    :class:`ooni.nettest.Nettest`.
-
-    :param obj:
-        An uninstantiated old test, which should be a subclass of
-        :class:`ooni.plugoo.tests.OONITest`.
-    :param config:
-        A configured and instantiated :class:`twisted.python.usage.Options`
-        class.
-    """
-
-    inputFile = obj.inputFile
-
-    if obj.optParameters or inputFile:
-        if not obj.optParameters:
-            obj.optParameters = []
-
-        if inputFile:
-            obj.optParameters.append(inputFile)
-
-        class Options(usage.Options):
-            optParameters = obj.optParameters
-
-        options = Options()
-        options.parseOptions(config['subArgs'])
-        obj.localOptions = options
-
-        if inputFile:
-            obj.inputFile = options[inputFile[0]]
-        try:
-            tmp_obj = obj()
-            tmp_obj.getOptions()
-        except usage.UsageError:
-            options.opt_help()
-
-    return obj
-
 def findTestClassesFromConfig(config):
     """
     Takes as input the command line config parameters and returns the test
@@ -106,7 +69,6 @@ def findTestClassesFromConfig(config):
         A list of class objects found in a file or module given on the
         commandline.
     """
-
     filename = config['test']
     classes = []
 
@@ -114,7 +76,7 @@ def findTestClassesFromConfig(config):
     for name, val in inspect.getmembers(module):
         if isTestCase(val):
             log.debug("Detected TestCase %s" % val)
-            classes.append(processTest(val, config))
+            classes.append(val)
         elif isLegacyTest(val):
             log.debug("Detected Legacy Test %s" % val)
             classes.append(adapt_legacy_test(val, config))
@@ -125,57 +87,111 @@ def makeTestCases(klass, tests, methodPrefix):
     Takes a class some tests and returns the test cases. methodPrefix is how
     the test case functions should be prefixed with.
     """
-
     cases = []
     for test in tests:
         cases.append(klass(methodPrefix+test))
     return cases
+
+def processTestOptions(cls, config):
+    """
+    Process the parameters and :class:`twisted.python.usage.Options` of a
+    :class:`ooni.nettest.Nettest`.
+
+    :param cls:
+        An subclass of :class:`ooni.nettest.TestCase`.
+    :param config:
+        A configured and instantiated :class:`twisted.python.usage.Options`
+        class.
+    """
+    if cls.optParameters or cls.inputFile:
+        if not cls.optParameters:
+            cls.optParameters = []
+
+        if cls.inputFile:
+            cls.optParameters.append(cls.inputFile)
+
+        class Options(usage.Options):
+            optParameters = cls.optParameters
+
+        opts = Options()
+        opts.parseOptions(config['subArgs'])
+        cls.localOptions = opts
+
+        if cls.inputFile:
+            cls.inputFile = opts[cls.inputFile[0]]
+
+        """
+        try:
+            log.debug("%s: trying %s.localoptions.getOptions()..."
+                      % (__name__, cls.name))
+            try:
+                assert hasattr(cls, 'getOptions')
+            except AssertionError, ae:
+                options = opts.opt_help()
+                raise Exception, "Cannot find %s.getOptions()" % cls.name
+            else:
+                options = cls.getOptions()
+        except usage.UsageError:
+            options = opts.opt_help()
+        else:
+            return cls, options
+        """
+
+        return cls, cls.localOptions
 
 def loadTestsAndOptions(classes, config):
     """
     Takes a list of test classes and returns their testcases and options.
     Legacy tests will be adapted.
     """
-
     methodPrefix = 'test'
     suiteFactory = InputTestSuite
     options = []
     testCases = []
     names = []
 
-    _old_klass_type = LegacyOONITest
+    _old_class_type = LegacyOONITest
 
-    for klass in classes:
-        if isinstance(klass, _old_klass_type):
+    for cls in classes:
+        if isinstance(cls, _old_class_type):
             try:
-                cases = start_legacy_test(klass)
-                #cases.callback()
-                if cases:
-                    print cases
-                    return [], []
+                cases = start_legacy_test(cls)
                 testCases.append(cases)
             except Exception, e:
                 log.err(e)
             else:
                 try:
-                    opts = klass.local_options
+                    opts = cls.local_options
                     options.append(opts)
                 except AttributeError, ae:
                     options.append([])
                     log.err(ae)
+            if cases:
+                print cases
+                return [], []
         else:
-            tests = reflect.prefixedMethodNames(klass, methodPrefix)
+            tests = reflect.prefixedMethodNames(cls, methodPrefix)
             if tests:
-                cases = makeTestCases(klass, tests, methodPrefix)
+                cases = makeTestCases(cls, tests, methodPrefix)
                 testCases.append(cases)
             try:
-                k = klass()
-                opts = k.getOptions()
-                options.append(opts)
+                #c = cls()
+                #cls, opts = processTestOptions(cls, config)
+                opts = processTestOptions(cls, config)
             except AttributeError, ae:
                 options.append([])
                 log.err(ae)
+            else:
+                try:
+                    instance = cls()
+                    inputs = instance.__get_inputs__()
+                except Exception, e:
+                    log.err(e)
+                else:
+                    opts.update(inputs)
+                options.append(opts)
 
+    log.debug("runner.loadTestsAndOptions: OPTIONS: %s" % options)
     return testCases, options
 
 class ORunner(object):
@@ -205,7 +221,6 @@ class ORunner(object):
                 self.inputs = options['inputs']
             else:
                 log.msg("Could not find inputs!")
-                log.msg("options[0] = %s" % first)
                 self.inputs = [None]
 
         try:
@@ -213,8 +228,9 @@ class ORunner(object):
         except:
             filename = 'report_'+date.timestamp()+'.yaml'
             reportFile = open(filename, 'a+')
-        self.reporterFactory = ReporterFactory(reportFile,
-                                               testSuite=self.baseSuite(self.cases))
+        self.reporterFactory = ReporterFactory(
+            reportFile, testSuite=self.baseSuite(self.cases)
+            )
 
     def runWithInputUnit(self, inputUnit):
         idx = 0
