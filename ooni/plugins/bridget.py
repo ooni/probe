@@ -26,12 +26,16 @@ from zope.interface       import implements
 
 from ooni.utils           import log, date
 from ooni.utils.config    import ValueChecker
-from ooni.utils.onion     import parse_data_dir
-from ooni.utils.onion     import TxtorconImportError
-from ooni.utils.onion     import PTNoBridgesException, PTNotFoundException
+
 from ooni.plugoo.tests    import ITest, OONITest
 from ooni.plugoo.assets   import Asset, MissingAssetException
+from ooni.utils.onion     import TxtorconImportError
+from ooni.utils.onion     import PTNoBridgesException, PTNotFoundException
 
+try:
+    from ooni.utils.onion     import parse_data_dir
+except:
+    log.msg("Please go to /ooni/lib and do 'make txtorcon' to run this test!")
 
 class RandomPortException(Exception):
     """Raised when using a random port conflicts with configured ports."""
