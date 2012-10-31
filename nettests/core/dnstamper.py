@@ -236,4 +236,3 @@ class DNSTamperTest(nettest.TestCase):
         else:
             print "Still missing %s - %s" % (len(self.test_a_lookups),
                     len(self.test_resolvers))
-
