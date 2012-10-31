@@ -3,6 +3,7 @@ import logging
 import sys
 import time
 import yaml
+import json
 import traceback
 
 from yaml.representer import *
@@ -14,6 +15,8 @@ from datetime import datetime
 from twisted.python.util import untilConcludes
 from twisted.trial import reporter
 from twisted.internet import defer
+
+from ooni.templates.httpt import BodyReceiver, StringProducer
 from ooni.utils import date, log, geodata
 
 try:
@@ -75,6 +78,47 @@ def safe_dump(data, stream=None, **kw):
     Safely dump to a yaml file the specified data.
     """
     return yaml.dump_all([data], stream, Dumper=OSafeDumper, **kw)
+
+class OONIBReporter(object):
+    def __init__(self, backend_url):
+        from twisted.web.client import Agent
+        from twisted.internet import reactor
+
+        self.agent = Agent(reactor)
+        self.backend_url = backend_url
+
+    def _newReportCreated(self, data):
+        #log.debug("Got this as result: %s" % data)
+        print "Got this as result: %s" % data
+
+        return data
+
+    def _processResponseBody(self, response, body_cb):
+        #log.debug("Got response %s" % response)
+        print "Got response %s" % response
+
+        done = defer.Deferred()
+        response.deliverBody(BodyReceiver(done))
+        done.addCallback(body_cb)
+        return done
+
+    def newReport(self, test_name, test_version):
+        url = self.backend_url + '/new'
+        print "Creating report via url %s" % url
+
+        software_version = '0.0.1'
+
+        request = {'software_name': 'ooni-probe',
+                'software_version': software_version,
+                'test_name': test_name, 'test_version': test_version,
+                'progress': 0}
+
+        #log.debug("Creating report via url %s" % url)
+        bodyProducer = StringProducer(json.dumps(request))
+        d = self.agent.request("POST", url, bodyProducer=bodyProducer)
+        d.addCallback(self._processResponseBody, self._newReportCreated)
+        return d
+
 
 class OReporter(pyunit.TestResult):
     """
@@ -269,11 +313,11 @@ class OONIReporter(OReporter):
         self.writeYamlLine(self.report)
 
     def addSuccess(self, test):
-        OONIReporter.addSuccess(self, test)
+        OReporter.addSuccess(self, test)
         #self.report['result'] = {'value': 'success'}
 
     def addError(self, test, exception):
-        OONIReporter.addError(self, test, exception)
+        OReporter.addError(self, test, exception)
         exc_type, exc_value, exc_traceback = exception
         log.err(exc_type)
         log.err(str(exc_value))
@@ -282,19 +326,19 @@ class OONIReporter(OReporter):
             log.err(line)
 
     def addFailure(self, *args):
-        OONIReporter.addFailure(self, *args)
+        OReporter.addFailure(self, *args)
         log.warn(args)
 
     def addSkip(self, *args):
-        OONIReporter.addSkip(self, *args)
+        OReporter.addSkip(self, *args)
         #self.report['result'] = {'value': 'skip', 'args': args}
 
     def addExpectedFailure(self, *args):
-        OONIReporter.addExpectedFailure(self, *args)
+        OReporter.addExpectedFailure(self, *args)
         #self.report['result'] = {'value': 'expectedFailure', 'args': args}
 
     def addUnexpectedSuccess(self, *args):
-        OONIReporter.addUnexpectedSuccess(self, *args)
+        OReporter.addUnexpectedSuccess(self, *args)
         #self.report['result'] = {'args': args, 'value': 'unexpectedSuccess'}
 
 
