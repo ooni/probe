@@ -44,7 +44,8 @@ from ooni.utils import log
 try:
     from dns import resolver
 except ImportError:
-    print "The dnspython module was not found. https://crate.io/packages/dnspython/"
+    print "The dnspython module was not found:"
+    print "See https://crate.io/packages/dnspython/"
     resolver = None
 
 __plugoo__ = "captiveportal"

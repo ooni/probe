@@ -107,4 +107,3 @@ def run():
     for idx, cases in enumerate(casesList):
         orunner = runner.ORunner(cases, options[idx], config)
         orunner.run()
-

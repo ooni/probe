@@ -92,7 +92,6 @@ def findTestClassesFromConfig(config):
         A list of class objects found in a file or module given on the
         commandline.
     """
-
     filename = config['test']
     classes = []
 
@@ -100,7 +99,7 @@ def findTestClassesFromConfig(config):
     for name, val in inspect.getmembers(module):
         if isTestCase(val):
             log.debug("Detected TestCase %s" % val)
-            classes.append(processTest(val, config))
+            classes.append(val)
         elif isLegacyTest(val):
             log.debug("Detected Legacy Test %s" % val)
             classes.append(adapt_legacy_test(val, config))
@@ -111,11 +110,57 @@ def makeTestCases(klass, tests, method_prefix):
     Takes a class some tests and returns the test cases. method_prefix is how
     the test case functions should be prefixed with.
     """
-
     cases = []
     for test in tests:
         cases.append(klass(method_prefix+test))
     return cases
+
+def processTestOptions(cls, config):
+    """
+    Process the parameters and :class:`twisted.python.usage.Options` of a
+    :class:`ooni.nettest.Nettest`.
+
+    :param cls:
+        An subclass of :class:`ooni.nettest.TestCase`.
+    :param config:
+        A configured and instantiated :class:`twisted.python.usage.Options`
+        class.
+    """
+    if cls.optParameters or cls.inputFile:
+        if not cls.optParameters:
+            cls.optParameters = []
+
+        if cls.inputFile:
+            cls.optParameters.append(cls.inputFile)
+
+        class Options(usage.Options):
+            optParameters = cls.optParameters
+
+        opts = Options()
+        opts.parseOptions(config['subArgs'])
+        cls.localOptions = opts
+
+        if cls.inputFile:
+            cls.inputFile = opts[cls.inputFile[0]]
+
+        """
+        try:
+            log.debug("%s: trying %s.localoptions.getOptions()..."
+                      % (__name__, cls.name))
+            try:
+                assert hasattr(cls, 'getOptions')
+            except AssertionError, ae:
+                options = opts.opt_help()
+                raise Exception, "Cannot find %s.getOptions()" % cls.name
+            else:
+                options = cls.getOptions()
+        except usage.UsageError:
+            options = opts.opt_help()
+        else:
+            return cls, options
+        """
+
+        return cls, cls.localOptions
 
 def loadTestsAndOptions(classes, config):
     """
@@ -127,10 +172,10 @@ def loadTestsAndOptions(classes, config):
     options = []
     test_cases = []
 
-    _old_klass_type = LegacyOONITest
+    _old_class_type = LegacyOONITest
 
     for klass in classes:
-        if isinstance(klass, _old_klass_type):
+        if isinstance(klass, _old_class_type):
             try:
                 cases = start_legacy_test(klass)
                 if cases:
@@ -147,18 +192,28 @@ def loadTestsAndOptions(classes, config):
                 except AttributeError, ae:
                     options.append([])
                     log.err(ae)
+            if cases:
+                print cases
+                return [], []
         else:
             tests = reflect.prefixedMethodNames(klass, method_prefix)
             if tests:
                 cases = makeTestCases(klass, tests, method_prefix)
                 test_cases.append(cases)
             try:
-                k = klass()
-                opts = k.getOptions()
-                options.append(opts)
+                opts = processTestOptions(klass, config)
             except AttributeError, ae:
                 options.append([])
                 log.err(ae)
+            else:
+                try:
+                    instance = klass()
+                    inputs = instance.__get_inputs__()
+                except Exception, e:
+                    log.err(e)
+                else:
+                    opts.update(inputs)
+                options.append(opts)
 
     return test_cases, options
 
@@ -189,7 +244,6 @@ class ORunner(object):
                 self.inputs = options['inputs']
             else:
                 log.msg("Could not find inputs!")
-                log.msg("options[0] = %s" % first)
                 self.inputs = [None]
 
         try:
@@ -197,8 +251,9 @@ class ORunner(object):
         except:
             filename = 'report_'+date.timestamp()+'.yaml'
             reportFile = open(filename, 'a+')
-        self.reporterFactory = ReporterFactory(reportFile,
-                                               testSuite=self.baseSuite(self.cases))
+        self.reporterFactory = ReporterFactory(
+            reportFile, testSuite=self.baseSuite(self.cases)
+            )
 
     def runWithInputUnit(self, input_unit):
         idx = 0

@@ -63,19 +63,19 @@ class TestCase(unittest.TestCase):
     you will subclass this object.
 
     * inputs: can be set to a static set of inputs. All the tests (the methods
-      starting with the "test_" prefix) will be run once per input.  At every run
-      the _input_ attribute of the TestCase instance will be set to the value of
-      the current iteration over inputs.  Any python iterable object can be set
-      to inputs.
+      starting with the "test_" prefix) will be run once per input.  At every
+      run the _input_ attribute of the TestCase instance will be set to the
+      value of the current iteration over inputs.  Any python iterable object
+      can be set to inputs.
 
-    * inputFile: attribute should be set to an array containing the command line
-      argument that should be used as the input file. Such array looks like
-      this:
+    * inputFile: attribute should be set to an array containing the command
+      line argument that should be used as the input file. Such array looks
+      like this:
 
           ``["commandlinearg", "c", "The description"]``
 
-      The second value of such arrray is the shorthand for the command line arg.
-      The user will then be able to specify inputs to the test via:
+      The second value of such arrray is the shorthand for the command line
+      arg.  The user will then be able to specify inputs to the test via:
 
           ``ooniprobe mytest.py --commandlinearg path/to/file.txt``
 
@@ -85,8 +85,8 @@ class TestCase(unittest.TestCase):
 
 
     * inputProcessor: should be set to a function that takes as argument an
-      open file descriptor and it will yield the input to be passed to the test
-      instance.
+      open file descriptor and it will yield the input to be passed to the
+      test instance.
 
     * name: should be set to the name of the test.
 
@@ -103,8 +103,8 @@ class TestCase(unittest.TestCase):
     author = "Jane Doe <foo@example.com>"
     version = "0"
 
-    inputs = [None]
     inputFile = None
+    inputs    = [None]
 
     report = {}
     report['errors'] = []
@@ -114,8 +114,8 @@ class TestCase(unittest.TestCase):
 
     def deferSetUp(self, ignored, result):
         """
-        If we have the reporterFactory set we need to write the header. If such
-        method is not present we will only run the test skipping header
+        If we have the reporterFactory set we need to write the header. If
+        such method is not present we will only run the test skipping header
         writing.
         """
         if result.reporterFactory.firstrun:
@@ -138,23 +138,53 @@ class TestCase(unittest.TestCase):
         log.debug("Getting options for test")
         if self.inputFile:
             try:
-                assert isinstance(self.inputFile, str)
-            except AssertionError, ae:
-                log.err(ae)
+                fp = open(self.inputFile) ## xxx fixme:
+            except Exception, e:          ## bad news to leave file
+                log.err(e)                ## descriptors open
             else:
-                if os.path.isfile(self.inputFile):
-                    print self.inputFile
-                    fp = open(self.inputFile)
-                    self.inputs = self.inputProcessor(fp)
-        elif not self.inputs[0]:
-            pass
-        elif self.inputFile:
-            raise usage.UsageError("No input file specified!")
-        # XXX perhaps we may want to name and version to be inside of a
-        # different object that is not called options.
-        return {'inputs': self.inputs,
-                'name': self.name,
-                'version': self.version}
+                from_file = self.__input_file_processor__(fp)
+                self.inputs = itertools.chain(processor, from_file)
+        elif self.inputFile is False:
+            log.debug("%s specified that it doesn't need inputFile."
+                      % self.__class__.__name__)
+            self.inputs = processed
+        else:
+            raise BrokenImplementation
+
+        return self.inputs
+
+    def getOptions(self):
+        '''
+        for attr in attributes:
+            if not attr.name is 'optParameters' or attr.name is 'optFlags':
+                continue
+            elif attr.name is 'optParameters':
+                cls._optParameters = attr.object
+            elif attr.name is 'optFlags':
+                log.debug("Applying %s.%s = %s to data descriptor..."
+                          % (cls.__name__, "_"+attr.name, attr.object))
+                cls._optParameters = attr.object
+            else:
+                log.debug("How did we get here? attr.name = %s" % attr.name)
+        '''
+        if self.localOptions:
+            if self.inputs[0] is not None or self.inputFile is not None:
+                self.__get_inputs__()
+            return self.localOptions
+        else:
+            raise Exception, "could not find cls.localOptions! 234"
+
+        # if options:
+        #     return options
+        # else:
+        #     ## is this safe to do? it might turn Hofstaeder...
+        #     return self.__dict__
+        ####################
+        ## original return
+        ####################
+        #return {'inputs': self.inputs,
+        #        'name': self.name,
+        #        'version': self.version}
 
     def __repr__(self):
         return "<%s inputs=%s>" % (self.__class__, self.inputs)
