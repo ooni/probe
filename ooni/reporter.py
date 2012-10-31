@@ -179,6 +179,7 @@ class ReporterFactory(OReporter):
     def writeHeader(self):
         self.firstrun = False
         options = self.options
+        log.debug("reporter.ReporterFactory.writeHeader(): options = %s" % options)
         self._writeln("###########################################")
         self._writeln("# OONI Probe Report for %s test" % options['name'])
         self._writeln("# %s" % date.pretty_date())

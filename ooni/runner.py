@@ -174,8 +174,8 @@ def loadTestsAndOptions(classes, config):
 
     _old_class_type = LegacyOONITest
 
-    for cls in classes:
-        if isinstance(cls, _old_class_type):
+    for klass in classes:
+        if isinstance(klass, _old_class_type):
             try:
                 cases = start_legacy_test(klass)
                 if cases:
@@ -187,7 +187,7 @@ def loadTestsAndOptions(classes, config):
                 log.err(e)
             else:
                 try:
-                    opts = cls.local_options
+                    opts = klass.local_options
                     options.append(opts)
                 except AttributeError, ae:
                     options.append([])
@@ -201,15 +201,13 @@ def loadTestsAndOptions(classes, config):
                 cases = makeTestCases(klass, tests, method_prefix)
                 test_cases.append(cases)
             try:
-                #c = cls()
-                #cls, opts = processTestOptions(cls, config)
-                opts = processTestOptions(cls, config)
+                opts = processTestOptions(klass, config)
             except AttributeError, ae:
                 options.append([])
                 log.err(ae)
             else:
                 try:
-                    instance = cls()
+                    instance = klass()
                     inputs = instance.__get_inputs__()
                 except Exception, e:
                     log.err(e)

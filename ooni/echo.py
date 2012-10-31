@@ -59,9 +59,9 @@ class EchoTest(ScapyTest):
         ['size', 's', 56, 'Number of bytes to send in ICMP data field', int],
         ['ttl', 'l', 25, 'Set the IP Time to Live', int],
         ['timeout', 't', 2, 'Seconds until timeout if no response', int],
-        ['pcap', 'p', None, 'Save pcap to this file']
+        ['pcap', 'p', None, 'Save pcap to this file'],
+        ['receive', 'r', True, 'Receive response packets']
         ]
-    optFlags = [['receive', 'r', True, 'Receive response packets']]
 
     def setUpClass(self, *a, **kw):
         '''
