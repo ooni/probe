@@ -1,0 +1,95 @@
+#!/bin/bash
+##############################################################################
+#
+# submit-patch
+# -------------------
+# Submit a patch to the OONI developers!
+#
+# @authors: Isis Lovecruft, 0x2cdb8b35 <isis@torproject.org>
+# @license: see included LICENSE file
+# @version: 0.0.1
+#
+# To apply these patches:
+#
+#         $ git fetch <project> master:test-apply
+#         $ git checkout test-apply
+#         $ git reset --hard
+#         $ git am a.patch
+#
+# Note:
+#         Dear other OONI developers and contributors,
+# if you would like patches emailed to you as well, then add your name and
+# email to this script, commit the changes, and submit it as a patch. :)
+#   <(A)3
+#   isis agora lovecruft
+#
+
+DEVELOPERS="<isis@torproject.org>, "
+
+HEADERS="X-Git-Format-Patch: ooni "
+
+function usage ()
+{
+    echo;
+    echo -e "\033[40m\033[0;32m           OPEN OBSERVATORY of NETWORK INTERFERENCE \033[0m"
+    echo -e "\033[40m\033[0;32m           ---------------------------------------- \033[0m"
+    echo -e ""
+    echo -e "\033[40m\033[0;32m This script will collect all committed changes in your current \033[0m"
+    echo -e "\033[40m\033[0;32m branch which are not in the upstream branch, format a patch or \033[0m"
+    echo -e "\033[40m\033[0;32m a series of patches from them, and, finally, email them to the \033[0m"
+    echo -e "\033[40m\033[0;32m OONI developers. \033[0m"
+    echo -e "\033[40m\033[0;32m Thanks for the patch\! \033[0m"
+}
+
+function pullfirst ()
+{
+    echo;
+    read -ep" Should we pull in changes from master before formatting patches? (Y/n) " -s choice
+    case "$choice" in
+        "n"|"N"|"no"|"No"|"NO"|"non"|"nein")
+            PULL=false
+            ;;
+        *)
+            PULL=true
+            ;;
+        esac
+    if $PULL; then
+        if test -n "$UPSTREAMPULL" ; then
+            echo;
+            echo -e "\033[40m\033[0;32m Pulling from upstream... \033[0m"
+            git pull $UPSTREAM
+        fi
+    fi
+}
+
+
+usage
+echo -e ""
+read -ep" Should we CC the generated patch emails to tor-dev@lists.torproject.org? (Y/n) " cctordev
+if test -z "$cctordev" ; then
+    CC="tor-dev@lists.torproject.org, "
+else
+    CC=""
+fi
+
+#echo;
+#echo -e
+#read -ep" Which branch/revision/commit should we include up to? (Return for 'HEAD'): " upstream
+#if test -n "$upstream" ; then
+#    UPSTREAM=$upstream
+#    UPSTREAMPULL=$upstream" master"
+#else
+#    UPSTREAM="origin"
+#    UPSTREAMPULL="origin master"
+#fi
+#pullfirst
+echo;
+echo -e "\033[40m\033[0;32m THIS SCRIPT DOES NOT SEND THE PATCH FILES. \033[0m"
+echo -e "\033[40m\033[0;32m You'll have to handle that bit on your own. \033[0m"
+echo;
+
+git format-patch --full-index -o "./patches" --stat -l10 --ignore-submodules \
+    --binary --cover-letter --numbered --ignore-if-in-upstream \
+    --suffix=".patch"  --to="$DEVELOPERS" --cc="$CC" master
+#NEW=`git patch-id < patches/new.patch`
+#echo "Patch id: $NEW"

@@ -10,12 +10,13 @@ from . import templates
 from . import utils
 
 # XXX below are legacy related modules
-from . import ooniprobe
-from . import plugoo
-from . import plugins
+#from . import ooniprobe
+#from . import plugoo
+#from . import plugins
 
 __all__ = ['config', 'inputunit', 'kit',
            'lib', 'nettest', 'oonicli', 'reporter',
            'runner', 'templates', 'utils',
            # XXX below are legacy related modules
-           'ooniprobe', 'plugoo', 'plugins']
+           #'ooniprobe', 'plugoo', 'plugins'
+           ]
