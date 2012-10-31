@@ -16,7 +16,7 @@ from twisted.python.util import untilConcludes
 from twisted.trial import reporter
 from twisted.internet import defer
 
-from ooni.templates.httpt import BodyReceiver, StringProducer
+from ooni.templates.httpt import BodyReceiver
 from ooni.utils import date, log, geodata
 
 try:
