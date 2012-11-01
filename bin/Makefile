@@ -27,10 +27,10 @@ simpled:
 	python -m pdb ../bin/ooniprobe ../nettests/simpletest.py -a ../ooni/assets/hostnames.txt
 
 echot:
-	../bin/ooniprobe ../ooni/echo.py -f ../ooni/assets/hostnames.txt
+	../bin/ooniprobe ../nettests/core/echo.py -f ../ooni/assets/hostnames.txt
 
 echod:
-	python -m pdb ../bin/ooniprobe ../ooni/echo.py -f ../ooni/assets/hostnames.txt
+	python -m pdb ../bin/ooniprobe ../nettests/core/echo.py -f ../ooni/assets/hostnames.txt
 
 captivet:
 	../bin/ooniprobe ../nettests/core/captiveportal.py -f ../ooni/assets/hostnames.txt
@@ -38,5 +38,17 @@ captivet:
 captived:
 	python -m pdb ../bin/ooniprobe --spew ../nettests/core/captiveportal.py -f ../ooni/assets/hostnames.txt
 
-mvreports:
-	for $report in `find ../ -name "report*"`; do mv $report test-results ; done
+dnst:
+	../bin/ooniprobe ../nettests/core/dnstamper.py -f ../ooni/assets/hostnames.txt
+
+dnsd:
+	python -m pdb ../bin/ooniprobe --spew ../nettests/core/dnstamper.py -f ../ooni/assets/hostnames.txt
+
+squidt:
+	../bin/ooniprobe ../nettests/core/squid.py -f ../ooni/assets/hostnames.txt
+
+squidd:
+	python -m pdb ../bin/ooniprobe --spew ../nettests/core/squid.py -f ../ooni/assets/hostnames.txt
+
+#mvreports:
+#	for $report in `find ../ -name "report*"`; do mv $report test-results #; done

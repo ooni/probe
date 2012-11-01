@@ -9,23 +9,14 @@ Migrate code from old
 
 Migrate all the interesting parts of the old code to the new.
 
-It's important to make the new code asych and based on gevent.
+It's important to make the new code asych and based on Twisted.
 It should respect the design goals of the new ooni-probe model.
-
-* All the parts related to HTTP and Squid (old/ooni/http.py)
-effort: low, skill: medium
-
-* Misc scripts to detect censorship that are not written in any
-  version of OONI (old/ooni/plugins/old_stuff_to_convert/)
-effort: low-medium, skill: low-medium
 
 New things to develop
 ---------------------
 
 These are either components specific to the new refactor of ooni
 or that we haven't yet figured out how they should work.
-
-* Design and implement the Worker and the Unit of Work classes
 
 * Design and implement the Node Factory
 
@@ -34,12 +25,14 @@ or that we haven't yet figured out how they should work.
 New things to test
 ------------------
 
-Please check that the submodules are working correctly. From ../ooni-probe/,
-do:
+* Some of the tests still give errors. This is top priority.
 
-$ git submodules init && git submodules update
+* The submit-patch script is still a bit janky, and could use
+  some sprucing up.
 
-Make sure that they clone correctly, and run a few ooni tests to make sure
-the import statements haven't broken.
-
-Write unittests for *all of the things*. Can anyone suggest a good framework?
+* The Makefile that I made to serve a quick check for whether or not the tests
+  are broken could use some more tests added to it.  One thing is that some
+  tests take certain types of input files, others take none at all, and
+  nowhere is this presented to someone trying to run a test. So, the informing
+  users/testers bit can be worked on, and the testing. Obviously we're going
+  to want something more robust that a 20 LOC Makefile pretty fast.
