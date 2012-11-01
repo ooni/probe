@@ -20,4 +20,4 @@ from . import utils
 ## XXX below are legacy related modules
 #from . import ooniprobe
 from . import plugoo
-from . import plugins
+#from . import plugins

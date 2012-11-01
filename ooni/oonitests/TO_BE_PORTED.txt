@@ -1,9 +1,0 @@
-
-The tests in this directory are very old, and have neither been ported to 
-Twisted, nor to the new twisted.trial API framework. Although, they are not
-old in the sense of the *seriously old* OONI code which was written two years
-ago.
-
-These tests should be updated at least to use Twisted.
-
--isis
