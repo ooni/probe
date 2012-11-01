@@ -112,6 +112,29 @@ class TestCase(unittest.TestCase):
     optParameters = None
     requiresRoot = False
 
+    def setUpClass(self, *args, **kwargs):
+        """
+        Create a TestCase instance. This function is equivalent to '__init__'.
+        To add futher setup steps before a set of tests in a TestCase instance
+        run, create a function called 'setUp'.
+
+        Class attributes, such as `report`, `optParameters`, `name`, and
+        `author` should be overriden statically as class attributes in any
+        subclass of :class:`ooni.nettest.TestCase`, so that the calling
+        functions in ooni.runner can handle them correctly.
+        """
+        methodName = 'runTest'
+        if kwargs:
+            if 'methodName' in kwargs:
+                methodName = kwargs['methodName']
+
+        super(TestCase, self).setUpClass()
+
+        #for key, value in kwargs.items():
+        #    setattr(self.__class__, key, value)
+        #
+        #self.inputs = self.getInputs()
+
     def deferSetUp(self, ignored, result):
         """
         If we have the reporterFactory set we need to write the header. If
@@ -128,30 +151,53 @@ class TestCase(unittest.TestCase):
             log.debug("Not first run. Running test setup directly")
             return unittest.TestCase.deferSetUp(self, ignored, result)
 
-    def inputProcessor(self, fp):
-        log.debug("Running default input processor")
-        for x in fp.readlines():
-            yield x.strip()
-        fp.close()
+    @staticmethod
+    def inputParser(inputs):
+        """Replace me with a custom function for parsing inputs."""
+        log.debug("Running custom input processor")
+        return inputs
 
-    def getOptions(self):
-        log.debug("Getting options for test")
+    def _getInputs(self):
+        """
+        I am called from the ooni.runner and you probably should not override
+        me. I gather the internal inputs from an instantiated test class and
+        pass them to the rest of the runner.
+
+        If you are looking for a way to parse inputs from inputFile, see
+        :meth:`inputParser`.
+        I open :attr:inputFile if there is one, and return inputs one by one
+        after stripping them of whitespace and running them through the parser
+        :meth:`inputParser`.
+        """
+
+        ## don't burn cycles on testing null inputs:
+        if len(self.inputs) == 1 and self.inputs[0] == None:
+            self.inputs = []
+            processor = []
+        else:
+            log.msg("Received direct inputs:\n%s" % self.inputs)
+            processor = [i for i in self.inputProcessor(self.inputs)]
+
         if self.inputFile:
             try:
-                fp = open(self.inputFile) ## xxx fixme:
-            except Exception, e:          ## bad news to leave file
-                log.err(e)                ## descriptors open
+                fp = open(self.inputFile)
+            except Exception, e:
+                log.err(e)
+                fp.close()
             else:
-                from_file = self.__input_file_processor__(fp)
-                self.inputs = itertools.chain(processor, from_file)
+                log.debug("Running input file processor")
+                lines = [line.strip() for line in fp.readlines()]
+                fp.close()
+                parsed = [self.inputParser(ln) for ln in lines]
+                both = itertools.chain(processor, parsed)
         elif self.inputFile is False:
             log.debug("%s specified that it doesn't need inputFile."
-                      % self.__class__.__name__)
-            self.inputs = processed
+                      % self.name)
+            both = processor
         else:
-            raise BrokenImplementation
+            both = processor
+        return both
 
-        return self.inputs
 
     def getOptions(self):
         '''

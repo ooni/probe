@@ -134,8 +134,12 @@ def processTestOptions(cls, config):
         if cls.inputFile:
             cls.optParameters.append(cls.inputFile)
 
+        if not hasattr(cls, subCommands):
+            cls.subCommands = []
+
         class Options(usage.Options):
             optParameters = cls.optParameters
+            parseArgs     = lambda a: cls.subCommands.append(a)
 
         opts = Options()
         opts.parseOptions(config['subArgs'])
@@ -157,63 +161,101 @@ def processTestOptions(cls, config):
         except usage.UsageError:
             options = opts.opt_help()
         else:
-            return cls, options
         """
-
-        return cls, cls.localOptions
+        return cls.localOptions
 
 def loadTestsAndOptions(classes, config):
     """
     Takes a list of test classes and returns their testcases and options.
     Legacy tests will be adapted.
     """
+    from inspect import isclass
 
     method_prefix = 'test'
     options = []
     test_cases = []
 
-    _old_class_type = LegacyOONITest
+    DEPRECATED = LegacyOONITest
 
     for klass in classes:
-        if isinstance(klass, _old_class_type):
+        if isinstance(klass, DEPRECATED) \
+                and not issubclass(klass, TestCase):
+            log.msg("Processing cases and options for legacy test %s"
+                    % ( klass.shortName if hasattr(klass, shortName)
+                        else 'oonitest' ))
+            if hasattr(klass, description):
+                log.msg("%s" % klass.description)
+
+            subcmds = []
+            if hasattr(klass, options):        ## an unitiated Legacy test
+                log.debug("%s.options found: %s " % (klass, klass.options))
+                try:
+                    assert isclass(klass.options), \
+                        "%s is not class" % klass.qoptions
+                except AssertionError, ae:
+                    log.debug(ae)
+                else:
+                    ok = klass.options
+                    ok.parseArgs = lambda x: subcmds.append(x)
+                    try:
+                        opts = ok()
+                        opts.parseOptions(config['subArgs'])
+                    except Exception, e:
+                        log.debug(e)
+                        opts = {}
+                    finally:
+                        opts.append(opts)
+
+            if hasattr(klass, local_options): ## we've been initialized already
+                log.debug("%s.local_options found" % klass)
+                try:
+                    assert klass.local_options is not None
+                    opts = klass.local_options
+                except AttributeError, ae:
+                    opts = {}; log.debug(ae)
+                finally:
+                    log.debug("type(opts) = %s" % type(opts))
+                    options.append(opts)
             try:
                 cases = start_legacy_test(klass)
-                if cases:
-                    log.debug("Processing cases")
-                    log.debug(str(cases))
-                    return [], []
+                #if cases:                   ## why are these empty lists here?
+                #    return [], []           ## were nettests having issues due
+            except Exception, e:             ## to legacy tests?
+                cases = []; log.err(e)
+            finally:
+                log.debug(str(cases))
                 test_cases.append(cases)
+
+        elif issubclass(klass, TestCase):
+            log.debug("Processing cases and options for OONI %s test"
+                      % ( klass.name if hasattr( klass, 'name' ) \
+                              else TestCase.name ))
+            try:
+                tests = reflect.prefixedMethodNames(klass, method_prefix)
             except Exception, e:
-                log.err(e)
+                tests = []; log.debug(e)
             else:
                 try:
-                    opts = klass.local_options
-                    options.append(opts)
-                except AttributeError, ae:
-                    options.append([])
-                    log.err(ae)
-            if cases:
-                print cases
-                return [], []
-        else:
-            tests = reflect.prefixedMethodNames(klass, method_prefix)
-            if tests:
-                cases = makeTestCases(klass, tests, method_prefix)
-                test_cases.append(cases)
+                    cases = makeTestCases(klass, tests, method_prefix)
+                except Exception, e:
+                    cases = []; log.err(e)
+            log.debug("loadTestsAndOptions(): test %s found cases=%s"
+                      % (tests, cases))
+
             try:
                 opts = processTestOptions(klass, config)
             except AttributeError, ae:
-                options.append([])
-                log.err(ae)
-            else:
+                opts = {}; log.err(ae)
+            finally:
                 try:
                     instance = klass()
-                    inputs = instance.__get_inputs__()
+                    inputs = instance._getInputs()
                 except Exception, e:
-                    log.err(e)
+                    inputs = []; log.err(e)
                 else:
-                    opts.update(inputs)
+                    opts.update({'inputs': inputs})
                 options.append(opts)
+                log.debug("loadTestsAndOptions(): type(opts)=%s" % type(opts))
 
     return test_cases, options
 

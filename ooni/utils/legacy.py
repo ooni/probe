@@ -34,7 +34,7 @@ from ooni              import nettest
 from ooni.plugoo.tests import OONITest
 from ooni.plugoo       import work, reports
 from ooni.utils        import log, date
-from ooni.utils.logo   import getLogo
+from ooni.utils.logo   import getlogo
 
 
 def runTest(test, options, global_options, reactor=reactor):
@@ -121,7 +121,7 @@ def run_ooniprobe_py(*args):
     try:
         old_api.parseOptions()
     except:
-        log.msg("Use of this API is deprecated. Please use /bin/ooniprobe."
+        log.msg("Use of this API is deprecated. Please use /bin/ooniprobe.")
     runTest(old_api.sub_command, old_api.subOptions, old_api)
     reactor.run()
 
