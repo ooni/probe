@@ -134,9 +134,8 @@ class EchoTest(ScapyTest):
         log.debug("Initialization of %s test completed with:\n%s"
                   % (self.name, ''.join(self.__dict__)))
 
-    def inputProcessor(self, fp):
-        inputs = [x.strip() for x in fp.readlines() if not x.startswith('#')]
-        fp.close()
+    @staticmethod
+    def inputParser(inputs):
         log.debug("Removing possible ports from host addresses...")
         log.debug("Initial inputs:\n%s" % pprint(inputs))
 

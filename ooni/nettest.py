@@ -1,7 +1,15 @@
 # -*- encoding: utf-8 -*-
 #
-# :authors: Arturo "hellais" Filastò <art@fuffa.org>
+#     nettest.py
+# ------------------->
+#
+# :authors: Arturo "hellais" Filastò <art@fuffa.org>,
+#           Isis Lovecruft <isis@torproject.org>
 # :licence: see LICENSE
+# :copyright: 2012 Arturo Filasto, Isis Lovecruft
+# :version: 0.1.0-alpha
+#
+# <-------------------
 
 import sys
 import os
@@ -84,9 +92,9 @@ class TestCase(unittest.TestCase):
           ``ooniprobe mytest.py -c path/to/file.txt``
 
 
-    * inputProcessor: should be set to a function that takes as argument an
-      open file descriptor and it will yield the input to be passed to the
-      test instance.
+    * inputParser: should be set to a function that takes as argument an
+      iterable containing test inputs and it simply parses those inputs and
+      returns them back to test instance.
 
     * name: should be set to the name of the test.
 
@@ -123,12 +131,10 @@ class TestCase(unittest.TestCase):
         subclass of :class:`ooni.nettest.TestCase`, so that the calling
         functions in ooni.runner can handle them correctly.
         """
-        methodName = 'runTest'
-        if kwargs:
-            if 'methodName' in kwargs:
-                methodName = kwargs['methodName']
-
-        super(TestCase, self).setUpClass()
+        if kwargs and 'methodName' in kwargs:
+            return super( TestCase, self ).setUpClass(
+                methodName=kwargs['methodName'] )
+        return super( TestCase, self ).setUpClass( )
 
         #for key, value in kwargs.items():
         #    setattr(self.__class__, key, value)
@@ -176,7 +182,7 @@ class TestCase(unittest.TestCase):
             processor = []
         else:
             log.msg("Received direct inputs:\n%s" % self.inputs)
-            processor = [i for i in self.inputProcessor(self.inputs)]
+            processor = [i for i in self.inputParser(self.inputs)]
 
         if self.inputFile:
             try:

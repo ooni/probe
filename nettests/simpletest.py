@@ -5,7 +5,6 @@ class SimpleTest(nettest.TestCase):
                      ['controlserver', 'c', 'google.com', 'Specify the control server'],
                      ['resume', 'r', 0, 'Resume at this index'],
                      ['other', 'o', None, 'Other arguments']]
-
     def test_foo(self, *arg, **kw):
         print "Running %s with %s" % ("test_foo", self.input)
         self.report['test_foo'] = 'Antani'

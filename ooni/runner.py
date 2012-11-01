@@ -242,19 +242,22 @@ def loadTestsAndOptions(classes, config):
             log.debug("loadTestsAndOptions(): test %s found cases=%s"
                       % (tests, cases))
 
-            try:
-                opts = processTestOptions(klass, config)
-            except AttributeError, ae:
-                opts = {}; log.err(ae)
-            finally:
+            if hasattr(klass, 'optParameters') or hasattr(klass, 'inputFile'):
                 try:
+                    opts = processTestOptions(klass, config)
+                    print opts, config
+                except:
+                    opts = {}
+                finally:
                     instance = klass()
-                    inputs = instance._getInputs()
-                except Exception, e:
-                    inputs = []; log.err(e)
-                else:
-                    opts.update({'inputs': inputs})
-                options.append(opts)
+                    try:
+                        inputs = instance._getInputs()
+                    except Exception, e:
+                        inputs = []; log.err(e)
+                    else:
+                        opts.update({'inputs': inputs})
+                    finally:
+                        options.append(opts)
                 log.debug("loadTestsAndOptions(): type(opts)=%s" % type(opts))
 
     return test_cases, options
