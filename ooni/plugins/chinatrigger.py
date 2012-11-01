@@ -136,5 +136,5 @@ class ChinaTriggerTest(ScapyTest):
 
         return {}
 
-chinatrigger = ChinaTriggerTest(None, None, None)
+#chinatrigger = ChinaTriggerTest(None, None, None)
 

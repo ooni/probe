@@ -43,4 +43,4 @@ class BlockingTest(OONITest):
 
 # We need to instantiate it otherwise getPlugins does not detect it
 # XXX Find a way to load plugins without instantiating them.
-blocking = BlockingTest(None, None, None)
+#blocking = BlockingTest(None, None, None)

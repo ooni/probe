@@ -213,4 +213,4 @@ class domclassTest(HTTPTest):
         else:
             return {}
 
-domclass = domclassTest(None, None, None)
+#domclass = domclassTest(None, None, None)

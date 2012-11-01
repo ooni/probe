@@ -62,4 +62,4 @@ class tcpconnectTest(OONITest):
 
 # We need to instantiate it otherwise getPlugins does not detect it
 # XXX Find a way to load plugins without instantiating them.
-tcpconnect = tcpconnectTest(None, None, None)
+#tcpconnect = tcpconnectTest(None, None, None)

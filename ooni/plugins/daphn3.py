@@ -149,4 +149,4 @@ class daphn3Test(OONITest):
 
 # We need to instantiate it otherwise getPlugins does not detect it
 # XXX Find a way to load plugins without instantiating them.
-daphn3test = daphn3Test(None, None, None)
+#daphn3test = daphn3Test(None, None, None)

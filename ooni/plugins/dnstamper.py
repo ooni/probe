@@ -335,4 +335,4 @@ class DNSTamperTest(OONITest):
                         'control-address': ctrl_address,
                         'tampering-detected': False}
 
-dnstamper = DNSTamperTest(None, None, None)
+#dnstamper = DNSTamperTest(None, None, None)

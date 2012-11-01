@@ -484,7 +484,7 @@ class BridgetTest(OONITest):
         return self.d
 
 ## So that getPlugins() can register the Test:
-bridget = BridgetTest(None, None, None)
+#bridget = BridgetTest(None, None, None)
 
 
 ## ISIS' NOTES
