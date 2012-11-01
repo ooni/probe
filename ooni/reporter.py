@@ -178,10 +178,9 @@ class ReporterFactory(OReporter):
     @defer.inlineCallbacks
     def writeHeader(self):
         self.firstrun = False
-        options = self.options
-        log.debug("reporter.ReporterFactory.writeHeader(): options = %s" % options)
+        (klass, options) = self.options
         self._writeln("###########################################")
-        self._writeln("# OONI Probe Report for %s test" % options['name'])
+        self._writeln("# OONI Probe Report for %s test" % klass.name)
         self._writeln("# %s" % date.pretty_date())
         self._writeln("###########################################")
 
@@ -208,8 +207,8 @@ class ReporterFactory(OReporter):
                         'probeLocation': {'city': client_geodata['city'],
                                           'countrycode':
                                           client_geodata['countrycode']},
-                        'testName': options['name'],
-                        'testVersion': options['version'],
+                        'testName': klass.name,
+                        'testVersion': klass.version,
                         }
         self.writeYamlLine(test_details)
         self._writeln('')
