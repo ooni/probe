@@ -1,0 +1,15 @@
+That Makefile is for testing that the tests work. However, not
+all of the tests have a line in the Makefile yet. If you would
+like to add things to it, feel free to. Or even to write OONI
+unittests for realsies.
+
+The 'old_ooniprobe' script used to call the old script for
+starting up tests, ooni/ooniprobe.py, but I have just removed
+ooniprobe.py and kept the remaining useful pieces in
+ooni/utils/legacy.py where the rest of the new API for running
+old code lives. I think they are happier if we keep them together.
+
+tl;dr: the thing you actually want to use is the script called
+       'ooniprobe'.
+
+ --isis
