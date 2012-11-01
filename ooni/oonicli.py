@@ -88,7 +88,6 @@ class Options(usage.Options, app.ReactorSelectionMixin):
 
 def run():
     log.start()
-    log.debug("Started logging")
 
     if len(sys.argv) == 1:
         sys.argv.append("--help")
