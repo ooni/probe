@@ -1,27 +1,129 @@
-#-*- coding: utf-8 -*-
+# -*- coding: UTF-8
+#
+# Open Observatory of Network Interference
+# ****************************************
 #
 # legacy.py
 # ---------
 # Utilities for working with legacy OONI tests, i.e. tests which were created
 # before the transition to the new twisted.trial based API.
 #
+#    "The Net interprets censorship as damage and routes around it."
+#                    - John Gilmore; TIME magazine (6 December 1993)
+#
 # :authors: Isis Lovecruft, Arturo Filasto
 # :license: see included LICENSE file
 # :copyright: (c) 2012 Isis Lovecruft, Arturo Filasto, The Tor Project, Inc.
 # :version: 0.1.0-pre-alpha
+#
+#  This API has been deprecated and is merely for API purposes.
+#
 
+__VERSION__="0.0.1-pre-alpha"
 
 import inspect
 import os
 import yaml
 
 from twisted.internet     import defer, reactor
+from twisted.python       import usage
 from twisted.python       import log as tplog
 from twisted.python.usage import Options as tpOptions
 
 from ooni              import nettest
 from ooni.plugoo.tests import OONITest
+from ooni.plugoo       import work, reports
 from ooni.utils        import log, date
+from ooni.utils.logo   import getLogo
+
+
+def runTest(test, options, global_options, reactor=reactor):
+    """
+    Run an OONI test by name.
+
+    @param test:
+        a string specifying the test name as specified inside
+        of shortName.
+    @param options:
+        the local options to be passed to the test.
+    @param global_options: the global options for OONI.
+    """
+    parallelism = int(global_options['parallelism'])
+    worker = work.Worker(parallelism, reactor=reactor)
+    test_class = test.__class__
+    report = reports.Report(test, global_options['output'])
+
+    log_to_stdout = True
+    if global_options['quiet']:
+        log_to_stdout = False
+
+    log.start(log_to_stdout,
+              global_options['log'],
+              global_options['verbosity'])
+
+    resume = 0
+    if not options:
+        options = {}
+    if 'resume' in options:
+        resume = options['resume']
+
+    test = test_class(options, global_options, report, reactor=reactor)
+    if test.tool:
+        test.runTool()
+        return True
+
+    if test.ended:
+        print "Ending test"
+        return None
+
+    wgen = work.WorkGenerator(test, dict(options), start=resume)
+    for x in wgen:
+        worker.push(x)
+
+
+class LegacyOptions(usage.Options):
+    """Deprecated."""
+    def __init__(test_classes=[], sub_commands=[]):
+        self.test_classes = test_classes
+        self.sub_commands = sub_commands
+        for cls in self.test_classes:
+            sub_commands.append([cls, None, cls.options,
+                                 "Run the %s test" % cls])
+    optParameters = [
+        ['parallelism', 'n', 10, "Specify the number of parallel tests to run"],
+        ['output', 'o', 'report.log', "Specify output report file"],
+        ['log', 'l', 'oonicli.log', "Specify output log file"],
+        ['verbosity', 'v', 1, "Specify the logging level"]]
+    optFlags = [['quiet', 'q', "Don't log to stdout"]]
+
+    def opt_version(self):
+        """
+        This API has been deprecated; please use the new alpha-release API.
+        See /nettests in the top directory, as well as the /docs folder for
+        further information.
+        """
+        print "OONI version: %s\n\n%s" % (__VERSION__, __doc__)
+        sys.exit(0)
+
+    def __str__(self):
+        """
+        Hack to get the sweet ascii art into the help output and replace the
+        strings "Commands" with "Tests".
+        """
+        return getlogo() + '\n' + self.getSynopsis() + '\n' + \
+               self.getUsage(width=None).replace("Commands:", "Tests:")
+
+def run_ooniprobe_py(*args):
+    log.start()
+    if not args:
+        args = "--help"
+    old_api = usage.Options()
+    try:
+        old_api.parseOptions()
+    except:
+        log.msg("Use of this API is deprecated. Please use /bin/ooniprobe."
+    runTest(old_api.sub_command, old_api.subOptions, old_api)
+    reactor.run()
 
 class LegacyReporter(object):
     """
