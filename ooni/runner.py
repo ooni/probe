@@ -244,10 +244,10 @@ def loadTestsAndOptions(classes, config):
 
             if hasattr(klass, 'optParameters') or hasattr(klass, 'inputFile'):
                 try:
-                    opts = processTestOptions(klass, config)
-                    print opts, config
+                    opt = processTestOptions(klass, config)
+                    print opt, config
                 except:
-                    opts = {}
+                    opt = {}
                 finally:
                     instance = klass()
                     try:
@@ -255,11 +255,11 @@ def loadTestsAndOptions(classes, config):
                     except Exception, e:
                         inputs = []; log.err(e)
                     else:
-                        opts.update({'inputs': inputs})
-                    finally:
-                        options.append(opts)
-                log.debug("loadTestsAndOptions(): type(opts)=%s" % type(opts))
-
+                        if opt and opt is not None:
+                            opt.update({'inputs':inputs})
+                        else: pass
+                    finally: options.append(opt)
+                log.debug("loadTestsAndOptions(): type(opt)=%s" % type(opt))
     return test_cases, options
 
 class ORunner(object):
