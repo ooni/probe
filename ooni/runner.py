@@ -18,10 +18,11 @@ from twisted.trial.runner import isTestCase
 from twisted.trial.runner import filenameToModule
 
 from ooni.inputunit import InputUnitFactory
-from ooni.nettest import InputTestSuite
+from ooni.nettest import InputTestSuite, TestCase
 from ooni.plugoo import tests as oonitests
 from ooni.reporter import ReporterFactory
 from ooni.utils import log, date
+from ooni.utils.assertions import isClass
 from ooni.utils.legacy import LegacyOONITest
 from ooni.utils.legacy import start_legacy_test, adapt_legacy_test
 
@@ -142,7 +143,6 @@ def processTestOptions(cls, config):
 
         if cls.inputFile:
             cls.inputFile = opts[cls.inputFile[0]]
-
         """
         try:
             log.debug("%s: trying %s.localoptions.getOptions()..."

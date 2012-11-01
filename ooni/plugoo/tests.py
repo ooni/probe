@@ -140,4 +140,3 @@ class OONITest(object):
             log.msg("Starting test %s" % self.__class__)
 
         return self._do_experiment(args)
-

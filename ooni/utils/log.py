@@ -11,6 +11,7 @@ from twisted.python import log as txlog
 from twisted.python.logfile import DailyLogFile
 
 from ooni.utils import otime
+## error on import with new __init__ file: 31/10/12
 from ooni import config
 
 # XXX make this a config option
