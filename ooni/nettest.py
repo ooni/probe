@@ -160,19 +160,17 @@ class TestCase(unittest.TestCase):
                 continue
             elif attr.name is 'optParameters':
                 cls._optParameters = attr.object
-            elif attr.name is 'optFlags':
-                log.debug("Applying %s.%s = %s to data descriptor..."
-                          % (cls.__name__, "_"+attr.name, attr.object))
-                cls._optParameters = attr.object
             else:
                 log.debug("How did we get here? attr.name = %s" % attr.name)
         '''
+        log.debug("Getting options for test")
+
         if self.localOptions:
             if self.inputs[0] is not None or self.inputFile is not None:
                 self.__get_inputs__()
             return self.localOptions
         else:
-            raise Exception, "could not find cls.localOptions! 234"
+            log.debug("could not find cls.localOptions!")
 
         # if options:
         #     return options
