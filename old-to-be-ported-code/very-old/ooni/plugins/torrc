@@ -1,0 +1,9 @@
+SocksPort 9050
+ControlPort 9051
+VirtualAddrNetwork 10.23.47.0/10
+AutomapHostsOnResolve 1
+TransPort 9040
+TransListenAddress 127.0.0.1
+DNSPort 5353
+DNSListenAddress 127.0.0.1
+
