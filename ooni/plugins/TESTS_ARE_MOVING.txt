@@ -1,8 +1,0 @@
-7/10/2012
-
-All new tests will be moved to the directory /nettests/.
-
-Tests that are in this directory are either here for historical reasons or have
-not yet been properly tested and fully supporting the new API.
-
-A.
