@@ -1,6 +1,5 @@
 # -*- encoding: utf-8 -*-
 #
-#
 #  dnstamper
 #  *********
 #
@@ -25,16 +24,13 @@ from twisted.names.error import DNSQueryRefusedError
 class DNSTamperTest(nettest.TestCase):
 
     name = "DNS tamper"
-
     description = "DNS censorship detection test"
     version = "0.2"
-
     lookupTimeout = [1]
-
     requirements = None
+
     inputFile = ['file', 'f', None,
                  'Input file of list of hostnames to attempt to resolve']
-
     optParameters = [['controlresolver', 'c', '8.8.8.8',
                       'Known good DNS server'],
                      ['testresolvers', 't', None,
@@ -43,20 +39,18 @@ class DNSTamperTest(nettest.TestCase):
     def setUp(self):
         self.report['test_lookups'] = {}
         self.report['test_reverse'] = {}
-
         self.report['control_lookup'] = []
-
         self.report['a_lookups'] = {}
-
         self.report['tampering'] = {}
 
         self.test_a_lookups = {}
         self.control_a_lookups = []
-
         self.control_reverse = None
         self.test_reverse = {}
 
         if not self.localOptions['testresolvers']:
+            log.msg("You did not specify a file of DNS servers to test!",
+                    "See the '--testresolvers' option.")
             self.test_resolvers = ['8.8.8.8']
             return
 
@@ -181,6 +175,14 @@ class DNSTamperTest(nettest.TestCase):
         return r
 
     def do_reverse_lookups(self, result):
+        """
+        Take a resolved address in the form "176.139.79.178.in-addr.arpa." and
+        attempt to reverse the domain with both the control and test DNS
+        servers to see if they match.
+
+        :param result:
+            A resolved domain name.
+        """
         log.msg("Doing the reverse lookups %s" % self.input)
         list_of_ds = []
 
@@ -209,6 +211,12 @@ class DNSTamperTest(nettest.TestCase):
         return dl
 
     def compare_results(self, *arg, **kw):
+        """
+        Take the set intersection of two test result sets. If the intersection
+        is greater than zero (there are matching addresses in both sets) then
+        the no censorship is reported. Else, if no IP addresses match other
+        addresses, then we mark it as a censorship event.
+        """
         log.msg("Comparing results for %s" % self.input)
         log.msg(self.test_a_lookups)
 
@@ -222,7 +230,8 @@ class DNSTamperTest(nettest.TestCase):
                 # Address has not tampered with on DNS server
                 self.report['tampering'][test] = False
 
-            elif self.control_reverse and set([self.control_reverse]) & set([self.report['test_reverse'][test]]):
+            elif self.control_reverse and set([self.control_reverse]) \
+                    & set([self.report['test_reverse'][test]]):
                 # Further testing has eliminated false positives
                 self.report['tampering'][test] = 'reverse-match'
 
