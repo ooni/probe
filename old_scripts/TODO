@@ -1,6 +1,0 @@
-
-- Run anywhere, even older pythons.
-
-- Wrap the ssl stuff into its own class.
-
-- Decode certificates and detect MITM.
