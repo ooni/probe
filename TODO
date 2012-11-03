@@ -1,26 +1,12 @@
 This is a list of things to be done on ooni-probe.
 
-Once you have completed something you should add a
-note to this file stating what you have done under
-the item.
+Once you have completed something you should add a brief note to this file
+stating what you have done under the item. If you discover needed tasks, feel
+free to add them, but also keep in mind that OONI is mostly using the Tor Trac
+instance, and the main ticket for OONI which all tests should be organized
+under is here:
 
-Migrate code from old
----------------------
-
-Migrate all the interesting parts of the old code to the new.
-
-It's important to make the new code asych and based on Twisted.
-It should respect the design goals of the new ooni-probe model.
-
-New things to develop
----------------------
-
-These are either components specific to the new refactor of ooni
-or that we haven't yet figured out how they should work.
-
-* Design and implement the Node Factory
-
-* Design and implement the Network Node and the Code Exec node classes
+         https://trac.torproject.org/projects/tor/ticket/5869
 
 New things to test
 ------------------
@@ -36,3 +22,87 @@ New things to test
   nowhere is this presented to someone trying to run a test. So, the informing
   users/testers bit can be worked on, and the testing. Obviously we're going
   to want something more robust that a 20 LOC Makefile pretty fast.
+
+Finalization of API design
+--------------------------
+
+* The nettest.TestCase should have an interface.
+
+    I know that there is a push away from using zope.interfaces, but I think
+    it is actually *highly* necessary for ensuring that subclasses implement
+    the required functions, and also that they do not improperly override
+    necessary functions, for them to run.
+
+    Personally, I am quite annoyed when I subclass a class from Twisted and
+    override a public method, and it breaks things (when nothing in their
+    documentation informed me that it would break things) and I have to spend
+    half an hour digging through their code to figure out precisely what is
+    needed externally from the function I'm overriding. Others should not have
+    to do this with our code.
+
+* The nettest.TestCase should have a twisted.python.usage.Options subclass and
+  interface as well, even if the instantiation of that subclass is handled by
+  the ooni.oonicli or the ooni.runner. There is more functionality to
+  usage.Options that we should expose than merely "optParameters", for
+  instance the "coerceOptions" parameter validation methods, or the
+  "postOptions" configuration.
+
+New things to develop
+---------------------
+
+These are either components specific to the new refactor of ooni
+or that we haven't yet figured out how they should work.
+
+* Finish implementing the backend collection code.
+
+   o PCAP READER/WRITER:
+     This should be quite simple...see scapy.all.wrpcap and
+     scapy.all.rdpcap. However, we have been warned by other projects that
+     this does *not* scale well. For example, see:
+     https://github.com/isislovecruft/switzerland/blob/master/switzerland/client/FastCollector.c
+     Which is a circular ring buffer specifically for libpcap, to avoid kernel
+     buffer overflows due to a high number of incoming packets. I expect this
+     to only be an issue on substantially high-bandwidth nodes...though that
+     is what we'll be dealing with when we deploy on Mlab.
+
+   o PCAP UPLOADER:
+     This also sounds simple, and is, until you begin to deal with things like
+     persistence. What we really need is rsync, written in python, or at least
+     some cross-platform implementation. I (Isis speaking) am the current
+     maintainer of pyrsync, BUT DO NOT USE PYRSYNC. It is only an
+     implementation of the rsync *algorithm* for diffs, it is not rsync the
+     program. Also, it is BROKEN AND I DO NOT MAINTAIN IT. If you want to
+     maintain it, please take it off my hands.
+
+* Useability:
+
+   o UNITTESTS. Pronto.
+
+   o DOCUMENTATION.  If you found something that confused you, or still
+     confuses you, and you couldn't find the answer within fifteen seconds,
+     then that thing is not well documented. Make it better, or at least mark
+     it with an "XXX document me!" tag.
+
+* Persistence:
+
+   o We need some type of scheduler/cron thing which will background the tests
+     so that they don't take up a terminal, and can be configured to run
+     certain tests at timed intervals.
+
+   o The Reporter will probably need to be updated to handle knowing when *a
+     test* has completed, but that the scheduler is still running.
+
+Migrate code from old
+---------------------
+
+Migrate all the interesting parts of the old code to the new. This is mostly
+finished, but there still are things in the /old-to-be-ported directory which
+might be of use. At this point, because we have gone through several version
+of the API design, many of them are entirely unusable, and merely the general
+idea remains.
+
+It's important to make the new code asych and based on Twisted.  It should
+respect the design goals of the new ooni-probe model. Also, importing new,
+non-standard libraries should be discussed first, if the new test is to be
+used in the core of OONI (packaging scapy and twisted already makes our
+codebase quite large).
