@@ -73,8 +73,8 @@ class NetTestAdaptor(unittest.TestCase):
     @classmethod
     def __new__(cls, *args, **kwargs):
         super( NetTestAdaptor, cls ).__new__(*args, **kwargs)
-        if hasattr(cls, setUpClass):
-            setUpClass(cls)
+        if hasattr(cls, "setUpClass"):
+            super( NetTestAdaptor, cls ).setUpClass()
         else:
             log.debug("NetTestAdaptor: constructor could not find setUpClass")
 
@@ -191,24 +191,6 @@ class NetTestAdaptor(unittest.TestCase):
     def __input_parser__(one_input): return one_input
 
     @classmethod
-    def setUpClass(cls):
-        """
-        Create a NetTestCase. To add futher setup steps before a set of tests
-        in a TestCase instance run, create a function called 'setUp'.
-
-        Class attributes, such as `report`, `optParameters`, `name`, and
-        `author` should be overriden statically as class attributes in any
-        subclass of :class:`ooni.nettest.NetTestCase`, so that the calling
-        functions during NetTestCase class setup can handle them correctly.
-        """
-        cls._raw_inputs   = __copyattr__(cls, "inputs")
-        cls._input_file   = __copyattr__(cls, "inputFile")
-        cls._input_parser = __copyattr__(cls, "inputParser", alt=__input_parser__)
-        cls._nettest_name = __copyattr__(cls, "name", alt="NetTestAdaptor")
-        cls.parsed_inputs = __get_inputs__(cls)
-        ## XXX we should handle options generation here
-
-    @classmethod
     def __get_inputs__(cls):
         """
         I am called during class setup and you probably should not override
@@ -267,6 +249,32 @@ class NetTestAdaptor(unittest.TestCase):
 
         return parsed
 
+    @classmethod
+    def __optstruct__(cls):
+
+
+    @classmethod
+    def setUpClass(cls):
+        """
+        Create a NetTestCase. To add futher setup steps before a set of tests
+        in a TestCase instance run, create a function called 'setUp'.
+
+        Class attributes, such as `report`, `optParameters`, `name`, and
+        `author` should be overriden statically as class attributes in any
+        subclass of :class:`ooni.nettest.NetTestCase`, so that the calling
+        functions during NetTestCase class setup can handle them correctly.
+        """
+        cls._raw_inputs   = __copyattr__(cls, "inputs")
+        cls._input_file   = __copyattr__(cls, "inputFile")
+        cls._input_parser = __copyattr__(cls, "inputParser", alt=__input_parser__)
+        cls._nettest_name = __copyattr__(cls, "name", alt="NetTestAdaptor")
+        cls.parsed_inputs = __get_inputs__(cls)
+
+        ## XXX we should handle options generation here
+        cls._opt_param = __copyattr__(cls, "optParameters")
+        cls._opt_su
+
+
 class NetTestCase(NetTestAdaptor):
     """
     This is the monad of the OONI nettest universe. When you write a nettest
@@ -324,10 +332,6 @@ class NetTestCase(NetTestAdaptor):
     subCommands = None
     requiresRoot = False
 
-    @classmethod
-    def setUpClass(cls):
-        pass
-
     def deferSetUp(self, ignored, result):
         """
         If we have the reporterFactory set we need to write the header. If
@@ -348,7 +352,6 @@ class NetTestCase(NetTestAdaptor):
         """Replace me with a custom function for parsing inputs."""
         log.debug("Running custom input processor")
         return inputs
-
 
     def getOptions(self):
         '''
