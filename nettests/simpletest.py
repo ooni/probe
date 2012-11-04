@@ -1,5 +1,5 @@
 from ooni import nettest
-class SimpleTest(nettest.TestCase):
+class SimpleTest(nettest.NetTestCase):
     inputs = range(1,100)
     optParameters = [['asset', 'a', None, 'Asset file'],
                      ['controlserver', 'c', 'google.com', 'Specify the control server'],

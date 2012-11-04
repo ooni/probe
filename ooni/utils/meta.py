@@ -79,12 +79,12 @@ class MetaDescriptor(type):
     Q: Why all this fuss?
 
     A: We need to force future class-level attributes of subclasses of
-       TestCase to be accessible (also at the class-level, without
-       instatiations) by TestCase. I.e.:
-           1) class SubTestCase has class attribute optParameters, but no
+       NetTestCase to be accessible (also at the class-level, without
+       instatiations) by NetTestCase. I.e.:
+           1) class SubNetTestCase has class attribute optParameters, but no
               class for doing anything with them, and they shouldn't have to.
               They should just be able to define the options.
-           2) Therefore, TestCase needs to have data descriptors, which get
+           2) Therefore, NetTestCase needs to have data descriptors, which get
               inherited.
            3) We need to be able to do this without dangerous namespace
               munging, because we cannot control the namespace of future
@@ -182,8 +182,8 @@ class MetaDescriptor(type):
     ## just need @property's name, initial value can be None
 
 Metaclass
-   Creates Metaclasses for each data descriptor in each SubTestCase
-        so, per SubTestCase, we get (usually two) descriptors:
+   Creates Metaclasses for each data descriptor in each SubNetTestCase
+        so, per SubNetTestCase, we get (usually two) descriptors:
         optParameters and input
 
 '''
@@ -215,7 +215,7 @@ def applyClassAttribute(obj, cls, get='optParameters'):
         assert isNotClass(obj), "must be an instance"
         assert isClass(cls), "not a class"
                                         ## obj is probably an instance
-        C = obj.__class__               ## of a subclass of nettest.TestCase
+        C = obj.__class__               ## of a subclass of nettest.NetTestCase
 
         assert issubclass(C, cls), "not a subclass of %s" % cls
         assert C.__dict__.__contains__('optParameters'), \

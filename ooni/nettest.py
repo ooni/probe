@@ -193,14 +193,13 @@ class NetTestAdaptor(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         """
-        Create a TestCase instance. This function is equivalent to '__init__'.
-        To add futher setup steps before a set of tests in a TestCase instance
-        run, create a function called 'setUp'.
+        Create a NetTestCase. To add futher setup steps before a set of tests
+        in a TestCase instance run, create a function called 'setUp'.
 
         Class attributes, such as `report`, `optParameters`, `name`, and
         `author` should be overriden statically as class attributes in any
-        subclass of :class:`ooni.nettest.TestCase`, so that the calling
-        functions in ooni.runner can handle them correctly.
+        subclass of :class:`ooni.nettest.NetTestCase`, so that the calling
+        functions during NetTestCase class setup can handle them correctly.
         """
         cls._raw_inputs   = __copyattr__(cls, "inputs")
         cls._input_file   = __copyattr__(cls, "inputFile")
@@ -212,7 +211,7 @@ class NetTestAdaptor(unittest.TestCase):
     @classmethod
     def __get_inputs__(cls):
         """
-        I am called from the ooni.runner and you probably should not override
+        I am called during class setup and you probably should not override
         me. I gather the internal inputs from :class:`NetTestCase` attributes
         and pass them through :meth:`NetTestCase.inputParser`.  If you are
         looking for a way to parse inputs from inputFile, see

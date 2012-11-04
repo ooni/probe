@@ -111,7 +111,7 @@ class InputUnitProcessor(InputUnit):
     """
     Create a generator for returning inputs one-by-one from a
     :class:`InputUnit` (or any other iterable defined within an instance of
-    :class:`ooni.nettest.TestCase`), and a generator function.
+    :class:`ooni.nettest.NetTestCase`), and a generator function.
 
     The :ivar:generator can be a custom generator, or chain of generators, for
     customized parsing of an InputUnit, or it can be an imported
@@ -129,7 +129,8 @@ class InputUnitProcessor(InputUnit):
     If :ivar:catchStopIter is False (default), then we catch the StopIteration
     exception, mark :attr:`empty` as 'True', and reraise the StopIteration.
 
-    xxx fill me in with parameter details
+    XXX fill me in with parameter details
+    XXX I'm not sure if we need this class anymore
     """
     empty = False
 
@@ -137,7 +138,7 @@ class InputUnitProcessor(InputUnit):
         """
         Create an InputUnitProcessor.
 
-        xxx fill me in
+        XXX fill me in
         """
         from itertools import takewhile
         from types     import GeneratorType

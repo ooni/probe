@@ -153,7 +153,7 @@ class LegacyReporter(object):
         else:
             log.debug("ADD A NEW REPORT_TARGET TYPE!!")
 
-class LegacyOONITest(nettest.TestCase):
+class LegacyOONITest(nettest.NetTestCase):
     """
     Converts an old test, which should be a subclass of
     :class:`ooni.plugoo.tests.OONITest`, to an :mod:`ooni.oonicli`

@@ -11,7 +11,7 @@ from ooni.utils import log
 import time
 import os
 
-class NetalyzrWrapperTest(nettest.TestCase):
+class NetalyzrWrapperTest(nettest.NetTestCase):
     name = "NetalyzrWrapper"
 
     def setUp(self):

@@ -21,7 +21,7 @@ from twisted.internet import defer
 from twisted.names import client
 from twisted.names.error import DNSQueryRefusedError
 
-class DNSTamperTest(nettest.TestCase):
+class DNSTamperTest(nettest.NetTestCase):
 
     name = "DNS tamper"
     description = "DNS censorship detection test"

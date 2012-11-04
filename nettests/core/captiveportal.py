@@ -57,7 +57,7 @@ optParameters = [['asset', 'a', None, 'Asset file'],
                   'User agent for HTTP requests']
                 ]
 
-class CaptivePortal(nettest.TestCase):
+class CaptivePortal(nettest.NetTestCase):
     """
     Compares content and status codes of HTTP responses, and attempts
     to determine if content has been altered.
