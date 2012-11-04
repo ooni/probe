@@ -428,13 +428,15 @@ class NetTestCase(NetTestAdaptor):
     def getOptions(self):
         log.debug("Getting options for test")
 
-        if self.localOptions:
-            if self.inputs[0] is not None or self.inputFile is not None:
-                self.__get_inputs__()
-            return self.localOptions
+        if self.local_options:
+            log.debug("NetTestCase: getOptions: self.local_options=%s"
+                      % str(self.local_options))
         else:
             log.debug("could not find cls.localOptions!")
 
+        return {'inputs': self.parsed_inputs,
+                'name': self.name,
+                'version': self.version}
         # if options:
         #     return options
         # else:
@@ -446,6 +448,7 @@ class NetTestCase(NetTestAdaptor):
         #return {'inputs': self.inputs,
         #        'name': self.name,
         #        'version': self.version}
-
+    '''
     def __repr__(self):
         return "<%s inputs=%s>" % (self.__class__, self.inputs)
+    '''

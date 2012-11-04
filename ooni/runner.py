@@ -237,22 +237,20 @@ class ORunner(object):
         self.cases = cases
         self.options = options
 
-        try:
-            assert len(options) != 0, "Length of options is zero!"
-        except AssertionError, ae:
-            log.err(ae)
-            self.inputs = []
-        else:
-            try:
-                first = options.pop(0)
-            except:
-                first = options
+        log.debug("ORunner: cases=%s" % type(cases))
+        log.debug("ORunner: options=%s" % options)
 
-            if 'inputs' in first:
-                self.inputs = options['inputs']
-            else:
-                log.msg("Could not find inputs!")
-                self.inputs = [None]
+
+        try:
+            first = options.pop(0)
+        except:
+            first = options
+
+        if 'inputs' in first:
+            self.inputs = self.options['inputs']
+        else:
+            log.msg("Could not find inputs!")
+            self.inputs = [None]
 
         try:
             reportFile = open(config['reportfile'], 'a+')
