@@ -65,7 +65,206 @@ class InputTestSuite(pyunit.TestSuite):
         return result
 
 
-class TestCase(unittest.TestCase):
+class NetTestAdaptor(unittest.TestCase):
+    """
+    XXX fill me in
+    """
+    @staticmethod
+    def __copyattr__(obj, old, new=None, alt=None):
+        """
+        Assign me to a new attribute name to have a copy of the old
+        attribute, if it exists.
+
+        Example:
+        >>> self.sun = "black"
+        >>> self._watermelon = __copyattr__(self, "sun")
+        >>> self._clocknoise = __copyattr__(self, "sound")
+        >>> print self._watermelon
+            black
+        >>> print self._clocknoise
+
+        :param old:
+            A string representing the name of the old attribute
+        :param new:
+            (Optional) A string to set as the new attribute name.
+        :param alt:
+            (Optional) An alternate value to return if the old
+            attribute is not found.
+        :return:
+            If :param:`old` is found, I return it's value.
+
+            If :param:`old` is not found:
+                If :param:`alt` is given, I return :param:`alt`.
+                Else, I return None.
+
+            If :param:`new` is set, I do not return anything, and
+            instead I set the new attribute's name to :param:`name`
+            and it's value to the value which I would have otherwise
+            returned.
+        """
+        if not new:
+            if not alt:
+                if hasattr(obj, old):
+                    return getattr(obj, old)
+                return
+            else:
+                if hasattr(obj, old):
+                    return getattr(obj, old)
+                return alt
+        else:
+            if not alt:
+                if hasattr(obj, old):
+                    _copy = getattr(obj, old)
+                else:
+                    copy = None
+                setattr(obj, new, _copy)
+            else:
+                if hasattr(obj, old):
+                    _copy = getattr(obj, old)
+                else:
+                    _copy = alt
+                setattr(obj, new, _copy)
+
+    ## Using setattr in __init__ for now:
+    #def copyattr(self, *args, **kwargs):
+    #    if len(args) >= 1:
+    #        _copy = partial(__copyattr__, args[0])
+    #        if len(args) == 2:
+    #            return _copy(new=args[1])
+    #        elif len(args) == 3:
+    #            return _copy(new=args[1], alt=args[2])
+    #        elif kwargs:
+    #            return _copy(kwargs)
+    #    else:
+    #        return
+
+    def __init__(self, *args, **kwargs):
+        """
+        If you override me, you must call
+
+            ``super(NetTestCase, self).__init__(*args, **kwargs)``
+
+        at the beginning of your __init__ method. Keyword arguments passed to
+        the above statement become attributes of the adaptor, and can be used
+        to alter the logic of input handling and parent class instantiation.
+        Therefore, You probably do not need to pass me any keyword arguments
+        when calling me, i.e. using ``(*args, **kwargs)`` will work just fine.
+        """
+        log.debug("NetTestAdapter: created")
+        if kwargs:
+            if 'methodName' in kwargs:
+                log.debug("NetTestAdaptor: found 'methodName' in kwargs")
+                log.debug("NetTestAdaptor: calling unittest.TestCase.__init()")
+                super( NetTestAdaptor, self ).__init__(
+                    methodName=kwargs['methodName'] )
+            else:
+                log.debug("NetTestAdaptor: calling unittest.TestCase.__init()")
+                super( NetTestAdaptor, self ).__init__( )
+
+            for key, value in kwargs.items():     ## Let subclasses define their
+                if key != 'methodName':           ## instantiation without
+                    if not hasattr(self, key):    ## overriding parent classes
+                        log.debug("NetTestAdaptor: calling setattr(self,%s,%s)"
+                                  % (key, value) )
+                        setattr(self, key, value)
+
+        #setattr(self, "copyattr", __copy_attr__)
+
+        ## Internal attribute copies:
+        #self._input_parser = copyattr("inputParser", alt=__input_parser__)
+        #self._nettest_name = copyattr("name", alt="NetTestAdaptor"))
+
+        ## Set our inputs to the parsed and processed inputs:
+        #self.inputs = __get_inputs__()
+
+        ## xxx do we need:
+        if self.parsed_inputs:
+            self.inputs = self.parsed_inputs
+        else:
+            log.debug("Unable to find parsed inputs")
+
+    @staticmethod
+    def __input_parser__(one_input): return one_input
+
+    @classmethod
+    def setUpClass(cls):
+        """
+        Create a TestCase instance. This function is equivalent to '__init__'.
+        To add futher setup steps before a set of tests in a TestCase instance
+        run, create a function called 'setUp'.
+
+        Class attributes, such as `report`, `optParameters`, `name`, and
+        `author` should be overriden statically as class attributes in any
+        subclass of :class:`ooni.nettest.TestCase`, so that the calling
+        functions in ooni.runner can handle them correctly.
+        """
+        cls._raw_inputs   = __copyattr__(cls, "inputs")
+        cls._input_file   = __copyattr__(cls, "inputFile")
+        cls._input_parser = __copyattr__(cls, "inputParser", alt=__input_parser__)
+        cls._nettest_name = __copyattr__(cls, "name", alt="NetTestAdaptor")
+        cls.parsed_inputs = __get_inputs__(cls)
+        ## XXX we should handle options generation here
+
+    @classmethod
+    def __get_inputs__(cls):
+        """
+        I am called from the ooni.runner and you probably should not override
+        me. I gather the internal inputs from :class:`NetTestCase` attributes
+        and pass them through :meth:`NetTestCase.inputParser`.  If you are
+        looking for a way to parse inputs from inputFile, see
+        :meth:`inputParser`. If :class:`NetTestCase` has an attribute
+        :attr:`inputFile`, I also handle opening that file, striping each line
+        of whitespace, and then sending the line to
+        :meth:`NetTestCase.inputParser`.
+
+        All inputs which I find, both statically set inputs and those returned
+        from processing an inputFile, I add to a list :ivar:`parsed`, after
+        parsing them. I return :ivar:`parsed`:
+
+        :ivar parsed:
+            A list of parsed inputs.
+        :return:
+            :ivar:`parsed`.
+        """
+        parsed = []
+
+        if cls._raw_inputs:
+            if isinstance(cls._raw_inputs, (list, tuple,)):
+                if len(cls._raw_inputs) > 0:
+                    if len(cls._raw_inputs) == 1 and cls._raw_inputs[0] is None:
+                        pass       ## don't burn cycles on testing null inputs
+                    else:
+                        log.msg("Received direct inputs:\n%s" % cls._raw_inputs)
+                        parsed.extend([cls._input_parser(x) for x in cls._raw_inputs])
+            elif isinstance(cls._raw_inputs, str):
+                separated = cls._raw_inputs.translate(None, ',') ## space delineates
+                inputlist = separated.split(' ')
+                parsed.extend([cls._input_parser(x) for x in inputlist])
+            else:
+                log.debug("inputs not string or list; type: %s"
+                          % type(cls._raw_inputs))
+
+        if cls._input_file:
+            try:
+                log.debug("Opening input file")
+                fp = open(cls._input_file)
+            except:
+                log.debug("Couldn't open input file")
+            else:
+                log.debug("Running input file processor")
+                lines = [line.strip() for line in fp.readlines()]
+                fp.close()
+
+                ## add to what we've already parsed, if any:
+                log.debug("Parsing lines from input file")
+                parsed.extend([cls._input_parser(ln) for ln in lines])
+        else:
+            log.debug("%s specified that it doesn't need inputFile."
+                      % cls._nettest_name)
+
+        return parsed
+
+class NetTestCase(NetTestAdaptor):
     """
     This is the monad of the OONI nettest universe. When you write a nettest
     you will subclass this object.
@@ -109,7 +308,7 @@ class TestCase(unittest.TestCase):
     """
     name = "I Did Not Change The Name"
     author = "Jane Doe <foo@example.com>"
-    version = "0"
+    version = "0.0.0"
 
     inputFile = None
     inputs    = [None]
@@ -118,28 +317,13 @@ class TestCase(unittest.TestCase):
     report['errors'] = []
 
     optParameters = None
+    optFlags = None
+    subCommands = None
     requiresRoot = False
 
-    def setUpClass(self, *args, **kwargs):
-        """
-        Create a TestCase instance. This function is equivalent to '__init__'.
-        To add futher setup steps before a set of tests in a TestCase instance
-        run, create a function called 'setUp'.
-
-        Class attributes, such as `report`, `optParameters`, `name`, and
-        `author` should be overriden statically as class attributes in any
-        subclass of :class:`ooni.nettest.TestCase`, so that the calling
-        functions in ooni.runner can handle them correctly.
-        """
-        if kwargs and 'methodName' in kwargs:
-            return super( TestCase, self ).setUpClass(
-                methodName=kwargs['methodName'] )
-        return super( TestCase, self ).setUpClass( )
-
-        #for key, value in kwargs.items():
-        #    setattr(self.__class__, key, value)
-        #
-        #self.inputs = self.getInputs()
+    @classmethod
+    def setUpClass(cls):
+        pass
 
     def deferSetUp(self, ignored, result):
         """
@@ -157,52 +341,10 @@ class TestCase(unittest.TestCase):
             log.debug("Not first run. Running test setup directly")
             return unittest.TestCase.deferSetUp(self, ignored, result)
 
-    @staticmethod
-    def inputParser(inputs):
+    def inputParser(self, inputs):
         """Replace me with a custom function for parsing inputs."""
         log.debug("Running custom input processor")
         return inputs
-
-    def _getInputs(self):
-        """
-        I am called from the ooni.runner and you probably should not override
-        me. I gather the internal inputs from an instantiated test class and
-        pass them to the rest of the runner.
-
-        If you are looking for a way to parse inputs from inputFile, see
-        :meth:`inputParser`.
-        I open :attr:inputFile if there is one, and return inputs one by one
-        after stripping them of whitespace and running them through the parser
-        :meth:`inputParser`.
-        """
-
-        ## don't burn cycles on testing null inputs:
-        if len(self.inputs) == 1 and self.inputs[0] == None:
-            self.inputs = []
-            processor = []
-        else:
-            log.msg("Received direct inputs:\n%s" % self.inputs)
-            processor = [i for i in self.inputParser(self.inputs)]
-
-        if self.inputFile:
-            try:
-                fp = open(self.inputFile)
-            except Exception, e:
-                log.err(e)
-                fp.close()
-            else:
-                log.debug("Running input file processor")
-                lines = [line.strip() for line in fp.readlines()]
-                fp.close()
-                parsed = [self.inputParser(ln) for ln in lines]
-                both = itertools.chain(processor, parsed)
-        elif self.inputFile is False:
-            log.debug("%s specified that it doesn't need inputFile."
-                      % self.name)
-            both = processor
-        else:
-            both = processor
-        return both
 
 
     def getOptions(self):

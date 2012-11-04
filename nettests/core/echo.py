@@ -1,0 +1,1 @@
+../../ooni/bridget/tests/echo.py

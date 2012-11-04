@@ -21,34 +21,34 @@ all: echot simplet captivet dnst httphostt squidt
 all_debug: echod simpled captived dnsd httphostd squidd
 
 simplet:
-	../bin/ooniprobe ../nettests/simpletest.py -a ../ooni/assets/hostnames.txt
+	../bin/ooniprobe ../nettests/simpletest.py -a ../lists/short_hostname_list.txt
 
 simpled:
-	python -m pdb ../bin/ooniprobe ../nettests/simpletest.py -a ../ooni/assets/hostnames.txt
+	python -m pdb ../bin/ooniprobe ../nettests/simpletest.py -a ../lists/short_hostname_list.txt
 
 echot:
-	../bin/ooniprobe ../nettests/core/echo.py -f ../ooni/assets/hostnames.txt
+	../bin/ooniprobe ../nettests/core/echo.py -f ../lists/short_hostname_list.txt
 
 echod:
-	python -m pdb ../bin/ooniprobe ../nettests/core/echo.py -f ../ooni/assets/hostnames.txt
+	python -m pdb ../bin/ooniprobe -B ../nettests/core/echo.py -f ../lists/short_hostname_list.txt
 
 captivet:
-	../bin/ooniprobe ../nettests/core/captiveportal.py -f ../ooni/assets/hostnames.txt
+	../bin/ooniprobe ../nettests/core/captiveportal.py -f ../lists/short_hostname_list.txt
 
 captived:
-	python -m pdb ../bin/ooniprobe --spew ../nettests/core/captiveportal.py -f ../ooni/assets/hostnames.txt
+	python -m pdb ../bin/ooniprobe --spew ../nettests/core/captiveportal.py -f ../lists/short_hostname_list.txt
 
 dnst:
-	../bin/ooniprobe ../nettests/core/dnstamper.py -f ../ooni/assets/hostnames.txt
+	../bin/ooniprobe ../nettests/core/dnstamper.py -f ../lists/short_hostname_list.txt
 
 dnsd:
-	python -m pdb ../bin/ooniprobe --spew ../nettests/core/dnstamper.py -f ../ooni/assets/hostnames.txt
+	python -m pdb ../bin/ooniprobe --spew ../nettests/core/dnstamper.py -f ../lists/short_hostname_list.txt
 
 squidt:
-	../bin/ooniprobe ../nettests/core/squid.py -f ../ooni/assets/hostnames.txt
+	../bin/ooniprobe ../nettests/core/squid.py -f ../lists/short_hostname_list.txt
 
 squidd:
-	python -m pdb ../bin/ooniprobe --spew ../nettests/core/squid.py -f ../ooni/assets/hostnames.txt
+	python -m pdb ../bin/ooniprobe --spew ../nettests/core/squid.py -f ../lists/short_hostname_list.txt
 
 #mvreports:
 #	for $report in `find ../ -name "report*"`; do mv $report test-results #; done
