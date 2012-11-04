@@ -11,6 +11,7 @@
 #
 # <-------------------
 
+from functools import partial
 import sys
 import os
 import itertools
@@ -64,11 +65,60 @@ class InputTestSuite(pyunit.TestSuite):
             self._idx += 1
         return result
 
-
 class NetTestAdaptor(unittest.TestCase):
     """
     XXX fill me in
     """
+
+    @classmethod
+    def __new__(cls, *args, **kwargs):
+        super( NetTestAdaptor, cls ).__new__(*args, **kwargs)
+        if hasattr(cls, setUpClass):
+            setUpClass(cls)
+        else:
+            log.debug("NetTestAdaptor: constructor could not find setUpClass")
+
+    def __init__(self, *args, **kwargs):
+        """
+        If you override me, you must call
+
+            ``super(NetTestCase, self).__init__(*args, **kwargs)``
+
+        at the beginning of your __init__ method. Keyword arguments passed to
+        the above statement become attributes of the adaptor, and can be used
+        to alter the logic of input handling and parent class instantiation.
+        Therefore, You probably do not need to pass me any keyword arguments
+        when calling me, i.e. using ``(*args, **kwargs)`` will work just fine.
+        """
+        log.debug("NetTestAdaptor: created")
+        if kwargs:
+            if 'methodName' in kwargs:
+                log.debug("NetTestAdaptor: found 'methodName' in kwargs")
+                log.debug("NetTestAdaptor: calling unittest.TestCase.__init()")
+                super( NetTestAdaptor, self ).__init__(
+                    methodName=kwargs['methodName'] )
+            else:
+                log.debug("NetTestAdaptor: calling unittest.TestCase.__init()")
+                super( NetTestAdaptor, self ).__init__( )
+
+            for key, value in kwargs.items():     ## Let subclasses define their
+                if key != 'methodName':           ## instantiation without
+                    if not hasattr(self, key):    ## overriding parent classes
+                        log.debug("NetTestAdaptor: calling setattr(self,%s,%s)"
+                                  % (key, value) )
+                        setattr(self, key, value)
+
+        #setattr(self, "copyattr", __copy_attr__)
+
+        ## Internal attribute copies:
+        #self._input_parser = copyattr("inputParser", alt=__input_parser__)
+        #self._nettest_name = copyattr("name", alt="NetTestAdaptor"))
+
+        if self.parsed_inputs:
+            self.inputs = self.parsed_inputs
+        else:
+            log.debug("Unable to find parsed inputs")
+
     @staticmethod
     def __copyattr__(obj, old, new=None, alt=None):
         """
@@ -125,63 +175,17 @@ class NetTestAdaptor(unittest.TestCase):
                     _copy = alt
                 setattr(obj, new, _copy)
 
-    ## Using setattr in __init__ for now:
-    #def copyattr(self, *args, **kwargs):
-    #    if len(args) >= 1:
-    #        _copy = partial(__copyattr__, args[0])
-    #        if len(args) == 2:
-    #            return _copy(new=args[1])
-    #        elif len(args) == 3:
-    #            return _copy(new=args[1], alt=args[2])
-    #        elif kwargs:
-    #            return _copy(kwargs)
-    #    else:
-    #        return
-
-    def __init__(self, *args, **kwargs):
-        """
-        If you override me, you must call
-
-            ``super(NetTestCase, self).__init__(*args, **kwargs)``
-
-        at the beginning of your __init__ method. Keyword arguments passed to
-        the above statement become attributes of the adaptor, and can be used
-        to alter the logic of input handling and parent class instantiation.
-        Therefore, You probably do not need to pass me any keyword arguments
-        when calling me, i.e. using ``(*args, **kwargs)`` will work just fine.
-        """
-        log.debug("NetTestAdapter: created")
-        if kwargs:
-            if 'methodName' in kwargs:
-                log.debug("NetTestAdaptor: found 'methodName' in kwargs")
-                log.debug("NetTestAdaptor: calling unittest.TestCase.__init()")
-                super( NetTestAdaptor, self ).__init__(
-                    methodName=kwargs['methodName'] )
-            else:
-                log.debug("NetTestAdaptor: calling unittest.TestCase.__init()")
-                super( NetTestAdaptor, self ).__init__( )
-
-            for key, value in kwargs.items():     ## Let subclasses define their
-                if key != 'methodName':           ## instantiation without
-                    if not hasattr(self, key):    ## overriding parent classes
-                        log.debug("NetTestAdaptor: calling setattr(self,%s,%s)"
-                                  % (key, value) )
-                        setattr(self, key, value)
-
-        #setattr(self, "copyattr", __copy_attr__)
-
-        ## Internal attribute copies:
-        #self._input_parser = copyattr("inputParser", alt=__input_parser__)
-        #self._nettest_name = copyattr("name", alt="NetTestAdaptor"))
-
-        ## Set our inputs to the parsed and processed inputs:
-        #self.inputs = __get_inputs__()
-
-        ## xxx do we need:
-        if self.parsed_inputs:
-            self.inputs = self.parsed_inputs
-        else:
-            log.debug("Unable to find parsed inputs")
+    def copyattr(self, *args, **kwargs):
+        if len(args) >= 1:
+           _copy = partial(__copyattr__, args[0])
+           if len(args) == 2:
+               return _copy(new=args[1])
+           elif len(args) == 3:
+               return _copy(new=args[1], alt=args[2])
+           elif kwargs:
+               return _copy(kwargs)
+       else:
+           return
 
     @staticmethod
     def __input_parser__(one_input): return one_input
