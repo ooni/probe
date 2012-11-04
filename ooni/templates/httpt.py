@@ -13,7 +13,7 @@ from twisted.internet.ssl import ClientContextFactory
 
 from twisted.web.http_headers import Headers
 
-from ooni.nettest import TestCase
+from ooni.nettest import NetTestCase
 from ooni.utils import log
 
 useragents = [("Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.8.1.6) Gecko/20070725 Firefox/2.0.0.6", "Firefox 2.0, Windows XP"),
@@ -39,7 +39,7 @@ class BodyReceiver(protocol.Protocol):
     def connectionLost(self, reason):
         self.finished.callback(self.data)
 
-class HTTPTest(TestCase):
+class HTTPTest(NetTestCase):
     """
     A utility class for dealing with HTTP based testing. It provides methods to
     be overriden for dealing with HTTP based testing.

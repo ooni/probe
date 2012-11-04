@@ -184,7 +184,7 @@ class NetTestAdaptor(unittest.TestCase):
                return _copy(new=args[1], alt=args[2])
            elif kwargs:
                return _copy(kwargs)
-       else:
+        else:
            return
 
     @staticmethod

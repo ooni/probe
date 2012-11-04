@@ -20,7 +20,7 @@ from pprint           import pprint
 from twisted.internet import reactor
 from twisted.plugin   import IPlugin
 from twisted.python   import usage
-from ooni.nettest     import TestCase
+from ooni.nettest     import NetTestCase
 from ooni.utils       import log, Storage
 from ooni.utils.net   import PermissionsError, IfaceError
 
