@@ -11,12 +11,12 @@ from twisted.internet import protocol, defer
 
 from scapy.all import IP, TCP
 
-from ooni.nettest import TestCase
+from ooni.nettest import NetTestCase
 from ooni.utils import log
 
 from ooni.lib.txscapy import txsr, txsend
 
-class ScapyTest(TestCase):
+class ScapyTest(NetTestCase):
     """
     A utility class for writing scapy driven OONI tests.
 

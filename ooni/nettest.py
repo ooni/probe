@@ -73,8 +73,8 @@ class NetTestAdaptor(unittest.TestCase):
     @classmethod
     def __new__(cls, *args, **kwargs):
         super( NetTestAdaptor, cls ).__new__(*args, **kwargs)
-        if hasattr(cls, setUpClass):
-            setUpClass(cls)
+        if hasattr(cls, "setUpClass"):
+            super( NetTestAdaptor, cls ).setUpClass()
         else:
             log.debug("NetTestAdaptor: constructor could not find setUpClass")
 
@@ -184,7 +184,7 @@ class NetTestAdaptor(unittest.TestCase):
                return _copy(new=args[1], alt=args[2])
            elif kwargs:
                return _copy(kwargs)
-       else:
+        else:
            return
 
     @staticmethod
