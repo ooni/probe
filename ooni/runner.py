@@ -25,6 +25,13 @@ from ooni.utils import log, date
 from ooni.utils.legacy import LegacyOONITest
 from ooni.utils.legacy import start_legacy_test, adapt_legacy_test
 
+
+def isTemplate(obj):
+    origin = obj.__module__
+    if origin.find('templates') >= 0:
+        return True
+    return False
+
 def isLegacyTest(obj):
     """
     Returns True if the test in question is written using the OONITest legacy
@@ -35,48 +42,6 @@ def isLegacyTest(obj):
         return issubclass(obj, oonitests.OONITest) and not obj == oonitests.OONITest
     except TypeError:
         return False
-
-def processTest(obj, config):
-    """
-    Process the parameters and :class:`twisted.python.usage.Options` of a
-    :class:`ooni.nettest.Nettest`.
-
-    :param obj:
-        An uninstantiated old test, which should be a subclass of
-        :class:`ooni.plugoo.tests.OONITest`.
-    :param config:
-        A configured and instantiated :class:`twisted.python.usage.Options`
-        class.
-    """
-
-    input_file = obj.inputFile
-    if obj.requiresRoot:
-        if os.getuid() != 0:
-            raise Exception("This test requires root to run")
-
-    if obj.optParameters or input_file:
-        if not obj.optParameters:
-            obj.optParameters = []
-
-        if input_file:
-            obj.optParameters.append(input_file)
-
-        class Options(usage.Options):
-            optParameters = obj.optParameters
-
-        options = Options()
-        options.parseOptions(config['subArgs'])
-        obj.localOptions = options
-
-        if input_file:
-            obj.inputFile = options[input_file[0]]
-        try:
-            tmp_obj = obj()
-            tmp_obj.getOptions()
-        except usage.UsageError:
-            options.opt_help()
-
-    return obj
 
 def findTestClassesFromConfig(config):
     """
@@ -98,24 +63,32 @@ def findTestClassesFromConfig(config):
     module = filenameToModule(filename)
     for name, val in inspect.getmembers(module):
         if isTestCase(val):
-            log.debug("Detected TestCase %s" % val)
-            classes.append(val)
+            if val != NetTestCase and not isTemplate(val):
+                log.debug("findTestClassesFromConfig: detected %s"
+                          % val.__name__)
+                classes.append(val)
         elif isLegacyTest(val):
             log.debug("Detected Legacy Test %s" % val)
             classes.append(adapt_legacy_test(val, config))
     return classes
 
-def makeTestCases(klass, tests, method_prefix):
+def makeTestCases(klass, tests, method_prefix=None):
     """
     Takes a class some tests and returns the test cases. method_prefix is how
     the test case functions should be prefixed with.
     """
+    if not method_prefix:
+        method_prefix = 'test'
+
     cases = []
     for test in tests:
-        cases.append(klass(method_prefix+test))
+        log.debug("makeTestCases: making test case for %s" % test)
+        method_name = str(method_prefix)+str(test)
+        log.debug("makeTestCases: using methodName=%s" % method_name)
+        cases.append(klass(methodName=method_name))
     return cases
 
-def processTestOptions(cls, config):
+def getTestOptions(cls, subargs):
     """
     Process the parameters and :class:`twisted.python.usage.Options` of a
     :class:`ooni.nettest.Nettest`.
@@ -126,48 +99,16 @@ def processTestOptions(cls, config):
         A configured and instantiated :class:`twisted.python.usage.Options`
         class.
     """
-    #if cls.optParameters or cls.inputFile:
-    if not cls.optParameters:
-        cls.optParameters = []
+    if cls.requiresRoot:
+        if os.getuid() != 0:
+            raise Exception("This test requires root to run")
 
-    if cls.inputFile:
-        cls.optParameters.append(cls.inputFile)
-
-    log.debug("CLS IS %s" % cls)
-    log.debug("CLS OPTPARAM IS %s" % cls.optParameters)
-
-    #if not hasattr(cls, subCommands):
-    #    cls.subCommands = []
-
-    if not cls.subCommands:
-        cls.subCommands = []
-
-    class Options(usage.Options):
-        optParameters = cls.optParameters
-        parseArgs     = lambda a: cls.subCommands.append(a)
-
-    opts = Options()
-    opts.parseOptions(config['subArgs'])
-    cls.localOptions = opts
-
-    if cls.inputFile:
-        cls.inputFile = opts[cls.inputFile[0]]
-    """
     try:
-        log.debug("%s: trying %s.localoptions.getOptions()..."
-                  % (__name__, cls.name))
-        try:
-            assert hasattr(cls, 'getOptions')
-        except AssertionError, ae:
-            options = opts.opt_help()
-            raise Exception, "Cannot find %s.getOptions()" % cls.name
-        else:
-            options = cls.getOptions()
-    except usage.UsageError:
-        options = opts.opt_help()
-    else:
-    """
-    return cls.localOptions
+        cls.buildOptions(subargs)
+    except Exception, e:
+        log.err(e)
+
+    return cls.local_options
 
 def loadTestsAndOptions(classes, config):
     """
@@ -184,15 +125,14 @@ def loadTestsAndOptions(classes, config):
 
     for klass in classes:
         if isinstance(klass, DEPRECATED):
-            #not issubclass(klass, TestCase):
             try:
                 cases, opts = processLegacyTest(klass, config)
                 if cases:
-                    log.debug("Processing cases: %s" % str(cases))
+                    log.debug("loadTestsAndOptions: processing cases %s"
+                              % str(cases))
                     return [], []
                 test_cases.append(cases)
-            except Exception, e:
-                log.err(e)
+            except Exception, e: log.err(e)
             else:
                 try:
                     opts = klass.local_options
@@ -214,44 +154,36 @@ def loadTestsAndOptions(classes, config):
 
 def processNetTest(klass, config, method_prefix):
     try:
-        log.debug("Processing cases and options for OONI %s test"
-                  % (klass.name if hasattr(klass, 'name') else 'Network Test'))
-
-        tests = reflect.prefixedMethodNames(klass, method_prefix)
-        if tests:
-            cases = makeTestCases(klass, tests, method_prefix)
-            log.debug("loadTestsAndOptions(): test %s found cases=%s"% (tests, cases))
-            try:
-                k = klass()
-                opts = processTestOptions(k, config)
-            except Exception, e:
-                opts = []
-                log.err(e)
-        else:
-            cases = []
+        klass.setUpClass()
     except Exception, e:
         log.err(e)
 
-    return cases, opts
+    subargs_from_config = config['subArgs']
+    log.debug("processNetTest: received subargs from config: %s"
+              % str(subargs_from_config))
+    try:
+        opts = getTestOptions(klass, subargs_from_config)
+    except Exception, e:
+        opts = []
+        log.err(e)
 
-'''
-    if hasattr(klass, 'optParameters') or hasattr(klass, 'inputFile'):
-        try:
-            opts = processTestOptions(klass, config)
-        except:
-            opts = []
-        finally:
-            try:
-                k = klass()
-                inputs = k._getInputs()
-            except Exception, e:
-                inputs = []
-                log.err(e)
-            else:
-                if opts and len(inputs) != 0:
-                    opts.append(['inputs', '', inputs, "cmdline inputs"])
-        log.debug("loadTestsAndOptions(): inputs=%s" % inputs)
-'''
+    try:
+        log.debug("processNetTest: processing cases for %s"
+                  % (klass.name if hasattr(klass, 'name') else 'Network Test'))
+        tests = reflect.prefixedMethodNames(klass, method_prefix)
+    except Exception, e:
+        cases = []
+        opts = []
+        log.err(e)
+    else:
+        if tests:
+            cases = makeTestCases(klass, tests, method_prefix)
+            log.debug("processNetTest: test %s found cases %s"
+                      % (tests, cases))
+        else:
+            cases = []
+
+    return cases, opts
 
 def processLegacyTest(klass, config):
     log.msg("Processing cases and options for legacy test %s"
@@ -277,22 +209,19 @@ def processLegacyTest(klass, config):
                 opts = {}
 
     elif hasattr(klass, local_options): ## we've been initialized already
-        log.debug("%s.local_options found" % klass)
+        log.debug("processLegacyTest: %s.local_options found" % str(klass))
         try:
-            assert klass.local_options is not None
             opts = klass.local_options
-        except AttributeError, ae:
-            opts = {}; log.err(ae)
+        except AttributeError, ae: opts = {}; log.err(ae)
+        log.debug("processLegacyTest: opts set to %s" % str(opts))
 
     try:
         cases = start_legacy_test(klass)
         ## XXX we need to get these results into the reporter
         if cases:
+            log.debug("processLegacyTest: found cases: %s" % str(cases))
             return [], []
-    except Exception, e:
-        cases = []; log.err(e)
-    finally:
-        log.debug(str(cases))
+    except Exception, e: cases = []; log.err(e)
 
     return cases, opts
 

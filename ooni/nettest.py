@@ -25,6 +25,7 @@ from ooni.utils import log
 
 pyunit = __import__('unittest')
 
+
 class InputTestSuite(pyunit.TestSuite):
     """
     This in an extension of a unittest test suite. It adds support for inputs
@@ -70,13 +71,14 @@ class NetTestAdaptor(unittest.TestCase):
     XXX fill me in
     """
 
-    @classmethod
-    def __new__(cls, *args, **kwargs):
-        if hasattr(cls, "setUpClass"):
-            super( NetTestAdaptor, cls ).setUpClass(cls)
-        else:
-            log.debug("NetTestAdaptor: constructor could not find setUpClass")
-        return super( NetTestAdaptor, cls ).__new__(cls, *args, **kwargs)
+    # @classmethod
+    # def __new__(cls, *args, **kwargs):
+    #     try:
+    #         setUpClass()
+    #     except Exception, e:
+    #         log.debug("NetTestAdaptor: constructor could not find setUpClass")
+    #         log.err(e)
+    #     return super( NetTestAdaptor, cls ).__new__(cls, *args, **kwargs)
 
     def __init__(self, *args, **kwargs):
         """
@@ -114,10 +116,12 @@ class NetTestAdaptor(unittest.TestCase):
         #self._input_parser = copyattr("inputParser", alt=__input_parser__)
         #self._nettest_name = copyattr("name", alt="NetTestAdaptor"))
 
-        if self.parsed_inputs:
-            self.inputs = self.parsed_inputs
-        else:
-            log.debug("Unable to find parsed inputs")
+        #self.setUpClass(self.__class__)
+
+        #if hasattr(self, parsed_inputs):
+        #    self.inputs = self.parsed_inputs
+        #else:
+        #    log.debug("Unable to find parsed inputs")
 
     @staticmethod
     def __copyattr__(obj, old, new=None, alt=None):
@@ -220,7 +224,8 @@ class NetTestAdaptor(unittest.TestCase):
                         pass       ## don't burn cycles on testing null inputs
                     else:
                         log.msg("Received direct inputs:\n%s" % cls._raw_inputs)
-                        parsed.extend([cls._input_parser(x) for x in cls._raw_inputs])
+                        parsed.extend(
+                            [cls._input_parser(x) for x in cls._raw_inputs])
             elif isinstance(cls._raw_inputs, str):
                 separated = cls._raw_inputs.translate(None, ',') ## space delineates
                 inputlist = separated.split(' ')
@@ -229,43 +234,83 @@ class NetTestAdaptor(unittest.TestCase):
                 log.debug("inputs not string or list; type: %s"
                           % type(cls._raw_inputs))
 
+        if cls.subarg_inputs:
+            log.debug("NetTestAdaptor: __get_inputs__ found subarg_inputs=%s"
+                      % cls.subarg_inputs)
+            parsed.extend([cls._input_parser(x) for x in cls.subarg_inputs])
+
         if cls._input_file:
             try:
-                log.debug("Opening input file")
+                log.debug("NetTestAdaptor: __get_inputs__ Opening input file")
                 fp = open(cls._input_file)
             except:
-                log.debug("Couldn't open input file")
+                log.debug("NetTestAdaptor: __get_inputs__ Couldn't open input file")
             else:
-                log.debug("Running input file processor")
+                log.debug("NetTestAdaptor: __get_inputs__ Running input file processor")
                 lines = [line.strip() for line in fp.readlines()]
                 fp.close()
 
                 ## add to what we've already parsed, if any:
-                log.debug("Parsing lines from input file")
+                log.debug("NetTestAdaptor: __get_inputs__ Parsing lines from input file")
                 parsed.extend([cls._input_parser(ln) for ln in lines])
         else:
-            log.debug("%s specified that it doesn't need inputFile."
+            log.debug("NetTestAdaptor: %s specified that it doesn't need inputFile."
                       % cls._nettest_name)
 
         return parsed
 
     @classmethod
-    def __optstruct__(cls):
+    def __getopt__(cls, parseArgs=None):
         """
         Constuctor for a custom t.p.usage.Options class, per NetTestCase.
+
+        old code from runner.py:
+            opts = Options()
+            opts.parseOptions(config['subArgs'])
+            cls.localOptions = opts
         """
-        #if cls._opt_parameters is None:
-        #    cls._opt_parameters = [ list() ]
+        if cls._testopt_params or cls._input_file:
+            if not cls._testopt_params:
+                cls._testopt_params = []
+
+            if cls._input_file:
+                cls._testopt_params.append(cls.input_file)
 
         class NetTestOptions(usage.Options):
             """Per NetTestCase Options class."""
-            optParameters = cls._testopt_params
-            optFlags      = cls._testopt_flags
-            subOptions    = cls._sub_options
-            subCommands   = cls._sub_command
+            optParameters     = cls._testopt_params
+            optFlags          = cls._testopt_flags
+            subOptions        = cls._sub_options
+            subCommands       = cls._sub_commands
+            defaultSubCommand = cls._default_subcmd
+            ## XXX i'm not sure if this part will work:
+            parseArgs         = lambda a: cls.subarg_inputs.append(a)
 
-    def buildUsageOptions(self, *args, **kwargs):
-        pass
+            def opt_version(self):
+                """Display test version and exit."""
+                print "Test version: ", cls._nettest_version
+                sys.exit(0)
+
+        options = NetTestOptions()
+        return options
+
+        #if cls._input_file:
+        #    cls._input_file = cls.options[cls._input_file[0]]
+
+    @classmethod
+    def addSubArgToInputs(cls, subarg):
+        cls.subarg_inputs.append(subarg)
+
+    @classmethod
+    def buildOptions(cls, from_global):
+        log.debug("NetTestAdaptor: getTestOptions called")
+        options = cls.__getopt__()
+        log.debug("NetTestAdaptor: getTestOptions: cls.options = %s"
+                  % options)
+        options.parseOptions(from_global)
+        setattr(cls, "local_options", options)
+        log.debug("NetTestAdaptor: getTestOptions: cls.local_options = %s"
+                  % cls.local_options)
 
     @classmethod
     def setUpClass(cls):
@@ -278,24 +323,29 @@ class NetTestAdaptor(unittest.TestCase):
         subclass of :class:`ooni.nettest.NetTestCase`, so that the calling
         functions during NetTestCase class setup can handle them correctly.
         """
+
+        log.debug("NetTestAdaptor: setUpClass called")
+
         ## These internal inputs are for handling inputs and inputFile
-        cls._raw_inputs   = __copyattr__(cls, "inputs")
-        cls._input_file   = __copyattr__(cls, "inputFile")
-        cls._input_parser = __copyattr__(cls, "inputParser", alt=__input_parser__)
-        cls._nettest_name = __copyattr__(cls, "name", alt="NetTestAdaptor")
+        cls._raw_inputs   = cls.__copyattr__(cls, "inputs")
+        cls._input_file   = cls.__copyattr__(cls, "inputFile")
+        cls._input_parser = cls.__copyattr__(cls, "inputParser",
+                                             alt=cls.__input_parser__)
+        cls._nettest_name = cls.__copyattr__(cls, "name", alt="NetTestAdaptor")
 
         ## This creates a class attribute with all of the parsed inputs,
         ## which the instance will later set to be `self.inputs`.
-        cls.parsed_inputs = __get_inputs__(cls)
+        cls.parsed_inputs = cls.__get_inputs__()
+        cls.subarg_inputs = cls.__copyattr__(cls, "subarg_inputs",
+                                             alt=[])
 
         ## XXX we should handle options generation here
-        cls._testopt_params  = __copyattr__(cls, "optParameters")
-        cls._testopt_flags   = __copyattr__(cls, "optFlags")
-        cls._sub_options     = __copyattr__(cls, "subOptions")
-        cls._sub_command     = __copyattr__(cls, "subCommand")
-        cls._default_subcmd  = __copyattr__(cls, "defaultSubCommand")
-        cls._nettest_version = __copyattr__(cls, "version")
-
+        cls._testopt_params  = cls.__copyattr__(cls, "optParameters")
+        cls._testopt_flags   = cls.__copyattr__(cls, "optFlags")
+        cls._sub_options     = cls.__copyattr__(cls, "subOptions")
+        cls._sub_commands    = cls.__copyattr__(cls, "subCommands")
+        cls._default_subcmd  = cls.__copyattr__(cls, "defaultSubCommand")
+        cls._nettest_version = cls.__copyattr__(cls, "version")
 
 class NetTestCase(NetTestAdaptor):
     """
@@ -376,15 +426,6 @@ class NetTestCase(NetTestAdaptor):
         return inputs
 
     def getOptions(self):
-        '''
-        for attr in attributes:
-            if not attr.name is 'optParameters' or attr.name is 'optFlags':
-                continue
-            elif attr.name is 'optParameters':
-                cls._optParameters = attr.object
-            else:
-                log.debug("How did we get here? attr.name = %s" % attr.name)
-        '''
         log.debug("Getting options for test")
 
         if self.localOptions:
@@ -408,4 +449,3 @@ class NetTestCase(NetTestAdaptor):
 
     def __repr__(self):
         return "<%s inputs=%s>" % (self.__class__, self.inputs)
-

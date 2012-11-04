@@ -32,7 +32,7 @@ class ScapyTest(NetTestCase):
     receive = True
     timeout = 1
     pcapfile = None
-    input = IP()/TCP()
+    packet = IP()/TCP()
     reactor = None
     def setUp(self):
         if not self.reactor:
@@ -56,5 +56,5 @@ class ScapyTest(NetTestCase):
         """
         Override this method to build scapy packets.
         """
-        return self.input
+        return self.packet
 
