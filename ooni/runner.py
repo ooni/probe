@@ -18,7 +18,7 @@ from twisted.trial.runner import isTestCase
 from twisted.trial.runner import filenameToModule
 
 from ooni.inputunit import InputUnitFactory
-from ooni.nettest import InputTestSuite, TestCase
+from ooni.nettest import InputTestSuite, NetTestCase
 from ooni.plugoo import tests as oonitests
 from ooni.reporter import ReporterFactory
 from ooni.utils import log, date
@@ -121,7 +121,7 @@ def processTestOptions(cls, config):
     :class:`ooni.nettest.Nettest`.
 
     :param cls:
-        An subclass of :class:`ooni.nettest.TestCase`.
+        An subclass of :class:`ooni.nettest.NetTestCase`.
     :param config:
         A configured and instantiated :class:`twisted.python.usage.Options`
         class.
@@ -201,7 +201,7 @@ def loadTestsAndOptions(classes, config):
                     options.append([])
                     log.err(ae)
 
-        elif issubclass(klass, TestCase):
+        elif issubclass(klass, NetTestCase):
             try:
                 cases, opts = processNetTest(klass, config, method_prefix)
             except Exception, e:
