@@ -72,11 +72,11 @@ class NetTestAdaptor(unittest.TestCase):
 
     @classmethod
     def __new__(cls, *args, **kwargs):
-        super( NetTestAdaptor, cls ).__new__(*args, **kwargs)
         if hasattr(cls, "setUpClass"):
-            super( NetTestAdaptor, cls ).setUpClass()
+            super( NetTestAdaptor, cls ).setUpClass(cls)
         else:
             log.debug("NetTestAdaptor: constructor could not find setUpClass")
+        return super( NetTestAdaptor, cls ).__new__(cls, *args, **kwargs)
 
     def __init__(self, *args, **kwargs):
         """
@@ -253,6 +253,9 @@ class NetTestAdaptor(unittest.TestCase):
     def __optstruct__(cls):
 
 
+    def buildUsageOptions(self, *args, **kwargs):
+        pass
+
     @classmethod
     def setUpClass(cls):
         """
@@ -271,8 +274,10 @@ class NetTestAdaptor(unittest.TestCase):
         cls.parsed_inputs = __get_inputs__(cls)
 
         ## XXX we should handle options generation here
-        cls._opt_param = __copyattr__(cls, "optParameters")
-        cls._opt_su
+        cls._opt_parameters = __copyattr__(cls, "optParameters")
+        cls._opt_flags      = __copyattr__(cls, "optFlags")
+        cls._sub_commands   = __copyattr__(cls, "subCommands")
+        cls._sub_options    = __copyattr__(cls, "subOptions")
 
 
 class NetTestCase(NetTestAdaptor):
