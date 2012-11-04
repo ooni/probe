@@ -251,7 +251,18 @@ class NetTestAdaptor(unittest.TestCase):
 
     @classmethod
     def __optstruct__(cls):
+        """
+        Constuctor for a custom t.p.usage.Options class, per NetTestCase.
+        """
+        #if cls._opt_parameters is None:
+        #    cls._opt_parameters = [ list() ]
 
+        class NetTestOptions(usage.Options):
+            """Per NetTestCase Options class."""
+            optParameters = cls._testopt_params
+            optFlags      = cls._testopt_flags
+            subOptions    = cls._sub_options
+            subCommands   = cls._sub_command
 
     def buildUsageOptions(self, *args, **kwargs):
         pass
@@ -267,17 +278,23 @@ class NetTestAdaptor(unittest.TestCase):
         subclass of :class:`ooni.nettest.NetTestCase`, so that the calling
         functions during NetTestCase class setup can handle them correctly.
         """
+        ## These internal inputs are for handling inputs and inputFile
         cls._raw_inputs   = __copyattr__(cls, "inputs")
         cls._input_file   = __copyattr__(cls, "inputFile")
         cls._input_parser = __copyattr__(cls, "inputParser", alt=__input_parser__)
         cls._nettest_name = __copyattr__(cls, "name", alt="NetTestAdaptor")
+
+        ## This creates a class attribute with all of the parsed inputs,
+        ## which the instance will later set to be `self.inputs`.
         cls.parsed_inputs = __get_inputs__(cls)
 
         ## XXX we should handle options generation here
-        cls._opt_parameters = __copyattr__(cls, "optParameters")
-        cls._opt_flags      = __copyattr__(cls, "optFlags")
-        cls._sub_commands   = __copyattr__(cls, "subCommands")
-        cls._sub_options    = __copyattr__(cls, "subOptions")
+        cls._testopt_params  = __copyattr__(cls, "optParameters")
+        cls._testopt_flags   = __copyattr__(cls, "optFlags")
+        cls._sub_options     = __copyattr__(cls, "subOptions")
+        cls._sub_command     = __copyattr__(cls, "subCommand")
+        cls._default_subcmd  = __copyattr__(cls, "defaultSubCommand")
+        cls._nettest_version = __copyattr__(cls, "version")
 
 
 class NetTestCase(NetTestAdaptor):
