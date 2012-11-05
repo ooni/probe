@@ -187,28 +187,27 @@ class ReporterFactory(OReporter):
         client_geodata = {}
         log.msg("Running geo IP lookup via check.torproject.org")
 
-        client_ip = yield geodata.myIP()
+        client_geodata['ip'] = yield geodata.myIP()
+        client_geodata['asn'] = 'unknown'
+        client_geodata['city'] = 'unknown'
+        client_geodata['countrycode'] = 'unknown'
+
         try:
             import txtorcon
             client_location = txtorcon.util.NetLocation(client_ip)
+            client_geodata['asn'] = client_location.asn
+            client_geodata['city'] = client_location.city
+            client_geodata['countrycode'] = client_location.countrycode
         except:
             log.err("txtorcon is not installed. Geolocation lookup is not"\
                     "supported")
 
-        client_geodata['ip'] = client_ip
-        client_geodata['asn'] = client_location.asn
-        client_geodata['city'] = client_location.city
-        client_geodata['countrycode'] = client_location.countrycode
-
-        test_details = {'startTime': repr(date.now()),
-                        'probeASN': client_geodata['asn'],
-                        'probeCC': client_geodata['countrycode'],
-                        'probeIP': client_geodata['ip'],
-                        'probeLocation': {'city': client_geodata['city'],
-                                          'countrycode':
-                                          client_geodata['countrycode']},
-                        'testName': options['name'],
-                        'testVersion': options['version'],
+        test_details = {'start_time': repr(date.now()),
+                        'probe_asn': client_geodata['asn'],
+                        'probe_cc': client_geodata['countrycode'],
+                        'probe_ip': client_geodata['ip'],
+                        'test_name': options['name'],
+                        'test_version': options['version'],
                         }
         self.writeYamlLine(test_details)
         self._writeln('')
@@ -255,7 +254,7 @@ class OONIReporter(OReporter):
         test.report = {}
 
         self._tests[idx] = {}
-        self._tests[idx]['testStarted'] = self._getTime()
+        self._tests[idx]['test_started'] = self._getTime()
         if isinstance(test.input, packet.Packet):
             test_input = repr(test.input)
         else:
@@ -272,7 +271,7 @@ class OONIReporter(OReporter):
 
         idx = self.getTestIndex(test)
 
-        self._tests[idx]['lastTime'] = self._getTime() - self._tests[idx]['testStarted']
+        self._tests[idx]['last_time'] = self._getTime() - self._tests[idx]['test_started']
         # This is here for allowing reporting of legacy tests.
         # XXX In the future this should be removed.
         try:
@@ -303,9 +302,9 @@ class OONIReporter(OReporter):
         """
         log.debug("Test run concluded")
         if self._startTime is not None:
-            self.report['startTime'] = self._startTime
-            self.report['runTime'] = time.time() - self._startTime
-            self.report['testsRun'] = self.testsRun
+            self.report['start_time'] = self._startTime
+            self.report['run_time'] = time.time() - self._startTime
+            self.report['tests_run'] = self.testsRun
         self.report['tests'] = self._tests
         self.writeReport()
 

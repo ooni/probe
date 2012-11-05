@@ -31,6 +31,7 @@ class DNSTamperTest(nettest.NetTestCase):
 
     inputFile = ['file', 'f', None,
                  'Input file of list of hostnames to attempt to resolve']
+
     optParameters = [['controlresolver', 'c', '8.8.8.8',
                       'Known good DNS server'],
                      ['testresolvers', 't', None,
@@ -241,7 +242,7 @@ class DNSTamperTest(nettest.NetTestCase):
                 self.report['tampering'][test] = True
 
         if len(self.test_a_lookups) == len(self.test_resolvers):
-            self.end()
+            return
         else:
             missing_tests = len(self.test_a_lookups)
             missing_resolvers = len(self.test_resolvers)
