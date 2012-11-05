@@ -88,6 +88,7 @@ class Options(usage.Options, app.ReactorSelectionMixin):
 
 def run():
     log.start()
+    log.debug("Started logging")
 
     if len(sys.argv) == 1:
         sys.argv.append("--help")
@@ -106,3 +107,4 @@ def run():
     for idx, cases in enumerate(casesList):
         orunner = runner.ORunner(cases, options[idx], config)
         orunner.run()
+

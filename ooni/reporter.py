@@ -16,7 +16,7 @@ from twisted.python.util import untilConcludes
 from twisted.trial import reporter
 from twisted.internet import defer
 
-from ooni.templates.httpt import BodyReceiver
+from ooni.templates.httpt import BodyReceiver, StringProducer
 from ooni.utils import date, log, geodata
 
 try:
@@ -178,9 +178,9 @@ class ReporterFactory(OReporter):
     @defer.inlineCallbacks
     def writeHeader(self):
         self.firstrun = False
-        (klass, options) = self.options
+        options = self.options
         self._writeln("###########################################")
-        self._writeln("# OONI Probe Report for %s test" % klass.name)
+        self._writeln("# OONI Probe Report for %s test" % options['name'])
         self._writeln("# %s" % date.pretty_date())
         self._writeln("###########################################")
 
@@ -207,8 +207,8 @@ class ReporterFactory(OReporter):
                         'probeLocation': {'city': client_geodata['city'],
                                           'countrycode':
                                           client_geodata['countrycode']},
-                        'testName': klass.name,
-                        'testVersion': klass.version,
+                        'testName': options['name'],
+                        'testVersion': options['version'],
                         }
         self.writeYamlLine(test_details)
         self._writeln('')

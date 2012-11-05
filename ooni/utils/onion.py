@@ -21,8 +21,8 @@ import sys
 from twisted.internet  import defer
 from zope.interface    import implements
 
-from ooni.lib.txtorcon import CircuitListenerMixin, IStreamAttacher
-from ooni.lib.txtorcon import TorState, TorConfig
+from txtorcon          import CircuitListenerMixin, IStreamAttacher
+from txtorcon          import TorState, TorConfig
 from ooni.utils        import log
 from ooni.utils.timer  import deferred_timeout, TimeoutError
 

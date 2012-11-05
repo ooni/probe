@@ -6,12 +6,14 @@
 import random
 
 from zope.interface import implements
+
 from twisted.python import usage
 from twisted.plugin import IPlugin
 from twisted.internet import protocol, defer
 from twisted.internet.ssl import ClientContextFactory
 
 from twisted.web.http_headers import Headers
+from twisted.web.iweb import IBodyProducer
 
 from ooni.nettest import NetTestCase
 from ooni.utils import log
@@ -27,6 +29,23 @@ useragents = [("Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.8.1.6) Geck
               ("Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; en) Opera 8.0", "Opera 8.0, Windows XP"),
               ("Mozilla/4.0 (compatible; MSIE 6.0; MSIE 5.5; Windows NT 5.1) Opera 7.02 [en]", "Opera 7.02, Windows XP"),
               ("Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.7.5) Gecko/20060127 Netscape/8.1", "Netscape 8.1, Windows XP")]
+
+class StringProducer(object):
+    implements(IBodyProducer)
+
+    def __init__(self, body):
+        self.body = body
+        self.length = len(body)
+
+    def startProducing(self, consumer):
+        consumer.write(self.body)
+        return defer.succeed(None)
+
+    def pauseProducing(self):
+        pass
+
+    def stopProducing(self):
+        pass
 
 class BodyReceiver(protocol.Protocol):
     def __init__(self, finished):
