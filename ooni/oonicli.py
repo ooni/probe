@@ -77,7 +77,6 @@ class Options(usage.Options, app.ReactorSelectionMixin):
     def parseArgs(self, *args):
         try:
             self['test'] = args[0]
-
             self['subArgs'] = args[1:]
         except:
             raise usage.UsageError("No test filename specified!")
@@ -87,15 +86,22 @@ class Options(usage.Options, app.ReactorSelectionMixin):
 
 
 def run():
-    log.start()
+    """
+    Call me to begin testing a file or module.
+    """
+
+    config = Options()
 
     if len(sys.argv) == 1:
-        sys.argv.append("--help")
-    config = Options()
+        config.getUsage()
+
     try:
         config.parseOptions()
-    except usage.error, ue:
+    except usage.UsageError, ue:
         raise SystemExit, "%s: %s" % (sys.argv[0], ue)
+
+    log.start()
+    log.debug("oonicli.run: config set to %s" % config)
 
     if config['debug-stacktraces']:
         defer.setDebugging(True)
