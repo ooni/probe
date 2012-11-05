@@ -85,7 +85,7 @@ class BridgetArgs(usage.Options):
         if self['torpath']:
             ValueChecker.file_check(self['torpath'])
 
-class BridgetTest(nettest.TestCase):
+class BridgetTest(nettest.NetTestCase):
     """
     XXX fill me in
 
