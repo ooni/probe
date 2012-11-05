@@ -3,7 +3,9 @@
 # :authors: Arturo Filastò
 # :licence: see LICENSE
 
+from ooni.utils import log
 from ooni.templates import httpt
+
 class ExampleHTTP(httpt.HTTPTest):
     name = "Example HTTP Test"
     author = "Arturo Filastò"
@@ -30,10 +32,5 @@ class ExampleHTTP(httpt.HTTPTest):
     def processResponseHeaders(self, headers):
         # XXX place in here all the logic for handling the processing of HTTP
         #     Headers.
-        if headers.hasHeader('location'):
-            self.report['redirect'] = True
-
-        server = headers.getRawHeaders("Server")
-        if server:
-            self.report['http_server'] = str(server.pop())
+        pass
 

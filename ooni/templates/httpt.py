@@ -159,8 +159,8 @@ class HTTPTest(NetTestCase):
             self.report['error'] = e
 
         def errback(data):
-            print data
-            #self.report["error"] = data
+            log.err("Error in test %s" % data)
+            self.report["error"] = data
 
         def finished(data):
             return
