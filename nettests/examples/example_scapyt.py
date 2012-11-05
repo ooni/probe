@@ -3,6 +3,7 @@
 # :authors: Arturo Filastò
 # :licence: see LICENSE
 
+from ooni.utils import log
 from ooni.templates import scapyt
 from scapy.all import *
 

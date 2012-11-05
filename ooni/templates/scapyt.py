@@ -45,7 +45,7 @@ class ScapyTest(NetTestCase):
         self.reactor.stop()
 
     def sendReceivePackets(self, *kw):
-        d = txsr(packets=self.request, pcapfile=self.pcapfile,
+        d = txsr(self.request, pcapfile=self.pcapfile,
                  timeout=self.timeout, reactor=self.reactor)
         return d
 

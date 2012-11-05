@@ -24,6 +24,8 @@ from zope.interface import implements
 from scapy.all import Gen
 from scapy.all import SetGen
 
+from ooni.utils import log
+
 LINUX=sys.platform.startswith("linux")
 OPENBSD=sys.platform.startswith("openbsd")
 FREEBSD=sys.platform.startswith("freebsd")
@@ -260,6 +262,7 @@ class Scapy(object):
         self.socket.send(pkt)
 
     def timeout(self, *arg, **kw):
+        log.debug("Caught a timeout with %s %s" % (arg, kw))
         if not self.done:
             self._reactor.callLater(self.timeoutSeconds, self.timeout, None)
         else:
@@ -284,6 +287,7 @@ class Scapy(object):
         @param filter:   provide a BPF filter
         @param iface:    listen answers only on the given interface
         """
+        log.debug("Calling with %s" % pkts)
         self.recv = True
         if timeout:
             self.timeoutSeconds = timeout
@@ -356,15 +360,18 @@ class Scapy(object):
         self.running = False
 
 @defer.inlineCallbacks
-def txsr(*args, **kw):
-    tr = Scapy(*args, **kw)
-    tr.sr(*args, **kw)
+def txsr(*arg, **kw):
+    tr = Scapy(*arg, **kw)
+    log.debug("Calling sr with %s, %s" % (arg, kw))
+    tr.sr(*arg, **kw)
     yield tr.deferred
     tr.finalClose()
 
 @defer.inlineCallbacks
 def txsend(*arg, **kw):
-    tr = Scapy(*arg, **kw)
+    tr = Scapy(**kw)
+    log.debug("Calling send with %s, %s" % (arg, kw))
     tr.send(*arg, **kw)
     yield tr.deferred
     tr.finalClose()
+
