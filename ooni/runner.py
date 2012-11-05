@@ -104,11 +104,13 @@ def getTestOptions(cls, subargs):
             raise Exception("This test requires root to run")
 
     try:
-        cls.buildOptions(subargs)
+        local_opts = cls.buildOptions(subargs)
     except Exception, e:
         log.err(e)
 
-    return cls.local_options
+    log.debug("getTestOptions: local_options = %s" % local_opts)
+
+    return local_opts
 
 def loadTestsAndOptions(classes, config):
     """
@@ -240,7 +242,6 @@ class ORunner(object):
         log.debug("ORunner: cases=%s" % type(cases))
         log.debug("ORunner: options=%s" % options)
 
-
         try:
             first = options.pop(0)
         except:
@@ -258,8 +259,7 @@ class ORunner(object):
             filename = 'report_'+date.timestamp()+'.yaml'
             reportFile = open(filename, 'a+')
         self.reporterFactory = ReporterFactory(
-            reportFile, testSuite=self.baseSuite(self.cases)
-            )
+            reportFile, testSuite=self.baseSuite(self.cases))
 
     def runWithInputUnit(self, input_unit):
         idx = 0
