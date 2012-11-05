@@ -311,6 +311,7 @@ class NetTestAdaptor(unittest.TestCase):
         setattr(cls, "local_options", options)
         log.debug("NetTestAdaptor: getTestOptions: cls.local_options = %s"
                   % cls.local_options)
+        return options
 
     @classmethod
     def setUpClass(cls):
@@ -434,9 +435,11 @@ class NetTestCase(NetTestAdaptor):
         else:
             log.debug("could not find cls.localOptions!")
 
-        return {'inputs': self.parsed_inputs,
-                'name': self.name,
-                'version': self.version}
+        ret= {'inputs': self.parsed_inputs,
+              'name': self.name,
+              'version': self.version}
+        log.debug("%s" % ret)
+
         # if options:
         #     return options
         # else:
