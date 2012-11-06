@@ -70,9 +70,9 @@ class EchoTest(ScapyTest):
             form (*ifa_name, AF_FAMILY, *ifa_addr)
         '''
 
-        if self.local_options:
+        if self.localOptions:
             log.debug("%s: local_options found" % self.name)
-            for key, value in self.local_options:
+            for key, value in self.localOptions.items():
                 log.debug("%s: setting self.%s = %s" % (key, value))
                 setattr(self, key, value)
 

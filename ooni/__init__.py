@@ -1,4 +1,4 @@
-from . import config
+from . import oconfig
 from . import inputunit
 from . import kit
 from . import lib
@@ -14,7 +14,7 @@ from . import utils
 #from . import plugoo
 #from . import plugins
 
-__all__ = ['config', 'inputunit', 'kit',
+__all__ = ['oconfig', 'inputunit', 'kit',
            'lib', 'nettest', 'oonicli', 'reporter',
            'runner', 'templates', 'utils']
            # XXX below are legacy related modules

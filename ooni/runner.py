@@ -205,7 +205,7 @@ class ORunner(object):
 
         try:
             reportFile = open(config['reportfile'], 'a+')
-        except:
+        except TypeError:
             filename = 'report_'+date.timestamp()+'.yaml'
             reportFile = open(filename, 'a+')
         self.reporterFactory = ReporterFactory(reportFile,

@@ -18,7 +18,6 @@ import time
 
 from twisted.internet import protocol, base, fdesc, error, defer
 from twisted.internet import reactor, threads
-from twisted.python import log
 from zope.interface import implements
 
 from scapy.all import Gen
@@ -77,7 +76,7 @@ class ScapySocket(object):
         else:
             return self.ssocket.recv(self.MTU)
 
-class Scapy(object):
+class TXScapy(object):
     """
     A twisted based wrapper for scapy send and receive functionality.
 
@@ -90,12 +89,12 @@ class Scapy(object):
     write_only_answers = False
     pcapwriter = None
     recv = False
+    timeout_call = None
+    answers = []
+    questions = []
 
     def __init__(self, pkts=None, maxPacketSize=8192, reactor=None, filter=None,
             iface=None, nofilter=None, pcapfile=None, timeout=None, *arg, **kw):
-        if self.debug:
-            log.startLogging(sys.stdout)
-
         self.maxPacketSize = maxPacketSize
         if not reactor:
             from twisted.internet import reactor
@@ -173,13 +172,15 @@ class Scapy(object):
         @param question: the sent packet that matches that response.
 
         """
-
         if self.pcapwriter and self.write_only_answers:
             self.pcapwriter.write(question)
             self.pcapwriter.write(answer)
+            self.answers.append(answers)
+            self.questions.append(question)
         self.answer_count += 1
-        if self.answer_count >= self.total_count:
-            print "Got all the answers I need"
+        if self.answer_count >= self.total_count and self.running:
+            log.debug("Got all the answers I need")
+            self.finalClose()
             self.deferred.callback(None)
 
     def processAnswer(self, pkt, hlst):
@@ -210,7 +211,6 @@ class Scapy(object):
         @param pkt: the packet that has been received.
         """
         pkt.show()
-
 
     def doRead(self):
         """
@@ -262,10 +262,13 @@ class Scapy(object):
         self.socket.send(pkt)
 
     def timeout(self, *arg, **kw):
-        log.debug("Caught a timeout with %s %s" % (arg, kw))
         if not self.done:
-            self._reactor.callLater(self.timeoutSeconds, self.timeout, None)
-        else:
+            log.debug("I have not finished. Setting to call in %s" %
+                    self.timeoutSeconds)
+            self.timeout_call = self._reactor.callLater(self.timeoutSeconds, self.timeout, None)
+        elif self.running:
+            log.debug("Cancelling timeout call")
+            self.finalClose()
             self.deferred.callback(None)
 
     def sr(self, pkts, filter=None, iface=None, nofilter=0, timeout=None, *args, **kw):
@@ -287,11 +290,11 @@ class Scapy(object):
         @param filter:   provide a BPF filter
         @param iface:    listen answers only on the given interface
         """
-        log.debug("Calling with %s" % pkts)
+        log.debug("TXScapy sending and receiving packets")
         self.recv = True
         if timeout:
             self.timeoutSeconds = timeout
-            self._reactor.callLater(timeout, self.timeout, None)
+            self.timeout_call = self._reactor.callLater(timeout, self.timeout, None)
         self._sendrcv(pkts, filter=filter, iface=iface, nofilter=nofilter)
 
     def send(self, pkts, filter=None, iface=None, nofilter=0, *args, **kw):
@@ -327,7 +330,8 @@ class Scapy(object):
                     pkt = self.outqueue.pop()
                 except:
                     self.done = True
-                    if not self.recv:
+                    if not self.recv and self.running:
+                        log.debug("I am not in receiving state running callback")
                         self.deferred.callback(None)
                     return
                 d = threads.deferToThreadPool(reactor, self.threadpool,
@@ -353,25 +357,25 @@ class Scapy(object):
 
     def finalClose(self):
         """
-        Clean all the thread related stuff up.
+        Clean all the shutdown related functions.
         """
         self.shutdownID = None
         self.threadpool.stop()
+        if self.timeout_call:
+            self.timeout_call.cancel()
+            self.timeout_call = None
         self.running = False
 
 @defer.inlineCallbacks
-def txsr(*arg, **kw):
-    tr = Scapy(*arg, **kw)
-    log.debug("Calling sr with %s, %s" % (arg, kw))
-    tr.sr(*arg, **kw)
+def txsr(*args, **kw):
+    tr = TXScapy(*args, **kw)
+    tr.sr(*args, **kw)
     yield tr.deferred
     tr.finalClose()
 
 @defer.inlineCallbacks
 def txsend(*arg, **kw):
-    tr = Scapy(**kw)
-    log.debug("Calling send with %s, %s" % (arg, kw))
+    tr = TXScapy(*arg, **kw)
     tr.send(*arg, **kw)
     yield tr.deferred
     tr.finalClose()
-
