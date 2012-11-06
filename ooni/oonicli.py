@@ -32,12 +32,12 @@ from ooni.utils import log
 
 
 class Options(usage.Options, app.ReactorSelectionMixin):
-    synopsis = """%s [options] [[file|package|module|TestCase|testmethod]...]
+    synopsis = """%s [options] [path to test].py
     """ % (os.path.basename(sys.argv[0]),)
 
     longdesc = ("ooniprobe loads and executes a suite or a set of suites of"
-                "network tests. These are loaded from modules, packages and"
-                "files listed on the command line")
+                " network tests. These are loaded from modules, packages and"
+                " files listed on the command line")
 
     optFlags = [["help", "h"],
                 ['debug-stacktraces', 'B',
@@ -47,8 +47,6 @@ class Options(usage.Options, app.ReactorSelectionMixin):
     optParameters = [
         ["reportfile", "o", None, "report file name"],
         ["logfile", "l", None, "log file name"],
-        ['temp-directory', None, '_ooni_temp',
-         'Path to use as working directory for tests.']
         ]
 
     compData = usage.Completions(
@@ -98,12 +96,11 @@ def run():
     if config['debug-stacktraces']:
         defer.setDebugging(True)
 
-    log.start(config['logfile'])
-
     classes = runner.findTestClassesFromConfig(config)
     casesList, options = runner.loadTestsAndOptions(classes, config)
 
     for idx, cases in enumerate(casesList):
         orunner = runner.ORunner(cases, options[idx], config)
+        log.start(config['logfile'])
         orunner.run()
 
