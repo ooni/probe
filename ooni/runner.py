@@ -73,6 +73,7 @@ def processTest(obj, config):
                 if obj.optFlags:
                     log.debug("Got optFlags")
                     optFlags = obj.optFlags
+
             options = Options()
 
         options.parseOptions(config['subArgs'])

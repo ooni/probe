@@ -96,7 +96,11 @@ class HTTPTest(NetTestCase):
 
         self.request = {}
         self.response = {}
+        self.processInputs()
         log.debug("Finished test setup")
+
+    def processInputs(self):
+        pass
 
     def _processResponseBody(self, data, body_processor):
         log.debug("Processing response body")
@@ -152,11 +156,8 @@ class HTTPTest(NetTestCase):
                          This function takes the response body as an argument.
         """
         log.debug("Performing request %s %s %s" % (url, method, headers))
-        try:
-            d = self.build_request(url, method, headers, body)
-        except Exception, e:
-            print e
-            self.report['error'] = e
+
+        d = self.build_request(url, method, headers, body)
 
         def errback(data):
             log.err("Error in test %s" % data)
@@ -205,13 +206,22 @@ class HTTPTest(NetTestCase):
         self.request['url'] = url
         self.request['headers'] = headers if headers else {}
         self.request['body'] = body
+
         if self.randomizeUA:
             self.randomize_useragent()
 
         self.report['request'] = self.request
         self.report['url'] = url
+
+        # If we have a request body payload, set the request body to such
+        # content
+        if body:
+            body_producer = StringProducer(self.request['body'])
+        else:
+            body_producer = None
+
         req = self.agent.request(self.request['method'], self.request['url'],
                                   Headers(self.request['headers']),
-                                  self.request['body'])
+                                  body_producer)
         return req
 

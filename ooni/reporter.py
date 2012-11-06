@@ -194,11 +194,11 @@ class ReporterFactory(OReporter):
 
         try:
             import txtorcon
-            client_location = txtorcon.util.NetLocation(client_ip)
+            client_location = txtorcon.util.NetLocation(client_geodata['ip'])
             client_geodata['asn'] = client_location.asn
             client_geodata['city'] = client_location.city
             client_geodata['countrycode'] = client_location.countrycode
-        except:
+        except ImportError:
             log.err("txtorcon is not installed. Geolocation lookup is not"\
                     "supported")
 
@@ -255,6 +255,7 @@ class OONIReporter(OReporter):
 
         self._tests[idx] = {}
         self._tests[idx]['test_started'] = self._getTime()
+
         if isinstance(test.input, packet.Packet):
             test_input = repr(test.input)
         else:
