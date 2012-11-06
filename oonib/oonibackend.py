@@ -9,8 +9,12 @@ import json
 import random
 import string
 
+from twisted.application import internet
+
 from twisted.internet import protocol, reactor, defer
 from twisted.application import internet, service
+from twisted.application.service import Application
+
 from twisted.web import resource, server, static
 from twisted.web.microdom import escape
 from twisted.protocols import basic
@@ -26,6 +30,7 @@ from oonib.testhelpers.httph import HTTPBackend, DebugHTTPServer
 from oonib.testhelpers.dns import ProxyDNSServer
 from oonib.testhelpers.daphn3 import Daphn3Server
 
+from cyclone import web
 
 log.start('/tmp/oonib.log')
 
@@ -70,4 +75,5 @@ if config.main.reporting_port:
     internet.TCPServer(int(config.main.reporting_port),
                        reportingBackend).setServiceParent(serviceCollection)
 
+reactor.addSystemEventTrigger('after', 'shutdown', db_threadpool.stop)
 
