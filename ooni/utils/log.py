@@ -13,18 +13,22 @@ from twisted.python.logfile import DailyLogFile
 from ooni.utils import otime
 from ooni import oconfig
 
-# XXX make this a config option
-log_file = oconfig.basic.logfile
+def start(logfile=None):
+    daily_logfile = None
 
-def start(log_file=log_file):
-    log_folder = os.path.join('/', *log_file.split('/')[:-1])
-    log_filename = log_file.split('/')[-1]
+    if not logfile:
+        logfile = oconfig.basic.logfile
+
+    log_folder = os.path.dirname(logfile)
+    log_filename = os.path.basename(logfile)
+
     daily_logfile = DailyLogFile(log_filename, log_folder)
 
     txlog.msg("Starting OONI on %s (%s UTC)" %  (otime.prettyDateNow(),
                                                  otime.utcPrettyDateNow()))
     logging.basicConfig()
     python_logging = txlog.PythonLoggingObserver()
+
     if oconfig.advanced.debug:
         python_logging.logger.setLevel(logging.DEBUG)
     else:

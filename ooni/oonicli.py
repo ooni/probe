@@ -46,7 +46,7 @@ class Options(usage.Options, app.ReactorSelectionMixin):
 
     optParameters = [
         ["reportfile", "o", None, "report file name"],
-        ["logfile", "l", "test.log", "log file name"],
+        ["logfile", "l", None, "log file name"],
         ['temp-directory', None, '_ooni_temp',
          'Path to use as working directory for tests.']
         ]
@@ -87,9 +87,6 @@ class Options(usage.Options, app.ReactorSelectionMixin):
 
 
 def run():
-    log.start()
-    log.debug("Started logging")
-
     if len(sys.argv) == 1:
         sys.argv.append("--help")
     config = Options()
@@ -100,6 +97,8 @@ def run():
 
     if config['debug-stacktraces']:
         defer.setDebugging(True)
+
+    log.start(config['logfile'])
 
     classes = runner.findTestClassesFromConfig(config)
     casesList, options = runner.loadTestsAndOptions(classes, config)

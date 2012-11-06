@@ -9,19 +9,25 @@ import json
 import random
 import string
 
-from twisted.application import internet, service
 from twisted.internet import protocol, reactor, defer
-from twisted.protocols import basic
+from twisted.application import internet, service
 from twisted.web import resource, server, static
 from twisted.web.microdom import escape
+from twisted.protocols import basic
 from twisted.names import dns
 
+from ooni.utils import log
+
 from oonib.report.api import reportingBackend
-from oonib.lib import config
 from oonib.lib.ssl import SSLContext
+from oonib.lib import config
+
 from oonib.testhelpers.httph import HTTPBackend, DebugHTTPServer
 from oonib.testhelpers.dns import ProxyDNSServer
 from oonib.testhelpers.daphn3 import Daphn3Server
+
+
+log.start('/tmp/oonib.log')
 
 # This tells twisted to set the
 server.version = config.main.server_version

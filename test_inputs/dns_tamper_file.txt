@@ -1,0 +1,3 @@
+torproject.org
+google.com
+measurementlab.net
