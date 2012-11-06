@@ -9,10 +9,10 @@ ooni Package
     :undoc-members:
     :show-inheritance:
 
-:mod:`input` Module
--------------------
+:mod:`inputunit` Module
+-----------------------
 
-.. automodule:: ooni.input
+.. automodule:: ooni.inputunit
     :members:
     :undoc-members:
     :show-inheritance:
@@ -21,6 +21,14 @@ ooni Package
 ---------------------
 
 .. automodule:: ooni.nettest
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+:mod:`oconfig` Module
+---------------------
+
+.. automodule:: ooni.oconfig
     :members:
     :undoc-members:
     :show-inheritance:
@@ -54,6 +62,7 @@ Subpackages
 
 .. toctree::
 
+    ooni.kit
     ooni.lib
     ooni.templates
     ooni.utils

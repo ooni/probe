@@ -144,16 +144,22 @@ class HTTPTest(NetTestCase):
         Perform an HTTP request with the specified method.
 
         url: the full url path of the request
+
         method: the HTTP Method to be used
+
         headers: the request headers to be sent
+
         body: the request body
+
         headers_processor: a function to be used for processing the HTTP header
                           responses (defaults to self.processResponseHeaders).
                           This function takes as argument the HTTP headers as a
                           dict.
+
         body_processory: a function to be used for processing the HTTP response
                          body (defaults to self.processResponseBody).
                          This function takes the response body as an argument.
+
         """
         log.debug("Performing request %s %s %s" % (url, method, headers))
 

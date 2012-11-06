@@ -43,6 +43,7 @@ Contents
     :maxdepth: 2
     :glob:
 
+    oonib
     install
     tutorial
     writing_tests

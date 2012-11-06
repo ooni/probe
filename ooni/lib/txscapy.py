@@ -1,12 +1,12 @@
 # -*- coding:utf8 -*-
 """
-    txscapy
-    ******
-    (c) 2012 Arturo Filastò
-    a twisted wrapper for scapys send and receive functions.
+txscapy
+*******
+(c) 2012 Arturo Filastò
+a twisted wrapper for scapys send and receive functions.
 
-    This software has been written to be part of OONI, the Open Observatory of
-    Network Interference. More information on that here: http://ooni.nu/
+This software has been written to be part of OONI, the Open Observatory of
+Network Interference. More information on that here: http://ooni.nu/
 
 """
 

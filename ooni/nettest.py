@@ -63,7 +63,7 @@ class NetTestCase(unittest.TestCase):
     you will subclass this object.
 
     * inputs: can be set to a static set of inputs. All the tests (the methods
-      starting with the "test_" prefix) will be run once per input.  At every run
+      starting with the "test" prefix) will be run once per input.  At every run
       the _input_ attribute of the TestCase instance will be set to the value of
       the current iteration over inputs.  Any python iterable object can be set
       to inputs.
