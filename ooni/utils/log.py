@@ -48,7 +48,7 @@ def debug(msg, *arg, **kw):
     txlog.msg(msg, logLevel=logging.DEBUG, *arg, **kw)
 
 def err(msg, *arg, **kw):
-    txlog.err("Error: " + msg, logLevel=logging.ERROR, *arg, **kw)
+    txlog.err("Error: " + str(msg), logLevel=logging.ERROR, *arg, **kw)
 
 def exception(*msg):
     logging.exception(msg)

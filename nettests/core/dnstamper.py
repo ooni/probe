@@ -17,6 +17,8 @@
 
 import pdb
 
+from twisted.python import usage
+
 from twisted.internet import defer
 from twisted.names import client, dns
 from twisted.names.client import Resolver
@@ -57,10 +59,9 @@ class DNSTamperTest(nettest.NetTestCase):
         self.test_reverse = {}
 
         if not self.localOptions['testresolvers']:
-            log.msg("You did not specify a file of DNS servers to test!",
-                    "See the '--testresolvers' option.")
             self.test_resolvers = ['8.8.8.8']
-            return
+            raise usage.UsageError("You did not specify a file of DNS servers to test!"
+                                   "See the '--testresolvers' option.")
 
         try:
             fp = open(self.localOptions['testresolvers'])
