@@ -209,6 +209,7 @@ class ReporterFactory(OReporter):
                         'test_name': options['name'],
                         'test_version': options['version'],
                         }
+
         self.writeYamlLine(test_details)
         self._writeln('')
 

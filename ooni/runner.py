@@ -19,9 +19,12 @@ from twisted.trial.runner import filenameToModule
 
 from ooni.inputunit import InputUnitFactory
 from ooni.nettest import InputTestSuite
+
 from ooni.plugoo import tests as oonitests
+
 from ooni.reporter import ReporterFactory
 from ooni.utils import log, date
+
 from ooni.utils.legacy import LegacyOONITest
 from ooni.utils.legacy import start_legacy_test, adapt_legacy_test
 

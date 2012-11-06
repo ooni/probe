@@ -10,6 +10,8 @@
 # rm *.yamloo; rm before_i_commit.log
 #
 
+rm before_i_commit.log
+
 find . -type f -name "*.py[co]" -delete
 
 ./bin/ooniprobe -l before_i_commit.log -o url_lists.yamloo nettests/core/url_list.py -f test_inputs/url_lists_file.txt
@@ -24,4 +26,12 @@ find . -type f -name "*.py[co]" -delete
 
 ./bin/ooniprobe -l before_i_commit.log -o url_lists.yamloo nettests/core/url_list.py -f test_inputs/url_lists_file.txt
 
+echo "Below you should not see anything"
+echo "---------------------------------"
+grep "Error: " before_i_commit.log
+echo "---------------------------------"
+echo "If you do, it means something is wrong."
+echo "Read through the log file and fix it."
+echo "If you are having some problems fixing some things that have to do with"
+echo "the core of OONI, let's first discuss it on IRC, or open a ticket"
 
