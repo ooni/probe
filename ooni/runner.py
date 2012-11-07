@@ -8,7 +8,7 @@
 # :license: see included LICENSE file
 # :copyright: (c) 2012 Isis Lovecruft, Arturo Filasto, The Tor Project, Inc.
 # :version: 0.1.0-pre-alpha
-#
+
 import os
 import inspect
 
@@ -22,6 +22,7 @@ from ooni.nettest import InputTestSuite
 
 from ooni.reporter import ReporterFactory
 from ooni.utils import log, date
+from ooni import config
 
 def processTest(obj, cmd_line_options):
     """
@@ -202,6 +203,8 @@ class ORunner(object):
 
         log.debug("Finished")
         result.done()
+
+        config.threadpool.stop()
 
     def run(self):
         self.reporterFactory.options = self.options

@@ -6,6 +6,8 @@
 import os
 import yaml
 
+from twisted.python.threadpool import ThreadPool
+
 from ooni.utils import Storage
 
 def get_root_path():
@@ -39,3 +41,5 @@ advanced = Storage()
 for k, v in configuration['advanced'].items():
     advanced[k] = v
 
+threadpool = ThreadPool(0, config.advanced.threadpool_size)
+threadpool.start()
