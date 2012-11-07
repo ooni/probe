@@ -42,7 +42,7 @@ def processTest(obj, cmd_line_options):
             raise Exception("This test requires root to run")
 
     if obj.optParameters or input_file \
-            or obj.advancedOptParameters or obj.optFlags:
+            or obj.usageOptions or obj.optFlags:
 
         if not obj.optParameters:
             obj.optParameters = []
@@ -50,9 +50,9 @@ def processTest(obj, cmd_line_options):
         if input_file:
             obj.optParameters.append(input_file)
 
-        if obj.advancedOptParameters:
+        if obj.usageOptions:
             log.debug("Got advanced options")
-            options = obj.advancedOptParameters()
+            options = obj.usageOptions()
         else:
             log.debug("Got optParameters")
             class Options(usage.Options):

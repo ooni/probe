@@ -113,7 +113,7 @@ class NetTestCase(unittest.TestCase):
 
         | optParameters = [['outfile', 'O', 'outfile.log', 'Description...']]
 
-    * advancedOptParameters: a subclass of twisted.python.usage.Options for more advanced command line arguments fun.
+    * usageOptions: a subclass of twisted.python.usage.Options for more advanced command line arguments fun.
 
     """
     name = "I Did Not Change The Name"
@@ -128,7 +128,7 @@ class NetTestCase(unittest.TestCase):
 
     optFlags = None
     optParameters = None
-    advancedOptParameters = None
+    usageOptions = None
 
     requiresRoot = False
 
