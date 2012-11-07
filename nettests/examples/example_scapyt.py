@@ -5,30 +5,13 @@
 
 from ooni.utils import log
 from ooni.templates import scapyt
-from scapy.all import *
+from scapy.all import IP, TCP
 
-class ExampleScapy(scapyt.ScapyTest):
+class ExampleBasicScapy(scapyt.BaseScapyTest):
     name = "Example Scapy Test"
     author = "Arturo Filastò"
     version = 0.1
 
-    inputs = [IP(dst="8.8.8.8")/TCP(dport=31337),
-              IP(dst="ooni.nu")/TCP(dport=31337)]
-
-    requiresRoot = True
-
-    def test_sendReceive(self):
+    def test_send_raw_ip_frame(self):
         log.msg("Running send receive")
-        if self.receive:
-            log.msg("Sending and receiving packets.")
-            d = self.sendReceivePackets(self.buildPackets())
-        else:
-            log.msg("Sending packets.")
-            d = self.sendPackets(self.buildPackets())
-
-        def finished(data):
-            log.msg("Finished sending")
-            return data
-
-        d.addCallback(finished)
-        return
+        ans, unans = self.sr(IP(dst='8.8.8.8')/TCP(), timeout=1)
