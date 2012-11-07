@@ -1,0 +1,9 @@
+I have moved here all the pieces of code that are either not being used
+anywhere or that should probably not be part of OONIProbe.
+
+They are very neat pieces of code, though I have not tester their
+functionality, since there are no examples of how they should be called or
+used in the repo.
+
+I believe they should go on a separate branch or on another repo called
+something like "python class kung foo".

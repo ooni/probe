@@ -26,7 +26,10 @@ from txtorcon          import TorState, TorConfig
 from ooni.utils        import log
 from ooni.utils.timer  import deferred_timeout, TimeoutError
 
-
+# XXX This can be refactored to os.path.abspath
+# os.path.abspath(path)
+# Return a normalized absolutized version of the pathname path. On most
+# platforms, this is equivalent to normpath(join(os.getcwd(), path)).
 def parse_data_dir(data_dir):
     """
     Parse a string that a has been given as a DataDirectory and determine
@@ -63,6 +66,9 @@ def parse_data_dir(data_dir):
     else:
         return data_dir
 
+# XXX txtorcon handles this already.
+# Also this function is called write_torrc but it has hardcoded inside of it
+# bridget-tordata.
 def write_torrc(conf, data_dir=None):
     """
     Create a torrc in our data_dir. If we don't yet have a data_dir, create a
@@ -157,6 +163,8 @@ def remove_public_relays(state, bridges):
             log.err("Removing public relays %s from bridge list failed:\n%s"
                     % (both, e))
 
+# XXX It is unclear to me how all of these functions would be reused. Why must
+# hey be inside of a module?
 def setup_done(proto):
     log.msg("Setup Complete")
     state = TorState(proto.tor_protocol)
@@ -192,6 +200,7 @@ def bootstrap(ctrl):
     conf.post_bootstrap.addCallback(setup_done).addErrback(setup_fail)
     log.msg("Tor process connected, bootstrapping ...")
 
+# XXX txtorcon does this already for us.
 def start_tor(reactor, config, control_port, tor_binary, data_dir,
               report=None, progress=updates,
               process_cb=None, process_eb=None):
@@ -315,6 +324,7 @@ def start_tor_filter_nodes(reactor, config, control_port, tor_binary,
     filter_nodes = yield remove_public_relays(setup, bridges)
     defer.returnValue(filter_nodes)
 
+# XXX Why is this needed?
 @defer.inlineCallbacks
 def start_tor_with_timer(reactor, config, control_port, tor_binary, data_dir,
                          bridges, timeout):
@@ -366,6 +376,7 @@ def start_tor_with_timer(reactor, config, control_port, tor_binary, data_dir,
         state = yield remove_public_relays(setup, bridges)
         defer.returnValue(state)
 
+# XXX This is a copy and paste of the above class with just an extra argument.
 @defer.inlineCallbacks
 def start_tor_filter_nodes_with_timer(reactor, config, control_port,
                                       tor_binary, data_dir, bridges, timeout):
@@ -431,6 +442,10 @@ class CustomCircuit(CircuitListenerMixin):
         The list of circuits which we are waiting to attach to. You shouldn't
         need to touch this.
     """
+    # XXX
+    # 14:57 < meejah> to build a custom circuit (with no streams) in txtorcon,
+    # call TorState.build_circuit -- the Deferred callbacks with the circid
+
     implements(IStreamAttacher)
 
     def __init__(self, state, relays=None):
