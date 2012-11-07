@@ -23,7 +23,7 @@ from ooni.nettest import InputTestSuite
 from ooni.reporter import ReporterFactory
 from ooni.utils import log, date
 
-def processTest(obj, config):
+def processTest(obj, cmd_line_options):
     """
     Process the parameters and :class:`twisted.python.usage.Options` of a
     :class:`ooni.nettest.Nettest`.
@@ -31,7 +31,7 @@ def processTest(obj, config):
     :param obj:
         An uninstantiated old test, which should be a subclass of
         :class:`ooni.plugoo.tests.OONITest`.
-    :param config:
+    :param cmd_line_options:
         A configured and instantiated :class:`twisted.python.usage.Options`
         class.
     """
@@ -63,7 +63,7 @@ def processTest(obj, config):
 
             options = Options()
 
-        options.parseOptions(config['subArgs'])
+        options.parseOptions(cmd_line_options['subArgs'])
         obj.localOptions = options
 
         if input_file:
@@ -76,14 +76,14 @@ def processTest(obj, config):
 
     return obj
 
-def findTestClassesFromConfig(config):
+def findTestClassesFromConfig(cmd_line_options):
     """
     Takes as input the command line config parameters and returns the test
     case classes.
     If it detects that a certain test class is using the old OONIProbe format,
     then it will adapt it to the new testing system.
 
-    :param config:
+    :param cmd_line_options:
         A configured and instantiated :class:`twisted.python.usage.Options`
         class.
     :return:
@@ -91,14 +91,14 @@ def findTestClassesFromConfig(config):
         commandline.
     """
 
-    filename = config['test']
+    filename = cmd_line_options['test']
     classes = []
 
     module = filenameToModule(filename)
     for name, val in inspect.getmembers(module):
         if isTestCase(val):
             log.debug("Detected TestCase %s" % val)
-            classes.append(processTest(val, config))
+            classes.append(processTest(val, cmd_line_options))
     return classes
 
 def makeTestCases(klass, tests, method_prefix):
@@ -112,7 +112,7 @@ def makeTestCases(klass, tests, method_prefix):
         cases.append(klass(method_prefix+test))
     return cases
 
-def loadTestsAndOptions(classes, config):
+def loadTestsAndOptions(classes, cmd_line_options):
     """
     Takes a list of test classes and returns their testcases and options.
     Legacy tests will be adapted.
@@ -144,7 +144,7 @@ class ORunner(object):
     them in input units. I also create all the report instances required to run
     the tests.
     """
-    def __init__(self, cases, options=None, config=None):
+    def __init__(self, cases, options=None, cmd_line_options=None):
         self.baseSuite = InputTestSuite
         self.cases = cases
         self.options = options
@@ -168,7 +168,7 @@ class ORunner(object):
                 self.inputs = [None]
 
         try:
-            reportFile = open(config['reportfile'], 'a+')
+            reportFile = open(cmd_line_options['reportfile'], 'a+')
         except TypeError:
             filename = 'report_'+date.timestamp()+'.yaml'
             reportFile = open(filename, 'a+')

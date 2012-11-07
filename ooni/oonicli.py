@@ -87,20 +87,20 @@ class Options(usage.Options, app.ReactorSelectionMixin):
 def run():
     if len(sys.argv) == 1:
         sys.argv.append("--help")
-    config = Options()
+    cmd_line_options = Options()
     try:
-        config.parseOptions()
+        cmd_line_options.parseOptions()
     except usage.error, ue:
         raise SystemExit, "%s: %s" % (sys.argv[0], ue)
 
-    if config['debug-stacktraces']:
+    if cmd_line_options['debug-stacktraces']:
         defer.setDebugging(True)
 
-    classes = runner.findTestClassesFromConfig(config)
-    casesList, options = runner.loadTestsAndOptions(classes, config)
+    classes = runner.findTestClassesFromConfig(cmd_line_options)
+    casesList, options = runner.loadTestsAndOptions(classes, cmd_line_options)
 
     for idx, cases in enumerate(casesList):
-        orunner = runner.ORunner(cases, options[idx], config)
-        log.start(config['logfile'])
+        orunner = runner.ORunner(cases, options[idx], cmd_line_options)
+        log.start(cmd_line_options['logfile'])
         orunner.run()
 

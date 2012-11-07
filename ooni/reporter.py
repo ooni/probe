@@ -18,6 +18,7 @@ from twisted.internet import defer
 
 from ooni.templates.httpt import BodyReceiver, StringProducer
 from ooni.utils import date, log, geodata
+from ooni import config
 
 try:
     ## Get rid of the annoying "No route found for
@@ -187,17 +188,28 @@ class ReporterFactory(OReporter):
         client_geodata = {}
         log.msg("Running geo IP lookup via check.torproject.org")
 
-        client_geodata['ip'] = yield geodata.myIP()
-        client_geodata['asn'] = 'unknown'
-        client_geodata['city'] = 'unknown'
-        client_geodata['countrycode'] = 'unknown'
+        client_ip = yield geodata.myIP()
+        if config.includeip:
+            client_geodata['ip'] = client_ip
+        else:
+            client_geodata['ip'] = None
+
+        client_geodata['asn'] = None
+        client_geodata['city'] = None
+        client_geodata['countrycode'] = None
 
         try:
             import txtorcon
             client_location = txtorcon.util.NetLocation(client_geodata['ip'])
-            client_geodata['asn'] = client_location.asn
-            client_geodata['city'] = client_location.city
-            client_geodata['countrycode'] = client_location.countrycode
+            if config.includeasn:
+                client_geodata['asn'] = client_location.asn
+
+            if config.includecity:
+                client_geodata['city'] = client_location.city
+
+            if config.includecountry:
+                client_geodata['countrycode'] = client_location.countrycode
+
         except ImportError:
             log.err("txtorcon is not installed. Geolocation lookup is not"\
                     "supported")

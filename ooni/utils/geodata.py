@@ -1,4 +1,8 @@
 import re
+import pygeoip
+
+from ooni import config
+
 from twisted.web.client import Agent
 from twisted.internet import reactor, defer, protocol
 
