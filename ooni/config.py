@@ -29,6 +29,11 @@ basic = Storage()
 for k, v in configuration['basic'].items():
     basic[k] = v
 
+# Process the privacy configuration options
+privacy = Storage()
+for k, v in configuration['privacy'].items():
+    privacy[k] = v
+
 # Process the advanced configuration options
 advanced = Storage()
 for k, v in configuration['advanced'].items():

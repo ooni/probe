@@ -186,33 +186,35 @@ class ReporterFactory(OReporter):
         self._writeln("###########################################")
 
         client_geodata = {}
-        log.msg("Running geo IP lookup via check.torproject.org")
 
-        client_ip = yield geodata.myIP()
-        if config.includeip:
+        if config.privacy.includeip or \
+                config.privacy.includeasn or \
+                config.privacy.includecountry or \
+                config.privacy.includecity:
+            log.msg("Running geo IP lookup via check.torproject.org")
+            client_ip = yield geodata.myIP()
+            client_location = geodata.IPToLocation(client_ip)
+        else:
+            client_ip = "127.0.0.1"
+
+        if config.privacy.includeip:
             client_geodata['ip'] = client_ip
         else:
-            client_geodata['ip'] = None
+            client_geodata['ip'] = "127.0.0.1"
 
         client_geodata['asn'] = None
         client_geodata['city'] = None
         client_geodata['countrycode'] = None
 
-        try:
-            import txtorcon
-            client_location = txtorcon.util.NetLocation(client_geodata['ip'])
-            if config.includeasn:
-                client_geodata['asn'] = client_location.asn
+        if config.privacy.includeasn:
+            client_geodata['asn'] = client_location['asn']
 
-            if config.includecity:
-                client_geodata['city'] = client_location.city
+        if config.privacy.includecity:
+            client_geodata['city'] = client_location['city']
 
-            if config.includecountry:
-                client_geodata['countrycode'] = client_location.countrycode
+        if config.privacy.includecountry:
+            client_geodata['countrycode'] = client_location['countrycode']
 
-        except ImportError:
-            log.err("txtorcon is not installed. Geolocation lookup is not"\
-                    "supported")
 
         test_details = {'start_time': repr(date.now()),
                         'probe_asn': client_geodata['asn'],
