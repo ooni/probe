@@ -1,5 +1,0 @@
---2012-05-19 13:07:53--  https://mxr.mozilla.org/mozilla-central/source/netwerk/dns/effective_tld_names.dat?raw=1
-Resolving mxr.mozilla.org (mxr.mozilla.org)... 63.245.215.42
-Connecting to mxr.mozilla.org (mxr.mozilla.org)|63.245.215.42|:443... connected.
-ERROR: The certificate of `mxr.mozilla.org' is not trusted.
-ERROR: The certificate of `mxr.mozilla.org' hasn't got a known issuer.
