@@ -27,6 +27,8 @@ class HTTPHost(httpt.HTTPTest):
     author = "Arturo Filastò"
     version = 0.1
 
+    usageOptions = UsageOptions
+
     inputFile = ['urls', 'f', None, 'Urls file']
 
     def test_send_host_header(self):
