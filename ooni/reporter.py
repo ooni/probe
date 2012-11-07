@@ -273,18 +273,14 @@ class OONIReporter(OReporter):
 
         idx = self.getTestIndex(test)
 
-        self._tests[idx]['last_time'] = self._getTime() - self._tests[idx]['test_started']
-        # This is here for allowing reporting of legacy tests.
-        # XXX In the future this should be removed.
-        try:
-            report = list(test.legacy_report)
-            log.debug("Set the report to be a list")
-        except:
-            # XXX I put a dict() here so that the object is re-instantiated and I
-            #     actually end up with the report I want. This could either be a
-            #     python bug or a yaml bug.
-            report = dict(test.report)
-            log.debug("Set the report to be a dict")
+        self._tests[idx]['last_time'] = self._getTime() - \
+                                        self._tests[idx]['test_started']
+
+        # XXX I put a dict() here so that the object is re-instantiated and I
+        #     actually end up with the report I want. This could either be a
+        #     python bug or a yaml bug.
+        report = dict(test.report)
+        log.debug("Set the report to be a dict")
 
         log.debug("Adding to report %s" % report)
         self._tests[idx]['report'] = report

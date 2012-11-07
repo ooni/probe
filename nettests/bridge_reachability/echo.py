@@ -50,8 +50,7 @@ class EchoTest(ScapyTest):
     description  = 'A simple ICMP-8 test to see if a host is reachable.'
     version      = '0.0.1'
     inputFile    = ['file', 'f', None, 'File of list of IPs to ping']
-    requirements = None
-    #report       = Storage()
+    requiresRoot = True
 
     optParameters = [
         ['interface', 'i', None, 'Network interface to use'],
@@ -73,7 +72,7 @@ class EchoTest(ScapyTest):
         if self.localOptions:
             log.debug("%s: local_options found" % self.name)
             for key, value in self.localOptions.items():
-                log.debug("%s: setting self.%s = %s" % (key, value))
+                log.debug("setting self.%s = %s" % (key, value))
                 setattr(self, key, value)
 
         ## xxx is this now .subOptions?

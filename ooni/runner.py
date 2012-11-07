@@ -20,24 +20,8 @@ from twisted.trial.runner import filenameToModule
 from ooni.inputunit import InputUnitFactory
 from ooni.nettest import InputTestSuite
 
-from ooni.plugoo import tests as oonitests
-
 from ooni.reporter import ReporterFactory
 from ooni.utils import log, date
-
-from ooni.utils.legacy import LegacyOONITest
-from ooni.utils.legacy import start_legacy_test, adapt_legacy_test
-
-def isLegacyTest(obj):
-    """
-    Returns True if the test in question is written using the OONITest legacy
-    class.
-    We do this for backward compatibility of the OONIProbe API.
-    """
-    try:
-        return issubclass(obj, oonitests.OONITest) and not obj == oonitests.OONITest
-    except TypeError:
-        return False
 
 def processTest(obj, config):
     """
@@ -115,9 +99,6 @@ def findTestClassesFromConfig(config):
         if isTestCase(val):
             log.debug("Detected TestCase %s" % val)
             classes.append(processTest(val, config))
-        elif isLegacyTest(val):
-            log.debug("Detected Legacy Test %s" % val)
-            classes.append(adapt_legacy_test(val, config))
     return classes
 
 def makeTestCases(klass, tests, method_prefix):
@@ -141,38 +122,18 @@ def loadTestsAndOptions(classes, config):
     options = []
     test_cases = []
 
-    _old_klass_type = LegacyOONITest
-
     for klass in classes:
-        if isinstance(klass, _old_klass_type):
-            try:
-                cases = start_legacy_test(klass)
-                if cases:
-                    log.debug("Processing cases")
-                    log.debug(str(cases))
-                    return [], []
-                test_cases.append(cases)
-            except Exception, e:
-                log.err(e)
-            else:
-                try:
-                    opts = klass.local_options
-                    options.append(opts)
-                except AttributeError, ae:
-                    options.append([])
-                    log.err(ae)
-        else:
-            tests = reflect.prefixedMethodNames(klass, method_prefix)
-            if tests:
-                cases = makeTestCases(klass, tests, method_prefix)
-                test_cases.append(cases)
-            try:
-                k = klass()
-                opts = k.getOptions()
-                options.append(opts)
-            except AttributeError, ae:
-                options.append([])
-                log.err(ae)
+        tests = reflect.prefixedMethodNames(klass, method_prefix)
+        if tests:
+            cases = makeTestCases(klass, tests, method_prefix)
+            test_cases.append(cases)
+        try:
+            k = klass()
+            opts = k.getOptions()
+            options.append(opts)
+        except AttributeError, ae:
+            options.append([])
+            log.err(ae)
 
     return test_cases, options
 

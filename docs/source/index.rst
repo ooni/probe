@@ -15,26 +15,41 @@ about the various types, methods, and amounts of network tampering in the world.
 Getting started
 ***************
 
-If you choose to use virtualenv to setup your development environment you will
-need to do the following::
+Requirements:
 
-    virtualenv ENV
-    source ENV/bin/activate
-    pip install twisted Scapy pyyaml pyOpenSSL
+    * Git: http://git-scm.com/book/en/Getting-Started-Installing-Git
+    * Python >= 2.6: http://www.python.org/download/releases/
+    * pip: http://www.pip-installer.org/en/latest/
 
-To get the latest version of scapy you will need mercurial. You can then install
-it with::
+On debian based systems these can be installed with:
 
-    pip install hg+http://hg.secdev.org/scapy
+    apt-get install git-core python python-pip python-dev
 
-On debian you can install all the dependecies with apt-get with this command::
+The python dependencies required for running ooniprobe are:
 
-    apt-get install python-twisted python-twisted-names python-yaml python-scapy python-beautifulsoup
+    * Twisted
+    * Scapy
+    * txtorcon
 
-Once you have installed all the dependencies OONI tests can be run like so::
+They can be installed from the requirements.txt with:
 
-    bin/ooniprobe path/to/test.py --cmd1 foo --cmd2 bar
+    pip install -r requirements.txt
 
+You are highly recommended to do so from inside of a virtual environment, since
+pip does not download the packages via SSL and you will need to install it
+system wide.
+
+This will require you to have installed virtualenv.
+
+    apt-get install python-virtualenv
+
+To create a new virtual environment do
+
+    virtualenv env
+
+Then install OONI with:
+
+    pip install -r requirements.txt
 
 Contents
 ********
@@ -45,7 +60,6 @@ Contents
 
     oonib
     install
-    tutorial
     writing_tests
     api/*
     glossary
