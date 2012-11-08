@@ -91,8 +91,6 @@ def run():
     except usage.UsageError, ue:
         raise SystemExit, "%s: %s" % (sys.argv[0], ue)
 
-    log.start()
-
     if cmd_line_options['debug-stacktraces']:
         defer.setDebugging(True)
 
