@@ -170,17 +170,18 @@ class ORunner(object):
                 log.msg("Could not find inputs!")
                 log.msg("options[0] = %s" % first)
                 self.inputs = [None]
+
         if cmd_line_options['reportfile']:
             report_filename = cmd_line_options['reportfile']
         else:
             report_filename = 'report_'+date.timestamp()+'.yamloo'
 
         if os.path.exists(report_filename):
-            os.rename(report_filename, report_filename+'.1')
-        try:
-            reportFile = open(report_filename, 'w+')
-        except TypeError:
-            reportFile = open(filename_filename, 'w+')
+            print "Report already exists with filename %s" % report_filename
+            print "Renaming it to %s" % report_filename+'.old'
+            os.rename(report_filename, report_filename+'.old')
+
+        reportFile = open(report_filename, 'w+')
         self.reporterFactory = ReporterFactory(reportFile,
                                                testSuite=self.baseSuite(self.cases))
 
