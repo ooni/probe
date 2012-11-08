@@ -9,12 +9,14 @@
 # :license: (c) 2012 Isis Lovecruft, Arturo Filasto
 #           see attached LICENCE file
 
-
 def getClientAddress():
     address = {'asn': 'REPLACE_ME',
                'ip': 'REPLACE_ME'}
     return address
 
+def capturePackets():
+    from scapy.all import sniff
+    sniff()
 
 class PermissionsError(SystemExit):
     def __init__(self, *args, **kwargs):

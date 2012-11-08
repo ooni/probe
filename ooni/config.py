@@ -41,5 +41,6 @@ advanced = Storage()
 for k, v in configuration['advanced'].items():
     advanced[k] = v
 
-threadpool = ThreadPool(0, config.advanced.threadpool_size)
+threadpool = ThreadPool(0, advanced.threadpool_size)
 threadpool.start()
+sniffer_d = None

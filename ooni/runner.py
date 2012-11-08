@@ -16,12 +16,13 @@ from twisted.python import reflect, usage
 
 from twisted.trial.runner import isTestCase
 from twisted.trial.runner import filenameToModule
+from twisted.internet import reactor, threads
 
 from ooni.inputunit import InputUnitFactory
 from ooni.nettest import InputTestSuite
 
 from ooni.reporter import ReporterFactory
-from ooni.utils import log, date
+from ooni.utils import log, date, net
 from ooni import config
 
 def processTest(obj, cmd_line_options):
@@ -210,12 +211,13 @@ class ORunner(object):
             idx += (suite._idx - idx)
             log.debug("I am now at the index %s" % idx)
 
-        log.debug("Finished")
+        log.debug("Finished running of all tests")
         result.done()
-
         config.threadpool.stop()
 
     def run(self):
+        if config.privacy.includepcap:
+            config.sniffer_d = threads.deferToThreadPool(reactor, config.threadpool, net.capturePackets)
         self.reporterFactory.options = self.options
         for input_unit in InputUnitFactory(self.inputs):
             self.runWithInputUnit(input_unit)
