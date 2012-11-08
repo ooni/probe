@@ -3,47 +3,30 @@ import string
 import struct
 import time
 
-from zope.interface import implements
 from twisted.python import usage
-from twisted.plugin import IPlugin
-from twisted.internet import protocol, defer
-from ooni.plugoo.tests import ITest, OONITest
-from ooni.plugoo.assets import Asset
-from ooni.utils import log
-from ooni.protocols.scapyproto import ScapyTest
+from ooni.templates.scapyt import BaseScapyTest
 
-from ooni.lib.txscapy import txsr, txsend
-
-class scapyArgs(usage.Options):
+class UsageOptions(usage.Options):
     optParameters = [['dst', 'd', None, 'Specify the target address'],
-                     ['port', 'p', None, 'Specify the target port'],
-                     ['pcap', 'f', None, 'The pcap file to write with the sent and received packets'],
+                     ['port', 'p', None, 'Specify the target port']
                     ]
 
-class ChinaTriggerTest(ScapyTest):
+class ChinaTriggerTest(BaseScapyTest):
     """
     This test is a OONI based implementation of the C tool written
     by Philipp Winter to engage chinese probes in active scanning.
 
     Example of running it:
-    ./ooni/ooniprobe.py chinatrigger -d 127.0.0.1 -p 8080 -f bla.pcap
+    ./bin/ooniprobe chinatrigger -d 127.0.0.1 -p 8080
     """
-    implements(IPlugin, ITest)
 
-    shortName = "chinatrigger"
-    description = "Triggers the chinese probes into scanning"
-    requirements = ['root']
-    options = scapyArgs
-    blocking = False
+    name = "chinatrigger"
+    usageOptions = UsageOptions
+    requiredOptions = ['dst', 'port']
 
-    receive = True
-    pcapfile = 'example_scapy.pcap'
-    timeout = 5
-
-    def initialize(self, reactor=None):
-        if not self.reactor:
-            from twisted.internet import reactor
-            self.reactor = reactor
+    def setUp(self):
+        self.dst = self.localOptions['dst']
+        self.port = int(self.localOptions['port'])
 
     @staticmethod
     def set_random_servername(pkt):
@@ -88,10 +71,7 @@ class ChinaTriggerTest(ScapyTest):
         pkt = ChinaTriggerTest.set_random_field(pkt)
         return pkt
 
-    def build_packets(self, *args, **kw):
-        """
-        Override this method to build scapy packets.
-        """
+    def test_send_mutations(self):
         from scapy.all import IP, TCP
         pkt = "\x16\x03\x01\x00\xcc\x01\x00\x00\xc8"\
               "\x03\x01\x4f\x12\xe5\x63\x3f\xef\x7d"\
@@ -123,18 +103,5 @@ class ChinaTriggerTest(ScapyTest):
         for x in range(len(pkt)):
             mutation = IP(dst=self.dst)/TCP(dport=self.port)/ChinaTriggerTest.mutate(pkt, x)
             pkts.append(mutation)
-        return pkts
-
-    def load_assets(self):
-        if self.local_options:
-            self.dst = self.local_options['dst']
-            self.port = int(self.local_options['port'])
-            if self.local_options['pcap']:
-                self.pcapfile = self.local_options['pcap']
-            if not self.port or not self.dst:
-                pass
-
-        return {}
-
-#chinatrigger = ChinaTriggerTest(None, None, None)
+        self.send(pkts)
 
