@@ -1,6 +1,6 @@
 from ooni import nettest
 class SimpleTest(nettest.NetTestCase):
-    inputs = range(1,100)
+    inputs = range(1,20)
     optParameters = [['asset', 'a', None, 'Asset file'],
                      ['controlserver', 'c', 'google.com', 'Specify the control server'],
                      ['resume', 'r', 0, 'Resume at this index'],

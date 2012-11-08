@@ -47,10 +47,12 @@ class InputTestSuite(pyunit.TestSuite):
                           "running is not a nettest")
                 log.debug(e)
 
-            log.debug("Running test")
+            log.debug("Running test with name %s" % str(test))
             # XXX we may want in a future to put all of these tests inside of a
             # thread pool and run them all in parallel
             test(result)
+            # Here we need to set the test name to be that of the test case we are running
+            result._tests[self._idx]['test'] = str(test)
             log.debug("Ran.")
 
             self._idx += 1

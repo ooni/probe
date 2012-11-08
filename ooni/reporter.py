@@ -156,10 +156,10 @@ class OReporter(pyunit.TestResult):
         self._write(format_string, *args)
         self._write('\n')
 
-    def writeYamlLine(self, line):
-        to_write = safe_dump([line])
-        self._write(to_write)
-
+    def writeReportEntry(self, entry):
+        self._write('---\n')
+        self._write(safe_dump(entry))
+        self._write('...\n')
 
 class ReporterFactory(OReporter):
     """
@@ -224,8 +224,7 @@ class ReporterFactory(OReporter):
                         'test_version': options['version'],
                         }
 
-        self.writeYamlLine(test_details)
-        self._writeln('')
+        self.writeReportEntry(test_details)
 
     def create(self):
         r = OONIReporter(self._stream, self.tbformat, self.realtime,
@@ -265,7 +264,7 @@ class OONIReporter(OReporter):
         if not self._startTime:
             self._startTime = self._getTime()
 
-        log.debug("Starting test %s" % idx)
+        log.debug("startTest on %s" % idx)
         test.report = {}
 
         self._tests[idx] = {}
@@ -277,9 +276,7 @@ class OONIReporter(OReporter):
             test_input = test.input
 
         self._tests[idx]['input'] = test_input
-        self._tests[idx]['name'] = test.name
         log.debug("Now starting %s" % self._tests[idx])
-
 
     def stopTest(self, test):
         log.debug("Stopping test")
@@ -287,7 +284,7 @@ class OONIReporter(OReporter):
 
         idx = self.getTestIndex(test)
 
-        self._tests[idx]['last_time'] = self._getTime() - \
+        self._tests[idx]['runtime'] = self._getTime() - \
                                         self._tests[idx]['test_started']
 
         # XXX I put a dict() here so that the object is re-instantiated and I
@@ -313,15 +310,11 @@ class OONIReporter(OReporter):
         and L{_separator} are all implemented.
         """
         log.debug("Test run concluded")
-        if self._startTime is not None:
-            self.report['start_time'] = self._startTime
-            self.report['run_time'] = time.time() - self._startTime
-            self.report['tests_run'] = self.testsRun
-        self.report['tests'] = self._tests
-        self.writeReport()
+        self.writeTestsReport(self._tests)
 
-    def writeReport(self):
-        self.writeYamlLine(self.report)
+    def writeTestsReport(self, tests):
+        for test in tests.values():
+            self.writeReportEntry(test)
 
     def addSuccess(self, test):
         OReporter.addSuccess(self, test)
