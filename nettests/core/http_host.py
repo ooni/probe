@@ -9,6 +9,7 @@
 # :authors: Arturo Filastò
 # :licence: see LICENSE
 
+from twisted.python import usage
 from ooni.templates import httpt
 
 class UsageOptions(usage.Options):

@@ -116,15 +116,15 @@ class EchoTest(BaseScapyTest):
                   % (self.name, ''.join(self.__dict__)))
 
     @staticmethod
-    def inputParser(inputs):
+    def inputParser(self, one_input):
         log.debug("Removing possible ports from host addresses...")
         log.debug("Initial inputs:\n%s" % pprint(inputs))
 
-        assert isinstance(inputs, list)
-        hosts = [h.rsplit(':', 1)[0] for h in inputs]
+        #host = [h.rsplit(':', 1)[0] for h in inputs]
+        host = h.rsplit(':', 1)[0]
         log.debug("Inputs converted to:\n%s" % hosts)
 
-        return hosts
+        return host
 
     def tryInterfaces(self, ifaces):
         try:

@@ -154,6 +154,9 @@ class ORunner(object):
         self.cases = cases
         self.options = options
 
+        log.debug("ORunner: cases=%s" % type(cases))
+        log.debug("ORunner: options=%s" % options)
+
         try:
             assert len(options) != 0, "Length of options is zero!"
         except AssertionError, ae:
@@ -172,11 +175,17 @@ class ORunner(object):
                 log.msg("options[0] = %s" % first)
                 self.inputs = [None]
 
-        try:
-            reportFile = open(cmd_line_options['reportfile'], 'a+')
-        except TypeError:
-            filename = 'report_'+date.timestamp()+'.yaml'
-            reportFile = open(filename, 'a+')
+        if cmd_line_options['reportfile']:
+            report_filename = cmd_line_options['reportfile']
+        else:
+            report_filename = 'report_'+date.timestamp()+'.yamloo'
+
+        if os.path.exists(report_filename):
+            print "Report already exists with filename %s" % report_filename
+            print "Renaming it to %s" % report_filename+'.old'
+            os.rename(report_filename, report_filename+'.old')
+
+        reportFile = open(report_filename, 'w+')
         self.reporterFactory = ReporterFactory(reportFile,
                                                testSuite=self.baseSuite(self.cases))
 

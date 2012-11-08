@@ -1,7 +1,15 @@
 # -*- encoding: utf-8 -*-
 #
-# :authors: Arturo "hellais" Filastò <art@fuffa.org>
+#     nettest.py
+# ------------------->
+#
+# :authors: Arturo "hellais" Filastò <art@fuffa.org>,
+#           Isis Lovecruft <isis@torproject.org>
 # :licence: see LICENSE
+# :copyright: 2012 Arturo Filasto, Isis Lovecruft
+# :version: 0.1.0-alpha
+#
+# <-------------------
 
 import sys
 import os
@@ -15,6 +23,7 @@ from twisted.python import usage
 from ooni.utils import log
 
 pyunit = __import__('unittest')
+
 
 class InputTestSuite(pyunit.TestSuite):
     """
@@ -47,10 +56,12 @@ class InputTestSuite(pyunit.TestSuite):
                           "running is not a nettest")
                 log.debug(e)
 
-            log.debug("Running test")
+            log.debug("Running test with name %s" % str(test))
             # XXX we may want in a future to put all of these tests inside of a
             # thread pool and run them all in parallel
             test(result)
+            # Here we need to set the test name to be that of the test case we are running
+            result._tests[self._idx]['test'] = str(test)
             log.debug("Ran.")
 
             self._idx += 1
@@ -121,7 +132,7 @@ class NetTestCase(unittest.TestCase):
     """
     name = "I Did Not Change The Name"
     author = "Jane Doe <foo@example.com>"
-    version = "0"
+    version = "0.0.0"
 
     inputs = [None]
     inputFile = None
