@@ -18,7 +18,7 @@ import os
 import random
 import time
 
-from twisted.internet import defer
+from twisted.internet import defer, reactor
 from twisted.application import app
 from twisted.python import usage, failure
 from twisted.python.util import spewer
@@ -26,8 +26,6 @@ from twisted.python.util import spewer
 from ooni import nettest, runner, reporter
 
 from ooni.inputunit import InputUnitFactory
-from ooni.reporter import ReporterFactory
-from ooni.nettest import InputTestSuite
 from ooni.utils import log
 
 
@@ -75,13 +73,9 @@ class Options(usage.Options, app.ReactorSelectionMixin):
         except:
             raise usage.UsageError("No test filename specified!")
 
-    def postOptions(self):
-        self['reporter'] = reporter.OONIReporter
-
-
 def run():
     """
-    Call me to begin testing a file or module.
+    Call me to begin testing from a file.
     """
     cmd_line_options = Options()
     if len(sys.argv) == 1:
@@ -95,10 +89,10 @@ def run():
         defer.setDebugging(True)
 
     classes = runner.findTestClassesFromConfig(cmd_line_options)
-    casesList, options = runner.loadTestsAndOptions(classes, cmd_line_options)
+    test_cases, options = runner.loadTestsAndOptions(classes, cmd_line_options)
+    log.start(cmd_line_options['logfile'])
 
-    for idx, cases in enumerate(casesList):
-        orunner = runner.ORunner(cases, options[idx], cmd_line_options)
-        log.start(cmd_line_options['logfile'])
-        orunner.run()
+    runner.runTestCases(test_cases, options, cmd_line_options)
+    reactor.run()
+
 

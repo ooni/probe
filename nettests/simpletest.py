@@ -19,11 +19,9 @@ class SimpleTest(nettest.NetTestCase):
         print "Running %s with %s" % ("test_foo", self.input)
         self.report['test_foo'] = 'Antani'
         self.report['shared'] = "sblinda"
-        self.assertEqual(1, 1)
 
     def test_f4oo(self):
         """Test that tests are working."""
         print "Running %s with %s" % ("test_f4oo", self.input)
         self.report['test_f4oo'] = 'Antani'
         self.report['shared'] = "sblinda2"
-        self.assertEqual(1, 1)
