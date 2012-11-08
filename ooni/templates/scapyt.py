@@ -9,14 +9,61 @@ from twisted.python import usage
 from twisted.plugin import IPlugin
 from twisted.internet import protocol, defer, threads
 
-from scapy.all import IP, TCP, send, sr
+from scapy.all import send, sr, IP, TCP
 
 from ooni.nettest import NetTestCase
 from ooni.utils import log
 
 from ooni.lib.txscapy import TXScapy
 
-class ScapyTest(NetTestCase):
+def createPacketReport(packet_list):
+    """
+    Takes as input a packet a list containing a dict with the packet
+    summary and the raw packet.
+    """
+    report = []
+    for packet in packet_list:
+        report.append({'raw_packet': str(packet),
+            'summary': str(packet.summary())})
+    return report
+
+class BaseScapyTest(NetTestCase):
+    """
+    The report of a test run with scapy looks like this:
+
+    report:
+        sent_packets: [{'raw_packet': BASE64Encoding of packet,
+                        'summary': 'IP / TCP 192.168.2.66:ftp_data > 8.8.8.8:http S']
+        answered_packets: []
+
+    """
+    name = "Base Scapy Test"
+    version = 0.1
+
+    requiresRoot = True
+
+    sentPackets = []
+    answeredPackets = []
+
+    def sr(self, *arg, **kw):
+        """
+        Wrapper around scapy.sendrecv.sr for sending and receiving of packets
+        at layer 3.
+        """
+        answered_packets, sent_packets = sr(*arg, **kw)
+        self.report['answered_packets'] = createPacketReport(answered_packets)
+        self.report['sent_packets'] = createPacketReport(sent_packets)
+        return (answered_packets, sent_packets)
+
+    def send(self, *arg, **kw):
+        """
+        Wrapper around scapy.sendrecv.send for sending of packets at layer 3
+        """
+        sent_packets = send(*arg, **kw)
+        self.report['sent_packets'] = createPacketReport(sent_packets)
+        return sent_packets
+
+class TXScapyTest(BaseScapyTest):
     """
     A utility class for writing scapy driven OONI tests.
 
@@ -25,8 +72,10 @@ class ScapyTest(NetTestCase):
     * timeout: timeout in ms of when we should stop waiting to receive packets
 
     * receive: if we should also receive packets and not just send
+
+    XXX This is currently not working
     """
-    name = "Scapy Test"
+    name = "TX Scapy Test"
     version = 0.1
 
     receive = True
@@ -37,15 +86,6 @@ class ScapyTest(NetTestCase):
 
     answered = None
     unanswered = None
-
-
-    def setUp(self):
-        if not self.reactor:
-            from twisted.internet import reactor
-            self.reactor = reactor
-        self.questions = []
-        self.answers = []
-        self.processInputs()
 
     def processInputs(self):
         """
@@ -98,45 +138,6 @@ class ScapyTest(NetTestCase):
         d.addCallback(self.finished)
 
         return d
-
-    def buildPackets(self):
-        """
-        Override this method to build scapy packets.
-        """
-        pass
-
-class BlockingScapyTest(ScapyTest):
-    """
-    This is a very basic Scapy Test template that does not do all the
-    multithreading kung-fu of txscapy, but maintains the same API.
-
-    This will allow tests implemented using the BlockingScapyTest API to easily
-    migrate to the new API.
-    """
-    name = "Blocking Scapy Test"
-    version = 0.1
-
-    timeout = None
-
-    answered = None
-    unanswered = None
-
-    def sendReceivePackets(self):
-        packets = self.buildPackets()
-
-        log.debug("Sending and receiving %s" % packets)
-
-        self.answered, self.unanswered = sr(packets, timeout=self.timeout)
-
-        log.debug("%s %s" % (ans, unans))
-
-    def sendPackets(self):
-        packets = self.buildPackets()
-
-        log.debug("Sending packets %s" % packets)
-
-        send(packets)
-
 
     def buildPackets(self):
         """

@@ -122,7 +122,10 @@ class NetTestCase(unittest.TestCase):
 
         | optParameters = [['outfile', 'O', 'outfile.log', 'Description...']]
 
-    * advancedOptParameters: a subclass of twisted.python.usage.Options for more advanced command line arguments fun.
+    * usageOptions: a subclass of twisted.python.usage.Options for more advanced command line arguments fun.
+
+    * requiredOptions: a list containing the name of the options that are
+                       required for proper running of a test.
 
     """
     name = "I Did Not Change The Name"
@@ -137,7 +140,9 @@ class NetTestCase(unittest.TestCase):
 
     optFlags = None
     optParameters = None
-    advancedOptParameters = None
+
+    usageOptions = None
+    requiredOptions = []
 
     requiresRoot = False
 
@@ -158,13 +163,31 @@ class NetTestCase(unittest.TestCase):
             return unittest.TestCase.deferSetUp(self, ignored, result)
 
     def inputProcessor(self, fp):
+        """
+        You may replace this with your own custom input processor. It takes as
+        input a file descriptor so remember to close it when you are done.
+
+        This can be useful when you have some input data that is in a certain
+        format and you want to set the input attribute of the test to something
+        that you will be able to properly process.
+
+        For example you may wish to have an input processor that will allow you
+        to ignore comments in files. This can be easily achieved like so:
+
+            for x in fp.xreadlines():
+                if x.startswith("#"):
+                    continue
+                yield x.strip()
+            fp.close()
+
+        Other fun stuff is also possible.
+        """
         log.debug("Running default input processor")
-        for x in fp.readlines():
+        for x in fp.xreadlines():
             yield x.strip()
         fp.close()
 
-    def getOptions(self):
-        log.debug("Getting options for test")
+    def _processOptions(self, options=None):
         if self.inputFile:
             try:
                 assert isinstance(self.inputFile, str)
@@ -172,15 +195,22 @@ class NetTestCase(unittest.TestCase):
                 log.err(ae)
             else:
                 if os.path.isfile(self.inputFile):
-                    print self.inputFile
                     fp = open(self.inputFile)
                     self.inputs = self.inputProcessor(fp)
         elif not self.inputs[0]:
             pass
         elif self.inputFile:
             raise usage.UsageError("No input file specified!")
+
+        # XXX this is a bit hackish
+        if options:
+            for required_option in self.requiredOptions:
+                log.debug("Checking if %s is present" % required_option)
+                if not options[required_option]:
+                    raise usage.UsageError("%s not specified!" % required_option)
+
         # XXX perhaps we may want to name and version to be inside of a
-        # different object that is not called options.
+        # different method that is not called options.
         return {'inputs': self.inputs,
                 'name': self.name,
                 'version': self.version}

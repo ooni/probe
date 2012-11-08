@@ -11,6 +11,13 @@
 
 from ooni.templates import httpt
 
+class UsageOptions(usage.Options):
+    optParameters = [
+                     ['url', 'u', 'http://torproject.org/', 'Test single site'],
+                     ['backend', 'b', 'http://ooni.nu/test/', 'Test backend to use'],
+                    ]
+
+
 class HTTPHost(httpt.HTTPTest):
     """
     This test is aimed at detecting the presence of a transparent HTTP proxy
@@ -20,9 +27,7 @@ class HTTPHost(httpt.HTTPTest):
     author = "Arturo Filastò"
     version = 0.1
 
-    optParameters = [['url', 'u', 'http://torproject.org/', 'Test single site'],
-                     ['backend', 'b', 'http://ooni.nu/test/', 'Test backend to use'],
-                     ]
+    usageOptions = UsageOptions
 
     inputFile = ['urls', 'f', None, 'Urls file']
 

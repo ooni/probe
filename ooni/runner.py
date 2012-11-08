@@ -42,7 +42,7 @@ def processTest(obj, cmd_line_options):
             raise Exception("This test requires root to run")
 
     if obj.optParameters or input_file \
-            or obj.advancedOptParameters or obj.optFlags:
+            or obj.usageOptions or obj.optFlags:
 
         if not obj.optParameters:
             obj.optParameters = []
@@ -50,10 +50,12 @@ def processTest(obj, cmd_line_options):
         if input_file:
             obj.optParameters.append(input_file)
 
-        if obj.advancedOptParameters:
-            log.debug("Got advanced options")
-            options = obj.advancedOptParameters()
+        if obj.usageOptions:
+            if input_file:
+                obj.usageOptions.optParameters.append(input_file)
+            options = obj.usageOptions()
         else:
+            # XXX this as suggested by isis should be removed.
             log.debug("Got optParameters")
             class Options(usage.Options):
                 optParameters = obj.optParameters
@@ -68,10 +70,14 @@ def processTest(obj, cmd_line_options):
 
         if input_file:
             obj.inputFile = options[input_file[0]]
+
         try:
-            tmp_obj = obj()
-            tmp_obj.getOptions()
-        except usage.UsageError:
+            tmp_test_case_object = obj()
+            tmp_test_case_object._processOptions(options)
+
+        except usage.UsageError, e:
+            print "There was an error in running %s!" % tmp_test_case_object.name
+            print "%s" % e
             options.opt_help()
 
     return obj
@@ -115,9 +121,7 @@ def makeTestCases(klass, tests, method_prefix):
 def loadTestsAndOptions(classes, cmd_line_options):
     """
     Takes a list of test classes and returns their testcases and options.
-    Legacy tests will be adapted.
     """
-
     method_prefix = 'test'
     options = []
     test_cases = []
@@ -129,7 +133,7 @@ def loadTestsAndOptions(classes, cmd_line_options):
             test_cases.append(cases)
         try:
             k = klass()
-            opts = k.getOptions()
+            opts = k._processOptions()
             options.append(opts)
         except AttributeError, ae:
             options.append([])
