@@ -41,19 +41,15 @@ class Options(usage.Options, app.ReactorSelectionMixin):
 
     optFlags = [["help", "h"],
                 ['debug-stacktraces', 'B',
-                    'Report deferred creation and callback stack traces'],
-                ]
+                    'Report deferred creation and callback stack traces'],]
 
-    optParameters = [
-        ["reportfile", "o", None, "report file name"],
-        ["logfile", "l", None, "log file name"],
-        ]
+    optParameters = [["reportfile", "o", None, "report file name"],
+                     ["logfile", "l", None, "log file name"],]
 
     compData = usage.Completions(
         extraActions=[usage.CompleteFiles(
                 "*.py", descr="file | module | package | TestCase | testMethod",
-                repeat=True)],
-        )
+                repeat=True)],)
 
     tracer = None
 
@@ -75,7 +71,6 @@ class Options(usage.Options, app.ReactorSelectionMixin):
     def parseArgs(self, *args):
         try:
             self['test'] = args[0]
-
             self['subArgs'] = args[1:]
         except:
             raise usage.UsageError("No test filename specified!")
@@ -85,12 +80,15 @@ class Options(usage.Options, app.ReactorSelectionMixin):
 
 
 def run():
-    if len(sys.argv) == 1:
-        sys.argv.append("--help")
+    """
+    Call me to begin testing a file or module.
+    """
     cmd_line_options = Options()
+    if len(sys.argv) == 1:
+        cmd_line_options.getUsage()
     try:
         cmd_line_options.parseOptions()
-    except usage.error, ue:
+    except usage.UsageError, ue:
         raise SystemExit, "%s: %s" % (sys.argv[0], ue)
 
     if cmd_line_options['debug-stacktraces']:

@@ -1,17 +1,16 @@
 #!/usr/bin/env python
 # -*- encoding: utf-8 -*-
-###############################################################################
-#
-# oonicli
-# -----------------------
-#
-# Run the Twisted Trial (unittest module) based oonicli. Startup script based 
-# on twisted trial, see http://twistedmatrix.com/ .
-#
-# :authors: Arturo Filastò
-# :licence: see included LICENSE file
-# :version: 0.0.1-pre-alpha
-###############################################################################
+'''
+ oonicli
+ -----------
+
+ Run the Twisted Trial (unittest module) based oonicli. Startup script based
+ on twisted trial, see http://twistedmatrix.com/ .
+
+ :authors: Arturo Filastò, Isis Lovecruft
+ :licence: see included LICENSE file
+ :version: 0.0.1-pre-alpha
+'''
 
 import os, sys
 import copy_reg

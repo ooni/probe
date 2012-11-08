@@ -19,9 +19,17 @@ OONI depends on the following pieces of software.
 
 *Optional*
 
-* Dnspython[1]: http://www.dnspython.org/
-* Paramiko[2]: http://www.lag.net/paramiko/
+* Dnspython [1]: http://www.dnspython.org/
+* Paramiko [2]: http://www.lag.net/paramiko/
 * Txtorcon: https://github.com/meejah/txtorcon
+
+If you would like to use Scapy to plot graphs of network activity,
+or be capable of dumping obtained information to a PostScript or PDF
+file, then you'll need:
+
+      * gnuplot-py
+      * numpy
+      * Pyx
 
 [1][2] These dependencies will soon be removed completely.
 

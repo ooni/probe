@@ -153,6 +153,9 @@ class ORunner(object):
         self.cases = cases
         self.options = options
 
+        log.debug("ORunner: cases=%s" % type(cases))
+        log.debug("ORunner: options=%s" % options)
+
         try:
             assert len(options) != 0, "Length of options is zero!"
         except AssertionError, ae:
