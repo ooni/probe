@@ -17,3 +17,5 @@ oonib/data/*
 fluff/
 pcaps/
 report*.yaml
+docs/build/*
+data/*.dat

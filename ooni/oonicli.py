@@ -32,30 +32,24 @@ from ooni.utils import log
 
 
 class Options(usage.Options, app.ReactorSelectionMixin):
-    synopsis = """%s [options] [[file|package|module|TestCase|testmethod]...]
+    synopsis = """%s [options] [path to test].py
     """ % (os.path.basename(sys.argv[0]),)
 
     longdesc = ("ooniprobe loads and executes a suite or a set of suites of"
-                "network tests. These are loaded from modules, packages and"
-                "files listed on the command line")
+                " network tests. These are loaded from modules, packages and"
+                " files listed on the command line")
 
     optFlags = [["help", "h"],
                 ['debug-stacktraces', 'B',
-                    'Report deferred creation and callback stack traces'],
-                ]
+                    'Report deferred creation and callback stack traces'],]
 
-    optParameters = [
-        ["reportfile", "o", None, "report file name"],
-        ["logfile", "l", "test.log", "log file name"],
-        ['temp-directory', None, '_ooni_temp',
-         'Path to use as working directory for tests.']
-        ]
+    optParameters = [["reportfile", "o", None, "report file name"],
+                     ["logfile", "l", None, "log file name"],]
 
     compData = usage.Completions(
         extraActions=[usage.CompleteFiles(
                 "*.py", descr="file | module | package | TestCase | testMethod",
-                repeat=True)],
-        )
+                repeat=True)],)
 
     tracer = None
 
@@ -89,26 +83,24 @@ def run():
     """
     Call me to begin testing a file or module.
     """
-
-    config = Options()
-
+    cmd_line_options = Options()
     if len(sys.argv) == 1:
-        config.getUsage()
-
+        cmd_line_options.getUsage()
     try:
-        config.parseOptions()
+        cmd_line_options.parseOptions()
     except usage.UsageError, ue:
         raise SystemExit, "%s: %s" % (sys.argv[0], ue)
 
     log.start()
-    log.debug("oonicli.run: config set to %s" % config)
 
-    if config['debug-stacktraces']:
+    if cmd_line_options['debug-stacktraces']:
         defer.setDebugging(True)
 
-    classes = runner.findTestClassesFromConfig(config)
-    casesList, options = runner.loadTestsAndOptions(classes, config)
+    classes = runner.findTestClassesFromConfig(cmd_line_options)
+    casesList, options = runner.loadTestsAndOptions(classes, cmd_line_options)
 
     for idx, cases in enumerate(casesList):
-        orunner = runner.ORunner(cases, options[idx], config)
+        orunner = runner.ORunner(cases, options[idx], cmd_line_options)
+        log.start(cmd_line_options['logfile'])
         orunner.run()
+

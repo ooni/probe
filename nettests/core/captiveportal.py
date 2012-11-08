@@ -65,7 +65,8 @@ class CaptivePortal(nettest.NetTestCase):
 
     name = "captivep"
     description = "Captive Portal Test"
-    requirements = None
+    version = '0.1'
+    author = "Isis LoveCruft <isis@torproject.org>"
 
     def http_fetch(self, url, headers={}):
         """
@@ -635,6 +636,4 @@ class CaptivePortal(nettest.NetTestCase):
 
         log.msg("")
         log.msg("Captive portal test finished!")
-
-        self.control(self.report)
 

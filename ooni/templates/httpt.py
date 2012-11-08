@@ -6,12 +6,14 @@
 import random
 
 from zope.interface import implements
+
 from twisted.python import usage
 from twisted.plugin import IPlugin
 from twisted.internet import protocol, defer
 from twisted.internet.ssl import ClientContextFactory
 
 from twisted.web.http_headers import Headers
+from twisted.web.iweb import IBodyProducer
 
 from ooni.nettest import NetTestCase
 from ooni.utils import log
@@ -27,6 +29,23 @@ useragents = [("Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.8.1.6) Geck
               ("Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; en) Opera 8.0", "Opera 8.0, Windows XP"),
               ("Mozilla/4.0 (compatible; MSIE 6.0; MSIE 5.5; Windows NT 5.1) Opera 7.02 [en]", "Opera 7.02, Windows XP"),
               ("Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.7.5) Gecko/20060127 Netscape/8.1", "Netscape 8.1, Windows XP")]
+
+class StringProducer(object):
+    implements(IBodyProducer)
+
+    def __init__(self, body):
+        self.body = body
+        self.length = len(body)
+
+    def startProducing(self, consumer):
+        consumer.write(self.body)
+        return defer.succeed(None)
+
+    def pauseProducing(self):
+        pass
+
+    def stopProducing(self):
+        pass
 
 class BodyReceiver(protocol.Protocol):
     def __init__(self, finished):
@@ -77,7 +96,11 @@ class HTTPTest(NetTestCase):
 
         self.request = {}
         self.response = {}
+        self.processInputs()
         log.debug("Finished test setup")
+
+    def processInputs(self):
+        pass
 
     def _processResponseBody(self, data, body_processor):
         log.debug("Processing response body")
@@ -121,27 +144,30 @@ class HTTPTest(NetTestCase):
         Perform an HTTP request with the specified method.
 
         url: the full url path of the request
+
         method: the HTTP Method to be used
+
         headers: the request headers to be sent
+
         body: the request body
+
         headers_processor: a function to be used for processing the HTTP header
                           responses (defaults to self.processResponseHeaders).
                           This function takes as argument the HTTP headers as a
                           dict.
+
         body_processory: a function to be used for processing the HTTP response
                          body (defaults to self.processResponseBody).
                          This function takes the response body as an argument.
+
         """
         log.debug("Performing request %s %s %s" % (url, method, headers))
-        try:
-            d = self.build_request(url, method, headers, body)
-        except Exception, e:
-            print e
-            self.report['error'] = e
+
+        d = self.build_request(url, method, headers, body)
 
         def errback(data):
-            print data
-            #self.report["error"] = data
+            log.err("Error in test %s" % data)
+            self.report["error"] = data
 
         def finished(data):
             return
@@ -186,13 +212,22 @@ class HTTPTest(NetTestCase):
         self.request['url'] = url
         self.request['headers'] = headers if headers else {}
         self.request['body'] = body
+
         if self.randomizeUA:
             self.randomize_useragent()
 
         self.report['request'] = self.request
         self.report['url'] = url
+
+        # If we have a request body payload, set the request body to such
+        # content
+        if body:
+            body_producer = StringProducer(self.request['body'])
+        else:
+            body_producer = None
+
         req = self.agent.request(self.request['method'], self.request['url'],
                                   Headers(self.request['headers']),
-                                  self.request['body'])
+                                  body_producer)
         return req
 

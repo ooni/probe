@@ -20,22 +20,24 @@ import os
 import sys
 
 from twisted.python       import usage
-from twisted.plugin       import IPlugin
 from twisted.internet     import defer, error, reactor
-from zope.interface       import implements
+
+from ooni                 import nettest
 
 from ooni.utils           import log, date
 from ooni.utils.config    import ValueChecker
 
-from ooni.plugoo.tests    import ITest, OONITest
-from ooni.plugoo.assets   import Asset, MissingAssetException
 from ooni.utils.onion     import TxtorconImportError
 from ooni.utils.onion     import PTNoBridgesException, PTNotFoundException
+
 
 try:
     from ooni.utils.onion     import parse_data_dir
 except:
     log.msg("Please go to /ooni/lib and do 'make txtorcon' to run this test!")
+
+class MissingAssetException(Exception):
+    pass
 
 class RandomPortException(Exception):
     """Raised when using a random port conflicts with configured ports."""
@@ -83,18 +85,7 @@ class BridgetArgs(usage.Options):
         if self['torpath']:
             ValueChecker.file_check(self['torpath'])
 
-class BridgetAsset(Asset):
-    """Class for parsing bridget Assets ignoring commented out lines."""
-    def __init__(self, file=None):
-        self = Asset.__init__(self, file)
-
-    def parse_line(self, line):
-        if line.startswith('#'):
-            return
-        else:
-            return line.replace('\n','')
-
-class BridgetTest(OONITest):
+class BridgetTest(nettest.NetTestCase):
     """
     XXX fill me in
 
@@ -114,15 +105,13 @@ class BridgetTest(OONITest):
     :ivar tor_binary:
         Path to the Tor binary to use, e.g. \'/usr/sbin/tor\'
     """
-    implements(IPlugin, ITest)
+    name    = "bridget"
+    author  = "Isis Lovecruft <isis@torproject.org>"
+    version = "0.1"
+    description   = "Use a Tor process to test connecting to bridges or relays"
+    advancedOptParameters = BridgetArgs
 
-    shortName    = "bridget"
-    description  = "Use a Tor process to test connecting to bridges or relays"
-    requirements = None
-    options      = BridgetArgs
-    blocking     = False
-
-    def initialize(self):
+    def setUp(self):
         """
         Extra initialization steps. We only want one child Tor process
         running, so we need to deal with most of the TorConfig() only once,
@@ -134,14 +123,16 @@ class BridgetTest(OONITest):
         self.tor_binary      = '/usr/sbin/tor'
         self.data_directory  = None
 
-        def __make_asset_list__(opt, lst):
+        def read_from_file(filename):
             log.msg("Loading information from %s ..." % opt)
-            with open(opt) as opt_file:
-                for line in opt_file.readlines():
+            with open(filename) as fp:
+                lst = []
+                for line in fp.readlines():
                     if line.startswith('#'):
                         continue
                     else:
                         lst.append(line.replace('\n',''))
+                return lst
 
         def __count_remaining__(which):
             total, reach, unreach = map(lambda x: which[x],
@@ -168,23 +159,24 @@ class BridgetTest(OONITest):
         self.relays['remaining']   = lambda: __count_remaining__(self.relays)
         self.relays['current']     = None
 
-        if self.local_options:
+        if self.localOptions:
             try:
-                from ooni.lib.txtorcon import TorConfig
+                from txtorcon import TorConfig
             except ImportError:
                 raise TxtorconImportError
             else:
                 self.config = TorConfig()
             finally:
-                options = self.local_options
+                options = self.localOptions
 
             if options['bridges']:
                 self.config.UseBridges = 1
-                __make_asset_list__(options['bridges'], self.bridges['all'])
+                self.bridges['all'] = read_from_file(options['bridges'])
             if options['relays']:
                 ## first hop must be in TorState().guards
+                # XXX where is this defined?
                 self.config.EntryNodes = ','.join(relay_list)
-                __make_asset_list__(options['relays'], self.relays['all'])
+                self.relays['all'] = read_from_file(options['relays'])
             if options['socks']:
                 self.socks_port = options['socks']
             if options['control']:
@@ -215,33 +207,7 @@ class BridgetTest(OONITest):
             self.config.ControlPort          = self.control_port
             self.config.CookieAuthentication = 1
 
-    def __load_assets__(self):
-        """
-        Load bridges and/or relays from files given in user options. Bridges
-        should be given in the form IP:ORport. We don't want to load these as
-        assets, because it's inefficient to start a Tor process for each one.
-
-        We cannot use the Asset model, because that model calls
-        self.experiment() with the current Assets, which would be one relay
-        and one bridge, then it gives the defer.Deferred returned from
-        self.experiment() to self.control(), which means that, for each
-        (bridge, relay) pair, experiment gets called again, which instantiates
-        an additional Tor process that attempts to bind to the same
-        ports. Thus, additionally instantiated Tor processes return with
-        RuntimeErrors, which break the final defer.chainDeferred.callback(),
-        sending it into the errback chain.
-        """
-        assets = {}
-        if self.local_options:
-            if self.local_options['bridges']:
-                assets.update({'bridge':
-                               BridgetAsset(self.local_options['bridges'])})
-            if self.local_options['relays']:
-                assets.update({'relay':
-                               BridgetAsset(self.local_options['relays'])})
-        return assets
-
-    def experiment(self, args):
+    def test_bridget(self):
         """
         if bridges:
             1. configure first bridge line
@@ -465,7 +431,7 @@ class BridgetTest(OONITest):
         #self.reactor.run()
         return state
 
-    def startTest(self, args):
+    def disabled_startTest(self, args):
         """
         Local override of :meth:`OONITest.startTest` to bypass calling
         self.control.
@@ -482,9 +448,6 @@ class BridgetTest(OONITest):
         self.d.addErrback(log.err)
         self.d.addCallbacks(self.finished, log.err)
         return self.d
-
-## So that getPlugins() can register the Test:
-#bridget = BridgetTest(None, None, None)
 
 ## ISIS' NOTES
 ## -----------
