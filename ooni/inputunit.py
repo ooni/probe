@@ -1,3 +1,15 @@
+#-*- coding: utf-8 -*-
+#
+# inputunit.py 
+# -------------
+# IN here we have functions related to the creation of input
+# units. Input units are how the inputs to be fed to tests are
+# split up into.
+#
+# :authors: Arturo Filastò, Isis Lovecruft
+# :license: see included LICENSE file
+
+
 class InputUnitFactory(object):
     """
     This is a factory that takes the size of input units to be generated a set

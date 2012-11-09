@@ -2,12 +2,11 @@
 #
 # runner.py
 # ---------
-# Handles running ooni.nettests as well as ooni.plugoo.tests.OONITests.
+# Handles running ooni.nettests as well as
+# ooni.plugoo.tests.OONITests.
 #
-# :authors: Isis Lovecruft, Arturo Filasto
+# :authors: Arturo Filastò, Isis Lovecruft
 # :license: see included LICENSE file
-# :copyright: (c) 2012 Isis Lovecruft, Arturo Filasto, The Tor Project, Inc.
-# :version: 0.1.0-pre-alpha
 
 import os
 import sys
@@ -25,7 +24,7 @@ from ooni.nettest import NetTestCase
 
 from ooni import reporter
 
-from ooni.utils import log, date, checkForRoot
+from ooni.utils import log, checkForRoot, NotRootError
 
 def processTest(obj, cmd_line_options):
     """
@@ -42,7 +41,12 @@ def processTest(obj, cmd_line_options):
 
     input_file = obj.inputFile
     if obj.requiresRoot:
-        checkForRoot("test")
+        try:
+            checkForRoot()
+        except NotRootError:
+            log.err("%s requires root to run" % obj.name)
+            sys.exit(1)
+
 
     if obj.optParameters or input_file \
             or obj.usageOptions or obj.optFlags:

@@ -1,15 +1,12 @@
 # -*- encoding: utf-8 -*-
 #
-#     nettest.py
-# ------------------->
+# nettest.py
+# ----------
+# In here is the NetTest API definition. This is how people
+# interested in writing ooniprobe tests will be specifying them
 #
-# :authors: Arturo "hellais" Filastò <art@fuffa.org>,
-#           Isis Lovecruft <isis@torproject.org>
-# :licence: see LICENSE
-# :copyright: 2012 Arturo Filasto, Isis Lovecruft
-# :version: 0.1.0-alpha
-#
-# <-------------------
+# :authors: Arturo Filastò, Isis Lovecruft
+# :license: see included LICENSE file
 
 import sys
 import os
@@ -21,8 +18,6 @@ from twisted.internet import defer, utils
 from twisted.python import usage
 
 from ooni.utils import log
-
-pyunit = __import__('unittest')
 
 class NetTestCase(object):
     """
@@ -102,7 +97,6 @@ class NetTestCase(object):
 
     usageOptions = None
     requiredOptions = []
-
     requiresRoot = False
 
     localOptions = {}
@@ -159,7 +153,7 @@ class NetTestCase(object):
             raise usage.UsageError("No input file specified!")
 
         self._checkRequiredOptions()
-        
+
         # XXX perhaps we may want to name and version to be inside of a
         # different method that is not called options.
         return {'inputs': self.inputs,
