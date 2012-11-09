@@ -47,14 +47,23 @@ class BaseScapyTest(NetTestCase):
         Wrapper around scapy.sendrecv.sr for sending and receiving of packets
         at layer 3.
         """
-        def finished(result):
-            answered, unanswered = result
-            sent_packets, received_packets = answered
-            self.report['answered_packets'] = createPacketReport(received_packets)
-            self.report['sent_packets'] = createPacketReport(sent_packets)
+        def finished(packets):
+            log.debug("Got this bullshit")
+            answered, unanswered = packets
+            self.report['answered_packets'] = []
+            self.report['sent_packets'] = []
+            for snd, rcv in answered:
+                log.debug("Writing report %s")
+                pkt_report_r = createPacketReport(rcv)
+                pkt_report_s = createPacketReport(snd)
+                self.report['answered_packets'].append(pkt_report_r)
+                self.report['sent_packets'].append(pkt_report_s)
+                log.debug("Done")
+            return packets
 
         scapyProtocol = ScapyProtocol(*arg, **kw)
         d = scapyProtocol.startSending(packets)
+        d.addCallback(finished)
         return d
 
     def send(self, pkts, *arg, **kw):
