@@ -1,3 +1,12 @@
+#-*- coding: utf-8 -*-
+#
+# reporter.py 
+# -----------
+# In here goes the logic for the creation of ooniprobe reports.
+#
+# :authors: Arturo Filastò, Isis Lovecruft
+# :license: see included LICENSE file
+
 import itertools
 import logging
 import sys
@@ -11,13 +20,12 @@ from yaml.emitter import *
 from yaml.serializer import *
 from yaml.resolver import *
 
-from datetime import datetime
 from twisted.python.util import untilConcludes
 from twisted.trial import reporter
 from twisted.internet import defer, reactor
 
 from ooni.templates.httpt import BodyReceiver, StringProducer
-from ooni.utils import date, log, geodata
+from ooni.utils import otime, log, geodata
 from ooni import config
 
 try:
@@ -160,7 +168,7 @@ class OReporter(YamlReporter):
         self.firstrun = False
         self._writeln("###########################################")
         self._writeln("# OONI Probe Report for %s test" % options['name'])
-        self._writeln("# %s" % date.pretty_date())
+        self._writeln("# %s" % otime.prettyDateNow())
         self._writeln("###########################################")
 
         client_geodata = {}
@@ -194,7 +202,7 @@ class OReporter(YamlReporter):
             client_geodata['countrycode'] = client_location['countrycode']
 
 
-        test_details = {'start_time': repr(date.now()),
+        test_details = {'start_time': otime.utcTimeNow(),
                         'probe_asn': client_geodata['asn'],
                         'probe_cc': client_geodata['countrycode'],
                         'probe_ip': client_geodata['ip'],
@@ -222,7 +230,7 @@ class OReporter(YamlReporter):
         self.writeReportEntry(report)
 
     def allDone(self):
-        log.debug("Finished running everything")
+        log.debug("Finished running all tests")
         self.finish()
         try:
             reactor.stop()

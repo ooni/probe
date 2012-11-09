@@ -1,16 +1,12 @@
-#!/usr/bin/env python
 # -*- coding: UTF-8
 #
-#    oonicli
-#    *********
+# oonicli
+# -------
+# In here we take care of running ooniprobe from the command
+# line interface
 #
-#    oonicli is the next generation ooniprober. It based off of twisted's trial
-#    unit testing framework.
-#
-#    :copyright: (c) 2012 by Arturo Filastò, Isis Lovecruft
-#    :license: see LICENSE for more details.
-#
-#    original copyright (c) by Twisted Matrix Laboratories.
+# :authors: Arturo Filastò, Isis Lovecruft
+# :license: see included LICENSE file
 
 
 import sys
@@ -27,7 +23,8 @@ from ooni import nettest, runner, reporter, config
 
 from ooni.inputunit import InputUnitFactory
 
-from ooni.utils import net, checkForRoot
+from ooni.utils import net
+from ooni.utils import checkForRoot, NotRootError
 from ooni.utils import log
 
 
@@ -118,9 +115,9 @@ def run():
     if config.privacy.includepcap:
         try:
             checkForRoot()
-        except:
+        except NotRootError:
             log.err("includepcap options requires root priviledges to run")
-            log.err("disable it in your ooniprobe.conf file")
+            log.err("you should run ooniprobe as root or disable the options in ooniprobe.conf")
             sys.exit(1)
         log.debug("Starting sniffer")
         sniffer_d = net.capturePackets(pcap_filename)

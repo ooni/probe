@@ -1,16 +1,14 @@
-#!/usr/bin/env python
-# -*- coding: UTF-8
-"""
-    nodes
-    *****
-
-    This contains all the code related to Nodes
-    both network and code execution.
-
-    :copyright: (c) 2012 by Arturo Filastò, Isis Lovecruft
-    :license: see LICENSE for more details.
-
-"""
+#-*- coding: utf-8 -*-
+#
+# nodes.py
+# --------
+# here is code for handling the interaction with remote
+# services that will run ooniprobe tests.
+# XXX most of the code in here is broken or not tested and
+# probably should be trashed
+#
+# :authors: Arturo Filastò, Isis Lovecruft
+# :license: see included LICENSE file
 
 import os
 from binascii import hexlify

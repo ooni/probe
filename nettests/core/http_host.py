@@ -14,8 +14,7 @@ from ooni.templates import httpt
 
 class UsageOptions(usage.Options):
     optParameters = [
-                     ['url', 'u', 'http://torproject.org/', 'Test single site'],
-                     ['backend', 'b', 'http://ooni.nu/test/', 'Test backend to use'],
+                     ['backend', 'b', 'http://ooni.nu/test/', 'Test backend to use']
                     ]
 
 

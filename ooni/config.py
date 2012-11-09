@@ -8,7 +8,7 @@ import yaml
 
 from twisted.internet import reactor, threads
 
-from ooni.utils import date
+from ooni.utils import otime
 from ooni.utils import Storage
 
 def get_root_path():
@@ -24,7 +24,7 @@ def oreport_filenames():
     returns
     yamloo_filename, pcap_filename
     """
-    base_filename = "%s_"+date.timestamp()+".%s"
+    base_filename = "%s_"+otime.timestamp()+".%s"
     yamloo_filename = base_filename % ("report", "yamloo")
     pcap_filename = base_filename % ("packets", "pcap")
     return yamloo_filename, pcap_filename
