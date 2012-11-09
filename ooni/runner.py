@@ -24,7 +24,8 @@ from ooni.inputunit import InputUnitFactory
 from ooni.nettest import NetTestCase
 
 from ooni import reporter
-from ooni.utils import log, date
+
+from ooni.utils import log, date, checkForRoot
 
 def processTest(obj, cmd_line_options):
     """
@@ -41,8 +42,7 @@ def processTest(obj, cmd_line_options):
 
     input_file = obj.inputFile
     if obj.requiresRoot:
-        if os.getuid() != 0:
-            raise Exception("This test requires root to run")
+        checkForRoot("test")
 
     if obj.optParameters or input_file \
             or obj.usageOptions or obj.optFlags:
@@ -184,7 +184,8 @@ def runTestWithInputUnit(test_class,
     return defer.DeferredList(dl)
 
 @defer.inlineCallbacks
-def runTestCases(test_cases, options, cmd_line_options):
+def runTestCases(test_cases, options, 
+        cmd_line_options, yamloo_filename):
     try:
         assert len(options) != 0, "Length of options is zero!"
     except AssertionError, ae:
@@ -203,17 +204,7 @@ def runTestCases(test_cases, options, cmd_line_options):
             log.msg("options[0] = %s" % first)
             test_inputs = [None]
 
-    if cmd_line_options['reportfile']:
-        report_filename = cmd_line_options['reportfile']
-    else:
-        report_filename = 'report_'+date.timestamp()+'.yamloo'
-
-    if os.path.exists(report_filename):
-        print "Report already exists with filename %s" % report_filename
-        print "Renaming it to %s" % report_filename+'.old'
-        os.rename(report_filename, report_filename+'.old')
-
-    reportFile = open(report_filename, 'w+')
+    reportFile = open(yamloo_filename, 'w+')
     oreporter = reporter.OReporter(reportFile)
     input_unit_factory = InputUnitFactory(test_inputs)
 
@@ -226,6 +217,7 @@ def runTestCases(test_cases, options, cmd_line_options):
             test_class = test_case[0]
             test_method = test_case[1]
             yield runTestWithInputUnit(test_class,
-                        test_method, input_unit, oreporter)
+                        test_method, input_unit, 
+                        oreporter)
     oreporter.allDone()
 

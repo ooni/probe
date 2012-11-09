@@ -136,7 +136,7 @@ class NetTestCase(object):
         for x in fp.xreadlines():
             yield x.strip()
         fp.close()
-    
+
     def _checkRequiredOptions(self):
         for required_option in self.requiredOptions:
             log.debug("Checking if %s is present" % required_option)

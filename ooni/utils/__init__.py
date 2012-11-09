@@ -3,6 +3,7 @@
 """
 
 import imp
+import os
 import logging
 import string
 import random
@@ -55,6 +56,9 @@ class Storage(dict):
         for (k, v) in value.items():
             self[k] = v
 
+def checkForRoot(what):
+    if os.getuid() != 0:
+        raise Exception("This %s requires root to run" % what)
 
 def get_logger(config):
     loglevel = getattr(logging, config.loglevel.upper())

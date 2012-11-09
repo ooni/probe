@@ -4,25 +4,41 @@
 # --------
 # OONI utilities for networking related operations
 
+import sys
+from twisted.internet import threads, reactor
+
 from scapy.all import utils
-from twisted.internet import defer
-from ooni.utils import log
-from ooni.config import threadpool
+
+from ooni.utils import log, txscapy
 
 def getClientAddress():
     address = {'asn': 'REPLACE_ME',
                'ip': 'REPLACE_ME'}
     return address
 
-def writePacketToPcap(pkt):
-    from scapy.all import utils
-    log.debug("Writing to pcap file %s" % pkt)
-    utils.wrpcap('/tmp/foo.pcap', pkt)
-
-def capturePackets():
+def capturePackets(pcap_filename):
     from scapy.all import sniff
-    return defer.deferToThread(sniff, writePacketToPcap, 
-            lfilter=writePacketToPcap)
+    global stop_packet_capture
+    stop_packet_capture = False
+
+    def stopCapture():
+        # XXX this is a bit of a hack to stop capturing packets when we close
+        # the reactor. Ideally we would want to be able to do this
+        # programmatically, but this requires some work on implementing
+        # properly the sniff function with deferreds.
+        global stop_packet_capture
+        stop_packet_capture = True
+
+    def writePacketToPcap(pkt):
+        from scapy.all import utils
+        pcapwriter = txscapy.TXPcapWriter(pcap_filename, append=True)
+        pcapwriter.write(pkt)
+        if stop_packet_capture:
+            sys.exit(1)
+
+    d = threads.deferToThread(sniff, lfilter=writePacketToPcap)
+    reactor.addSystemEventTrigger('before', 'shutdown', stopCapture)
+    return d
 
 class PermissionsError(SystemExit):
     def __init__(self, *args, **kwargs):

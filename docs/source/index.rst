@@ -28,7 +28,7 @@ On debian based systems these can be installed with:
 The python dependencies required for running ooniprobe are:
 
     * Twisted
-    * Scapy
+    * Scapy >= 2.2.0
     * txtorcon
 
 They can be installed from the requirements.txt with:
