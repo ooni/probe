@@ -46,7 +46,6 @@ def processTest(obj, cmd_line_options):
     if obj.optParameters or input_file \
             or obj.usageOptions or obj.optFlags:
 
-        options = None
         if not obj.optParameters:
             obj.optParameters = []
 
@@ -57,15 +56,25 @@ def processTest(obj, cmd_line_options):
             if input_file:
                 obj.usageOptions.optParameters.append(input_file)
             options = obj.usageOptions()
-
+        elif obj.optParameters:
+            log.debug("Got optParameters")
+            class Options(usage.Options):
+                optParameters = obj.optParameters
+                if obj.optFlags:
+                    log.debug("Got optFlags")
+                    optFlags = obj.optFlags
+            options = Options()
+        
         if options:
             options.parseOptions(cmd_line_options['subArgs'])
             obj.localOptions = options
 
         if input_file and options:
+            log.debug("Got input file")
             obj.inputFile = options[input_file[0]]
 
         try:
+            log.debug("processing options")
             tmp_test_case_object = obj()
             tmp_test_case_object._processOptions(options)
 
@@ -139,14 +148,22 @@ def loadTestsAndOptions(classes, cmd_line_options):
 def runTestWithInputUnit(test_class, 
         test_method, input_unit, 
         oreporter):
+    """
+    test_class: the uninstantiated class of the test to be run
+
+    test_method: a string representing the method name to be called
+
+    input_unit: a generator that contains the inputs to be run on the test
+
+    oreporter: ooni.reporter.OReporter instance
+
+    returns a deferred list containing all the tests to be run at this time
+    """
     def test_done(result, test_instance):
         oreporter.testDone(test_instance)
 
     def test_error(error, test_instance):
-        print "Got this error: %s" % error
-        exc_type, exc_value, exc_traceback = sys.exc_info()
-        traceback.print_exc()
-        #oreporter.writeReportEntry(test)
+        log.err("%s\n" % error)
 
     dl = []
     for i in input_unit:
@@ -157,9 +174,7 @@ def runTestWithInputUnit(test_class,
         test_instance._start_time = time.time()
         # call setup on the test
         test_instance.setUp()
-
         test = getattr(test_instance, test_method)
-
         d = defer.maybeDeferred(test)
         d.addCallback(test_done, test_instance)
         d.addErrback(test_error, test_instance)
@@ -200,7 +215,7 @@ def runTestCases(test_cases, options, cmd_line_options):
     reportFile = open(report_filename, 'w+')
     oreporter = reporter.OReporter(reportFile)
     input_unit_factory = InputUnitFactory(test_inputs)
-    
+
     yield oreporter.writeReportHeader(options)
     # This deferred list is a deferred list of deferred lists
     # it is used to store all the deferreds of the tests that 

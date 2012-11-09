@@ -226,3 +226,9 @@ class OReporter(YamlReporter):
     def allDone(self):
         log.debug("Finished running everything")
         self.finish()
+        try:
+            reactor.stop()
+        except:
+            pass
+        return None
+

@@ -85,6 +85,7 @@ class NetTestCase(object):
     * requiredOptions: a list containing the name of the options that are
                        required for proper running of a test.
 
+    * localOptions: contains the parsed command line arguments.
     """
     name = "I Did Not Change The Name"
     author = "Jane Doe <foo@example.com>"
@@ -103,7 +104,13 @@ class NetTestCase(object):
     requiredOptions = []
 
     requiresRoot = False
-    parallelism = 1
+
+    localOptions = {}
+    def setUp(self):
+        """
+        Place here your logic to be executed when the test is being setup.
+        """
+        pass
 
     def inputProcessor(self, fp):
         """
@@ -129,6 +136,12 @@ class NetTestCase(object):
         for x in fp.xreadlines():
             yield x.strip()
         fp.close()
+    
+    def _checkRequiredOptions(self):
+        for required_option in self.requiredOptions:
+            log.debug("Checking if %s is present" % required_option)
+            if not self.localOptions[required_option]:
+                raise usage.UsageError("%s not specified!" % required_option)
 
     def _processOptions(self, options=None):
         if self.inputFile:
@@ -145,13 +158,8 @@ class NetTestCase(object):
         elif self.inputFile:
             raise usage.UsageError("No input file specified!")
 
-        # XXX this is a bit hackish
-        if options:
-            for required_option in self.requiredOptions:
-                log.debug("Checking if %s is present" % required_option)
-                if not options[required_option]:
-                    raise usage.UsageError("%s not specified!" % required_option)
-
+        self._checkRequiredOptions()
+        
         # XXX perhaps we may want to name and version to be inside of a
         # different method that is not called options.
         return {'inputs': self.inputs,

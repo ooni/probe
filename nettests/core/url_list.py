@@ -11,7 +11,8 @@ class URLList(httpt.HTTPTest):
     version = 0.1
 
     inputFile = ['file', 'f', None, 'List of URLS to perform GET and POST requests to']
-
+    
+    requiredOptions = ['file']
     def test_get(self):
         if self.input:
             self.url = self.input

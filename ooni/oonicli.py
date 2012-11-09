@@ -23,7 +23,7 @@ from twisted.application import app
 from twisted.python import usage, failure
 from twisted.python.util import spewer
 
-from ooni import nettest, runner, reporter
+from ooni import nettest, runner, reporter, config
 
 from ooni.inputunit import InputUnitFactory
 from ooni.utils import log
@@ -88,10 +88,10 @@ def run():
     if cmd_line_options['debug-stacktraces']:
         defer.setDebugging(True)
 
+    log.start(cmd_line_options['logfile'])
     classes = runner.findTestClassesFromConfig(cmd_line_options)
     test_cases, options = runner.loadTestsAndOptions(classes, cmd_line_options)
-    log.start(cmd_line_options['logfile'])
-
+    
     runner.runTestCases(test_cases, options, cmd_line_options)
     reactor.run()
 

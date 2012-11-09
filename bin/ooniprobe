@@ -12,6 +12,7 @@
 
 import os, sys
 import copy_reg
+from twisted.internet import reactor
 
 # Hack to set the proper sys.path. Overcomes the export PYTHONPATH pain.
 sys.path[:] = map(os.path.abspath, sys.path)

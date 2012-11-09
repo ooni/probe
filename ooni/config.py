@@ -6,6 +6,8 @@
 import os
 import yaml
 
+from twisted.internet import reactor
+
 from ooni.utils import Storage
 
 def get_root_path():
