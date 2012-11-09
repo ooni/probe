@@ -2,21 +2,27 @@
 #
 # net.py
 # --------
-# OONI utilities for network infrastructure and hardware.
-#
-# :authors: Isis Lovecruft, Arturo Filasto
-# :version: 0.0.1-pre-alpha
-# :license: (c) 2012 Isis Lovecruft, Arturo Filasto
-#           see attached LICENCE file
+# OONI utilities for networking related operations
+
+from scapy.all import utils
+from twisted.internet import defer
+from ooni.utils import log
+from ooni.config import threadpool
 
 def getClientAddress():
     address = {'asn': 'REPLACE_ME',
                'ip': 'REPLACE_ME'}
     return address
 
+def writePacketToPcap(pkt):
+    from scapy.all import utils
+    log.debug("Writing to pcap file %s" % pkt)
+    utils.wrpcap('/tmp/foo.pcap', pkt)
+
 def capturePackets():
     from scapy.all import sniff
-    sniff()
+    return defer.deferToThread(sniff, writePacketToPcap, 
+            lfilter=writePacketToPcap)
 
 class PermissionsError(SystemExit):
     def __init__(self, *args, **kwargs):

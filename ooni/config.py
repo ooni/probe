@@ -6,7 +6,7 @@
 import os
 import yaml
 
-from twisted.python.threadpool import ThreadPool
+from twisted.internet import reactor
 
 from ooni.utils import Storage
 
@@ -43,4 +43,5 @@ for k, v in configuration['advanced'].items():
 
 threadpool = ThreadPool(0, advanced.threadpool_size)
 threadpool.start()
-sniffer_d = None
+# This is used to keep track of the state of the sniffer
+sniffer_running = None

@@ -1,16 +1,3 @@
-from twisted.trial import unittest
-
-class PatchedPyUnitResultAdapter(unittest.PyUnitResultAdapter):
-    def __init__(self, original):
-        """
-        Here we patch PyUnitResultAdapter to support our reporterFactory to
-        properly write headers to reports.
-        """
-        self.original = original
-        self.reporterFactory = original.reporterFactory
-
-unittest.PyUnitResultAdapter = PatchedPyUnitResultAdapter
-
 class InputUnitFactory(object):
     """
     This is a factory that takes the size of input units to be generated a set
@@ -48,7 +35,6 @@ class InputUnitFactory(object):
 
         return InputUnit(input_unit_elements)
 
-
 class InputUnit(object):
     """
     This is a python iterable object that contains the input elements to be
@@ -75,6 +61,4 @@ class InputUnit(object):
 
     def append(self, input):
         self._inputs.append(input)
-
-
 

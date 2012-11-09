@@ -1,19 +1,18 @@
 #!/usr/bin/env python
 # -*- encoding: utf-8 -*-
-'''
- oonicli
- -----------
+# oonicli
+# -----------
+#
+# Run the Twisted Trial (unittest module) based oonicli. Startup script based
+# on twisted trial, see http://twistedmatrix.com/ .
 
- Run the Twisted Trial (unittest module) based oonicli. Startup script based
- on twisted trial, see http://twistedmatrix.com/ .
-
- :authors: Arturo Filastò, Isis Lovecruft
- :licence: see included LICENSE file
- :version: 0.0.1-pre-alpha
-'''
+# :authors: Arturo Filastò, Isis Lovecruft
+# :licence: see included LICENSE file
+# :version: 0.0.1-pre-alpha
 
 import os, sys
 import copy_reg
+from twisted.internet import reactor
 
 # Hack to set the proper sys.path. Overcomes the export PYTHONPATH pain.
 sys.path[:] = map(os.path.abspath, sys.path)

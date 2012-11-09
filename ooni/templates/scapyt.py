@@ -45,22 +45,22 @@ class BaseScapyTest(NetTestCase):
     sentPackets = []
     answeredPackets = []
 
-    def sr(self, *arg, **kw):
+    def sr(self, pkts, *arg, **kw):
         """
         Wrapper around scapy.sendrecv.sr for sending and receiving of packets
         at layer 3.
         """
-        answered_packets, sent_packets = sr(*arg, **kw)
+        answered_packets, unanswered = sr(pkts, *arg, **kw)
         self.report['answered_packets'] = createPacketReport(answered_packets)
-        self.report['sent_packets'] = createPacketReport(sent_packets)
+        self.report['sent_packets'] = createPacketReport(pkts)
         return (answered_packets, sent_packets)
 
-    def send(self, *arg, **kw):
+    def send(self, pkts, *arg, **kw):
         """
         Wrapper around scapy.sendrecv.send for sending of packets at layer 3
         """
-        sent_packets = send(*arg, **kw)
-        self.report['sent_packets'] = createPacketReport(sent_packets)
+        sent_packets = send(pkts, *arg, **kw)
+        self.report['sent_packets'] = createPacketReport(pkts)
         return sent_packets
 
 class TXScapyTest(BaseScapyTest):

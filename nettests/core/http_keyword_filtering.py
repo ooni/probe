@@ -4,12 +4,15 @@
 # :licence: see LICENSE
 
 from ooni.templates import httpt
-class KeywordFiltering(httpt.HTTPTest):
+class HTTPKeywordFiltering(httpt.HTTPTest):
     """
     This test involves performing HTTP requests containing to be tested for
     censorship keywords.
+
+    It does not detect censorship on the client, but just logs the response from the 
+    HTTP backend server.
     """
-    name = "Keyword Filtering"
+    name = "HTTP Keyword Filtering"
     author = "Arturo Filastò"
     version = 0.1
 

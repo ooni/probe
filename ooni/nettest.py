@@ -24,53 +24,9 @@ from ooni.utils import log
 
 pyunit = __import__('unittest')
 
-
-class InputTestSuite(pyunit.TestSuite):
+class NetTestCase(object):
     """
-    This in an extension of a unittest test suite. It adds support for inputs
-    and the tracking of current index via idx.
-    """
-
-    # This is used to keep track of the tests that are associated with our
-    # special test suite
-    _tests = None
-    def run(self, result, idx=0):
-        log.debug("Running test suite")
-        self._idx = idx
-        while self._tests:
-            if result.shouldStop:
-                log.debug("Detected that test should stop")
-                log.debug("Stopping...")
-                break
-            test = self._tests.pop(0)
-
-            try:
-                log.debug("Setting test attributes with %s %s" %
-                            (self.input, self._idx))
-
-                test.input = self.input
-                test._idx = self._idx
-            except Exception, e:
-                log.debug("Error in setting test attributes")
-                log.debug("This is probably because the test case you are "\
-                          "running is not a nettest")
-                log.debug(e)
-
-            log.debug("Running test with name %s" % str(test))
-            # XXX we may want in a future to put all of these tests inside of a
-            # thread pool and run them all in parallel
-            test(result)
-            # Here we need to set the test name to be that of the test case we are running
-            result._tests[self._idx]['test'] = str(test)
-            log.debug("Ran.")
-
-            self._idx += 1
-        return result
-
-
-class NetTestCase(unittest.TestCase):
-    """
-    This is the monad of the OONI nettest universe. When you write a nettest
+    This is the base of the OONI nettest universe. When you write a nettest
     you will subclass this object.
 
     * inputs: can be set to a static set of inputs. All the tests (the methods
@@ -129,6 +85,7 @@ class NetTestCase(unittest.TestCase):
     * requiredOptions: a list containing the name of the options that are
                        required for proper running of a test.
 
+    * localOptions: contains the parsed command line arguments.
     """
     name = "I Did Not Change The Name"
     author = "Jane Doe <foo@example.com>"
@@ -148,21 +105,12 @@ class NetTestCase(unittest.TestCase):
 
     requiresRoot = False
 
-    def deferSetUp(self, ignored, result):
+    localOptions = {}
+    def setUp(self):
         """
-        If we have the reporterFactory set we need to write the header. If such
-        method is not present we will only run the test skipping header
-        writing.
+        Place here your logic to be executed when the test is being setup.
         """
-        if result.reporterFactory.firstrun:
-            log.debug("Detecting first run. Writing report header.")
-            d1 = result.reporterFactory.writeHeader()
-            d2 = unittest.TestCase.deferSetUp(self, ignored, result)
-            dl = defer.DeferredList([d1, d2])
-            return dl
-        else:
-            log.debug("Not first run. Running test setup directly")
-            return unittest.TestCase.deferSetUp(self, ignored, result)
+        pass
 
     def inputProcessor(self, fp):
         """
@@ -188,6 +136,12 @@ class NetTestCase(unittest.TestCase):
         for x in fp.xreadlines():
             yield x.strip()
         fp.close()
+    
+    def _checkRequiredOptions(self):
+        for required_option in self.requiredOptions:
+            log.debug("Checking if %s is present" % required_option)
+            if not self.localOptions[required_option]:
+                raise usage.UsageError("%s not specified!" % required_option)
 
     def _processOptions(self, options=None):
         if self.inputFile:
@@ -204,13 +158,8 @@ class NetTestCase(unittest.TestCase):
         elif self.inputFile:
             raise usage.UsageError("No input file specified!")
 
-        # XXX this is a bit hackish
-        if options:
-            for required_option in self.requiredOptions:
-                log.debug("Checking if %s is present" % required_option)
-                if not options[required_option]:
-                    raise usage.UsageError("%s not specified!" % required_option)
-
+        self._checkRequiredOptions()
+        
         # XXX perhaps we may want to name and version to be inside of a
         # different method that is not called options.
         return {'inputs': self.inputs,
