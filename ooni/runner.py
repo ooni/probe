@@ -13,6 +13,7 @@ import sys
 import time
 import inspect
 import traceback
+import itertools
 
 from twisted.python import reflect, usage
 from twisted.internet import defer
@@ -150,6 +151,29 @@ def loadTestsAndOptions(classes, cmd_line_options):
 
     return test_cases, options
 
+def runTestWithInput(test_class, test_method, test_input, oreporter):
+    log.debug("Running %s with %s" % (test_method, test_input))
+    def test_done(result, test_instance):
+        oreporter.testDone(test_instance)
+
+    def test_error(error, test_instance):
+        log.err("%s\n" % error)
+
+    test_instance = test_class()
+    test_instance.input = test_input
+    test_instance.report = {}
+    log.debug("Processing %s" % test_instance.name)
+    # use this to keep track of the test runtime
+    test_instance._start_time = time.time()
+    # call setup on the test
+    test_instance.setUp()
+    test = getattr(test_instance, test_method)
+    d = defer.maybeDeferred(test)
+    d.addCallback(test_done, test_instance)
+    d.addErrback(test_error, test_instance)
+    log.debug("returning %s input" % test_method)
+    return d
+
 def runTestWithInputUnit(test_class, 
         test_method, input_unit, 
         oreporter):
@@ -164,27 +188,17 @@ def runTestWithInputUnit(test_class,
 
     returns a deferred list containing all the tests to be run at this time
     """
-    def test_done(result, test_instance):
-        oreporter.testDone(test_instance)
-
-    def test_error(error, test_instance):
-        log.err("%s\n" % error)
 
     dl = []
-    for i in input_unit:
-        test_instance = test_class()
-        test_instance.input = i
-        test_instance.report = {}
-        # use this to keep track of the test runtime
-        test_instance._start_time = time.time()
-        # call setup on the test
-        test_instance.setUp()
-        test = getattr(test_instance, test_method)
-        d = defer.maybeDeferred(test)
-        d.addCallback(test_done, test_instance)
-        d.addErrback(test_error, test_instance)
+    log.debug("input unit %s" % input_unit)
+    for test_input in input_unit:
+        log.debug("IU: %s" % test_input)
+        try:
+            d = runTestWithInput(test_class, test_method, test_input, oreporter)
+        except Exception, e:
+            print e
+        log.debug("here y0")
         dl.append(d)
-
     return defer.DeferredList(dl)
 
 @defer.inlineCallbacks
@@ -217,11 +231,14 @@ def runTestCases(test_cases, options,
     # it is used to store all the deferreds of the tests that 
     # are run
     for input_unit in input_unit_factory:
+        # We do this because generators can't we rewound.
+        input_list = list(input_unit)
         for test_case in test_cases:
+            log.debug("Processing %s" % test_case[1])
             test_class = test_case[0]
             test_method = test_case[1]
             yield runTestWithInputUnit(test_class,
-                        test_method, input_unit, 
+                        test_method, input_list, 
                         oreporter)
     oreporter.allDone()
 

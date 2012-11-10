@@ -77,7 +77,7 @@ def testsEnded(*arg, **kw):
     """
     You can place here all the post shutdown tasks.
     """
-    log.debug("Finished running all tests")
+    log.debug("testsEnded: Finished running all tests")
 
 def run():
     """
