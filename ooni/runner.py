@@ -194,7 +194,8 @@ def runTestWithInputUnit(test_class,
     for test_input in input_unit:
         log.debug("IU: %s" % test_input)
         try:
-            d = runTestWithInput(test_class, test_method, test_input, oreporter)
+            d = runTestWithInput(test_class, 
+                    test_method, test_input, oreporter)
         except Exception, e:
             print e
         log.debug("here y0")
@@ -223,10 +224,11 @@ def runTestCases(test_cases, options,
             test_inputs = [None]
 
     reportFile = open(yamloo_filename, 'w+')
-    oreporter = reporter.OReporter(reportFile)
+    oreporter = reporter.YAMLReporter(reportFile)
+
     input_unit_factory = InputUnitFactory(test_inputs)
 
-    yield oreporter.writeReportHeader(options)
+    yield oreporter.createReport(options)
     # This deferred list is a deferred list of deferred lists
     # it is used to store all the deferreds of the tests that 
     # are run
