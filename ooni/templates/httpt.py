@@ -14,6 +14,7 @@ from twisted.internet.ssl import ClientContextFactory
 
 from twisted.web.client import Agent
 from twisted.internet import reactor
+from twisted.internet.error import ConnectionRefusedError
 
 from twisted.web._newclient import Request
 from twisted.web.http_headers import Headers
@@ -29,9 +30,11 @@ class HTTPTest(NetTestCase):
     The main functions to look at are processResponseBody and
     processResponseHeader that are invoked once the headers have been received
     and once the request body has been received.
+
+    XXX all of this requires some refactoring.
     """
     name = "HTTP Test"
-    version = 0.1
+    version = "0.1.1"
 
     randomizeUA = True
     followRedirects = False
@@ -127,9 +130,10 @@ class HTTPTest(NetTestCase):
 
         d = self.build_request(url, method, headers, body)
 
-        def errback(data):
-            log.err("Error in test %s" % data)
-            self.report["error"] = data
+        def errback(failure):
+            failure.trap(ConnectionRefusedError)
+            log.err("Connection refused. The backend may be down")
+            self.report["failure"] = str(failure.value)
 
         def finished(data):
             return
@@ -186,7 +190,8 @@ class HTTPTest(NetTestCase):
 
         finished = defer.Deferred()
         response.deliverBody(BodyReceiver(finished))
-        finished.addCallback(self._processResponseBody, body_processor)
+        finished.addCallback(self._processResponseBody, 
+                body_processor)
 
         return finished
 
