@@ -1,10 +1,9 @@
-"""
-    ooni backend
-    ************
+# ooni backend
+# ************
+#
+# This is the backend system responsible for running certain services that are
+# useful for censorship detection.
 
-    This is the backend system responsible for running certain services that
-    are useful for censorship detection.
-"""
 import json
 import random
 import string
@@ -29,6 +28,7 @@ from oonib import config
 from oonib.testhelpers.httph import HTTPReturnJSONHeadersHelper
 from oonib.testhelpers.dns import ProxyDNSServer
 #from oonib.testhelpers.daphn3 import Daphn3Server
+from oonib import db_threadpool
 
 from cyclone import web
 
@@ -70,3 +70,4 @@ if config.helpers.http_return_request_port:
     internet.TCPServer(int(config.helpers.http_return_request_port),
             HTTPReturnJSONHeadersHelper).setServiceParent(serviceCollection)
 
+reactor.addSystemEventTrigger('after', 'shutdown', db_threadpool.stop)
