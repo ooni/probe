@@ -11,13 +11,13 @@ from twisted.python import log as txlog
 from twisted.python.logfile import DailyLogFile
 
 from ooni.utils import otime
-from ooni import oconfig
+from ooni import config
 
 def start(logfile=None):
     daily_logfile = None
 
     if not logfile:
-        logfile = oconfig.basic.logfile
+        logfile = config.basic.logfile
 
     log_folder = os.path.dirname(logfile)
     log_filename = os.path.basename(logfile)
@@ -29,7 +29,7 @@ def start(logfile=None):
     logging.basicConfig()
     python_logging = txlog.PythonLoggingObserver()
 
-    if oconfig.advanced.debug:
+    if config.advanced.debug:
         python_logging.logger.setLevel(logging.DEBUG)
     else:
         python_logging.logger.setLevel(logging.INFO)
@@ -48,7 +48,7 @@ def debug(msg, *arg, **kw):
     txlog.msg(msg, logLevel=logging.DEBUG, *arg, **kw)
 
 def err(msg, *arg, **kw):
-    txlog.err("Error: " + msg, logLevel=logging.ERROR, *arg, **kw)
+    txlog.err("Error: " + str(msg), logLevel=logging.ERROR, *arg, **kw)
 
 def exception(*msg):
     logging.exception(msg)

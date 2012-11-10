@@ -1,11 +1,20 @@
 templates Package
 =================
 
-:mod:`http` Module
-------------------
+:mod:`httpt` Module
+-------------------
 
-.. automodule:: ooni.templates.http
+.. automodule:: ooni.templates.httpt
     :members:
     :undoc-members:
     :show-inheritance:
+
+:mod:`scapyt` Module
+--------------------
+
+.. automodule:: ooni.templates.scapyt
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 

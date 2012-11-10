@@ -109,7 +109,7 @@ class BridgetTest(nettest.NetTestCase):
     author  = "Isis Lovecruft <isis@torproject.org>"
     version = "0.1"
     description   = "Use a Tor process to test connecting to bridges or relays"
-    advancedOptParameters = BridgetArgs
+    usageOptions = BridgetArgs
 
     def setUp(self):
         """

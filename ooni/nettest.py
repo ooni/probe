@@ -1,7 +1,12 @@
 # -*- encoding: utf-8 -*-
 #
-# :authors: Arturo "hellais" Filastò <art@fuffa.org>
-# :licence: see LICENSE
+# nettest.py
+# ----------
+# In here is the NetTest API definition. This is how people
+# interested in writing ooniprobe tests will be specifying them
+#
+# :authors: Arturo Filastò, Isis Lovecruft
+# :license: see included LICENSE file
 
 import sys
 import os
@@ -14,56 +19,13 @@ from twisted.python import usage
 
 from ooni.utils import log
 
-pyunit = __import__('unittest')
-
-class InputTestSuite(pyunit.TestSuite):
+class NetTestCase(object):
     """
-    This in an extension of a unittest test suite. It adds support for inputs
-    and the tracking of current index via idx.
-    """
-
-    # This is used to keep track of the tests that are associated with our
-    # special test suite
-    _tests = None
-    def run(self, result, idx=0):
-        log.debug("Running test suite")
-        self._idx = idx
-        while self._tests:
-            if result.shouldStop:
-                log.debug("Detected that test should stop")
-                log.debug("Stopping...")
-                break
-            test = self._tests.pop(0)
-
-            try:
-                log.debug("Setting test attributes with %s %s" %
-                            (self.input, self._idx))
-
-                test.input = self.input
-                test._idx = self._idx
-            except Exception, e:
-                log.debug("Error in setting test attributes")
-                log.debug("This is probably because the test case you are "\
-                          "running is not a nettest")
-                log.debug(e)
-
-            log.debug("Running test")
-            # XXX we may want in a future to put all of these tests inside of a
-            # thread pool and run them all in parallel
-            test(result)
-            log.debug("Ran.")
-
-            self._idx += 1
-        return result
-
-
-class NetTestCase(unittest.TestCase):
-    """
-    This is the monad of the OONI nettest universe. When you write a nettest
+    This is the base of the OONI nettest universe. When you write a nettest
     you will subclass this object.
 
     * inputs: can be set to a static set of inputs. All the tests (the methods
-      starting with the "test_" prefix) will be run once per input.  At every run
+      starting with the "test" prefix) will be run once per input.  At every run
       the _input_ attribute of the TestCase instance will be set to the value of
       the current iteration over inputs.  Any python iterable object can be set
       to inputs.
@@ -113,12 +75,16 @@ class NetTestCase(unittest.TestCase):
 
         | optParameters = [['outfile', 'O', 'outfile.log', 'Description...']]
 
-    * advancedOptParameters: a subclass of twisted.python.usage.Options for more advanced command line arguments fun.
+    * usageOptions: a subclass of twisted.python.usage.Options for more advanced command line arguments fun.
 
+    * requiredOptions: a list containing the name of the options that are
+                       required for proper running of a test.
+
+    * localOptions: contains the parsed command line arguments.
     """
     name = "I Did Not Change The Name"
     author = "Jane Doe <foo@example.com>"
-    version = "0"
+    version = "0.0.0"
 
     inputs = [None]
     inputFile = None
@@ -128,34 +94,50 @@ class NetTestCase(unittest.TestCase):
 
     optFlags = None
     optParameters = None
-    advancedOptParameters = None
 
+    usageOptions = None
+    requiredOptions = []
     requiresRoot = False
 
-    def deferSetUp(self, ignored, result):
+    localOptions = {}
+    def setUp(self):
         """
-        If we have the reporterFactory set we need to write the header. If such
-        method is not present we will only run the test skipping header
-        writing.
+        Place here your logic to be executed when the test is being setup.
         """
-        if result.reporterFactory.firstrun:
-            log.debug("Detecting first run. Writing report header.")
-            d1 = result.reporterFactory.writeHeader()
-            d2 = unittest.TestCase.deferSetUp(self, ignored, result)
-            dl = defer.DeferredList([d1, d2])
-            return dl
-        else:
-            log.debug("Not first run. Running test setup directly")
-            return unittest.TestCase.deferSetUp(self, ignored, result)
+        pass
 
     def inputProcessor(self, fp):
+        """
+        You may replace this with your own custom input processor. It takes as
+        input a file descriptor so remember to close it when you are done.
+
+        This can be useful when you have some input data that is in a certain
+        format and you want to set the input attribute of the test to something
+        that you will be able to properly process.
+
+        For example you may wish to have an input processor that will allow you
+        to ignore comments in files. This can be easily achieved like so:
+
+            for x in fp.xreadlines():
+                if x.startswith("#"):
+                    continue
+                yield x.strip()
+            fp.close()
+
+        Other fun stuff is also possible.
+        """
         log.debug("Running default input processor")
-        for x in fp.readlines():
+        for x in fp.xreadlines():
             yield x.strip()
         fp.close()
 
-    def getOptions(self):
-        log.debug("Getting options for test")
+    def _checkRequiredOptions(self):
+        for required_option in self.requiredOptions:
+            log.debug("Checking if %s is present" % required_option)
+            if not self.localOptions[required_option]:
+                raise usage.UsageError("%s not specified!" % required_option)
+
+    def _processOptions(self, options=None):
         if self.inputFile:
             try:
                 assert isinstance(self.inputFile, str)
@@ -163,15 +145,17 @@ class NetTestCase(unittest.TestCase):
                 log.err(ae)
             else:
                 if os.path.isfile(self.inputFile):
-                    print self.inputFile
                     fp = open(self.inputFile)
                     self.inputs = self.inputProcessor(fp)
         elif not self.inputs[0]:
             pass
         elif self.inputFile:
             raise usage.UsageError("No input file specified!")
+
+        self._checkRequiredOptions()
+
         # XXX perhaps we may want to name and version to be inside of a
-        # different object that is not called options.
+        # different method that is not called options.
         return {'inputs': self.inputs,
                 'name': self.name,
                 'version': self.version}

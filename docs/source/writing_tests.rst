@@ -12,7 +12,8 @@ Test Cases
 The atom of OONI Testing is called a Test Case. A test case class may contain
 multiple Test Functions.
 
-.. autoclass:: ooni.nettest.TestCase
+.. autoclass:: ooni.nettest.NetTestCase
+    :noindex:
 
 :class:`ooni.nettest.TestCase` is a subclass of :class:`unittest.TestCase` so
 the assert methods that apply to :class:`unittest.TestCase` will also apply to

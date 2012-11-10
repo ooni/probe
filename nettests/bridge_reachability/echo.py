@@ -28,20 +28,11 @@ try:
     from scapy.all             import sr1, IP, ICMP        ## XXX v4/v6?
     from ooni.lib              import txscapy
     from ooni.lib.txscapy      import txsr, txsend
-    from ooni.templates.scapyt import ScapyTest
+    from ooni.templates.scapyt import BaseScapyTest
 except:
     log.msg("This test requires scapy, see www.secdev.org/projects/scapy")
 
-## xxx TODO: move these to a utility function for determining OSes
-LINUX=sys.platform.startswith("linux")
-OPENBSD=sys.platform.startswith("openbsd")
-FREEBSD=sys.platform.startswith("freebsd")
-NETBSD=sys.platform.startswith("netbsd")
-DARWIN=sys.platform.startswith("darwin")
-SOLARIS=sys.platform.startswith("sunos")
-WINDOWS=sys.platform.startswith("win32")
-
-class EchoTest(ScapyTest):
+class EchoTest(BaseScapyTest):
     """
     xxx fill me in
     """
@@ -50,8 +41,7 @@ class EchoTest(ScapyTest):
     description  = 'A simple ICMP-8 test to see if a host is reachable.'
     version      = '0.0.1'
     inputFile    = ['file', 'f', None, 'File of list of IPs to ping']
-    requirements = None
-    #report       = Storage()
+    requiresRoot = True
 
     optParameters = [
         ['interface', 'i', None, 'Network interface to use'],
@@ -73,7 +63,7 @@ class EchoTest(ScapyTest):
         if self.localOptions:
             log.debug("%s: local_options found" % self.name)
             for key, value in self.localOptions.items():
-                log.debug("%s: setting self.%s = %s" % (key, value))
+                log.debug("setting self.%s = %s" % (key, value))
                 setattr(self, key, value)
 
         ## xxx is this now .subOptions?
@@ -126,15 +116,15 @@ class EchoTest(ScapyTest):
                   % (self.name, ''.join(self.__dict__)))
 
     @staticmethod
-    def inputParser(inputs):
+    def inputParser(self, one_input):
         log.debug("Removing possible ports from host addresses...")
         log.debug("Initial inputs:\n%s" % pprint(inputs))
 
-        assert isinstance(inputs, list)
-        hosts = [h.rsplit(':', 1)[0] for h in inputs]
+        #host = [h.rsplit(':', 1)[0] for h in inputs]
+        host = h.rsplit(':', 1)[0]
         log.debug("Inputs converted to:\n%s" % hosts)
 
-        return hosts
+        return host
 
     def tryInterfaces(self, ifaces):
         try:
@@ -173,24 +163,6 @@ class EchoTest(ScapyTest):
         else:
             raise IfaceError("Could not find a working network interface.")
 
-    def buildPackets(self):
-        log.debug("self.input is %s" % self.input)
-        log.debug("self.hosts is %s" % self.hosts)
-        for addr in self.input:
-            packet = IP(dst=self.input)/ICMP()
-            self.request.append(packet)
-        return packet
-
     def test_icmp(self):
-        if self.recieve:
-            self.buildPackets()
-            all = []
-            for packet in self.request:
-                d = self.sendReceivePackets(packets=packet)
-                all.append(d)
-                self.response.update({packet: d})
-            d_list = defer.DeferredList(all)
-            return d_list
-        else:
-            d = self.sendPackets()
-            return d
+        return self.sr(IP(dst=self.input)/ICMP())
+

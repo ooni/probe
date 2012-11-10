@@ -9,7 +9,14 @@
 # :authors: Arturo Filastò
 # :licence: see LICENSE
 
+from twisted.python import usage
 from ooni.templates import httpt
+
+class UsageOptions(usage.Options):
+    optParameters = [
+                     ['backend', 'b', 'http://ooni.nu/test/', 'Test backend to use']
+                    ]
+
 
 class HTTPHost(httpt.HTTPTest):
     """
@@ -20,9 +27,7 @@ class HTTPHost(httpt.HTTPTest):
     author = "Arturo Filastò"
     version = 0.1
 
-    optParameters = [['url', 'u', 'http://torproject.org/', 'Test single site'],
-                     ['backend', 'b', 'http://ooni.nu/test/', 'Test backend to use'],
-                     ]
+    usageOptions = UsageOptions
 
     inputFile = ['urls', 'f', None, 'Urls file']
 

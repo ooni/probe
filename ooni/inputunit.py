@@ -1,15 +1,14 @@
-from twisted.trial import unittest
+#-*- coding: utf-8 -*-
+#
+# inputunit.py 
+# -------------
+# IN here we have functions related to the creation of input
+# units. Input units are how the inputs to be fed to tests are
+# split up into.
+#
+# :authors: Arturo Filastò, Isis Lovecruft
+# :license: see included LICENSE file
 
-class PatchedPyUnitResultAdapter(unittest.PyUnitResultAdapter):
-    def __init__(self, original):
-        """
-        Here we patch PyUnitResultAdapter to support our reporterFactory to
-        properly write headers to reports.
-        """
-        self.original = original
-        self.reporterFactory = original.reporterFactory
-
-unittest.PyUnitResultAdapter = PatchedPyUnitResultAdapter
 
 class InputUnitFactory(object):
     """
@@ -48,7 +47,6 @@ class InputUnitFactory(object):
 
         return InputUnit(input_unit_elements)
 
-
 class InputUnit(object):
     """
     This is a python iterable object that contains the input elements to be
@@ -75,6 +73,4 @@ class InputUnit(object):
 
     def append(self, input):
         self._inputs.append(input)
-
-
 
