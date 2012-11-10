@@ -28,12 +28,11 @@ class TracerouteTest(scapyt.BaseScapyTest):
 
     def test_tcp_traceroute(self):
         def finished(packets, port):
-            log.debug("Finished tcp %s" % port)
+            log.debug("Finished running TCP traceroute test" % port)
             answered, unanswered = packets
             self.report['hops_'+str(port)] = [] 
             for snd, rcv in answered:
                 report = {'ttl': snd.ttl, 'address': rcv.src}
-                log.debug("Writing %s" % report)
                 self.report['hops_'+str(port)].append(report)
 
         dl = []
@@ -47,12 +46,11 @@ class TracerouteTest(scapyt.BaseScapyTest):
 
     def test_udp_traceroute(self):
         def finished(packets, port):
-            log.debug("Finished udp")
+            log.debug("Finished running udp traceroute test")
             answered, unanswered = packets
-            self.report['hops_'+str(port)].append(report)
+            self.report['hops_'+str(port)] = []
             for snd, rcv in answered:
                 report = {'ttl': snd.ttl, 'address': rcv.src}
-                log.debug("Writing %s" % report)
                 self.report['hops_'+str(port)].append(report)
         dl = []
         for port in self.dst_ports:
