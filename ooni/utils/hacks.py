@@ -1,5 +1,10 @@
 # -*- encoding: utf-8 -*-
 #
+# hacks.py
+# ********
+# When some software has issues and we need to fix it in a
+# hackish way, we put it in here. This one day will be empty.
+# 
 # :authors: Arturo Filastò
 # :licence: see LICENSE
 
@@ -56,36 +61,3 @@ def patched_reduce_ex(self, proto):
         return copy_reg._reconstructor, args, dict
     else:
         return copy_reg._reconstructor, args
-
-class MetaSuper(type):
-    """
-    Metaclass for creating subclasses which have builtin name munging, so that
-    they are able to call self.__super.method() from an instance function
-    without knowing the instance class' base class name.
-
-    For example:
-
-        from hacks import MetaSuper
-        class A:
-            __metaclass__ = MetaSuper
-            def method(self):
-                return "A"
-        class B(A):
-            def method(self):
-                return "B" + self.__super.method()
-        class C(A):
-            def method(self):
-                return "C" + self.__super.method()
-        class D(C, B):
-            def method(self):
-                return "D" + self.__super.method()
-
-        assert D().method() == "DCBA"
-
-    Subclasses should not override "__init__", nor should subclasses have
-    the same name as any of their bases, or else much pain and suffering
-    will occur.
-    """
-    def __init__(cls, name, bases, dict):
-        super(autosuper, cls).__init__(name, bases, dict)
-        setattr(cls, "_%s__super" % name, super(cls))

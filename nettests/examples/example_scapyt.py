@@ -5,30 +5,23 @@
 
 from ooni.utils import log
 from ooni.templates import scapyt
-from scapy.all import *
+from scapy.all import IP, ICMP
 
-class ExampleScapy(scapyt.ScapyTest):
-    name = "Example Scapy Test"
+
+class ExampleICMPPingScapy(scapyt.BaseScapyTest):
+    name = "Example ICMP Ping Test"
     author = "Arturo Filastò"
     version = 0.1
 
-    inputs = [IP(dst="8.8.8.8")/TCP(dport=31337),
-              IP(dst="ooni.nu")/TCP(dport=31337)]
+    def test_icmp_ping(self):
+        log.msg("Pinging 8.8.8.8")
+        def finished(packets):
+            print packets
+            answered, unanswered = packets
+            for snd, rcv in answered:
+                rcv.show()
 
-    requiresRoot = True
-
-    def test_sendReceive(self):
-        log.msg("Running send receive")
-        if self.receive:
-            log.msg("Sending and receiving packets.")
-            d = self.sendReceivePackets(self.buildPackets())
-        else:
-            log.msg("Sending packets.")
-            d = self.sendPackets(self.buildPackets())
-
-        def finished(data):
-            log.msg("Finished sending")
-            return data
-
+        packets = IP(dst='8.8.8.8')/ICMP()
+        d = self.sr(packets)
         d.addCallback(finished)
-        return
+        return d

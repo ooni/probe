@@ -27,6 +27,15 @@ from twisted.names.error import DNSQueryRefusedError
 from ooni import nettest
 from ooni.utils import log
 
+class UsageOptions(usage.Options):
+    optParameters = [['backend', 'b', '8.8.8.8',
+                        'The OONI backend that runs the DNS resolver'],
+                     ['backendport', 'p', 53,
+                        'The port of the good DNS resolver'],
+                     ['testresolvers', 't', None,
+                        'file containing list of DNS resolvers to test against']
+                    ]
+
 class DNSTamperTest(nettest.NetTestCase):
 
     name = "DNS tamper"
@@ -38,13 +47,8 @@ class DNSTamperTest(nettest.NetTestCase):
     inputFile = ['file', 'f', None,
                  'Input file of list of hostnames to attempt to resolve']
 
-    optParameters = [['controlresolver', 'b', '8.8.8.8',
-                      'The OONI backend that runs the DNS resolver'],
-                     ['controlresolver-port', 'p', 53,
-                      'The port of the good DNS resolver'],
-                     ['testresolvers', 't', None,
-                      'file containing list of DNS resolvers to test against']
-                    ]
+    usageOptions = UsageOptions
+    requiredOptions = ['backend', 'backendport', 'file', 'testresolvers']
 
     def setUp(self):
         self.report['test_lookups'] = {}
@@ -88,7 +92,7 @@ class DNSTamperTest(nettest.NetTestCase):
             all_a.append(lookup)
 
         if resolver_address == 'control':
-            self.report['control_server'] = self.localOptions['controlresolver']
+            self.report['control_server'] = self.localOptions['backend']
             self.report['control_lookup'] = all_a
             self.control_a_lookups = a_a
         else:
@@ -160,8 +164,8 @@ class DNSTamperTest(nettest.NetTestCase):
         list_of_ds = []
         hostname = self.input
         dns_query = [dns.Query(hostname, dns.IN, dns.A)]
-        dns_server = [(self.localOptions['controlresolver'],
-                       self.localOptions['controlresolver-port'])]
+        dns_server = [(self.localOptions['backend'],
+                       self.localOptions['backendport'])]
 
         resolver = Resolver(servers=dns_server)
 
@@ -206,8 +210,8 @@ class DNSTamperTest(nettest.NetTestCase):
         """
         log.msg("Doing the reverse lookups %s" % self.input)
         list_of_ds = []
-        dns_server = [(self.localOptions['controlresolver'],
-                       self.localOptions['controlresolver-port'])]
+        dns_server = [(self.localOptions['backend'],
+                       self.localOptions['backendport'])]
 
         resolver = Resolver(servers=dns_server)
 

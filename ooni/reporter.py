@@ -1,3 +1,12 @@
+#-*- coding: utf-8 -*-
+#
+# reporter.py 
+# -----------
+# In here goes the logic for the creation of ooniprobe reports.
+#
+# :authors: Arturo Filastò, Isis Lovecruft
+# :license: see included LICENSE file
+
 import itertools
 import logging
 import sys
@@ -11,13 +20,12 @@ from yaml.emitter import *
 from yaml.serializer import *
 from yaml.resolver import *
 
-from datetime import datetime
 from twisted.python.util import untilConcludes
 from twisted.trial import reporter
-from twisted.internet import defer
+from twisted.internet import defer, reactor
 
 from ooni.templates.httpt import BodyReceiver, StringProducer
-from ooni.utils import date, log, geodata
+from ooni.utils import otime, log, geodata
 from ooni import config
 
 try:
@@ -29,8 +37,6 @@ except:
     class FooClass:
         Packet = object
     packet = FooClass
-
-pyunit =  __import__('unittest')
 
 class OSafeRepresenter(SafeRepresenter):
     """
@@ -121,27 +127,15 @@ class OONIBReporter(object):
         return d
 
 
-class OReporter(pyunit.TestResult):
+class YamlReporter(object):
     """
-    This is an extension of the unittest TestResult. It adds support for
-    reporting to yaml format.
+    These are useful functions for reporting to YAML format.
     """
-    reporterFactory = None
+    def __init__(self, stream):
+        self._stream = stream
 
-    def __init__(self, stream=sys.stdout, tbformat='default', realtime=False,
-                 publisher=None, testSuite=None):
-        super(OReporter, self).__init__()
-        self.report = {'tests': []}
-        self._stream = reporter.SafeStream(stream)
-        self.tbformat = tbformat
-        self.realtime = realtime
-        self._startTime = None
-        self._warningCache = set()
-
-        self._publisher = publisher
-
-    def _getTime(self):
-        return time.time()
+    def _writeln(self, line):
+        self._write("%s\n" % line)
 
     def _write(self, format_string, *args):
         s = str(format_string)
@@ -152,37 +146,29 @@ class OReporter(pyunit.TestResult):
             self._stream.write(s)
         untilConcludes(self._stream.flush)
 
-    def _writeln(self, format_string, *args):
-        self._write(format_string, *args)
-        self._write('\n')
+    def writeReportEntry(self, entry):
+        self._write('---\n')
+        self._write(safe_dump(entry))
+        self._write('...\n')
 
-    def writeYamlLine(self, line):
-        to_write = safe_dump([line])
-        self._write(to_write)
+    def finish(self):
+        self._stream.close()
 
-
-class ReporterFactory(OReporter):
+class OReporter(YamlReporter):
     """
     This is a reporter factory. It emits new instances of Reports. It is also
     responsible for writing the OONI Report headers.
     """
-    firstrun = True
-
-    def __init__(self, stream=sys.stdout, tbformat='default', realtime=False,
-                 publisher=None, testSuite=None):
-        super(ReporterFactory, self).__init__(stream=stream,
-                tbformat=tbformat, realtime=realtime, publisher=publisher)
-
-        self._testSuite = testSuite
-        self._reporters = []
+    def writeTestsReport(self, tests):
+        for test in tests.values():
+            self.writeReportEntry(test)
 
     @defer.inlineCallbacks
-    def writeHeader(self):
+    def writeReportHeader(self, options):
         self.firstrun = False
-        options = self.options
         self._writeln("###########################################")
         self._writeln("# OONI Probe Report for %s test" % options['name'])
-        self._writeln("# %s" % date.pretty_date())
+        self._writeln("# %s" % otime.prettyDateNow())
         self._writeln("###########################################")
 
         client_geodata = {}
@@ -216,140 +202,39 @@ class ReporterFactory(OReporter):
             client_geodata['countrycode'] = client_location['countrycode']
 
 
-        test_details = {'start_time': repr(date.now()),
+        test_details = {'start_time': otime.utcTimeNow(),
                         'probe_asn': client_geodata['asn'],
                         'probe_cc': client_geodata['countrycode'],
                         'probe_ip': client_geodata['ip'],
                         'test_name': options['name'],
                         'test_version': options['version'],
                         }
+        self.writeReportEntry(test_details)
 
-        self.writeYamlLine(test_details)
-        self._writeln('')
+    def testDone(self, test):
+        test_report = dict(test.report)
 
-    def create(self):
-        r = OONIReporter(self._stream, self.tbformat, self.realtime,
-                         self._publisher)
-        self._reporters.append(OONIReporter)
-        return r
-
-
-class OONIReporter(OReporter):
-    """
-    This is a special reporter that has knowledge about the fact that there can
-    exist more test runs of the same kind per run.
-    These multiple test runs are kept track of through idx.
-
-    An instance of such reporter should be created per InputUnit. Every input
-    unit will invoke size_of_input_unit * test_cases times startTest().
-    """
-    def __init__(self, stream=sys.stdout, tbformat='default', realtime=False,
-                 publisher=None):
-        super(OONIReporter, self).__init__(stream=stream,
-                    tbformat=tbformat, realtime=realtime, publisher=publisher)
-
-        self._tests = {}
-
-    def getTestIndex(self, test):
-        try:
-            idx = test._idx
-        except:
-            idx = 0
-        return idx
-
-
-    def startTest(self, test):
-        super(OONIReporter, self).startTest(test)
-
-        idx = self.getTestIndex(test)
-        if not self._startTime:
-            self._startTime = self._getTime()
-
-        log.debug("Starting test %s" % idx)
-        test.report = {}
-
-        self._tests[idx] = {}
-        self._tests[idx]['test_started'] = self._getTime()
-
+        # XXX the scapy test has an example of how 
+        # to do this properly.
         if isinstance(test.input, packet.Packet):
             test_input = repr(test.input)
         else:
             test_input = test.input
 
-        self._tests[idx]['input'] = test_input
-        self._tests[idx]['name'] = test.name
-        log.debug("Now starting %s" % self._tests[idx])
+        test_started = test._start_time
+        test_runtime = test_started - time.time()
 
+        report = {'input': test_input,
+                'test_started': test_started,
+                'report': test_report}
+        self.writeReportEntry(report)
 
-    def stopTest(self, test):
-        log.debug("Stopping test")
-        super(OONIReporter, self).stopTest(test)
-
-        idx = self.getTestIndex(test)
-
-        self._tests[idx]['last_time'] = self._getTime() - \
-                                        self._tests[idx]['test_started']
-
-        # XXX I put a dict() here so that the object is re-instantiated and I
-        #     actually end up with the report I want. This could either be a
-        #     python bug or a yaml bug.
-        report = dict(test.report)
-        log.debug("Set the report to be a dict")
-
-        log.debug("Adding to report %s" % report)
-        self._tests[idx]['report'] = report
-
-
-    def done(self):
-        """
-        Summarize the result of the test run.
-
-        The summary includes a report of all of the errors, todos, skips and
-        so forth that occurred during the run. It also includes the number of
-        tests that were run and how long it took to run them (not including
-        load time).
-
-        Expects that L{_printErrors}, L{_writeln}, L{_write}, L{_printSummary}
-        and L{_separator} are all implemented.
-        """
-        log.debug("Test run concluded")
-        if self._startTime is not None:
-            self.report['start_time'] = self._startTime
-            self.report['run_time'] = time.time() - self._startTime
-            self.report['tests_run'] = self.testsRun
-        self.report['tests'] = self._tests
-        self.writeReport()
-
-    def writeReport(self):
-        self.writeYamlLine(self.report)
-
-    def addSuccess(self, test):
-        OReporter.addSuccess(self, test)
-        #self.report['result'] = {'value': 'success'}
-
-    def addError(self, test, exception):
-        OReporter.addError(self, test, exception)
-        exc_type, exc_value, exc_traceback = exception
-        log.err(exc_type)
-        log.err(str(exc_value))
-        # XXX properly print out the traceback
-        for line in '\n'.join(traceback.format_tb(exc_traceback)).split("\n"):
-            log.err(line)
-
-    def addFailure(self, *args):
-        OReporter.addFailure(self, *args)
-        log.warn(args)
-
-    def addSkip(self, *args):
-        OReporter.addSkip(self, *args)
-        #self.report['result'] = {'value': 'skip', 'args': args}
-
-    def addExpectedFailure(self, *args):
-        OReporter.addExpectedFailure(self, *args)
-        #self.report['result'] = {'value': 'expectedFailure', 'args': args}
-
-    def addUnexpectedSuccess(self, *args):
-        OReporter.addUnexpectedSuccess(self, *args)
-        #self.report['result'] = {'args': args, 'value': 'unexpectedSuccess'}
-
+    def allDone(self):
+        log.debug("Finished running all tests")
+        self.finish()
+        try:
+            reactor.stop()
+        except:
+            pass
+        return None
 

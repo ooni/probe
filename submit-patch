@@ -87,7 +87,12 @@ echo;
 echo -e "\033[40m\033[0;32m THIS SCRIPT DOES NOT SEND THE PATCH FILES. \033[0m"
 echo -e "\033[40m\033[0;32m You'll have to handle that bit on your own. \033[0m"
 echo;
-
+if test ! -d "patches" ; then
+    echo; echo -e "\033[40m\033[0;32m Creating '/patches' directory... \033[0m"
+    mkdir patches
+else
+    echo; echo -e "\033[40m\033[0;32m Using '/patches' directory... \033[0m"
+fi
 git format-patch --full-index -o "./patches" --stat -l10 --ignore-submodules \
     --binary --cover-letter --numbered --ignore-if-in-upstream \
     --suffix=".patch"  --to="$DEVELOPERS" --cc="$CC" master

@@ -2,9 +2,6 @@
 Installing OONI
 ===============
 
-Currently no installation documentation is present, since OONI is not meant to
-be installed and should be handled with care.
-
 Dependencies
 ************
 
@@ -16,12 +13,20 @@ OONI depends on the following pieces of software.
     * pypcap: http://code.google.com/p/pypcap/
     * libdnet: http://code.google.com/p/libdnet/
 * BeautifulSoup: http://www.crummy.com/software/BeautifulSoup/
+* Txtorcon: https://github.com/meejah/txtorcon
 
 *Optional*
 
-* Dnspython[1]: http://www.dnspython.org/
-* Paramiko[2]: http://www.lag.net/paramiko/
-* Txtorcon: https://github.com/meejah/txtorcon
+* Dnspython [1]: http://www.dnspython.org/
+* Paramiko [2]: http://www.lag.net/paramiko/
+
+If you would like to use Scapy to plot graphs of network activity,
+or be capable of dumping obtained information to a PostScript or PDF
+file, then you'll need:
+
+      * gnuplot-py
+      * numpy
+      * Pyx
 
 [1][2] These dependencies will soon be removed completely.
 
@@ -74,25 +79,11 @@ the ones that are not by building them from source.
 
 "simple" dependencies via easy_install::
 
-    sudo easy_install pyyaml
-    sudo easy_install twisted
-    sudo easy_install beautifulsoup
-    sudo easy_install pygeoip
-    sudo easy_install six
-    sudo easy_install ipaddr
-    sudo easy_install psutil
-    sudo easy_install txtorcon
+    sudo easy_install pyyaml twisted beautifulsoup pygeoip six ipaddr psutil txtorcon
 
 "simple" dependencies via pip::
 
-    sudo pip install pyyaml
-    sudo pip install twisted
-    sudo pip install beautifulsoup
-    sudo pip install pygeoip
-    sudo pip install six
-    sudo pip install ipaddr
-    sudo pip install psutil
-    sudo pip install txtorcon
+    sudo pip install pyyaml twisted beautifulsoup pygeoip six ipaddr psutil txtorcon
 
 Manual installation of scapy
 ----------------------------
