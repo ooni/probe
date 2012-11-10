@@ -27,6 +27,8 @@ class HTTPRequests(httpt.HTTPTest):
 
     optParameters = [['backend', 'b', None, 'URL of the backend to use for sending the requests']]
 
+    requiredOptions = ['backend']
+
     def processInputs(self):
         if self.localOptions['backend']:
             self.url = self.localOptions['backend']
