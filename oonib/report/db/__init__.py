@@ -1,5 +1,3 @@
-__all__ = ['models']
-
 from twisted.python import log
 from twisted.python.threadpool import ThreadPool
 from twisted.internet.defer import inlineCallbacks
@@ -21,7 +19,7 @@ def getStore():
 
 @inlineCallbacks
 def create_tables():
-    from oonib.report.db import models
+    from oonib.report.models import models
 
     for x in models.__all__:
         query = getattr(models.__getattribute__(x), 'createQuery')
