@@ -1,9 +1,9 @@
+# XXX this is currently broken and needs to be ported
 from twisted.internet import protocol
 from twisted.internet.error import ConnectionDone
 
-from oonib.lib import config
+from oonib import config
 
-from ooni.plugoo import reports
 from ooni.protocols.daphn3 import Mutator, Daphn3Protocol
 from ooni.protocols.daphn3 import read_pcap, read_yaml
 

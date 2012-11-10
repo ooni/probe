@@ -13,7 +13,7 @@ from twisted.python.logfile import DailyLogFile
 from ooni.utils import otime
 from ooni import config
 
-def start(logfile=None):
+def start(logfile=None, application_name="OONI"):
     daily_logfile = None
 
     if not logfile:
@@ -24,7 +24,7 @@ def start(logfile=None):
 
     daily_logfile = DailyLogFile(log_filename, log_folder)
 
-    txlog.msg("Starting OONI on %s (%s UTC)" %  (otime.prettyDateNow(),
+    txlog.msg("Starting %s on %s (%s UTC)" %  (application_name, otime.prettyDateNow(),
                                                  otime.utcPrettyDateNow()))
     logging.basicConfig()
     python_logging = txlog.PythonLoggingObserver()
@@ -52,4 +52,18 @@ def err(msg, *arg, **kw):
 
 def exception(*msg):
     logging.exception(msg)
+
+class LoggerFactory(object):
+    """
+    This is a logger factory to be used by oonib
+    """
+    def __init__(self, options):
+        pass
+
+    def start(self, application):
+        # XXX parametrize this
+        start('/tmp/oonib.log', "OONIB")
+
+    def stop(self):
+        txlog.msg("Stopping OONIB")
 
