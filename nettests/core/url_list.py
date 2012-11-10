@@ -19,7 +19,7 @@ class URLList(httpt.HTTPTest):
         else:
             raise Exception("No input specified")
 
-        return self.doRequest(self.url)
+        return self.doRequest(self.url, method="GET")
 
     def test_post(self):
         if self.input:
