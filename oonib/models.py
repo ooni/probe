@@ -2,7 +2,7 @@ __all__ = ['Report', 'TestHelperTMP']
 from storm.twisted.transact import transact
 from storm.locals import *
 
-from oonib.report.db import getStore, transactor
+from oonib import transactor
 
 def generateReportID():
     size = 100

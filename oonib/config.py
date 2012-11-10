@@ -16,6 +16,7 @@ main.dns_tcp_port = 8002
 main.daphn3_port = 9666
 main.server_version = "Apache"
 main.database_uri = "sqlite:"+get_root_path()+"oonib_test_db.db"
+main.db_threadpool_size = 10
 #main.ssl_private_key = /path/to/data/private.key
 #main.ssl_certificate = /path/to/data/certificate.crt
 #main.ssl_port = 8433

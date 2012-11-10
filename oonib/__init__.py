@@ -17,6 +17,6 @@ from storm.databases.sqlite import SQLite
 from oonib import config
 
 database = SQLite(URI(config.main.database_uri))
-db_threadpool = ThreadPool(0, config.main.db_thread_pool_size)
+db_threadpool = ThreadPool(0, config.main.db_threadpool_size)
 db_threadpool.start()
 transactor = Transactor(db_threadpool)
