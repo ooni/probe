@@ -223,10 +223,14 @@ def runTestCases(test_cases, options,
             test_inputs = [None]
 
     reportFile = open(yamloo_filename, 'w+')
-    oreporter = reporter.OReporter(reportFile)
+    #oreporter = reporter.YAMLReporter(reportFile)
+    oreporter = reporter.OONIBReporter('http://127.0.0.1:8888')
+
     input_unit_factory = InputUnitFactory(test_inputs)
 
-    yield oreporter.writeReportHeader(options)
+    log.debug("Creating report")
+    yield oreporter.createReport(options)
+
     # This deferred list is a deferred list of deferred lists
     # it is used to store all the deferreds of the tests that 
     # are run
@@ -238,7 +242,7 @@ def runTestCases(test_cases, options,
             test_class = test_case[0]
             test_method = test_case[1]
             yield runTestWithInputUnit(test_class,
-                        test_method, input_list, 
+                        test_method, input_list,
                         oreporter)
     oreporter.allDone()
 

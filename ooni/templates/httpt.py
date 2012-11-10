@@ -143,7 +143,8 @@ class HTTPTest(NetTestCase):
         d.addCallback(finished)
         return d
 
-    def build_request(self, url, method="GET", headers=None, body=None):
+    def build_request(self, url, method="GET", 
+            headers=None, body=None):
         self.request['method'] = method
         self.request['url'] = url
         self.request['headers'] = headers if headers else {}

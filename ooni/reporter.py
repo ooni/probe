@@ -15,11 +15,6 @@ import yaml
 import json
 import traceback
 
-from yaml.representer import *
-from yaml.emitter import *
-from yaml.serializer import *
-from yaml.resolver import *
-
 from twisted.python.util import untilConcludes
 from twisted.trial import reporter
 from twisted.internet import defer, reactor
@@ -114,12 +109,20 @@ class OONIBReporter(object):
                 'test_name': test_name, 'test_version': test_version,
                 'progress': 0}
 
-        log.debug("Creating report via url %s" % url)
-        bodyProducer = StringProducer(json.dumps(request))
-        d = self.agent.request("POST", url, bodyProducer=bodyProducer)
-        d.addCallback(self._processResponseBody, self._newReportCreated)
-        return d
-
+        report = {'input': test_input,
+                'test_name': test_name,
+                'test_started': test_started,
+                'report': test_report}
+        self.writeReportEntry(report)
+    
+    def allDone(self):
+        log.debug("allDone: Finished running all tests")
+        self.finish()
+        try:
+            reactor.stop()
+        except:
+            pass
+        return None
 
 class YamlReporter(object):
     """
@@ -167,6 +170,7 @@ class OReporter(YamlReporter):
 
         client_geodata = {}
 
+<<<<<<< Updated upstream
         if config.privacy.includeip or \
                 config.privacy.includeasn or \
                 config.privacy.includecountry or \
@@ -176,12 +180,21 @@ class OReporter(YamlReporter):
             client_location = geodata.IPToLocation(client_ip)
         else:
             client_ip = "127.0.0.1"
+=======
+class OONIBReporter(OReporter):
+    def __init__(self, backend_url):
+        from twisted.web.client import Agent
+        from twisted.internet import reactor
+        self.agent = Agent(reactor)
+        self.backend_url = backend_url
+>>>>>>> Stashed changes
 
         if config.privacy.includeip:
             client_geodata['ip'] = client_ip
         else:
             client_geodata['ip'] = "127.0.0.1"
 
+<<<<<<< Updated upstream
         client_geodata['asn'] = None
         client_geodata['city'] = None
         client_geodata['countrycode'] = None
@@ -194,6 +207,54 @@ class OReporter(YamlReporter):
 
         if config.privacy.includecountry:
             client_geodata['countrycode'] = client_location['countrycode']
+=======
+    def _processResponseBody(self, *arg, **kw):
+        log.msg("processResponseBody ------------------")
+        print arg, kw
+        #done = defer.Deferred()
+        #response.deliverBody(BodyReceiver(done))
+        #done.addCallback(self._newReportCreated)
+        #return done
+
+    def createReport(self, options):
+        test_name = options['name']
+        test_version = options['version']
+
+        log.debug("Creating report with OONIB Reporter")
+        url = self.backend_url + '/report/new'
+        software_version = '0.0.1'
+
+        def gotDetails(test_details):
+            content = '---\n'
+            content += safe_dump(test_details)
+            content += '...\n'
+
+            request = {'software_name': 'ooniprobe',
+                'software_version': software_version,
+                'test_name': test_name,
+                'test_version': test_version,
+                'progress': 0,
+                'content': content
+            }
+            log.debug("Creating report via url %s" % url)
+            request_json = json.dumps(request)
+            log.debug("Sending %s" % request_json)
+
+            def bothCalls(*arg, **kw):
+                print "In HERE y0"
+                print arg, kw
+
+            body_producer = StringProducer(request_json)
+            d = self.agent.request("POST", url, None,
+                    body_producer)
+            d.addBoth(self._processResponseBody)
+            return d
+
+        d = getTestDetails(options)
+        d.addCallback(gotDetails)
+        # XXX handle errors
+        return d
+>>>>>>> Stashed changes
 
 
         test_details = {'start_time': otime.utcTimeNow(),
@@ -224,6 +285,7 @@ class OReporter(YamlReporter):
                 'report': test_report}
         self.writeReportEntry(report)
 
+<<<<<<< Updated upstream
     def allDone(self):
         log.debug("allDone: Finished running all tests")
         self.finish()
@@ -233,3 +295,5 @@ class OReporter(YamlReporter):
             pass
         return None
 
+=======
+>>>>>>> Stashed changes
