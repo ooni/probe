@@ -14,7 +14,7 @@ from twisted.internet import reactor, defer
 
 from cyclone import web
 
-from oonib.report import models
+from oonib import models
 
 backend_version = '0.0.1'
 
