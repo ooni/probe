@@ -27,7 +27,6 @@ from ooni.utils import net
 from ooni.utils import checkForRoot, NotRootError
 from ooni.utils import log
 
-
 class Options(usage.Options, app.ReactorSelectionMixin):
     synopsis = """%s [options] [path to test].py
     """ % (os.path.basename(sys.argv[0]),)

@@ -14,7 +14,8 @@ from twisted.internet import reactor, defer
 
 from cyclone import web
 
-from oonib.report.db import models
+from oonib.report import models
+
 backend_version = '0.0.1'
 
 def updateReport(report_id, content):
