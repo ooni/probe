@@ -70,14 +70,10 @@ class ScapyProtocol(abstract.FileDescriptor):
         """
 
     def processAnswer(self, packet, answer_hr):
-        log.debug("Got an answer processing it")
+        log.debug("Got a packet from %s" % packet.src)
         for i in range(len(answer_hr)):
             if packet.answers(answer_hr[i]):
                 self.answered_packets.append((answer_hr[i], packet))
-                if self.debug:
-                    print packet.src, packet.ttl
-                    #answer.show()
-
                 if not self.multi:
                     del(answer_hr[i])
                 break
@@ -87,7 +83,6 @@ class ScapyProtocol(abstract.FileDescriptor):
 
     def doRead(self):
         timeout = time.time() - self._start_time
-        log.debug("Checking for timeout %s > %s" % (timeout, self.timeout))
         if self.timeout and time.time() - self._start_time > self.timeout:
             self.stopSending()
         packet = self.super_socket.recv()
