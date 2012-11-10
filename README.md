@@ -1,4 +1,4 @@
-# ooni-probe - Open Observatory of Network Interference
+# ooniprobe - Open Observatory of Network Interference
 
 "The Net interprets censorship as damage and routes around it."
                 - John Gilmore; TIME magazine (6 December 1993)
@@ -15,103 +15,65 @@ To run OONI-probe without having to install it you must tell python that it
 can import modules from the root of ooni-probe, as well as initialize the
 included submodules.
 
-From the root directory of the repo (.../ooni-probe/), initialize the submodules by doing:
+## Getting started
 
-    $ git submodule init && git submodule update
+Requirements:
 
-Next, you will need to tell Python that OONI is part of its path:
+  * Git: http://git-scm.com/book/en/Getting-Started-Installing-Git
+  * Python >= 2.6: http://www.python.org/download/releases/
+  * pip: http://www.pip-installer.org/en/latest/
 
-    $ export PYTHONPATH=$PYTHONPATH:`pwd`
+On debian based systems these can be installed with:
 
-Then to see what tests are available:
+  apt-get install git-core python python-pip python-dev
 
-    $ cd ooni
-    $ python ooniprobe.py
+The python dependencies required for running ooniprobe are:
 
-If you see some errors see INSTALL to install the missing dependencies.
+  * Twisted
+  * Scapy >= 2.2.0
+  * txtorcon
 
-To list the help for a specific test:
+They can be installed from the requirements.txt with:
 
-    $ python ooniprobe.py httpt --help
+  pip install -r requirements.txt
 
-## Virtualenv way (Recommended)
+You are highly recommended to do so from inside of a virtual environment, since
+pip does not download the packages via SSL and you will need to install it
+system wide.
 
-    virtualenv2 ENV/
-    source ENV/bin/activate
-    pip install twisted Scapy pyyaml
+This will require you to have installed virtualenv.
 
-The setup.py script of pyOpenSSL has some issues and it is therefore
-recommended to install it system wide with:
+  apt-get install python-virtualenv
 
-    sudo pip install pyOpenSSL
+To create a new virtual environment do
 
-Note: be sure to do this over a secure network since pip does not by default
-use SSL...
+  virtualenv env
 
-To install the most up to date scapy version (requires mercurial):
+Then install OONI with:
 
-    pip install hg+http://hg.secdev.org/scapy
+  pip install -r requirements.txt
+
+## Running some tests
+
+To see the possible command line options run:
+
+  ./bin/ooniprobe --help 
+
+For interesting tests to run look in the nettests/core/ directory.
+
+To run a test you can do so with:
+
+  ./bin/ooniprobe -o report_file_name path/to/test.py
+
+Normally tests take options, you can see them with:
+
+  ./bin/ooniprobe -o report_file_name path/to/test.py --help
+
+## Configuration
+
+By default ooniprobe will not include personal identifying information in the
+test result, nor create a pcap file. This behavior can be personalized by
+editing your ooniprobe.conf configuration file.
 
 
-# More details
-
-With the belief that unfettered access to information is a intrinsic human right,
-OONI seeks to observe levels of surveillance, censorship, and network discrimination
-in order for people worldwide to have a clearer understanding of the ways in
-which their access to information is filtered.
-
-The end goal of OONI is to collect data which can show an accurate
-topology of network interference and censorship. Through this topology, it will be
-possible to see what the internet looks like from nearly any location, including
-what sites are censored, or have been tampered with, and by whom. We're calling
-it filternet.
-
-OONI uses open methodologies and the data will be provided in raw
-format to allow any researcher to indipendently draw their conclusions
-from the results OONI tests.
-
-There are currently projects aimed at measuring censorship in one
-way or another but they either use non open methodologies or their
-tools are not open sources. OONI aims at filling up this gap by
-creating the first open source framework for developing network
-tests and collecting data on censorship.
-
-OONI revolves around three major concepts: Assets, Tests and
-Reports.
-
-## Assets
-
-Assets are the inputs used inside Tests to detect censorship events.
-These can be URL lists, keywords, ip addresses, packets or any kind
-of set of data.
-In the python specific implementation this is represented as a python
-iterable object. This means that the Testing framework will be able
-to iterate through every element in the Asset.
-
-## Tests
-
-This is the core of OONI. These are the actual tests that will be run
-using as input (if an input is required) the Assets.
-Tests can be summarized as an experiment and a control. The control
-represents the expected result and the experiment is the network operation
-being performed on the live network. If the experiment does not match up
-with the control then a censorship event had occured.
-
-OONI probe provides some useful functionality to the application developer
-that may be useful when developing censorship detection tests. For example
-it is possible to make a request over the Tor network easily or use a fast
-and flexible non-blocking HTTP client implementation.
-
-## Reports
-
-This is the data that is collected from the test. OONI probe provides a
-flexible means of storing results and uploading this data to a remote
-server or a flat file.
-
-The Test developer should include in the report as much data as possible
-and can contain raw packet dumps as well as structured synthetic results.
-
-In future on top of ooni-probe Reports it will be possible to develop
-flexible post-processing tools to allow data-visualization guru's to
-properly visualize and contextualize the resulting data.
 
