@@ -95,15 +95,11 @@ class OONIBReporter(object):
         self.backend_url = backend_url
 
     def _newReportCreated(self, data):
-        #log.debug("Got this as result: %s" % data)
-        print "Got this as result: %s" % data
-
+        log.debug("Got this as result: %s" % data)
         return data
 
     def _processResponseBody(self, response, body_cb):
-        #log.debug("Got response %s" % response)
-        print "Got response %s" % response
-
+        log.debug("Got response %s" % response)
         done = defer.Deferred()
         response.deliverBody(BodyReceiver(done))
         done.addCallback(body_cb)
@@ -111,8 +107,6 @@ class OONIBReporter(object):
 
     def newReport(self, test_name, test_version):
         url = self.backend_url + '/new'
-        print "Creating report via url %s" % url
-
         software_version = '0.0.1'
 
         request = {'software_name': 'ooni-probe',
@@ -120,7 +114,7 @@ class OONIBReporter(object):
                 'test_name': test_name, 'test_version': test_version,
                 'progress': 0}
 
-        #log.debug("Creating report via url %s" % url)
+        log.debug("Creating report via url %s" % url)
         bodyProducer = StringProducer(json.dumps(request))
         d = self.agent.request("POST", url, bodyProducer=bodyProducer)
         d.addCallback(self._processResponseBody, self._newReportCreated)
@@ -211,7 +205,7 @@ class OReporter(YamlReporter):
                         }
         self.writeReportEntry(test_details)
 
-    def testDone(self, test):
+    def testDone(self, test, test_name):
         test_report = dict(test.report)
 
         # XXX the scapy test has an example of how 
@@ -225,6 +219,7 @@ class OReporter(YamlReporter):
         test_runtime = test_started - time.time()
 
         report = {'input': test_input,
+                'test_name': test_name,
                 'test_started': test_started,
                 'report': test_report}
         self.writeReportEntry(report)

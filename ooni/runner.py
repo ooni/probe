@@ -153,10 +153,10 @@ def loadTestsAndOptions(classes, cmd_line_options):
 
 def runTestWithInput(test_class, test_method, test_input, oreporter):
     log.debug("Running %s with %s" % (test_method, test_input))
-    def test_done(result, test_instance):
-        oreporter.testDone(test_instance)
+    def test_done(result, test_instance, test_name):
+        oreporter.testDone(test_instance, test_name)
 
-    def test_error(error, test_instance):
+    def test_error(error, test_instance, test_name):
         log.err("%s\n" % error)
 
     test_instance = test_class()
@@ -169,8 +169,8 @@ def runTestWithInput(test_class, test_method, test_input, oreporter):
     test_instance.setUp()
     test = getattr(test_instance, test_method)
     d = defer.maybeDeferred(test)
-    d.addCallback(test_done, test_instance)
-    d.addErrback(test_error, test_instance)
+    d.addCallback(test_done, test_instance, test_method)
+    d.addErrback(test_error, test_instance, test_method)
     log.debug("returning %s input" % test_method)
     return d
 
