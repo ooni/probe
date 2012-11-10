@@ -8,14 +8,42 @@ from twisted.protocols import basic
 from twisted.web import resource, server, static, http
 from twisted.web.microdom import escape
 
-server.version = "Apache"
+from cyclone.web import RequestHandler, Application
 
-class HTTPRandomPage(resource.Resource):
+class HTTPTrapAll(RequestHandler):
+    """
+    Master class to be used to trap all the HTTP methods
+    """
+    def get(self, *arg, **kw):
+        self.all(*arg, **kw)
+
+    def post(self, *arg, **kw):
+        self.all(*arg, **kw)
+
+    def put(self, *arg, **kw):
+        self.all(*arg, **kw)
+
+class HTTPReturnJSONHeaders(HTTPTrapAll):
+    def all(self):
+        # XXX make sure that the request headers are in the correct order
+        submitted_data = {'request_body': self.request.body,
+                'request_headers': self.request.headers,
+                'request_uri': self.request.uri,
+                'request_method': self.request.method}
+        response = json.dumps(submitted_data)
+        self.write(response)
+
+HTTPReturnJSONHeadersHelper = Application([
+    (r"/*", HTTPReturnJSONHeaders)
+])
+
+
+class HTTPRandomPage(HTTPTrapAll):
     """
     This generates a random page of arbitrary length and containing the string
     selected by the user.
-    The format is the following:
-    /random/<length>/<keyword>
+    /<length>/<keyword>
+    XXX this is currently disabled as it is not of use to any test.
     """
     isLeaf = True
     def _gen_random_string(self, length):
@@ -29,64 +57,14 @@ class HTTPRandomPage(resource.Resource):
         data += '\n'
         return data
 
-    def render(self, request):
+    def all(self, length, keyword):
         length = 100
-        keyword = None
-        path_parts = request.path.split('/')
-        if len(path_parts) > 2:
-            length = int(path_parts[2])
-            if length > 100000:
-                length = 100000
-
-        if len(path_parts) > 3:
-            keyword = escape(path_parts[3])
-
+        if length > 100000:
+            length = 100000
         return self.genRandomPage(length, keyword)
 
-class HTTPReturnHeaders(resource.Resource):
-    """
-    This returns the headers being sent by the client in JSON format.
-    """
-    isLeaf = True
-    def render(self, request):
-        req_headers = request.getAllHeaders()
-        return json.dumps(req_headers)
-
-class HTTPSendHeaders(resource.Resource):
-    """
-    This sends to the client the headers that they send inside of the POST
-    request encoded in json.
-    """
-    isLeaf = True
-    def render_POST(self, request):
-        headers = json.loads(request.content.read())
-        for header, value in headers.items():
-            request.setHeader(str(header), str(value))
-        return ''
-
-class HTTPBackend(resource.Resource):
-    def __init__(self):
-        resource.Resource.__init__(self)
-        self.putChild('random', HTTPRandomPage())
-        self.putChild('returnheaders', HTTPReturnHeaders())
-        self.putChild('sendheaders', HTTPSendHeaders())
-
-class DebugProtocol(http.HTTPChannel):
-    def headerReceived(self, line):
-        print "[HEADER] %s" % line
-        http.HTTPChannel.headerReceived(self, line)
-
-    def allContentReceived(self):
-        print self.requests[-1].getAllHeaders()
-        self.transport.loseConnection()
-        self.connectionLost("Normal closure")
-
-class DebugHTTPServer(http.HTTPFactory):
-    protocol = DebugProtocol
-
-    def buildProtocol(self, addr):
-        print "Got connection from %s" % addr
-        p = protocol.ServerFactory.buildProtocol(self, addr)
-        p.timeOut = self.timeOut
-        return p
+HTTPRandomPageHelper = Application([
+    # XXX add regexps here
+    (r"/(.*)/(.*)", HTTPRandomPage)
+])
 

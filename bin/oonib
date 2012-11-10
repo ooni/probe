@@ -1,4 +1,37 @@
-#!/bin/sh
-ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && cd .. && pwd )"
-export PYTHONPATH=$PYTHONPATH:$ROOT
-twistd -ny $ROOT/oonib/oonibackend.py
+#!/usr/bin/env python
+# -*- encoding: utf-8 -*-
+#
+# :authors: Arturo Filastò
+# :licence: see LICENSE
+
+import sys
+import os
+# Avoid the export PYTHONPATH insanity
+sys.path[:] = map(os.path.abspath, sys.path)
+this_directory = os.path.dirname(__file__)
+root = os.path.abspath(os.path.join(this_directory, '..'))
+sys.path.insert(0, root)
+
+backend_script = os.path.join(root, 'oonib', 'oonibackend.py')
+
+from twisted.python import log, usage
+from twisted.internet import reactor
+from twisted.application import app
+
+from oonib import runner
+from oonib.oonibackend import application
+
+sys.argv[1:] = ['-ny', backend_script]
+
+def runApp(config):
+    runner.OBaseRunner(config).run()
+
+config = runner.ServerOptions()
+try:
+    config.parseOptions()
+except usage.error, ue:
+    print config
+    print "%s: %s" % (sys.argv[0], ue)
+else:
+    runApp(config)
+
