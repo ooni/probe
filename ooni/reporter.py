@@ -230,7 +230,7 @@ class OReporter(YamlReporter):
         self.writeReportEntry(report)
 
     def allDone(self):
-        log.debug("Finished running all tests")
+        log.debug("allDone: Finished running all tests")
         self.finish()
         try:
             reactor.stop()

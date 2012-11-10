@@ -12,16 +12,26 @@ from cyclone.web import RequestHandler, Application
 
 class HTTPTrapAll(RequestHandler):
     """
-    Master class to be used to trap all the HTTP methods
+    Master class to be used to trap all the HTTP methods and make capitalized
+    requests pass.
     """
-    def get(self, *arg, **kw):
-        self.all(*arg, **kw)
+    def _execute(self, transforms, *args, **kwargs):
+        self._transforms = transforms
+        defer.maybeDeferred(self.prepare).addCallbacks(
+                    self._execute_handler,
+                    lambda f: self._handle_request_exception(f.value),
+                    callbackArgs=(args, kwargs))
 
-    def post(self, *arg, **kw):
-        self.all(*arg, **kw)
-
-    def put(self, *arg, **kw):
-        self.all(*arg, **kw)
+    def _execute_handler(self, r, args, kwargs):
+        if not self._finished:
+            args = [self.decode_argument(arg) for arg in args]
+            kwargs = dict((k, self.decode_argument(v, name=k))
+                            for (k, v) in kwargs.iteritems())
+            # This is where we do the patching
+            # XXX this is somewhat hackish
+            d = defer.maybeDeferred(self.all, *args, **kwargs)
+            d.addCallbacks(self._execute_success, self._execute_failure)
+            self.notifyFinish().addCallback(self.on_connection_close)
 
 class HTTPReturnJSONHeaders(HTTPTrapAll):
     def all(self):
