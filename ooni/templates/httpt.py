@@ -2,7 +2,7 @@
 #
 # :authors: Arturo Filastò
 # :licence: see LICENSE
-
+import copy
 import random
 
 from zope.interface import implements
@@ -12,6 +12,10 @@ from twisted.plugin import IPlugin
 from twisted.internet import protocol, defer
 from twisted.internet.ssl import ClientContextFactory
 
+from twisted.web.client import Agent
+from twisted.internet import reactor
+
+from twisted.web._newclient import Request
 from twisted.web.http_headers import Headers
 from ooni.nettest import NetTestCase
 from ooni.utils import log
@@ -39,8 +43,6 @@ class HTTPTest(NetTestCase):
         except:
             log.err("Warning! pyOpenSSL is not installed. https websites will"
                      "not work")
-        from twisted.web.client import Agent
-        from twisted.internet import reactor
 
         self.agent = Agent(reactor)
 
@@ -107,7 +109,7 @@ class HTTPTest(NetTestCase):
 
         method: the HTTP Method to be used
 
-        headers: the request headers to be sent
+        headers: the request headers to be sent as a dict
 
         body: the request body
 
@@ -136,6 +138,31 @@ class HTTPTest(NetTestCase):
         d.addCallback(self._cbResponse, headers_processor, body_processor)
         d.addCallback(finished)
         return d
+
+    def build_request(self, url, method="GET", headers=None, body=None):
+        self.request['method'] = method
+        self.request['url'] = url
+        self.request['headers'] = headers if headers else {}
+        self.request['body'] = body
+
+        if self.randomizeUA:
+            self.randomize_useragent()
+
+        self.report['request'] = self.request
+        self.report['url'] = url
+
+        # If we have a request body payload, set the request body to such
+        # content
+        if body:
+            body_producer = StringProducer(self.request['body'])
+        else:
+            body_producer = None
+
+        headers = Headers(self.request['headers'])
+
+        req = self.agent.request(self.request['method'], self.request['url'],
+                                  headers, body_producer)
+        return req
 
     def _cbResponse(self, response, headers_processor, body_processor):
         log.debug("Got response %s" % response)
@@ -167,27 +194,4 @@ class HTTPTest(NetTestCase):
         user_agent = random.choice(userAgents)
         self.request['headers']['User-Agent'] = [user_agent]
 
-    def build_request(self, url, method="GET", headers=None, body=None):
-        self.request['method'] = method
-        self.request['url'] = url
-        self.request['headers'] = headers if headers else {}
-        self.request['body'] = body
-
-        if self.randomizeUA:
-            self.randomize_useragent()
-
-        self.report['request'] = self.request
-        self.report['url'] = url
-
-        # If we have a request body payload, set the request body to such
-        # content
-        if body:
-            body_producer = StringProducer(self.request['body'])
-        else:
-            body_producer = None
-
-        req = self.agent.request(self.request['method'], self.request['url'],
-                                  Headers(self.request['headers']),
-                                  body_producer)
-        return req
 

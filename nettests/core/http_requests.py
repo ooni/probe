@@ -4,6 +4,9 @@
 # :licence: see LICENSE
 
 import random
+import json
+
+from ooni.utils import log, net
 from ooni.templates import httpt
 
 def random_capitalization(string):
@@ -21,11 +24,16 @@ class HTTPRequests(httpt.HTTPTest):
     This test is also known as Header Field manipulation. It performes HTTP
     requests with variations in capitalization towards the backend.
     """
-    name = "HTTPRequests"
+    name = "HTTP Requests"
     author = "Arturo Filastò"
     version = 0.1
 
-    optParameters = [['backend', 'b', None, 'URL of the backend to use for sending the requests']]
+    optParameters = [
+            ['backend', 'b', None, 
+                'URL of the backend to use for sending the requests'],
+            ['headers', 'h', None,
+                'Specify a yaml formatted file from which to read the request headers to send']
+            ]
 
     requiredOptions = ['backend']
 
@@ -35,24 +43,76 @@ class HTTPRequests(httpt.HTTPTest):
         else:
             raise Exception("No backend specified")
 
+    def processResponseBody(self, data):
+        response = json.loads(data)
+        if response['request_method'] != self.request_method:
+            self.report['tampering'] = True
+        else:
+            self.report['tampering'] = False
+        # XXX add checks for validation of sent headers
+
+    def get_headers(self):
+        headers = {}
+        if self.localOptions['headers']:
+            # XXX test this code
+            try:
+                f = open(self.localOptions['headers'])
+            except IOError:
+                raise Exception("Specified input file does not exist")
+            content = ''.join(f.readlines())
+            f.close()
+            headers = yaml.load(content)
+            return headers
+        else:
+            headers = {"User-Agent": [random.choice(net.userAgents)],
+                "Accept": ["text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"],
+                "Accept-Encoding": ["gzip,deflate,sdch"],
+                "Accept-Language": ["en-US,en;q=0.8"],
+                "Accept-Charset": ["ISO-8859-1,utf-8;q=0.7,*;q=0.3"]}
+            return headers
+
+    def get_random_caps_headers(self):
+        headers = {}
+        normal_headers = self.get_headers()
+        for k, v in normal_headers.items():
+            new_key = random_capitalization(k)
+            headers[new_key] = v
+        return headers
+
     def test_get(self):
-        return self.doRequest(self.url, "GET")
+        self.request_method = "GET"
+        self.request_headers = self.get_random_caps_headers()
+        return self.doRequest(self.url, self.request_method, 
+                headers=self.request_headers)
 
-    def test_get_random_capitalization(self):
-        method = random_capitalization("GET")
-        return self.doRequest(self.url, method)
+    def a_test_get_random_capitalization(self):
+        self.request_method = random_capitalization("GET")
+        self.request_headers = self.get_random_caps_headers()
+        return self.doRequest(self.url, self.request_method, 
+                headers=self.request_headers)
 
-    def test_post(self):
-        return self.doRequest(self.url, "POST")
+    def a_test_post(self):
+        self.request_method = "POST"
+        self.request_headers = self.get_headers()
+        return self.doRequest(self.url, self.request_method, 
+                headers=self.request_headers)
 
-    def test_post_random_capitalization(self):
-        method = random_capitalization("POST")
-        return self.doRequest(self.url, method)
+    def a_test_post_random_capitalization(self):
+        self.request_method = random_capitalization("POST")
+        self.request_headers = self.get_random_caps_headers()
+        return self.doRequest(self.url, self.request_method, 
+                headers=self.request_headers)
 
-    def test_put(self):
-        return self.doRequest(self.url, "PUT")
+    def a_test_put(self):
+        self.request_method = "PUT"
+        self.request_headers = self.get_headers()
+        return self.doRequest(self.url, self.request_method, 
+                headers=self.request_headers)
 
     def test_put_random_capitalization(self):
-        method = random_capitalization("PUT")
-        return self.doRequest(self.url, method)
+        self.request_method = random_capitalization("PUT")
+        self.request_headers = self.get_random_caps_headers()
+        return self.doRequest(self.url, self.request_method, 
+                headers=self.request_headers)
+
 
