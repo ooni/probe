@@ -53,7 +53,7 @@ class BaseScapyTest(NetTestCase):
             self.report['answered_packets'] = []
             self.report['sent_packets'] = []
             for snd, rcv in answered:
-                log.debug("Writing report %s")
+                log.debug("Writing report %s" % snd)
                 pkt_report_r = createPacketReport(rcv)
                 pkt_report_s = createPacketReport(snd)
                 self.report['answered_packets'].append(pkt_report_r)

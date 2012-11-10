@@ -4,6 +4,7 @@
 # :licence: see LICENSE
 
 from twisted.python import usage
+from twisted.internet import defer
 
 from ooni.utils import log
 from ooni.templates import scapyt
@@ -12,7 +13,8 @@ from scapy.all import *
 
 class UsageOptions(usage.Options):
     optParameters = [
-                    ['backend', 'b', '8.8.8.8', 'Test backend to use']
+                    ['backend', 'b', '8.8.8.8', 'Test backend to use'],
+                    ['timeout', 't', 5, 'The timeout for the traceroute test']
                     ]
 
 class TracerouteTest(scapyt.BaseScapyTest):
@@ -26,26 +28,25 @@ class TracerouteTest(scapyt.BaseScapyTest):
 
     def test_tcp_traceroute(self):
         def finished(packets, port):
-            log.debug("Finished tcp")
+            log.debug("Finished tcp %s" % port)
             answered, unanswered = packets
             self.report['hops_'+str(port)] = [] 
             for snd, rcv in answered:
                 report = {'ttl': snd.ttl, 'address': rcv.src}
                 log.debug("Writing %s" % report)
                 self.report['hops_'+str(port)].append(report)
-            return
 
         dl = []
         for port in self.dst_ports:
             packets = IP(dst=self.localOptions['backend'], 
-                    ttl=(4,25),id=RandShort())/TCP(flags=0x2, dport=port)
-            d = self.sr(packets, timeout=2)
+                    ttl=(1,25),id=RandShort())/TCP(flags=0x2, dport=port)
+            d = self.sr(packets, timeout=5)
             d.addCallback(finished, port)
             dl.append(d)
         return defer.DeferredList(dl)
 
     def test_udp_traceroute(self):
-        def finished(packets):
+        def finished(packets, port):
             log.debug("Finished udp")
             answered, unanswered = packets
             self.report['hops_'+str(port)].append(report)
@@ -53,13 +54,11 @@ class TracerouteTest(scapyt.BaseScapyTest):
                 report = {'ttl': snd.ttl, 'address': rcv.src}
                 log.debug("Writing %s" % report)
                 self.report['hops_'+str(port)].append(report)
-            return
-
         dl = []
         for port in self.dst_ports:
             packets = IP(dst=self.localOptions['backend'],
-                    ttl=(4,25),id=RandShort())/UDP(dport=port)
-            d = self.sr(packets, timeout=2)
+                    ttl=(1,25),id=RandShort())/UDP(dport=port)
+            d = self.sr(packets, timeout=5)
             d.addCallback(finished, port)
             dl.append(d)
         return defer.DeferredList(dl)
