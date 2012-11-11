@@ -37,31 +37,9 @@ The python dependencies required for running ooniprobe are:
   * BeautifulSoup: http://www.crummy.com/software/BeautifulSoup/
   * txtorcon: https://github.com/meejah/txtorcon
 
-### Installing scapy
-
-Unfortunately the version of scapy that is stored on pypi is out of date, this
-means that you will have to manually download and install scapy.
-
-This can be done like so:
-
-    wget http://www.secdev.org/projects/scapy/files/scapy-latest.tar.gz
-    tar xzf scapy-latest.tar.gz
-    cd scapy-*
-    python setup.py install
-
-If you are not inside of a virtual env the last command will have to be:
-
-    sudo python setup.py install
-
-### Installing the rest of dependencies
-
-The other dependencies can be installed from the requirements.txt with:
-
-    sudo pip install -r requirements.txt
-
-You are highly recommended to do so from inside of a virtual environment, since
-pip does not download the packages via SSL and you will need to install it
-system wide.
+You are highly recommended to install depedencies from inside of a virtual
+environment, since pip does not download the packages via SSL and you will need
+to install it system wide.
 
 This will require you to have installed virtualenv.
 
@@ -73,7 +51,14 @@ To create a new virtual environment do
 
 Then install OONI with:
 
-   pip install -r requirements.txt
+    pip install https://hg.secdev.org/scapy/archive/tip.zip
+    pip install -r requirements.txt
+
+If you decided not to install virtual env and want to download code via http as
+run it as root, you may easily do so with:
+
+    pip install https://hg.secdev.org/scapy/archive/tip.zip
+    sudo pip install -r requirements.txt
 
 ## Including your geo data in the test report
 
