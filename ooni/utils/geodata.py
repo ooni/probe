@@ -10,13 +10,17 @@
 
 import re
 import os
-import pygeoip
 
 from twisted.web.client import Agent
 from twisted.internet import reactor, defer, protocol
 
 from ooni.utils import log, net
 from ooni import config
+
+try:
+    import pygeoip
+except ImportError:
+    log.err("Unable to import pygeoip. We will not be able to run geo IP related measurements")
 
 @defer.inlineCallbacks
 def myIP():

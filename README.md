@@ -46,8 +46,7 @@ This can be done like so:
 
     wget http://www.secdev.org/projects/scapy/files/scapy-latest.tar.gz
     tar xzf scapy-latest.tar.gz
-    cd scapy-latest.tar.gz
-    cd scapy-latest
+    cd scapy-*
     python setup.py install
 
 If you are not inside of a virtual env the last command will have to be:
