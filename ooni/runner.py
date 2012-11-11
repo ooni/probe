@@ -221,7 +221,7 @@ def runTestCases(test_cases, options,
             log.msg("Could not find inputs!")
             log.msg("options[0] = %s" % first)
             test_inputs = [None]
-
+    
     reportFile = open(yamloo_filename, 'w+')
     oreporter = reporter.YAMLReporter(reportFile)
 

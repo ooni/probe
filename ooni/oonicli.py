@@ -93,7 +93,12 @@ def run():
     if cmd_line_options['debug-stacktraces']:
         defer.setDebugging(True)
 
-    yamloo_filename, pcap_filename = config.oreport_filenames()
+    log.start(cmd_line_options['logfile'])
+
+    test_file_name = os.path.basename(cmd_line_options['test'])
+    log.debug("Running script %s" % test_file_name)
+
+    yamloo_filename, pcap_filename = config.oreport_filenames(test_file_name)
 
     if cmd_line_options['reportfile']:
         yamloo_filename = cmd_line_options['reportfile']
@@ -108,7 +113,6 @@ def run():
         log.msg("Renaming it to %s" % pcap_filename+'.old')
         os.rename(pcap_filename, pcap_filename+'.old')
 
-    log.start(cmd_line_options['logfile'])
     classes = runner.findTestClassesFromConfig(cmd_line_options)
     test_cases, options = runner.loadTestsAndOptions(classes, cmd_line_options)
     if config.privacy.includepcap:

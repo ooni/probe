@@ -17,16 +17,17 @@ def get_root_path():
     root = os.path.abspath(root)
     return root
 
-def oreport_filenames():
+def oreport_filenames(file_name):
     """
     returns the filenames for the pcap file and the yamloo report
 
     returns
     yamloo_filename, pcap_filename
     """
-    base_filename = "%s_"+otime.timestamp()+".%s"
-    yamloo_filename = base_filename % ("report", "yamloo")
-    pcap_filename = base_filename % ("packets", "pcap")
+    test_name = '.'.join(file_name.split(".")[:-1])
+    base_filename = "%s_%s_"+otime.timestamp()+".%s"
+    yamloo_filename = base_filename % (test_name, "report", "yamloo")
+    pcap_filename = base_filename % (test_name, "packets", "pcap")
     return yamloo_filename, pcap_filename
 
 config_file = os.path.join(get_root_path(), 'ooniprobe.conf')
