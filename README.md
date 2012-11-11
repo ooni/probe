@@ -29,9 +29,13 @@ On debian based systems these can be installed with:
 
 The python dependencies required for running ooniprobe are:
 
-  * Twisted
-  * Scapy >= 2.2.0
-  * txtorcon
+  * Twisted (>12.0.0): http://twistedmatrix.com/trac/
+  * PyYAML: http://pyyaml.org/
+  * Scapy: http://www.secdev.org/projects/scapy/
+      * pypcap: http://code.google.com/p/pypcap/
+      * libdnet: http://code.google.com/p/libdnet/
+  * BeautifulSoup: http://www.crummy.com/software/BeautifulSoup/
+  * txtorcon: https://github.com/meejah/txtorcon
 
 They can be installed from the requirements.txt with:
 
@@ -52,6 +56,40 @@ To create a new virtual environment do
 Then install OONI with:
 
   pip install -r requirements.txt
+
+## Installing scapy
+
+Unfortunately the version of scapy that is stored on pypi is out of date, this
+means that you will have to manually download and install scapy.
+
+This can be done like so:
+
+  wget http://www.secdev.org/projects/scapy/files/scapy-latest.tar.gz
+  tar xzf scapy-latest.tar.gz
+  cd scapy-latest.tar.gz
+  cd scapy-latest
+  python setup.py install
+
+If you are not inside of a virtual env the last command will have to be:
+
+  sudo python setup.py install
+
+## Including your geo data in the test report
+
+Including geografical information on where your probe is located helps us
+better assess the value of the test. You can personalize these setting from
+inside of ooniprobe.conf
+
+If you wish to include geografical data in the test report, you will have to go
+to the data/ directory and run:
+
+  make geoip
+
+Then edit your ooniprobe.conf to point to the absolute path of where the data/
+directory is located for example:
+
+  geoip_data_dir: /home/your_user/ooni-probe/data/
+
 
 ## Running some tests
 
