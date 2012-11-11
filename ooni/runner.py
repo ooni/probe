@@ -192,12 +192,12 @@ def runTestWithInputUnit(test_class,
     dl = []
     log.debug("input unit %s" % input_unit)
     for test_input in input_unit:
-        log.debug("IU: %s" % test_input)
+        log.debug("running with input: %s" % test_input)
         try:
-            d = runTestWithInput(test_class, test_method, test_input, oreporter)
+            d = runTestWithInput(test_class, 
+                    test_method, test_input, oreporter)
         except Exception, e:
             print e
-        log.debug("here y0")
         dl.append(d)
     return defer.DeferredList(dl)
 
@@ -221,8 +221,9 @@ def runTestCases(test_cases, options,
             log.msg("Could not find inputs!")
             log.msg("options[0] = %s" % first)
             test_inputs = [None]
-
+    
     reportFile = open(yamloo_filename, 'w+')
+
     #oreporter = reporter.YAMLReporter(reportFile)
     oreporter = reporter.OONIBReporter('http://127.0.0.1:8888')
 
@@ -231,6 +232,11 @@ def runTestCases(test_cases, options,
     log.debug("Creating report")
     yield oreporter.createReport(options)
 
+    oreporter = reporter.YAMLReporter(reportFile)
+
+    input_unit_factory = InputUnitFactory(test_inputs)
+
+    yield oreporter.createReport(options)
     # This deferred list is a deferred list of deferred lists
     # it is used to store all the deferreds of the tests that 
     # are run

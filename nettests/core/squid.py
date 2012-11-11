@@ -17,7 +17,7 @@ class SquidTest(httpt.HTTPTest):
     """
     name = "Squid test"
     author = "Arturo Filastò"
-    version = 0.1
+    version = "0.1"
 
     optParameters = [['backend', 'b', 'http://ooni.nu/test/', 'Test backend to use']]
 

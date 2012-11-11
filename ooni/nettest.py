@@ -81,6 +81,9 @@ class NetTestCase(object):
                        required for proper running of a test.
 
     * localOptions: contains the parsed command line arguments.
+
+    Quirks:
+    Every class that is prefixed with test *must* return a twisted.internet.defer.Deferred.
     """
     name = "I Did Not Change The Name"
     author = "Jane Doe <foo@example.com>"

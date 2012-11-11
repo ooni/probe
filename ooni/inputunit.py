@@ -6,7 +6,7 @@
 # units. Input units are how the inputs to be fed to tests are
 # split up into.
 #
-# :authors: Arturo Filastò, Isis Lovecruft
+# :authors: Arturo Filastò
 # :license: see included LICENSE file
 
 

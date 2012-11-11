@@ -3,57 +3,53 @@
 #
 # This is the backend system responsible for running certain services that are
 # useful for censorship detection.
-
-import json
-import random
-import string
+#
+# In here we start all the test helpers that are required by ooniprobe and
+# start the report collector
 
 from twisted.application import internet
-
-from twisted.internet import protocol, reactor, defer
+from twisted.internet import  reactor
 from twisted.application import internet, service
 from twisted.application.service import Application
-
-from twisted.web import resource, server, static
-from twisted.web.microdom import escape
-from twisted.protocols import basic
 from twisted.names import dns
 
 from ooni.utils import log
 
 from oonib.report.api import reportingBackend
-from oonib.lib.ssl import SSLContext
+
 from oonib import config
 
-from oonib.testhelpers.httph import HTTPReturnJSONHeadersHelper
-from oonib.testhelpers.dns import ProxyDNSServer
+from oonib.testhelpers import dns_helpers, ssl_helpers
+from oonib.testhelpers import http_helpers, tcp_helpers
+
 #from oonib.testhelpers.daphn3 import Daphn3Server
 from oonib import db_threadpool
 
 from cyclone import web
 
-# This tells twisted to set the
-server.version = config.main.server_version
-
 application = service.Application('oonibackend')
 serviceCollection = service.IServiceCollection(application)
 
-if config.main.ssl_port:
-    internet.SSLServer(int(config.main.ssl_port),
+if config.helpers.ssl.port:
+    log.msg("Starting SSL helper")
+    ssl_helper = internet.SSLServer(int(config.helpers.ssl.port),
                    server.Site(HTTPBackend()),
-                   SSLContext(config),
-                  ).setServiceParent(serviceCollection)
+                   SSLContext(config))
+    ssl_helper.setServiceParent(serviceCollection)
 
 # Start the DNS Server related services
-if config.main.dns_tcp_port:
-    TCPDNSServer = ProxyDNSServer()
-    internet.TCPServer(int(config.main.dns_tcp_port),
-                       TCPDNSServer).setServiceParent(serviceCollection)
+if config.helpers.dns.tcp_port:
+    log.msg("Starting TCP DNS Helper on %s" % config.helpers.dns.tcp_port)
+    tcp_dns_helper = internet.TCPServer(int(config.helpers.dns.tcp_port),
+                       dns_helpers.DNSTestHelper())
+    tcp_dns_helper.setServiceParent(serviceCollection)
 
-if config.main.dns_udp_port:
-    UDPFactory = dns.DNSDatagramProtocol(TCPDNSServer)
-    internet.UDPServer(int(config.main.dns_udp_port),
-                       UDPFactory).setServiceParent(serviceCollection)
+if config.helpers.dns.udp_port:
+    log.msg("Starting UDP DNS Helper on %s" % config.helpers.dns.udp_port)
+    udp_dns_factory = dns.DNSDatagramProtocol(dns_helpers.DNSTestHelper())
+    udp_dns_helper = internet.UDPServer(int(config.helpers.dns.udp_port),
+                       udp_dns_factory)
+    udp_dns_helper.setServiceParent(serviceCollection)
 
 # XXX this needs to be ported
 # Start the OONI daphn3 backend
@@ -62,12 +58,23 @@ if config.main.dns_udp_port:
 #    internet.TCPServer(int(config.main.daphn3_port),
 #                       daphn3).setServiceParent(serviceCollection)
 
-if config.main.reporting_port:
-    internet.TCPServer(int(config.main.reporting_port),
-                       reportingBackend).setServiceParent(serviceCollection)
+if config.main.collector_port:
+    log.msg("Starting Collector on %s" % config.main.collector_port)
+    collector = internet.TCPServer(int(config.main.collector_port),
+                       reportingBackend)
+    collector.setServiceParent(serviceCollection)
 
-if config.helpers.http_return_request_port:
-    internet.TCPServer(int(config.helpers.http_return_request_port),
-            HTTPReturnJSONHeadersHelper).setServiceParent(serviceCollection)
+if config.helpers.tcp_echo.port:
+    log.msg("Starting TCP echo helper on %s" % config.helpers.tcp_echo.port)
+    tcp_echo_helper = internet.TCPServer(int(config.helpers.tcp_echo.port),
+                        tcp_helpers.TCPEchoHelper())
+    tcp_echo_helper.setServiceParent(serviceCollection)
+
+if config.helpers.http_return_request.port:
+    log.msg("Starting HTTP return request helper on %s" % config.helpers.http_return_request.port)
+    http_return_request_helper = internet.TCPServer(
+            int(config.helpers.http_return_request.port),
+            http_helpers.HTTPReturnJSONHeadersHelper)
+    http_return_request_helper.setServiceParent(serviceCollection)
 
 reactor.addSystemEventTrigger('after', 'shutdown', db_threadpool.stop)
