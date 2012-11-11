@@ -114,7 +114,7 @@ class OONIBReporter(object):
                 'test_started': test_started,
                 'report': test_report}
         self.writeReportEntry(report)
-    
+
     def allDone(self):
         log.debug("allDone: Finished running all tests")
         self.finish()
@@ -170,7 +170,6 @@ class OReporter(YamlReporter):
 
         client_geodata = {}
 
-<<<<<<< Updated upstream
         if config.privacy.includeip or \
                 config.privacy.includeasn or \
                 config.privacy.includecountry or \
@@ -180,21 +179,12 @@ class OReporter(YamlReporter):
             client_location = geodata.IPToLocation(client_ip)
         else:
             client_ip = "127.0.0.1"
-=======
-class OONIBReporter(OReporter):
-    def __init__(self, backend_url):
-        from twisted.web.client import Agent
-        from twisted.internet import reactor
-        self.agent = Agent(reactor)
-        self.backend_url = backend_url
->>>>>>> Stashed changes
 
         if config.privacy.includeip:
             client_geodata['ip'] = client_ip
         else:
             client_geodata['ip'] = "127.0.0.1"
 
-<<<<<<< Updated upstream
         client_geodata['asn'] = None
         client_geodata['city'] = None
         client_geodata['countrycode'] = None
@@ -207,10 +197,53 @@ class OONIBReporter(OReporter):
 
         if config.privacy.includecountry:
             client_geodata['countrycode'] = client_location['countrycode']
-=======
+
+        test_details = {'start_time': otime.utcTimeNow(),
+                        'probe_asn': client_geodata['asn'],
+                        'probe_cc': client_geodata['countrycode'],
+                        'probe_ip': client_geodata['ip'],
+                        'test_name': options['name'],
+                        'test_version': options['version'],
+                        }
+        self.writeReportEntry(test_details)
+
+    def testDone(self, test, test_name):
+        test_report = dict(test.report)
+
+        # XXX the scapy test has an example of how 
+        # to do this properly.
+        if isinstance(test.input, packet.Packet):
+            test_input = repr(test.input)
+        else:
+            test_input = test.input
+
+        test_started = test._start_time
+        test_runtime = test_started - time.time()
+
+        report = {'input': test_input,
+                'test_name': test_name,
+                'test_started': test_started,
+                'report': test_report}
+        self.writeReportEntry(report)
+
+    def allDone(self):
+        log.debug("allDone: Finished running all tests")
+        self.finish()
+        try:
+            reactor.stop()
+        except:
+            pass
+        return None
+
+
+class OONIBReporter(OReporter):
+    def __init__(self, backend_url):
+        from twisted.web.client import Agent
+        from twisted.internet import reactor
+        self.agent = Agent(reactor)
+        self.backend_url = backend_url
+
     def _processResponseBody(self, *arg, **kw):
-        log.msg("processResponseBody ------------------")
-        print arg, kw
         #done = defer.Deferred()
         #response.deliverBody(BodyReceiver(done))
         #done.addCallback(self._newReportCreated)
@@ -241,7 +274,6 @@ class OONIBReporter(OReporter):
             log.debug("Sending %s" % request_json)
 
             def bothCalls(*arg, **kw):
-                print "In HERE y0"
                 print arg, kw
 
             body_producer = StringProducer(request_json)
@@ -254,46 +286,4 @@ class OONIBReporter(OReporter):
         d.addCallback(gotDetails)
         # XXX handle errors
         return d
->>>>>>> Stashed changes
 
-
-        test_details = {'start_time': otime.utcTimeNow(),
-                        'probe_asn': client_geodata['asn'],
-                        'probe_cc': client_geodata['countrycode'],
-                        'probe_ip': client_geodata['ip'],
-                        'test_name': options['name'],
-                        'test_version': options['version'],
-                        }
-        self.writeReportEntry(test_details)
-
-    def testDone(self, test, test_name):
-        test_report = dict(test.report)
-
-        # XXX the scapy test has an example of how 
-        # to do this properly.
-        if isinstance(test.input, packet.Packet):
-            test_input = repr(test.input)
-        else:
-            test_input = test.input
-
-        test_started = test._start_time
-        test_runtime = test_started - time.time()
-
-        report = {'input': test_input,
-                'test_name': test_name,
-                'test_started': test_started,
-                'report': test_report}
-        self.writeReportEntry(report)
-
-<<<<<<< Updated upstream
-    def allDone(self):
-        log.debug("allDone: Finished running all tests")
-        self.finish()
-        try:
-            reactor.stop()
-        except:
-            pass
-        return None
-
-=======
->>>>>>> Stashed changes
