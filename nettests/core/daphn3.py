@@ -1,6 +1,5 @@
 from twisted.python import usage
-
-from twisted.internet import protocol, endpoints
+from twisted.internet import protocol, endpoints, reactor
 
 from ooni.kit import daphn3
 from ooni.utils import log
@@ -45,55 +44,45 @@ class Daphn3ClientFactory(protocol.ClientFactory):
         print "Connection Lost."
 
 class daphn3Args(usage.Options):
-    optParameters = [['pcap', 'f', None,
-                        'PCAP to read for generating the YAML output'],
-
-                     ['output', 'o', 'daphn3.yaml',
-                        'What file should be written'],
-
-                     ['yaml', 'y', None,
-                        'The input file to the test'],
-
+    optParameters = [
                      ['host', 'h', None, 'Target Hostname'],
-                     ['port', 'p', None, 'Target port number'],
-                     ['resume', 'r', 0, 'Resume at this index']]
+                     ['port', 'p', None, 'Target port number']]
+
+    optFlags = [['pcap', 'c', 'Specify that the input file is a pcap file'],
+                ['yaml', 'y', 'Specify that the input file is a YAML file (default)']]
 
 class daphn3Test(nettest.NetTestCase):
 
-    shortName = "daphn3"
-    description = "daphn3"
-    requirements = None
-    options = daphn3Args
-    blocking = False
+    name = "Daphn3"
+    usageOptions = daphn3Args
+    inputFile = ['file', 'f', None, 
+            'Specify the pcap or YAML file to be used as input to the test']
 
-    local_options = None
+    requiredOptions = ['file']
 
     steps = None
 
-    def initialize(self):
-        if not self.local_options:
-            self.end()
-            return
+    def inputProcessor(self, fp):
+        if self.localOptions['pcap']:
+            self.steps = daphn3.read_pcap(self.localOptions['pcap'])
+        else:
+            self.steps = daphn3.read_yaml(self.localOptions['yaml'])
 
+    def setUp(self):
         self.factory = Daphn3ClientFactory()
         self.factory.test = self
 
-        if self.local_options['pcap']:
-            self.tool = True
-
-        elif self.local_options['yaml']:
-            self.steps = daphn3.read_yaml(self.local_options['yaml'])
-
+        if self.localOptions['pcap']:
+            self.steps = daphn3.read_pcap(self.localOptions['pcap'])
+        elif self.localOptions['yaml']:
+            self.steps = daphn3.read_yaml(self.localOptions['yaml'])
         else:
-            log.msg("Not enough inputs specified to the test")
-            self.end()
+            raise usage.UsageError("You must specify either --pcap or --yaml")
 
-    def runTool(self):
-        import yaml
-        pcap = daphn3.read_pcap(self.local_options['pcap'])
-        f = open(self.local_options['output'], 'w')
-        f.write(yaml.dump(pcap))
-        f.close()
+        mutations = 0
+        for x in self.steps:
+            mutations += len(x['data'])
+        return {'mutation': range(mutations)}
 
     def control(self, exp_res, args):
         try:
@@ -106,34 +95,20 @@ class daphn3Test(nettest.NetTestCase):
                 'value': mutation}
 
     def _failure(self, *argc, **kw):
-        self.result['censored'] = True
-        self.result['error'] = ('Failed in connecting', (argc, kw))
-        self.end()
+        self.report['censored'] = True
+        self.report['mutation'] = 
+        self.report['error'] = ('Failed in connecting', (argc, kw))
 
-    def experiment(self, args):
+    def test_daphn3(self):
         log.msg("Doing mutation %s" % args['mutation'])
         self.factory.steps = self.steps
+
         host = self.local_options['host']
         port = int(self.local_options['port'])
         log.msg("Connecting to %s:%s" % (host, port))
 
-        if self.ended:
-            return
-
-        endpoint = endpoints.TCP4ClientEndpoint(self.reactor, host, port)
+        endpoint = endpoints.TCP4ClientEndpoint(reactor, host, port)
         d = endpoint.connect(self.factory)
         d.addErrback(self._failure)
         return d
-
-    def load_assets(self):
-        if not self.local_options:
-            return {}
-        if not self.steps:
-            print "Error: No assets!"
-            self.end()
-            return {}
-        mutations = 0
-        for x in self.steps:
-            mutations += len(x['data'])
-        return {'mutation': range(mutations)}
 
