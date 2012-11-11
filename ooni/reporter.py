@@ -106,6 +106,8 @@ class OReporter(object):
         pass
 
     def testDone(self, test, test_name):
+        log.debug("Finished running %s" % test_name)
+        log.debug("Writing report")
         test_report = dict(test.report)
 
         if isinstance(test.input, packet.Packet):
@@ -120,14 +122,15 @@ class OReporter(object):
                 'test_name': test_name,
                 'test_started': test_started,
                 'report': test_report}
-        self.writeReportEntry(report)
+        return self.writeReportEntry(report)
 
     def allDone(self):
         log.debug("allDone: Finished running all tests")
-        self.finish()
         try:
+            log.debug("Stopping the reactor")
             reactor.stop()
         except:
+            log.debug("Unable to stop the reactor")
             pass
         return None
 
@@ -151,6 +154,7 @@ class YAMLReporter(OReporter):
         untilConcludes(self._stream.flush)
 
     def writeReportEntry(self, entry):
+        log.debug("Writing report with YAML reporter")
         self._write('---\n')
         self._write(safe_dump(entry))
         self._write('...\n')
@@ -169,73 +173,15 @@ class YAMLReporter(OReporter):
     def finish(self):
         self._stream.close()
 
-class OONIBReporter(object):
-    def __init__(self, backend_url):
-        from twisted.web.client import Agent
-        from twisted.internet import reactor
-        self.agent = Agent(reactor)
-        self.backend_url = backend_url
 
-    def _newReportCreated(self, data):
-        log.debug("newReportCreated %s" % data)
-        return data
+class OONIBReportUpdateFailed(Exception):
+    pass
 
-    def _processResponseBody(self, response, body_cb):
-        log.debug("processResponseBody %s" % response)
-        done = defer.Deferred()
-        response.deliverBody(BodyReceiver(done))
-        done.addCallback(body_cb)
-        return done
+class OONIBReportCreationFailed(Exception):
+    pass
 
-    def createReport(self, test_name,
-            test_version, report_header):
-        url = self.backend_url + '/new'
-        software_version = '0.0.1'
-
-        request = {'software_name': 'ooni-probe',
-                'software_version': software_version,
-                'test_name': test_name,
-                'test_version': test_version,
-                'progress': 0,
-                'content': report_header
-        }
-        def gotDetails(test_details):
-            log.debug("Creating report via url %s" % url)
-
-            bodyProducer = StringProducer(json.dumps(request))
-            d = self.agent.request("POST", url, 
-                    bodyProducer=bodyProducer)
-            d.addCallback(self._processResponseBody, 
-                    self._newReportCreated)
-            return d
-
-        d = getTestDetails(options)
-        d.addCallback(gotDetails)
-        return d
-
-    def writeReportEntry(self, entry, test_id=None):
-        if not test_id:
-            log.err("Write report entry on OONIB requires test id")
-            raise NoTestIDSpecified
-
-        report = '---\n'
-        report += safe_dump(entry)
-        report += '...\n'
-
-        url = self.backend_url + '/new'
-
-        request = {'test_id': test_id,
-                'content': report}
-
-        bodyProducer = StringProducer(json.dumps(request))
-        d = self.agent.request("PUT", url,
-                bodyProducer=bodyProducer)
-
-        d.addCallback(self._processResponseBody,
-                    self._newReportCreated)
-        return d
-
-
+class OONIBTestDetailsLookupFailed(Exception):
+    pass
 
 class OONIBReporter(OReporter):
     def __init__(self, backend_url):
@@ -244,13 +190,43 @@ class OONIBReporter(OReporter):
         self.agent = Agent(reactor)
         self.backend_url = backend_url
 
-    def _processResponseBody(self, *arg, **kw):
-        #done = defer.Deferred()
-        #response.deliverBody(BodyReceiver(done))
-        #done.addCallback(self._newReportCreated)
-        #return done
+    @defer.inlineCallbacks
+    def writeReportEntry(self, entry):
+        log.debug("Writing report with OONIB reporter")
+        content = '---\n'
+        content += safe_dump(entry)
+        content += '...\n'
 
+        url = self.backend_url + '/report/new'
+
+        request = {'report_id': self.report_id,
+                'content': content}
+
+        log.debug("Updating report with id %s" % self.report_id)
+        request_json = json.dumps(request)
+        log.debug("Sending %s" % request_json)
+
+        bodyProducer = StringProducer(json.dumps(request))
+        log.debug("Creating report via url %s" % url)
+
+        try:
+            response = yield self.agent.request("PUT", url, 
+                                bodyProducer=bodyProducer)
+        except:
+            # XXX we must trap this in the runner and make sure to report the data later.
+            raise OONIBReportUpdateFailed
+
+        #parsed_response = json.loads(backend_response)
+        #self.report_id = parsed_response['report_id']
+        #self.backend_version = parsed_response['backend_version']
+        #log.debug("Created report with id %s" % parsed_response['report_id'])
+
+
+    @defer.inlineCallbacks
     def createReport(self, options):
+        """
+        Creates a report on the oonib collector.
+        """
         test_name = options['name']
         test_version = options['version']
 
@@ -258,33 +234,41 @@ class OONIBReporter(OReporter):
         url = self.backend_url + '/report/new'
         software_version = '0.0.1'
 
-        def gotDetails(test_details):
-            content = '---\n'
-            content += safe_dump(test_details)
-            content += '...\n'
+        test_details = yield getTestDetails(options)
 
-            request = {'software_name': 'ooniprobe',
-                'software_version': software_version,
-                'test_name': test_name,
-                'test_version': test_version,
-                'progress': 0,
-                'content': content
-            }
-            log.debug("Creating report via url %s" % url)
-            request_json = json.dumps(request)
-            log.debug("Sending %s" % request_json)
+        content = '---\n'
+        content += safe_dump(test_details)
+        content += '...\n'
 
-            def bothCalls(*arg, **kw):
-                print arg, kw
+        request = {'software_name': 'ooniprobe',
+            'software_version': software_version,
+            'test_name': test_name,
+            'test_version': test_version,
+            'progress': 0,
+            'content': content
+        }
+        log.debug("Creating report via url %s" % url)
+        request_json = json.dumps(request)
+        log.debug("Sending %s" % request_json)
 
-            body_producer = StringProducer(request_json)
-            d = self.agent.request("POST", url, None,
-                    body_producer)
-            d.addBoth(self._processResponseBody)
-            return d
+        bodyProducer = StringProducer(json.dumps(request))
+        log.debug("Creating report via url %s" % url)
 
-        d = getTestDetails(options)
-        d.addCallback(gotDetails)
-        # XXX handle errors
-        return d
+        try:
+            response = yield self.agent.request("POST", url, 
+                                bodyProducer=bodyProducer)
+        except:
+            raise OONIBReportCreationFailed
+
+        # This is a little trix to allow us to unspool the response. We create
+        # a deferred and call yield on it.
+        response_body = defer.Deferred()
+        response.deliverBody(BodyReceiver(response_body))
+
+        backend_response = yield response_body
+
+        parsed_response = json.loads(backend_response)
+        self.report_id = parsed_response['report_id']
+        self.backend_version = parsed_response['backend_version']
+        log.debug("Created report with id %s" % parsed_response['report_id'])
 

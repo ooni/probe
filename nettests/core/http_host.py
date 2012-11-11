@@ -16,7 +16,7 @@ from ooni.utils import log
 from ooni.templates import httpt
 
 class UsageOptions(usage.Options):
-    optParameters = [['backend', 'b', 'http://127.0.0.1:1234', 
+    optParameters = [['backend', 'b', 'http://127.0.0.1:57001', 
                         'URL of the test backend to use'],
                      ['content', 'c', None, 
                         'The file to read from containing the content of a block page']]

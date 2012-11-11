@@ -18,11 +18,13 @@ main.db_threadpool_size = 10
 helpers = Storage()
 
 helpers.http_return_request = Storage()
-helpers.http_return_request.port = 57001 
+helpers.http_return_request.port = 57001
+# XXX this actually needs to be the advertised Server HTTP header of our web
+# server
 helpers.http_return_request.server_version = "Apache"
 
 helpers.tcp_echo = Storage()
-helpers.tcp_echo.port = 57002 
+helpers.tcp_echo.port = 57002
 
 helpers.daphn3 = Storage()
 helpers.daphn3.yaml_file = "/path/to/data/oonib/daphn3.yaml"

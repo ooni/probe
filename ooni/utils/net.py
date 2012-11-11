@@ -7,7 +7,7 @@
 import sys
 from zope.interface import implements
 
-from twisted.internet import protocol
+from twisted.internet import protocol, defer
 from twisted.internet import threads, reactor
 from twisted.web.iweb import IBodyProducer
 

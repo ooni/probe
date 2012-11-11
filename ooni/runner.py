@@ -153,8 +153,10 @@ def loadTestsAndOptions(classes, cmd_line_options):
 
 def runTestWithInput(test_class, test_method, test_input, oreporter):
     log.debug("Running %s with %s" % (test_method, test_input))
+
     def test_done(result, test_instance, test_name):
-        oreporter.testDone(test_instance, test_name)
+        log.debug("runTestWithInput: concluded %s" % test_name)
+        return oreporter.testDone(test_instance, test_name)
 
     def test_error(error, test_instance, test_name):
         log.err("%s\n" % error)
@@ -221,22 +223,21 @@ def runTestCases(test_cases, options,
             log.msg("Could not find inputs!")
             log.msg("options[0] = %s" % first)
             test_inputs = [None]
-    
+
     reportFile = open(yamloo_filename, 'w+')
 
-    #oreporter = reporter.YAMLReporter(reportFile)
-    oreporter = reporter.OONIBReporter('http://127.0.0.1:8888')
+
+    if cmd_line_options['collector']:
+        oreporter = reporter.OONIBReporter(cmd_line_options['collector'])
+    else:
+        oreporter = reporter.YAMLReporter(reportFile)
 
     input_unit_factory = InputUnitFactory(test_inputs)
 
     log.debug("Creating report")
-    yield oreporter.createReport(options)
-
-    oreporter = reporter.YAMLReporter(reportFile)
-
-    input_unit_factory = InputUnitFactory(test_inputs)
 
     yield oreporter.createReport(options)
+
     # This deferred list is a deferred list of deferred lists
     # it is used to store all the deferreds of the tests that 
     # are run

@@ -59,6 +59,28 @@ def parseNewReportRequest(request):
             raise InvalidRequestField(k)
     return parsed_request
 
+def parseUpdateReportRequest(request):
+    # XXX this and the function above can probably be refactored into something
+    # more compact. There is quite a bit of code duplication going on here.
+
+    report_id_regexp = re.compile("[a-zA-Z0-9]+$")
+
+    # XXX here we are actually parsing a json object that could be quite big.
+    # If we want this to scale properly we only want to look at the test_id
+    # field.
+    # We are also keeping in memory multiple copies of the same object. A lot
+    # of optimization can be done.
+    parsed_request = json.loads(request)
+    try:
+        report_id = parsed_request['report_id']
+    except KeyError:
+        raise MissingField('report_id')
+    
+    if not re.match(report_id_regexp, report_id):
+        raise InvalidRequestField('report_id')
+
+    return parsed_request
+
 class NewReportHandlerFile(web.RequestHandler):
     """
     Responsible for creating and updating reports by writing to flat file.
@@ -129,7 +151,20 @@ class NewReportHandlerFile(web.RequestHandler):
            'content': 'XXX'
           }
         """
-        pass
+        parsed_request = parseUpdateReportRequest(self.request.body)
+        report_id = parsed_request['report_id']
+        print "Got this request %s" % parsed_request
+
+        report_filename = report_id
+        report_filename += '.yamloo'
+        try:
+            with open(report_filename, 'a+') as f: 
+                # XXX this could be quite big. We should probably use the
+                # twisted.internet.fdesc module
+                print parsed_request['content']
+                f.write(parsed_request['content'])
+        except IOError as e:
+            web.HTTPError(404, "Report not found")
 
 class NewReportHandlerDB(web.RequestHandler):
     """
@@ -188,7 +223,8 @@ class PCAPReportHandler(web.RequestHandler):
     def post(self):
         pass
 
-spec = [(r"/report/new", NewReportHandlerFile),
-        (r"/report/pcap", PCAPReportHandler)]
+reportingBackendAPI = [(r"/report/new", NewReportHandlerFile),
+    (r"/report/pcap", PCAPReportHandler)
+]
 
-reportingBackend = web.Application(spec, debug=True)
+reportingBackend = web.Application(reportingBackendAPI, debug=True)
