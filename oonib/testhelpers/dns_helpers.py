@@ -3,7 +3,7 @@ from twisted.internet import reactor
 from twisted.names import dns
 from twisted.names import client, server
 
-class ProxyDNSServer(server.DNSServerFactory):
+class DNSTestHelper(server.DNSServerFactory):
     def __init__(self, authorities = None,
                  caches = None, clients = None,
                  verbose = 0):

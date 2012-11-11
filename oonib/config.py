@@ -9,21 +9,34 @@ def get_root_path():
 
 # XXX convert this to something that is a proper config file
 main = Storage()
-main.reporting_port = 8888
-main.http_port = 8080
-main.dns_udp_port = 5354
-main.dns_tcp_port = 8002
-main.daphn3_port = 9666
-main.server_version = "Apache"
+main.collector_port = 8888
+
+# XXX make this be the server name that is of 
 main.database_uri = "sqlite:"+get_root_path()+"oonib_test_db.db"
 main.db_threadpool_size = 10
-#main.ssl_private_key = /path/to/data/private.key
-#main.ssl_certificate = /path/to/data/certificate.crt
-#main.ssl_port = 8433
 
 helpers = Storage()
-helpers.http_return_request_port = 1234
 
-daphn3 = Storage()
-daphn3.yaml_file = "/path/to/data/oonib/daphn3.yaml"
-daphn3.pcap_file = "/path/to/data/server.pcap"
+helpers.http_return_request = Storage()
+helpers.http_return_request.port = 57001 
+helpers.http_return_request.server_version = "Apache"
+
+helpers.tcp_echo = Storage()
+helpers.tcp_echo.port = 57002 
+
+helpers.daphn3 = Storage()
+helpers.daphn3.yaml_file = "/path/to/data/oonib/daphn3.yaml"
+helpers.daphn3.pcap_file = "/path/to/data/server.pcap"
+
+helpers.daphn3.port = 57003
+
+helpers.dns = Storage()
+helpers.dns.udp_port = 57004
+helpers.dns.tcp_port = 57005
+
+helpers.ssl = Storage()
+#helpers.ssl.private_key = /path/to/data/private.key
+#helpers.ssl.certificate = /path/to/data/certificate.crt
+#helpers.ssl.port = 57007
+
+
