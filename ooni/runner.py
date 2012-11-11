@@ -192,13 +192,12 @@ def runTestWithInputUnit(test_class,
     dl = []
     log.debug("input unit %s" % input_unit)
     for test_input in input_unit:
-        log.debug("IU: %s" % test_input)
+        log.debug("running with input: %s" % test_input)
         try:
             d = runTestWithInput(test_class, 
                     test_method, test_input, oreporter)
         except Exception, e:
             print e
-        log.debug("here y0")
         dl.append(d)
     return defer.DeferredList(dl)
 

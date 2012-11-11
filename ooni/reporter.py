@@ -51,6 +51,8 @@ def safe_dump(data, stream=None, **kw):
 
 @defer.inlineCallbacks
 def getTestDetails(options):
+    from ooni import __version__ as software_version
+
     client_geodata = {}
 
     if config.privacy.includeip or \
@@ -87,9 +89,11 @@ def getTestDetails(options):
                     'probe_ip': client_geodata['ip'],
                     'test_name': options['name'],
                     'test_version': options['version'],
+                    'software_name': 'ooniprobe',
+                    'software_version': software_version
                     }
     defer.returnValue(test_details)
-    
+
 
 class OReporter(object):
     def createReport(options):
