@@ -57,7 +57,7 @@ If you are not inside of a virtual env the last command will have to be:
 
 The other dependencies can be installed from the requirements.txt with:
 
-    pip install -r requirements.txt
+    sudo pip install -r requirements.txt
 
 You are highly recommended to do so from inside of a virtual environment, since
 pip does not download the packages via SSL and you will need to install it
@@ -65,7 +65,7 @@ system wide.
 
 This will require you to have installed virtualenv.
 
-    apt-get install python-virtualenv
+    sudo apt-get install python-virtualenv
 
 To create a new virtual environment do
 
@@ -74,7 +74,6 @@ To create a new virtual environment do
 Then install OONI with:
 
    pip install -r requirements.txt
-
 
 ## Including your geo data in the test report
 
@@ -91,7 +90,6 @@ Then edit your ooniprobe.conf to point to the absolute path of where the data/
 directory is located for example:
 
     geoip_data_dir: /home/your_user/ooni-probe/data/
-
 
 ## Running some tests
 
@@ -114,6 +112,5 @@ Normally tests take options, you can see them with:
 By default ooniprobe will not include personal identifying information in the
 test result, nor create a pcap file. This behavior can be personalized by
 editing your ooniprobe.conf configuration file.
-
 
 
