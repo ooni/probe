@@ -39,7 +39,7 @@ The python dependencies required for running ooniprobe are:
 
 They can be installed from the requirements.txt with:
 
-  pip install -r requirements.txt
+    pip install -r requirements.txt
 
 You are highly recommended to do so from inside of a virtual environment, since
 pip does not download the packages via SSL and you will need to install it
@@ -47,15 +47,15 @@ system wide.
 
 This will require you to have installed virtualenv.
 
-  apt-get install python-virtualenv
+    apt-get install python-virtualenv
 
 To create a new virtual environment do
 
-  virtualenv env
+    virtualenv env
 
 Then install OONI with:
 
-  pip install -r requirements.txt
+   pip install -r requirements.txt
 
 ## Installing scapy
 
@@ -64,15 +64,15 @@ means that you will have to manually download and install scapy.
 
 This can be done like so:
 
-  wget http://www.secdev.org/projects/scapy/files/scapy-latest.tar.gz
-  tar xzf scapy-latest.tar.gz
-  cd scapy-latest.tar.gz
-  cd scapy-latest
-  python setup.py install
+    wget http://www.secdev.org/projects/scapy/files/scapy-latest.tar.gz
+    tar xzf scapy-latest.tar.gz
+    cd scapy-latest.tar.gz
+    cd scapy-latest
+    python setup.py install
 
 If you are not inside of a virtual env the last command will have to be:
 
-  sudo python setup.py install
+    sudo python setup.py install
 
 ## Including your geo data in the test report
 
@@ -83,29 +83,29 @@ inside of ooniprobe.conf
 If you wish to include geografical data in the test report, you will have to go
 to the data/ directory and run:
 
-  make geoip
+    make geoip
 
 Then edit your ooniprobe.conf to point to the absolute path of where the data/
 directory is located for example:
 
-  geoip_data_dir: /home/your_user/ooni-probe/data/
+    geoip_data_dir: /home/your_user/ooni-probe/data/
 
 
 ## Running some tests
 
 To see the possible command line options run:
 
-  ./bin/ooniprobe --help 
+    ./bin/ooniprobe --help 
 
 For interesting tests to run look in the nettests/core/ directory.
 
 To run a test you can do so with:
 
-  ./bin/ooniprobe -o report_file_name path/to/test.py
+    ./bin/ooniprobe -o report_file_name path/to/test.py
 
 Normally tests take options, you can see them with:
 
-  ./bin/ooniprobe -o report_file_name path/to/test.py --help
+    ./bin/ooniprobe -o report_file_name path/to/test.py --help
 
 ## Configuration
 
