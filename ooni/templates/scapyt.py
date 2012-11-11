@@ -48,12 +48,11 @@ class BaseScapyTest(NetTestCase):
         at layer 3.
         """
         def finished(packets):
-            log.debug("Got this bullshit")
             answered, unanswered = packets
             self.report['answered_packets'] = []
             self.report['sent_packets'] = []
             for snd, rcv in answered:
-                log.debug("Writing report %s" % snd)
+                log.debug("Writing report for scapy test")
                 pkt_report_r = createPacketReport(rcv)
                 pkt_report_s = createPacketReport(snd)
                 self.report['answered_packets'].append(pkt_report_r)
