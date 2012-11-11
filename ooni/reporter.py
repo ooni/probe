@@ -15,11 +15,6 @@ import yaml
 import json
 import traceback
 
-from yaml.representer import *
-from yaml.emitter import *
-from yaml.serializer import *
-from yaml.resolver import *
-
 from twisted.python.util import untilConcludes
 from twisted.trial import reporter
 from twisted.internet import defer, reactor
@@ -94,7 +89,6 @@ def getTestDetails(options):
                     }
     defer.returnValue(test_details)
 
-
 class OReporter(object):
     def createReport(options):
         """
@@ -114,10 +108,8 @@ class OReporter(object):
     def testDone(self, test, test_name):
         test_report = dict(test.report)
 
-        # XXX the scapy test has an example of how 
-        # to do this properly.
         if isinstance(test.input, packet.Packet):
-            test_input = repr(test.input)
+            test_input = createPacketReport(test.input)
         else:
             test_input = test.input
 

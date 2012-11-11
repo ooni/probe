@@ -14,6 +14,8 @@ from scapy.all import send, sr, IP, TCP
 from ooni.nettest import NetTestCase
 from ooni.utils import log
 
+from ooni import config
+
 from ooni.utils.txscapy import ScapyProtocol
 
 def createPacketReport(packet_list):
@@ -53,8 +55,17 @@ class BaseScapyTest(NetTestCase):
             self.report['sent_packets'] = []
             for snd, rcv in answered:
                 log.debug("Writing report for scapy test")
-                pkt_report_r = createPacketReport(rcv)
-                pkt_report_s = createPacketReport(snd)
+                sent_packet = snd
+                received_packet = rcv
+
+                if not config.privacy.includeip:
+                    log.msg("Detected you would not like to include your ip in the report")
+                    log.msg("Stripping source and destination IPs from the reports")
+                    sent_packet.src = '127.0.0.1'
+                    received_packet.dst = '127.0.0.1'
+
+                pkt_report_r = createPacketReport(received_packet)
+                pkt_report_s = createPacketReport(sent_packet)
                 self.report['answered_packets'].append(pkt_report_r)
                 self.report['sent_packets'].append(pkt_report_s)
                 log.debug("Done")
