@@ -13,7 +13,7 @@ from twisted.python.logfile import DailyLogFile
 from ooni.utils import otime
 from ooni import config
 
-def start(logfile=None, application_name="OONI"):
+def start(logfile=None, application_name="ooniprobe"):
     daily_logfile = None
 
     if not logfile:
@@ -27,7 +27,7 @@ def start(logfile=None, application_name="OONI"):
     txlog.msg("Starting %s on %s (%s UTC)" %  (application_name, otime.prettyDateNow(),
                                                  otime.utcPrettyDateNow()))
     logging.basicConfig()
-    python_logging = txlog.PythonLoggingObserver()
+    python_logging = txlog.PythonLoggingObserver(application_name)
 
     if config.advanced.debug:
         python_logging.logger.setLevel(logging.DEBUG)
