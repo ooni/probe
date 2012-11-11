@@ -53,10 +53,10 @@ if config.helpers.dns.udp_port:
 
 # XXX this needs to be ported
 # Start the OONI daphn3 backend
-#if config.main.daphn3_port:
-#    daphn3 = Daphn3Server()
-#    internet.TCPServer(int(config.main.daphn3_port),
-#                       daphn3).setServiceParent(serviceCollection)
+if config.main.daphn3_port:
+    daphn3_helper = internet.TCPServer(int(config.helpers.daphn3.port),
+                            tcp_helpers.Daphn3Server())
+    daphn3_helper.setServiceParent(serviceCollection)
 
 if config.main.collector_port:
     log.msg("Starting Collector on %s" % config.main.collector_port)

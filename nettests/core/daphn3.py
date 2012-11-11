@@ -1,17 +1,8 @@
-"""
-This is a self genrated test created by scaffolding.py.
-you will need to fill it up with all your necessities.
-Safe hacking :).
-"""
-from zope.interface import implements
 from twisted.python import usage
-from twisted.plugin import IPlugin
+
 from twisted.internet import protocol, endpoints
 
-from ooni.plugoo import reports
-from ooni.plugoo.tests import ITest, OONITest
-from ooni.plugoo.assets import Asset
-from ooni.protocols import daphn3
+from ooni.kit import daphn3
 from ooni.utils import log
 
 class Daphn3ClientProtocol(daphn3.Daphn3Protocol):
@@ -67,8 +58,7 @@ class daphn3Args(usage.Options):
                      ['port', 'p', None, 'Target port number'],
                      ['resume', 'r', 0, 'Resume at this index']]
 
-class daphn3Test(OONITest):
-    implements(IPlugin, ITest)
+class daphn3Test(nettest.NetTestCase):
 
     shortName = "daphn3"
     description = "daphn3"
@@ -147,6 +137,3 @@ class daphn3Test(OONITest):
             mutations += len(x['data'])
         return {'mutation': range(mutations)}
 
-# We need to instantiate it otherwise getPlugins does not detect it
-# XXX Find a way to load plugins without instantiating them.
-#daphn3test = daphn3Test(None, None, None)
