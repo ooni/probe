@@ -59,41 +59,15 @@ class EchoTest(BaseScapyTest):
             Struct returned from getifaddrs(3) and turned into a tuple in the
             form (*ifa_name, AF_FAMILY, *ifa_addr)
         '''
-
         if self.localOptions:
-            log.debug("%s: local_options found" % self.name)
             for key, value in self.localOptions.items():
                 log.debug("setting self.%s = %s" % (key, value))
                 setattr(self, key, value)
 
-        ## xxx is this now .subOptions?
-        #self.inputFile = self.localOptions['file']
         self.timeout *= 1000            ## convert to milliseconds
 
         if not self.interface:
             log.msg("No network interface specified!")
-            log.debug("OS detected: %s" % sys.platform)
-            if LINUX or OPENBSD or NETBSD or FREEBSD or DARWIN or SOLARIS:
-                from twisted.internet.test import _posixifaces
-                log.msg("Attempting to discover network interfaces...")
-                ifaces = _posixifaces._interfaces()
-            elif WINDOWS:
-                from twisted.internet.test import _win32ifaces
-                log.msg("Attempting to discover network interfaces...")
-                ifaces = _win32ifaces._interfaces()
-            else:
-                log.debug("Client OS %s not accounted for!" % sys.platform)
-                log.debug("Unable to discover network interfaces...")
-                ifaces = [('lo', '')]
-
-            ## found = {'eth0': '1.1.1.1'}
-            found = [{i[0]: i[2]} for i in ifaces if i[0] != 'lo']
-            log.info("Found interfaces:\n%s" % pprint(found))
-            self.interfaces = self.tryInterfaces(found)
-        else:
-            ## xxx need a way to check that iface exists, is up, and
-            ## we have permissions on it
-            log.debug("Our interface has been set to %s" % self.interface)
 
         if self.pcap:
             try:
