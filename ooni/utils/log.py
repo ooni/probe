@@ -5,6 +5,7 @@
 
 import sys
 import os
+import traceback
 import logging
 
 from twisted.python import log as txlog
@@ -49,6 +50,11 @@ def debug(msg, *arg, **kw):
 
 def err(msg, *arg, **kw):
     txlog.err("Error: " + str(msg), logLevel=logging.ERROR, *arg, **kw)
+
+def exception(msg):
+    txlog.err(msg)
+    exc_type, exc_value, exc_traceback = sys.exc_info()
+    traceback.print_exception(exc_type, exc_value, exc_traceback)
 
 def exception(*msg):
     logging.exception(msg)
