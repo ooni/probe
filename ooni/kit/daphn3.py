@@ -69,7 +69,7 @@ def read_pcap(filename):
 
 def read_yaml(filename):
     f = open(filename)
-    obj = yaml.load(f)
+    obj = yaml.safe_load(f)
     f.close()
     return obj
 
