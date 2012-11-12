@@ -39,7 +39,7 @@ class HTTPTest(NetTestCase):
     randomizeUA = True
     followRedirects = False
 
-    def setUp(self):
+    def _setUp(self):
         log.debug("Setting up HTTPTest")
         try:
             import OpenSSL

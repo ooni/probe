@@ -103,6 +103,12 @@ class NetTestCase(object):
     requiresRoot = False
 
     localOptions = {}
+    def _setUp(self):
+        """
+        This is the internal setup method to be overwritten by templates.
+        """
+        pass
+
     def setUp(self):
         """
         Place here your logic to be executed when the test is being setup.

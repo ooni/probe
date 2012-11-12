@@ -167,7 +167,8 @@ def runTestWithInput(test_class, test_method, test_input, oreporter):
     log.debug("Processing %s" % test_instance.name)
     # use this to keep track of the test runtime
     test_instance._start_time = time.time()
-    # call setup on the test
+    # call setups on the test
+    test_instance._setUp()
     test_instance.setUp()
     test = getattr(test_instance, test_method)
 
