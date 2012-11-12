@@ -3,9 +3,6 @@
 # HTTP Host Test
 # **************
 #
-# for more details see:
-# https://trac.torproject.org/projects/tor/wiki/doc/OONI/Tests/HTTPHost
-#
 # :authors: Arturo Filastò
 # :licence: see LICENSE
 
@@ -25,6 +22,12 @@ class HTTPHost(httpt.HTTPTest):
     """
     This test is aimed at detecting the presence of a transparent HTTP proxy
     and enumerating the sites that are being censored by it.
+
+    It places inside of the Host header field the hostname of the site that is
+    to be tested for censorship and then determines if the probe is behind a
+    transparent HTTP proxy (because the response from the backend server does
+    not match) and if the site is censorsed, by checking if the page that it
+    got back matches the input block page.
     """
     name = "HTTP Host"
     author = "Arturo Filastò"
@@ -32,7 +35,8 @@ class HTTPHost(httpt.HTTPTest):
 
     usageOptions = UsageOptions
 
-    inputFile = ['file', 'f', None, 'List of hostnames to test for censorship']
+    inputFile = ['file', 'f', None, 
+            'List of hostnames to test for censorship']
 
     requiredOptions = ['backend']
 
