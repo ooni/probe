@@ -109,7 +109,7 @@ class NetTestCase(object):
         """
         pass
 
-    def inputProcessor(self, fp):
+    def inputProcessor(self, filename):
         """
         You may replace this with your own custom input processor. It takes as
         input a file descriptor so remember to close it when you are done.
@@ -121,6 +121,7 @@ class NetTestCase(object):
         For example you may wish to have an input processor that will allow you
         to ignore comments in files. This can be easily achieved like so:
 
+            fp = open(filename)
             for x in fp.xreadlines():
                 if x.startswith("#"):
                     continue
@@ -130,6 +131,7 @@ class NetTestCase(object):
         Other fun stuff is also possible.
         """
         log.debug("Running default input processor")
+        fp = open(filename)
         for x in fp.xreadlines():
             yield x.strip()
         fp.close()
@@ -148,8 +150,7 @@ class NetTestCase(object):
                 log.err(ae)
             else:
                 if os.path.isfile(self.inputFile):
-                    fp = open(self.inputFile)
-                    self.inputs = self.inputProcessor(fp)
+                    self.inputs = self.inputProcessor(self.inputFile)
         elif not self.inputs[0]:
             pass
         elif self.inputFile:
