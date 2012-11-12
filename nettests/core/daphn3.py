@@ -6,18 +6,42 @@ from ooni import nettest
 from ooni.kit import daphn3
 from ooni.utils import log
 
+class Daphn3ClientProtocol(daphn3.Daphn3Protocol):
+    def nextStep(self):
+        log.debug("Moving on to next step in the state walk")
+        self.current_data_received = 0
+        if self.current_step >= (len(self.steps) - 1):
+            log.msg("Reached the end of the state machine")
+            log.msg("Censorship fingerpint bisected!")
+            step_idx, mutation_idx = self.factory.mutation
+            log.msg("step_idx: %s | mutation_id: %s" % (step_idx, mutation_idx))
+            #self.transport.loseConnection()
+            if self.report:
+                self.report['mutation_idx'] = mutation_idx
+                self.report['step_idx'] = step_idx
+            self.d.callback(None)
+            return
+        else:
+            self.current_step += 1
+        if self._current_step_role() == self.role:
+            # We need to send more data because we are again responsible for
+            # doing so.
+            self.sendPayload()
+
+
 class Daphn3ClientFactory(protocol.ClientFactory):
     protocol = daphn3.Daphn3Protocol
-    def __init__(self, steps):
-        self.steps = steps
+    mutation = [0,0]
+    steps = None
 
     def buildProtocol(self, addr):
-        p = self.protocol(steps=self.steps)
+        p = self.protocol()
+        p.steps = self.steps
         p.factory = self
         return p
 
     def startedConnecting(self, connector):
-        print "Started connecting %s" % connector
+        log.msg("Started connecting %s" % connector)
 
     def clientConnectionFailed(self, reason, connector):
         log.err("We failed connecting the the OONIB")
@@ -31,8 +55,8 @@ class Daphn3ClientFactory(protocol.ClientFactory):
 
 class daphn3Args(usage.Options):
     optParameters = [
-                     ['host', 'h', None, 'Target Hostname'],
-                     ['port', 'p', None, 'Target port number']]
+                     ['host', 'h', '127.0.0.1', 'Target Hostname'],
+                     ['port', 'p', 57003, 'Target port number']]
 
     optFlags = [['pcap', 'c', 'Specify that the input file is a pcap file'],
                 ['yaml', 'y', 'Specify that the input file is a YAML file (default)']]
@@ -68,21 +92,16 @@ class daphn3Test(nettest.NetTestCase):
         else:
             daphn3Steps = [{'client': 'testing'}, {'server': 'antani'}]
 
-        for idx, step in enumerate(daphn3Steps):
-            current_packet = step.values()[0]
-            for mutation_idx in range(len(current_packet)):
-                if step.keys()[0] == "client":
-                    mutated_step = daphn3.daphn3Mutate(daphn3Steps,
-                            idx, mutation_idx)
-                    yield mutated_step
-                else:
-                    yield daphn3Steps
-
-    def setUp(self):
-        self.factory = Daphn3ClientFactory(self.input)
-        self.factory.report = self.report
-        print "Just set the factory to %s with %s" % (self.factory, 
-                self.input)
+        #for idx, step in enumerate(daphn3Steps):
+        #    current_packet = step.values()[0]
+        #    for mutation_idx in range(len(current_packet)):
+        #        if step.keys()[0] == "client":
+        #            mutated_step = daphn3.daphn3Mutate(daphn3Steps,
+        #                    idx, mutation_idx)
+        #            yield mutated_step
+        #        else:
+        #            yield daphn3Steps
+        yield daphn3Steps
 
     def test_daphn3(self):
         host = self.localOptions['host']
@@ -95,11 +114,17 @@ class daphn3Test(nettest.NetTestCase):
 
         def success(protocol):
             log.msg("Successfully connected")
-            protocol.sendMutation()
+            protocol.sendPayload()
+            return protocol.d
 
         log.msg("Connecting to %s:%s" % (host, port))
         endpoint = endpoints.TCP4ClientEndpoint(reactor, host, port)
-        d = endpoint.connect(self.factory)
+        daphn3_factory = Daphn3ClientFactory()
+        #daphn3_factory.steps = self.input
+        daphn3_factory.steps = [{'client': 'client_packet'},
+                {'server': 'server_packet'}]
+        daphn3_factory.report = self.report
+        d = endpoint.connect(daphn3_factory)
         d.addErrback(failure)
         d.addCallback(success)
         return d

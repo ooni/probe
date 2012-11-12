@@ -27,8 +27,8 @@ helpers.tcp_echo = Storage()
 helpers.tcp_echo.port = 57002
 
 helpers.daphn3 = Storage()
-helpers.daphn3.yaml_file = "/path/to/data/oonib/daphn3.yaml"
-helpers.daphn3.pcap_file = "/path/to/data/server.pcap"
+#helpers.daphn3.yaml_file = "/path/to/data/oonib/daphn3.yaml"
+#helpers.daphn3.pcap_file = "/path/to/data/server.pcap"
 helpers.daphn3.port = 57003
 
 helpers.dns = Storage()
