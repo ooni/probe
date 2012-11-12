@@ -52,7 +52,6 @@ class Daphn3ClientFactory(protocol.ClientFactory):
         log.err("Daphn3 client connection lost")
         print reason
 
-
 class daphn3Args(usage.Options):
     optParameters = [
                      ['host', 'h', '127.0.0.1', 'Target Hostname'],
@@ -85,22 +84,11 @@ class daphn3Test(nettest.NetTestCase):
         packet at the step_idx that is to be mutated
 
         """
-        if self.localOptions['pcap']:
-            daphn3Steps = daphn3.read_pcap(self.localOptions['pcap'])
-        elif self.localOptions['yaml']:
+        if self.localOptions['yaml']:
             daphn3Steps = daphn3.read_yaml(self.localOptions['yaml'])
         else:
-            daphn3Steps = [{'client': 'testing'}, {'server': 'antani'}]
+            daphn3Steps = daphn3.read_pcap(self.localOptions['pcap'])
 
-        #for idx, step in enumerate(daphn3Steps):
-        #    current_packet = step.values()[0]
-        #    for mutation_idx in range(len(current_packet)):
-        #        if step.keys()[0] == "client":
-        #            mutated_step = daphn3.daphn3Mutate(daphn3Steps,
-        #                    idx, mutation_idx)
-        #            yield mutated_step
-        #        else:
-        #            yield daphn3Steps
         yield daphn3Steps
 
     def test_daphn3(self):
@@ -120,9 +108,7 @@ class daphn3Test(nettest.NetTestCase):
         log.msg("Connecting to %s:%s" % (host, port))
         endpoint = endpoints.TCP4ClientEndpoint(reactor, host, port)
         daphn3_factory = Daphn3ClientFactory()
-        #daphn3_factory.steps = self.input
-        daphn3_factory.steps = [{'client': 'client_packet'},
-                {'server': 'server_packet'}]
+        daphn3_factory.steps = self.input
         daphn3_factory.report = self.report
         d = endpoint.connect(daphn3_factory)
         d.addErrback(failure)
