@@ -4,7 +4,7 @@ from twisted.internet.error import ConnectionDone
 
 from oonib import config
 
-from ooni.kit.daphn3 import Mutator, Daphn3Protocol
+from ooni.kit.daphn3 import Daphn3Protocol
 from ooni.kit.daphn3 import read_pcap, read_yaml
 
 class TCPEchoProtocol(Protocol):
@@ -17,6 +17,9 @@ class TCPEchoHelper(Factory):
     """
     protocol = TCPEchoProtocol
 
+daphn3Steps = [{'client': '\x00\x00\x00'}, 
+        {'server': '\x00\x00\x00'}]
+
 class Daphn3Server(ServerFactory):
     """
     This is the main class that deals with the daphn3 server side component.
@@ -27,31 +30,9 @@ class Daphn3Server(ServerFactory):
     probability of such thing is not that likely.
     """
     protocol = Daphn3Protocol
-    mutations = {}
     def buildProtocol(self, addr):
-        p = self.protocol()
+        p = self.protocol(steps=daphn3Steps, 
+                role="server")
         p.factory = self
-
-        if config.daphn3.yaml_file:
-            steps = read_yaml(config.daphn3.yaml_file)
-        elif config.daphn3.pcap_file:
-            steps = read_pcap(config.daphn3.pcap_file)
-        else:
-            print "Error! No PCAP, nor YAML file provided."
-            steps = None
-
-        p.factory.steps = steps
-
-        if addr.host not in self.mutations:
-            self.mutations[addr.host] = Mutator(p.steps)
-        else:
-            print "Moving on to next mutation"
-            if not self.mutations[addr.host].next():
-                self.mutations.pop(addr.host)
-        try:
-            p.mutator = self.mutations[addr.host]
-            p.current_state = p.mutator.state()
-        except:
-            pass
         return p
 
