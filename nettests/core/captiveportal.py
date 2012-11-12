@@ -39,6 +39,7 @@ from urlparse import urlparse
 
 from ooni import nettest
 from ooni.templates import httpt
+from ooni.utils import net
 from ooni.utils import log
 
 try:
@@ -53,7 +54,7 @@ __desc__ = "Captive portal detection test"
 
 optParameters = [['asset', 'a', None, 'Asset file'],
                  ['experiment-url', 'e', 'http://google.com/', 'Experiment URL'],
-                 ['user-agent', 'u', random.choice(httpt.useragents),
+                 ['user-agent', 'u', random.choice(net.userAgents),
                   'User agent for HTTP requests']
                 ]
 
