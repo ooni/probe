@@ -37,6 +37,9 @@ import string
 import urllib2
 from urlparse import urlparse
 
+from twisted.python import usage
+from twisted.internet import defer, threads
+
 from ooni import nettest
 from ooni.templates import httpt
 from ooni.utils import net
@@ -52,7 +55,8 @@ except ImportError:
 __plugoo__ = "captiveportal"
 __desc__ = "Captive portal detection test"
 
-optParameters = [['asset', 'a', None, 'Asset file'],
+class UsageOptions(usage.Options):
+    optParameters = [['asset', 'a', None, 'Asset file'],
                  ['experiment-url', 'e', 'http://google.com/', 'Experiment URL'],
                  ['user-agent', 'u', random.choice(net.userAgents),
                   'User agent for HTTP requests']
@@ -66,8 +70,9 @@ class CaptivePortal(nettest.NetTestCase):
 
     name = "captivep"
     description = "Captive Portal Test"
-    version = '0.1'
-    author = "Isis LoveCruft <isis@torproject.org>"
+    version = '0.2'
+    author = "Isis Lovecruft"
+    usageOptions = UsageOptions
 
     def http_fetch(self, url, headers={}):
         """
@@ -424,8 +429,6 @@ class CaptivePortal(nettest.NetTestCase):
         Google Chrome resolves three 10-byte random hostnames.
         """
         subtest = "Google Chrome DNS-based"
-
-        log.msg("")
         log.msg("Running the Google Chrome DNS-based captive portal test...")
 
         gmatch, google_dns_result = self.compare_random_hostnames(3, 10)
@@ -600,6 +603,7 @@ class CaptivePortal(nettest.NetTestCase):
 
             self.report['result'] = False
 
+    @defer.inlineCallbacks
     def test_captive_portal(self):
         """
         Runs the CaptivePortal(Test).
@@ -625,15 +629,15 @@ class CaptivePortal(nettest.NetTestCase):
 
         log.msg("")
         log.msg("Running vendor tests...")
-        self.report['vendor_tests'] = self.run_vendor_tests()
+        self.report['vendor_tests'] = yield threads.deferToThread(self.run_vendor_tests)
 
         log.msg("")
         log.msg("Running vendor DNS-based tests...")
-        self.report['vendor_dns_tests'] = self.run_vendor_dns_tests()
+        self.report['vendor_dns_tests'] = yield threads.deferToThread(self.run_vendor_dns_tests)
 
         log.msg("")
         log.msg("Checking that DNS requests are not being tampered...")
-        self.report['check0x20'] = self.check_0x20_to_auth_ns('ooni.nu')
+        self.report['check0x20'] = yield threads.deferToThread(self.check_0x20_to_auth_ns, 'ooni.nu')
 
         log.msg("")
         log.msg("Captive portal test finished!")
