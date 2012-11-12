@@ -7,8 +7,10 @@ from twisted.python import usage
 from ooni.templates import httpt
 
 class UsageOptions(usage.Options):
-    optParameters = [['content', 'c', None, 
-                        'The file to read from containing the content of a block page']]
+    optParameters = [['content', 'c', None,
+                        'The file to read from containing the content of a block page'],
+                     ['url', 'u', None, 'Specify a single URL to test.']
+                    ]
 
 class URLList(httpt.HTTPTest):
     """
@@ -18,12 +20,23 @@ class URLList(httpt.HTTPTest):
     """
     name = "URL List"
     author = "Arturo Filastò"
-    version = "0.1.1"
+    version = "0.1.2"
+
+    usageOptions = UsageOptions
 
     inputFile = ['file', 'f', None, 
             'List of URLS to perform GET and POST requests to']
 
-    requiredOptions = ['file']
+    def setUp(self):
+        """
+        Check for inputs.
+        """
+        if self.input:
+            self.url = self.input
+        elif self.localOptions['url']:
+            self.url = self.localOptions['url']
+        else:
+            raise Exception("No input specified")
 
     def check_for_censorship(self, body):
         """
@@ -44,28 +57,15 @@ class URLList(httpt.HTTPTest):
                 if response_line != censorship_line:
                     self.report['censored'] = False
                     break
-
             censorship_page.close()
 
     def test_get(self):
-        if self.input:
-            self.url = self.input
-        else:
-            raise Exception("No input specified")
         return self.doRequest(self.url, method="GET")
 
     def test_post(self):
-        if self.input:
-            self.url = self.input
-        else:
-            raise Exception("No input specified")
         return self.doRequest(self.url, method="POST")
 
     def test_put(self):
-        if self.input:
-            self.url = self.input
-        else:
-            raise Exception("No input specified")
         return self.doRequest(self.url, method="PUT")
 
 
