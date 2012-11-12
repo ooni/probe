@@ -48,6 +48,7 @@ This will require you to have installed virtualenv.
 To create a new virtual environment do
 
     virtualenv env
+    source env/bin/activate
 
 Then install OONI with:
 
