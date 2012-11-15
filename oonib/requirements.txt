@@ -14,10 +14,8 @@ numpy==1.6.2
 pyOpenSSL==0.13
 pygeoip==0.2.5
 repoze.sphinx.autointerface==0.7.1
-scapy==2.1.0
 storm==0.19
 transaction==1.3.0
-txtorcon==0.7
 wsgiref==0.1.2
 zope.component==4.0.0
 zope.event==4.0.0
