@@ -4,15 +4,13 @@
 # :licence: see LICENSE
 import copy
 import random
-
-from zope.interface import implements
+import struct
 
 from twisted.python import usage
 from twisted.plugin import IPlugin
 from twisted.internet import protocol, defer
 from twisted.internet.ssl import ClientContextFactory
 
-from twisted.web.client import Agent
 from twisted.internet import reactor
 from twisted.internet.error import ConnectionRefusedError
 
@@ -22,6 +20,8 @@ from ooni.nettest import NetTestCase
 from ooni.utils import log
 
 from ooni.utils.net import BodyReceiver, StringProducer, userAgents
+
+from ooni.lib.txagentwithsocks import Agent, SOCKSError
 
 class HTTPTest(NetTestCase):
     """
@@ -47,7 +47,7 @@ class HTTPTest(NetTestCase):
             log.err("Warning! pyOpenSSL is not installed. https websites will"
                      "not work")
 
-        self.agent = Agent(reactor)
+        self.agent = Agent(reactor, sockhost="127.0.0.1", sockport=9050)
 
         if self.followRedirects:
             try:
@@ -131,8 +131,11 @@ class HTTPTest(NetTestCase):
         d = self.build_request(url, method, headers, body)
 
         def errback(failure):
-            failure.trap(ConnectionRefusedError)
-            log.err("Connection refused. The backend may be down")
+            failure.trap(ConnectionRefusedError, SOCKSError)
+            if type(failure.value) is ConnectionRefusedError:
+                log.err("Connection refused. The backend may be down")
+            else:
+                 log.err("Sock error. The SOCK proxy may be down")
             self.report["failure"] = str(failure.value)
 
         def finished(data):
