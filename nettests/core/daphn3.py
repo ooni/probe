@@ -71,7 +71,7 @@ class daphn3Test(nettest.NetTestCase):
 
     steps = None
 
-    def inputProcessor(self, fp):
+    def inputProcessor(self, filename):
         """
         step_idx is the step in the packet exchange
         ex.
@@ -84,11 +84,11 @@ class daphn3Test(nettest.NetTestCase):
         packet at the step_idx that is to be mutated
 
         """
-        if self.localOptions['yaml']:
-            daphn3Steps = daphn3.read_yaml(self.localOptions['yaml'])
+        if self.localOptions['pcap']:
+            daphn3Steps = daphn3.read_pcap(filename)
         else:
-            daphn3Steps = daphn3.read_pcap(self.localOptions['pcap'])
-
+            daphn3Steps = daphn3.read_yaml(filename)
+        log.debug("Loaded these steps %s" % daphn3Steps)
         yield daphn3Steps
 
     def test_daphn3(self):
@@ -99,6 +99,8 @@ class daphn3Test(nettest.NetTestCase):
             log.msg("Failed to connect")
             self.report['censored'] = True
             self.report['mutation'] = 0
+            raise Exception("Error in connection, perhaps the backend is censored")
+            return
 
         def success(protocol):
             log.msg("Successfully connected")
