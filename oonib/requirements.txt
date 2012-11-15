@@ -14,7 +14,7 @@ numpy==1.6.2
 pyOpenSSL==0.13
 pygeoip==0.2.5
 repoze.sphinx.autointerface==0.7.1
-scapy==2.1.0
+https://hg.secdev.org/scapy/archive/tip.zip#egg=scapy
 storm==0.19
 transaction==1.3.0
 txtorcon==0.7
