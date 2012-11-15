@@ -138,5 +138,5 @@ class EchoTest(BaseScapyTest):
             raise IfaceError("Could not find a working network interface.")
 
     def test_icmp(self):
-        self.sr(IP(dst=self.input)/ICMP())
+        return self.sr(IP(dst=self.input)/ICMP())
 

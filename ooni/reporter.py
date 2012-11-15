@@ -1,3 +1,12 @@
+#-*- coding: utf-8 -*-
+#
+# reporter.py 
+# -----------
+# In here goes the logic for the creation of ooniprobe reports.
+#
+# :authors: Arturo Filastò, Isis Lovecruft
+# :license: see included LICENSE file
+
 import itertools
 import logging
 import sys
@@ -6,18 +15,14 @@ import yaml
 import json
 import traceback
 
-from yaml.representer import *
-from yaml.emitter import *
-from yaml.serializer import *
-from yaml.resolver import *
-
-from datetime import datetime
 from twisted.python.util import untilConcludes
 from twisted.trial import reporter
 from twisted.internet import defer, reactor
 
 from ooni.templates.httpt import BodyReceiver, StringProducer
-from ooni.utils import date, log, geodata
+from ooni.utils import otime, log, geodata
+
+from ooni.utils.hacks import OSafeRepresenter, OSafeDumper
 from ooni import config
 
 try:
@@ -30,49 +35,8 @@ except:
         Packet = object
     packet = FooClass
 
-pyunit =  __import__('unittest')
-
-class OSafeRepresenter(SafeRepresenter):
-    """
-    This is a custom YAML representer that allows us to represent reports
-    safely.
-    It extends the SafeRepresenter to be able to also represent complex numbers
-    """
-    def represent_complex(self, data):
-        if data.imag == 0.0:
-            data = u'%r' % data.real
-        elif data.real == 0.0:
-            data = u'%rj' % data.imag
-        elif data.imag > 0:
-            data = u'%r+%rj' % (data.real, data.imag)
-        else:
-            data = u'%r%rj' % (data.real, data.imag)
-        return self.represent_scalar(u'tag:yaml.org,2002:python/complex', data)
-
-OSafeRepresenter.add_representer(complex,
-                                 OSafeRepresenter.represent_complex)
-
-class OSafeDumper(Emitter, Serializer, OSafeRepresenter, Resolver):
-    """
-    This is a modification of the YAML Safe Dumper to use our own Safe
-    Representer that supports complex numbers.
-    """
-    def __init__(self, stream,
-            default_style=None, default_flow_style=None,
-            canonical=None, indent=None, width=None,
-            allow_unicode=None, line_break=None,
-            encoding=None, explicit_start=None, explicit_end=None,
-            version=None, tags=None):
-        Emitter.__init__(self, stream, canonical=canonical,
-                indent=indent, width=width,
-                allow_unicode=allow_unicode, line_break=line_break)
-        Serializer.__init__(self, encoding=encoding,
-                explicit_start=explicit_start, explicit_end=explicit_end,
-                version=version, tags=tags)
-        OSafeRepresenter.__init__(self, default_style=default_style,
-                default_flow_style=default_flow_style)
-        Resolver.__init__(self)
-
+class NoTestIDSpecified(Exception):
+    pass
 
 def safe_dump(data, stream=None, **kw):
     """
@@ -80,48 +44,97 @@ def safe_dump(data, stream=None, **kw):
     """
     return yaml.dump_all([data], stream, Dumper=OSafeDumper, **kw)
 
-class OONIBReporter(object):
-    def __init__(self, backend_url):
-        from twisted.web.client import Agent
-        from twisted.internet import reactor
+@defer.inlineCallbacks
+def getTestDetails(options):
+    from ooni import __version__ as software_version
 
-        self.agent = Agent(reactor)
-        self.backend_url = backend_url
+    client_geodata = {}
 
-    def _newReportCreated(self, data):
-        #log.debug("Got this as result: %s" % data)
-        print "Got this as result: %s" % data
+    if config.privacy.includeip or \
+            config.privacy.includeasn or \
+            config.privacy.includecountry or \
+            config.privacy.includecity:
+        log.msg("Running geo IP lookup via check.torproject.org")
+        client_ip = yield geodata.myIP()
+        client_location = geodata.IPToLocation(client_ip)
+    else:
+        client_ip = "127.0.0.1"
 
-        return data
+    if config.privacy.includeip:
+        client_geodata['ip'] = client_ip
+    else:
+        client_geodata['ip'] = "127.0.0.1"
 
-    def _processResponseBody(self, response, body_cb):
-        #log.debug("Got response %s" % response)
-        print "Got response %s" % response
+    client_geodata['asn'] = None
+    client_geodata['city'] = None
+    client_geodata['countrycode'] = None
 
-        done = defer.Deferred()
-        response.deliverBody(BodyReceiver(done))
-        done.addCallback(body_cb)
-        return done
+    if config.privacy.includeasn:
+        client_geodata['asn'] = client_location['asn']
 
-    def newReport(self, test_name, test_version):
-        url = self.backend_url + '/new'
-        print "Creating report via url %s" % url
+    if config.privacy.includecity:
+        client_geodata['city'] = client_location['city']
 
-        software_version = '0.0.1'
+    if config.privacy.includecountry:
+        client_geodata['countrycode'] = client_location['countrycode']
 
-        request = {'software_name': 'ooni-probe',
-                'software_version': software_version,
-                'test_name': test_name, 'test_version': test_version,
-                'progress': 0}
+    test_details = {'start_time': otime.utcTimeNow(),
+                    'probe_asn': client_geodata['asn'],
+                    'probe_cc': client_geodata['countrycode'],
+                    'probe_ip': client_geodata['ip'],
+                    'test_name': options['name'],
+                    'test_version': options['version'],
+                    'software_name': 'ooniprobe',
+                    'software_version': software_version
+                    }
+    defer.returnValue(test_details)
 
-        #log.debug("Creating report via url %s" % url)
-        bodyProducer = StringProducer(json.dumps(request))
-        d = self.agent.request("POST", url, bodyProducer=bodyProducer)
-        d.addCallback(self._processResponseBody, self._newReportCreated)
-        return d
+class OReporter(object):
+    def createReport(options):
+        """
+        Override this with your own logic to implement tests.
+        """
+        raise NotImplemented
 
+    def writeReportEntry(self, entry):
+        """
+        Takes as input an entry and writes a report for it.
+        """
+        raise NotImplemented
 
-class YamlReporter(object):
+    def finish():
+        pass
+
+    def testDone(self, test, test_name):
+        log.debug("Finished running %s" % test_name)
+        log.debug("Writing report")
+        test_report = dict(test.report)
+
+        if isinstance(test.input, packet.Packet):
+            test_input = createPacketReport(test.input)
+        else:
+            test_input = test.input
+
+        test_started = test._start_time
+        test_runtime = test_started - time.time()
+
+        report = {'input': test_input,
+                'test_name': test_name,
+                'test_started': test_started,
+                'report': test_report}
+        return self.writeReportEntry(report)
+
+    def allDone(self):
+        log.debug("allDone: Finished running all tests")
+        try:
+            log.debug("Stopping the reactor")
+            reactor.stop()
+        except:
+            log.debug("Unable to stop the reactor")
+            pass
+        return None
+
+class YAMLReporter(OReporter):
     """
     These are useful functions for reporting to YAML format.
     """
@@ -141,94 +154,121 @@ class YamlReporter(object):
         untilConcludes(self._stream.flush)
 
     def writeReportEntry(self, entry):
+        log.debug("Writing report with YAML reporter")
         self._write('---\n')
         self._write(safe_dump(entry))
         self._write('...\n')
 
+    @defer.inlineCallbacks
+    def createReport(self, options):
+        self._writeln("###########################################")
+        self._writeln("# OONI Probe Report for %s test" % options['name'])
+        self._writeln("# %s" % otime.prettyDateNow())
+        self._writeln("###########################################")
+
+        test_details = yield getTestDetails(options)
+
+        self.writeReportEntry(test_details)
+
     def finish(self):
         self._stream.close()
 
-class OReporter(YamlReporter):
-    """
-    This is a reporter factory. It emits new instances of Reports. It is also
-    responsible for writing the OONI Report headers.
-    """
-    def writeTestsReport(self, tests):
-        for test in tests.values():
-            self.writeReportEntry(test)
+
+class OONIBReportUpdateFailed(Exception):
+    pass
+
+class OONIBReportCreationFailed(Exception):
+    pass
+
+class OONIBTestDetailsLookupFailed(Exception):
+    pass
+
+class OONIBReporter(OReporter):
+    def __init__(self, backend_url):
+        from twisted.web.client import Agent
+        from twisted.internet import reactor
+        self.agent = Agent(reactor)
+        self.backend_url = backend_url
 
     @defer.inlineCallbacks
-    def writeReportHeader(self, options):
-        self.firstrun = False
-        self._writeln("###########################################")
-        self._writeln("# OONI Probe Report for %s test" % options['name'])
-        self._writeln("# %s" % date.pretty_date())
-        self._writeln("###########################################")
+    def writeReportEntry(self, entry):
+        log.debug("Writing report with OONIB reporter")
+        content = '---\n'
+        content += safe_dump(entry)
+        content += '...\n'
 
-        client_geodata = {}
+        url = self.backend_url + '/report/new'
 
-        if config.privacy.includeip or \
-                config.privacy.includeasn or \
-                config.privacy.includecountry or \
-                config.privacy.includecity:
-            log.msg("Running geo IP lookup via check.torproject.org")
-            client_ip = yield geodata.myIP()
-            client_location = geodata.IPToLocation(client_ip)
-        else:
-            client_ip = "127.0.0.1"
+        request = {'report_id': self.report_id,
+                'content': content}
 
-        if config.privacy.includeip:
-            client_geodata['ip'] = client_ip
-        else:
-            client_geodata['ip'] = "127.0.0.1"
+        log.debug("Updating report with id %s" % self.report_id)
+        request_json = json.dumps(request)
+        log.debug("Sending %s" % request_json)
 
-        client_geodata['asn'] = None
-        client_geodata['city'] = None
-        client_geodata['countrycode'] = None
+        bodyProducer = StringProducer(json.dumps(request))
+        log.debug("Creating report via url %s" % url)
 
-        if config.privacy.includeasn:
-            client_geodata['asn'] = client_location['asn']
-
-        if config.privacy.includecity:
-            client_geodata['city'] = client_location['city']
-
-        if config.privacy.includecountry:
-            client_geodata['countrycode'] = client_location['countrycode']
-
-
-        test_details = {'start_time': repr(date.now()),
-                        'probe_asn': client_geodata['asn'],
-                        'probe_cc': client_geodata['countrycode'],
-                        'probe_ip': client_geodata['ip'],
-                        'test_name': options['name'],
-                        'test_version': options['version'],
-                        }
-        self.writeReportEntry(test_details)
-
-    def testDone(self, test):
-        test_report = dict(test.report)
-        
-        # XXX the scapy test has an example of how 
-        # to do this properly.
-        if isinstance(test.input, packet.Packet):
-            test_input = repr(test.input)
-        else:
-            test_input = test.input
-
-        test_started = test._start_time
-        test_runtime = test_started - time.time()
-
-        report = {'input': test_input,
-                'test_started': test_started,
-                'report': test_report}
-        self.writeReportEntry(report)
-
-    def allDone(self):
-        log.debug("Finished running everything")
-        self.finish()
         try:
-            reactor.stop()
+            response = yield self.agent.request("PUT", url, 
+                                bodyProducer=bodyProducer)
         except:
-            pass
-        return None
+            # XXX we must trap this in the runner and make sure to report the data later.
+            raise OONIBReportUpdateFailed
+
+        #parsed_response = json.loads(backend_response)
+        #self.report_id = parsed_response['report_id']
+        #self.backend_version = parsed_response['backend_version']
+        #log.debug("Created report with id %s" % parsed_response['report_id'])
+
+
+    @defer.inlineCallbacks
+    def createReport(self, options):
+        """
+        Creates a report on the oonib collector.
+        """
+        test_name = options['name']
+        test_version = options['version']
+
+        log.debug("Creating report with OONIB Reporter")
+        url = self.backend_url + '/report/new'
+        software_version = '0.0.1'
+
+        test_details = yield getTestDetails(options)
+
+        content = '---\n'
+        content += safe_dump(test_details)
+        content += '...\n'
+
+        request = {'software_name': 'ooniprobe',
+            'software_version': software_version,
+            'test_name': test_name,
+            'test_version': test_version,
+            'progress': 0,
+            'content': content
+        }
+        log.debug("Creating report via url %s" % url)
+        request_json = json.dumps(request)
+        log.debug("Sending %s" % request_json)
+
+        bodyProducer = StringProducer(json.dumps(request))
+        log.debug("Creating report via url %s" % url)
+
+        try:
+            response = yield self.agent.request("POST", url, 
+                                bodyProducer=bodyProducer)
+        except:
+            raise OONIBReportCreationFailed
+
+        # This is a little trix to allow us to unspool the response. We create
+        # a deferred and call yield on it.
+        response_body = defer.Deferred()
+        response.deliverBody(BodyReceiver(response_body))
+
+        backend_response = yield response_body
+
+        parsed_response = json.loads(backend_response)
+        self.report_id = parsed_response['report_id']
+        self.backend_version = parsed_response['backend_version']
+        log.debug("Created report with id %s" % parsed_response['report_id'])
 

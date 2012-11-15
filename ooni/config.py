@@ -1,13 +1,14 @@
 # -*- encoding: utf-8 -*-
 #
-# :authors: Arturo "hellais" Filastò <art@fuffa.org>
+# :authors: Arturo Filastò
 # :licence: see LICENSE
 
 import os
 import yaml
 
-from twisted.internet import reactor
+from twisted.internet import reactor, threads
 
+from ooni.utils import otime
 from ooni.utils import Storage
 
 def get_root_path():
@@ -15,6 +16,19 @@ def get_root_path():
     root = os.path.join(this_directory, '..')
     root = os.path.abspath(root)
     return root
+
+def oreport_filenames(file_name):
+    """
+    returns the filenames for the pcap file and the yamloo report
+
+    returns
+    yamloo_filename, pcap_filename
+    """
+    test_name = '.'.join(file_name.split(".")[:-1])
+    base_filename = "%s_%s_"+otime.timestamp()+".%s"
+    yamloo_filename = base_filename % (test_name, "report", "yamloo")
+    pcap_filename = base_filename % (test_name, "packets", "pcap")
+    return yamloo_filename, pcap_filename
 
 config_file = os.path.join(get_root_path(), 'ooniprobe.conf')
 try:
@@ -41,3 +55,5 @@ advanced = Storage()
 for k, v in configuration['advanced'].items():
     advanced[k] = v
 
+# This is used to keep track of the state of the sniffer
+sniffer_running = None

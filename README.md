@@ -1,4 +1,4 @@
-# ooni-probe - Open Observatory of Network Interference
+# ooniprobe - Open Observatory of Network Interference
 
 "The Net interprets censorship as damage and routes around it."
                 - John Gilmore; TIME magazine (6 December 1993)
@@ -15,103 +15,88 @@ To run OONI-probe without having to install it you must tell python that it
 can import modules from the root of ooni-probe, as well as initialize the
 included submodules.
 
-From the root directory of the repo (.../ooni-probe/), initialize the submodules by doing:
+## Getting started
 
-    $ git submodule init && git submodule update
+Requirements:
 
-Next, you will need to tell Python that OONI is part of its path:
+  * Git: http://git-scm.com/book/en/Getting-Started-Installing-Git
+  * Python >= 2.6: http://www.python.org/download/releases/
+  * pip: http://www.pip-installer.org/en/latest/
 
-    $ export PYTHONPATH=$PYTHONPATH:`pwd`
+On debian based systems these can be installed with:
 
-Then to see what tests are available:
+  apt-get install git-core python python-pip python-dev
 
-    $ cd ooni
-    $ python ooniprobe.py
+The python dependencies required for running ooniprobe are:
 
-If you see some errors see INSTALL to install the missing dependencies.
+  * Twisted (>12.0.0): http://twistedmatrix.com/trac/
+  * PyYAML: http://pyyaml.org/
+  * Scapy: http://www.secdev.org/projects/scapy/
+      * pypcap: http://code.google.com/p/pypcap/
+      * libdnet: http://code.google.com/p/libdnet/
+  * BeautifulSoup: http://www.crummy.com/software/BeautifulSoup/
+  * txtorcon: https://github.com/meejah/txtorcon
 
-To list the help for a specific test:
+You are highly recommended to install depedencies from inside of a virtual
+environment, since pip does not download the packages via SSL and you will need
+to install it system wide.
 
-    $ python ooniprobe.py httpt --help
+This will require you to have installed virtualenv.
 
-## Virtualenv way (Recommended)
+    sudo apt-get install python-virtualenv
 
-    virtualenv2 ENV/
-    source ENV/bin/activate
-    pip install twisted Scapy pyyaml
+To create a new virtual environment do
 
-The setup.py script of pyOpenSSL has some issues and it is therefore
-recommended to install it system wide with:
+    virtualenv env
+    source env/bin/activate
 
-    sudo pip install pyOpenSSL
+Then install OONI with:
 
-Note: be sure to do this over a secure network since pip does not by default
-use SSL...
+    pip install https://hg.secdev.org/scapy/archive/tip.zip
+    pip install -r requirements.txt
 
-To install the most up to date scapy version (requires mercurial):
+If you decided not to install virtual env and want to download code via http as
+run it as root, you may easily do so with:
 
-    pip install hg+http://hg.secdev.org/scapy
+    pip install https://hg.secdev.org/scapy/archive/tip.zip
+    sudo pip install -r requirements.txt
 
+## Including your geo data in the test report
 
-# More details
+Including geografical information on where your probe is located helps us
+better assess the value of the test. You can personalize these setting from
+inside of ooniprobe.conf
 
-With the belief that unfettered access to information is a intrinsic human right,
-OONI seeks to observe levels of surveillance, censorship, and network discrimination
-in order for people worldwide to have a clearer understanding of the ways in
-which their access to information is filtered.
+If you wish to include geografical data in the test report, you will have to go
+to the data/ directory and run:
 
-The end goal of OONI is to collect data which can show an accurate
-topology of network interference and censorship. Through this topology, it will be
-possible to see what the internet looks like from nearly any location, including
-what sites are censored, or have been tampered with, and by whom. We're calling
-it filternet.
+    make geoip
 
-OONI uses open methodologies and the data will be provided in raw
-format to allow any researcher to indipendently draw their conclusions
-from the results OONI tests.
+Then edit your ooniprobe.conf to point to the absolute path of where the data/
+directory is located for example:
 
-There are currently projects aimed at measuring censorship in one
-way or another but they either use non open methodologies or their
-tools are not open sources. OONI aims at filling up this gap by
-creating the first open source framework for developing network
-tests and collecting data on censorship.
+    geoip_data_dir: /home/your_user/ooni-probe/data/
 
-OONI revolves around three major concepts: Assets, Tests and
-Reports.
+## Running some tests
 
-## Assets
+To see the possible command line options run:
 
-Assets are the inputs used inside Tests to detect censorship events.
-These can be URL lists, keywords, ip addresses, packets or any kind
-of set of data.
-In the python specific implementation this is represented as a python
-iterable object. This means that the Testing framework will be able
-to iterate through every element in the Asset.
+    ./bin/ooniprobe --help 
 
-## Tests
+For interesting tests to run look in the nettests/core/ directory.
 
-This is the core of OONI. These are the actual tests that will be run
-using as input (if an input is required) the Assets.
-Tests can be summarized as an experiment and a control. The control
-represents the expected result and the experiment is the network operation
-being performed on the live network. If the experiment does not match up
-with the control then a censorship event had occured.
+To run a test you can do so with:
 
-OONI probe provides some useful functionality to the application developer
-that may be useful when developing censorship detection tests. For example
-it is possible to make a request over the Tor network easily or use a fast
-and flexible non-blocking HTTP client implementation.
+    ./bin/ooniprobe -o report_file_name path/to/test.py
 
-## Reports
+Normally tests take options, you can see them with:
 
-This is the data that is collected from the test. OONI probe provides a
-flexible means of storing results and uploading this data to a remote
-server or a flat file.
+    ./bin/ooniprobe -o report_file_name path/to/test.py --help
 
-The Test developer should include in the report as much data as possible
-and can contain raw packet dumps as well as structured synthetic results.
+## Configuration
 
-In future on top of ooni-probe Reports it will be possible to develop
-flexible post-processing tools to allow data-visualization guru's to
-properly visualize and contextualize the resulting data.
+By default ooniprobe will not include personal identifying information in the
+test result, nor create a pcap file. This behavior can be personalized by
+editing your ooniprobe.conf configuration file.
+
 

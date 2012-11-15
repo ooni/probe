@@ -1,3 +1,15 @@
+#-*- coding: utf-8 -*-
+#
+# inputunit.py 
+# -------------
+# IN here we have functions related to the creation of input
+# units. Input units are how the inputs to be fed to tests are
+# split up into.
+#
+# :authors: Arturo Filastò
+# :license: see included LICENSE file
+
+
 class InputUnitFactory(object):
     """
     This is a factory that takes the size of input units to be generated a set
@@ -25,7 +37,7 @@ class InputUnitFactory(object):
         for i in xrange(self._idx, self._idx + self.inputUnitSize):
             try:
                 input_unit_elements.append(self._inputs.next())
-            except:
+            except StopIteration:
                 self._ended = True
                 break
         self._idx += self.inputUnitSize
@@ -54,10 +66,7 @@ class InputUnit(object):
         return self
 
     def next(self):
-        try:
-            return self._inputs.next()
-        except:
-            raise StopIteration
+        return self._inputs.next()
 
     def append(self, input):
         self._inputs.append(input)

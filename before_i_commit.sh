@@ -34,5 +34,5 @@ echo "If you do, it means something is wrong."
 echo "Read through the log file and fix it."
 echo "If you are having some problems fixing some things that have to do with"
 echo "the core of OONI, let's first discuss it on IRC, or open a ticket"
-
+less *yamloo
 rm -f *yamloo

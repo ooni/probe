@@ -1,7 +1,17 @@
 # -*- encoding: utf-8 -*-
 #
+# hacks.py
+# ********
+# When some software has issues and we need to fix it in a
+# hackish way, we put it in here. This one day will be empty.
+# 
 # :authors: Arturo Filastò
 # :licence: see LICENSE
+
+from yaml.representer import *
+from yaml.emitter import *
+from yaml.serializer import *
+from yaml.resolver import *
 
 import copy_reg
 
@@ -57,35 +67,44 @@ def patched_reduce_ex(self, proto):
     else:
         return copy_reg._reconstructor, args
 
-class MetaSuper(type):
+class OSafeRepresenter(SafeRepresenter):
     """
-    Metaclass for creating subclasses which have builtin name munging, so that
-    they are able to call self.__super.method() from an instance function
-    without knowing the instance class' base class name.
-
-    For example:
-
-        from hacks import MetaSuper
-        class A:
-            __metaclass__ = MetaSuper
-            def method(self):
-                return "A"
-        class B(A):
-            def method(self):
-                return "B" + self.__super.method()
-        class C(A):
-            def method(self):
-                return "C" + self.__super.method()
-        class D(C, B):
-            def method(self):
-                return "D" + self.__super.method()
-
-        assert D().method() == "DCBA"
-
-    Subclasses should not override "__init__", nor should subclasses have
-    the same name as any of their bases, or else much pain and suffering
-    will occur.
+    This is a custom YAML representer that allows us to represent reports
+    safely.
+    It extends the SafeRepresenter to be able to also represent complex numbers
     """
-    def __init__(cls, name, bases, dict):
-        super(autosuper, cls).__init__(name, bases, dict)
-        setattr(cls, "_%s__super" % name, super(cls))
+    def represent_complex(self, data):
+        if data.imag == 0.0:
+            data = u'%r' % data.real
+        elif data.real == 0.0:
+            data = u'%rj' % data.imag
+        elif data.imag > 0:
+            data = u'%r+%rj' % (data.real, data.imag)
+        else:
+            data = u'%r%rj' % (data.real, data.imag)
+        return self.represent_scalar(u'tag:yaml.org,2002:python/complex', data)
+
+OSafeRepresenter.add_representer(complex,
+                                 OSafeRepresenter.represent_complex)
+
+class OSafeDumper(Emitter, Serializer, OSafeRepresenter, Resolver):
+    """
+    This is a modification of the YAML Safe Dumper to use our own Safe
+    Representer that supports complex numbers.
+    """
+    def __init__(self, stream,
+            default_style=None, default_flow_style=None,
+            canonical=None, indent=None, width=None,
+            allow_unicode=None, line_break=None,
+            encoding=None, explicit_start=None, explicit_end=None,
+            version=None, tags=None):
+        Emitter.__init__(self, stream, canonical=canonical,
+                indent=indent, width=width,
+                allow_unicode=allow_unicode, line_break=line_break)
+        Serializer.__init__(self, encoding=encoding,
+                explicit_start=explicit_start, explicit_end=explicit_end,
+                version=version, tags=tags)
+        OSafeRepresenter.__init__(self, default_style=default_style,
+                default_flow_style=default_flow_style)
+        Resolver.__init__(self)
+

@@ -1,15 +1,12 @@
 # -*- encoding: utf-8 -*-
 #
-#     nettest.py
-# ------------------->
+# nettest.py
+# ----------
+# In here is the NetTest API definition. This is how people
+# interested in writing ooniprobe tests will be specifying them
 #
-# :authors: Arturo "hellais" Filastò <art@fuffa.org>,
-#           Isis Lovecruft <isis@torproject.org>
-# :licence: see LICENSE
-# :copyright: 2012 Arturo Filasto, Isis Lovecruft
-# :version: 0.1.0-alpha
-#
-# <-------------------
+# :authors: Arturo Filastò, Isis Lovecruft
+# :license: see included LICENSE file
 
 import sys
 import os
@@ -21,8 +18,6 @@ from twisted.internet import defer, utils
 from twisted.python import usage
 
 from ooni.utils import log
-
-pyunit = __import__('unittest')
 
 class NetTestCase(object):
     """
@@ -86,6 +81,9 @@ class NetTestCase(object):
                        required for proper running of a test.
 
     * localOptions: contains the parsed command line arguments.
+
+    Quirks:
+    Every class that is prefixed with test *must* return a twisted.internet.defer.Deferred.
     """
     name = "I Did Not Change The Name"
     author = "Jane Doe <foo@example.com>"
@@ -102,17 +100,22 @@ class NetTestCase(object):
 
     usageOptions = None
     requiredOptions = []
-
     requiresRoot = False
 
     localOptions = {}
+    def _setUp(self):
+        """
+        This is the internal setup method to be overwritten by templates.
+        """
+        pass
+
     def setUp(self):
         """
         Place here your logic to be executed when the test is being setup.
         """
         pass
 
-    def inputProcessor(self, fp):
+    def inputProcessor(self, filename):
         """
         You may replace this with your own custom input processor. It takes as
         input a file descriptor so remember to close it when you are done.
@@ -124,6 +127,7 @@ class NetTestCase(object):
         For example you may wish to have an input processor that will allow you
         to ignore comments in files. This can be easily achieved like so:
 
+            fp = open(filename)
             for x in fp.xreadlines():
                 if x.startswith("#"):
                     continue
@@ -133,10 +137,11 @@ class NetTestCase(object):
         Other fun stuff is also possible.
         """
         log.debug("Running default input processor")
+        fp = open(filename)
         for x in fp.xreadlines():
             yield x.strip()
         fp.close()
-    
+
     def _checkRequiredOptions(self):
         for required_option in self.requiredOptions:
             log.debug("Checking if %s is present" % required_option)
@@ -151,15 +156,14 @@ class NetTestCase(object):
                 log.err(ae)
             else:
                 if os.path.isfile(self.inputFile):
-                    fp = open(self.inputFile)
-                    self.inputs = self.inputProcessor(fp)
+                    self.inputs = self.inputProcessor(self.inputFile)
         elif not self.inputs[0]:
             pass
         elif self.inputFile:
             raise usage.UsageError("No input file specified!")
 
         self._checkRequiredOptions()
-        
+
         # XXX perhaps we may want to name and version to be inside of a
         # different method that is not called options.
         return {'inputs': self.inputs,

@@ -23,6 +23,7 @@ class ChinaTriggerTest(BaseScapyTest):
     name = "chinatrigger"
     usageOptions = UsageOptions
     requiredOptions = ['dst', 'port']
+    timeout = 2
 
     def setUp(self):
         self.dst = self.localOptions['dst']
@@ -47,7 +48,7 @@ class ChinaTriggerTest(BaseScapyTest):
     def set_random_field(pkt):
         ret = pkt[:15]
         for i in range(28):
-            ret += chr(random.randint(0, 256))
+            ret += chr(random.randint(0, 255))
         ret += pkt[15+28:]
         return ret
 
@@ -57,9 +58,9 @@ class ChinaTriggerTest(BaseScapyTest):
         Slightly changed mutate function.
         """
         ret = pkt[:idx-1]
-        mutation = chr(random.randint(0, 256))
+        mutation = chr(random.randint(0, 255))
         while mutation == pkt[idx]:
-            mutation = chr(random.randint(0, 256))
+            mutation = chr(random.randint(0, 255))
         ret += mutation
         ret += pkt[idx:]
         return ret
@@ -103,5 +104,5 @@ class ChinaTriggerTest(BaseScapyTest):
         for x in range(len(pkt)):
             mutation = IP(dst=self.dst)/TCP(dport=self.port)/ChinaTriggerTest.mutate(pkt, x)
             pkts.append(mutation)
-        self.send(pkts)
+        return self.sr(pkts, timeout=2)
 

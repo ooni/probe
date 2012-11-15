@@ -2,28 +2,30 @@
 #
 # runner.py
 # ---------
-# Handles running ooni.nettests as well as ooni.plugoo.tests.OONITests.
+# Handles running ooni.nettests as well as
+# ooni.plugoo.tests.OONITests.
 #
-# :authors: Isis Lovecruft, Arturo Filasto
+# :authors: Arturo Filastò, Isis Lovecruft
 # :license: see included LICENSE file
-# :copyright: (c) 2012 Isis Lovecruft, Arturo Filasto, The Tor Project, Inc.
-# :version: 0.1.0-pre-alpha
 
 import os
 import sys
 import time
 import inspect
 import traceback
+import itertools
 
 from twisted.python import reflect, usage
 from twisted.internet import defer
 from twisted.trial.runner import filenameToModule
+from twisted.internet import reactor, threads
 
 from ooni.inputunit import InputUnitFactory
 from ooni.nettest import NetTestCase
 
 from ooni import reporter
-from ooni.utils import log, date
+
+from ooni.utils import log, checkForRoot, NotRootError
 
 def processTest(obj, cmd_line_options):
     """
@@ -40,8 +42,12 @@ def processTest(obj, cmd_line_options):
 
     input_file = obj.inputFile
     if obj.requiresRoot:
-        if os.getuid() != 0:
-            raise Exception("This test requires root to run")
+        try:
+            checkForRoot()
+        except NotRootError:
+            log.err("%s requires root to run" % obj.name)
+            sys.exit(1)
+
 
     if obj.optParameters or input_file \
             or obj.usageOptions or obj.optFlags:
@@ -64,7 +70,7 @@ def processTest(obj, cmd_line_options):
                     log.debug("Got optFlags")
                     optFlags = obj.optFlags
             options = Options()
-        
+
         if options:
             options.parseOptions(cmd_line_options['subArgs'])
             obj.localOptions = options
@@ -145,6 +151,33 @@ def loadTestsAndOptions(classes, cmd_line_options):
 
     return test_cases, options
 
+def runTestWithInput(test_class, test_method, test_input, oreporter):
+    log.debug("Running %s with %s" % (test_method, test_input))
+
+    def test_done(result, test_instance, test_name):
+        log.debug("runTestWithInput: concluded %s" % test_name)
+        return oreporter.testDone(test_instance, test_name)
+
+    def test_error(error, test_instance, test_name):
+        log.err("%s\n" % error)
+
+    test_instance = test_class()
+    test_instance.input = test_input
+    test_instance.report = {}
+    log.debug("Processing %s" % test_instance.name)
+    # use this to keep track of the test runtime
+    test_instance._start_time = time.time()
+    # call setups on the test
+    test_instance._setUp()
+    test_instance.setUp()
+    test = getattr(test_instance, test_method)
+
+    d = defer.maybeDeferred(test)
+    d.addCallback(test_done, test_instance, test_method)
+    d.addErrback(test_error, test_instance, test_method)
+    log.debug("returning %s input" % test_method)
+    return d
+
 def runTestWithInputUnit(test_class, 
         test_method, input_unit, 
         oreporter):
@@ -159,31 +192,19 @@ def runTestWithInputUnit(test_class,
 
     returns a deferred list containing all the tests to be run at this time
     """
-    def test_done(result, test_instance):
-        oreporter.testDone(test_instance)
-
-    def test_error(error, test_instance):
-        log.err("%s\n" % error)
 
     dl = []
-    for i in input_unit:
-        test_instance = test_class()
-        test_instance.input = i
-        test_instance.report = {}
-        # use this to keep track of the test runtime
-        test_instance._start_time = time.time()
-        # call setup on the test
-        test_instance.setUp()
-        test = getattr(test_instance, test_method)
-        d = defer.maybeDeferred(test)
-        d.addCallback(test_done, test_instance)
-        d.addErrback(test_error, test_instance)
+    log.debug("input unit %s" % input_unit)
+    for test_input in input_unit:
+        log.debug("running with input: %s" % test_input)
+        d = runTestWithInput(test_class, 
+                test_method, test_input, oreporter)
         dl.append(d)
-
     return defer.DeferredList(dl)
 
 @defer.inlineCallbacks
-def runTestCases(test_cases, options, cmd_line_options):
+def runTestCases(test_cases, options, 
+        cmd_line_options, yamloo_filename):
     try:
         assert len(options) != 0, "Length of options is zero!"
     except AssertionError, ae:
@@ -202,29 +223,37 @@ def runTestCases(test_cases, options, cmd_line_options):
             log.msg("options[0] = %s" % first)
             test_inputs = [None]
 
-    if cmd_line_options['reportfile']:
-        report_filename = cmd_line_options['reportfile']
+    reportFile = open(yamloo_filename, 'w+')
+
+
+    if cmd_line_options['collector']:
+        oreporter = reporter.OONIBReporter(cmd_line_options['collector'])
     else:
-        report_filename = 'report_'+date.timestamp()+'.yamloo'
+        oreporter = reporter.YAMLReporter(reportFile)
 
-    if os.path.exists(report_filename):
-        print "Report already exists with filename %s" % report_filename
-        print "Renaming it to %s" % report_filename+'.old'
-        os.rename(report_filename, report_filename+'.old')
-
-    reportFile = open(report_filename, 'w+')
-    oreporter = reporter.OReporter(reportFile)
     input_unit_factory = InputUnitFactory(test_inputs)
 
-    yield oreporter.writeReportHeader(options)
+    log.debug("Creating report")
+
+    yield oreporter.createReport(options)
+
     # This deferred list is a deferred list of deferred lists
     # it is used to store all the deferreds of the tests that 
     # are run
-    for input_unit in input_unit_factory:
-        for test_case in test_cases:
-            test_class = test_case[0]
-            test_method = test_case[1]
-            yield runTestWithInputUnit(test_class,
-                        test_method, input_unit, oreporter)
+    try:
+        for input_unit in input_unit_factory:
+            log.debug("Running this input unit %s" % input_unit)
+            # We do this because generators can't we rewound.
+            input_list = list(input_unit)
+            for test_case in test_cases:
+                log.debug("Processing %s" % test_case[1])
+                test_class = test_case[0]
+                test_method = test_case[1]
+                yield runTestWithInputUnit(test_class,
+                            test_method, input_list,
+                            oreporter)
+    except Exception:
+        log.exception("Problem in running test")
+        reactor.stop()
     oreporter.allDone()
 

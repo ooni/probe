@@ -1,23 +1,26 @@
-import re
-import pygeoip
-import os
+# -*- encoding: utf-8 -*-
+#
+# geodata.py
+# **********
+# In here go functions related to the understanding of
+# geographical information of the probe
+#
+# :authors: Arturo Filastò
+# :licence: see LICENSE
 
-from ooni import config
-from ooni.utils import log
+import re
+import os
 
 from twisted.web.client import Agent
 from twisted.internet import reactor, defer, protocol
 
-class BodyReceiver(protocol.Protocol):
-    def __init__(self, finished):
-        self.finished = finished
-        self.data = ""
+from ooni.utils import log, net
+from ooni import config
 
-    def dataReceived(self, bytes):
-        self.data += bytes
-
-    def connectionLost(self, reason):
-        self.finished.callback(self.data)
+try:
+    import pygeoip
+except ImportError:
+    log.err("Unable to import pygeoip. We will not be able to run geo IP related measurements")
 
 @defer.inlineCallbacks
 def myIP():
@@ -28,7 +31,7 @@ def myIP():
     result = yield myAgent.request('GET', target_site)
 
     finished = defer.Deferred()
-    result.deliverBody(BodyReceiver(finished))
+    result.deliverBody(net.BodyReceiver(finished))
 
     body = yield finished
 

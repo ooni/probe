@@ -34,80 +34,85 @@ Code Structure
 ---------
 
 - HACKING
-    The document you are currently reading.
+  The document you are currently reading.
+
+- inputs/
+  Contains input files for tests.
 
 - oonib/
-    Contains the OONI probe backend to be run on the ooni-net
-
-- oonid/
-    Contains the OONI daemon that can be used to interrogated from the cli to
-    run tests.
+  Contains the OONI probe backend to be run on the ooni-net
 
 - ooni/
-    Contains the main ooni probe comand line client
-
-- ooni/assets/
-    Where we store all the asset files that are
-    used when running OONI tests.
+  Contains the main ooni probe comand line client
 
 - ooni/config.py
-    Parts of the code related to parsing OONI
-    configuration files and making them accessible
-    to other components of the software.
+  Parts of the code related to parsing OONI
+  configuration files and making them accessible
+  to other components of the software.
 
-- ooni/logo.py
-    File containing some funny ASCII art. Yes, we
-    do enjoy ASCII art and are not afraid to admit it!
+- ooni/inputunit.py
+  In here we have functions related to the creation of input
+  units. Input units are how the inputs to be fed to tests are
+  split up into.
 
-- ooni/nodes.conf
-    The configuration file for nodes. This contains the
-    list of network and code execution nodes that can be
-    used to run tests off of.
+- ooni/nettest.py
+  In here is the NetTest API definition. This is how people
+  interested in writing ooniprobe tests will be specifying
+  them.
 
-- ooni/ooniprobe.py
-    The main OONI-probe command line interface. This is
-    responsible for parsing the command line arguments and
-    passing the arguments to the underlying components.
+- ooni/nodes.py
+  Mostly broken code for the remote dispatching of tests.
 
-- ooni/ooni-probe.conf
-    The main OONI-probe configuration file. This can be used
-    to configure your OONI CLI, tell it where it should report
-    to, where the asset files are located, what should be used
-    for control, etc.
+- ooni/oonicli.py
+  In here we take care of running ooniprobe from the command
+  line interface
 
-- ooni/plugoo/__init__.py
-    All the necessary "goo" for making OONI probe work. This
-    means loading Assets, creating Reports, running Tests,
-    interacting with Nodes.
+- ooni/reporter.py
+  In here goes the logic for the creation of ooniprobe
+  reports.
 
-- ooni/plugoo/assets.py
-    This is a python object representation of the data that is
-    located inside the asset directory.
+- ooni/runner.py
+  Handles running ooni.nettests as well as
+  ooni.plugoo.tests.OONITests.
 
-- ooni/plugoo/nodes.py
-    The part of code responsible for interacting with OONI Nodes.
-    Nodes can be Network or Code Execution. Network nodes are
-    capable of receiving packets and fowarding them onto their
-    network. This means that to run a test on X network nodes you
-    consume X*test_cost bandwith. Code Execution nodes accept units
-    of work, they are therefore capable of receiving a set of tests
-    that should be completed by a set of Network nodes or run locally.
+- ooni/kit/
+  In here go utilities that can be used by tests.
 
-- ooni/plugoo/reports.py
-    Takes care of transforming the output of a test into a report. This
-    may mean pushing the result data to a remote backend or simply writing
-    a local file.
+- ooni/lib/
+  XXX this directory is to be removed.
 
-- ooni/plugoo/tests.py
-    The main OONI probe test class. This provides all the necessary scaffold
-    to write your own test based on the OONI paradigm.
+- ooni/utils/
+  In here go internal utilities that are useful to ooniprobe
 
-- ooni/oonitests/
-    Contains all the "offical" OONI tests that are shipped.
+- ooni/utils/geodata.py
+  In here go functions related to the understanding of
+  geographical information of the probe
 
-- ooni/utils.py
-    Helper functions that don't fit into any place, but are not big enough to
-    be a dependency by themselves.
+- ooni/utils/hacks.py
+  When some software has issues and we need to fix it in a
+  hackish way, we put it in here. This one day will be empty.
+
+- ooni/utils/log.py
+  log realted functions.
+
+- ooni/utils/net.py
+  utilities for networking related operations
+
+- ooni/utils/onion.py
+  Utilities for working with Tor.
+  XXX this code should be removed and merged into txtorcon.
+
+- ooni/utils/otime.py
+  Generation of timestamps, time conversions and all the rest
+
+- ooni/utils/txscapy.py
+  Tools for making scapy work well with twisted.
+
+- ooniprobe.conf
+  The main OONI-probe configuration file. This can be used
+  to configure your OONI CLI, tell it where it should report
+  to, where the asset files are located, what should be used
+  for control, etc.
 
 Style guide
 -----------

@@ -2,13 +2,10 @@
 # -*- encoding: utf-8 -*-
 # oonicli
 # -----------
+# Runs ooniprobe tests from command line
 #
-# Run the Twisted Trial (unittest module) based oonicli. Startup script based
-# on twisted trial, see http://twistedmatrix.com/ .
-
 # :authors: Arturo Filastò, Isis Lovecruft
 # :licence: see included LICENSE file
-# :version: 0.0.1-pre-alpha
 
 import os, sys
 import copy_reg

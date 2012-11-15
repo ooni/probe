@@ -14,7 +14,9 @@ from scapy.all import send, sr, IP, TCP
 from ooni.nettest import NetTestCase
 from ooni.utils import log
 
-from ooni.lib.txscapy import TXScapy
+from ooni import config
+
+from ooni.utils.txscapy import ScapyProtocol
 
 def createPacketReport(packet_list):
     """
@@ -42,106 +44,42 @@ class BaseScapyTest(NetTestCase):
 
     requiresRoot = True
 
-    sentPackets = []
-    answeredPackets = []
-
-    def sr(self, pkts, *arg, **kw):
+    def sr(self, packets, *arg, **kw):
         """
         Wrapper around scapy.sendrecv.sr for sending and receiving of packets
         at layer 3.
         """
-        answered_packets, unanswered = sr(pkts, *arg, **kw)
-        self.report['answered_packets'] = createPacketReport(answered_packets)
-        self.report['sent_packets'] = createPacketReport(pkts)
-        return (answered_packets, sent_packets)
+        def finished(packets):
+            answered, unanswered = packets
+            self.report['answered_packets'] = []
+            self.report['sent_packets'] = []
+            for snd, rcv in answered:
+                log.debug("Writing report for scapy test")
+                sent_packet = snd
+                received_packet = rcv
+
+                if not config.privacy.includeip:
+                    log.msg("Detected you would not like to include your ip in the report")
+                    log.msg("Stripping source and destination IPs from the reports")
+                    sent_packet.src = '127.0.0.1'
+                    received_packet.dst = '127.0.0.1'
+
+                pkt_report_r = createPacketReport(received_packet)
+                pkt_report_s = createPacketReport(sent_packet)
+                self.report['answered_packets'].append(pkt_report_r)
+                self.report['sent_packets'].append(pkt_report_s)
+                log.debug("Done")
+            return packets
+
+        scapyProtocol = ScapyProtocol(*arg, **kw)
+        d = scapyProtocol.startSending(packets)
+        d.addCallback(finished)
+        return d
 
     def send(self, pkts, *arg, **kw):
         """
         Wrapper around scapy.sendrecv.send for sending of packets at layer 3
         """
-        sent_packets = send(pkts, *arg, **kw)
-        self.report['sent_packets'] = createPacketReport(pkts)
-        return sent_packets
+        raise Exception("Not implemented")
 
-class TXScapyTest(BaseScapyTest):
-    """
-    A utility class for writing scapy driven OONI tests.
-
-    * pcapfile: specify where to store the logged pcapfile
-
-    * timeout: timeout in ms of when we should stop waiting to receive packets
-
-    * receive: if we should also receive packets and not just send
-
-    XXX This is currently not working
-    """
-    name = "TX Scapy Test"
-    version = 0.1
-
-    receive = True
-    timeout = 1
-    pcapfile = 'packet_capture.pcap'
-    packet = IP()/TCP()
-    reactor = None
-
-    answered = None
-    unanswered = None
-
-    def processInputs(self):
-        """
-        Place here the logic for validating and processing of inputs and
-        command line arguments.
-        """
-        pass
-
-    def tearDown(self):
-        log.debug("Tearing down reactor")
-
-    def finished(self, *arg):
-        log.debug("Calling final close")
-
-        self.questions = self.txscapy.questions
-        self.answers = self.txscapy.answers
-
-        log.debug("These are the questions: %s" % self.questions)
-        log.debug("These are the answers: %s" % self.answers)
-
-        self.txscapy.finalClose()
-
-    def sendReceivePackets(self):
-        packets = self.buildPackets()
-
-        log.debug("Sending and receiving %s" % packets)
-
-        self.txscapy = TXScapy(packets, pcapfile=self.pcapfile,
-                          timeout=self.timeout, reactor=self.reactor)
-
-        self.txscapy.sr(packets, pcapfile=self.pcapfile,
-                 timeout=self.timeout, reactor=self.reactor)
-
-        d = self.txscapy.deferred
-        d.addCallback(self.finished)
-
-        return d
-
-    def sendPackets(self):
-        log.debug("Sending and receiving of packets %s" % packets)
-
-        packets = self.buildPackets()
-
-        self.txscapy = TXScapy(packets, pcapfile=self.pcapfile,
-                          timeout=self.timeout, reactor=self.reactor)
-
-        self.txscapy.send(packets, reactor=self.reactor).deferred
-
-        d = self.txscapy.deferred
-        d.addCallback(self.finished)
-
-        return d
-
-    def buildPackets(self):
-        """
-        Override this method to build scapy packets.
-        """
-        pass
 

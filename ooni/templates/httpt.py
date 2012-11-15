@@ -2,7 +2,7 @@
 #
 # :authors: Arturo Filastò
 # :licence: see LICENSE
-
+import copy
 import random
 
 from zope.interface import implements
@@ -12,51 +12,16 @@ from twisted.plugin import IPlugin
 from twisted.internet import protocol, defer
 from twisted.internet.ssl import ClientContextFactory
 
-from twisted.web.http_headers import Headers
-from twisted.web.iweb import IBodyProducer
+from twisted.web.client import Agent
+from twisted.internet import reactor
+from twisted.internet.error import ConnectionRefusedError
 
+from twisted.web._newclient import Request
+from twisted.web.http_headers import Headers
 from ooni.nettest import NetTestCase
 from ooni.utils import log
 
-useragents = [("Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.8.1.6) Gecko/20070725 Firefox/2.0.0.6", "Firefox 2.0, Windows XP"),
-              ("Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1)", "Internet Explorer 7, Windows Vista"),
-              ("Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1; .NET CLR 1.1.4322; .NET CLR 2.0.50727; .NET CLR 3.0.04506.30)", "Internet Explorer 7, Windows XP"),
-              ("Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; .NET CLR 1.1.4322)", "Internet Explorer 6, Windows XP"),
-              ("Mozilla/4.0 (compatible; MSIE 5.0; Windows NT 5.1; .NET CLR 1.1.4322)", "Internet Explorer 5, Windows XP"),
-              ("Opera/9.20 (Windows NT 6.0; U; en)", "Opera 9.2, Windows Vista"),
-              ("Opera/9.00 (Windows NT 5.1; U; en)", "Opera 9.0, Windows XP"),
-              ("Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; en) Opera 8.50", "Opera 8.5, Windows XP"),
-              ("Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; en) Opera 8.0", "Opera 8.0, Windows XP"),
-              ("Mozilla/4.0 (compatible; MSIE 6.0; MSIE 5.5; Windows NT 5.1) Opera 7.02 [en]", "Opera 7.02, Windows XP"),
-              ("Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.7.5) Gecko/20060127 Netscape/8.1", "Netscape 8.1, Windows XP")]
-
-class StringProducer(object):
-    implements(IBodyProducer)
-
-    def __init__(self, body):
-        self.body = body
-        self.length = len(body)
-
-    def startProducing(self, consumer):
-        consumer.write(self.body)
-        return defer.succeed(None)
-
-    def pauseProducing(self):
-        pass
-
-    def stopProducing(self):
-        pass
-
-class BodyReceiver(protocol.Protocol):
-    def __init__(self, finished):
-        self.finished = finished
-        self.data = ""
-
-    def dataReceived(self, bytes):
-        self.data += bytes
-
-    def connectionLost(self, reason):
-        self.finished.callback(self.data)
+from ooni.utils.net import BodyReceiver, StringProducer, userAgents
 
 class HTTPTest(NetTestCase):
     """
@@ -65,22 +30,22 @@ class HTTPTest(NetTestCase):
     The main functions to look at are processResponseBody and
     processResponseHeader that are invoked once the headers have been received
     and once the request body has been received.
+
+    XXX all of this requires some refactoring.
     """
     name = "HTTP Test"
-    version = 0.1
+    version = "0.1.1"
 
     randomizeUA = True
     followRedirects = False
 
-    def setUp(self):
+    def _setUp(self):
         log.debug("Setting up HTTPTest")
         try:
             import OpenSSL
         except:
             log.err("Warning! pyOpenSSL is not installed. https websites will"
                      "not work")
-        from twisted.web.client import Agent
-        from twisted.internet import reactor
 
         self.agent = Agent(reactor)
 
@@ -147,7 +112,7 @@ class HTTPTest(NetTestCase):
 
         method: the HTTP Method to be used
 
-        headers: the request headers to be sent
+        headers: the request headers to be sent as a dict
 
         body: the request body
 
@@ -165,9 +130,10 @@ class HTTPTest(NetTestCase):
 
         d = self.build_request(url, method, headers, body)
 
-        def errback(data):
-            log.err("Error in test %s" % data)
-            self.report["error"] = data
+        def errback(failure):
+            failure.trap(ConnectionRefusedError)
+            log.err("Connection refused. The backend may be down")
+            self.report["failure"] = str(failure.value)
 
         def finished(data):
             return
@@ -176,6 +142,32 @@ class HTTPTest(NetTestCase):
         d.addCallback(self._cbResponse, headers_processor, body_processor)
         d.addCallback(finished)
         return d
+
+    def build_request(self, url, method="GET", 
+            headers=None, body=None):
+        self.request['method'] = method
+        self.request['url'] = url
+        self.request['headers'] = headers if headers else {}
+        self.request['body'] = body
+
+        if self.randomizeUA:
+            self.randomize_useragent()
+
+        self.report['request'] = self.request
+        self.report['url'] = url
+
+        # If we have a request body payload, set the request body to such
+        # content
+        if body:
+            body_producer = StringProducer(self.request['body'])
+        else:
+            body_producer = None
+
+        headers = Headers(self.request['headers'])
+
+        req = self.agent.request(self.request['method'], self.request['url'],
+                                  headers, body_producer)
+        return req
 
     def _cbResponse(self, response, headers_processor, body_processor):
         log.debug("Got response %s" % response)
@@ -199,35 +191,13 @@ class HTTPTest(NetTestCase):
 
         finished = defer.Deferred()
         response.deliverBody(BodyReceiver(finished))
-        finished.addCallback(self._processResponseBody, body_processor)
+        finished.addCallback(self._processResponseBody, 
+                body_processor)
 
         return finished
 
     def randomize_useragent(self):
-        user_agent = random.choice(useragents)
+        user_agent = random.choice(userAgents)
         self.request['headers']['User-Agent'] = [user_agent]
 
-    def build_request(self, url, method="GET", headers=None, body=None):
-        self.request['method'] = method
-        self.request['url'] = url
-        self.request['headers'] = headers if headers else {}
-        self.request['body'] = body
-
-        if self.randomizeUA:
-            self.randomize_useragent()
-
-        self.report['request'] = self.request
-        self.report['url'] = url
-
-        # If we have a request body payload, set the request body to such
-        # content
-        if body:
-            body_producer = StringProducer(self.request['body'])
-        else:
-            body_producer = None
-
-        req = self.agent.request(self.request['method'], self.request['url'],
-                                  Headers(self.request['headers']),
-                                  body_producer)
-        return req
 
