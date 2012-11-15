@@ -159,7 +159,7 @@ def runTestWithInput(test_class, test_method, test_input, oreporter):
         return oreporter.testDone(test_instance, test_name)
 
     def test_error(error, test_instance, test_name):
-        log.err("%s\n" % error)
+        log.exception(error)
 
     test_instance = test_class()
     test_instance.input = test_input

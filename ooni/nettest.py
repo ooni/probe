@@ -115,7 +115,7 @@ class NetTestCase(object):
         """
         pass
 
-    def inputProcessor(self, filename):
+    def inputProcessor(self, filename=None):
         """
         You may replace this with your own custom input processor. It takes as
         input a file descriptor so remember to close it when you are done.
@@ -137,10 +137,13 @@ class NetTestCase(object):
         Other fun stuff is also possible.
         """
         log.debug("Running default input processor")
-        fp = open(filename)
-        for x in fp.xreadlines():
-            yield x.strip()
-        fp.close()
+        if filename:
+            fp = open(filename)
+            for x in fp.xreadlines():
+                yield x.strip()
+            fp.close()
+        else:
+            pass
 
     def _checkRequiredOptions(self):
         for required_option in self.requiredOptions:
@@ -150,17 +153,7 @@ class NetTestCase(object):
 
     def _processOptions(self, options=None):
         if self.inputFile:
-            try:
-                assert isinstance(self.inputFile, str)
-            except AssertionError, ae:
-                log.err(ae)
-            else:
-                if os.path.isfile(self.inputFile):
-                    self.inputs = self.inputProcessor(self.inputFile)
-        elif not self.inputs[0]:
-            pass
-        elif self.inputFile:
-            raise usage.UsageError("No input file specified!")
+            self.inputs = self.inputProcessor(self.inputFile)
 
         self._checkRequiredOptions()
 
