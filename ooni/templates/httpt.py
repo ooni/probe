@@ -31,6 +31,10 @@ class HTTPTest(NetTestCase):
     processResponseHeader that are invoked once the headers have been received
     and once the request body has been received.
 
+    To perform requests over Tor you will have to use the special URL schema
+    "shttp". For example to request / on example.com you will have to do
+    specify as URL "shttp://example.com/".
+
     XXX all of this requires some refactoring.
     """
     name = "HTTP Test"
