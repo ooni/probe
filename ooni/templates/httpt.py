@@ -16,8 +16,10 @@ from twisted.internet.error import ConnectionRefusedError
 
 from twisted.web._newclient import Request
 from twisted.web.http_headers import Headers
+
 from ooni.nettest import NetTestCase
 from ooni.utils import log
+from ooni import config
 
 from ooni.utils.net import BodyReceiver, StringProducer, userAgents
 
@@ -51,7 +53,9 @@ class HTTPTest(NetTestCase):
             log.err("Warning! pyOpenSSL is not installed. https websites will"
                      "not work")
 
-        self.agent = Agent(reactor, sockhost="127.0.0.1", sockport=9050)
+        self.agent = Agent(reactor, 
+                sockhost="127.0.0.1", 
+                sockport=config.advanced.tor_socksport)
 
         if self.followRedirects:
             try:
