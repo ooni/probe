@@ -1,4 +1,5 @@
-# -*- coding:utf8 -*-
+# -*- coding: utf-8 -*-
+#
 # txscapy
 # *******
 # Here shall go functions related to using scapy with twisted.
@@ -32,7 +33,7 @@ class TXPcapWriter(PcapWriter):
 
 class ScapyProtocol(abstract.FileDescriptor):
     def __init__(self, super_socket=None, 
-            reactor=None, timeout=None, receive=True):
+            reactor=None, timeout=None, receive=True, *a, **kw):
         abstract.FileDescriptor.__init__(self, reactor)
         # By default we use the conf.L3socket
         if not super_socket:
@@ -54,7 +55,10 @@ class ScapyProtocol(abstract.FileDescriptor):
         # This deferred will fire when we have finished sending a receiving packets.
         self.d = defer.Deferred()
         self.debug = False
+
         self.multi = False
+        if kw['multi']:
+            self.multi = kw['multi']
         # XXX this needs to be implemented. It would involve keeping track of
         # the state of the sending via the super socket file descriptor and
         # firing the callback when we have concluded sending. Check out
@@ -127,9 +131,9 @@ class ScapyProtocol(abstract.FileDescriptor):
         self.sendPackets(packets)
         return self.d
 
-def sr(x, filter=None, iface=None, nofilter=0, timeout=None):
+def sr(x, filter=None, iface=None, nofilter=0, timeout=None, *a, **kw):
     super_socket = conf.L3socket(filter=filter, iface=iface, nofilter=nofilter)
-    sp = ScapyProtocol(super_socket=super_socket, timeout=timeout)
+    sp = ScapyProtocol(super_socket=super_socket, timeout=timeout, *a, **kw)
     return sp.startSending(x)
 
 def send(x, filter=None, iface=None, nofilter=0, timeout=None):
