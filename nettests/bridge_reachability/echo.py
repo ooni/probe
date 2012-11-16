@@ -17,15 +17,15 @@ import sys
 
 from twisted.python   import usage
 from twisted.internet import reactor, defer
-from ooni             import nettest
+from ooni.nettest     import NetTestCase
 from ooni.utils       import log, net, Storage
 
 try:
-    from scapy.all             import IP, ICMP
-    from scapy.all             import sr1
-    from ooni.lib              import txscapy
-    from ooni.lib.txscapy      import txsr, txsend
-    from ooni.templates.scapyt import BaseScapyTest
+    from scapy.all        import IP, ICMP
+    from scapy.all        import sr1
+    from ooni.lib         import txscapy
+    from ooni.lib.txscapy import txsr, txsend
+    from ooni.templates.scapyt   import BaseScapyTest
 except:
     log.msg("This test requires scapy, see www.secdev.org/projects/scapy")
 
@@ -41,9 +41,9 @@ class UsageOptions(usage.Options):
         ['pcap', 'p', None, 'Save pcap to this file'],
         ['receive', 'r', True, 'Receive response packets']]
 
-class EchoTest(nettest.NetTestCase):
+class EchoTest(BaseScapyTest):
     """
-    xxx fill me in
+    Basic ping test. This takes an input file containing one IP or hostname
     """
     name         = 'echo'
     author       = 'Isis Lovecruft <isis@torproject.org>'
@@ -69,7 +69,7 @@ class EchoTest(nettest.NetTestCase):
                 iface = net.getDefaultIface()
             except Exception, e:
                 log.msg("No network interface specified!")
-                log.err(e)
+                log.exception(e)
             else:
                 log.msg("Using system default interface: %s" % iface)
                 self.interface = iface
@@ -85,10 +85,10 @@ class EchoTest(nettest.NetTestCase):
         if not self.dst:
             if self.file:
                 self.dstProcessor(self.file)
-                for key, value in self.destinations.items():
-                    for label, data in value.items():
-                        if not 'ans' in data:
-                            self.dst = label
+                for address, details in self.destinations.items():
+                    for labels, data in details.items():
+                        if not 'ans' in labels:
+                            self.dst = details['dst_ip']
         else:
             self.addDest(self.dst)
         log.debug("self.dst is now: %s" % self.dst)
@@ -100,8 +100,6 @@ class EchoTest(nettest.NetTestCase):
         self.destinations[d] = {'dst_ip': d}
 
     def dstProcessor(self, inputfile):
-        from ipaddr import IPAddress
-
         if os.path.isfile(inputfile):
             with open(inputfile) as f:
                 for line in f.readlines():
@@ -110,23 +108,30 @@ class EchoTest(nettest.NetTestCase):
                     self.addDest(line)
 
     def test_icmp(self):
-        def process_response(echo_reply, dest):
-           ans, unans = echo_reply
-           if ans:
-               log.msg("Recieved echo reply from %s: %s" % (dest, ans))
-           else:
-               log.msg("No reply was received from %s. Possible censorship event." % dest)
-               log.debug("Unanswered packets: %s" % unans)
-           self.report[dest] = echo_reply
 
-        for label, data in self.destinations.items():
-            reply = sr1(IP(dst=lebal)/ICMP())
-            process = process_reponse(reply, label)
+        def process_response(pkt, dest):
+            try:
+                ans, unans = pkt
+                if ans:
+                    log.msg("Recieved echo-reply: %s" % pkt.summary())
+                    self.destinations[dest]['ans'] = a.show2()
+                    self.report['response'] = [a.show2() for a in ans]
+                    self.report['censored'] = False
+                else:
+                    log.msg("No reply from %s. Possible censorship event." % dest)
+                    log.debug("Unanswered packets: %s" % unans.summary())
+                    self.report['response'] = [u.show2() for u in unans]
+                    self.report['censored'] = True
+            except Exception, e:
+                log.exception(e)
 
-        #(ans, unans) = ping
-        #self.destinations[self.dst].update({'ans': ans,
-        #                                    'unans': unans,
-        #                                    'response_packet': ping})
-        #return ping
-
-        #return reply
+        try:
+            for dest, data in self.destinations.items():
+                reply = txsr(IP(dst=dest)/ICMP(),
+                           iface=self.interface,
+                           retry=self.count,
+                           multi=True,
+                           timeout=self.timeout)
+                process = process_response(reply, dest)
+        except Exception, e:
+            log.exception(e)
