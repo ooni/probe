@@ -2,7 +2,12 @@
 #
 # net.py
 # --------
-# OONI utilities for networking related operations
+# OONI utilities for network infrastructure and hardware.
+#
+# :authors: Isis Lovecruft, Arturo Filasto
+# :version: 0.0.1-pre-alpha
+# :license: (c) 2012 Isis Lovecruft, Arturo Filasto
+#           see attached LICENCE file
 
 import sys
 
@@ -10,25 +15,45 @@ from zope.interface import implements
 from twisted.internet import protocol, defer
 from twisted.internet import threads, reactor
 from twisted.web.iweb import IBodyProducer
-
 from scapy.all import utils
 
 from ooni.utils import log, txscapy
 
-#if sys.platformm.system() == 'Windows':
+#if sys.platform.system() == 'Windows':
 #    import _winreg as winreg
 
-userAgents = [("Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.8.1.6) Gecko/20070725 Firefox/2.0.0.6", "Firefox 2.0, Windows XP"),
-              ("Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1)", "Internet Explorer 7, Windows Vista"),
-              ("Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1; .NET CLR 1.1.4322; .NET CLR 2.0.50727; .NET CLR 3.0.04506.30)", "Internet Explorer 7, Windows XP"),
-              ("Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; .NET CLR 1.1.4322)", "Internet Explorer 6, Windows XP"),
-              ("Mozilla/4.0 (compatible; MSIE 5.0; Windows NT 5.1; .NET CLR 1.1.4322)", "Internet Explorer 5, Windows XP"),
-              ("Opera/9.20 (Windows NT 6.0; U; en)", "Opera 9.2, Windows Vista"),
-              ("Opera/9.00 (Windows NT 5.1; U; en)", "Opera 9.0, Windows XP"),
-              ("Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; en) Opera 8.50", "Opera 8.5, Windows XP"),
-              ("Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; en) Opera 8.0", "Opera 8.0, Windows XP"),
-              ("Mozilla/4.0 (compatible; MSIE 6.0; MSIE 5.5; Windows NT 5.1) Opera 7.02 [en]", "Opera 7.02, Windows XP"),
-              ("Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.7.5) Gecko/20060127 Netscape/8.1", "Netscape 8.1, Windows XP")]
+PLATFORMS = {'LINUX': sys.platform.startswith("linux"),
+             'OPENBSD': sys.platform.startswith("openbsd"),
+             'FREEBSD': sys.platform.startswith("freebsd"),
+             'NETBSD': sys.platform.startswith("netbsd"),
+             'DARWIN': sys.platform.startswith("darwin"),
+             'SOLARIS': sys.platform.startswith("sunos"),
+             'WINDOWS': sys.platform.startswith("win32")}
+
+userAgents = [
+    ("Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.8.1.6) Gecko/20070725 Firefox/2.0.0.6", "Firefox 2.0, Windows XP"),
+    ("Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1)", "Internet Explorer 7, Windows Vista"),
+    ("Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1; .NET CLR 1.1.4322; .NET CLR 2.0.50727; .NET CLR 3.0.04506.30)", "Internet Explorer 7, Windows XP"),
+    ("Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; .NET CLR 1.1.4322)", "Internet Explorer 6, Windows XP"),
+    ("Mozilla/4.0 (compatible; MSIE 5.0; Windows NT 5.1; .NET CLR 1.1.4322)", "Internet Explorer 5, Windows XP"),
+    ("Opera/9.20 (Windows NT 6.0; U; en)", "Opera 9.2, Windows Vista"),
+    ("Opera/9.00 (Windows NT 5.1; U; en)", "Opera 9.0, Windows XP"),
+    ("Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; en) Opera 8.50", "Opera 8.5, Windows XP"),
+    ("Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; en) Opera 8.0", "Opera 8.0, Windows XP"),
+    ("Mozilla/4.0 (compatible; MSIE 6.0; MSIE 5.5; Windows NT 5.1) Opera 7.02 [en]", "Opera 7.02, Windows XP"),
+    ("Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.7.5) Gecko/20060127 Netscape/8.1", "Netscape 8.1, Windows XP")
+    ]
+
+
+class UnsupportedPlatform(Exception):
+    """Support for this platform is not currently available."""
+
+class IfaceError(Exception):
+    """Could not find default network interface."""
+
+class PermissionsError(SystemExit):
+    """This test requires admin or root privileges to run. Exiting..."""
+
 
 PLATFORMS = {'LINUX': sys.platform.startswith("linux"),
              'OPENBSD': sys.platform.startswith("openbsd"),
@@ -105,31 +130,32 @@ def getClientPlatform(platform_name=None):
             if test:
                 return name, test
 
-def getPlatformAndIfaces(platform_name=None):
+def getPosixIfaces():
+    from twisted.internet.test import _posixifaces
 
+    log.msg("Attempting to discover network interfaces...")
+    ifaces = _posixifaces._interfaces()
+    ifup = tryInterfaces(ifaces)
+    return ifup
+
+def getWindowsIfaces():
+    from twisted.internet.test import _win32ifaces
+
+    log.msg("Attempting to discover network interfaces...")
+    ifaces = _win32ifaces._interfaces()
+    ifup = tryInterfaces(ifaces)
+    return ifup
+
+def getIfaces(platform_name=None):
     client, test = getClientPlatform(platform_name)
-
-    def getPosixIfaces():
-        from twisted.internet.test import _posixifaces
-        all_ifaces = _posixifaces._interfaces()
-        ifup = checkInterfaces(all_ifaces)
-        return all_ifaces
-
-    def getWindowsIfacse():
-        from twisted.internet.test import _win32ifaces
-        all_ifaces = _win32ifaces._interfaces()
-        return all_ifaces
-
     if client:
         if client == ('LINUX' or 'DARWIN') or client[-3:] == 'BSD':
-            all_ifaces = getPosixIfaces()
+            return getPosixIfaces()
         elif client == 'WINDOWS':
-            all_ifaces = getWindowsIfaces()
+            return getWindowsIfaces()
         ## XXX fixme figure out how to get iface for Solaris
         else:
             return None
-        ifup = checkInterfaces(all_ifaces)
-        return ifup
     else:
         raise UnsupportedPlatform
 
@@ -146,12 +172,12 @@ def checkInterfaces(ifaces=None, timeout=1):
 
     ifup = {}
     if not ifaces:
-        log.debug("net.checkInterfaces(): no interfaces specified!")
+        log.debug("checkInterfaces(): no interfaces specified!")
         return None
 
     for iface in ifaces:
         for ifname, ifaddr in iface:
-            log.debug("net.checkInterfaces(): testing iface {} by pinging"
+            log.debug("checkInterfaces(): testing iface {} by pinging"
                       + " local address {}".format(ifname, ifaddr))
             try:
                 pkt = IP(dst=ifaddr)/ICMP()
@@ -160,7 +186,7 @@ def checkInterfaces(ifaces=None, timeout=1):
                 raise PermissionsError if e.find("Errno 1") else log.err(e)
             else:
                 if ans.summary():
-                    log.debug("net.checkInterfaces(): got answer on interface %s"
+                    log.debug("checkInterfaces(): got answer on interface %s"
                              + ":\n%s".format(ifname, ans.summary()))
                     ifup.update(ifname, ifaddr)
                 else:
@@ -174,7 +200,7 @@ def checkInterfaces(ifaces=None, timeout=1):
 
 def getNonLoopbackIfaces(platform_name=None):
     try:
-        ifaces = getPlatformAndIfaces(platform_name)
+        ifaces = getIfaces(platform_name)
     except UnsupportedPlatform, up:
         log.err(up)
 
@@ -183,7 +209,7 @@ def getNonLoopbackIfaces(platform_name=None):
         return None
     else:
         found = [{i[0]: i[2]} for i in ifaces if i[0] != 'lo']
-        log.debug("utils.net.getClientIfaces: Found non-loopback interfaces: %s"
+        log.debug("getNonLoopbackIfaces: Found non-loopback interfaces: %s"
                   % found)
         try:
             interfaces = checkInterfaces(found)
