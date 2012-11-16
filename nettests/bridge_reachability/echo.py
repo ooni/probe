@@ -6,163 +6,127 @@
 #  +---------+
 #     A simple ICMP-8 ping test.
 #
-# :author: Isis Lovecruft
-# :version: 0.0.1-pre-alpha
-# :license: (c) 2012 Isis Lovecruft
+# @authors: Isis Lovecruft, <isis@torproject.org>
+# @version: 0.0.2-pre-alpha
+# @license: copyright (c) 2012 Isis Lovecruft
 #           see attached LICENCE file
 #
 
 import os
 import sys
 
-from pprint           import pprint
-
-from twisted.internet import reactor
-from twisted.plugin   import IPlugin
 from twisted.python   import usage
-from ooni.nettest     import NetTestCase
-from ooni.utils       import log, Storage
-from ooni.utils.net   import PermissionsError, IfaceError
+from twisted.internet import reactor, defer
+from ooni             import nettest
+from ooni.utils       import log, net, Storage
 
 try:
-    from scapy.all             import sr1, IP, ICMP        ## XXX v4/v6?
+    from scapy.all             import IP, ICMP
+    from scapy.all             import sr1
     from ooni.lib              import txscapy
     from ooni.lib.txscapy      import txsr, txsend
     from ooni.templates.scapyt import BaseScapyTest
 except:
     log.msg("This test requires scapy, see www.secdev.org/projects/scapy")
 
-class EchoTest(BaseScapyTest):
+class UsageOptions(usage.Options):
+    optParameters = [
+        ['dst', 'd', None, 'Host IP to ping'],
+        ['file', 'f', None, 'File of list of IPs to ping'],
+        ['interface', 'i', None, 'Network interface to use'],
+        ['count', 'c', 1, 'Number of packets to send', int],
+        ['size', 's', 56, 'Number of bytes to send in ICMP data field', int],
+        ['ttl', 'l', 25, 'Set the IP Time to Live', int],
+        ['timeout', 't', 2, 'Seconds until timeout if no response', int],
+        ['pcap', 'p', None, 'Save pcap to this file'],
+        ['receive', 'r', True, 'Receive response packets']]
+
+class EchoTest(nettest.NetTestCase):
     """
     xxx fill me in
     """
     name         = 'echo'
     author       = 'Isis Lovecruft <isis@torproject.org>'
-    description  = 'A simple ICMP-8 test to see if a host is reachable.'
-    version      = '0.0.1'
-    inputFile    = ['file', 'f', None, 'File of list of IPs to ping']
+    description  = 'A simple ping test to see if a host is reachable.'
+    version      = '0.0.2'
     requiresRoot = True
 
-    optParameters = [
-        ['interface', 'i', None, 'Network interface to use'],
-        ['count', 'c', 5, 'Number of packets to send', int],
-        ['size', 's', 56, 'Number of bytes to send in ICMP data field', int],
-        ['ttl', 'l', 25, 'Set the IP Time to Live', int],
-        ['timeout', 't', 2, 'Seconds until timeout if no response', int],
-        ['pcap', 'p', None, 'Save pcap to this file'],
-        ['receive', 'r', True, 'Receive response packets']
-        ]
+    usageOptions    = UsageOptions
+    #requiredOptions = ['dst']
 
     def setUp(self, *a, **kw):
-        '''
-        :ivar ifaces:
-            Struct returned from getifaddrs(3) and turned into a tuple in the
-            form (*ifa_name, AF_FAMILY, *ifa_addr)
-        '''
+        self.destinations = {}
 
         if self.localOptions:
-            log.debug("%s: local_options found" % self.name)
             for key, value in self.localOptions.items():
                 log.debug("setting self.%s = %s" % (key, value))
                 setattr(self, key, value)
 
-        ## xxx is this now .subOptions?
-        #self.inputFile = self.localOptions['file']
         self.timeout *= 1000            ## convert to milliseconds
 
         if not self.interface:
-            log.msg("No network interface specified!")
-            log.debug("OS detected: %s" % sys.platform)
-            if LINUX or OPENBSD or NETBSD or FREEBSD or DARWIN or SOLARIS:
-                from twisted.internet.test import _posixifaces
-                log.msg("Attempting to discover network interfaces...")
-                ifaces = _posixifaces._interfaces()
-            elif WINDOWS:
-                from twisted.internet.test import _win32ifaces
-                log.msg("Attempting to discover network interfaces...")
-                ifaces = _win32ifaces._interfaces()
+            try:
+                iface = net.getDefaultIface()
+            except Exception, e:
+                log.msg("No network interface specified!")
+                log.err(e)
             else:
-                log.debug("Client OS %s not accounted for!" % sys.platform)
-                log.debug("Unable to discover network interfaces...")
-                ifaces = [('lo', '')]
-
-            ## found = {'eth0': '1.1.1.1'}
-            found = [{i[0]: i[2]} for i in ifaces if i[0] != 'lo']
-            log.info("Found interfaces:\n%s" % pprint(found))
-            self.interfaces = self.tryInterfaces(found)
-        else:
-            ## xxx need a way to check that iface exists, is up, and
-            ## we have permissions on it
-            log.debug("Our interface has been set to %s" % self.interface)
+                log.msg("Using system default interface: %s" % iface)
+                self.interface = iface
 
         if self.pcap:
             try:
                 self.pcapfile = open(self.pcap, 'a+')
             except:
                 log.msg("Unable to write to pcap file %s" % self.pcap)
-                self.pcapfile = None
+            else:
+                self.pcap = net.capturePacket(self.pcapfile)
 
-        try:
-            assert os.path.isfile(self.file)
-            fp = open(self.file, 'r')
-        except Exception, e:
-            hosts = ['8.8.8.8', '38.229.72.14']
-            log.err(e)
+        if not self.dst:
+            if self.file:
+                self.dstProcessor(self.file)
+                for key, value in self.destinations.items():
+                    for label, data in value.items():
+                        if not 'ans' in data:
+                            self.dst = label
         else:
-            self.inputs = self.inputProcessor(fp)
-        self.removePorts(hosts)
+            self.addDest(self.dst)
+        log.debug("self.dst is now: %s" % self.dst)
 
-        log.debug("Initialization of %s test completed with:\n%s"
-                  % (self.name, ''.join(self.__dict__)))
+        log.debug("Initialization of %s test completed." % self.name)
 
-    @staticmethod
-    def inputParser(self, one_input):
-        log.debug("Removing possible ports from host addresses...")
-        log.debug("Initial inputs:\n%s" % pprint(inputs))
+    def addDest(self, dest):
+        d = dest.strip()
+        self.destinations[d] = {'dst_ip': d}
 
-        #host = [h.rsplit(':', 1)[0] for h in inputs]
-        host = h.rsplit(':', 1)[0]
-        log.debug("Inputs converted to:\n%s" % hosts)
+    def dstProcessor(self, inputfile):
+        from ipaddr import IPAddress
 
-        return host
-
-    def tryInterfaces(self, ifaces):
-        try:
-            from scapy.all import sr1   ## we want this check to be blocking
-        except:
-            log.msg("This test requires scapy: www.secdev.org/projects/scapy")
-            raise SystemExit
-
-        ifup = {}
-        while ifaces:
-            for ifname, ifaddr in ifaces:
-                log.debug("Currently testing network capabilities of interface"
-                          + "%s  by sending a packet to our address %s"
-                          % (ifname, ifaddr))
-                try:
-                    pkt = IP(dst=ifaddr)/ICMP()
-                    ans, unans = sr(pkt, iface=ifname, timeout=self.timeout)
-                except Exception, e:
-                    raise PermissionsError if e.find("Errno 1") else log.err(e)
-                else:
-                    ## xxx i think this logic might be wrong
-                    log.debug("Interface test packet\n%s\n\n%s"
-                              % (pkt.summary(), pkt.show2()))
-                    if ans.summary():
-                        log.info("Received answer for test packet on interface"
-                                 +"%s :\n%s" % (ifname, ans.summary()))
-                        ifup.update(ifname, ifaddr)
-                    else:
-                        log.info("Our interface test packet was unanswered:\n%s"
-                                 % unans.summary())
-
-        if len(ifup) > 0:
-            log.msg("Discovered the following working network interfaces: %s"
-                    % ifup)
-            return ifup
-        else:
-            raise IfaceError("Could not find a working network interface.")
+        if os.path.isfile(inputfile):
+            with open(inputfile) as f:
+                for line in f.readlines():
+                    if line.startswith('#'):
+                        continue
+                    self.addDest(line)
 
     def test_icmp(self):
-        return self.sr(IP(dst=self.input)/ICMP())
+        def process_response(echo_reply, dest):
+           ans, unans = echo_reply
+           if ans:
+               log.msg("Recieved echo reply from %s: %s" % (dest, ans))
+           else:
+               log.msg("No reply was received from %s. Possible censorship event." % dest)
+               log.debug("Unanswered packets: %s" % unans)
+           self.report[dest] = echo_reply
 
+        for label, data in self.destinations.items():
+            reply = sr1(IP(dst=lebal)/ICMP())
+            process = process_reponse(reply, label)
+
+        #(ans, unans) = ping
+        #self.destinations[self.dst].update({'ans': ans,
+        #                                    'unans': unans,
+        #                                    'response_packet': ping})
+        #return ping
+
+        #return reply

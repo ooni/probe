@@ -158,14 +158,16 @@ libdnet:
 
 scapy-all: scapy pypcap libdnet
 
-tags-recursive:
-	list='$(SUBDIRS)'; for subdir in $$list; do \
-	  test "$$subdir" = . || (cd $$subdir && make tags); \
-	done
-
 ETAGS = etags
 ETAGSFLAGS =
 ETAGSARGS =
+## or change to ${SUBDIRS}
+TAGME = ${topsrc_dir}
+
+tags-recursive:
+	list='$(TAGME)'; for subdir in $$list; do \
+	  test "$$subdir" = . || (cd $$subdir && make tags); \
+	done
 
 tags: TAGS
 
@@ -182,17 +184,19 @@ TAGS: tags-recursive $(HEADERS) $(SOURCES)  $(TAGS_DEPENDENCIES) \
 		$(TAGS_FILES) $(LISP)
 	tags=; \
 	here=`pwd`; \
-	list='$(SUBDIRS)'; for subdir in $$list; do \
+	echo ${E_OR_V}; \
+	list='$(TAGME)'; for subdir in $$list; do \
 	  if test "$$subdir" = .; then :; else \
 	    test -f $$subdir/TAGS && tags="$$tags -i $$here/$$subdir/TAGS"; \
 	  fi; \
 	done; \
 	list='$(SOURCES) $(HEADERS)  $(LISP) $(TAGS_FILES)'; \
 	unique=`for i in $$list; do \
-	    if test -f "$$i"; fi; \
-	  done | \
-	  $(AWK) '    { files[$$0] = 1; } \
-	       END { for (i in files) print i; }'`; \
+	    if test -f "$$i"; then echo $$i; fi; \
+	  done;`
 	test -z "$(ETAGS_ARGS)$$tags$$unique" \
-	  || $(ETAGS) $(ETAGSFLAGS) $(ETAGS_ARGS) \
-	     $$tags $$unique
+	  || $(ETAGS) $(ETAGSFLAGS) $(ETAGS_ARGS) $$tags $$unique
+
+awkward:
+	  | $(AWK) '    { files[$$0] = 1; } \
+	       END { for (i in files) print i; }'`; \
