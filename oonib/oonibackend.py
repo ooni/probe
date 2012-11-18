@@ -31,7 +31,7 @@ application = service.Application('oonibackend')
 serviceCollection = service.IServiceCollection(application)
 
 if config.helpers.ssl.port:
-    log.msg("Starting SSL helper")
+    print "Starting SSL helper on %s" % config.helpers.ssl.port
     ssl_helper = internet.SSLServer(int(config.helpers.ssl.port),
                    server.Site(HTTPBackend()),
                    SSLContext(config))
@@ -39,13 +39,13 @@ if config.helpers.ssl.port:
 
 # Start the DNS Server related services
 if config.helpers.dns.tcp_port:
-    log.msg("Starting TCP DNS Helper on %s" % config.helpers.dns.tcp_port)
+    print "Starting TCP DNS Helper on %s" % config.helpers.dns.tcp_port
     tcp_dns_helper = internet.TCPServer(int(config.helpers.dns.tcp_port),
                        dns_helpers.DNSTestHelper())
     tcp_dns_helper.setServiceParent(serviceCollection)
 
 if config.helpers.dns.udp_port:
-    log.msg("Starting UDP DNS Helper on %s" % config.helpers.dns.udp_port)
+    print "Starting UDP DNS Helper on %s" % config.helpers.dns.udp_port
     udp_dns_factory = dns.DNSDatagramProtocol(dns_helpers.DNSTestHelper())
     udp_dns_helper = internet.UDPServer(int(config.helpers.dns.udp_port),
                        udp_dns_factory)
@@ -54,24 +54,25 @@ if config.helpers.dns.udp_port:
 # XXX this needs to be ported
 # Start the OONI daphn3 backend
 if config.helpers.daphn3.port:
+    print "Starting Daphn3 helper on %s" % config.helpers.daphn3.port
     daphn3_helper = internet.TCPServer(int(config.helpers.daphn3.port),
                             tcp_helpers.Daphn3Server())
     daphn3_helper.setServiceParent(serviceCollection)
 
 if config.main.collector_port:
-    log.msg("Starting Collector on %s" % config.main.collector_port)
+    print "Starting Collector on %s" % config.main.collector_port
     collector = internet.TCPServer(int(config.main.collector_port),
                        reportingBackend)
     collector.setServiceParent(serviceCollection)
 
 if config.helpers.tcp_echo.port:
-    log.msg("Starting TCP echo helper on %s" % config.helpers.tcp_echo.port)
+    print "Starting TCP echo helper on %s" % config.helpers.tcp_echo.port
     tcp_echo_helper = internet.TCPServer(int(config.helpers.tcp_echo.port),
                         tcp_helpers.TCPEchoHelper())
     tcp_echo_helper.setServiceParent(serviceCollection)
 
 if config.helpers.http_return_request.port:
-    log.msg("Starting HTTP return request helper on %s" % config.helpers.http_return_request.port)
+    print "Starting HTTP return request helper on %s" % config.helpers.http_return_request.port
     http_return_request_helper = internet.TCPServer(
             int(config.helpers.http_return_request.port),
             http_helpers.HTTPReturnJSONHeadersHelper)
