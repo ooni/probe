@@ -49,7 +49,8 @@ class HTTPHost(httpt.HTTPTest):
         """
         headers = {}
         headers["Host"] = [self.input]
-        return self.doRequest(self.localOptions['backend'], headers=headers)
+        return self.doRequest(self.localOptions['backend'],
+                headers=headers)
 
     def check_for_censorship(self, body):
         """

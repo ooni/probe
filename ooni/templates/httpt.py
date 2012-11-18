@@ -44,6 +44,8 @@ class HTTPTest(NetTestCase):
 
     randomizeUA = True
     followRedirects = False
+    request = {}
+    response = {}
 
     def _setUp(self):
         log.debug("Setting up HTTPTest")
@@ -67,8 +69,6 @@ class HTTPTest(NetTestCase):
                         "This may make the testing less precise.")
                 self.report['errors'].append("Could not import RedirectAgent")
 
-        self.request = {}
-        self.response = {}
         self.processInputs()
         log.debug("Finished test setup")
 
@@ -111,7 +111,7 @@ class HTTPTest(NetTestCase):
         pass
 
     def doRequest(self, url, method="GET",
-                  headers=None, body=None, headers_processor=None,
+                  headers={}, body=None, headers_processor=None,
                   body_processor=None):
         """
         Perform an HTTP request with the specified method.
@@ -136,9 +136,32 @@ class HTTPTest(NetTestCase):
         """
         log.debug("Performing request %s %s %s" % (url, method, headers))
 
-        d = self.build_request(url, method, headers, body)
+        self.request['method'] = method
+        self.request['url'] = url
+        self.request['headers'] = headers
+        self.request['body'] = body
+
+        if self.randomizeUA:
+            log.debug("Randomizing user agent")
+            self.randomize_useragent()
+
+        log.debug("Writing to report the request")
+        self.report['request'] = self.request
+
+        # If we have a request body payload, set the request body to such
+        # content
+        if body:
+            body_producer = StringProducer(self.request['body'])
+        else:
+            body_producer = None
+
+        headers = Headers(self.request['headers'])
+
+        d = self.agent.request(self.request['method'],
+                self.request['url'], headers, body_producer)
 
         def errback(failure):
+            print failure.value
             failure.trap(ConnectionRefusedError, SOCKSError)
             if type(failure.value) is ConnectionRefusedError:
                 log.err("Connection refused. The backend may be down")
@@ -153,32 +176,6 @@ class HTTPTest(NetTestCase):
         d.addCallback(self._cbResponse, headers_processor, body_processor)
         d.addCallback(finished)
         return d
-
-    def build_request(self, url, method="GET", 
-            headers=None, body=None):
-        self.request['method'] = method
-        self.request['url'] = url
-        self.request['headers'] = headers if headers else {}
-        self.request['body'] = body
-
-        if self.randomizeUA:
-            self.randomize_useragent()
-
-        self.report['request'] = self.request
-        self.report['url'] = url
-
-        # If we have a request body payload, set the request body to such
-        # content
-        if body:
-            body_producer = StringProducer(self.request['body'])
-        else:
-            body_producer = None
-
-        headers = Headers(self.request['headers'])
-
-        req = self.agent.request(self.request['method'], self.request['url'],
-                                  headers, body_producer)
-        return req
 
     def _cbResponse(self, response, headers_processor, body_processor):
         log.debug("Got response %s" % response)
@@ -210,5 +207,4 @@ class HTTPTest(NetTestCase):
     def randomize_useragent(self):
         user_agent = random.choice(userAgents)
         self.request['headers']['User-Agent'] = [user_agent]
-
 
