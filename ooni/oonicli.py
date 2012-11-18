@@ -24,7 +24,7 @@ from ooni import nettest, runner, reporter, config
 from ooni.inputunit import InputUnitFactory
 
 from ooni.utils import net
-from ooni.utils import checkForRoot, NotRootError
+from ooni.utils import checkForRoot, PermissionsError
 from ooni.utils import log
 
 class Options(usage.Options, app.ReactorSelectionMixin):
@@ -37,13 +37,14 @@ class Options(usage.Options, app.ReactorSelectionMixin):
 
     optFlags = [["help", "h"],
                 ['debug-stacktraces', 'B',
-                    'Report deferred creation and callback stack traces'],]
+                 'Report deferred creation and callback stack traces'],]
 
-    optParameters = [["reportfile", "o", None, "report file name"],
-                     ["collector", "c", None, 
-                         "Address of the collector of test results. (example: http://127.0.0.1:8888)"],
-                     ["logfile", "l", None, "log file name"],
-                     ["pcapfile", "p", None, "pcap file name"]]
+    optParameters = [
+        ["reportfile", "o", None, "report file name"],
+        ["collector", "c", None,
+         "Address of the collector of test results. (example: http://127.0.0.1:8888)"],
+        ["logfile", "l", None, "log file name"],
+        ["pcapfile", "p", None, "pcap file name"]]
 
     compData = usage.Completions(
         extraActions=[usage.CompleteFiles(
@@ -75,15 +76,12 @@ class Options(usage.Options, app.ReactorSelectionMixin):
             raise usage.UsageError("No test filename specified!")
 
 def testsEnded(*arg, **kw):
-    """
-    You can place here all the post shutdown tasks.
-    """
+    """You can place here all the post shutdown tasks."""
     log.debug("testsEnded: Finished running all tests")
 
 def run():
-    """
-    Call me to begin testing from a file.
-    """
+    """Call me to begin testing from a file."""
+
     cmd_line_options = Options()
     if len(sys.argv) == 1:
         cmd_line_options.getUsage()
@@ -120,15 +118,16 @@ def run():
     if config.privacy.includepcap:
         try:
             checkForRoot()
-        except NotRootError:
-            log.err("includepcap options requires root priviledges to run")
-            log.err("you should run ooniprobe as root or disable the options in ooniprobe.conf")
+        except PermissionsError, pe:
+            log.err(str("'includepcap' option requires administrator or root ",
+                        "privileges to run. Run ooniprobe as root or disable ",
+                        "the includepcap option in ooniprobe.conf "))
             sys.exit(1)
         log.debug("Starting sniffer")
         sniffer_d = net.capturePackets(pcap_filename)
 
     tests_d = runner.runTestCases(test_cases, options,
-            cmd_line_options, yamloo_filename)
+                                  cmd_line_options, yamloo_filename)
     tests_d.addBoth(testsEnded)
 
     reactor.run()

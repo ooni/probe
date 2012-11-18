@@ -25,7 +25,7 @@ from ooni.nettest import NetTestCase
 
 from ooni import reporter
 
-from ooni.utils import log, checkForRoot, NotRootError
+from ooni.utils import log, checkForRoot, PermissionsError
 
 def processTest(obj, cmd_line_options):
     """
@@ -44,10 +44,9 @@ def processTest(obj, cmd_line_options):
     if obj.requiresRoot:
         try:
             checkForRoot()
-        except NotRootError:
+        except PermissionsError:
             log.err("%s requires root to run" % obj.name)
             sys.exit(1)
-
 
     if obj.optParameters or input_file \
             or obj.usageOptions or obj.optFlags:
@@ -152,6 +151,9 @@ def loadTestsAndOptions(classes, cmd_line_options):
     return test_cases, options
 
 def runTestWithInput(test_class, test_method, test_input, oreporter):
+    """
+    Runs a single testcase from a NetTestCase with one input.
+    """
     log.debug("Running %s with %s" % (test_method, test_input))
 
     def test_done(result, test_instance, test_name):
@@ -178,33 +180,33 @@ def runTestWithInput(test_class, test_method, test_input, oreporter):
     log.debug("returning %s input" % test_method)
     return d
 
-def runTestWithInputUnit(test_class, 
-        test_method, input_unit, 
-        oreporter):
+def runTestWithInputUnit(test_class, test_method, input_unit, oreporter):
     """
-    test_class: the uninstantiated class of the test to be run
+    @param test_class:
+        The uninstantiated :class:`ooni.nettest.NetTestCase` to be run.
+    @param test_method:
+        A string representing the method name to be called.
+    @param input_unit:
+        A generator that contains the inputs to be run on the test.
+    @param oreporter:
+        A :class:`ooni.reporter.OReporter` instance.
 
-    test_method: a string representing the method name to be called
-
-    input_unit: a generator that contains the inputs to be run on the test
-
-    oreporter: ooni.reporter.OReporter instance
-
-    returns a deferred list containing all the tests to be run at this time
+    @return: A DeferredList containing all the tests to be run at this time.
     """
-
     dl = []
-    log.debug("input unit %s" % input_unit)
     for test_input in input_unit:
-        log.debug("running with input: %s" % test_input)
-        d = runTestWithInput(test_class, 
-                test_method, test_input, oreporter)
+        d = runTestWithInput(test_class, test_method, test_input, oreporter)
         dl.append(d)
     return defer.DeferredList(dl)
 
 @defer.inlineCallbacks
 def runTestCases(test_cases, options, 
-        cmd_line_options, yamloo_filename):
+                 cmd_line_options, yamloo_filename):
+    """
+    XXX we should get rid of the InputUnit class, because we go though the
+    effort of creating an iterator, only to turn it back into a list, and then
+    iterate through it. it's also buggy as hell, and it's excess code.
+    """
     try:
         assert len(options) != 0, "Length of options is zero!"
     except AssertionError, ae:
@@ -225,7 +227,6 @@ def runTestCases(test_cases, options,
 
     reportFile = open(yamloo_filename, 'w+')
 
-
     if cmd_line_options['collector']:
         oreporter = reporter.OONIBReporter(cmd_line_options['collector'])
     else:
@@ -234,7 +235,6 @@ def runTestCases(test_cases, options,
     input_unit_factory = InputUnitFactory(test_inputs)
 
     log.debug("Creating report")
-
     yield oreporter.createReport(options)
 
     # This deferred list is a deferred list of deferred lists
@@ -243,17 +243,19 @@ def runTestCases(test_cases, options,
     try:
         for input_unit in input_unit_factory:
             log.debug("Running this input unit %s" % input_unit)
-            # We do this because generators can't we rewound.
+            # We do this because generators can't be rewound.
             input_list = list(input_unit)
             for test_case in test_cases:
                 log.debug("Processing %s" % test_case[1])
                 test_class = test_case[0]
                 test_method = test_case[1]
-                yield runTestWithInputUnit(test_class,
-                            test_method, input_list,
-                            oreporter)
-    except Exception:
-        log.exception("Problem in running test")
+                yield runTestWithInputUnit(test_class, test_method,
+                                           input_list, oreporter)
+    except Exception, ex:
+        # XXX we probably want to add a log.warn() at some point
+        log.msg("Problem in running test")
+        log.exception(ex)
         reactor.stop()
+
     oreporter.allDone()
 

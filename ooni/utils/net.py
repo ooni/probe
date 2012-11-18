@@ -11,6 +11,7 @@
 
 import sys
 
+from ipaddr import IPAddress
 from zope.interface import implements
 from twisted.internet import protocol, defer
 from twisted.internet import threads, reactor
@@ -18,6 +19,7 @@ from twisted.web.iweb import IBodyProducer
 from scapy.all import utils
 
 from ooni.utils import log, txscapy
+from ooni.utils import PermissionsError
 
 #if sys.platform.system() == 'Windows':
 #    import _winreg as winreg
@@ -50,27 +52,6 @@ class UnsupportedPlatform(Exception):
 
 class IfaceError(Exception):
     """Could not find default network interface."""
-
-class PermissionsError(SystemExit):
-    """This test requires admin or root privileges to run. Exiting..."""
-
-
-PLATFORMS = {'LINUX': sys.platform.startswith("linux"),
-             'OPENBSD': sys.platform.startswith("openbsd"),
-             'FREEBSD': sys.platform.startswith("freebsd"),
-             'NETBSD': sys.platform.startswith("netbsd"),
-             'DARWIN': sys.platform.startswith("darwin"),
-             'SOLARIS': sys.platform.startswith("sunos"),
-             'WINDOWS': sys.platform.startswith("win32")}
-
-class UnsupportedPlatform(Exception):
-    """Support for this platform is not currently available."""
-
-class IfaceError(Exception):
-    """Could not find default network interface."""
-
-class PermissionsError(SystemExit):
-    """This test requires admin or root privileges to run. Exiting..."""
 
 class StringProducer(object):
     implements(IBodyProducer)
@@ -220,6 +201,26 @@ def getNonLoopbackIfaces(platform_name=None):
             return interfaces
 
 def getNetworksFromRoutes():
+    """
+
+    Get the networks this client is current on from the kernel routing table.
+    Each network is returned as a :class:`ipaddr.IPNetwork`, with the
+    network range as the name of the network, i.e.:
+
+        network.compressed = '127.0.0.1/32'
+        network.netmask = IPv4Address('255.0.0.0')
+        network.ipaddr = IPv4Address('127.0.0.1')
+        network.gateway = IPv4Address('0.0.0.0')
+        network.iface = 'lo'
+
+    This is mostly useful for retrieving the default network interface in a
+    portable manner, though it could be used to conduct local network checks
+    for things like rogue DHCP servers, or perhaps test that the clients NAT
+    router is not the mistakenly the source of a perceived censorship event.
+
+    @return: A list of :class:`ipaddr.IPNetwork` objects with routing table
+             information.
+    """
     from scapy.all import conf, ltoa, read_routes
     from ipaddr    import IPNetwork, IPAddress
 
@@ -237,6 +238,12 @@ def getNetworksFromRoutes():
     return networks
 
 def getDefaultIface():
+    """
+    Get the client's default network interface.
+
+    @return: A string containing the name of the default working interface.
+    @raise IfaceError: If no working interface is found.
+    """
     networks = getNetworksFromRoutes()
     for net in networks:
         if net.is_private:
@@ -244,5 +251,27 @@ def getDefaultIface():
     raise IfaceError
 
 def getLocalAddress():
+    """
+    Get the rfc1918 IP address of the default working network interface.
+
+    @return: The properly-formatted, validated, local IPv4/6 address of the
+             client's default working network interface.
+    """
     default_iface = getDefaultIface()
     return default_iface.ipaddr
+
+def checkIPandPort(raw_ip, raw_port):
+    """
+    Check that IP and Port are a legitimate address and portnumber.
+
+    @return: The validated ip and port, else None.
+    """
+    try:
+        port = int(raw_port)
+        assert port in xrange(1, 65535), "Port out of range."
+        ip = IPAddress(raw_ip)    ## either IPv4 or IPv6
+    except Exception, e:
+        log.err(e)
+        return
+    else:
+        return ip.compressed, port
