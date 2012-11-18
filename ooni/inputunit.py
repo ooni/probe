@@ -50,24 +50,37 @@ class InputUnitFactory(object):
 class InputUnit(object):
     """
     This is a python iterable object that contains the input elements to be
-    passed onto a TestCase.
+    passed onto a :class:`ooni.nettest.NetTestCase`.
     """
     def __init__(self, inputs=[]):
+        """
+        Create an iterable from a list of inputs, which can be given to a NetTestCase.
+
+        @param inputs: A list of inputs for a NetTestCase.
+        """
         self._inputs = iter(inputs)
+        # _inputs_copy is to avoid stealing things from
+        # the iterator when __repr__ is called:
+        _inputs_copy = inputs
+        self.__contains__ = _inputs_copy
 
     def __repr__(self):
-        return "<%s inputs=%s>" % (self.__class__, self._inputs)
+        """Prints the original input list."""
+        return "<%s inputs=%s>" % (self.__class__, self.__contains__)
 
     def __add__(self, inputs):
+        """Add a list of inputs to the iterator."""
         for input in inputs:
             self._inputs.append(input)
 
     def __iter__(self):
+        """Self explanatory."""
         return self
 
     def next(self):
+        """Return the next item from the InputUnit iterator."""
         return self._inputs.next()
 
     def append(self, input):
+        """Add an item to the end of the InputUnit iterator."""
         self._inputs.append(input)
-
