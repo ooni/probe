@@ -57,8 +57,6 @@ class ScapyProtocol(abstract.FileDescriptor):
         self.debug = False
 
         self.multi = False
-        if kw['multi']:
-            self.multi = kw['multi']
         # XXX this needs to be implemented. It would involve keeping track of
         # the state of the sending via the super socket file descriptor and
         # firing the callback when we have concluded sending. Check out
