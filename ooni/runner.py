@@ -158,8 +158,8 @@ def runTestWithInput(test_class, test_method, test_input, oreporter):
         log.debug("runTestWithInput: concluded %s" % test_name)
         return oreporter.testDone(test_instance, test_name)
 
-    def test_error(error, test_instance, test_name):
-        log.exception(error)
+    def test_error(failure, test_instance, test_name):
+        log.exception(failure)
 
     test_instance = test_class()
     test_instance.input = test_input

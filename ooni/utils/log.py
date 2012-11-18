@@ -9,6 +9,7 @@ import traceback
 import logging
 
 from twisted.python import log as txlog
+from twisted.python.failure import Failure
 from twisted.python.logfile import DailyLogFile
 
 from ooni.utils import otime
@@ -51,13 +52,16 @@ def debug(msg, *arg, **kw):
 def err(msg, *arg, **kw):
     txlog.err("Error: " + str(msg), logLevel=logging.ERROR, *arg, **kw)
 
-def exception(msg):
-    txlog.err(msg)
-    exc_type, exc_value, exc_traceback = sys.exc_info()
-    traceback.print_exception(exc_type, exc_value, exc_traceback)
-
-def exception(*msg):
-    logging.exception(msg)
+def exception(error):
+    """
+    Error can either be an error message to print to stdout and to the logfile
+    or it can be a twisted.python.failure.Failure instance.
+    """
+    if isinstance(error, Failure):
+        error.printTraceback()
+    else:
+        exc_type, exc_value, exc_traceback = sys.exc_info()
+        traceback.print_exception(exc_type, exc_value, exc_traceback)
 
 class LoggerFactory(object):
     """
