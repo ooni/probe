@@ -146,7 +146,9 @@ class HTTPTest(NetTestCase):
             self.randomize_useragent()
 
         log.debug("Writing to report the request")
-        self.report['request'] = self.request
+        # Here we need to create a copy of the request object for reporting
+        # purposes
+        self.report['request'] = dict(self.request)
 
         # If we have a request body payload, set the request body to such
         # content
