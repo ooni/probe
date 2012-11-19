@@ -255,7 +255,8 @@ def runTestCases(test_cases, options,
         # XXX we probably want to add a log.warn() at some point
         log.msg("Problem in running test")
         log.exception(ex)
-        reactor.stop()
 
+    if reactor.running:
+        reactor.stop()
     oreporter.allDone()
 
