@@ -46,8 +46,8 @@ class NetTestCase(object):
           ``ooniprobe mytest.py -c path/to/file.txt``
 
 
-    * inputProcessor: should be set to a function that takes as argument an
-      open file descriptor and it will return the input to be passed to the test
+    * inputProcessor: should be set to a function that takes as argument a
+      filename and it will return the input to be passed to the test
       instance.
 
     * name: should be set to the name of the test.
@@ -61,24 +61,7 @@ class NetTestCase(object):
 
     * requiresRoot: set to True if the test must be run as root.
 
-    * optFlags: is assigned a list of lists. Each list represents a flag parameter, as so:
-
-        optFlags = [['verbose', 'v', 'Makes it tell you what it doing.'], | ['quiet', 'q', 'Be vewy vewy quiet.']]
-
-    As you can see, the first item is the long option name (prefixed with
-    '--' on the command line), followed by the short option name (prefixed with
-    '-'), and the description. The description is used for the built-in handling of
-    the --help switch, which prints a usage summary.
-
-
-    * optParameters: is much the same, except the list also contains a default value:
-
-        | optParameters = [['outfile', 'O', 'outfile.log', 'Description...']]
-
-    * usageOptions: a subclass of twisted.python.usage.Options for more advanced command line arguments fun.
-
-    * requiredOptions: a list containing the name of the options that are
-                       required for proper running of a test.
+    * usageOptions: a subclass of twisted.python.usage.Options for processing of command line arguments
 
     * localOptions: contains the parsed command line arguments.
 
@@ -95,10 +78,8 @@ class NetTestCase(object):
     report = {}
     report['errors'] = []
 
-    optFlags = None
-    optParameters = None
-
     usageOptions = None
+
     requiredOptions = []
     requiresRoot = False
 
