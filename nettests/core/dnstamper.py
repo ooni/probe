@@ -18,11 +18,9 @@
 import pdb
 
 from twisted.python import usage
-
 from twisted.internet import defer
-from twisted.names import client, dns
-from twisted.names.client import Resolver
-from twisted.names.error import DNSQueryRefusedError
+
+from ooni.templates import dnst
 
 from ooni import nettest
 from ooni.utils import log
@@ -36,12 +34,12 @@ class UsageOptions(usage.Options):
                         'file containing list of DNS resolvers to test against']
                     ]
 
-class DNSTamperTest(nettest.NetTestCase):
+class DNSTamperTest(dnst.DNSTest):
 
     name = "DNS tamper"
     description = "DNS censorship detection test"
-    version = "0.2"
-    lookupTimeout = [1]
+    version = "0.3"
+    authors = "Arturo Filastò, Isis Lovecruft"
     requirements = None
 
     inputFile = ['file', 'f', None,
@@ -51,16 +49,6 @@ class DNSTamperTest(nettest.NetTestCase):
     requiredOptions = ['backend', 'backendport', 'file', 'testresolvers']
 
     def setUp(self):
-        self.report['test_lookups'] = {}
-        self.report['test_reverse'] = {}
-        self.report['control_lookup'] = []
-        self.report['a_lookups'] = {}
-        self.report['tampering'] = {}
-
-        self.test_a_lookups = {}
-        self.control_a_lookups = []
-        self.control_reverse = None
-        self.test_reverse = {}
 
         if not self.localOptions['testresolvers']:
             self.test_resolvers = ['8.8.8.8']
@@ -74,74 +62,14 @@ class DNSTamperTest(nettest.NetTestCase):
 
         self.test_resolvers = [x.strip() for x in fp.readlines()]
         fp.close()
+        self.control_dns_server = (self.localOptions['backend'],
+            int(self.localOptions['backendport']))
 
-    def process_a_answers(self, message, resolver_address):
-        log.msg("Processing A answers for %s" % resolver_address)
-        log.debug("These are the answers I got %s" % message.answers)
+        self.report['test_resolvers'] = self.test_resolvers
+        self.report['control_resolver'] = self.control_dns_server
 
-        all_a = []
-        a_a = []
-
-        for answer in message.answers:
-            if answer.type is 1:
-                # A type query
-                r = answer.payload.dottedQuad()
-                self.report['a_lookups'][resolver_address] = r
-                a_a.append(r)
-            lookup = str(answer.payload)
-            all_a.append(lookup)
-
-        if resolver_address == 'control':
-            self.report['control_server'] = self.localOptions['backend']
-            self.report['control_lookup'] = all_a
-            self.control_a_lookups = a_a
-        else:
-            self.test_a_lookups[resolver_address] = a_a
-            self.report['test_lookups'][resolver_address] = all_a
-
-        log.msg("Done")
-
-    def process_ptr_answers(self, answers, resolver):
-        log.msg("Processing PTR answers for %s" % resolver)
-        name = None
-
-        for answer in answers[0]:
-            if answer.type is 12:
-                # PTR type
-                name = str(answer.payload.name)
-
-        if resolver == 'control':
-            self.control_reverse = name
-            self.report['control_reverse'] = name
-        else:
-            self.test_reverse[resolver] = name
-            self.report['test_reverse'][resolver] = name
-
-    def ptr_lookup_error(self, failure, resolver):
-        log.msg("There was an error in PTR lookup %s" % resolver)
-        log.err(failure)
-
-        if resolver == 'control':
-            self.report['control_reverse'] = None
-        else:
-            self.report['test_reverse'][resolver] = None
-
-    def a_lookup_error(self, failure, resolver):
-        log.msg("There was an error in A lookup %s" % resolver)
-        log.err(failure)
-
-        if failure.type is DNSQueryRefusedError:
-            self.report['tampering'][resolver] = 'connection-refused'
-        elif failure.type is defer.TimeoutError:
-            self.report['tampering'][resolver] = 'timeout'
-
-        if resolver == 'control':
-            self.report['control_lookup'] = None
-        else:
-            self.report['test_lookups'][resolver] = None
-            self.test_a_lookups[resolver] = None
-
-    def test_lookup(self):
+    @defer.inlineCallbacks
+    def test_a_queries(self):
         """
         We perform an A lookup on the DNS test servers for the domains to be
         tested and an A lookup on the known good DNS server.
@@ -163,115 +91,38 @@ class DNSTamperTest(nettest.NetTestCase):
         log.msg("Doing the test lookups on %s" % self.input)
         list_of_ds = []
         hostname = self.input
-        dns_query = [dns.Query(hostname, dns.IN, dns.A)]
-        dns_server = [(self.localOptions['backend'],
-                       self.localOptions['backendport'])]
 
-        resolver = Resolver(servers=dns_server)
+        self.report['tampering'] = {}
 
-        control_d = resolver.queryUDP(dns_query, timeout=self.lookupTimeout)
-        control_d.addCallback(self.process_a_answers, 'control')
-        control_d.addErrback(self.a_lookup_error, 'control')
+        control_answers = yield self.performALookup(hostname, self.control_dns_server)
 
         for test_resolver in self.test_resolvers:
             log.msg("Going for %s" % test_resolver)
-            dns_server = [(test_resolver, 53)]
+            test_dns_server = (test_resolver, 53)
 
-            resolver = Resolver(servers=dns_server)
+            experiment_answers = yield self.performALookup(hostname, test_dns_server)
+            log.debug("Got these answers %s" % experiment_answers)
 
-            d = resolver.queryUDP(dns_query, timeout=self.lookupTimeout)
-            d.addCallback(self.process_a_answers, test_resolver)
-            d.addErrback(self.a_lookup_error, test_resolver)
-
-            # This is required to cancel the delayed calls of the
-            # twisted.names.client resolver
-            list_of_ds.append(d)
-
-        list_of_ds.append(control_d)
-        dl = defer.DeferredList(list_of_ds)
-        dl.addCallback(self.do_reverse_lookups)
-        dl.addBoth(self.compare_results)
-        return dl
-
-    def reverse_lookup(self, address, resolver):
-        query = [dns.Query(hostname, dns.IN, dns.PTR)]
-        ptr = '.'.join(address.split('.')[::-1]) + '.in-addr.arpa'
-        r = resolver.queryUDP(query, timeout=self.lookupTimeout)
-        return r
-
-    def do_reverse_lookups(self, result):
-        """
-        Take a resolved address in the form "176.139.79.178.in-addr.arpa." and
-        attempt to reverse the domain with both the control and test DNS
-        servers to see if they match.
-
-        :param result:
-            A resolved domain name.
-        """
-        log.msg("Doing the reverse lookups %s" % self.input)
-        list_of_ds = []
-        dns_server = [(self.localOptions['backend'],
-                       self.localOptions['backendport'])]
-
-        resolver = Resolver(servers=dns_server)
-
-        test_reverse = self.reverse_lookup(self.control_a_lookups[0], resolver,
-                timeout=self.lookupTimeout)
-
-        test_reverse.addCallback(self.process_ptr_answers, 'control')
-        test_reverse.addErrback(self.ptr_lookup_error, 'control')
-
-        list_of_ds.append(test_reverse)
-
-        for test_resolver in self.test_resolvers:
-            try:
-                ip = self.test_a_lookups[test_resolver][0]
-            except:
-                break
-
-            d = self.reverse_lookup(ip, res)
-            d.addCallback(self.process_ptr_answers, test_resolver)
-            d.addErrback(self.ptr_lookup_error, test_resolver)
-            list_of_ds.append(d)
-
-        dl = defer.DeferredList(list_of_ds)
-        return dl
-
-    def compare_results(self, *arg, **kw):
-        """
-        Take the set intersection of two test result sets. If the intersection
-        is greater than zero (there are matching addresses in both sets) then
-        the no censorship is reported. Else, if no IP addresses match other
-        addresses, then we mark it as a censorship event.
-        """
-        log.msg("Comparing results for %s" % self.input)
-        log.msg(self.test_a_lookups)
-
-        for test, test_a_lookups in self.test_a_lookups.items():
-            log.msg("Now doing %s | %s" % (test, test_a_lookups))
-            if not test_a_lookups:
-                self.report['tampering'][test] = 'unknown'
+            if not experiment_answers:
+                log.err("Got no response, perhaps the DNS resolver is down?")
+                self.report['tampering'][test_resolver] = 'no_answer'
                 continue
 
-            if set(test_a_lookups) & set(self.control_a_lookups):
+            log.debug("Comparing %s with %s" % (experiment_answers, control_answers))
+            if set(experiment_answers) & set(control_answers):
                 log.msg("Address has not tampered with on DNS server")
-                self.report['tampering'][test] = False
-
-            elif self.control_reverse and set([self.control_reverse]) \
-                    & set([self.report['test_reverse'][test]]):
-                log.msg("Further testing has eliminated false positives")
-                self.report['tampering'][test] = 'reverse-match'
-
+                self.report['tampering'][test_resolver] = False
             else:
-                log.msg("Reverse DNS on the results returned by returned")
-                log.msg("which does not match the expected domainname")
-                self.report['tampering'][test] = True
+                log.msg("Trying to do reverse lookup")
 
-        if len(self.test_a_lookups) == len(self.test_resolvers):
-            return
-        else:
-            missing_tests = len(self.test_a_lookups)
-            missing_resolvers = len(self.test_resolvers)
-            log.msg("Still missing %s resolvers and %s tests" %
-                    (missing_tests, missing_resolvers))
+                experiment_reverse = yield self.performPTRLookup(experiment_answers[0], test_dns_server)
+                control_reverse = yield self.performPTRLookup(control_answers[0], self.control_dns_server)
+
+                if experiment_reverse == control_reverse:
+                    log.msg("Further testing has eliminated false positives")
+                    self.report['tampering'][test_resolver] = 'reverse_match'
+                else:
+                    log.msg("Reverse DNS on the results returned by returned")
+                    log.msg("which does not match the expected domainname")
+                    self.report['tampering'][test_resolver] = True
 
