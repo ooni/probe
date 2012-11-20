@@ -61,42 +61,42 @@ From running:
 
   ###########################################
   # OONI Probe Report for HTTP Host test
-  # Tue Nov 20 16:11:25 2012
+  # Tue Nov 20 17:42:50 2012
   ###########################################
   ---
   {probe_asn: null, probe_cc: null, probe_ip: 127.0.0.1, software_name: ooniprobe, software_version: 0.0.7.1-alpha,
-    start_time: 1353420685.0, test_name: HTTP Host, test_version: '0.2'}
+    start_time: 1353426170.0, test_name: HTTP Host, test_version: '0.2'}
   ...
   ---
-  input: null
+  input: torproject.org
   report:
     requests:
-    - body: null
-      headers:
-        Host: [null]
-        User-Agent:
-        - ['Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.7.5) Gecko/20060127
-            Netscape/8.1', 'Netscape 8.1, Windows XP']
-      method: GET
-      url: http://127.0.0.1:57001
-    responses:
-    - body: '{"request_method": "GET", "request_uri": "/", "request_body": "", "request_headers":
-        {"Connection": "close", "Host": "None", "User-Agent": "(''Mozilla/5.0 (Windows;
-        U; Windows NT 5.1; en-US; rv:1.7.5) Gecko/20060127 Netscape/8.1'', ''Netscape
-        8.1, Windows XP'')"}}'
-      code: 200
-      headers:
-      - - Content-Length
-        - ['260']
-      - - Etag
-        - ['"91a2d6055c4e0a4b42cd079acd196d10df158e0a"']
-      - - Content-Type
-        - [text/html; charset=UTF-8]
-      - - Server
-        - [cyclone/1.0-rc13]
-      length: twisted.web.iweb.UNKNOWN_LENGTH
-      version: twisted.web.iweb.UNKNOWN_LENGTH
+    - request:
+        body: null
+        headers:
+          Host: [torproject.org]
+          User-Agent:
+          - ['Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.7.5) Gecko/20060127
+              Netscape/8.1', 'Netscape 8.1, Windows XP']
+        method: GET
+        url: http://127.0.0.1:57001
+      response:
+        body: '{"request_method": "GET", "request_uri": "/", "request_body": "", "request_headers":
+          {"Connection": "close", "Host": "torproject.org", "User-Agent": "(''Mozilla/5.0
+          (Windows; U; Windows NT 5.1; en-US; rv:1.7.5) Gecko/20060127 Netscape/8.1'',
+          ''Netscape 8.1, Windows XP'')"}}'
+        code: 200
+        headers:
+        - - Content-Length
+          - ['270']
+        - - Etag
+          - ['"83dd0f393b39d0a316b2fc61fd61dafa92c336b5"']
+        - - Content-Type
+          - [text/html; charset=UTF-8]
+        - - Server
+          - [cyclone/1.0-rc13]
     trans_http_proxy: false
   test_name: test_send_host_header
-  test_started: 1353424285.050363
+  test_started: 1353429770.287463
   ...
+
