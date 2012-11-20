@@ -39,8 +39,7 @@ def processTest(obj, cmd_line_options):
         A configured and instantiated :class:`twisted.python.usage.Options`
         class.
     """
-
-    input_file = obj.inputFile
+    options = None
     if obj.requiresRoot:
         try:
             checkForRoot()
@@ -48,33 +47,22 @@ def processTest(obj, cmd_line_options):
             log.err("%s requires root to run" % obj.name)
             sys.exit(1)
 
+    if obj.usageOptions and obj.inputFile:
+        obj.usageOptions.optParameters.append(obj.inputFile)
 
-    if obj.optParameters or input_file \
-            or obj.usageOptions or obj.optFlags:
+    if obj.usageOptions and obj.baseParameters:
+        for parameter in obj.baseParameters:
+            obj.usageOptions.optParameters.append(parameter)
 
-        if not obj.optParameters:
-            obj.optParameters = []
+    if obj.usageOptions:
+        options = obj.usageOptions()
 
-        if input_file:
-            obj.optParameters.append(input_file)
+    if options:
+        options.parseOptions(cmd_line_options['subArgs'])
+        obj.localOptions = options
 
-        if obj.usageOptions:
-            if input_file:
-                obj.usageOptions.optParameters.append(input_file)
-            options = obj.usageOptions()
-        elif obj.optParameters:
-            log.debug("Got optParameters")
-            class Options(usage.Options):
-                optParameters = obj.optParameters
-            options = Options()
-
-        if options:
-            options.parseOptions(cmd_line_options['subArgs'])
-            obj.localOptions = options
-
-        if input_file and options:
-            log.debug("Got input file")
-            obj.inputFile = options[input_file[0]]
+        if obj.inputFile:
+            obj.inputFilename = options[obj.inputFile[0]]
 
         try:
             log.debug("processing options")
@@ -175,9 +163,8 @@ def runTestWithInput(test_class, test_method, test_input, oreporter):
     log.debug("returning %s input" % test_method)
     return d
 
-def runTestWithInputUnit(test_class, 
-        test_method, input_unit, 
-        oreporter):
+def runTestWithInputUnit(test_class,
+        test_method, input_unit, oreporter):
     """
     test_class: the uninstantiated class of the test to be run
 
@@ -194,13 +181,13 @@ def runTestWithInputUnit(test_class,
     log.debug("input unit %s" % input_unit)
     for test_input in input_unit:
         log.debug("running with input: %s" % test_input)
-        d = runTestWithInput(test_class, 
+        d = runTestWithInput(test_class,
                 test_method, test_input, oreporter)
         dl.append(d)
     return defer.DeferredList(dl)
 
 @defer.inlineCallbacks
-def runTestCases(test_cases, options, 
+def runTestCases(test_cases, options,
         cmd_line_options, yamloo_filename):
     try:
         assert len(options) != 0, "Length of options is zero!"
@@ -222,7 +209,6 @@ def runTestCases(test_cases, options,
 
     reportFile = open(yamloo_filename, 'w+')
 
-
     if cmd_line_options['collector']:
         oreporter = reporter.OONIBReporter(cmd_line_options['collector'])
     else:
@@ -235,7 +221,7 @@ def runTestCases(test_cases, options,
     yield oreporter.createReport(options)
 
     # This deferred list is a deferred list of deferred lists
-    # it is used to store all the deferreds of the tests that 
+    # it is used to store all the deferreds of the tests that
     # are run
     try:
         for input_unit in input_unit_factory:

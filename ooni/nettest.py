@@ -74,6 +74,7 @@ class NetTestCase(object):
 
     inputs = [None]
     inputFile = None
+    inputFilename = None
 
     report = {}
     report['errors'] = []
@@ -81,6 +82,7 @@ class NetTestCase(object):
     usageOptions = None
 
     optParameters = None
+    baseParameters = None
 
     requiredOptions = []
     requiresRoot = False
@@ -135,8 +137,8 @@ class NetTestCase(object):
                 raise usage.UsageError("%s not specified!" % required_option)
 
     def _processOptions(self, options=None):
-        if self.inputFile:
-            self.inputs = self.inputProcessor(self.inputFile)
+        if self.inputFilename:
+            self.inputs = self.inputProcessor(self.inputFilename)
 
         self._checkRequiredOptions()
 
