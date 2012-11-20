@@ -35,7 +35,12 @@ class TCPConnectTest(nettest.NetTestCase):
         def connectionFailed(failure):
             failure.trap(ConnectionRefusedError, TCPTimedOutError)
             log.debug("Unable to connect to %s" % self.input)
-            self.report["connection"] = str(failure.value)
+            if isinstance(failure, ConnectionRefusedError):
+                self.report["connection"] = 'refused'
+            elif isinstance(failure, TCPTimedOutError):
+                self.report["connection"] = 'timeout'
+            else:
+                self.report["connection"] = 'failed'
 
         from twisted.internet import reactor
         point = TCP4ClientEndpoint(reactor, host, int(port))
