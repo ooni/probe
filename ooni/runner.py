@@ -66,9 +66,6 @@ def processTest(obj, cmd_line_options):
             log.debug("Got optParameters")
             class Options(usage.Options):
                 optParameters = obj.optParameters
-                if obj.optFlags:
-                    log.debug("Got optFlags")
-                    optFlags = obj.optFlags
             options = Options()
 
         if options:

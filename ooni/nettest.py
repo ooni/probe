@@ -80,6 +80,8 @@ class NetTestCase(object):
 
     usageOptions = None
 
+    optParameters = None
+
     requiredOptions = []
     requiresRoot = False
 
