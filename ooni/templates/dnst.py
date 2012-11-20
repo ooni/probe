@@ -41,6 +41,7 @@ class DNSTest(NetTestCase):
                     name = answer.payload.name
 
             result = {}
+            result['resolver'] = dns_server
             result['query_type'] = 'PTR'
             result['query'] = repr(query)
             result['answers'] = answers
@@ -51,6 +52,7 @@ class DNSTest(NetTestCase):
         def gotError(failure):
             log.exception(failure)
             result = {}
+            result['resolver'] = dns_server
             result['query_type'] = 'PTR'
             result['query'] = repr(query)
             result['error'] = str(failure)
@@ -85,6 +87,7 @@ class DNSTest(NetTestCase):
                 r = (repr(answer), repr(answer.payload))
                 answers.append(r)
             result = {}
+            result['resolver'] = dns_server
             result['query_type'] = 'A'
             result['query'] = repr(query)
             result['answers'] = answers
@@ -95,6 +98,7 @@ class DNSTest(NetTestCase):
         def gotError(failure):
             log.exception(failure)
             result = {}
+            result['resolver'] = dns_server
             result['query_type'] = 'A'
             result['query'] = repr(query)
             result['error'] = str(failure)
