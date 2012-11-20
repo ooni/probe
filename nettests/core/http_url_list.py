@@ -17,7 +17,10 @@ class HTTPURLList(httpt.HTTPTest):
     """
     Performs GET, POST and PUT requests to a list of URLs specified as
     input and checks if the page that we get back as a result matches that
-    which we expect.
+    of a block page given as input.
+
+    If no block page is given as input to the test it will simply collect the
+    responses to the HTTP requests and write them to a report file.
     """
     name = "HTTP URL List"
     author = "Arturo Filastò"
