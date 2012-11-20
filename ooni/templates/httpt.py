@@ -55,8 +55,8 @@ class HTTPTest(NetTestCase):
             log.err("Warning! pyOpenSSL is not installed. https websites will"
                      "not work")
 
-        self.agent = Agent(reactor, 
-                sockhost="127.0.0.1", 
+        self.agent = Agent(reactor,
+                sockhost="127.0.0.1",
                 sockport=config.advanced.tor_socksport)
 
         if self.followRedirects:
@@ -75,15 +75,25 @@ class HTTPTest(NetTestCase):
     def processInputs(self):
         pass
 
-    def _processResponseBody(self, data, body_processor):
+    def _processResponseBody(self, response_body, request, response, body_processor):
         log.debug("Processing response body")
-        self.response['body'] = data
-        self.report['response'] = self.response
-
+        self.report['requests'].append({
+            'request': {
+                'headers': request['headers'],
+                'body': request['body'],
+                'url': request['url'],
+                'method': request['method']
+            },
+            'response': {
+                'headers': list(response.headers.getAllRawHeaders()),
+                'body': response_body,
+                'code': response.code
+            }
+        })
         if body_processor:
-            body_processor(data)
+            body_processor(response_body)
         else:
-            self.processResponseBody(data)
+            self.processResponseBody(response_body)
 
     def processResponseBody(self, data):
         """
@@ -112,7 +122,7 @@ class HTTPTest(NetTestCase):
 
     def doRequest(self, url, method="GET",
                   headers={}, body=None, headers_processor=None,
-                  body_processor=None):
+                  body_processor=None, use_tor=False):
         """
         Perform an HTTP request with the specified method.
 
@@ -134,36 +144,40 @@ class HTTPTest(NetTestCase):
                          This function takes the response body as an argument.
 
         """
+
+        # We prefix the URL with 's' to make the connection go over the
+        # configured socks proxy
+        if use_tor:
+            log.debug("Using tor for the request")
+            url = 's'+url
+
         log.debug("Performing request %s %s %s" % (url, method, headers))
 
-        self.request['method'] = method
-        self.request['url'] = url
-        self.request['headers'] = headers
-        self.request['body'] = body
+        request = {}
+        request['method'] = method
+        request['url'] = url
+        request['headers'] = headers
+        request['body'] = body
 
         if self.randomizeUA:
             log.debug("Randomizing user agent")
-            self.randomize_useragent()
+            self.randomize_useragent(request)
 
         log.debug("Writing to report the request")
-        # Here we need to create a copy of the request object for reporting
-        # purposes
-        self.report['request'] = dict(self.request)
+
+        if 'requests' not in self.report:
+            self.report['requests'] = []
 
         # If we have a request body payload, set the request body to such
         # content
         if body:
-            body_producer = StringProducer(self.request['body'])
+            body_producer = StringProducer(request['body'])
         else:
             body_producer = None
 
-        headers = Headers(self.request['headers'])
-
-        d = self.agent.request(self.request['method'],
-                self.request['url'], headers, body_producer)
+        headers = Headers(request['headers'])
 
         def errback(failure):
-            print failure.value
             failure.trap(ConnectionRefusedError, SOCKSError)
             if type(failure.value) is ConnectionRefusedError:
                 log.err("Connection refused. The backend may be down")
@@ -174,39 +188,37 @@ class HTTPTest(NetTestCase):
         def finished(data):
             return
 
+        d = self.agent.request(request['method'], request['url'], headers,
+                body_producer)
+
         d.addErrback(errback)
-        d.addCallback(self._cbResponse, headers_processor, body_processor)
+        d.addCallback(self._cbResponse, request, headers_processor, body_processor)
         d.addCallback(finished)
         return d
 
-    def _cbResponse(self, response, headers_processor, body_processor):
+    def _cbResponse(self, response, request, headers_processor,
+            body_processor):
         log.debug("Got response %s" % response)
-        if not response:
-            self.report['response'] = None
-            log.err("We got an empty response")
-            return
 
-        self.response['headers'] = list(response.headers.getAllRawHeaders())
-        self.response['code'] = response.code
-        self.response['length'] = response.length
-        self.response['version'] = response.length
-
-        if str(self.response['code']).startswith('3'):
+        if str(response.code).startswith('3'):
             self.processRedirect(response.headers.getRawHeaders('Location')[0])
 
+        # [!] We are passing to the headers_processor the headers dict and
+        # not the Headers() object
+        response_headers_dict = list(response.headers.getAllRawHeaders())
         if headers_processor:
-            headers_processor(self.response['headers'])
+            headers_processor(response_headers_dict)
         else:
-            self.processResponseHeaders(self.response['headers'])
+            self.processResponseHeaders(response_headers_dict)
 
         finished = defer.Deferred()
         response.deliverBody(BodyReceiver(finished))
-        finished.addCallback(self._processResponseBody, 
-                body_processor)
+        finished.addCallback(self._processResponseBody, request,
+                response, body_processor)
 
         return finished
 
-    def randomize_useragent(self):
+    def randomize_useragent(self, request):
         user_agent = random.choice(userAgents)
-        self.request['headers']['User-Agent'] = [user_agent]
+        request['headers']['User-Agent'] = [user_agent]
 
