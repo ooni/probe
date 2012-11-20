@@ -26,10 +26,8 @@ from ooni import nettest
 from ooni.utils import log
 
 class UsageOptions(usage.Options):
-    optParameters = [['backend', 'b', '8.8.8.8',
+    optParameters = [['backend', 'b', '8.8.8.8:53',
                         'The OONI backend that runs the DNS resolver'],
-                     ['backendport', 'p', 53,
-                        'The port of the good DNS resolver'],
                      ['testresolvers', 't', None,
                         'file containing list of DNS resolvers to test against']
                     ]
@@ -46,7 +44,7 @@ class DNSTamperTest(dnst.DNSTest):
                  'Input file of list of hostnames to attempt to resolve']
 
     usageOptions = UsageOptions
-    requiredOptions = ['backend', 'backendport', 'file', 'testresolvers']
+    requiredOptions = ['backend', 'file', 'testresolvers']
 
     def setUp(self):
 
@@ -62,8 +60,9 @@ class DNSTamperTest(dnst.DNSTest):
 
         self.test_resolvers = [x.strip() for x in fp.readlines()]
         fp.close()
-        self.control_dns_server = (self.localOptions['backend'],
-            int(self.localOptions['backendport']))
+
+        dns_ip, dns_port = self.localOptions['backend'].split(':')
+        self.control_dns_server = (dns_ip, int(dns_port))
 
         self.report['test_resolvers'] = self.test_resolvers
         self.report['control_resolver'] = self.control_dns_server

@@ -14,7 +14,7 @@ rm before_i_commit.log
 
 find . -type f -name "*.py[co]" -delete
 
-./bin/ooniprobe -l before_i_commit.log -o url_lists.yamloo nettests/core/url_list.py -f test_inputs/url_lists_file.txt
+./bin/ooniprobe -l before_i_commit.log -o http_url_lists.yamloo nettests/core/http_url_list.py -f test_inputs/url_lists_file.txt
 
 ./bin/ooniprobe -l before_i_commit.log -o dns_tamper_test.yamloo nettests/core/dnstamper.py -t test_inputs/dns_tamper_test_resolvers.txt -f test_inputs/dns_tamper_file.txt
 
