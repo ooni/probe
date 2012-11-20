@@ -24,8 +24,6 @@ find . -type f -name "*.py[co]" -delete
 
 ./bin/ooniprobe -l before_i_commit.log -o http_keyword_filtering.yamloo nettests/core/http_keyword_filtering.py -b http://ooni.nu/test/ -f test_inputs/keyword_filtering_file.txt
 
-./bin/ooniprobe -l before_i_commit.log -o url_lists.yamloo nettests/core/url_list.py -f test_inputs/url_lists_file.txt
-
 echo "Below you should not see anything"
 echo "---------------------------------"
 grep "Error: " before_i_commit.log

@@ -44,6 +44,10 @@ class HTTPTest(NetTestCase):
 
     randomizeUA = True
     followRedirects = False
+
+    baseParameters = [['socksproxy', 's', None,
+        'Specify a socks proxy to use for requests (ip:port)']]
+
     request = {}
     response = {}
 
@@ -55,13 +59,21 @@ class HTTPTest(NetTestCase):
             log.err("Warning! pyOpenSSL is not installed. https websites will"
                      "not work")
 
-        self.agent = Agent(reactor,
-                sockhost="127.0.0.1",
+        self.control_agent = Agent(reactor, sockhost="127.0.0.1",
                 sockport=config.advanced.tor_socksport)
+
+        sockshost, socksport = (None, None)
+        if self.localOptions['socksproxy']:
+            sockshost, socksport = self.localOptions['socksproxy'].split(':')
+            socksport = int(socksport)
+
+        self.agent = Agent(reactor, sockhost=sockshost,
+                sockport=socksport)
 
         if self.followRedirects:
             try:
                 from twisted.web.client import RedirectAgent
+                self.control_agent = RedirectAgent(self.control_agent)
                 self.agent = RedirectAgent(self.agent)
             except:
                 log.err("Warning! You are running an old version of twisted"\
@@ -150,6 +162,13 @@ class HTTPTest(NetTestCase):
         if use_tor:
             log.debug("Using tor for the request")
             url = 's'+url
+            agent = self.tor_agent
+        else:
+            agent = self.agent
+
+        if self.localOptions['socksproxy']:
+            log.debug("Using SOCKS proxy %s for request" % (self.localOptions['socksproxy']))
+            url = 's'+url
 
         log.debug("Performing request %s %s %s" % (url, method, headers))
 
@@ -188,7 +207,7 @@ class HTTPTest(NetTestCase):
         def finished(data):
             return
 
-        d = self.agent.request(request['method'], request['url'], headers,
+        d = agent.request(request['method'], request['url'], headers,
                 body_producer)
 
         d.addErrback(errback)
@@ -198,7 +217,12 @@ class HTTPTest(NetTestCase):
 
     def _cbResponse(self, response, request, headers_processor,
             body_processor):
-        log.debug("Got response %s" % response)
+
+        if not response:
+            log.err("Got no response")
+            return
+        else:
+            log.debug("Got response %s" % response)
 
         if str(response.code).startswith('3'):
             self.processRedirect(response.headers.getRawHeaders('Location')[0])
