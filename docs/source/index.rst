@@ -15,6 +15,7 @@ Contents
     :maxdepth: 2
     :glob:
 
+    tests/*
     oonib
     install
     writing_tests
