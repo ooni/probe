@@ -23,6 +23,9 @@ from oonib.oonibackend import application
 
 sys.argv[1:] = ['-ny', backend_script]
 
+# Uncomment this line to daemonize
+#sys.argv[1:] = ['-y', backend_script]
+
 def runApp(config):
     runner.OBaseRunner(config).run()
 
