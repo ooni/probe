@@ -16,18 +16,13 @@ from twisted.internet import reactor, defer
 
 from cyclone import web
 
-from ooni.utils import randomStr
+from ooni.utils import randomStr, otime
 from oonib import models, config
 
 backend_version = '0.0.1'
 
-def updateReport(report_id, content):
-    print "Report ID: %s" % report_id
-    print "Content: %s" % content
-    return {'backend_version': backend_version, 'report_id': report_id}
-
 def generateReportID():
-    return randomStr(100)
+    return otime.timestamp() + '_' + randomStr(20)
 
 class MissingField(Exception):
     pass

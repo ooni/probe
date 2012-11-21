@@ -53,6 +53,8 @@ class Report(OModel):
     content: what is the content of the report. If the current progress is less
              than 100 we should append to the YAML data structure that is
              currently stored in such field.
+
+    XXX this is currently not used.
     """
     __storm_table__ = 'reports'
 

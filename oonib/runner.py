@@ -54,6 +54,7 @@ if platformType == "win32":
                                 WindowsApplicationRunner
 
     OBaseRunner = WindowsApplicationRunner
+    # XXX Current we don't support windows for the starting of Tor Hidden Service
 
 else:
     from twisted.scripts._twistd_unix import ServerOptions, \
