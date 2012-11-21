@@ -59,16 +59,16 @@ class HTTPTest(NetTestCase):
             log.err("Warning! pyOpenSSL is not installed. https websites will"
                      "not work")
 
-        self.control_agent = Agent(reactor, sockhost="127.0.0.1",
-                sockport=config.advanced.tor_socksport)
+        self.control_agent = Agent(reactor, sockshost="127.0.0.1",
+                socksport=config.advanced.tor_socksport)
 
         sockshost, socksport = (None, None)
         if self.localOptions['socksproxy']:
             sockshost, socksport = self.localOptions['socksproxy'].split(':')
             socksport = int(socksport)
 
-        self.agent = Agent(reactor, sockhost=sockshost,
-                sockport=socksport)
+        self.agent = Agent(reactor, sockshost=sockshost,
+                socksport=socksport)
 
         if self.followRedirects:
             try:

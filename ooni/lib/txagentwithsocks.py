@@ -98,12 +98,12 @@ class SOCKSv5ClientFactory(_WrappingFactory):
 class SOCKS5ClientEndpoint(object):
     implements(interfaces.IStreamClientEndpoint)
 
-    def __init__(self, reactor, sockhost, sockport,
+    def __init__(self, reactor, sockshost, socksport,
                  host, port, timeout=30, bindAddress=None):
 
         self._reactor = reactor
-        self._sockhost = sockhost
-        self._sockport = sockport
+        self._sockshost = sockshost
+        self._socksport = socksport
         self._host = host
         self._port = port
         self._timeout = timeout
@@ -113,7 +113,7 @@ class SOCKS5ClientEndpoint(object):
         try:
             wf = SOCKSv5ClientFactory(protocolFactory, self._host, self._port)
             self._reactor.connectTCP(
-                self._sockhost, self._sockport, wf,
+                self._sockshost, self._socksport, wf,
                 timeout=self._timeout, bindAddress=self._bindAddress)
             return wf._onConnection
         except:
@@ -204,7 +204,7 @@ class Agent(client.Agent):
     def __init__(self, reactor,
                  contextFactory=client.WebClientContextFactory(),
                  connectTimeout=None, bindAddress=None,
-                 pool=None, sockhost=None, sockport=None):
+                 pool=None, sockshost=None, socksport=None):
         if pool is None:
             pool = HTTPConnectionPool(reactor, False)
         self._reactor = reactor
@@ -212,8 +212,8 @@ class Agent(client.Agent):
         self._contextFactory = contextFactory
         self._connectTimeout = connectTimeout
         self._bindAddress = bindAddress
-        self._sockhost = sockhost
-        self._sockport = sockport
+        self._sockshost = sockshost
+        self._socksport = socksport
 
     def _getEndpoint(self, scheme, host, port):
         kwargs = {}
@@ -223,8 +223,11 @@ class Agent(client.Agent):
         if scheme == 'http':
             return TCP4ClientEndpoint(self._reactor, host, port, **kwargs)
         elif scheme == 'shttp':
-            return SOCKS5ClientEndpoint(self._reactor, self._sockhost,
-                                        self._sockport, host, port, **kwargs)
+            return SOCKS5ClientEndpoint(self._reactor, self._sockshost,
+                                        self._socksport, host, port, **kwargs)
+        elif scheme == 'httpo':
+            return SOCKS5ClientEndpoint(self._reactor, self._sockshost,
+                                        self._socksport, host, port, **kwargs)
         elif scheme == 'https':
             return SSL4ClientEndpoint(self._reactor, host, port,
                                       self._wrapContextFactory(host, port),
