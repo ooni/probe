@@ -13,19 +13,17 @@ from twisted.application import internet, service
 from twisted.application.service import Application
 from twisted.names import dns
 
-from ooni.utils import log
+from cyclone import web
 
-from oonib.report.api import reportingBackend
-
-from oonib import config
+import txtorcon
 
 from oonib.testhelpers import dns_helpers, ssl_helpers
 from oonib.testhelpers import http_helpers, tcp_helpers
 
-#from oonib.testhelpers.daphn3 import Daphn3Server
-from oonib import db_threadpool
+from ooni.utils import log
 
-from cyclone import web
+from oonib import db_threadpool
+from oonib import config
 
 application = service.Application('oonibackend')
 serviceCollection = service.IServiceCollection(application)
@@ -59,11 +57,6 @@ if config.helpers.daphn3.port:
                             tcp_helpers.Daphn3Server())
     daphn3_helper.setServiceParent(serviceCollection)
 
-if config.main.collector_port:
-    print "Starting Collector on %s" % config.main.collector_port
-    collector = internet.TCPServer(int(config.main.collector_port),
-                       reportingBackend)
-    collector.setServiceParent(serviceCollection)
 
 if config.helpers.tcp_echo.port:
     print "Starting TCP echo helper on %s" % config.helpers.tcp_echo.port

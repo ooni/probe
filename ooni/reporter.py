@@ -188,9 +188,12 @@ class OONIBReporter(OReporter):
     def __init__(self, backend_url):
         from ooni.lib.txagentwithsocks import Agent
         from twisted.internet import reactor
+        try:
+            self.agent = Agent(reactor, sockshost="127.0.0.1",
+                socksport=int(config.advanced.tor_socksport))
+        except Exception, e:
+            log.exception(e)
 
-        self.agent = Agent(reactor, sockshost="127.0.0.1",
-                socksport=config.advanced.socksport)
         self.backend_url = backend_url
 
     @defer.inlineCallbacks
@@ -257,7 +260,7 @@ class OONIBReporter(OReporter):
         bodyProducer = StringProducer(json.dumps(request))
 
         try:
-            response = yield self.agent.request("POST", url, 
+            response = yield self.agent.request("POST", url,
                                 bodyProducer=bodyProducer)
         except ConnectionRefusedError:
             log.err("Connection to reporting backend failed (ConnectionRefusedError)")
@@ -273,7 +276,12 @@ class OONIBReporter(OReporter):
 
         backend_response = yield response_body
 
-        parsed_response = json.loads(backend_response)
+        try:
+            parsed_response = json.loads(backend_response)
+        except Exception, e:
+            log.exception(e)
+            raise OONIBReportCreationFailed
+
         self.report_id = parsed_response['report_id']
         self.backend_version = parsed_response['backend_version']
         log.debug("Created report with id %s" % parsed_response['report_id'])
