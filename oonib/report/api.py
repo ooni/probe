@@ -10,13 +10,14 @@ import random
 import string
 import json
 import re
-from ooni.utils import randomStr
+import os
 
 from twisted.internet import reactor, defer
 
 from cyclone import web
 
-from oonib import models
+from ooni.utils import randomStr
+from oonib import models, config
 
 backend_version = '0.0.1'
 
@@ -75,7 +76,7 @@ def parseUpdateReportRequest(request):
         report_id = parsed_request['report_id']
     except KeyError:
         raise MissingField('report_id')
-    
+
     if not re.match(report_id_regexp, report_id):
         raise InvalidRequestField('report_id')
 
@@ -131,7 +132,7 @@ class NewReportHandlerFile(web.RequestHandler):
         #    report_data['test_name'],
         #    report_data['test_version']))
 
-        report_filename = report_id
+        report_filename = os.path.join(config.main.report_dir, report_id)
         report_filename += '.yamloo'
 
         response = {'backend_version': backend_version, 
@@ -155,7 +156,7 @@ class NewReportHandlerFile(web.RequestHandler):
         report_id = parsed_request['report_id']
         print "Got this request %s" % parsed_request
 
-        report_filename = report_id
+        report_filename = os.path.join(config.main.report_dir, report_id)
         report_filename += '.yamloo'
         try:
             with open(report_filename, 'a+') as f: 

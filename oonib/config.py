@@ -10,6 +10,7 @@ def get_root_path():
 # XXX convert this to something that is a proper config file
 main = Storage()
 main.collector_port = 8888
+main.report_dir = os.path.join(get_root_path(), 'oonib', 'reports')
 
 # XXX make this be the server name that is of 
 main.database_uri = "sqlite:"+get_root_path()+"oonib_test_db.db"
