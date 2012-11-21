@@ -95,10 +95,7 @@ def run():
     if cmd_line_options['debug-stacktraces']:
         defer.setDebugging(True)
 
-    log.start(cmd_line_options['logfile'])
-
     test_file_name = os.path.basename(cmd_line_options['test'])
-    log.debug("Running script %s" % test_file_name)
 
     yamloo_filename, pcap_filename = config.oreport_filenames(test_file_name)
 
@@ -107,12 +104,12 @@ def run():
         pcap_filename = yamloo_filename+".pcap"
 
     if os.path.exists(yamloo_filename):
-        log.msg("Report already exists with filename %s" % yamloo_filename)
-        log.msg("Renaming it to %s" % yamloo_filename+'.old')
+        print "Report already exists with filename %s" % yamloo_filename
+        print "Renaming it to %s" % yamloo_filename+'.old'
         os.rename(yamloo_filename, yamloo_filename+'.old')
     if os.path.exists(pcap_filename):
-        log.msg("Report already exists with filename %s" % pcap_filename)
-        log.msg("Renaming it to %s" % pcap_filename+'.old')
+        print "Report PCAP already exists with filename %s" % pcap_filename
+        print "Renaming it to %s" % pcap_filename+'.old'
         os.rename(pcap_filename, pcap_filename+'.old')
 
     classes = runner.findTestClassesFromConfig(cmd_line_options)
@@ -121,11 +118,13 @@ def run():
         try:
             checkForRoot()
         except NotRootError:
-            log.err("includepcap options requires root priviledges to run")
-            log.err("you should run ooniprobe as root or disable the options in ooniprobe.conf")
+            print "[!] Includepcap options requires root priviledges to run"
+            print "    you should run ooniprobe as root or disable the options in ooniprobe.conf"
             sys.exit(1)
-        log.debug("Starting sniffer")
+        print "Starting sniffer"
         sniffer_d = net.capturePackets(pcap_filename)
+
+    log.start(cmd_line_options['logfile'])
 
     tests_d = runner.runTestCases(test_cases, options,
             cmd_line_options, yamloo_filename)
