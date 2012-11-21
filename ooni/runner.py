@@ -207,18 +207,31 @@ def runTestCases(test_cases, options,
             log.msg("options[0] = %s" % first)
             test_inputs = [None]
 
-    reportFile = open(yamloo_filename, 'w+')
+    log.debug("Creating %s" % yamloo_filename)
 
     if cmd_line_options['collector']:
+        log.debug("Using remote collector %s" % cmd_line_options['collector'])
         oreporter = reporter.OONIBReporter(cmd_line_options['collector'])
     else:
+        reportFile = open(yamloo_filename, 'w+')
+        log.debug("Reporting to file %s" % reportFile)
         oreporter = reporter.YAMLReporter(reportFile)
 
-    input_unit_factory = InputUnitFactory(test_inputs)
+    try:
+        input_unit_factory = InputUnitFactory(test_inputs)
+    except Exception, e:
+        log.exception(e)
 
     log.debug("Creating report")
 
-    yield oreporter.createReport(options)
+    try:
+        yield oreporter.createReport(options)
+    except reporter.OONIBReportCreationFailed:
+        log.err("Error in creating new report")
+        reactor.stop()
+        raise
+    except Exception, e:
+        log.exception(e)
 
     # This deferred list is a deferred list of deferred lists
     # it is used to store all the deferreds of the tests that

@@ -35,7 +35,7 @@ class HTTPHost(httpt.HTTPTest):
 
     usageOptions = UsageOptions
 
-    inputFile = ['file', 'f', None, 
+    inputFile = ['file', 'f', None,
             'List of hostnames to test for censorship']
 
     requiredOptions = ['backend']

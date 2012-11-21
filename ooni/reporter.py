@@ -18,6 +18,7 @@ import traceback
 from twisted.python.util import untilConcludes
 from twisted.trial import reporter
 from twisted.internet import defer, reactor
+from twisted.internet.error import ConnectionRefusedError
 
 from ooni.templates.httpt import BodyReceiver, StringProducer
 from ooni.utils import otime, log, geodata
@@ -204,18 +205,18 @@ class OONIBReporter(OReporter):
         request = {'report_id': self.report_id,
                 'content': content}
 
-        log.debug("Updating report with id %s" % self.report_id)
+        log.debug("Updating report with id %s (%s)" % (self.report_id, url))
         request_json = json.dumps(request)
         log.debug("Sending %s" % request_json)
 
         bodyProducer = StringProducer(json.dumps(request))
-        log.debug("Creating report via url %s" % url)
 
         try:
             response = yield self.agent.request("PUT", url, 
                                 bodyProducer=bodyProducer)
         except:
             # XXX we must trap this in the runner and make sure to report the data later.
+            log.err("Error in writing report entry")
             raise OONIBReportUpdateFailed
 
         #parsed_response = json.loads(backend_response)
@@ -254,12 +255,15 @@ class OONIBReporter(OReporter):
         log.debug("Sending %s" % request_json)
 
         bodyProducer = StringProducer(json.dumps(request))
-        log.debug("Creating report via url %s" % url)
 
         try:
             response = yield self.agent.request("POST", url, 
                                 bodyProducer=bodyProducer)
-        except:
+        except ConnectionRefusedError:
+            log.err("Connection to reporting backend failed (ConnectionRefusedError)")
+            raise OONIBReportCreationFailed
+        except Exception, e:
+            log.exception(e)
             raise OONIBReportCreationFailed
 
         # This is a little trix to allow us to unspool the response. We create
