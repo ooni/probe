@@ -25,8 +25,11 @@ def setupCollector(tor_process_protocol):
 
     torconfig = txtorcon.TorConfig(tor_process_protocol.tor_protocol)
     public_port = 80
+    # XXX there is currently a bug in txtorcon that prevents data_dir from
+    # being passed properly. Details on the bug can be found here:
+    # https://github.com/meejah/txtorcon/pull/22
     hs_endpoint = txtorcon.TCPHiddenServiceEndpoint(reactor, torconfig,
-            public_port)
+            public_port, data_dir=config.main.tor_datadir)
     hidden_service = hs_endpoint.listen(reportingBackend)
     hidden_service.addCallback(setup_complete)
     hidden_service.addErrback(txSetupFailed)
