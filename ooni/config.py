@@ -36,7 +36,6 @@ def loadConfigFile():
     This is a helper function that makes sure that the configuration attributes
     are singletons.
     """
-    print "LOading config"
     config_file = os.path.join(get_root_path(), 'ooniprobe.conf')
     try:
         f = open(config_file)
