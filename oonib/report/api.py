@@ -59,7 +59,10 @@ def parseUpdateReportRequest(request):
     # XXX this and the function above can probably be refactored into something
     # more compact. There is quite a bit of code duplication going on here.
 
-    report_id_regexp = re.compile("[a-zA-Z0-9]+$")
+    #db_report_id_regexp = re.compile("[a-zA-Z0-9]+$")
+
+    # this is the regexp for the reports that include the timestamp
+    report_id_regexp = re.compile("[a-zA-Z0-9_-]+$")
 
     # XXX here we are actually parsing a json object that could be quite big.
     # If we want this to scale properly we only want to look at the test_id
@@ -121,12 +124,14 @@ class NewReportHandlerFile(web.RequestHandler):
 
         report_id = generateReportID()
 
-        #report_filename = '_'.join((report_id, 
+        #report_filename = '_'.join((report_id,
         #    report_data['software_name'],
         #    report_data['software_version'],
         #    report_data['test_name'],
         #    report_data['test_version']))
 
+        # The report filename contains the timestamp of the report plus a
+        # random nonce
         report_filename = os.path.join(config.main.report_dir, report_id)
         report_filename += '.yamloo'
 

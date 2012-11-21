@@ -2,11 +2,16 @@ __all__ = ['Report', 'TestHelperTMP']
 from storm.twisted.transact import transact
 from storm.locals import *
 
+from ooni.utils import randomStr
 from oonib import transactor
 
 def generateReportID():
-    size = 100
-    report_id = ''.join(random.choice(string.ascii_letters) for x in range(size))
+    """
+    Generates a report ID for usage in the database backed oonib collector.
+
+    XXX note how this function is different from the one in report/api.py
+    """
+    report_id = randomStr(100)
     return report_id
 
 class OModel(object):
