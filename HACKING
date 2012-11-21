@@ -114,13 +114,67 @@ Code Structure
   to, where the asset files are located, what should be used
   for control, etc.
 
+Test related conventions
+------------------------
+
+These are the conventions for tests that are written in ooniprobe. That is what
+goes inside of nettests/.
+
+Naming
+......
+
+All methods that are relevant to the test should be all lower case separated by
+underscore.
+
+All variables that are specific to your test should be all lower case separated
+by underscore.
+
+Simplicity
+..........
+
+Tests written in ooniprobe should be as short as possible and should contain as
+little code not related to the measurement as possible. It should be possible
+from reading the test to understand what it does without clutter.
+
+Everything that is not related directly to the test should go inside of the
+test template of which the test you are writing is a subclass of.
+
+
 Style guide
 -----------
 
 This is an extract of the most important parts of PEP-8. When in doubt on
 what code style should be followed first consult this doc, then PEP-8 and
 if all fails use your best judgement or ask for help.
-    - Art.
+
+The most important part to read is the following as it contains the guidelines
+of naming of variables, functions and classes, as it does not follow pure
+PEP-8.
+
+Naming convention
+.................
+
+Class names should follow the CapWords convention.
+Note: When using abbreviations in CapWords, capitalize all the letters
+      of the abbreviation.  Thus HTTPServerError is better than
+      HttpServerError.
+
+Exception names should follow the class names convention as exceptions
+should be classes.
+
+Method names should follow camelCase with the first letter non-capital.
+
+Class attributes should also follow camelCase with the first letter non-capital.
+
+Functions should follow camelCase with the first letter non-capital.
+
+Functions that are inside the local scope of a class or method should be all
+lowercase separated by an underscore.
+
+
+
+
+
 
 Indentation
 ...........
@@ -240,29 +294,4 @@ Place docstrings under the def.
 
 For a better overview on how to write docstrings consult: PEP-257
 
-
-Naming convention
-.................
-
-Avoid using 'l' (lowercase letter el), 'O' (uppercase letter oh) or
-I (uppercase letter eye) as single character variable names.
-
-Module names should have short, all-lowercase names. Underscores can be
-used in the module name if it improves readability. Python packages should
-also have short, all-lowercase names, although the use of underscores is
-discouraged.
-
-Class names should follow the CapWords convention.
-Note: When using abbreviations in CapWords, capitalize all the letters
-      of the abbreviation.  Thus HTTPServerError is better than
-      HttpServerError.
-
-Exception names should follow the class names convention as exceptions
-should be classes.
-
-Function names should be all lowercase with words separated by underscores
-to improve readability. The same goes for Global Variable names.
-
-Method names should be all lowercase. Non-public methods should start with
-an underscore. The same applies to instance variables.
 
