@@ -83,6 +83,7 @@ class NetTestCase(object):
 
     optParameters = None
     baseParameters = None
+    baseFlags = None
 
     requiredOptions = []
     requiresRoot = False
