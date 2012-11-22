@@ -44,24 +44,28 @@ class BaseScapyTest(NetTestCase):
 
     requiresRoot = True
     baseFlags = [
-            ['ipsrc', 's', 'Check if IP src matches when processing answers'],
+            ['ipsrc', 's', 'Does *not* check if IP src and ICMP IP citation matches when processing answers'],
             ['seqack', 'k', 'Check if TCP sequence number and ack matches when processing answers'],
             ['ipid', 'i', 'Check if IP id matches when processing answers']
             ]
 
     def _setUp(self):
+        self.report['answer_flags'] = []
         if self.localOptions['ipsrc']:
-            config.checkIPsrc = 1
-        else:
             config.checkIPsrc = 0
+        else:
+            self.report['answer_flags'].append('ipsrc')
+            config.checkIPsrc = 1
 
         if self.localOptions['ipid']:
+            self.report['answer_flags'].append('ipid')
             config.checkIPID = 1
         else:
             config.checkIPID = 0
         # XXX we don't support strict matching
 
         if self.localOptions['seqack']:
+            self.report['answer_flags'].append('seqack')
             config.check_TCPerror_seqack = 1
         else:
             config.check_TCPerror_seqack = 0
