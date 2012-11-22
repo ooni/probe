@@ -15,8 +15,10 @@ class UsageOptions(usage.Options):
     optParameters = [
                     ['backend', 'b', '8.8.8.8', 'Test backend to use'],
                     ['timeout', 't', 5, 'The timeout for the traceroute test'],
-                    ['maxttl', 'm', 30, 'The maximum value of ttl to set on packets']
+                    ['maxttl', 'm', 30, 'The maximum value of ttl to set on packets'],
+                    ['srcport', 'p', None, 'Set the source port to a specific value (only applies to TCP and UDP)']
                     ]
+    optFlags = [['randomize','r', 'Randomize the source port']]
 
 class TracerouteTest(scapyt.BaseScapyTest):
     name = "Multi Protocol Traceroute Test"
@@ -24,8 +26,21 @@ class TracerouteTest(scapyt.BaseScapyTest):
     version = "0.1.1"
 
     usageOptions = UsageOptions
+    dst_ports = [22, 23, 53, 80, 123, 443]
 
-    dst_ports = [22, 23, 80, 123, 443]
+    def setUp(self):
+        def get_sport(protocol):
+            if self.localOptions['srcport']:
+                return int(self.localOptions['srcport'])
+            elif self.localOptions['randomize']:
+                return random.randint(1024, 65535)
+            elif protocol == 'tcp':
+                return 80
+            elif protocol == 'udp':
+                return 53
+
+        self.get_sport = get_sport
+
     def max_ttl_and_timeout(self):
         max_ttl = int(self.localOptions['maxttl'])
         timeout = int(self.localOptions['timeout'])
@@ -53,8 +68,10 @@ class TracerouteTest(scapyt.BaseScapyTest):
         dl = []
         max_ttl, timeout = self.max_ttl_and_timeout()
         for port in self.dst_ports:
-            packets = IP(dst=self.localOptions['backend'], 
-                    ttl=(1,max_ttl),id=RandShort())/TCP(flags=0x2, dport=port)
+            packets = IP(dst=self.localOptions['backend'],
+                    ttl=(1,max_ttl),id=RandShort())/TCP(flags=0x2, dport=port,
+                            sport=self.get_sport('tcp'))
+
             d = self.sr(packets, timeout=timeout)
             d.addCallback(finished, port)
             dl.append(d)
@@ -80,7 +97,9 @@ class TracerouteTest(scapyt.BaseScapyTest):
         max_ttl, timeout = self.max_ttl_and_timeout()
         for port in self.dst_ports:
             packets = IP(dst=self.localOptions['backend'],
-                    ttl=(1,max_ttl),id=RandShort())/UDP(dport=port)
+                    ttl=(1,max_ttl),id=RandShort())/UDP(dport=port,
+                            sport=self.get_sport('udp'))
+
             d = self.sr(packets, timeout=timeout)
             d.addCallback(finished, port)
             dl.append(d)
@@ -106,6 +125,7 @@ class TracerouteTest(scapyt.BaseScapyTest):
         max_ttl, timeout = self.max_ttl_and_timeout()
         packets = IP(dst=self.localOptions['backend'],
                     ttl=(1,max_ttl),id=RandShort())/ICMP()
+
         d = self.sr(packets, timeout=timeout)
         d.addCallback(finished)
         return d
