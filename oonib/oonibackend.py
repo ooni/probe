@@ -68,7 +68,7 @@ if config.helpers.http_return_request.port:
     print "Starting HTTP return request helper on %s" % config.helpers.http_return_request.port
     http_return_request_helper = internet.TCPServer(
             int(config.helpers.http_return_request.port),
-            http_helpers.HTTPReturnJSONHeadersHelper)
+            http_helpers.HTTPReturnJSONHeadersHelper())
     http_return_request_helper.setServiceParent(serviceCollection)
 
 reactor.addSystemEventTrigger('after', 'shutdown', db_threadpool.stop)

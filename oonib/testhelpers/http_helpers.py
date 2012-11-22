@@ -10,11 +10,86 @@ from twisted.web.microdom import escape
 
 from cyclone.web import RequestHandler, Application
 
+from twisted.protocols import policies, basic
+from twisted.web.http import Request
+
+class SimpleHTTPChannel(basic.LineReceiver, policies.TimeoutMixin):
+    """
+    This is a simplified version of twisted.web.http.HTTPChannel to overcome
+    header lowercase normalization. It does not actually implement the HTTP
+    protocol, but only the subset of it that we need for testing.
+
+    What this HTTP channel currently does is process the HTTP Request Line and
+    the Request Headers and returns them in a JSON datastructure in the order
+    we received them.
+
+    The returned JSON dict looks like so:
+
+    {
+        'request_headers': 
+            [['User-Agent', 'IE6'], ['Content-Length', 200]]
+        'request_line':
+            'GET / HTTP/1.1'
+    }
+    """
+    requestFactory = Request
+    __first_line = 1
+    __header = ''
+    __content = None
+
+    length = 0
+    maxHeaders = 500
+    requestLine = ''
+    headers = []
+
+    timeOut = 60 * 60 * 12
+
+    def __init__(self):
+        self.requests = []
+
+    def connectionMade(self):
+        self.setTimeout(self.timeOut)
+
+    def lineReceived(self, line):
+        if self.__first_line:
+            self.requestLine = line
+            self.__first_line = 0
+        elif line == '':
+            # We have reached the end of the headers.
+            if self.__header:
+                self.headerReceived(self.__header)
+            self.__header = ''
+            self.allHeadersReceived()
+            self.setRawMode()
+        elif line[0] in ' \t':
+            # This is to support header field value folding over multiple lines
+            # as specified by rfc2616.
+            self.__header = self.__header+'\n'+line
+        else:
+            if self.__header:
+                self.headerReceived(self.__header)
+            self.__header = line
+
+    def headerReceived(self, line):
+        header, data = line.split(':', 1)
+        self.headers.append((header, data))
+
+    def allHeadersReceived(self):
+        response = {'request_headers': self.headers,
+            'request_line': self.requestLine
+        }
+        self.transport.write(json.dumps(response))
+        self.transport.loseConnection()
+
+
+class HTTPReturnJSONHeadersHelper(protocol.ServerFactory):
+    protocol = SimpleHTTPChannel
+    def buildProtocol(self, addr):
+        p = self.protocol()
+        p.headers = []
+        return p
+
 class HTTPTrapAll(RequestHandler):
-    """
-    Master class to be used to trap all the HTTP methods and make capitalized
-    requests pass.
-    """
     def _execute(self, transforms, *args, **kwargs):
         self._transforms = transforms
         defer.maybeDeferred(self.prepare).addCallbacks(
@@ -32,20 +107,6 @@ class HTTPTrapAll(RequestHandler):
             d = defer.maybeDeferred(self.all, *args, **kwargs)
             d.addCallbacks(self._execute_success, self._execute_failure)
             self.notifyFinish().addCallback(self.on_connection_close)
-
-class HTTPReturnJSONHeaders(HTTPTrapAll):
-    def all(self):
-        # XXX make sure that the request headers are in the correct order
-        submitted_data = {'request_body': self.request.body,
-                'request_headers': self.request.headers,
-                'request_uri': self.request.uri,
-                'request_method': self.request.method}
-        response = json.dumps(submitted_data)
-        self.write(response)
-
-HTTPReturnJSONHeadersHelper = Application([
-    (r"/*", HTTPReturnJSONHeaders)
-])
 
 
 class HTTPRandomPage(HTTPTrapAll):
