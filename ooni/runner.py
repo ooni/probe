@@ -51,8 +51,16 @@ def processTest(obj, cmd_line_options):
         obj.usageOptions.optParameters.append(obj.inputFile)
 
     if obj.usageOptions and obj.baseParameters:
+        if not hasattr(obj.usageOptions, 'optParameters'):
+            obj.usageOptions.optParameters = []
         for parameter in obj.baseParameters:
             obj.usageOptions.optParameters.append(parameter)
+
+    if obj.usageOptions and obj.baseFlags:
+        if not hasattr(obj.usageOptions, 'optFlags'):
+            obj.usageOptions.optFlags = []
+        for flag in obj.baseFlags:
+            obj.usageOptions.optFlags.append(flag)
 
     if obj.usageOptions:
         options = obj.usageOptions()

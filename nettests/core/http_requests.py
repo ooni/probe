@@ -6,6 +6,8 @@
 import random
 import json
 
+from twisted.python import usage
+
 from ooni.utils import log, net
 from ooni.templates import httpt
 
@@ -19,6 +21,14 @@ def random_capitalization(string):
             output += string[i]
     return output
 
+class UsageOptions(usage.Options):
+    optParameters = [
+            ['backend', 'b', None, 
+                'URL of the backend to use for sending the requests'],
+            ['headers', 'h', None,
+                'Specify a yaml formatted file from which to read the request headers to send']
+            ]
+
 class HTTPRequests(httpt.HTTPTest):
     """
     This test is also known as Header Field manipulation. It performes HTTP
@@ -28,12 +38,7 @@ class HTTPRequests(httpt.HTTPTest):
     author = "Arturo Filastò"
     version = 0.1
 
-    optParameters = [
-            ['backend', 'b', None, 
-                'URL of the backend to use for sending the requests'],
-            ['headers', 'h', None,
-                'Specify a yaml formatted file from which to read the request headers to send']
-            ]
+    usageOptions = UsageOptions
 
     requiredOptions = ['backend']
 

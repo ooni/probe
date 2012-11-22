@@ -64,6 +64,7 @@ class HTTPTest(NetTestCase):
 
         sockshost, socksport = (None, None)
         if self.localOptions['socksproxy']:
+            self.report['socksproxy'] = self.localOptions['socksproxy']
             sockshost, socksport = self.localOptions['socksproxy'].split(':')
             socksport = int(socksport)
 
