@@ -53,10 +53,21 @@ class HTTPURLList(httpt.HTTPTest):
         """
         self.report['censored'] = True
 
-        censorship_page = open(self.localOptions['content'])
+        censorship_page = open(self.localOptions['content']).xreadlines()
         response_page = iter(body.split("\n"))
 
-        for censorship_line in censorship_page.xreadlines():
+        # We first allign the two pages to the first HTML tag (something
+        # starting with <). This is useful so that we can give as input to this
+        # test something that comes from the output of curl -kis
+        # http://the_page/
+        for line in censorship_page:
+            if line.strip().startswith("<"):
+                break
+        for line in response_page:
+            if line.strip().startswith("<"):
+                break
+
+        for censorship_line in censorship_page:
             try:
                 response_line = response_page.next()
             except StopIteration:
