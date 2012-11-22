@@ -6,6 +6,7 @@
 from twisted.internet import defer
 from twisted.python import usage
 from ooni.templates import httpt
+from ooni.utils import log
 
 class UsageOptions(usage.Options):
     optParameters = [['content', 'c', None,
@@ -56,14 +57,21 @@ class HTTPURLList(httpt.HTTPTest):
         response_page = iter(body.split("\n"))
 
         for censorship_line in censorship_page.xreadlines():
-            response_line = response_page.next()
+            try:
+                response_line = response_page.next()
+            except StopIteration:
+                # The censored page and the response we got do not match in
+                # length.
+                self.report['censored'] = False
+            censorship_line = censorship_line.replace("\n", "")
             if response_line != censorship_line:
                 self.report['censored'] = False
-                break
+
         censorship_page.close()
 
     def processResponseBody(self, body):
         if self.localOptions['content']:
+            log.msg("Checking for censorship in response body")
             self.check_for_content_censorship(body)
 
     def test_get(self):
