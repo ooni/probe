@@ -6,10 +6,11 @@
 from twisted.python import usage
 from twisted.internet import defer
 
-from ooni.utils import log
 from ooni.templates import scapyt
 
 from scapy.all import *
+
+from ooni.utils import log
 
 class UsageOptions(usage.Options):
     optParameters = [
@@ -47,6 +48,7 @@ class TracerouteTest(scapyt.BaseScapyTest):
         self.report['max_ttl'] = max_ttl
         self.report['timeout'] = timeout
         return max_ttl, timeout
+
 
     def test_tcp_traceroute(self):
         """
