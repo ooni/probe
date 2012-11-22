@@ -49,11 +49,11 @@ class HTTPRequests(httpt.HTTPTest):
             raise Exception("No backend specified")
 
     def processResponseBody(self, data):
-        response = json.loads(data)
-        if response['request_method'] != self.request_method:
+        try:
+            response = json.loads(data)
+        except ValueError:
             self.report['tampering'] = True
-        else:
-            self.report['tampering'] = False
+
         # XXX add checks for validation of sent headers
 
     def get_headers(self):
@@ -87,7 +87,7 @@ class HTTPRequests(httpt.HTTPTest):
     def test_get(self):
         self.request_method = "GET"
         self.request_headers = self.get_random_caps_headers()
-        return self.doRequest(self.url, self.request_method, 
+        return self.doRequest(self.url, self.request_method,
                 headers=self.request_headers)
 
     def a_test_get_random_capitalization(self):
@@ -99,25 +99,25 @@ class HTTPRequests(httpt.HTTPTest):
     def a_test_post(self):
         self.request_method = "POST"
         self.request_headers = self.get_headers()
-        return self.doRequest(self.url, self.request_method, 
+        return self.doRequest(self.url, self.request_method,
                 headers=self.request_headers)
 
     def a_test_post_random_capitalization(self):
         self.request_method = random_capitalization("POST")
         self.request_headers = self.get_random_caps_headers()
-        return self.doRequest(self.url, self.request_method, 
+        return self.doRequest(self.url, self.request_method,
                 headers=self.request_headers)
 
     def a_test_put(self):
         self.request_method = "PUT"
         self.request_headers = self.get_headers()
-        return self.doRequest(self.url, self.request_method, 
+        return self.doRequest(self.url, self.request_method,
                 headers=self.request_headers)
 
     def test_put_random_capitalization(self):
         self.request_method = random_capitalization("PUT")
         self.request_headers = self.get_random_caps_headers()
-        return self.doRequest(self.url, self.request_method, 
+        return self.doRequest(self.url, self.request_method,
                 headers=self.request_headers)
 
 
