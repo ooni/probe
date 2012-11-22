@@ -9,7 +9,7 @@ from twisted.python import usage
 from twisted.plugin import IPlugin
 from twisted.internet import protocol, defer, threads
 
-from scapy.all import send, sr, IP, TCP
+from scapy.all import send, sr, IP, TCP, config
 
 from ooni.nettest import NetTestCase
 from ooni.utils import log
@@ -43,6 +43,28 @@ class BaseScapyTest(NetTestCase):
     version = 0.1
 
     requiresRoot = True
+    baseFlags = [
+            ['ipsrc', 's', 'Check if IP src matches when processing answers'],
+            ['seqack', 'k', 'Check if TCP sequence number and ack matches when processing answers'],
+            ['ipid', 'i', 'Check if IP id matches when processing answers']
+            ]
+
+    def _setUp(self):
+        if self.localOptions['ipsrc']:
+            config.checkIPsrc = 1
+        else:
+            config.checkIPsrc = 0
+
+        if self.localOptions['ipid']:
+            config.checkIPID = 1
+        else:
+            config.checkIPID = 0
+        # XXX we don't support strict matching
+
+        if self.localOptions['seqack']:
+            config.check_TCPerror_seqack = 1
+        else:
+            config.check_TCPerror_seqack = 0
 
     def sr(self, packets, *arg, **kw):
         """
