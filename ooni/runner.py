@@ -40,12 +40,6 @@ def processTest(obj, cmd_line_options):
         class.
     """
     options = None
-    if obj.requiresRoot:
-        try:
-            checkForRoot()
-        except NotRootError:
-            log.err("%s requires root to run" % obj.name)
-            sys.exit(1)
 
     if obj.usageOptions and obj.inputFile:
         obj.usageOptions.optParameters.append(obj.inputFile)
@@ -83,6 +77,13 @@ def processTest(obj, cmd_line_options):
             print "%s" % e
             options.opt_help()
             raise usage.UsageError("Error in parsing command line args for %s" % test_name) 
+
+    if obj.requiresRoot:
+        try:
+            checkForRoot()
+        except NotRootError:
+            log.err("%s requires root to run" % obj.name)
+            sys.exit(1)
 
     return obj
 
