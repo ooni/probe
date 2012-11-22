@@ -161,9 +161,9 @@ class HTTPTest(NetTestCase):
         # We prefix the URL with 's' to make the connection go over the
         # configured socks proxy
         if use_tor:
-            log.debug("Using tor for the request")
+            log.debug("Using control agent for the request")
             url = 's'+url
-            agent = self.tor_agent
+            agent = self.control_agent
         else:
             agent = self.agent
 
