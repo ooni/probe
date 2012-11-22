@@ -79,7 +79,7 @@ class NetTestCase(object):
     report = {}
     report['errors'] = []
 
-    usageOptions = None
+    usageOptions = usage.Options
 
     optParameters = None
     baseParameters = None

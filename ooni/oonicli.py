@@ -122,7 +122,7 @@ def run():
             print "    you should run ooniprobe as root or disable the options in ooniprobe.conf"
             sys.exit(1)
         print "Starting sniffer"
-        sniffer_d = net.capturePackets(pcap_filename)
+        net.capturePackets(pcap_filename)
 
     log.start(cmd_line_options['logfile'])
 

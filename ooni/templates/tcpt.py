@@ -68,8 +68,7 @@ class TCPTest(NetTestCase):
 
         def errback(failure):
             self.report['error'] = str(failure)
-            log.exception(failure)
-            d1.callback(self.report['received'])
+            d1.errback(failure)
 
         def connected(p):
             log.debug("Connected to %s:%s" % (self.address, self.port))

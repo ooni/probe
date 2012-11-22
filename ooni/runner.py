@@ -39,44 +39,40 @@ def processTest(obj, cmd_line_options):
         A configured and instantiated :class:`twisted.python.usage.Options`
         class.
     """
-    options = None
-
-    if obj.usageOptions and obj.inputFile:
+    if obj.inputFile:
         obj.usageOptions.optParameters.append(obj.inputFile)
 
-    if obj.usageOptions and obj.baseParameters:
+    if obj.baseParameters:
         if not hasattr(obj.usageOptions, 'optParameters'):
             obj.usageOptions.optParameters = []
         for parameter in obj.baseParameters:
             obj.usageOptions.optParameters.append(parameter)
 
-    if obj.usageOptions and obj.baseFlags:
+    if obj.baseFlags:
         if not hasattr(obj.usageOptions, 'optFlags'):
             obj.usageOptions.optFlags = []
         for flag in obj.baseFlags:
             obj.usageOptions.optFlags.append(flag)
 
-    if obj.usageOptions:
-        options = obj.usageOptions()
+    options = obj.usageOptions()
 
-    if options:
-        options.parseOptions(cmd_line_options['subArgs'])
-        obj.localOptions = options
+    options.parseOptions(cmd_line_options['subArgs'])
+    obj.localOptions = options
 
-        if obj.inputFile:
-            obj.inputFilename = options[obj.inputFile[0]]
+    if obj.inputFile:
+        obj.inputFilename = options[obj.inputFile[0]]
 
-        try:
-            log.debug("processing options")
-            tmp_test_case_object = obj()
-            tmp_test_case_object._processOptions(options)
+    try:
+        log.debug("processing options")
+        tmp_test_case_object = obj()
+        tmp_test_case_object._processOptions(options)
 
-        except usage.UsageError, e:
-            test_name = tmp_test_case_object.name
-            print "There was an error in running %s!" % test_name
-            print "%s" % e
-            options.opt_help()
-            raise usage.UsageError("Error in parsing command line args for %s" % test_name) 
+    except usage.UsageError, e:
+        test_name = tmp_test_case_object.name
+        print "There was an error in running %s!" % test_name
+        print "%s" % e
+        options.opt_help()
+        raise usage.UsageError("Error in parsing command line args for %s" % test_name) 
 
     if obj.requiresRoot:
         try:

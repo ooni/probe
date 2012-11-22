@@ -21,7 +21,7 @@ class UsageOptions(usage.Options):
 
     optFlags = [['randomize','r', 'Randomize the source port']]
 
-class TracerouteTest(scapyt.BaseScapyTest):
+class ParasiticalTracerouteTest(scapyt.BaseScapyTest):
     name = "Parasitic TCP Traceroute Test"
     author = "Arturo Filastò"
     version = "0.1"
