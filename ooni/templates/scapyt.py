@@ -81,8 +81,11 @@ class BaseScapyTest(NetTestCase):
         """
         def finished(packets):
             answered, unanswered = packets
-            self.report['answered_packets'] = []
-            self.report['sent_packets'] = []
+            if 'answered_packets' not in self.report:
+                self.report['answered_packets'] = []
+            if 'sent_packets' not in self.report:
+                self.report['sent_packets'] = []
+
             for snd, rcv in answered:
                 log.debug("Writing report for scapy test")
                 sent_packet = snd
