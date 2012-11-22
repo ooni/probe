@@ -50,13 +50,13 @@ class SOCKSv5ClientProtocol(_WrappingProtocol):
 
             errcode = ord(data[1])
             self._connectedDeferred.errback(SOCKSError(errcode))
-                
+
             return
 
         self.ready = True
         self._wrappedProtocol.transport = self.transport
         self._wrappedProtocol.connectionMade()
-        
+
         self._connectedDeferred.callback(self._wrappedProtocol)
 
     def connectionMade(self):
@@ -81,7 +81,7 @@ class SOCKSv5ClientProtocol(_WrappingProtocol):
 
 class SOCKSv5ClientFactory(_WrappingFactory):
     protocol = SOCKSv5ClientProtocol
-    
+
     def __init__(self, wrappedFactory, host, port):
         _WrappingFactory.__init__(self, wrappedFactory)
         self._host, self._port = host, port
@@ -119,7 +119,7 @@ class SOCKS5ClientEndpoint(object):
         except:
             return defer.fail()
 
-class Headers(http_headers.Headers):
+class TrueHeaders(http_headers.Headers):
     def __init__(self, rawHeaders=None):
         self._rawHeaders = dict()
         if rawHeaders is not None:
@@ -141,12 +141,13 @@ class Headers(http_headers.Headers):
 
     def getRawHeaders(self, name, default=None):
         if name.lower() in self._rawHeaders:
-            return self._rawHeaders[name.lower()]["values"]
+            return self._rawHeaders[name.lower()]['values']
         return default
+
 class HTTPClientParser(_newclient.HTTPClientParser):
     def connectionMade(self):
-        self.headers = Headers()
-        self.connHeaders = Headers()
+        self.headers = TrueHeaders()
+        self.connHeaders = TrueHeaders()
         self.state = STATUS
         self._partialHeader = None
 
@@ -224,31 +225,32 @@ class Agent(client.Agent):
             return TCP4ClientEndpoint(self._reactor, host, port, **kwargs)
         elif scheme == 'shttp':
             return SOCKS5ClientEndpoint(self._reactor, self._sockshost,
-                                        self._socksport, host, port, **kwargs)
+                    self._socksport, host, port, **kwargs)
         elif scheme == 'httpo':
             return SOCKS5ClientEndpoint(self._reactor, self._sockshost,
-                                        self._socksport, host, port, **kwargs)
+                    self._socksport, host, port, **kwargs)
         elif scheme == 'https':
             return SSL4ClientEndpoint(self._reactor, host, port,
-                                      self._wrapContextFactory(host, port),
-                                      **kwargs)
+                    self._wrapContextFactory(host, port), **kwargs)
         else:
             raise SchemeNotSupported("Unsupported scheme: %r" % (scheme,))
 
     def _requestWithEndpoint(self, key, endpoint, method, parsedURI,
                              headers, bodyProducer, requestPath):
         if headers is None:
-            headers = Headers()
+            headers = TrueHeaders()
         if not headers.hasHeader('host'):
             headers = headers.copy()
             headers.addRawHeader(
-                'host', self._computeHostValue(parsedURI.scheme, parsedURI.host,
-                                               parsedURI.port))
+                'host', self._computeHostValue(parsedURI.scheme,
+                    parsedURI.host, parsedURI.port))
 
         d = self._pool.getConnection(key, endpoint)
+        print headers._rawHeaders
         def cbConnected(proto):
             return proto.request(
                 Request(method, requestPath, headers, bodyProducer,
                         persistent=self._pool.persistent))
         d.addCallback(cbConnected)
         return d
+

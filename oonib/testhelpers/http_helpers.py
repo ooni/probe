@@ -72,12 +72,17 @@ class SimpleHTTPChannel(basic.LineReceiver, policies.TimeoutMixin):
 
     def headerReceived(self, line):
         header, data = line.split(':', 1)
-        self.headers.append((header, data))
+        self.headers.append((header, data.strip()))
 
     def allHeadersReceived(self):
+        headers_dict = {}
+        for k, v in self.headers:
+            headers_dict[k] = v
         response = {'request_headers': self.headers,
-            'request_line': self.requestLine
+            'request_line': self.requestLine,
+            'headers_dict': headers_dict
         }
+        self.transport.write('HTTP/1.1 200 OK\r\n\r\n')
         self.transport.write(json.dumps(response))
         self.transport.loseConnection()
 

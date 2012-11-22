@@ -15,7 +15,6 @@ from twisted.internet import reactor
 from twisted.internet.error import ConnectionRefusedError
 
 from twisted.web._newclient import Request
-from twisted.web.http_headers import Headers
 
 from ooni.nettest import NetTestCase
 from ooni.utils import log
@@ -23,7 +22,7 @@ from ooni import config
 
 from ooni.utils.net import BodyReceiver, StringProducer, userAgents
 
-from ooni.utils.txagentwithsocks import Agent, SOCKSError
+from ooni.utils.txagentwithsocks import Agent, SOCKSError, TrueHeaders
 
 class HTTPTest(NetTestCase):
     """
@@ -195,7 +194,7 @@ class HTTPTest(NetTestCase):
         else:
             body_producer = None
 
-        headers = Headers(request['headers'])
+        headers = TrueHeaders(request['headers'])
 
         def errback(failure):
             failure.trap(ConnectionRefusedError, SOCKSError)
