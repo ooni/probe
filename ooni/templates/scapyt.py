@@ -45,8 +45,8 @@ class BaseScapyTest(NetTestCase):
     requiresRoot = True
     baseFlags = [
             ['ipsrc', 's', 'Does *not* check if IP src and ICMP IP citation matches when processing answers'],
-            ['seqack', 'k', 'Check if TCP sequence number and ack matches when processing answers'],
-            ['ipid', 'i', 'Check if IP id matches when processing answers']
+            ['seqack', 'k', 'Check if TCP sequence number and ACK match in the ICMP citation when processing answers'],
+            ['ipid', 'i', 'Check if the IPID matches when processing answers']
             ]
 
     def _setUp(self):
@@ -63,6 +63,10 @@ class BaseScapyTest(NetTestCase):
         else:
             config.checkIPID = 0
         # XXX we don't support strict matching
+        # since (from scapy's documentation), some stacks have a bug for which
+        # the bytes in the IPID are swapped.
+        # Perhaps in the future we will want to have more fine grained control
+        # over this.
 
         if self.localOptions['seqack']:
             self.report['answer_flags'].append('seqack')
