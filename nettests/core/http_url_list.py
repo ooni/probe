@@ -74,6 +74,7 @@ class HTTPURLList(httpt.HTTPTest):
                 # The censored page and the response we got do not match in
                 # length.
                 self.report['censored'] = False
+                break
             censorship_line = censorship_line.replace("\n", "")
             if response_line != censorship_line:
                 self.report['censored'] = False
