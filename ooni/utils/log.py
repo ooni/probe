@@ -15,6 +15,10 @@ from twisted.python.logfile import DailyLogFile
 from ooni.utils import otime
 from ooni import config
 
+## Get rid of the annoying "No route found for
+## IPv6 destination warnings":
+logging.getLogger("scapy.runtime").setLevel(logging.ERROR)
+
 def start(logfile=None, application_name="ooniprobe"):
     daily_logfile = None
 

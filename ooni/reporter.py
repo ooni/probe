@@ -26,15 +26,7 @@ from ooni.utils import otime, log, geodata
 from ooni.utils.hacks import OSafeRepresenter, OSafeDumper
 from ooni import config
 
-try:
-    ## Get rid of the annoying "No route found for
-    ## IPv6 destination warnings":
-    logging.getLogger("scapy.runtime").setLevel(logging.ERROR)
-    from scapy.all import packet
-except:
-    class FooClass:
-        Packet = object
-    packet = FooClass
+from scapy.all import packet
 
 class NoTestIDSpecified(Exception):
     pass
