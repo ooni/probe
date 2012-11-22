@@ -178,7 +178,7 @@ class OONIBTestDetailsLookupFailed(Exception):
 
 class OONIBReporter(OReporter):
     def __init__(self, backend_url):
-        from ooni.lib.txagentwithsocks import Agent
+        from ooni.utils.txagentwithsocks import Agent
         from twisted.internet import reactor
         try:
             self.agent = Agent(reactor, sockshost="127.0.0.1",

@@ -23,7 +23,7 @@ from ooni import config
 
 from ooni.utils.net import BodyReceiver, StringProducer, userAgents
 
-from ooni.lib.txagentwithsocks import Agent, SOCKSError
+from ooni.utils.txagentwithsocks import Agent, SOCKSError
 
 class HTTPTest(NetTestCase):
     """

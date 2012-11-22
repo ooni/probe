@@ -93,7 +93,7 @@ class HTTPRequests(httpt.HTTPTest):
     def a_test_get_random_capitalization(self):
         self.request_method = random_capitalization("GET")
         self.request_headers = self.get_random_caps_headers()
-        return self.doRequest(self.url, self.request_method, 
+        return self.doRequest(self.url, self.request_method,
                 headers=self.request_headers)
 
     def a_test_post(self):
