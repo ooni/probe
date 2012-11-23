@@ -19,6 +19,9 @@ from twisted.python import usage
 
 from ooni.utils import log
 
+class NoPostProcessor(Exception):
+    pass
+
 class NetTestCase(object):
     """
     This is the base of the OONI nettest universe. When you write a nettest
@@ -100,6 +103,16 @@ class NetTestCase(object):
         Place here your logic to be executed when the test is being setup.
         """
         pass
+
+    def postProcessor(self, report):
+        """
+        Subclass this to do post processing tasks that are to occur once all
+        the test methods have been called. Once per input.
+        postProcessing works exactly like test methods, in the sense that
+        anything that gets written to the object self.report[] will be added to
+        the final test report.
+        """
+        raise NoPostProcessor
 
     def inputProcessor(self, filename=None):
         """

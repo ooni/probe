@@ -83,7 +83,7 @@ def getTestDetails(options):
     defer.returnValue(test_details)
 
 class OReporter(object):
-    def createReport(options):
+    def createReport(self, options):
         """
         Override this with your own logic to implement tests.
         """
@@ -99,7 +99,7 @@ class OReporter(object):
         pass
 
     def testDone(self, test, test_name):
-        log.debug("Finished running %s" % test_name)
+        log.msg("Finished running %s" % test_name)
         log.debug("Writing report")
         test_report = dict(test.report)
 
@@ -114,6 +114,7 @@ class OReporter(object):
         report = {'input': test_input,
                 'test_name': test_name,
                 'test_started': test_started,
+                'test_runtime': test_runtime,
                 'report': test_report}
         return self.writeReportEntry(report)
 

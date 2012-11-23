@@ -21,7 +21,7 @@ from twisted.trial.runner import filenameToModule
 from twisted.internet import reactor, threads
 
 from ooni.inputunit import InputUnitFactory
-from ooni.nettest import NetTestCase
+from ooni.nettest import NetTestCase, NoPostProcessor
 
 from ooni import reporter
 
@@ -69,8 +69,8 @@ def processTest(obj, cmd_line_options):
 
     except usage.UsageError, e:
         test_name = tmp_test_case_object.name
-        print "There was an error in running %s!" % test_name
-        print "%s" % e
+        log.err("There was an error in running %s!" % test_name)
+        log.err("%s" % e)
         options.opt_help()
         raise usage.UsageError("Error in parsing command line args for %s" % test_name) 
 
@@ -141,53 +141,87 @@ def loadTestsAndOptions(classes, cmd_line_options):
 
     return test_cases, options
 
-def runTestWithInput(test_class, test_method, test_input, oreporter):
-    log.debug("Running %s with %s" % (test_method, test_input))
+def runTestCasesWithInput(test_cases, test_input, oreporter):
+    """
+    Runs in parallel all the test methods that are inside of the specified test case.
+    Reporting happens every time a Test Method has concluded running.
+    Once all the test methods have been called we check to see if the
+    postProcessing class method returns something. If it does return something
+    we will write this as another entry inside of the report called post_processing.
+    """
+
+    # This is used to store a copy of all the test reports
+    tests_report = {}
 
     def test_done(result, test_instance, test_name):
         log.debug("runTestWithInput: concluded %s" % test_name)
+        tests_report[test_name] = dict(test_instance.report)
         return oreporter.testDone(test_instance, test_name)
 
     def test_error(failure, test_instance, test_name):
         log.exception(failure)
 
-    test_instance = test_class()
-    test_instance.input = test_input
-    test_instance.report = {}
-    log.debug("Processing %s" % test_instance.name)
-    # use this to keep track of the test runtime
-    test_instance._start_time = time.time()
-    # call setups on the test
-    test_instance._setUp()
-    test_instance.setUp()
-    test = getattr(test_instance, test_method)
-
-    d = defer.maybeDeferred(test)
-    d.addCallback(test_done, test_instance, test_method)
-    d.addErrback(test_error, test_instance, test_method)
-    log.debug("returning %s input" % test_method)
-    return d
-
-def runTestWithInputUnit(test_class,
-        test_method, input_unit, oreporter):
-    """
-    test_class: the uninstantiated class of the test to be run
-
-    test_method: a string representing the method name to be called
-
-    input_unit: a generator that contains the inputs to be run on the test
-
-    oreporter: ooni.reporter.OReporter instance
-
-    returns a deferred list containing all the tests to be run at this time
-    """
+    def tests_done(result, test_class):
+        test_instance = test_class()
+        test_instance.report = {}
+        test_instance.input = None
+        test_instance._start_time = time.time()
+        post = getattr(test_instance, 'postProcessor')
+        try:
+            post_processing = post(tests_report)
+            return oreporter.testDone(test_instance, 'summary')
+        except NoPostProcessor:
+            log.debug("No post processor configured")
 
     dl = []
-    log.debug("input unit %s" % input_unit)
+    for test_case in test_cases:
+        log.debug("Processing %s" % test_case[1])
+        test_class = test_case[0]
+        test_method = test_case[1]
+
+        log.msg("Running %s with %s" % (test_method, test_input))
+
+        test_instance = test_class()
+        test_instance.input = test_input
+        test_instance.report = {}
+        log.msg("Processing %s" % test_instance.name)
+        # use this to keep track of the test runtime
+        test_instance._start_time = time.time()
+        # call setups on the test
+        test_instance._setUp()
+        test_instance.setUp()
+        test = getattr(test_instance, test_method)
+
+        d = defer.maybeDeferred(test)
+        d.addCallback(test_done, test_instance, test_method)
+        d.addErrback(test_error, test_instance, test_method)
+        log.debug("returning %s input" % test_method)
+        dl.append(d)
+
+    test_methods_d = defer.DeferredList(dl)
+    test_methods_d.addCallback(tests_done, test_cases[0][0])
+    return test_methods_d
+
+def runTestCasesWithInputUnit(test_cases, input_unit, oreporter):
+    """
+    Runs the Test Cases that are given as input parallely.
+    A Test Case is a subclass of ooni.nettest.NetTestCase and a list of
+    methods.
+
+    The deferred list will fire once all the test methods have been
+    run once per item in the input unit.
+
+    test_cases: A list of tuples containing the test class and the test method as a string.
+
+    input_unit: A generator that yields an input per iteration
+
+    oreporter: An instance of a subclass of ooni.reporter.OReporter
+    """
+    log.debug("Running test cases with input unit")
+    dl = []
     for test_input in input_unit:
-        log.debug("running with input: %s" % test_input)
-        d = runTestWithInput(test_class,
-                test_method, test_input, oreporter)
+        log.debug("Running test with this input %s" % test_input)
+        d = runTestCasesWithInput(test_cases, test_input, oreporter)
         dl.append(d)
     return defer.DeferredList(dl)
 
@@ -241,18 +275,14 @@ def runTestCases(test_cases, options,
     # This deferred list is a deferred list of deferred lists
     # it is used to store all the deferreds of the tests that
     # are run
+    input_unit_idx = 0
     try:
         for input_unit in input_unit_factory:
             log.debug("Running this input unit %s" % input_unit)
-            # We do this because generators can't we rewound.
-            input_list = list(input_unit)
-            for test_case in test_cases:
-                log.debug("Processing %s" % test_case[1])
-                test_class = test_case[0]
-                test_method = test_case[1]
-                yield runTestWithInputUnit(test_class,
-                            test_method, input_list,
-                            oreporter)
+            yield runTestCasesWithInputUnit(test_cases, input_unit,
+                        oreporter)
+            input_unit_idx += 1
+
     except Exception:
         log.exception("Problem in running test")
         reactor.stop()
