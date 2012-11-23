@@ -104,7 +104,6 @@ def capturePackets(pcap_filename):
     reactor.addSystemEventTrigger('before', 'shutdown', stopCapture)
     return d
 
-
 def getClientPlatform(platform_name=None):
     for name, test in PLATFORMS.items():
         if not platform_name or platform_name.upper() == name:
@@ -113,7 +112,6 @@ def getClientPlatform(platform_name=None):
 
 def getPosixIfaces():
     from twisted.internet.test import _posixifaces
-
     log.msg("Attempting to discover network interfaces...")
     ifaces = _posixifaces._interfaces()
     ifup = tryInterfaces(ifaces)
@@ -121,13 +119,16 @@ def getPosixIfaces():
 
 def getWindowsIfaces():
     from twisted.internet.test import _win32ifaces
-
     log.msg("Attempting to discover network interfaces...")
     ifaces = _win32ifaces._interfaces()
     ifup = tryInterfaces(ifaces)
     return ifup
 
 def getIfaces(platform_name=None):
+    """
+    Determines if the client's OS is Windows or Posix based, and then calls
+    the appropriate function for retrieving interfaces.
+    """
     client, test = getClientPlatform(platform_name)
     if client:
         if client == ('LINUX' or 'DARWIN') or client[-3:] == 'BSD':
@@ -142,8 +143,16 @@ def getIfaces(platform_name=None):
 
 def checkInterfaces(ifaces=None, timeout=1):
     """
+    Check given network interfaces to see that they can send and receive
+    packets. This is similar to :func:`getDefaultIface`, except that function
+    only retrieves the name of the interface which is associated with the LAN,
+    whereas this function validates tx/rx capabilities.
+
     @param ifaces:
-        A dictionary in the form of ifaces['if_name'] = 'if_addr'.
+        (optional) A dictionary in the form of ifaces['if_name'] = 'if_addr'.
+    @param timeout:
+        An integer specifying the number of seconds to timeout if
+        no reply is received for our pings.
     """
     try:
         from scapy.all import IP, ICMP
@@ -180,6 +189,15 @@ def checkInterfaces(ifaces=None, timeout=1):
         raise IfaceError
 
 def getNonLoopbackIfaces(platform_name=None):
+    """
+    Get the iface names of all client network interfaces which are not
+    the loopback interface, regardless of whether they route to internal
+    or external networks.
+
+    @param platform_name: (optional) The client interface, if known. Should
+        be given precisely as listed in ooni.utils.net.PLATFORMS.
+    @return: A list of strings of non-loopback iface names.
+    """
     try:
         ifaces = getIfaces(platform_name)
     except UnsupportedPlatform, up:
@@ -202,7 +220,6 @@ def getNonLoopbackIfaces(platform_name=None):
 
 def getNetworksFromRoutes():
     """
-
     Get the networks this client is current on from the kernel routing table.
     Each network is returned as a :class:`ipaddr.IPNetwork`, with the
     network range as the name of the network, i.e.:
@@ -224,17 +241,15 @@ def getNetworksFromRoutes():
     from scapy.all import conf, ltoa, read_routes
     from ipaddr    import IPNetwork, IPAddress
 
-    ## Hide the 'no routes' warnings
-    conf.verb = 0
-
+    conf.verb = 0     # Hide the warnings
     networks = []
     for nw, nm, gw, iface, addr in read_routes():
         n = IPNetwork( ltoa(nw) )
-        (n.netmask, n.gateway, n.ipaddr) = [IPAddress(x) for x in [nm, gw, addr]]
+        (n.netmask, n.gateway, n.ipaddr) = [ IPAddress(x) for x in
+                                             [nm, gw, addr] ]
         n.iface = iface
         if not n.compressed in networks:
             networks.append(n)
-
     return networks
 
 def getDefaultIface():

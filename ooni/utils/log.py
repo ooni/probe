@@ -3,6 +3,7 @@
 # :authors: Arturo Filastò
 # :licence: see LICENSE
 
+from functools import wraps
 import sys
 import os
 import traceback
@@ -58,6 +59,24 @@ def exception(msg):
 
 def exception(*msg):
     logging.exception(msg)
+
+def catcher(func):
+    """
+    Quick wrapper to add around test methods for debugging purposes,
+    catches the given Exception. Use like so:
+
+        @log.catcher
+        def foo(bar):
+            if bar == 'baz':
+                raise Exception("catch me no matter what I am")
+        foo("baz")
+    """
+    def _catcher(*args, **kwargs):
+        try:
+            func(*args, **kwargs)
+        except Exception, exc:
+            exception(exc)
+    return _catcher
 
 class LoggerFactory(object):
     """
