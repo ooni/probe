@@ -62,11 +62,11 @@ class TCPSynTest(nettest.NetTestCase):
 
     destinations = {}
 
+    @log.catcher
     def setUp(self, *a, **kw):
         """Configure commandline parameters for TCPSynTest."""
         if self.localOptions:
             for key, value in self.localOptions.items():
-                log.debug("setting self.%s = %s" % (key, value))
                 setattr(self, key, value)
         if not self.interface:
             try:
@@ -78,7 +78,6 @@ class TCPSynTest(nettest.NetTestCase):
             else:
                 log.msg("Using system default interface: %s" % iface)
                 self.interface = iface
-
         if self.cerealize:
             if True:
                 raise NotImplemented("need handler for type(dictproxy)...")
@@ -97,111 +96,99 @@ class TCPSynTest(nettest.NetTestCase):
         if not dst in self.destinations.keys():
             self.destinations[dst] = {'dst': dst, 'dport': dport}
         else:
-            ## XXX implement multiple port or portrange options
-            log.msg("Multiple port scanning not yet implemented.")
+            log.debug("XXX Multiple port scanning not yet implemented.")
         return (dst, dport)
 
     def inputProcessor(self, input_file=None):
         """
-        Pull the IPs and PORTs from the input file, and place them in a dict
-        for storing test results as they arrive.
+        Pull the IPs and PORTs from the commandline options first, and then
+        from the input file, and place them in a dict for storing test results
+        as they arrive.
         """
-        try:
-            ## get the commandline input, if there is one:
-            if self.localOptions['dst'] is not None \
-                    and self.localOptions['port'] is not None:
-                log.debug("processing commandline destination input")
-                yield self.addToDestinations(self.localOptions['dst'],
-                                             self.localOptions['port'])
-            ## get the inputs from inputFile:
-            if input_file and os.path.isfile(input_file):
-                log.debug("processing input file %s" % input_file)
-                with open(input_file) as f:
-                    for line in f.readlines():
-                        if line.startswith('#'):
-                            continue
-                        one = line.strip()
-                        raw_ip, raw_port = one.rsplit(':', 1) ## XXX not ipv6 safe!
-                        yield self.addToDestinations(raw_ip, raw_port)
-        except Exception, ex:
-            log.exception(ex)
+        if self.localOptions['dst'] is not None \
+                and self.localOptions['port'] is not None:
+            log.debug("processing commandline destination input")
+            yield self.addToDestinations(self.localOptions['dst'],
+                                         self.localOptions['port'])
+        if input_file and os.path.isfile(input_file):
+            log.debug("processing input file %s" % input_file)
+            with open(input_file) as f:
+                for line in f.readlines():
+                    if line.startswith('#'):
+                        continue
+                    one = line.strip()
+                    raw_ip, raw_port = one.rsplit(':', 1) ## XXX not ipv6 safe!
+                    yield self.addToDestinations(raw_ip, raw_port)
 
+    @staticmethod
+    def build_packets(addr, port, flags=None, count=3):
+        """Construct a list of packets to send out."""
+        packets = []
+        for x in xrange(count):
+            packets.append( IP(dst=addr)/TCP(dport=port, flags=flags) )
+        return packets
+
+    @log.catcher
     def test_tcp_syn(self):
         """Send the list of SYN packets."""
-        try:
-            def build_packets(addr, port):
-                """Construct a list of packets to send out."""
-                packets = []
-                for x in xrange(self.count):
-                    pkt = IP(dst=addr)/TCP(dport=port, flags="S")
-                    packets.append(pkt)
-                return packets
 
-            def process_packets(packet_list):
-                """xxx"""
-                results, unanswered = packet_list
+        def process_packets(packet_list):
+            """xxx"""
+            results, unanswered = packet_list
 
-                if self.pdf:
-                    pdf_name = self.name  +'_'+ timestamp()
-                    try:
-                        results.pdfdump(pdf_name)
-                    except Exception, ex:
-                        log.exception(ex)
-                    else:
-                        log.msg("Visual packet conversation saved to %s.pdf"
-                                % pdf_name)
+            if self.pdf:
+                pdf_name = self.name  +'_'+ timestamp()
+                try:
+                    results.pdfdump(pdf_name)
+                except Exception, ex:
+                    log.exception(ex)
+                else:
+                    log.msg("Visual packet conversation saved to %s.pdf"
+                            % pdf_name)
 
-                for (q, r) in results:
-                    request_data = {'summary': q.summary(),
-                                    'command': q.command(),
-                                    'hash': q.hashret(),
-                                    'display': q.display(),
-                                    'sent_time': q.time}
-                    response_data = {'summary': r.summary(),
-                                     'command': r.command(),
-                                     'hash': r.hashret(),
-                                     'src': r['IP'].src,
-                                     'flags': r['IP'].flags,
-                                     'display': r.display(),
-                                     'recv_time': r.time,
-                                     'delay': r.time - q.time}
-                    if self.hexdump:
-                        request_data.update('hexdump', q.hexdump())
-                        response_data.update('hexdump', r.hexdump())
-                    if self.cerealize:
-                        pass
-                    result_data = (request_data, response_data)
+            for (q, r) in results:
+                request_data = {'dst': q.dst,
+                                'dport': q.dport,
+                                'summary': q.summary(),
+                                'command': q.command(),
+                                'sent_time': q.time}
+                response_data = {'summary': r.summary(),
+                                 'command': r.command(),
+                                 'src': r['IP'].src,
+                                 'flags': r['IP'].flags,
+                                 'recv_time': r.time,
+                                 'delay': r.time - q.time}
+                if self.hexdump:
+                    request_data.update('hexdump', q.hexdump())
+                    response_data.update('hexdump', r.hexdump())
+                if self.cerealize:
+                    pass
 
-                    for dest, data in self.destinations.items():
-                        if data['dst'] == response_data['src']:
-                            if not 'received_response' in data:
-                                if self.hexdump:
-                                    log.msg("%s" % request.hexdump())
-                                    log.msg("%s" % response.hexdump())
-                                else:
-                                    log.msg("\n    %s\n ==> %s" % (q.summary(),
-                                                                   r.summary()))
-                                data['result'] = [result_data, ]
-                                data['received_response'] = True
-                                data['reachable'] = True
+                for dest, data in self.destinations.items():
+                    if data['dst'] == response_data['src']:
+                        if not 'reachable' in data:
+                            if self.hexdump:
+                                log.msg("%s\n%s" % (q.hexdump(), r.hexdump()))
                             else:
-                                data['result'].append(result_data)
+                                log.msg(" Received response:\n%s ==> %s"
+                                        % (q.mysummary(), r.mysummary()))
+                            data.update( {'reachable': True,
+                                          'request': request_data,
+                                          'response': response_data} )
+            return unanswered
 
-            def process_unanswered(unanswer):
-                """Callback function to process unanswered packets."""
-                #log.debug("%s" % str(unanswer))
-                return unanswer
+        def process_unanswered(unanswered):
+            """Callback function to process unanswered packets."""
+            if unanswered is not None and len(unanswered) > 0:
+                log.msg("Waiting on responses from\n%s" %
+                        '\n'.join([unans.summary() for unans in unanswered]))
+            log.msg("Writing response packet information to report...")
+            self.report = (self.destinations)
+            return self.destinations
 
-            (addr, port) = self.input
-            packets = build_packets(addr, port)
-
-            results = []
-
-            d = txscapy.sr(packets, iface=self.interface)
-            d.addCallbacks(process_packets, log.exception)
-            d.addCallbacks(process_unanswered, log.exception)
-            self.report['destinations'] = self.destinations
-            return d
-
-        except Exception, e:
-            log.exception(e)
+        (addr, port) = self.input
+        packets = self.build_packets(addr, port, "S", self.count)
+        d = txscapy.sr(packets, iface=self.interface)
+        d.addCallbacks(process_packets, log.exception)
+        d.addCallbacks(process_unanswered, log.exception)
+        return d
