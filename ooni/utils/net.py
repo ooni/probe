@@ -15,7 +15,6 @@ from zope.interface import implements
 from twisted.internet import protocol, defer
 from twisted.internet import threads, reactor
 from twisted.web.iweb import IBodyProducer
-from scapy.all import utils
 
 from ooni.utils import log, txscapy
 

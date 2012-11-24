@@ -17,13 +17,30 @@ from twisted.internet import reactor, threads, error
 from twisted.internet import defer, abstract
 from zope.interface import implements
 
-from scapy.all import PcapWriter, MTU
-from scapy.all import BasePacketList, conf, PcapReader
-
-from scapy.all import conf, Gen, SetGen
-from scapy.arch import pcapdnet
+from scapy.config import conf
 
 from ooni.utils import log
+from ooni import config
+
+try:
+    conf.use_pcap = True
+    conf.use_dnet = True
+
+    from scapy.all import PcapWriter
+    from scapy.arch import pcapdnet
+
+    config.pcap_dnet = True
+
+except ImportError, e:
+    log.err("pypcap or dnet not installed. Certain tests may not work.")
+    config.pcap_dnet = False
+    conf.use_pcap = False
+    conf.use_dnet = False
+
+    from scapy.all import PcapWriter
+
+from scapy.all import BasePacketList, conf, PcapReader
+from scapy.all import conf, Gen, SetGen, MTU
 
 def getNetworksFromRoutes():
     from scapy.all import conf, ltoa, read_routes
@@ -58,9 +75,8 @@ class ScapyProtocol(abstract.FileDescriptor):
     def __init__(self, interface, super_socket=None, timeout=5):
         abstract.FileDescriptor.__init__(self, reactor)
         if not super_socket:
-            # XXX this is what we would want
-            #super_socket = pcapdnet.L3dnetSocket(iface=interface)
-            super_socket = conf.L3Socket(iface=interface)
+            super_socket = conf.L3socket(iface=interface, promisc=True, filter='')
+            #super_socket = conf.L2socket(iface=interface)
 
         fdesc._setCloseOnExec(super_socket.ins.fileno())
         self.super_socket = super_socket
