@@ -39,12 +39,13 @@ def processTest(obj, cmd_line_options):
         A configured and instantiated :class:`twisted.python.usage.Options`
         class.
     """
+    if not hasattr(obj.usageOptions, 'optParameters'):
+        obj.usageOptions.optParameters = []
+
     if obj.inputFile:
         obj.usageOptions.optParameters.append(obj.inputFile)
 
     if obj.baseParameters:
-        if not hasattr(obj.usageOptions, 'optParameters'):
-            obj.usageOptions.optParameters = []
         for parameter in obj.baseParameters:
             obj.usageOptions.optParameters.append(parameter)
 

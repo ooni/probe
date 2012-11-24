@@ -19,6 +19,7 @@ class UsageOptions(usage.Options):
                     ['maxttl', 'm', 30, 'The maximum value of ttl to set on packets'],
                     ['srcport', 'p', None, 'Set the source port to a specific value (only applies to TCP and UDP)']
                     ]
+
     optFlags = [['randomize','r', 'Randomize the source port']]
 
 class TracerouteTest(scapyt.BaseScapyTest):
