@@ -25,9 +25,6 @@ from scapy.arch import pcapdnet
 
 from ooni.utils import log
 
-conf.use_pcap = True
-conf.use_dnet = True
-
 def getNetworksFromRoutes():
     from scapy.all import conf, ltoa, read_routes
     from ipaddr    import IPNetwork, IPAddress
@@ -60,13 +57,12 @@ class TXPcapWriter(PcapWriter):
 class ScapyProtocol(abstract.FileDescriptor):
     def __init__(self, interface, super_socket=None, timeout=5):
         abstract.FileDescriptor.__init__(self, reactor)
-        # By default we use the conf.L3socket
         if not super_socket:
-            super_socket = pcapdnet.L3dnetSocket(iface=interface)
-        print super_socket
-        log.msg("Creating layer 3 socket with interface %s" % interface)
+            # XXX this is what we would want
+            #super_socket = pcapdnet.L3dnetSocket(iface=interface)
+            super_socket = conf.L3Socket(iface=interface)
 
-        #fdesc._setCloseOnExec(super_socket.ins.fileno())
+        fdesc._setCloseOnExec(super_socket.ins.fileno())
         self.super_socket = super_socket
 
         self.interface = interface
