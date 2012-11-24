@@ -12,13 +12,11 @@ from twisted.internet import protocol, defer, threads
 from scapy.all import send, sr, IP, TCP, config
 
 from ooni.reporter import createPacketReport
-
 from ooni.nettest import NetTestCase
 from ooni.utils import log
-
 from ooni import config
 
-from ooni.utils.txscapy import ScapyProtocol
+from ooni.utils.txscapy import ScapyProtocol, getDefaultIface
 
 class BaseScapyTest(NetTestCase):
     """
@@ -35,9 +33,12 @@ class BaseScapyTest(NetTestCase):
 
     requiresRoot = True
     baseFlags = [
-            ['ipsrc', 's', 'Does *not* check if IP src and ICMP IP citation matches when processing answers'],
-            ['seqack', 'k', 'Check if TCP sequence number and ACK match in the ICMP citation when processing answers'],
-            ['ipid', 'i', 'Check if the IPID matches when processing answers']
+            ['ipsrc', 's',
+                'Does *not* check if IP src and ICMP IP citation matches when processing answers'],
+            ['seqack', 'k',
+                'Check if TCP sequence number and ACK match in the ICMP citation when processing answers'],
+            ['ipid', 'i',
+                'Check if the IPID matches when processing answers']
             ]
 
     def _setUp(self):
@@ -65,15 +66,26 @@ class BaseScapyTest(NetTestCase):
         else:
             config.check_TCPerror_seqack = 0
 
+        if config.advanced.interface == 'auto':
+            self.interface = getDefaultIface()
+        else:
+            self.interface = config.advanced.interface
+
+    def reportSentPacket(self, packet):
+        if 'sent_packets' not in self.report:
+            self.report['sent_packets'] = []
+        self.report['sent_packets'].append(packet)
+
+    def reportReceivedPacket(self, packet):
+        if 'answered_packets' not in self.report:
+            self.report['answered_packets'] = []
+        self.report['answered_packets'].append(packet)
+
     def finishedSendReceive(self, packets):
         """
         This gets called when all packets have been sent and received.
         """
         answered, unanswered = packets
-        if 'answered_packets' not in self.report:
-            self.report['answered_packets'] = []
-        if 'sent_packets' not in self.report:
-            self.report['sent_packets'] = []
 
         for snd, rcv in answered:
             log.debug("Writing report for scapy test")
@@ -86,11 +98,8 @@ class BaseScapyTest(NetTestCase):
                 sent_packet.src = '127.0.0.1'
                 received_packet.dst = '127.0.0.1'
 
-            #pkt_report_r = createPacketReport(received_packet)
-            #pkt_report_s = createPacketReport(sent_packet)
-            self.report['answered_packets'].append(received_packet)
-            self.report['sent_packets'].append(sent_packet)
-            log.debug("Done")
+            self.reportSentPacket(sent_packet)
+            self.reportReceivedPacket(received_packet)
         return packets
 
     def sr(self, packets, *arg, **kw):
@@ -98,25 +107,41 @@ class BaseScapyTest(NetTestCase):
         Wrapper around scapy.sendrecv.sr for sending and receiving of packets
         at layer 3.
         """
-        scapyProtocol = ScapyProtocol(*arg, **kw)
+        scapyProtocol = ScapyProtocol(interface=self.interface, *arg, **kw)
         d = scapyProtocol.startSending(packets)
         d.addCallback(self.finishedSendReceive)
         return d
 
     def sr1(self, packets, *arg, **kw):
-        scapyProtocol = ScapyProtocol(*arg, **kw)
+        def done(packets):
+            """
+            We do this so that the returned value is only the one packet that
+            we expected a response for, identical to the scapy implementation
+            of sr1.
+            """
+            try:
+                return packets[0][0][1]
+            except IndexError:
+                log.err("Got no response...")
+                return None
+
+        scapyProtocol = ScapyProtocol(interface=self.interface, *arg, **kw)
         scapyProtocol.expected_answers = 1
         log.debug("Running sr1")
         d = scapyProtocol.startSending(packets)
         log.debug("Started to send")
         d.addCallback(self.finishedSendReceive)
+        d.addCallback(done)
         return d
 
-    def send(self, pkts, *arg, **kw):
+    def send(self, packets, *arg, **kw):
         """
         Wrapper around scapy.sendrecv.send for sending of packets at layer 3
         """
-        raise Exception("Not implemented")
+        scapyProtocol = ScapyProtocol(interface=self.interface, *arg, **kw)
+        scapyProtocol.sendPackets(packets)
+        scapyProtocol.stopSending()
+        for packet in packets:
+            self.reportSentPacket(packet)
 
 ScapyTest = BaseScapyTest
-

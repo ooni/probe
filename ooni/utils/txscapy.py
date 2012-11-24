@@ -17,13 +17,40 @@ from twisted.internet import reactor, threads, error
 from twisted.internet import defer, abstract
 from zope.interface import implements
 
-
 from scapy.all import PcapWriter, MTU
 from scapy.all import BasePacketList, conf, PcapReader
 
 from scapy.all import conf, Gen, SetGen
+from scapy.arch import pcapdnet
 
 from ooni.utils import log
+
+conf.use_pcap = True
+conf.use_dnet = True
+
+def getNetworksFromRoutes():
+    from scapy.all import conf, ltoa, read_routes
+    from ipaddr    import IPNetwork, IPAddress
+
+    ## Hide the 'no routes' warnings
+    conf.verb = 0
+
+    networks = []
+    for nw, nm, gw, iface, addr in read_routes():
+        n = IPNetwork( ltoa(nw) )
+        (n.netmask, n.gateway, n.ipaddr) = [IPAddress(x) for x in [nm, gw, addr]]
+        n.iface = iface
+        if not n.compressed in networks:
+            networks.append(n)
+
+    return networks
+
+def getDefaultIface():
+    networks = getNetworksFromRoutes()
+    for net in networks:
+        if net.is_private:
+            return net.iface
+    raise IfaceError
 
 class TXPcapWriter(PcapWriter):
     def __init__(self, *arg, **kw):
@@ -31,14 +58,18 @@ class TXPcapWriter(PcapWriter):
         fdesc.setNonBlocking(self.f)
 
 class ScapyProtocol(abstract.FileDescriptor):
-    def __init__(self, super_socket=None, 
-            reactor=None, timeout=4, receive=True):
+    def __init__(self, interface, super_socket=None, timeout=5):
         abstract.FileDescriptor.__init__(self, reactor)
         # By default we use the conf.L3socket
         if not super_socket:
-            super_socket = conf.L3socket()
+            super_socket = pcapdnet.L3dnetSocket(iface=interface)
+        print super_socket
+        log.msg("Creating layer 3 socket with interface %s" % interface)
+
+        #fdesc._setCloseOnExec(super_socket.ins.fileno())
         self.super_socket = super_socket
 
+        self.interface = interface
         self.timeout = timeout
 
         # This dict is used to store the unique hashes that allow scapy to
@@ -53,13 +84,8 @@ class ScapyProtocol(abstract.FileDescriptor):
 
         # This deferred will fire when we have finished sending a receiving packets.
         self.d = defer.Deferred()
-        self.debug = False
+        # Should we look for multiple answers for the same sent packet?
         self.multi = False
-        # XXX this needs to be implemented. It would involve keeping track of
-        # the state of the sending via the super socket file descriptor and
-        # firing the callback when we have concluded sending. Check out
-        # twisted.internet.udp to see how this is done.
-        self.receive = receive
 
         # When 0 we stop when all the packets we have sent have received an
         # answer
@@ -85,7 +111,6 @@ class ScapyProtocol(abstract.FileDescriptor):
 
         if len(self.answered_packets) == len(self.sent_packets):
             log.debug("All of our questions have been answered.")
-            log.debug("%s" % self.__hash__)
             self.stopSending()
             return
 
@@ -94,12 +119,11 @@ class ScapyProtocol(abstract.FileDescriptor):
             log.debug("Got the number of expected answers")
             self.stopSending()
 
-
     def doRead(self):
         timeout = time.time() - self._start_time
         if self.timeout and time.time() - self._start_time > self.timeout:
             self.stopSending()
-        packet = self.super_socket.recv()
+        packet = self.super_socket.recv(MTU)
         if packet:
             self.processPacket(packet)
             # A string that has the same value for the request than for the
@@ -110,7 +134,6 @@ class ScapyProtocol(abstract.FileDescriptor):
                 self.processAnswer(packet, answer_hr)
 
     def stopSending(self):
-        log.debug("Stopping sending")
         self.stopReading()
         self.super_socket.close()
         if hasattr(self, "d"):
@@ -120,20 +143,20 @@ class ScapyProtocol(abstract.FileDescriptor):
 
     def write(self, packet):
         """
-        Write a scapy packet to the wire
+        Write a scapy packet to the wire.
         """
-        hashret = packet.hashret()
-        if hashret in self.hr_sent_packets:
-            self.hr_sent_packets[hashret].append(packet)
-        else:
-            self.hr_sent_packets[hashret] = [packet]
-        self.sent_packets.append(packet)
         return self.super_socket.send(packet)
 
     def sendPackets(self, packets):
         if not isinstance(packets, Gen):
             packets = SetGen(packets)
         for packet in packets:
+            hashret = packet.hashret()
+            if hashret in self.hr_sent_packets:
+                self.hr_sent_packets[hashret].append(packet)
+            else:
+                self.hr_sent_packets[hashret] = [packet]
+            self.sent_packets.append(packet)
             self.write(packet)
 
     def startSending(self, packets):
@@ -141,15 +164,5 @@ class ScapyProtocol(abstract.FileDescriptor):
         self.startReading()
         self.sendPackets(packets)
         return self.d
-
-def sr(x, filter=None, iface=None, nofilter=0, timeout=None):
-    super_socket = conf.L3socket(filter=filter, iface=iface, nofilter=nofilter)
-    sp = ScapyProtocol(super_socket=super_socket, timeout=timeout)
-    return sp.startSending(x)
-
-def send(x, filter=None, iface=None, nofilter=0, timeout=None):
-    super_socket = conf.L3socket(filter=filter, iface=iface, nofilter=nofilter)
-    sp = ScapyProtocol(super_socket=super_socket, timeout=timeout)
-    return sp.startSending(x)
 
 

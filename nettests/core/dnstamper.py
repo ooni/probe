@@ -28,8 +28,10 @@ from ooni.utils import log
 class UsageOptions(usage.Options):
     optParameters = [['backend', 'b', '8.8.8.8:53',
                         'The OONI backend that runs the DNS resolver'],
-                     ['testresolvers', 't', None,
-                        'file containing list of DNS resolvers to test against']
+                     ['testresolvers', 'T', None,
+                        'File containing list of DNS resolvers to test against'],
+                     ['testresolver', 't', None,
+                         'Specify a single test resolver to use for testing']
                     ]
 
 class DNSTamperTest(dnst.DNSTest):
@@ -44,12 +46,10 @@ class DNSTamperTest(dnst.DNSTest):
                  'Input file of list of hostnames to attempt to resolve']
 
     usageOptions = UsageOptions
-    requiredOptions = ['backend', 'file', 'testresolvers']
+    requiredOptions = ['backend', 'file']
 
     def setUp(self):
-
         if not self.localOptions['testresolvers']:
-            self.test_resolvers = ['8.8.8.8']
             raise usage.UsageError("You did not specify a file of DNS servers to test!"
                                    "See the '--testresolvers' option.")
 
@@ -68,7 +68,7 @@ class DNSTamperTest(dnst.DNSTest):
         self.report['control_resolver'] = self.control_dns_server
 
     @defer.inlineCallbacks
-    def test_a_queries(self):
+    def test_a_lookup(self):
         """
         We perform an A lookup on the DNS test servers for the domains to be
         tested and an A lookup on the known good DNS server.

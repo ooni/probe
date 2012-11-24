@@ -22,13 +22,6 @@ from ooni.utils import log, txscapy
 #if sys.platform.system() == 'Windows':
 #    import _winreg as winreg
 
-PLATFORMS = {'LINUX': sys.platform.startswith("linux"),
-             'OPENBSD': sys.platform.startswith("openbsd"),
-             'FREEBSD': sys.platform.startswith("freebsd"),
-             'NETBSD': sys.platform.startswith("netbsd"),
-             'DARWIN': sys.platform.startswith("darwin"),
-             'SOLARIS': sys.platform.startswith("sunos"),
-             'WINDOWS': sys.platform.startswith("win32")}
 
 userAgents = [
     ("Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.8.1.6) Gecko/20070725 Firefox/2.0.0.6", "Firefox 2.0, Windows XP"),
@@ -44,7 +37,6 @@ userAgents = [
     ("Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.7.5) Gecko/20060127 Netscape/8.1", "Netscape 8.1, Windows XP")
     ]
 
-
 class UnsupportedPlatform(Exception):
     """Support for this platform is not currently available."""
 
@@ -53,7 +45,6 @@ class IfaceError(Exception):
 
 class PermissionsError(SystemExit):
     """This test requires admin or root privileges to run. Exiting..."""
-
 
 PLATFORMS = {'LINUX': sys.platform.startswith("linux"),
              'OPENBSD': sys.platform.startswith("openbsd"),
@@ -63,14 +54,6 @@ PLATFORMS = {'LINUX': sys.platform.startswith("linux"),
              'SOLARIS': sys.platform.startswith("sunos"),
              'WINDOWS': sys.platform.startswith("win32")}
 
-class UnsupportedPlatform(Exception):
-    """Support for this platform is not currently available."""
-
-class IfaceError(Exception):
-    """Could not find default network interface."""
-
-class PermissionsError(SystemExit):
-    """This test requires admin or root privileges to run. Exiting..."""
 
 class StringProducer(object):
     implements(IBodyProducer)
@@ -128,7 +111,6 @@ def getSystemResolver():
     XXX implement a function that returns the resolver that is currently
     default on the system.
     """
-    pass
 
 def getClientPlatform(platform_name=None):
     for name, test in PLATFORMS.items():
@@ -225,30 +207,8 @@ def getNonLoopbackIfaces(platform_name=None):
         else:
             return interfaces
 
-def getNetworksFromRoutes():
-    from scapy.all import conf, ltoa, read_routes
-    from ipaddr    import IPNetwork, IPAddress
-
-    ## Hide the 'no routes' warnings
-    conf.verb = 0
-
-    networks = []
-    for nw, nm, gw, iface, addr in read_routes():
-        n = IPNetwork( ltoa(nw) )
-        (n.netmask, n.gateway, n.ipaddr) = [IPAddress(x) for x in [nm, gw, addr]]
-        n.iface = iface
-        if not n.compressed in networks:
-            networks.append(n)
-
-    return networks
-
-def getDefaultIface():
-    networks = getNetworksFromRoutes()
-    for net in networks:
-        if net.is_private:
-            return net.iface
-    raise IfaceError
 
 def getLocalAddress():
     default_iface = getDefaultIface()
     return default_iface.ipaddr
+

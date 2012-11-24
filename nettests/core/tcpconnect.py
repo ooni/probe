@@ -16,10 +16,10 @@ class TCPConnectTest(nettest.NetTestCase):
     name = "TCP Connect"
     author = "Arturo Filastò"
     version = "0.1"
-
     inputFile = ['file', 'f', None,
             'File containing the IP:PORT combinations to be tested, one per line']
 
+    requiredOptions = ['file']
     def test_connect(self):
         """
         This test performs a TCP connection to the remote host on the specified port.

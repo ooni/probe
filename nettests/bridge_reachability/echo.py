@@ -18,7 +18,7 @@ import sys
 from twisted.python   import usage
 from twisted.internet import reactor, defer
 from ooni             import nettest
-from ooni.utils       import log, net, Storage
+from ooni.utils       import log, net, Storage, txscapy
 
 try:
     from scapy.all             import IP, ICMP
@@ -66,7 +66,7 @@ class EchoTest(nettest.NetTestCase):
 
         if not self.interface:
             try:
-                iface = net.getDefaultIface()
+                iface = txscapy.getDefaultIface()
             except Exception, e:
                 log.msg("No network interface specified!")
                 log.err(e)
