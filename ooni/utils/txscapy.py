@@ -61,6 +61,10 @@ class ScapyProtocol(abstract.FileDescriptor):
         # twisted.internet.udp to see how this is done.
         self.receive = receive
 
+        # When 0 we stop when all the packets we have sent have received an
+        # answer
+        self.expected_answers = 0
+
     def fileno(self):
         return self.super_socket.ins.fileno()
 
@@ -71,15 +75,25 @@ class ScapyProtocol(abstract.FileDescriptor):
 
     def processAnswer(self, packet, answer_hr):
         log.debug("Got a packet from %s" % packet.src)
+        log.debug("%s" % self.__hash__)
         for i in range(len(answer_hr)):
             if packet.answers(answer_hr[i]):
                 self.answered_packets.append((answer_hr[i], packet))
                 if not self.multi:
                     del(answer_hr[i])
                 break
+
         if len(self.answered_packets) == len(self.sent_packets):
-            # All of our questions have been answered.
+            log.debug("All of our questions have been answered.")
+            log.debug("%s" % self.__hash__)
             self.stopSending()
+            return
+
+        if self.expected_answers and \
+                self.expected_answers == len(self.answered_packets):
+            log.debug("Got the number of expected answers")
+            self.stopSending()
+
 
     def doRead(self):
         timeout = time.time() - self._start_time
@@ -96,6 +110,7 @@ class ScapyProtocol(abstract.FileDescriptor):
                 self.processAnswer(packet, answer_hr)
 
     def stopSending(self):
+        log.debug("Stopping sending")
         self.stopReading()
         self.super_socket.close()
         if hasattr(self, "d"):
