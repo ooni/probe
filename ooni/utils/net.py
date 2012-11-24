@@ -123,6 +123,12 @@ def capturePackets(pcap_filename):
     reactor.addSystemEventTrigger('before', 'shutdown', stopCapture)
     return d
 
+def getSystemResolver():
+    """
+    XXX implement a function that returns the resolver that is currently
+    default on the system.
+    """
+    pass
 
 def getClientPlatform(platform_name=None):
     for name, test in PLATFORMS.items():
