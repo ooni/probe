@@ -14,6 +14,8 @@ from twisted.internet.endpoints import TCP4ClientEndpoint, SSL4ClientEndpoint, _
 from twisted.internet import interfaces, defer
 from twisted.internet.defer import Deferred, succeed, fail, maybeDeferred
 
+from ooni.utils import log
+
 class SOCKSError(Exception):
     def __init__(self, value):
         Exception.__init__(self)
@@ -198,15 +200,22 @@ class _HTTP11ClientFactory(client._HTTP11ClientFactory):
     def buildProtocol(self, addr):
         return HTTP11ClientProtocol(self._quiescentCallback)
 
-class HTTPConnectionPool(client.HTTPConnectionPool):
-    _factory = _HTTP11ClientFactory
+try:
+    class HTTPConnectionPool(client.HTTPConnectionPool):
+        _factory = _HTTP11ClientFactory
+except AttributeError:
+    log.err("Your version of Twisted is outdated and we will not support HTTPConnectionPool")
+    HTTPConnectionPool = None
+
+class UnsupportedTwistedVersion(Exception):
+    pass
 
 class Agent(client.Agent):
     def __init__(self, reactor,
                  contextFactory=client.WebClientContextFactory(),
                  connectTimeout=None, bindAddress=None,
                  pool=None, sockshost=None, socksport=None):
-        if pool is None:
+        if pool is None and HTTPConnectionPool:
             pool = HTTPConnectionPool(reactor, False)
         self._reactor = reactor
         self._pool = pool
@@ -215,6 +224,12 @@ class Agent(client.Agent):
         self._bindAddress = bindAddress
         self._sockshost = sockshost
         self._socksport = socksport
+
+    def request(self, method, uri, headers=None, bodyProducer=None):
+        if uri.startswith('shttp') or uri.startswith('httpo'):
+            log.err("Requests over SOCKS are supported only with versions of Twisted >= 12.1.0")
+            raise UnsupportedTwistedVersion
+        return client.Agent.request(self, method, uri, headers, bodyProducer)
 
     def _getEndpoint(self, scheme, host, port):
         kwargs = {}

@@ -20,7 +20,7 @@ from twisted.trial import reporter
 from twisted.internet import defer, reactor
 from twisted.internet.error import ConnectionRefusedError
 
-from ooni.templates.httpt import BodyReceiver, StringProducer
+from ooni.utils.net import BodyReceiver, StringProducer, userAgents
 from ooni.utils import otime, log, geodata
 
 from ooni.utils.hacks import OSafeRepresenter, OSafeDumper
