@@ -15,6 +15,13 @@ import yaml
 import json
 import traceback
 
+from yaml.representer import *
+from yaml.emitter import *
+from yaml.serializer import *
+from yaml.resolver import *
+
+from scapy.packet import Packet
+
 from twisted.python.util import untilConcludes
 from twisted.trial import reporter
 from twisted.internet import defer, reactor
@@ -23,10 +30,75 @@ from twisted.internet.error import ConnectionRefusedError
 from ooni.utils.net import BodyReceiver, StringProducer, userAgents
 from ooni.utils import otime, log, geodata
 
-from ooni.utils.hacks import OSafeRepresenter, OSafeDumper
 from ooni import config
 
-from scapy.all import packet
+def createPacketReport(packet_list):
+    """
+    Takes as input a packet a list.
+
+    Returns a dict containing a dict with the packet
+    summary and the raw packet.
+    """
+    report = []
+    for packet in packet_list:
+        report.append({'raw_packet': str(packet),
+            'summary': str(packet.summary())})
+    return report
+
+class OSafeRepresenter(SafeRepresenter):
+    """
+    This is a custom YAML representer that allows us to represent reports
+    safely.
+    It extends the SafeRepresenter to be able to also represent complex
+    numbers and scapy packet.
+    """
+    def represent_data(self, data):
+        """
+        This is very hackish. There is for sure a better way either by using
+        the add_multi_representer or add_representer, the issue though lies in
+        the fact that Scapy packets are metaclasses that leads to
+        yaml.representer.get_classobj_bases to not be able to properly get the
+        base of class of a Scapy packet.
+        XXX fully debug this problem
+        """
+        if isinstance(data, Packet):
+            data = createPacketReport(data)
+        return SafeRepresenter.represent_data(self, data)
+
+    def represent_complex(self, data):
+        if data.imag == 0.0:
+            data = u'%r' % data.real
+        elif data.real == 0.0:
+            data = u'%rj' % data.imag
+        elif data.imag > 0:
+            data = u'%r+%rj' % (data.real, data.imag)
+        else:
+            data = u'%r%rj' % (data.real, data.imag)
+        return self.represent_scalar(u'tag:yaml.org,2002:python/complex', data)
+
+OSafeRepresenter.add_representer(complex,
+                                 OSafeRepresenter.represent_complex)
+
+class OSafeDumper(Emitter, Serializer, OSafeRepresenter, Resolver):
+    """
+    This is a modification of the YAML Safe Dumper to use our own Safe
+    Representer that supports complex numbers.
+    """
+    def __init__(self, stream,
+            default_style=None, default_flow_style=None,
+            canonical=None, indent=None, width=None,
+            allow_unicode=None, line_break=None,
+            encoding=None, explicit_start=None, explicit_end=None,
+            version=None, tags=None):
+        Emitter.__init__(self, stream, canonical=canonical,
+                indent=indent, width=width,
+                allow_unicode=allow_unicode, line_break=line_break)
+        Serializer.__init__(self, encoding=encoding,
+                explicit_start=explicit_start, explicit_end=explicit_end,
+                version=version, tags=tags)
+        OSafeRepresenter.__init__(self, default_style=default_style,
+                default_flow_style=default_flow_style)
+        Resolver.__init__(self)
 
 class NoTestIDSpecified(Exception):
     pass
@@ -103,7 +175,7 @@ class OReporter(object):
         log.debug("Writing report")
         test_report = dict(test.report)
 
-        if isinstance(test.input, packet.Packet):
+        if isinstance(test.input, Packet):
             test_input = createPacketReport(test.input)
         else:
             test_input = test.input

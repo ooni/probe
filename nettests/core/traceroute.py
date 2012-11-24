@@ -50,6 +50,12 @@ class TracerouteTest(scapyt.BaseScapyTest):
         return max_ttl, timeout
 
 
+    def postProcessor(self, report):
+        tcp_hops = report['test_tcp_traceroute']
+        udp_hops = report['test_udp_traceroute']
+        icmp_hops = report['test_icmp_traceroute']
+
+
     def test_tcp_traceroute(self):
         """
         Does a traceroute to the destination by sending TCP SYN packets
@@ -126,7 +132,7 @@ class TracerouteTest(scapyt.BaseScapyTest):
         dl = []
         max_ttl, timeout = self.max_ttl_and_timeout()
         packets = IP(dst=self.localOptions['backend'],
-                    ttl=(1,max_ttl),id=RandShort())/ICMP()
+                    ttl=(1,max_ttl), id=RandShort())/ICMP()
 
         d = self.sr(packets, timeout=timeout)
         d.addCallback(finished)
