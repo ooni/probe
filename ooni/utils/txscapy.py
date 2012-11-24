@@ -32,7 +32,7 @@ class TXPcapWriter(PcapWriter):
 
 class ScapyProtocol(abstract.FileDescriptor):
     def __init__(self, super_socket=None, 
-            reactor=None, timeout=None, receive=True):
+            reactor=None, timeout=4, receive=True):
         abstract.FileDescriptor.__init__(self, reactor)
         # By default we use the conf.L3socket
         if not super_socket:
