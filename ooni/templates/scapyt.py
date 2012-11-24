@@ -11,23 +11,14 @@ from twisted.internet import protocol, defer, threads
 
 from scapy.all import send, sr, IP, TCP, config
 
+from ooni.reporter import createPacketReport
+
 from ooni.nettest import NetTestCase
 from ooni.utils import log
 
 from ooni import config
 
 from ooni.utils.txscapy import ScapyProtocol
-
-def createPacketReport(packet_list):
-    """
-    Takes as input a packet a list containing a dict with the packet
-    summary and the raw packet.
-    """
-    report = []
-    for packet in packet_list:
-        report.append({'raw_packet': str(packet),
-            'summary': str(packet.summary())})
-    return report
 
 class BaseScapyTest(NetTestCase):
     """
@@ -74,39 +65,51 @@ class BaseScapyTest(NetTestCase):
         else:
             config.check_TCPerror_seqack = 0
 
+    def finishedSendReceive(self, packets):
+        """
+        This gets called when all packets have been sent and received.
+        """
+        answered, unanswered = packets
+        if 'answered_packets' not in self.report:
+            self.report['answered_packets'] = []
+        if 'sent_packets' not in self.report:
+            self.report['sent_packets'] = []
+
+        for snd, rcv in answered:
+            log.debug("Writing report for scapy test")
+            sent_packet = snd
+            received_packet = rcv
+
+            if not config.privacy.includeip:
+                log.msg("Detected you would not like to include your ip in the report")
+                log.msg("Stripping source and destination IPs from the reports")
+                sent_packet.src = '127.0.0.1'
+                received_packet.dst = '127.0.0.1'
+
+            #pkt_report_r = createPacketReport(received_packet)
+            #pkt_report_s = createPacketReport(sent_packet)
+            self.report['answered_packets'].append(received_packet)
+            self.report['sent_packets'].append(sent_packet)
+            log.debug("Done")
+        return packets
+
     def sr(self, packets, *arg, **kw):
         """
         Wrapper around scapy.sendrecv.sr for sending and receiving of packets
         at layer 3.
         """
-        def finished(packets):
-            answered, unanswered = packets
-            if 'answered_packets' not in self.report:
-                self.report['answered_packets'] = []
-            if 'sent_packets' not in self.report:
-                self.report['sent_packets'] = []
-
-            for snd, rcv in answered:
-                log.debug("Writing report for scapy test")
-                sent_packet = snd
-                received_packet = rcv
-
-                if not config.privacy.includeip:
-                    log.msg("Detected you would not like to include your ip in the report")
-                    log.msg("Stripping source and destination IPs from the reports")
-                    sent_packet.src = '127.0.0.1'
-                    received_packet.dst = '127.0.0.1'
-
-                pkt_report_r = createPacketReport(received_packet)
-                pkt_report_s = createPacketReport(sent_packet)
-                self.report['answered_packets'].append(pkt_report_r)
-                self.report['sent_packets'].append(pkt_report_s)
-                log.debug("Done")
-            return packets
-
         scapyProtocol = ScapyProtocol(*arg, **kw)
         d = scapyProtocol.startSending(packets)
-        d.addCallback(finished)
+        d.addCallback(self.finishedSendReceive)
+        return d
+
+    def sr1(self, packets, *arg, **kw):
+        scapyProtocol = ScapyProtocol(*arg, **kw)
+        scapyProtocol.expected_answers = 1
+        log.debug("Running sr1")
+        d = scapyProtocol.startSending(packets)
+        log.debug("Started to send")
+        d.addCallback(self.finishedSendReceive)
         return d
 
     def send(self, pkts, *arg, **kw):
@@ -115,4 +118,5 @@ class BaseScapyTest(NetTestCase):
         """
         raise Exception("Not implemented")
 
+ScapyTest = BaseScapyTest
 
