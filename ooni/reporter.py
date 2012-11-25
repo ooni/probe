@@ -10,6 +10,7 @@
 import itertools
 import logging
 import sys
+import os
 import time
 import yaml
 import json
@@ -155,6 +156,9 @@ def getTestDetails(options):
     defer.returnValue(test_details)
 
 class OReporter(object):
+    def __init__(self, cmd_line_options):
+        self.cmd_line_options = dict(cmd_line_options)
+
     def createReport(self, options):
         """
         Override this with your own logic to implement tests.
@@ -172,7 +176,6 @@ class OReporter(object):
 
     def testDone(self, test, test_name):
         log.msg("Finished running %s" % test_name)
-        log.debug("Writing report")
         test_report = dict(test.report)
 
         if isinstance(test.input, Packet):
@@ -204,8 +207,15 @@ class YAMLReporter(OReporter):
     """
     These are useful functions for reporting to YAML format.
     """
-    def __init__(self, stream):
-        self._stream = stream
+    def __init__(self, cmd_line_options):
+        if os.path.exists(config.reports.yamloo):
+            log.msg("Report already exists with filename %s" % config.reports.yamloo)
+            log.msg("Renaming it to %s" % config.reports.yamloo+'.old')
+            os.rename(config.reports.yamloo, config.reports.yamloo+'.old')
+
+        log.debug("Creating %s" % config.reports.yamloo)
+        self._stream = open(config.reports.yamloo, 'w+')
+        OReporter.__init__(self, cmd_line_options)
 
     def _writeln(self, line):
         self._write("%s\n" % line)
@@ -233,6 +243,7 @@ class YAMLReporter(OReporter):
         self._writeln("###########################################")
 
         test_details = yield getTestDetails(options)
+        test_details['options'] = self.cmd_line_options
 
         self.writeReportEntry(test_details)
 
@@ -250,7 +261,9 @@ class OONIBTestDetailsLookupFailed(Exception):
     pass
 
 class OONIBReporter(OReporter):
-    def __init__(self, backend_url):
+    def __init__(self, cmd_line_options):
+        self.backend_url = cmd_line_options['collector']
+
         from ooni.utils.txagentwithsocks import Agent
         from twisted.internet import reactor
         try:
@@ -259,7 +272,7 @@ class OONIBReporter(OReporter):
         except Exception, e:
             log.exception(e)
 
-        self.backend_url = backend_url
+        OReporter.__init__(self, cmd_line_options)
 
     @defer.inlineCallbacks
     def writeReportEntry(self, entry):
@@ -306,6 +319,7 @@ class OONIBReporter(OReporter):
         software_version = '0.0.1'
 
         test_details = yield getTestDetails(options)
+        test_details['options'] = self.cmd_line_options
 
         content = '---\n'
         content += safe_dump(test_details)

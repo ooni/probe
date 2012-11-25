@@ -11,25 +11,15 @@ from twisted.internet import reactor, threads
 from ooni.utils import otime
 from ooni.utils import Storage
 
+reports = Storage()
+basic = None
+cmd_line_options = None
 
 def get_root_path():
     this_directory = os.path.dirname(__file__)
     root = os.path.join(this_directory, '..')
     root = os.path.abspath(root)
     return root
-
-def oreport_filenames(file_name):
-    """
-    returns the filenames for the pcap file and the yamloo report
-
-    returns
-    yamloo_filename, pcap_filename
-    """
-    test_name = '.'.join(file_name.split(".")[:-1])
-    base_filename = "%s_%s_"+otime.timestamp()+".%s"
-    yamloo_filename = base_filename % (test_name, "report", "yamloo")
-    pcap_filename = base_filename % (test_name, "packets", "pcap")
-    return yamloo_filename, pcap_filename
 
 def loadConfigFile():
     """
@@ -62,7 +52,21 @@ def loadConfigFile():
         advanced[k] = v
     return basic, privacy, advanced
 
-basic = None
+class TestFilenameNotSet(Exception):
+    pass
+
+def generateReportFilenames():
+    try:
+        test_file_name = os.path.basename(cmd_line_options['test'])
+    except IndexError:
+        raise TestFilenameNotSet
+
+    test_name = '.'.join(test_file_name.split(".")[:-1])
+    base_filename = "%s_%s_"+otime.timestamp()+".%s"
+    print "Setting yamloo to %s" % base_filename
+    reports.yamloo = base_filename % (test_name, "report", "yamloo")
+    reports.pcap = base_filename % (test_name, "packets", "pcap")
+
 if not basic:
     # Here we make sure that we instance the config file attributes only once
     basic, privacy, advanced = loadConfigFile()

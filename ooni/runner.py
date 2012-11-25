@@ -23,11 +23,11 @@ from twisted.internet import reactor, threads
 from ooni.inputunit import InputUnitFactory
 from ooni.nettest import NetTestCase, NoPostProcessor
 
-from ooni import reporter
+from ooni import reporter, config
 
 from ooni.utils import log, checkForRoot, NotRootError
 
-def processTest(obj, cmd_line_options):
+def processTest(obj):
     """
     Process the parameters and :class:`twisted.python.usage.Options` of a
     :class:`ooni.nettest.Nettest`.
@@ -57,7 +57,7 @@ def processTest(obj, cmd_line_options):
 
     options = obj.usageOptions()
 
-    options.parseOptions(cmd_line_options['subArgs'])
+    options.parseOptions(config.cmd_line_options['subargs'])
     obj.localOptions = options
 
     if obj.inputFile:
@@ -73,7 +73,7 @@ def processTest(obj, cmd_line_options):
         log.err("There was an error in running %s!" % test_name)
         log.err("%s" % e)
         options.opt_help()
-        raise usage.UsageError("Error in parsing command line args for %s" % test_name) 
+        raise usage.UsageError("Error in parsing command line args for %s" % test_name)
 
     if obj.requiresRoot:
         try:
@@ -90,28 +90,23 @@ def isTestCase(obj):
     except TypeError:
         return False
 
-def findTestClassesFromConfig(cmd_line_options):
+def findTestClassesFromFile(filename):
     """
     Takes as input the command line config parameters and returns the test
     case classes.
-    If it detects that a certain test class is using the old OONIProbe format,
-    then it will adapt it to the new testing system.
 
-    :param cmd_line_options:
-        A configured and instantiated :class:`twisted.python.usage.Options`
-        class.
+    :param filename:
+        the absolute path to the file containing the ooniprobe test classes
+
     :return:
         A list of class objects found in a file or module given on the
         commandline.
     """
-
-    filename = cmd_line_options['test']
     classes = []
-
     module = filenameToModule(filename)
     for name, val in inspect.getmembers(module):
         if isTestCase(val):
-            classes.append(processTest(val, cmd_line_options))
+            classes.append(processTest(val))
     return classes
 
 def makeTestCases(klass, tests, method_prefix):
@@ -227,8 +222,10 @@ def runTestCasesWithInputUnit(test_cases, input_unit, oreporter):
     return defer.DeferredList(dl)
 
 @defer.inlineCallbacks
-def runTestCases(test_cases, options,
-        cmd_line_options, yamloo_filename):
+def runTestCases(test_cases, options, cmd_line_options):
+    log.debug("Running %s" % test_cases)
+    log.debug("Options %s" % options)
+    log.debug("cmd_line_options %s" % dict(cmd_line_options))
     try:
         assert len(options) != 0, "Length of options is zero!"
     except AssertionError, ae:
@@ -247,15 +244,12 @@ def runTestCases(test_cases, options,
             log.msg("options[0] = %s" % first)
             test_inputs = [None]
 
-    log.debug("Creating %s" % yamloo_filename)
-
     if cmd_line_options['collector']:
-        log.debug("Using remote collector %s" % cmd_line_options['collector'])
-        oreporter = reporter.OONIBReporter(cmd_line_options['collector'])
+        log.debug("Using remote collector")
+        oreporter = reporter.OONIBReporter(cmd_line_options)
     else:
-        reportFile = open(yamloo_filename, 'w+')
-        log.debug("Reporting to file %s" % reportFile)
-        oreporter = reporter.YAMLReporter(reportFile)
+        log.debug("Reporting to file %s" % config.reports.yamloo)
+        oreporter = reporter.YAMLReporter(cmd_line_options)
 
     try:
         input_unit_factory = InputUnitFactory(test_inputs)
