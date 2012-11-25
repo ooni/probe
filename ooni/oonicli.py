@@ -36,7 +36,8 @@ class Options(usage.Options):
                 " network tests. These are loaded from modules, packages and"
                 " files listed on the command line")
 
-    optFlags = [["help", "h"]]
+    optFlags = [["help", "h"],
+                ["resume", "r"]]
 
     optParameters = [["reportfile", "o", None, "report file name"],
                      ["testdeck", "i", None,
@@ -82,39 +83,9 @@ def testsEnded(*arg, **kw):
     You can place here all the post shutdown tasks.
     """
     log.debug("testsEnded: Finished running all tests")
-    reactor.stop()
-
-def runTest(cmd_line_options):
-    config.cmd_line_options = cmd_line_options
-    config.generateReportFilenames()
-
-    if cmd_line_options['reportfile']:
-        config.reports.yamloo = cmd_line_options['reportfile']
-        config.reports.pcap = config.reports.yamloo+".pcap"
-
-    if os.path.exists(config.reports.pcap):
-        print "Report PCAP already exists with filename %s" % config.reports.pcap
-        print "Renaming it to %s" % config.reports.pcap+'.old'
-        os.rename(config.reports.pcap, config.reports.pcap+'.old')
-
-    classes = runner.findTestClassesFromFile(cmd_line_options['test'])
-    test_cases, options = runner.loadTestsAndOptions(classes, cmd_line_options)
-    if config.privacy.includepcap:
-        from ooni.utils.txscapy import ScapyFactory, ScapySniffer
-        try:
-            checkForRoot()
-        except NotRootError:
-            print "[!] Includepcap options requires root priviledges to run"
-            print "    you should run ooniprobe as root or disable the options in ooniprobe.conf"
-            sys.exit(1)
-
-        print "Starting sniffer"
-        config.scapyFactory = ScapyFactory(config.advanced.interface)
-
-        sniffer = ScapySniffer(config.reports.pcap)
-        config.scapyFactory.registerProtocol(sniffer)
-
-    return runner.runTestCases(test_cases, options, cmd_line_options)
+    config.start_reactor = False
+    try: reactor.stop()
+    except: pass
 
 def run():
     """
@@ -129,6 +100,7 @@ def run():
         raise SystemExit, "%s: %s" % (sys.argv[0], ue)
 
     deck_dl = []
+    resume = cmd_line_options['resume']
 
     log.start(cmd_line_options['logfile'])
     if cmd_line_options['testdeck']:
@@ -136,15 +108,21 @@ def run():
         for test in test_deck:
             del cmd_line_options
             cmd_line_options = test['options']
-            d1 = runTest(cmd_line_options)
+            if resume:
+                cmd_line_options['resume'] = True
+            else:
+                cmd_line_options['resume'] = False
+            d1 = runner.runTest(cmd_line_options)
             deck_dl.append(d1)
     else:
         log.msg("No test deck detected")
         del cmd_line_options['testdeck']
-        d1 = runTest(cmd_line_options)
+        d1 = runner.runTest(cmd_line_options)
         deck_dl.append(d1)
 
     d2 = defer.DeferredList(deck_dl)
-    d2.addCallback(testsEnded)
+    d2.addBoth(testsEnded)
 
-    reactor.run()
+    if config.start_reactor:
+        log.debug("Starting reactor")
+        reactor.run()

@@ -14,6 +14,7 @@ import time
 import inspect
 import traceback
 import itertools
+import yaml
 
 from twisted.python import reflect, usage
 from twisted.internet import defer
@@ -155,7 +156,9 @@ def runTestCasesWithInput(test_cases, test_input, oreporter):
         return oreporter.testDone(test_instance, test_name)
 
     def test_error(failure, test_instance, test_name):
+        log.err("run Test Cases With Input problem")
         log.exception(failure)
+        return
 
     def tests_done(result, test_class):
         test_instance = test_class()
@@ -168,6 +171,7 @@ def runTestCasesWithInput(test_cases, test_input, oreporter):
             return oreporter.testDone(test_instance, 'summary')
         except NoPostProcessor:
             log.debug("No post processor configured")
+            return
 
     dl = []
     for test_case in test_cases:
@@ -191,7 +195,6 @@ def runTestCasesWithInput(test_cases, test_input, oreporter):
         d = defer.maybeDeferred(test)
         d.addCallback(test_done, test_instance, test_method)
         d.addErrback(test_error, test_instance, test_method)
-        log.debug("returning %s input" % test_method)
         dl.append(d)
 
     test_methods_d = defer.DeferredList(dl)
@@ -221,6 +224,104 @@ def runTestCasesWithInputUnit(test_cases, input_unit, oreporter):
         dl.append(d)
     return defer.DeferredList(dl)
 
+class InvalidResumeFile(Exception):
+    pass
+
+class noResumeSession(Exception):
+    pass
+
+def loadResumeFile():
+    """
+    Sets the singleton stateDict object to the content of the resume file.
+    If the file is empty then it will create an empty one.
+
+    Raises:
+
+        :class:ooni.runner.InvalidResumeFile if the resume file is not valid
+
+    """
+    if not config.stateDict:
+        try:
+            config.stateDict = yaml.safe_load(open(config.resume_filename))
+        except:
+            log.err("Error loading YAML file")
+            raise InvalidResumeFile
+
+        if not config.stateDict:
+            yaml.safe_dump(dict(), open(config.resume_filename, 'w+'))
+            config.stateDict = dict()
+
+        elif isinstance(config.stateDict, dict):
+            return
+        else:
+            log.err("The resume file is of the wrong format")
+            raise InvalidResumeFile
+
+def resumeTest(test_filename, input_unit_factory):
+    """
+    Returns the an input_unit_factory that is at the index of the previous run of the test 
+    for the specified test_filename.
+
+    Args:
+
+        test_filename (str): the filename of the test that is being run
+            including the .py extension.
+
+        input_unit_factory (:class:ooni.inputunit.InputUnitFactory): with the
+            same input of the past run.
+
+    Returns:
+
+        :class:ooni.inputunit.InputUnitFactory that is at the index of the
+            previous test run.
+
+    """
+    try:
+        idx = config.stateDict[test_filename]
+        for x in range(idx):
+            try:
+                input_unit_factory.next()
+            except StopIteration:
+                log.msg("Previous run was complete")
+                return input_unit_factory
+
+        return input_unit_factory
+
+    except KeyError:
+        log.debug("No resume key found for selected test name. It is therefore 0")
+        config.stateDict[test_filename] = 0
+        return input_unit_factory
+
+@defer.inlineCallbacks
+def updateResumeFile(test_filename):
+    """
+    update the resume file with the current stateDict state.
+    """
+    log.debug("Acquiring lock for %s" % test_filename)
+    yield config.resume_lock.acquire()
+
+    current_resume_state = yaml.safe_load(open(config.resume_filename))
+    current_resume_state = config.stateDict
+    yaml.safe_dump(current_resume_state, open(config.resume_filename, 'w+'))
+
+    log.debug("Releasing lock for %s" % test_filename)
+    config.resume_lock.release()
+    defer.returnValue(config.stateDict[test_filename])
+
+@defer.inlineCallbacks
+def increaseInputUnitIdx(test_filename):
+    """
+    Args:
+
+        test_filename (str): the filename of the test that is being run
+            including the .py extension.
+
+        input_unit_idx (int): the current input unit index for the test.
+
+    """
+    config.stateDict[test_filename] += 1
+    yield updateResumeFile(test_filename)
+
 @defer.inlineCallbacks
 def runTestCases(test_cases, options, cmd_line_options):
     log.debug("Running %s" % test_cases)
@@ -245,18 +346,16 @@ def runTestCases(test_cases, options, cmd_line_options):
             test_inputs = [None]
 
     if cmd_line_options['collector']:
-        log.debug("Using remote collector")
+        log.msg("Using remote collector, please be patient while we create the report.")
         oreporter = reporter.OONIBReporter(cmd_line_options)
     else:
-        log.debug("Reporting to file %s" % config.reports.yamloo)
+        log.msg("Reporting to file %s" % config.reports.yamloo)
         oreporter = reporter.YAMLReporter(cmd_line_options)
 
     try:
         input_unit_factory = InputUnitFactory(test_inputs)
     except Exception, e:
         log.exception(e)
-
-    log.debug("Creating report")
 
     try:
         yield oreporter.createReport(options)
@@ -266,17 +365,59 @@ def runTestCases(test_cases, options, cmd_line_options):
     except Exception, e:
         log.exception(e)
 
-    # This deferred list is a deferred list of deferred lists
-    # it is used to store all the deferreds of the tests that
-    # are run
-    input_unit_idx = 0
+    try:
+        loadResumeFile()
+    except InvalidResumeFile:
+        log.err("Error in loading resume file %s" % config.resume_filename)
+        log.err("Try deleting the resume file")
+        raise InvalidResumeFile
+
+    test_filename = os.path.basename(cmd_line_options['test'])
+
+    if cmd_line_options['resume']:
+        resumeTest(test_filename, input_unit_factory)
+    else:
+        config.stateDict[test_filename] = 0
+
     try:
         for input_unit in input_unit_factory:
             log.debug("Running this input unit %s" % input_unit)
+
             yield runTestCasesWithInputUnit(test_cases, input_unit,
                         oreporter)
-            input_unit_idx += 1
+            yield increaseInputUnitIdx(test_filename)
 
     except Exception:
         log.exception("Problem in running test")
 
+def runTest(cmd_line_options):
+    config.cmd_line_options = cmd_line_options
+    config.generateReportFilenames()
+
+    if cmd_line_options['reportfile']:
+        config.reports.yamloo = cmd_line_options['reportfile']
+        config.reports.pcap = config.reports.yamloo+".pcap"
+
+    if os.path.exists(config.reports.pcap):
+        print "Report PCAP already exists with filename %s" % config.reports.pcap
+        print "Renaming it to %s" % config.reports.pcap+".old"
+        os.rename(config.reports.pcap, config.reports.pcap+".old")
+
+    classes = findTestClassesFromFile(cmd_line_options['test'])
+    test_cases, options = loadTestsAndOptions(classes, cmd_line_options)
+    if config.privacy.includepcap:
+        from ooni.utils.txscapy import ScapyFactory, ScapySniffer
+        try:
+            checkForRoot()
+        except NotRootError:
+            print "[!] Includepcap options requires root priviledges to run"
+            print "    you should run ooniprobe as root or disable the options in ooniprobe.conf"
+            sys.exit(1)
+
+        print "Starting sniffer"
+        config.scapyFactory = ScapyFactory(config.advanced.interface)
+
+        sniffer = ScapySniffer(config.reports.pcap)
+        config.scapyFactory.registerProtocol(sniffer)
+
+    return runTestCases(test_cases, options, cmd_line_options)

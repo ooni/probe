@@ -12,9 +12,9 @@ from twisted.internet import protocol, defer
 from twisted.internet.ssl import ClientContextFactory
 
 from twisted.internet import reactor
-from twisted.internet.error import ConnectionRefusedError
+from twisted.internet.error import ConnectionRefusedError, DNSLookupError, TCPTimedOutError
 
-from twisted.web._newclient import Request
+from twisted.web._newclient import Request, Response
 
 from ooni.nettest import NetTestCase
 from ooni.utils import log
@@ -52,6 +52,9 @@ class HTTPTest(NetTestCase):
 
     request = {}
     response = {}
+
+    requests = []
+    responses = []
 
     def _setUp(self):
         try:
@@ -97,21 +100,37 @@ class HTTPTest(NetTestCase):
     def processInputs(self):
         pass
 
-    def _processResponseBody(self, response_body, request, response, body_processor):
-        log.debug("Processing response body")
-        self.report['requests'].append({
+    def addToReport(self, request, response=None):
+        """
+        Adds to the report the specified request and response.
+
+        Args:
+            request (dict): A dict describing the request that was made
+
+            response (instance): An instance of
+                :class:twisted.web.client.Response.
+                Note: headers is our modified True Headers version.
+        """
+        log.debug("Adding %s to report" % request)
+        request_response = {
             'request': {
                 'headers': request['headers'],
                 'body': request['body'],
                 'url': request['url'],
                 'method': request['method']
-            },
-            'response': {
+            }
+        }
+        if response:
+            request_response['response'] = {
                 'headers': list(response.headers.getAllRawHeaders()),
                 'body': response_body,
                 'code': response.code
             }
-        })
+        self.report['requests'].append(request_response)
+
+    def _processResponseBody(self, response_body, request, response, body_processor):
+        log.debug("Processing response body")
+        self.addToReport(request, response)
         if body_processor:
             body_processor(response_body)
         else:
@@ -184,6 +203,7 @@ class HTTPTest(NetTestCase):
             return
         else:
             log.debug("Got response %s" % response)
+            return
 
         if str(response.code).startswith('3'):
             self.processRedirect(response.headers.getRawHeaders('Location')[0])
@@ -272,20 +292,32 @@ class HTTPTest(NetTestCase):
 
         headers = TrueHeaders(request['headers'])
 
-        def errback(failure):
-            failure.trap(ConnectionRefusedError, SOCKSError)
+        def errback(failure, request):
+            failure.trap(ConnectionRefusedError, SOCKSError, DNSLookupError, TCPTimedOutError)
+            log.err("Error performing %s" % request)
+            self.addToReport(request)
             if isinstance(failure.value, ConnectionRefusedError):
                 log.err("Connection refused. The backend may be down")
                 self.report['failure'] = 'connection_refused_error'
 
             elif isinstance(failure.value, SOCKSError):
-                log.err("Sock error. The SOCK proxy may be down")
-                self.report['failure'] = 'sockserror'
+                log.err("Sock error. The SOCKS proxy may be down")
+                self.report['failure'] = 'socks_error'
+
+            elif isinstance(failure.value, DNSLookupError):
+                log.err("DNS lookup failure")
+                self.report['failure'] = 'dns_lookup_error'
+
+            elif isinstance(failure.value, TCPTimedOutError):
+                log.err("DNS lookup failure")
+                self.report['failure'] = 'tcp_timed_out_error'
+            return
 
         d = agent.request(request['method'], request['url'], headers,
                 body_producer)
 
-        d.addCallback(self._cbResponse, request, headers_processor, body_processor)
-        d.addErrback(errback)
+        d.addCallback(self._cbResponse, request, headers_processor,
+                body_processor)
+        d.addErrback(errback, request)
         return d
 
