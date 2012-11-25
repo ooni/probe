@@ -17,7 +17,7 @@ included submodules.
 
 ## Getting started
 
-Requirements:
+Basic requirements:
 
   * Git: http://git-scm.com/book/en/Getting-Started-Installing-Git
   * Python >= 2.6: http://www.python.org/download/releases/
@@ -25,11 +25,11 @@ Requirements:
 
 On debian based systems these can be installed with:
 
-  apt-get install git-core python python-pip python-dev
+   sudo apt-get install git-core python python-pip python-dev
 
 The python dependencies required for running ooniprobe are:
 
-  * Twisted (>12.0.0): http://twistedmatrix.com/trac/
+  * Twisted (>12.1.0): http://twistedmatrix.com/trac/
   * PyYAML: http://pyyaml.org/
   * Scapy: http://www.secdev.org/projects/scapy/
       * pypcap: http://code.google.com/p/pypcap/
@@ -37,13 +37,18 @@ The python dependencies required for running ooniprobe are:
   * BeautifulSoup: http://www.crummy.com/software/BeautifulSoup/
   * txtorcon: https://github.com/meejah/txtorcon
 
-You are highly recommended to install depedencies from inside of a virtual
+You are highly recommended to install python packages from inside of a virtual
 environment, since pip does not download the packages via SSL and you will need
 to install it system wide.
 
 This will require you to have installed virtualenv.
 
     sudo apt-get install python-virtualenv
+
+Clone the ooniprobe repository:
+
+    git clone https://git.torproject.org/ooni-probe.git
+    cd ooni-probe
 
 To create a new virtual environment do
 
@@ -52,14 +57,63 @@ To create a new virtual environment do
 
 Then install OONI with:
 
-    pip install https://hg.secdev.org/scapy/archive/tip.zip
     pip install -r requirements.txt
 
-If you decided not to install virtual env and want to download code via http as
-run it as root, you may easily do so with:
+If you are not in a virtualenv you will have to run the above command as root:
 
-    pip install https://hg.secdev.org/scapy/archive/tip.zip
     sudo pip install -r requirements.txt
+
+## Install libdnet and pypcap python bindings
+
+It's ideal to install these manually since the ones in debian or ubuntu are not up to date.
+
+For libdnet:
+
+    wget http://libdnet.googlecode.com/files/libdnet-1.12.tgz
+    tar xzf libdnet-1.12.tgz
+    cd libdnet-1.12
+    ./configure  && make
+    cd python/
+    python setup.py install
+    cd ../../ && rm -rf libdnet-1.12*
+
+For pypcap:
+
+    svn checkout http://pypcap.googlecode.com/svn/trunk/ pypcap-read-only
+    cd pypcap-read-only/
+    pip install pyrex
+    make
+    python setup.py install
+    cd ../ && rm -rf pypcap-read-only
+
+
+On a 64 bit machine on ubuntu 12.10 you may get this error:
+
+    Traceback (most recent call last):
+      File "setup.py", line 103, in <module>
+        ext_modules = [ pcap ])
+      File "/usr/lib/python2.7/distutils/core.py", line 152, in setup
+        dist.run_commands()
+      File "/usr/lib/python2.7/distutils/dist.py", line 953, in run_commands
+        self.run_command(cmd)
+      File "/usr/lib/python2.7/distutils/dist.py", line 972, in run_command
+        cmd_obj.run()
+      File "setup.py", line 68, in run
+        print self._pcap_config([self.with_pcap])
+      File "setup.py", line 64, in _pcap_config
+        raise Exception("couldn't find pcap build or installation directory")
+    Exception: couldn't find pcap build or installation directory
+
+The quick and dirty fix is to edit the setup.py line 49:
+
+from:
+
+`for sd in ('lib', 'lib64', ''):`
+
+into:
+
+`for sd in ('lib', 'lib64', 'lib/x86_64-linux-gnu', ''):`
+
 
 ## Including your geo data in the test report
 
