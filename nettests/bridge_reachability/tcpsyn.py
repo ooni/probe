@@ -62,7 +62,6 @@ class TCPSynTest(nettest.NetTestCase):
 
     destinations = {}
 
-    @log.catcher
     def setUp(self, *a, **kw):
         """Configure commandline parameters for TCPSynTest."""
         if self.localOptions:
@@ -70,26 +69,12 @@ class TCPSynTest(nettest.NetTestCase):
                 setattr(self, key, value)
         if not self.interface:
             try:
-                iface = net.getDefaultIface()
+                iface = log.catcher(net.getDefaultIface())
             except net.IfaceError, ie:
-                log.msg("Could not find a working network interface!")
-            except Exception, ex:
-                log.exception(ex)
+                log.warn("Could not find a working network interface!")
             else:
                 log.msg("Using system default interface: %s" % iface)
                 self.interface = iface
-        if self.cerealize:
-            if True:
-                raise NotImplemented("need handler for type(dictproxy)...")
-            else:
-                from Cerealize import cerealizer
-                self.cheerios = Cerealize.cerealizer()
-                mind = ['scapy.layers.inet.IP',
-                        'scapy.base_classes.Packet_metaclass',
-                        'scapy.plist.SndRcvList']
-                for spoon in mind:
-                    __import__(spoon)
-                    self.cheerios.register(spoon)
 
     def addToDestinations(self, addr, port):
         dst, dport = net.checkIPandPort(addr, port)
@@ -161,9 +146,6 @@ class TCPSynTest(nettest.NetTestCase):
                 if self.hexdump:
                     request_data.update('hexdump', q.hexdump())
                     response_data.update('hexdump', r.hexdump())
-                if self.cerealize:
-                    pass
-
                 for dest, data in self.destinations.items():
                     if data['dst'] == response_data['src']:
                         if not 'reachable' in data:
