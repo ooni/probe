@@ -262,7 +262,7 @@ class Agent(client.Agent):
         self._socksport = socksport
 
     def request(self, method, uri, headers=None, bodyProducer=None):
-        if uri.startswith('shttp') or uri.startswith('httpo'):
+        if (uri.startswith('shttp') or uri.startswith('httpo')) and not HTTPConnectionPool:
             log.err("Requests over SOCKS are supported only with versions of Twisted >= 12.1.0")
             raise UnsupportedTwistedVersion
         return client.Agent.request(self, method, uri, headers, bodyProducer)
