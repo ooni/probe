@@ -191,7 +191,7 @@ class OReporter(object):
                 'test_started': test_started,
                 'test_runtime': test_runtime,
                 'report': test_report}
-        return self.writeReportEntry(report)
+        return defer.maybeDeferred(self.writeReportEntry, report)
 
 class YAMLReporter(OReporter):
     """
@@ -224,6 +224,7 @@ class YAMLReporter(OReporter):
         self._write('---\n')
         self._write(safe_dump(entry))
         self._write('...\n')
+        return
 
     @defer.inlineCallbacks
     def createReport(self, options):

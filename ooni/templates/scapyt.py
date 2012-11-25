@@ -140,7 +140,6 @@ class BaseScapyTest(NetTestCase):
         scapySender = ScapySender()
 
         config.scapyFactory.registerProtocol(scapySender)
-
         scapySender.sendPackets(packets)
 
         scapySender.stopSending()

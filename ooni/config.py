@@ -6,15 +6,28 @@
 import os
 import yaml
 
-from twisted.internet import reactor, threads
+from twisted.internet import reactor, threads, defer
 
 from ooni.utils import otime
 from ooni.utils import Storage
 
 reports = Storage()
+scapyFactory = None
+stateDict = None
+
+# XXX refactor this to use a database
+resume_lock = defer.DeferredLock()
+
 basic = None
 cmd_line_options = None
-scapyFactory = None
+resume_filename = None
+
+# XXX-Twisted this is used to check if we have started the reactor or not. It
+# is necessary because if the tests are already concluded because we have
+# resumed a test session then it will call reactor.run() even though there is
+# no condition that will ever stop it.
+# There should be a more twisted way of doing this.
+start_reactor = True
 
 def get_root_path():
     this_directory = os.path.dirname(__file__)
@@ -71,6 +84,13 @@ def generateReportFilenames():
 if not basic:
     # Here we make sure that we instance the config file attributes only once
     basic, privacy, advanced = loadConfigFile()
+
+if not resume_filename:
+    resume_filename = os.path.join(get_root_path(), 'ooniprobe.resume')
+    try:
+        with open(resume_filename) as f: pass
+    except IOError as e:
+        with open(resume_filename, 'w+') as f: pass
 
 # This is used to keep track of the state of the sniffer
 sniffer_running = None
