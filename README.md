@@ -25,7 +25,7 @@ Basic requirements:
 
 On debian based systems these can be installed with:
 
-   sudo apt-get install git-core python python-pip python-dev
+    sudo apt-get install git-core python python-pip python-dev build-essential
 
 The python dependencies required for running ooniprobe are:
 
@@ -37,23 +37,46 @@ The python dependencies required for running ooniprobe are:
   * BeautifulSoup: http://www.crummy.com/software/BeautifulSoup/
   * txtorcon: https://github.com/meejah/txtorcon
 
+## Configurating a virtual environment
+
 You are highly recommended to install python packages from inside of a virtual
 environment, since pip does not download the packages via SSL and you will need
 to install it system wide.
 
 This will require you to have installed virtualenv.
 
-    sudo apt-get install python-virtualenv
+    sudo apt-get install python-virtualenv virtualenvwrapper
+
+To create a new virtual environment do
+
+    mkdir $HOME/.virtualenvs
+    mkvirtualenv ooni-probe
+
+You will automatically enter the environment. To re-enter this environment in the future, type:
+
+    workon ooni-probe
+
+For convenience, you may want to add the following to your .bashrc:
+
+    if [ -e ~/ooni-probe/bin ]; then
+        export PATH=~/ooni-probe/bin:$PATH
+    fi
+    if [ -e ~/ooni-probe ]; then
+        export PYTHONPATH=$PYTHONPATH:~/ooni-probe
+    fi
+
+Add the following to $HOME/.virtualenvs/ooni-probe/bin/postactivate to automatically cd into the working directory upon activation.
+
+    if [ -e ~/ooni-probe ] ; then
+        cd ~/ooni-probe
+    fi
+
+## Installing ooni-probe
 
 Clone the ooniprobe repository:
 
     git clone https://git.torproject.org/ooni-probe.git
     cd ooni-probe
-
-To create a new virtual environment do
-
-    virtualenv env
-    source env/bin/activate
 
 Then install OONI with:
 
@@ -66,6 +89,10 @@ If you are not in a virtualenv you will have to run the above command as root:
 ## Install libdnet and pypcap python bindings
 
 It's ideal to install these manually since the ones in debian or ubuntu are not up to date.
+
+If you don't already have Subversion installed:
+   
+    sudo apt-get install subversion
 
 For libdnet:
 
