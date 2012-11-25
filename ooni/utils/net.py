@@ -82,29 +82,6 @@ class BodyReceiver(protocol.Protocol):
     def connectionLost(self, reason):
         self.finished.callback(self.data)
 
-def capturePackets(pcap_filename):
-    from scapy.all import sniff
-    global stop_packet_capture
-    stop_packet_capture = False
-
-    def stopCapture():
-        # XXX this is a bit of a hack to stop capturing packets when we close
-        # the reactor. Ideally we would want to be able to do this
-        # programmatically, but this requires some work on implementing
-        # properly the sniff function with deferreds.
-        global stop_packet_capture
-        stop_packet_capture = True
-
-    def writePacketToPcap(pkt):
-        from scapy.all import utils
-        pcapwriter = txscapy.TXPcapWriter(pcap_filename, append=True)
-        pcapwriter.write(pkt)
-        if stop_packet_capture:
-            sys.exit(1)
-    d = threads.deferToThread(sniff, lfilter=writePacketToPcap)
-    reactor.addSystemEventTrigger('before', 'shutdown', stopCapture)
-    return d
-
 def getSystemResolver():
     """
     XXX implement a function that returns the resolver that is currently

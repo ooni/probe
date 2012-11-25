@@ -100,6 +100,7 @@ def runTest(cmd_line_options):
     classes = runner.findTestClassesFromFile(cmd_line_options['test'])
     test_cases, options = runner.loadTestsAndOptions(classes, cmd_line_options)
     if config.privacy.includepcap:
+        from ooni.utils.txscapy import ScapyFactory, ScapySniffer
         try:
             checkForRoot()
         except NotRootError:
@@ -108,7 +109,10 @@ def runTest(cmd_line_options):
             sys.exit(1)
 
         print "Starting sniffer"
-        net.capturePackets(config.reports.pcap)
+        config.scapyFactory = ScapyFactory(config.advanced.interface)
+
+        sniffer = ScapySniffer(config.reports.pcap)
+        config.scapyFactory.registerProtocol(sniffer)
 
     return runner.runTestCases(test_cases, options, cmd_line_options)
 

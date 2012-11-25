@@ -16,7 +16,7 @@ from ooni.nettest import NetTestCase
 from ooni.utils import log
 from ooni import config
 
-from ooni.utils.txscapy import ScapyProtocol, getDefaultIface
+from ooni.utils.txscapy import ScapySender, getDefaultIface
 
 class BaseScapyTest(NetTestCase):
     """
@@ -66,20 +66,8 @@ class BaseScapyTest(NetTestCase):
         else:
             config.check_TCPerror_seqack = 0
 
-        if config.advanced.interface == 'auto':
-            self.interface = getDefaultIface()
-        else:
-            self.interface = config.advanced.interface
-
-    def reportSentPacket(self, packet):
-        if 'sent_packets' not in self.report:
-            self.report['sent_packets'] = []
-        self.report['sent_packets'].append(packet)
-
-    def reportReceivedPacket(self, packet):
-        if 'answered_packets' not in self.report:
-            self.report['answered_packets'] = []
-        self.report['answered_packets'].append(packet)
+        self.report['sent_packets'] = []
+        self.report['answered_packets'] = []
 
     def finishedSendReceive(self, packets):
         """
@@ -98,8 +86,8 @@ class BaseScapyTest(NetTestCase):
                 sent_packet.src = '127.0.0.1'
                 received_packet.dst = '127.0.0.1'
 
-            self.reportSentPacket(sent_packet)
-            self.reportReceivedPacket(received_packet)
+            self.report['sent_packets'].append(sent_packet)
+            self.report['answered_packets'].append(received_packet)
         return packets
 
     def sr(self, packets, *arg, **kw):
@@ -107,8 +95,11 @@ class BaseScapyTest(NetTestCase):
         Wrapper around scapy.sendrecv.sr for sending and receiving of packets
         at layer 3.
         """
-        scapyProtocol = ScapyProtocol(interface=self.interface, *arg, **kw)
-        d = scapyProtocol.startSending(packets)
+        scapySender = ScapySender()
+
+        config.scapyFactory.registerProtocol(scapySender)
+
+        d = scapySender.startSending(packets)
         d.addCallback(self.finishedSendReceive)
         return d
 
@@ -123,12 +114,15 @@ class BaseScapyTest(NetTestCase):
                 return packets[0][0][1]
             except IndexError:
                 log.err("Got no response...")
-                return None
+                return packets
 
-        scapyProtocol = ScapyProtocol(interface=self.interface, *arg, **kw)
-        scapyProtocol.expected_answers = 1
+        scapySender = ScapySender()
+        scapySender.expected_answers = 1
+
+        config.scapyFactory.registerProtocol(scapySender)
+
         log.debug("Running sr1")
-        d = scapyProtocol.startSending(packets)
+        d = scapySender.startSending(packets)
         log.debug("Started to send")
         d.addCallback(self.finishedSendReceive)
         d.addCallback(done)
@@ -138,9 +132,13 @@ class BaseScapyTest(NetTestCase):
         """
         Wrapper around scapy.sendrecv.send for sending of packets at layer 3
         """
-        scapyProtocol = ScapyProtocol(interface=self.interface, *arg, **kw)
-        scapyProtocol.sendPackets(packets)
-        scapyProtocol.stopSending()
+        scapySender = ScapySender()
+
+        config.scapyFactory.registerProtocol(scapySender)
+
+        scapySender.sendPackets(packets)
+
+        scapySender.stopSending()
         for packet in packets:
             self.reportSentPacket(packet)
 

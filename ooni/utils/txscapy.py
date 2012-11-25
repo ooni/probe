@@ -32,7 +32,9 @@ try:
     config.pcap_dnet = True
 
 except ImportError, e:
-    log.err("pypcap or dnet not installed. Certain tests may not work.")
+    log.err("pypcap or dnet not installed. "
+            "Certain tests may not work.")
+
     config.pcap_dnet = False
     conf.use_pcap = False
     conf.use_dnet = False
@@ -59,6 +61,9 @@ def getNetworksFromRoutes():
 
     return networks
 
+class IfaceError(Exception):
+    pass
+
 def getDefaultIface():
     networks = getNetworksFromRoutes()
     for net in networks:
@@ -66,45 +71,100 @@ def getDefaultIface():
             return net.iface
     raise IfaceError
 
-class TXPcapWriter(PcapWriter):
-    def __init__(self, *arg, **kw):
-        PcapWriter.__init__(self, *arg, **kw)
-        fdesc.setNonBlocking(self.f)
+class ProtocolNotRegistered(Exception):
+    pass
 
-class ScapyProtocol(abstract.FileDescriptor):
+class ProtocolAlreadyRegistered(Exception):
+    pass
+
+class ScapyFactory(abstract.FileDescriptor):
+    """
+    Inspired by muxTCP scapyLink:
+    https://github.com/enki/muXTCP/blob/master/scapyLink.py
+    """
     def __init__(self, interface, super_socket=None, timeout=5):
         abstract.FileDescriptor.__init__(self, reactor)
+        if interface == 'auto':
+            interface = getDefaultIface()
         if not super_socket:
-            super_socket = conf.L3socket(iface=interface, promisc=True, filter='')
+            super_socket = conf.L3socket(iface=interface,
+                    promisc=True, filter='')
             #super_socket = conf.L2socket(iface=interface)
 
+        self.protocols = []
         fdesc._setCloseOnExec(super_socket.ins.fileno())
         self.super_socket = super_socket
 
-        self.interface = interface
-        self.timeout = timeout
+    def writeSomeData(self, data):
+        """
+        XXX we actually want to use this, but this requires overriding doWrite
+        or writeSequence.
+        """
+        pass
 
-        # This dict is used to store the unique hashes that allow scapy to
-        # match up request with answer
-        self.hr_sent_packets = {}
-
-        # These are the packets we have received as answer to the ones we sent
-        self.answered_packets = []
-
-        # These are the packets we send
-        self.sent_packets = []
-
-        # This deferred will fire when we have finished sending a receiving packets.
-        self.d = defer.Deferred()
-        # Should we look for multiple answers for the same sent packet?
-        self.multi = False
-
-        # When 0 we stop when all the packets we have sent have received an
-        # answer
-        self.expected_answers = 0
+    def send(self, packet):
+        """
+        Write a scapy packet to the wire.
+        """
+        return self.super_socket.send(packet)
 
     def fileno(self):
         return self.super_socket.ins.fileno()
+
+    def doRead(self):
+        packet = self.super_socket.recv(MTU)
+        for protocol in self.protocols:
+            protocol.packetReceived(packet)
+
+    def registerProtocol(self, protocol):
+        if not self.connected:
+            self.startReading()
+
+        if protocol not in self.protocols:
+            protocol.factory = self
+            self.protocols.append(protocol)
+        else:
+            raise ProtocolAlreadyRegistered
+
+    def unRegisterProtocol(self, protocol):
+        if protocol in self.protocols:
+            self.protocols.remove(protocol)
+            if len(self.protocols) == 0:
+                self.loseConnection()
+        else:
+            raise ProtocolNotRegistered
+
+class ScapyProtocol(object):
+    factory = None
+
+    def packetReceived(self, packet):
+        """
+        When you register a protocol, this method will be called with argument
+        the packet it received.
+
+        Every protocol that is registered will have this method called.
+        """
+        raise NotImplementedError
+
+class ScapySender(ScapyProtocol):
+    timeout = 5
+    # This dict is used to store the unique hashes that allow scapy to
+    # match up request with answer
+    hr_sent_packets = {}
+
+    # These are the packets we have received as answer to the ones we sent
+    answered_packets = []
+
+    # These are the packets we send
+    sent_packets = []
+
+    # This deferred will fire when we have finished sending a receiving packets.
+    # Should we look for multiple answers for the same sent packet?
+    multi = False
+
+    # When 0 we stop when all the packets we have sent have received an
+    # answer
+    expected_answers = 0
 
     def processPacket(self, packet):
         """
@@ -131,11 +191,10 @@ class ScapyProtocol(abstract.FileDescriptor):
             log.debug("Got the number of expected answers")
             self.stopSending()
 
-    def doRead(self):
+    def packetReceived(self, packet):
         timeout = time.time() - self._start_time
         if self.timeout and time.time() - self._start_time > self.timeout:
             self.stopSending()
-        packet = self.super_socket.recv(MTU)
         if packet:
             self.processPacket(packet)
             # A string that has the same value for the request than for the
@@ -146,18 +205,9 @@ class ScapyProtocol(abstract.FileDescriptor):
                 self.processAnswer(packet, answer_hr)
 
     def stopSending(self):
-        self.stopReading()
-        self.super_socket.close()
-        if hasattr(self, "d"):
-            result = (self.answered_packets, self.sent_packets)
-            self.d.callback(result)
-            del self.d
-
-    def write(self, packet):
-        """
-        Write a scapy packet to the wire.
-        """
-        return self.super_socket.send(packet)
+        result = (self.answered_packets, self.sent_packets)
+        self.d.callback(result)
+        self.factory.unRegisterProtocol(self)
 
     def sendPackets(self, packets):
         if not isinstance(packets, Gen):
@@ -169,12 +219,18 @@ class ScapyProtocol(abstract.FileDescriptor):
             else:
                 self.hr_sent_packets[hashret] = [packet]
             self.sent_packets.append(packet)
-            self.write(packet)
+            self.factory.send(packet)
 
     def startSending(self, packets):
         self._start_time = time.time()
-        self.startReading()
+        self.d = defer.Deferred()
         self.sendPackets(packets)
         return self.d
 
+class ScapySniffer(ScapyProtocol):
+    def __init__(self, pcap_filename, *arg, **kw):
+        self.pcapwriter = PcapWriter(pcap_filename, *arg, **kw)
+
+    def packetReceived(self, packet):
+        self.pcapwriter.write(packet)
 
