@@ -262,7 +262,6 @@ def runTestCases(test_cases, options, cmd_line_options):
         yield oreporter.createReport(options)
     except reporter.OONIBReportCreationFailed:
         log.err("Error in creating new report")
-        reactor.stop()
         raise
     except Exception, e:
         log.exception(e)
@@ -280,6 +279,5 @@ def runTestCases(test_cases, options, cmd_line_options):
 
     except Exception:
         log.exception("Problem in running test")
-        reactor.stop()
     oreporter.allDone()
 

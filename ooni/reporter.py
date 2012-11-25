@@ -197,10 +197,8 @@ class OReporter(object):
         log.debug("allDone: Finished running all tests")
         try:
             log.debug("Stopping the reactor")
-            reactor.stop()
         except:
             log.debug("Unable to stop the reactor")
-            pass
         return None
 
 class YAMLReporter(OReporter):
