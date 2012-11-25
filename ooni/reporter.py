@@ -152,7 +152,7 @@ def getTestDetails(options):
                     'test_version': options['version'],
                     'software_name': 'ooniprobe',
                     'software_version': software_version
-                    }
+    }
     defer.returnValue(test_details)
 
 class OReporter(object):

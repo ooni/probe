@@ -400,8 +400,8 @@ def runTest(cmd_line_options):
 
     if os.path.exists(config.reports.pcap):
         print "Report PCAP already exists with filename %s" % config.reports.pcap
-        print "Renaming it to %s" % config.reports.pcap+'.old'
-        os.rename(config.reports.pcap, config.reports.pcap+'.old')
+        print "Renaming it to %s" % config.reports.pcap+".old"
+        os.rename(config.reports.pcap, config.reports.pcap+".old")
 
     classes = findTestClassesFromFile(cmd_line_options['test'])
     test_cases, options = loadTestsAndOptions(classes, cmd_line_options)
