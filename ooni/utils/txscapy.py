@@ -113,8 +113,9 @@ class ScapyFactory(abstract.FileDescriptor):
 
     def doRead(self):
         packet = self.super_socket.recv(MTU)
-        for protocol in self.protocols:
-            protocol.packetReceived(packet)
+        if packet:
+            for protocol in self.protocols:
+                protocol.packetReceived(packet)
 
     def registerProtocol(self, protocol):
         if not self.connected:
