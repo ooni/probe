@@ -38,8 +38,13 @@ class DNSSpoof(scapyt.ScapyTest):
         This is not tested, but the concept is that if the two responses
         match up then spoofing is occuring.
         """
-        test_answer = report['test_a_lookup']['answered_packets'][0][1]
-        control_answer = report['test_control_a_lookup']['answered_packets'][0][1]
+        try:
+            test_answer = report['test_a_lookup']['answered_packets'][0][1]
+            control_answer = report['test_control_a_lookup']['answered_packets'][0][1]
+        except IndexError:
+            self.report['spoofing'] = 'no_answer'
+            return
+
         if test_answer[UDP] == control_answer[UDP]:
                 self.report['spoofing'] = True
         else:
