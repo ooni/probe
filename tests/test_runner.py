@@ -36,8 +36,6 @@ class TestRunner(unittest.TestCase):
         self.assertEqual(test_cases[1][1], 'test_a')
 
     def test_run_testcase_with_input_unit(self):
-        oreporter = DummyReporter()
-        oreporter.dummy_report = []
         def done(result):
             report = oreporter.dummy_report
             self.assertEqual(len(report), 5*2)
@@ -50,6 +48,9 @@ class TestRunner(unittest.TestCase):
         input_unit = InputUnit([0,1,2,3,4])
         cmd_line_options = {'collector': None}
 
+        oreporter = DummyReporter(cmd_line_options)
+        oreporter.dummy_report = []
+
         test_cases, options = loadTestsAndOptions([DummyTestCase],
                 cmd_line_options)
 
@@ -58,8 +59,6 @@ class TestRunner(unittest.TestCase):
         return d
 
     def test_with_post_processing(self):
-        oreporter = DummyReporter()
-        oreporter.dummy_report = []
         def done(result):
             report = oreporter.dummy_report
             self.assertEqual(len(report), 3)
@@ -69,6 +68,9 @@ class TestRunner(unittest.TestCase):
 
         input_unit = InputUnit([None])
         cmd_line_options = {'collector': None}
+
+        oreporter = DummyReporter(cmd_line_options)
+        oreporter.dummy_report = []
 
         test_cases, options = loadTestsAndOptions([DummyTestCasePP],
                 cmd_line_options)

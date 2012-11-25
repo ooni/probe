@@ -193,14 +193,6 @@ class OReporter(object):
                 'report': test_report}
         return self.writeReportEntry(report)
 
-    def allDone(self):
-        log.debug("allDone: Finished running all tests")
-        try:
-            log.debug("Stopping the reactor")
-        except:
-            log.debug("Unable to stop the reactor")
-        return None
-
 class YAMLReporter(OReporter):
     """
     These are useful functions for reporting to YAML format.
