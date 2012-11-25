@@ -148,16 +148,7 @@ class ScapyProtocol(object):
 
 class ScapySender(ScapyProtocol):
     timeout = 5
-    # This dict is used to store the unique hashes that allow scapy to
-    # match up request with answer
-    hr_sent_packets = {}
-
-    # These are the packets we have received as answer to the ones we sent
-    answered_packets = []
-
-    # These are the packets we send
-    sent_packets = []
-
+    
     # This deferred will fire when we have finished sending a receiving packets.
     # Should we look for multiple answers for the same sent packet?
     multi = False
@@ -222,6 +213,16 @@ class ScapySender(ScapyProtocol):
             self.factory.send(packet)
 
     def startSending(self, packets):
+        # This dict is used to store the unique hashes that allow scapy to
+        # match up request with answer
+        self.hr_sent_packets = {}
+
+        # These are the packets we have received as answer to the ones we sent
+        self.answered_packets = []
+
+        # These are the packets we send
+        self.sent_packets = []
+
         self._start_time = time.time()
         self.d = defer.Deferred()
         self.sendPackets(packets)
