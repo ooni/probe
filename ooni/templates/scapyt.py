@@ -16,7 +16,7 @@ from ooni.nettest import NetTestCase
 from ooni.utils import log
 from ooni import config
 
-from ooni.utils.txscapy import ScapySender, getDefaultIface
+from ooni.utils.txscapy import ScapySender, getDefaultIface, ScapyFactory
 
 class BaseScapyTest(NetTestCase):
     """
@@ -42,6 +42,10 @@ class BaseScapyTest(NetTestCase):
             ]
 
     def _setUp(self):
+        if not config.scapyFactory:
+            log.debug("Scapy factoring not set, registering it.")
+            config.scapyFactory = ScapyFactory(config.advanced.interface)
+
         self.report['answer_flags'] = []
         if self.localOptions['ipsrc']:
             config.checkIPsrc = 0
@@ -98,6 +102,7 @@ class BaseScapyTest(NetTestCase):
         scapySender = ScapySender()
 
         config.scapyFactory.registerProtocol(scapySender)
+        log.debug("Using sending with hash %s" % scapySender.__hash__)
 
         d = scapySender.startSending(packets)
         d.addCallback(self.finishedSendReceive)

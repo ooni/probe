@@ -14,6 +14,7 @@ from ooni.utils import Storage
 reports = Storage()
 basic = None
 cmd_line_options = None
+scapyFactory = None
 
 def get_root_path():
     this_directory = os.path.dirname(__file__)
