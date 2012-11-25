@@ -38,3 +38,12 @@
     reportfile: http_url_lists.yamloo
     subargs: [-f, test_inputs/url_lists_file.txt]
     test: nettests/core/http_url_list.py
+# XXX this is disabled because it requires oonib to be running
+#- options:
+#    collector: null
+#    help: 0
+#    logfile: null
+#    pcapfile: null
+#    reportfile: null
+#    subargs: [-h, test_inputs/test_header_field_manipulation.txt]
+#    test: nettests/core/http_header_field_manipulation.py

@@ -5,11 +5,13 @@
 
 import random
 import json
+import yaml
 
 from twisted.python import usage
 
 from ooni.utils import log, net, randomStr
 from ooni.templates import httpt
+from ooni.utils.txagentwithsocks import TrueHeaders
 
 def random_capitalization(string):
     output = ""
@@ -33,19 +35,51 @@ class UsageOptions(usage.Options):
                 'Specify a yaml formatted file from which to read the request headers to send']
             ]
 
-class HTTPRequests(httpt.HTTPTest):
+class HTTPHeaderFieldManipulation(httpt.HTTPTest):
     """
-    This test is also known as Header Field manipulation. It performes HTTP
-    requests with variations in capitalization towards the backend.
+    It performes HTTP requests with request headers that vary capitalization
+    towards a backend. If we detect that the headers the backend received
+    matches the ones we have sent then we have detected tampering.
     """
-    name = "HTTP Requests"
+    name = "HTTP Header Field Manipulation"
     author = "Arturo Filastò"
-    version = "0.1.1"
+    version = "0.1.3"
 
     randomizeUA = False
     usageOptions = UsageOptions
 
     requiredOptions = ['backend']
+
+    def get_headers(self):
+        headers = {}
+        if self.localOptions['headers']:
+            try:
+                f = open(self.localOptions['headers'])
+            except IOError:
+                raise Exception("Specified input file does not exist")
+            content = ''.join(f.readlines())
+            f.close()
+            headers = yaml.safe_load(content)
+            return headers
+        else:
+            # XXX generate these from a random choice taken from whatheaders.com
+            # http://s3.amazonaws.com/data.whatheaders.com/whatheaders-latest.xml.zip
+            headers = {"User-Agent": [random.choice(net.userAgents)[0]],
+                "Accept": ["text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"],
+                "Accept-Encoding": ["gzip,deflate,sdch"],
+                "Accept-Language": ["en-US,en;q=0.8"],
+                "Accept-Charset": ["ISO-8859-1,utf-8;q=0.7,*;q=0.3"],
+                "Host": [randomStr(15)+'.com']
+            }
+            return headers
+
+    def get_random_caps_headers(self):
+        headers = {}
+        normal_headers = self.get_headers()
+        for k, v in normal_headers.items():
+            new_key = random_capitalization(k)
+            headers[new_key] = v
+        return headers
 
     def processInputs(self):
         if self.localOptions['backend']:
@@ -76,77 +110,38 @@ class HTTPRequests(httpt.HTTPTest):
         *  **header_field_value** when the header field value does not match with the
         one we transmitted.
         """
-        self.report['tampering'] = {'total': False,
-                'request_line_capitalization': False, 
-                'header_name_capitalization': False,
-                'header_field_value': False,
-                'header_field_number': False
+        self.report['tampering'] = {
+            'total': False,
+            'request_line_capitalization': False,
+            'header_name_capitalization': False,
+            'header_field_value': False,
+            'header_field_number': False
         }
-
         try:
             response = json.loads(data)
         except ValueError:
             self.report['tampering']['total'] = True
             return
 
-        requestLine = "%s / HTTP/1.1" % self.request_method
-        if response['request_line'] != requestLine:
+        request_request_line = "%s / HTTP/1.1" % self.request_method
+
+        try:
+            response_request_line = response['request_line']
+            response_headers_dict = response['headers_dict']
+        except KeyError:
+            self.report['tampering']['total'] = True
+            return
+
+        if request_request_line != response_request_line:
             self.report['tampering']['request_line_capitalization'] = True
 
-        # We compare against length -1 because the response will also contain
-        # the Connection: close header since we do not do persistent
-        # connections
-        if len(self.request_headers) != (len(response['headers_dict']) - 1):
-            self.report['tampering']['header_field_number'] = True
-
-        for header, value in self.request_headers.items():
-            # XXX this still needs some work
-            # in particular if the response headers are of different length or
-            # some extra headers get added in the response (so the lengths
-            # match), we will get header_name_capitalization set to true, while
-            # the actual tampering is the addition of an extraneous header
-            # field.
-            if header == "Connection":
-                # Ignore Connection header
-                continue
-            try:
-                response_value = response['headers_dict'][header]
-                if response_value != value[0]:
-                    log.msg("Tampering detected because %s != %s" % (response_value, value[0]))
-                    self.report['tampering']['header_field_value'] = True
-            except KeyError:
-                log.msg("Tampering detected because %s not in %s" % (header, response['headers_dict']))
-                self.report['tampering']['header_name_capitalization'] = True
-
-    def get_headers(self):
-        headers = {}
-        if self.localOptions['headers']:
-            # XXX test this code
-            try:
-                f = open(self.localOptions['headers'])
-            except IOError:
-                raise Exception("Specified input file does not exist")
-            content = ''.join(f.readlines())
-            f.close()
-            headers = yaml.load(content)
-            return headers
+        request_headers = TrueHeaders(self.request_headers)
+        diff = request_headers.getDiff(response_headers_dict, ignore=['Connection'])
+        if diff:
+            self.report['tampering']['header_field_name'] = True
         else:
-            headers = {"User-Agent": [random.choice(net.userAgents)[0]],
-                "Accept": ["text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"],
-                "Accept-Encoding": ["gzip,deflate,sdch"],
-                "Accept-Language": ["en-US,en;q=0.8"],
-                "Accept-Charset": ["ISO-8859-1,utf-8;q=0.7,*;q=0.3"],
-                "Host": [randomStr(15)+'.com']
-            }
-            return headers
-
-    def get_random_caps_headers(self):
-        headers = {}
-        normal_headers = self.get_headers()
-        for k, v in normal_headers.items():
-            new_key = random_capitalization(k)
-            headers[new_key] = v
-        return headers
+            self.report['tampering']['header_field_name'] = False
+        self.report['tampering']['header_name_diff'] = list(diff)
 
     def test_get(self):
         self.request_method = "GET"
@@ -183,5 +178,4 @@ class HTTPRequests(httpt.HTTPTest):
         self.request_headers = self.get_random_caps_headers()
         return self.doRequest(self.url, self.request_method,
                 headers=self.request_headers)
-
 

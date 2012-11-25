@@ -77,7 +77,10 @@ class SimpleHTTPChannel(basic.LineReceiver, policies.TimeoutMixin):
     def allHeadersReceived(self):
         headers_dict = {}
         for k, v in self.headers:
-            headers_dict[k] = v
+            if k not in headers_dict:
+                headers_dict[k] = []
+            headers_dict[k].append(v)
+
         response = {'request_headers': self.headers,
             'request_line': self.requestLine,
             'headers_dict': headers_dict

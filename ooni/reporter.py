@@ -184,7 +184,7 @@ class OReporter(object):
             test_input = test.input
 
         test_started = test._start_time
-        test_runtime = test_started - time.time()
+        test_runtime = time.time() - test_started
 
         report = {'input': test_input,
                 'test_name': test_name,

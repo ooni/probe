@@ -4,6 +4,8 @@
 # :licence: see LICENSE
 
 import struct
+import itertools
+from copy import copy
 
 from zope.interface import implements
 from twisted.web import client, _newclient, http_headers
@@ -136,6 +138,40 @@ class TrueHeaders(http_headers.Headers):
           self._rawHeaders[name.lower()] = dict()
         self._rawHeaders[name.lower()]['name'] = name
         self._rawHeaders[name.lower()]['values'] = values
+
+    def getDiff(self, header_dict, ignore=[]):
+        """
+        ignore: specify a list of header fields to ignore
+
+        Returns a set containing the header names that are not present in
+        header_dict or not present in self.
+        """
+        diff = set()
+        field_names = []
+
+        headers_a = copy(self)
+        headers_b = TrueHeaders(header_dict)
+        for name in ignore:
+            try:
+                del headers_a._rawHeaders[name.lower()]
+            except KeyError:
+                pass
+            try:
+                del headers_b._rawHeaders[name.lower()]
+            except KeyError:
+                pass
+
+        for k, v in itertools.chain(headers_a.getAllRawHeaders(), \
+                headers_b.getAllRawHeaders()):
+            field_names.append(k)
+
+        for name in field_names:
+            if self.getRawHeaders(name) and \
+                name in header_dict:
+                pass
+            else:
+                diff.add(name)
+        return diff
 
     def getAllRawHeaders(self):
         for k, v in self._rawHeaders.iteritems():
