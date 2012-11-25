@@ -20,8 +20,6 @@ class UsageOptions(usage.Options):
                     ['srcport', 'p', None, 'Set the source port to a specific value (only applies to TCP and UDP)']
                     ]
 
-    optFlags = [['randomize','r', 'Randomize the source port']]
-
 class TracerouteTest(scapyt.BaseScapyTest):
     name = "Multi Protocol Traceroute Test"
     author = "Arturo Filastò"
@@ -34,12 +32,8 @@ class TracerouteTest(scapyt.BaseScapyTest):
         def get_sport(protocol):
             if self.localOptions['srcport']:
                 return int(self.localOptions['srcport'])
-            elif self.localOptions['randomize']:
+            else:
                 return random.randint(1024, 65535)
-            elif protocol == 'tcp':
-                return 80
-            elif protocol == 'udp':
-                return 53
 
         self.get_sport = get_sport
 
@@ -65,11 +59,12 @@ class TracerouteTest(scapyt.BaseScapyTest):
         def finished(packets, port):
             log.debug("Finished running TCP traceroute test on port %s" % port)
             answered, unanswered = packets
-            self.report['hops_'+str(port)] = [] 
+            self.report['hops_'+str(port)] = []
             for snd, rcv in answered:
                 report = {'ttl': snd.ttl,
                         'address': rcv.src,
-                        'rtt': rcv.time - snd.time 
+                        'rtt': rcv.time - snd.time,
+                        'sport': snd[UDP].sport
                 }
                 log.debug("%s: %s" % (port, report))
                 self.report['hops_'+str(port)].append(report)
@@ -98,7 +93,8 @@ class TracerouteTest(scapyt.BaseScapyTest):
             for snd, rcv in answered:
                 report = {'ttl': snd.ttl,
                         'address': rcv.src,
-                        'rtt': rcv.time - snd.time 
+                        'rtt': rcv.time - snd.time,
+                        'sport': snd[UDP].sport
                 }
                 log.debug("%s: %s" % (port, report))
                 self.report['hops_'+str(port)].append(report)
@@ -126,7 +122,7 @@ class TracerouteTest(scapyt.BaseScapyTest):
             for snd, rcv in answered:
                 report = {'ttl': snd.ttl,
                         'address': rcv.src,
-                        'rtt': rcv.time - snd.time 
+                        'rtt': rcv.time - snd.time
                 }
                 log.debug("%s" % (report))
                 self.report['hops'].append(report)
@@ -138,5 +134,4 @@ class TracerouteTest(scapyt.BaseScapyTest):
         d = self.sr(packets, timeout=timeout)
         d.addCallback(finished)
         return d
-
 
