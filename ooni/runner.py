@@ -329,11 +329,10 @@ def increaseInputUnitIdx(test_filename):
     config.stateDict[test_filename] += 1
     yield updateResumeFile(test_filename)
 
-def setupProgressMeters(test_filename, input_unit_factory, 
+def updateProgressMeters(test_filename, input_unit_factory, 
         test_case_number):
     """
-    Sets up the meters required for keeping track of the current progress of
-    certain tests.
+    Update the progress meters for keeping track of test state.
     """
     log.msg("Setting up progress meters")
     if not config.state.test_filename:
@@ -346,6 +345,10 @@ def setupProgressMeters(test_filename, input_unit_factory,
     test_case_number = float(test_case_number)
     total_iterations = input_unit_items * test_case_number
     current_iteration = input_unit_idx * test_case_number
+
+    log.debug("Test case number: %s" % test_case_number)
+    log.debug("Total iterations: %s" % total_iterations)
+    log.debug("Current iteration: %s" % current_iteration)
 
     def progress():
         return (current_iteration / total_iterations) * 100.0
@@ -403,7 +406,7 @@ def runTestCases(test_cases, options, cmd_line_options):
     else:
         config.stateDict[test_filename] = 0
 
-    setupProgressMeters(test_filename, input_unit_factory, len(test_cases))
+    updateProgressMeters(test_filename, input_unit_factory, len(test_cases))
 
     try:
         for input_unit in input_unit_factory:
@@ -412,6 +415,8 @@ def runTestCases(test_cases, options, cmd_line_options):
             yield runTestCasesWithInputUnit(test_cases, input_unit,
                         oreporter)
             yield increaseInputUnitIdx(test_filename)
+
+            updateProgressMeters(test_filename, input_unit_factory, len(test_cases))
 
     except Exception:
         log.exception("Problem in running test")
