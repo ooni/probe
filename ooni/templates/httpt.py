@@ -14,7 +14,7 @@ from twisted.internet.ssl import ClientContextFactory
 from twisted.internet import reactor
 from twisted.internet.error import ConnectionRefusedError, DNSLookupError, TCPTimedOutError
 
-from twisted.web._newclient import Request, Response
+from twisted.web._newclient import Request, Response, ResponseNeverReceived
 
 from ooni.nettest import NetTestCase
 from ooni.utils import log
@@ -309,8 +309,12 @@ class HTTPTest(NetTestCase):
                 self.report['failure'] = 'dns_lookup_error'
 
             elif isinstance(failure.value, TCPTimedOutError):
-                log.err("DNS lookup failure")
+                log.err("TCP Timed Out Error")
                 self.report['failure'] = 'tcp_timed_out_error'
+
+            elif isinstance(failure.value, ResponseNeverReceived):
+                log.err("Response Never Received")
+                self.report['failure'] = 'response_never_received'
             return
 
         d = agent.request(request['method'], request['url'], headers,
