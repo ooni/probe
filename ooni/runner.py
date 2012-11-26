@@ -26,7 +26,7 @@ from ooni.nettest import NetTestCase, NoPostProcessor
 
 from ooni import reporter, config
 
-from ooni.utils import log, checkForRoot, NotRootError
+from ooni.utils import log, checkForRoot, NotRootError, Storage
 
 def processTest(obj):
     """
@@ -67,7 +67,7 @@ def processTest(obj):
     try:
         log.debug("processing options")
         tmp_test_case_object = obj()
-        tmp_test_case_object._processOptions(options)
+        tmp_test_case_object._checkRequiredOptions()
 
     except usage.UsageError, e:
         test_name = tmp_test_case_object.name
@@ -120,6 +120,9 @@ def makeTestCases(klass, tests, method_prefix):
         cases.append((klass, method_prefix+test))
     return cases
 
+class NoTestCasesFound(Exception):
+    pass
+
 def loadTestsAndOptions(classes, cmd_line_options):
     """
     Takes a list of test classes and returns their testcases and options.
@@ -134,7 +137,10 @@ def loadTestsAndOptions(classes, cmd_line_options):
             test_cases = makeTestCases(klass, tests, method_prefix)
 
         test_klass = klass()
-        options = test_klass._processOptions(cmd_line_options)
+        options = test_klass._processOptions()
+
+    if not test_cases:
+        raise NoTestCasesFound
 
     return test_cases, options
 
@@ -220,7 +226,8 @@ def runTestCasesWithInputUnit(test_cases, input_unit, oreporter):
     dl = []
     for test_input in input_unit:
         log.debug("Running test with this input %s" % test_input)
-        d = runTestCasesWithInput(test_cases, test_input, oreporter)
+        d = runTestCasesWithInput(test_cases,
+                test_input, oreporter)
         dl.append(d)
     return defer.DeferredList(dl)
 
@@ -322,28 +329,45 @@ def increaseInputUnitIdx(test_filename):
     config.stateDict[test_filename] += 1
     yield updateResumeFile(test_filename)
 
+def setupProgressMeters(test_filename, input_unit_factory, 
+        test_case_number):
+    """
+    Sets up the meters required for keeping track of the current progress of
+    certain tests.
+    """
+    log.msg("Setting up progress meters")
+    if not config.state.test_filename:
+        config.state[test_filename] = Storage()
+
+    config.state[test_filename].per_item_average = 2.0
+
+    input_unit_idx = float(config.stateDict[test_filename])
+    input_unit_items = float(len(input_unit_factory) + 1)
+    test_case_number = float(test_case_number)
+    total_iterations = input_unit_items * test_case_number
+    current_iteration = input_unit_idx * test_case_number
+
+    def progress():
+        return (current_iteration / total_iterations) * 100.0
+
+    config.state[test_filename].progress = progress
+
+    def eta():
+        return (total_iterations - current_iteration) \
+                * config.state[test_filename].per_item_average
+    config.state[test_filename].eta = eta
+
+    config.state[test_filename].input_unit_idx = input_unit_idx
+    config.state[test_filename].input_unit_items = input_unit_items
+
+
 @defer.inlineCallbacks
 def runTestCases(test_cases, options, cmd_line_options):
     log.debug("Running %s" % test_cases)
     log.debug("Options %s" % options)
     log.debug("cmd_line_options %s" % dict(cmd_line_options))
-    try:
-        assert len(options) != 0, "Length of options is zero!"
-    except AssertionError, ae:
-        test_inputs = []
-        log.err(ae)
-    else:
-        try:
-            first = options.pop(0)
-        except:
-            first = options
 
-        if 'inputs' in first:
-            test_inputs = options['inputs']
-        else:
-            log.msg("Could not find inputs!")
-            log.msg("options[0] = %s" % first)
-            test_inputs = [None]
+    test_inputs = options['inputs']
 
     if cmd_line_options['collector']:
         log.msg("Using remote collector, please be patient while we create the report.")
@@ -378,6 +402,8 @@ def runTestCases(test_cases, options, cmd_line_options):
         resumeTest(test_filename, input_unit_factory)
     else:
         config.stateDict[test_filename] = 0
+
+    setupProgressMeters(test_filename, input_unit_factory, len(test_cases))
 
     try:
         for input_unit in input_unit_factory:

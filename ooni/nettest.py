@@ -22,6 +22,7 @@ from ooni.utils import log
 class NoPostProcessor(Exception):
     pass
 
+
 class NetTestCase(object):
     """
     This is the base of the OONI nettest universe. When you write a nettest
@@ -150,17 +151,22 @@ class NetTestCase(object):
             if not self.localOptions[required_option]:
                 raise usage.UsageError("%s not specified!" % required_option)
 
-    def _processOptions(self, options=None):
+    def _processOptions(self):
         if self.inputFilename:
-            self.inputs = self.inputProcessor(self.inputFilename)
+            inputProcessor = self.inputProcessor
+            inputFilename = self.inputFilename
+            class inputProcessorIterator(object):
+                """
+                Here we convert the input processor generator into an iterator
+                so that we can run it twice.
+                """
+                def __iter__(self):
+                    return inputProcessor(inputFilename)
+            self.inputs = inputProcessorIterator()
 
-        self._checkRequiredOptions()
-
-        # XXX perhaps we may want to name and version to be inside of a
-        # different method that is not called options.
         return {'inputs': self.inputs,
-                'name': self.name,
-                'version': self.version}
+                'name': self.name, 'version': self.version
+               }
 
     def __repr__(self):
         return "<%s inputs=%s>" % (self.__class__, self.inputs)

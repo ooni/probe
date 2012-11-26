@@ -14,6 +14,7 @@ from ooni.utils import Storage
 reports = Storage()
 scapyFactory = None
 stateDict = None
+state = Storage()
 
 # XXX refactor this to use a database
 resume_lock = defer.DeferredLock()

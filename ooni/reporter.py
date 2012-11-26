@@ -284,7 +284,7 @@ class OONIBReporter(OReporter):
         bodyProducer = StringProducer(json.dumps(request))
 
         try:
-            response = yield self.agent.request("PUT", url, 
+            response = yield self.agent.request("PUT", url,
                                 bodyProducer=bodyProducer)
         except:
             # XXX we must trap this in the runner and make sure to report the data later.

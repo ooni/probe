@@ -15,7 +15,7 @@ import random
 import time
 import yaml
 
-from twisted.internet import defer, reactor
+from twisted.internet import defer, reactor, task
 from twisted.application import app
 from twisted.python import usage, failure
 from twisted.python.util import spewer
@@ -78,6 +78,15 @@ class Options(usage.Options):
         except:
             raise usage.UsageError("No test filename specified!")
 
+def updateStatusBar():
+    for test_filename in config.state.keys():
+        # The ETA is not updated so we we will not print it out for the
+        # moment.
+        eta = config.state[test_filename].eta()
+        progress = config.state[test_filename].progress()
+        progress_bar_frmt = "[%s] %s%%" % (test_filename, progress)
+        print progress_bar_frmt
+
 def testsEnded(*arg, **kw):
     """
     You can place here all the post shutdown tasks.
@@ -122,6 +131,10 @@ def run():
 
     d2 = defer.DeferredList(deck_dl)
     d2.addBoth(testsEnded)
+
+    # Print every 5 second the list of current tests running
+    l = task.LoopingCall(updateStatusBar)
+    l.start(5.0)
 
     if config.start_reactor:
         log.debug("Starting reactor")
