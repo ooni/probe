@@ -101,7 +101,7 @@ class HTTPTest(NetTestCase):
     def processInputs(self):
         pass
 
-    def addToReport(self, request, response=None, response_body=None):
+    def addToReport(self, request, response=None, response_body=None, failure=None):
         """
         Adds to the report the specified request and response.
 
@@ -111,6 +111,8 @@ class HTTPTest(NetTestCase):
             response (instance): An instance of
                 :class:twisted.web.client.Response.
                 Note: headers is our modified True Headers version.
+
+            failure (instance): An instance of :class:twisted.internet.failure.Failure
         """
         log.debug("Adding %s to report" % request)
         request_response = {
@@ -127,6 +129,26 @@ class HTTPTest(NetTestCase):
                 'body': response_body,
                 'code': response.code
         }
+        if failure:
+            if isinstance(failure.value, ConnectionRefusedError):
+                log.err("Connection refused. The backend may be down")
+                request_response['failure'] = 'connection_refused_error'
+
+            elif isinstance(failure.value, SOCKSError):
+                log.err("Sock error. The SOCKS proxy may be down")
+                request_response['failure'] = 'socks_error'
+
+            elif isinstance(failure.value, DNSLookupError):
+                log.err("DNS lookup failure")
+                request_response['failure'] = 'dns_lookup_error'
+
+            elif isinstance(failure.value, TCPTimedOutError):
+                log.err("TCP Timed Out Error")
+                request_response['failure'] = 'tcp_timed_out_error'
+
+            elif isinstance(failure.value, ResponseNeverReceived):
+                log.err("Response Never Received")
+                request_response['failure'] = 'response_never_received'
         self.report['requests'].append(request_response)
 
     def _processResponseBody(self, response_body, request, response, body_processor):
@@ -296,26 +318,7 @@ class HTTPTest(NetTestCase):
         def errback(failure, request):
             failure.trap(ConnectionRefusedError, SOCKSError, DNSLookupError, TCPTimedOutError)
             log.err("Error performing %s" % request)
-            self.addToReport(request)
-            if isinstance(failure.value, ConnectionRefusedError):
-                log.err("Connection refused. The backend may be down")
-                self.report['failure'] = 'connection_refused_error'
-
-            elif isinstance(failure.value, SOCKSError):
-                log.err("Sock error. The SOCKS proxy may be down")
-                self.report['failure'] = 'socks_error'
-
-            elif isinstance(failure.value, DNSLookupError):
-                log.err("DNS lookup failure")
-                self.report['failure'] = 'dns_lookup_error'
-
-            elif isinstance(failure.value, TCPTimedOutError):
-                log.err("TCP Timed Out Error")
-                self.report['failure'] = 'tcp_timed_out_error'
-
-            elif isinstance(failure.value, ResponseNeverReceived):
-                log.err("Response Never Received")
-                self.report['failure'] = 'response_never_received'
+            self.addToReport(request, failure=failure)
             return
 
         d = agent.request(request['method'], request['url'], headers,

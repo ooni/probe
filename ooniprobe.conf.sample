@@ -23,7 +23,6 @@ advanced:
     geoip_data_dir: /usr/share/GeoIP/
     debug: true
     threadpool_size: 10
-
     tor_binary: '/usr/sbin/tor'
     # For auto detection
     interface: auto

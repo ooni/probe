@@ -30,11 +30,23 @@ resume_filename = None
 # There should be a more twisted way of doing this.
 start_reactor = True
 
+tor_state = None
+tor_control = None
+
+config_file = None
+sample_config_file = None
+
 def get_root_path():
     this_directory = os.path.dirname(__file__)
     root = os.path.join(this_directory, '..')
     root = os.path.abspath(root)
     return root
+
+def createConfigFile():
+    """
+    XXX implement me
+    """
+    sample_config_file = os.path.join(get_root_path(), 'ooniprobe.conf.sample')
 
 def loadConfigFile():
     """
@@ -45,8 +57,9 @@ def loadConfigFile():
     try:
         f = open(config_file)
     except IOError:
+        createConfigFile()
         raise Exception("Unable to open config file. "\
-                    "Create a config file called ooniprobe.conf")
+                    "Copy ooniprobe.conf.sample to ooniprobe.conf")
 
     config_file_contents = '\n'.join(f.readlines())
     configuration = yaml.safe_load(config_file_contents)
