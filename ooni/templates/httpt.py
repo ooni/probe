@@ -66,6 +66,7 @@ class HTTPTest(NetTestCase):
         self.control_agent = Agent(reactor, sockshost="127.0.0.1",
                 socksport=config.advanced.tor_socksport)
 
+        self.report['socksproxy'] = None
         sockshost, socksport = (None, None)
         if self.localOptions['socksproxy']:
             try:
@@ -100,7 +101,7 @@ class HTTPTest(NetTestCase):
     def processInputs(self):
         pass
 
-    def addToReport(self, request, response=None):
+    def addToReport(self, request, response=None, response_body=None):
         """
         Adds to the report the specified request and response.
 
@@ -125,12 +126,12 @@ class HTTPTest(NetTestCase):
                 'headers': list(response.headers.getAllRawHeaders()),
                 'body': response_body,
                 'code': response.code
-            }
+        }
         self.report['requests'].append(request_response)
 
     def _processResponseBody(self, response_body, request, response, body_processor):
         log.debug("Processing response body")
-        self.addToReport(request, response)
+        self.addToReport(request, response, response_body)
         if body_processor:
             body_processor(response_body)
         else:
@@ -200,10 +201,10 @@ class HTTPTest(NetTestCase):
         """
         if not response:
             log.err("Got no response for request %s" % request)
+            self.addToReport(request, response)
             return
         else:
             log.debug("Got response %s" % response)
-            return
 
         if str(response.code).startswith('3'):
             self.processRedirect(response.headers.getRawHeaders('Location')[0])

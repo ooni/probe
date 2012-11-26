@@ -32,6 +32,9 @@ class SOCKSv5ClientProtocol(_WrappingProtocol):
         self._port = port
         self.ready = False
 
+    def logPrefix(self):
+        return 'SOCKSv5ClientProtocol'
+
     def socks_state_0(self, data):
         # error state
         self._connectedDeferred.errback(SOCKSError(0x00))
@@ -90,6 +93,9 @@ class SOCKSv5ClientFactory(_WrappingFactory):
         _WrappingFactory.__init__(self, wrappedFactory)
         self._host, self._port = host, port
 
+    def logPrefix(self):
+        return 'SOCKSv5ClientFactory'
+
     def buildProtocol(self, addr):
         try:
             proto = self._wrappedFactory.buildProtocol(addr)
@@ -113,6 +119,9 @@ class SOCKS5ClientEndpoint(object):
         self._timeout = timeout
         self._bindAddress = bindAddress
 
+    def logPrefix(self):
+        return 'SOCKSv5ClientEndpoint'
+
     def connect(self, protocolFactory):
         try:
             wf = SOCKSv5ClientFactory(protocolFactory, self._host, self._port)
@@ -122,6 +131,7 @@ class SOCKS5ClientEndpoint(object):
             return wf._onConnection
         except:
             return defer.fail()
+
 
 class TrueHeaders(http_headers.Headers):
     def __init__(self, rawHeaders=None):
@@ -183,6 +193,9 @@ class TrueHeaders(http_headers.Headers):
         return default
 
 class HTTPClientParser(_newclient.HTTPClientParser):
+    def logPrefix(self):
+        return 'HTTPClientParser'
+
     def connectionMade(self):
         self.headers = TrueHeaders()
         self.connHeaders = TrueHeaders()
@@ -195,7 +208,6 @@ class HTTPClientParser(_newclient.HTTPClientParser):
         else:
             headers = self.headers
         headers.addRawHeader(name, value)
-
 
 class HTTP11ClientProtocol(_newclient.HTTP11ClientProtocol):
     def request(self, request):
@@ -261,6 +273,9 @@ class Agent(client.Agent):
         self._sockshost = sockshost
         self._socksport = socksport
 
+    def logPrefix(self):
+        return 'SOCKSAgent'
+
     def request(self, method, uri, headers=None, bodyProducer=None):
         if (uri.startswith('shttp') or uri.startswith('httpo')) and not HTTPConnectionPool:
             log.err("Requests over SOCKS are supported only with versions of Twisted >= 12.1.0")
@@ -297,7 +312,6 @@ class Agent(client.Agent):
                     parsedURI.host, parsedURI.port))
 
         d = self._pool.getConnection(key, endpoint)
-        print headers._rawHeaders
         def cbConnected(proto):
             return proto.request(
                 Request(method, requestPath, headers, bodyProducer,
