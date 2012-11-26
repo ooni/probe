@@ -65,7 +65,13 @@ def loadConfigFile():
     advanced = Storage()
     for k, v in configuration['advanced'].items():
         advanced[k] = v
-    return basic, privacy, advanced
+
+    # Process the tor configuration options
+    tor = Storage()
+    for k, v in configuration['tor'].items():
+        tor[k] = v
+
+    return basic, privacy, advanced, tor
 
 class TestFilenameNotSet(Exception):
     pass
@@ -85,7 +91,7 @@ def generateReportFilenames():
 
 if not basic:
     # Here we make sure that we instance the config file attributes only once
-    basic, privacy, advanced = loadConfigFile()
+    basic, privacy, advanced, tor = loadConfigFile()
 
 if not resume_filename:
     resume_filename = os.path.join(get_root_path(), 'ooniprobe.resume')

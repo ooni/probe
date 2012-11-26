@@ -10,6 +10,8 @@
 #           see attached LICENCE file
 
 import sys
+import socket
+from random import randint
 
 from zope.interface import implements
 from twisted.internet import protocol, defer
@@ -122,6 +124,30 @@ def getIfaces(platform_name=None):
             return None
     else:
         raise UnsupportedPlatform
+
+def randomFreePort(addr="127.0.0.1"):
+    """
+    Args:
+
+        addr (str): the IP address to attempt to bind to.
+
+    Returns an int representing the free port number at the moment of calling
+
+    Note: there is no guarantee that some other application will attempt to
+    bind to this port once this function has been called.
+    """
+    free = False
+    while not free:
+        port = randint(1024, 65535)
+        s = socket.socket()
+        try:
+            s.bind((addr, port))
+            free = True
+        except:
+            pass
+        s.close()
+    return port
+
 
 def checkInterfaces(ifaces=None, timeout=1):
     """

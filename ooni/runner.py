@@ -21,12 +21,20 @@ from twisted.internet import defer
 from twisted.trial.runner import filenameToModule
 from twisted.internet import reactor, threads
 
+from txtorcon import TorProtocolFactory, TorConfig
+from txtorcon import TorState, launch_tor
+
+from ooni import config
+
+from ooni.reporter import OONIBReporter, YAMLReporter
+from ooni.reporter import OONIBReportCreationFailed
+
 from ooni.inputunit import InputUnitFactory
 from ooni.nettest import NetTestCase, NoPostProcessor
 
-from ooni import reporter, config
-
-from ooni.utils import log, checkForRoot, NotRootError, Storage
+from ooni.utils import log, checkForRoot
+from ooni.utils import NotRootError, Storage
+from ooni.utils.net import randomFreePort
 
 def processTest(obj):
     """
@@ -374,10 +382,10 @@ def runTestCases(test_cases, options, cmd_line_options):
 
     if cmd_line_options['collector']:
         log.msg("Using remote collector, please be patient while we create the report.")
-        oreporter = reporter.OONIBReporter(cmd_line_options)
+        oreporter = OONIBReporter(cmd_line_options)
     else:
         log.msg("Reporting to file %s" % config.reports.yamloo)
-        oreporter = reporter.YAMLReporter(cmd_line_options)
+        oreporter = YAMLReporter(cmd_line_options)
 
     try:
         input_unit_factory = InputUnitFactory(test_inputs)
@@ -386,7 +394,7 @@ def runTestCases(test_cases, options, cmd_line_options):
 
     try:
         yield oreporter.createReport(options)
-    except reporter.OONIBReportCreationFailed:
+    except OONIBReportCreationFailed:
         log.err("Error in creating new report")
         raise
     except Exception, e:
@@ -421,6 +429,63 @@ def runTestCases(test_cases, options, cmd_line_options):
     except Exception:
         log.exception("Problem in running test")
 
+class UnableToStartTor(Exception):
+    pass
+
+def startTor():
+
+    @defer.inlineCallbacks
+    def state_complete(state):
+        config.tor_state = state
+        log.msg("Successfully bootstrapped Tor")
+        log.debug("We now have the following circuits: ")
+        for circuit in state.circuits.values():
+            log.debug(" * %s" % circuit)
+        config.tor.socks_port = yield state.protocol.get_conf("SocksPort")
+        config.tor.control_port = yield state.protocol.get_conf("ControlPort")
+
+    def setup_failed(arg):
+        log.exception(arg)
+        raise UnableTorStartTor
+
+    def setup_complete(proto):
+        """
+        Called when we read from stdout that Tor has reached 100%.
+        """
+        log.debug("Building a TorState")
+        state = TorState(proto.tor_protocol)
+        state.post_bootstrap.addCallback(state_complete)
+        state.post_bootstrap.addErrback(setup_failed)
+        return state.post_bootstrap
+
+    def updates(prog, tag, summary):
+        log.msg("%d%%: %s" % (prog, summary))
+
+    tor_config = TorConfig()
+    if config.tor.control_port:
+        tor_config.ControlPort = config.tor.control_port
+    else:
+        control_port = int(randomFreePort())
+        tor_config.ControlPort = control_port
+        config.tor.control_port = control_port
+
+    if config.tor.socks_port:
+        tor_config.SocksPort = config.tor.socks_port
+    else:
+        socks_port = int(randomFreePort())
+        tor_config.SocksPort = socks_port
+        config.tor.socks_port = socks_port
+
+    tor_config.save()
+
+    log.debug("Setting control port as %s" % tor_config.ControlPort)
+    log.debug("Setting SOCKS port as %s" % tor_config.SocksPort)
+
+    d = launch_tor(tor_config, reactor, progress_updates=updates)
+    d.addCallback(setup_complete)
+    d.addErrback(setup_failed)
+    return d
+
 def runTest(cmd_line_options):
     config.cmd_line_options = cmd_line_options
     config.generateReportFilenames()
@@ -436,6 +501,7 @@ def runTest(cmd_line_options):
 
     classes = findTestClassesFromFile(cmd_line_options['test'])
     test_cases, options = loadTestsAndOptions(classes, cmd_line_options)
+
     if config.privacy.includepcap:
         from ooni.utils.txscapy import ScapyFactory, ScapySniffer
         try:
@@ -451,4 +517,21 @@ def runTest(cmd_line_options):
         sniffer = ScapySniffer(config.reports.pcap)
         config.scapyFactory.registerProtocol(sniffer)
 
-    return runTestCases(test_cases, options, cmd_line_options)
+    # If we should start Tor then start it. Once Tor has started we will make
+    # sure. If not we assume that it is already running
+    if config.advanced.start_tor:
+        def tor_startup_failed(failure):
+            log.err(failure)
+
+        def tor_started():
+            return runTestCases(test_cases,
+                    options, cmd_line_options)
+
+        d = startTor()
+        d.addCallback(tor_started)
+        d.addErrback(tor_startup_failed)
+        return d
+
+    else:
+        return runTestCases(test_cases,
+                options, cmd_line_options)
