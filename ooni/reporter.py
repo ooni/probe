@@ -7,6 +7,7 @@
 # :authors: Arturo Filastò, Isis Lovecruft
 # :license: see included LICENSE file
 
+import traceback
 import itertools
 import logging
 import sys
@@ -14,7 +15,6 @@ import os
 import time
 import yaml
 import json
-import traceback
 
 from yaml.representer import *
 from yaml.emitter import *
@@ -115,7 +115,6 @@ def getTestDetails(options):
     from ooni import __version__ as software_version
 
     client_geodata = {}
-
     if config.privacy.includeip or \
             config.privacy.includeasn or \
             config.privacy.includecountry or \
@@ -224,7 +223,6 @@ class YAMLReporter(OReporter):
         self._write('---\n')
         self._write(safe_dump(entry))
         self._write('...\n')
-        return
 
     @defer.inlineCallbacks
     def createReport(self, options):
@@ -242,18 +240,22 @@ class YAMLReporter(OReporter):
         self._stream.close()
 
 
-class OONIBReportUpdateFailed(Exception):
+class OONIBReportError(Exception):
     pass
 
-class OONIBReportCreationFailed(Exception):
+class OONIBReportUpdateError(OONIBReportError):
     pass
 
-class OONIBTestDetailsLookupFailed(Exception):
+class OONIBReportCreationError(OONIBReportError):
+    pass
+
+class OONIBTestDetailsLookupError(OONIBReportError):
     pass
 
 class OONIBReporter(OReporter):
     def __init__(self, cmd_line_options):
         self.backend_url = cmd_line_options['collector']
+        self.report_id = None
 
         from ooni.utils.txagentwithsocks import Agent
         from twisted.internet import reactor
@@ -287,15 +289,10 @@ class OONIBReporter(OReporter):
             response = yield self.agent.request("PUT", url,
                                 bodyProducer=bodyProducer)
         except:
-            # XXX we must trap this in the runner and make sure to report the data later.
+            # XXX we must trap this in the runner and make sure to report the
+            # data later.
             log.err("Error in writing report entry")
-            raise OONIBReportUpdateFailed
-
-        #parsed_response = json.loads(backend_response)
-        #self.report_id = parsed_response['report_id']
-        #self.backend_version = parsed_response['backend_version']
-        #log.debug("Created report with id %s" % parsed_response['report_id'])
-
+            raise OONIBReportUpdateError
 
     @defer.inlineCallbacks
     def createReport(self, options):
@@ -305,39 +302,47 @@ class OONIBReporter(OReporter):
         test_name = options['name']
         test_version = options['version']
 
-        log.debug("Creating report with OONIB Reporter")
         url = self.backend_url + '/report/new'
-        software_version = '0.0.1'
 
-        test_details = yield getTestDetails(options)
+        try:
+            test_details = yield getTestDetails(options)
+        except Exception, e:
+            log.exception(e)
+
         test_details['options'] = self.cmd_line_options
+
+        log.debug("Obtained test_details: %s" % test_details)
 
         content = '---\n'
         content += safe_dump(test_details)
         content += '...\n'
 
-        request = {'software_name': 'ooniprobe',
-            'software_version': software_version,
+        request = {'software_name': test_details['software_name'],
+            'software_version': test_details['software_version'],
             'test_name': test_name,
             'test_version': test_version,
-            'progress': 0,
             'content': content
         }
-        log.debug("Creating report via url %s" % url)
+
+        log.msg("Reporting %s" % url)
         request_json = json.dumps(request)
         log.debug("Sending %s" % request_json)
 
         bodyProducer = StringProducer(json.dumps(request))
+
+        log.msg("Creating report with OONIB Reporter. Please be patient.")
+        log.msg("This may take up to 1-2 minutes...")
 
         try:
             response = yield self.agent.request("POST", url,
                                 bodyProducer=bodyProducer)
         except ConnectionRefusedError:
             log.err("Connection to reporting backend failed (ConnectionRefusedError)")
-            raise OONIBReportCreationFailed
+            raise OONIBReportCreationError
+
         except Exception, e:
             log.exception(e)
-            raise OONIBReportCreationFailed
+            raise OONIBReportCreationError
 
         # This is a little trix to allow us to unspool the response. We create
         # a deferred and call yield on it.
@@ -350,7 +355,7 @@ class OONIBReporter(OReporter):
             parsed_response = json.loads(backend_response)
         except Exception, e:
             log.exception(e)
-            raise OONIBReportCreationFailed
+            raise OONIBReportCreationError
 
         self.report_id = parsed_response['report_id']
         self.backend_version = parsed_response['backend_version']

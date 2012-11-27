@@ -96,11 +96,9 @@ def generateReportFilenames():
         raise TestFilenameNotSet
 
     test_name = '.'.join(test_filename.split(".")[:-1])
-    base_filename = "%s_%s_"+otime.timestamp()+".%s"
-    reports.yamloo = base_filename % (test_name, "report", "yamloo")
-    print "Setting yamloo to %s" % reports.yamloo
-    reports.pcap = base_filename % (test_name, "packets", "pcap")
-    print "Setting pcap to %s" % reports.pcap
+    frm_str = "report_%s_"+otime.timestamp()+".%s"
+    reports.yamloo = frm_str % (test_name, "yamloo")
+    reports.pcap = frm_str % (test_name, "pcap")
 
 if not basic:
     # Here we make sure that we instance the config file attributes only once

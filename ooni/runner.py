@@ -26,8 +26,7 @@ from txtorcon import TorState, launch_tor
 
 from ooni import config
 
-from ooni.reporter import OONIBReporter, YAMLReporter
-from ooni.reporter import OONIBReportCreationFailed
+from ooni.reporter import OONIBReporter, YAMLReporter, OONIBReportError
 
 from ooni.inputunit import InputUnitFactory
 from ooni.nettest import NetTestCase, NoPostProcessor
@@ -154,25 +153,45 @@ def loadTestsAndOptions(classes, cmd_line_options):
 
     return test_cases, options
 
-def runTestCasesWithInput(test_cases, test_input, oreporter):
+def runTestCasesWithInput(test_cases, test_input, yaml_reporter,
+        oonib_reporter=None):
     """
     Runs in parallel all the test methods that are inside of the specified test case.
     Reporting happens every time a Test Method has concluded running.
     Once all the test methods have been called we check to see if the
     postProcessing class method returns something. If it does return something
     we will write this as another entry inside of the report called post_processing.
+
+    Args:
+
+        test_cases (list): A list of tuples containing the test_class (a
+            class) and the test_method (a string)
+
+        test_input (instance): Any instance that will be passed as input to
+            the test.
+
+        yaml_reporter: An instance of :class:ooni.reporter.YAMLReporter
+
+        oonib_reporter: An instance of :class:ooni.reporter.OONIBReporter. If
+            this is set to none then we will only report to the YAML reporter.
+
     """
 
     # This is used to store a copy of all the test reports
     tests_report = {}
 
     def test_done(result, test_instance, test_name):
-        log.debug("runTestWithInput: concluded %s" % test_name)
+        log.msg("Successfully finished running %s" % test_name)
+        log.debug("Deferred callback result: %s" % result)
         tests_report[test_name] = dict(test_instance.report)
-        return oreporter.testDone(test_instance, test_name)
+        if not oonib_reporter:
+            return yaml_reporter.testDone(test_instance, test_name)
+        d1 = oonib_reporter.testDone(test_instance, test_name)
+        d2 = yaml_reporter.testDone(test_instance, test_name)
+        return defer.DeferredList([d1, d2])
 
     def test_error(failure, test_instance, test_name):
-        log.err("run Test Cases With Input problem")
+        log.err("Error in running %s" % test_name)
         log.exception(failure)
         return
 
@@ -184,7 +203,11 @@ def runTestCasesWithInput(test_cases, test_input, oreporter):
         post = getattr(test_instance, 'postProcessor')
         try:
             post_processing = post(tests_report)
-            return oreporter.testDone(test_instance, 'summary')
+            if not oonib_reporter:
+                return yaml_reporter.testDone(test_instance, 'summary')
+            d1 = oonib_reporter.testDone(test_instance, 'summary')
+            d2 = yaml_reporter.testDone(test_instance, 'summary')
+            return defer.DeferredList([d1, d2])
         except NoPostProcessor:
             log.debug("No post processor configured")
             return
@@ -195,12 +218,11 @@ def runTestCasesWithInput(test_cases, test_input, oreporter):
         test_class = test_case[0]
         test_method = test_case[1]
 
-        log.msg("Running %s with %s" % (test_method, test_input))
+        log.msg("Running %s with %s..." % (test_method, test_input))
 
         test_instance = test_class()
         test_instance.input = test_input
         test_instance.report = {}
-        log.msg("Processing %s" % test_instance.name)
         # use this to keep track of the test runtime
         test_instance._start_time = time.time()
         # call setups on the test
@@ -351,7 +373,7 @@ def updateProgressMeters(test_filename, input_unit_factory,
     config.state[test_filename].per_item_average = 2.0
 
     input_unit_idx = float(config.stateDict[test_filename])
-    input_unit_items = float(len(input_unit_factory) + 1)
+    input_unit_items = float(len(input_unit_factory))
     test_case_number = float(test_case_number)
     total_iterations = input_unit_items * test_case_number
     current_iteration = input_unit_idx * test_case_number
@@ -382,23 +404,23 @@ def runTestCases(test_cases, options, cmd_line_options):
 
     test_inputs = options['inputs']
 
+    oonib_reporter = OONIBReporter(cmd_line_options)
+    yaml_reporter = YAMLReporter(cmd_line_options)
+
     if cmd_line_options['collector']:
         log.msg("Using remote collector, please be patient while we create the report.")
-        oreporter = OONIBReporter(cmd_line_options)
-    else:
-        log.msg("Reporting to file %s" % config.reports.yamloo)
-        oreporter = YAMLReporter(cmd_line_options)
+        try:
+            yield oonib_reporter.createReport(options)
+        except OONIBReportError:
+            log.err("Error in creating new report")
+            log.msg("We will only create reports to a file")
+            oonib_reporter = None
+
+    yield yaml_reporter.createReport(options)
+    log.msg("Reporting to file %s" % config.reports.yamloo)
 
     try:
         input_unit_factory = InputUnitFactory(test_inputs)
-    except Exception, e:
-        log.exception(e)
-
-    try:
-        yield oreporter.createReport(options)
-    except OONIBReportCreationFailed:
-        log.err("Error in creating new report")
-        raise
     except Exception, e:
         log.exception(e)
 
@@ -425,7 +447,8 @@ def runTestCases(test_cases, options, cmd_line_options):
             log.debug("Running %s with input unit %s" % (test_filename, input_unit))
 
             yield runTestCasesWithInputUnit(test_cases, input_unit,
-                        oreporter)
+                    yaml_reporter, oonib_reporter)
+
             yield increaseInputUnitIdx(test_filename)
 
             updateProgressMeters(test_filename, input_unit_factory, len(test_cases))
@@ -518,8 +541,8 @@ def loadTest(cmd_line_options):
     config.generateReportFilenames()
 
     if cmd_line_options['reportfile']:
-        config.reports.yamloo = cmd_line_options['reportfile']
-        config.reports.pcap = config.reports.yamloo+".pcap"
+        config.reports.yamloo = cmd_line_options['reportfile']+'.yamloo'
+        config.reports.pcap = config.reports.yamloo+'.pcap'
 
     if os.path.exists(config.reports.pcap):
         print "Report PCAP already exists with filename %s" % config.reports.pcap
