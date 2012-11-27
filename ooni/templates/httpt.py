@@ -215,7 +215,6 @@ class HTTPTest(NetTestCase):
                 dict containing the response headers. This will lead
                 self.headerProcessor to not be called.
 
-
             body_processor (func): a function to be called with as argument the
                 body of the response. This will lead self.bodyProcessor to not
                 be called.
@@ -281,7 +280,7 @@ class HTTPTest(NetTestCase):
         # We prefix the URL with 's' to make the connection go over the
         # configured socks proxy
         if use_tor:
-            log.debug("Using control agent for the request")
+            log.debug("Using Tor for the request to %s" % url)
             url = 's'+url
             agent = self.control_agent
         else:

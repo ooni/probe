@@ -412,15 +412,17 @@ def runTestCases(test_cases, options, cmd_line_options):
     test_filename = os.path.basename(cmd_line_options['test'])
 
     if cmd_line_options['resume']:
+        log.debug("Resuming %s" % test_filename)
         resumeTest(test_filename, input_unit_factory)
     else:
+        log.debug("Nothing to resume for %s" % test_filename)
         config.stateDict[test_filename] = 0
 
     updateProgressMeters(test_filename, input_unit_factory, len(test_cases))
 
     try:
         for input_unit in input_unit_factory:
-            log.debug("Running this input unit %s" % input_unit)
+            log.debug("Running %s with input unit %s" % (test_filename, input_unit))
 
             yield runTestCasesWithInputUnit(test_cases, input_unit,
                         oreporter)
