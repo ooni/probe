@@ -111,26 +111,18 @@ def startSniffing():
     sniffer = ScapySniffer(config.reports.pcap)
     config.scapyFactory.registerProtocol(sniffer)
 
+def runTestList(none, test_list):
+    """
+    none: is always None.
 
-def runTestDeckOrTest(result, cmd_line_options):
+    test_list (list): a list of tuples containing (test_cases, options,
+        cmd_line_options)
+    """
     deck_dl = []
-    resume = cmd_line_options['resume']
 
-    if cmd_line_options['testdeck']:
-        test_deck = yaml.safe_load(open(cmd_line_options['testdeck']))
-        for test in test_deck:
-            del cmd_line_options
-            cmd_line_options = test['options']
-            if resume:
-                cmd_line_options['resume'] = True
-            else:
-                cmd_line_options['resume'] = False
-            d1 = runner.runTest(cmd_line_options)
-            deck_dl.append(d1)
-    else:
-        log.msg("No test deck detected")
-        del cmd_line_options['testdeck']
-        d1 = runner.runTest(cmd_line_options)
+    for test in test_list:
+        test_cases, options, cmd_line_options = test
+        d1 = runner.runTestCases(test_cases, options, cmd_line_options)
         deck_dl.append(d1)
 
     d2 = defer.DeferredList(deck_dl)
@@ -146,9 +138,8 @@ def errorRunningTests(failure):
 
 def run():
     """
-    Call me to begin testing from a file.
+    Parses command line arguments of test.
     """
-
     cmd_line_options = Options()
     if len(sys.argv) == 1:
         cmd_line_options.getUsage()
@@ -163,15 +154,35 @@ def run():
         log.msg("Starting")
         runner.startSniffing()
 
+    resume = cmd_line_options['resume']
+
+    # contains (test_cases, options, cmd_line_options)
+    test_list = []
+
+    if cmd_line_options['testdeck']:
+        test_deck = yaml.safe_load(open(cmd_line_options['testdeck']))
+        for test in test_deck:
+            del cmd_line_options
+            cmd_line_options = test['options']
+            if resume:
+                cmd_line_options['resume'] = True
+            else:
+                cmd_line_options['resume'] = False
+            test_list.append(runner.loadTest(cmd_line_options))
+    else:
+        log.msg("No test deck detected")
+        del cmd_line_options['testdeck']
+        test_list.append(runner.loadTest(cmd_line_options))
+
     if config.advanced.start_tor:
         log.msg("Starting Tor...")
         d = runner.startTor()
-        d.addCallback(runTestDeckOrTest, cmd_line_options)
+        d.addCallback(runTestList, test_list)
         d.addErrback(errorRunningTests)
     else:
-        # We need to pass None as first argument because when the callback
-        # is fired it will pass it's result to runTestCase.
-        d = runTestDeckOrTest(None, cmd_line_options)
+        # We need to pass None as first argument because when the callback is
+        # fired it will pass it's result to runTestCase.
+        d = runTestList(None, test_list)
         d.addErrback(errorRunningTests)
 
     reactor.run()

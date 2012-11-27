@@ -44,9 +44,11 @@ def processTest(obj):
     :param obj:
         An uninstantiated old test, which should be a subclass of
         :class:`ooni.plugoo.tests.OONITest`.
+
     :param cmd_line_options:
         A configured and instantiated :class:`twisted.python.usage.Options`
         class.
+
     """
     if not hasattr(obj.usageOptions, 'optParameters'):
         obj.usageOptions.optParameters = []
@@ -440,8 +442,12 @@ def startTor():
         log.debug("We now have the following circuits: ")
         for circuit in state.circuits.values():
             log.debug(" * %s" % circuit)
-        config.tor.socks_port = yield state.protocol.get_conf("SocksPort")
-        config.tor.control_port = yield state.protocol.get_conf("ControlPort")
+
+        socks_port = yield state.protocol.get_conf("SocksPort")
+        control_port = yield state.protocol.get_conf("ControlPort")
+
+        config.tor.socks_port = int(socks_port.values()[0])
+        config.tor.control_port = int(control_port.values()[0])
 
     def setup_failed(failure):
         log.exception(failure)
@@ -458,7 +464,7 @@ def startTor():
         return state.post_bootstrap
 
     def updates(prog, tag, summary):
-        print "%d%%: %s" % (prog, summary)
+        log.msg("%d%%: %s" % (prog, summary))
 
     tor_config = TorConfig()
     if config.tor.control_port:
@@ -501,7 +507,11 @@ def startSniffing():
     sniffer = ScapySniffer(config.reports.pcap)
     config.scapyFactory.registerProtocol(sniffer)
 
-def runTest(cmd_line_options):
+def loadTest(cmd_line_options):
+    """
+    Takes care of parsing test command line arguments and loading their
+    options.
+    """
     config.cmd_line_options = cmd_line_options
     config.generateReportFilenames()
 
@@ -517,4 +527,4 @@ def runTest(cmd_line_options):
     classes = findTestClassesFromFile(cmd_line_options['test'])
     test_cases, options = loadTestsAndOptions(classes, cmd_line_options)
 
-    return runTestCases(test_cases, options, cmd_line_options)
+    return test_cases, options, cmd_line_options
