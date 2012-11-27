@@ -433,7 +433,6 @@ class UnableToStartTor(Exception):
     pass
 
 def startTor():
-
     @defer.inlineCallbacks
     def state_complete(state):
         config.tor_state = state
@@ -444,9 +443,9 @@ def startTor():
         config.tor.socks_port = yield state.protocol.get_conf("SocksPort")
         config.tor.control_port = yield state.protocol.get_conf("ControlPort")
 
-    def setup_failed(arg):
-        log.exception(arg)
-        raise UnableTorStartTor
+    def setup_failed(failure):
+        log.exception(failure)
+        raise UnableToStartTor
 
     def setup_complete(proto):
         """
@@ -459,7 +458,7 @@ def startTor():
         return state.post_bootstrap
 
     def updates(prog, tag, summary):
-        log.msg("%d%%: %s" % (prog, summary))
+        print "%d%%: %s" % (prog, summary)
 
     tor_config = TorConfig()
     if config.tor.control_port:
@@ -481,10 +480,26 @@ def startTor():
     log.debug("Setting control port as %s" % tor_config.ControlPort)
     log.debug("Setting SOCKS port as %s" % tor_config.SocksPort)
 
-    d = launch_tor(tor_config, reactor, progress_updates=updates)
+    d = launch_tor(tor_config, reactor,
+            progress_updates=updates)
     d.addCallback(setup_complete)
     d.addErrback(setup_failed)
     return d
+
+def startSniffing():
+    from ooni.utils.txscapy import ScapyFactory, ScapySniffer
+    try:
+        checkForRoot()
+    except NotRootError:
+        print "[!] Includepcap options requires root priviledges to run"
+        print "    you should run ooniprobe as root or disable the options in ooniprobe.conf"
+        sys.exit(1)
+
+    print "Starting sniffer"
+    config.scapyFactory = ScapyFactory(config.advanced.interface)
+
+    sniffer = ScapySniffer(config.reports.pcap)
+    config.scapyFactory.registerProtocol(sniffer)
 
 def runTest(cmd_line_options):
     config.cmd_line_options = cmd_line_options
@@ -502,36 +517,4 @@ def runTest(cmd_line_options):
     classes = findTestClassesFromFile(cmd_line_options['test'])
     test_cases, options = loadTestsAndOptions(classes, cmd_line_options)
 
-    if config.privacy.includepcap:
-        from ooni.utils.txscapy import ScapyFactory, ScapySniffer
-        try:
-            checkForRoot()
-        except NotRootError:
-            print "[!] Includepcap options requires root priviledges to run"
-            print "    you should run ooniprobe as root or disable the options in ooniprobe.conf"
-            sys.exit(1)
-
-        print "Starting sniffer"
-        config.scapyFactory = ScapyFactory(config.advanced.interface)
-
-        sniffer = ScapySniffer(config.reports.pcap)
-        config.scapyFactory.registerProtocol(sniffer)
-
-    # If we should start Tor then start it. Once Tor has started we will make
-    # sure. If not we assume that it is already running
-    if config.advanced.start_tor:
-        def tor_startup_failed(failure):
-            log.err(failure)
-
-        def tor_started():
-            return runTestCases(test_cases,
-                    options, cmd_line_options)
-
-        d = startTor()
-        d.addCallback(tor_started)
-        d.addErrback(tor_startup_failed)
-        return d
-
-    else:
-        return runTestCases(test_cases,
-                options, cmd_line_options)
+    return runTestCases(test_cases, options, cmd_line_options)

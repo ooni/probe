@@ -96,22 +96,26 @@ def testsEnded(*arg, **kw):
     try: reactor.stop()
     except: pass
 
-def run():
-    """
-    Call me to begin testing from a file.
-    """
-    cmd_line_options = Options()
-    if len(sys.argv) == 1:
-        cmd_line_options.getUsage()
+def startSniffing():
+    from ooni.utils.txscapy import ScapyFactory, ScapySniffer
     try:
-        cmd_line_options.parseOptions()
-    except usage.UsageError, ue:
-        raise SystemExit, "%s: %s" % (sys.argv[0], ue)
+        checkForRoot()
+    except NotRootError:
+        print "[!] Includepcap options requires root priviledges to run"
+        print "    you should run ooniprobe as root or disable the options in ooniprobe.conf"
+        sys.exit(1)
 
+    print "Starting sniffer"
+    config.scapyFactory = ScapyFactory(config.advanced.interface)
+
+    sniffer = ScapySniffer(config.reports.pcap)
+    config.scapyFactory.registerProtocol(sniffer)
+
+
+def runTestDeckOrTest(result, cmd_line_options):
     deck_dl = []
     resume = cmd_line_options['resume']
 
-    log.start(cmd_line_options['logfile'])
     if cmd_line_options['testdeck']:
         test_deck = yaml.safe_load(open(cmd_line_options['testdeck']))
         for test in test_deck:
@@ -135,7 +139,39 @@ def run():
     # Print every 5 second the list of current tests running
     l = task.LoopingCall(updateStatusBar)
     l.start(5.0)
+    return d2
 
-    if config.start_reactor:
-        log.debug("Starting reactor")
-        reactor.run()
+def errorRunningTests(failure):
+    failure.printTraceback()
+
+def run():
+    """
+    Call me to begin testing from a file.
+    """
+
+    cmd_line_options = Options()
+    if len(sys.argv) == 1:
+        cmd_line_options.getUsage()
+    try:
+        cmd_line_options.parseOptions()
+    except usage.UsageError, ue:
+        raise SystemExit, "%s: %s" % (sys.argv[0], ue)
+
+    log.start(cmd_line_options['logfile'])
+
+    if config.privacy.includepcap:
+        log.msg("Starting")
+        runner.startSniffing()
+
+    if config.advanced.start_tor:
+        log.msg("Starting Tor...")
+        d = runner.startTor()
+        d.addCallback(runTestDeckOrTest, cmd_line_options)
+        d.addErrback(errorRunningTests)
+    else:
+        # We need to pass None as first argument because when the callback
+        # is fired it will pass it's result to runTestCase.
+        d = runTestDeckOrTest(None, cmd_line_options)
+        d.addErrback(errorRunningTests)
+
+    reactor.run()
