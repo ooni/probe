@@ -79,8 +79,8 @@ class TCPFlagTest(nettest.NetTestCase):
             else:
                 log.msg("Using system default interface: %s" % iface)
                 self.interface = iface
-        if config.debug:
-            defer.setDebugging(on)
+        if config.advanced.debug:
+            defer.setDebugging('on')
 
     def addToDestinations(self, addr='0.0.0.0', port='443'):
         """
