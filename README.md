@@ -29,7 +29,7 @@ On debian based systems these can be installed with:
 
 The python dependencies required for running ooniprobe are:
 
-  * Tor: http://torproject.org/
+  * Tor (>2.2.x): http://torproject.org/
   * Twisted (>12.1.0): http://twistedmatrix.com/trac/
   * PyYAML: http://pyyaml.org/
   * Scapy: http://www.secdev.org/projects/scapy/
