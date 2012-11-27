@@ -19,13 +19,17 @@ from twisted.application import app
 from twisted.python import usage, failure
 from twisted.python.util import spewer
 
+## Get rid of the annoying "No route found for
+## IPv6 destination warnings":
+import logging as pylogging
+pylogging.getLogger("scapy.runtime").setLevel(pylogging.ERROR)
+
 from ooni import nettest, runner, reporter, config
-
-from ooni.inputunit import InputUnitFactory
-
 from ooni.utils import net
 from ooni.utils import checkForRoot, PermissionsError
 from ooni.utils import log
+from ooni.inputunit import InputUnitFactory
+
 
 class Options(usage.Options, app.ReactorSelectionMixin):
     synopsis = """%s [options] [path to test].py
