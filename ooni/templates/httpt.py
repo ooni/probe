@@ -64,7 +64,7 @@ class HTTPTest(NetTestCase):
                      "not work")
 
         self.control_agent = Agent(reactor, sockshost="127.0.0.1",
-                socksport=config.advanced.tor_socksport)
+                socksport=config.tor.socks_port)
 
         self.report['socksproxy'] = None
         sockshost, socksport = (None, None)

@@ -259,7 +259,7 @@ class OONIBReporter(OReporter):
         from twisted.internet import reactor
         try:
             self.agent = Agent(reactor, sockshost="127.0.0.1",
-                socksport=int(config.advanced.tor_socksport))
+                socksport=int(config.tor.socks_port))
         except Exception, e:
             log.exception(e)
 
