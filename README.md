@@ -25,10 +25,11 @@ Basic requirements:
 
 On debian based systems these can be installed with:
 
-    sudo apt-get install git-core python python-pip python-dev build-essential
+    sudo apt-get install git-core python python-pip python-dev build-essential tor
 
 The python dependencies required for running ooniprobe are:
 
+  * Tor: http://torproject.org/
   * Twisted (>12.1.0): http://twistedmatrix.com/trac/
   * PyYAML: http://pyyaml.org/
   * Scapy: http://www.secdev.org/projects/scapy/
