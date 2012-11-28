@@ -38,7 +38,7 @@ class DNSTamperTest(dnst.DNSTest):
 
     name = "DNS tamper"
     description = "DNS censorship detection test"
-    version = "0.3"
+    version = "0.4"
     authors = "Arturo Filastò, Isis Lovecruft"
     requirements = None
 
@@ -49,22 +49,32 @@ class DNSTamperTest(dnst.DNSTest):
     requiredOptions = ['backend', 'file']
 
     def setUp(self):
-        if not self.localOptions['testresolvers']:
-            raise usage.UsageError("You did not specify a file of DNS servers to test!"
-                                   "See the '--testresolvers' option.")
+        if (not self.localOptions['testresolvers'] and \
+                not self.localOptions['testresolver']):
+            raise usage.UsageError("You did not specify a testresolver")
+
+        elif self.localOptions['testresolvers']:
+            test_resolvers_file = self.localOptions['testresolvers']
+
+        elif self.localOptions['testresolver']:
+            self.test_resolvers = [self.localOptions['testresolver']]
 
         try:
-            fp = open(self.localOptions['testresolvers'])
-        except:
+            with open(test_resolvers_file) as f:
+                self.test_resolvers = [x.strip() for x in f.readlines()]
+                self.report['test_resolvers'] = self.test_resolvers
+            fp.close()
+
+        except IOError:
+            log.exception(e)
             raise usage.UsageError("Invalid test resolvers file")
 
-        self.test_resolvers = [x.strip() for x in fp.readlines()]
-        fp.close()
+        except NameError:
+            log.debug("No test resolver file configured")
 
         dns_ip, dns_port = self.localOptions['backend'].split(':')
         self.control_dns_server = (dns_ip, int(dns_port))
 
-        self.report['test_resolvers'] = self.test_resolvers
         self.report['control_resolver'] = self.control_dns_server
 
     @defer.inlineCallbacks
@@ -124,4 +134,3 @@ class DNSTamperTest(dnst.DNSTest):
                     log.msg("Reverse DNS on the results returned by returned")
                     log.msg("which does not match the expected domainname")
                     self.report['tampering'][test_resolver] = True
-
