@@ -49,8 +49,10 @@ def msg(msg, *arg, **kw):
 def debug(msg, *arg, **kw):
     txlog.msg(msg, logLevel=logging.DEBUG, *arg, **kw)
 
-def warn(msg, category=None, filename=None, lineno=None, *arg, **kw):
-    txlog.warnings.warn(msg, category, filename, lineno, *arg, **kw)
+def warn(msg, *arg, **kw):
+    txlog.logging.captureWarnings('true')
+    txlog.logging.warn(msg)
+    #txlog.showwarning()
 
 def err(msg, *arg, **kw):
     txlog.err("Error: " + str(msg), logLevel=logging.ERROR, *arg, **kw)
@@ -63,8 +65,8 @@ def exception(msg):
 def exception(*msg):
     logging.exception(msg)
 
-def fail(failure):
-    txlog.failure(failure)
+def fail(*failure):
+    logging.critical(failure)
 
 def catch(func):
     """
