@@ -239,7 +239,8 @@ def runTestCasesWithInput(test_cases, test_input, yaml_reporter,
     test_methods_d.addCallback(tests_done, test_cases[0][0])
     return test_methods_d
 
-def runTestCasesWithInputUnit(test_cases, input_unit, yaml_reporter, oonib_reporter):
+def runTestCasesWithInputUnit(test_cases, input_unit, yaml_reporter,
+        oonib_reporter):
     """
     Runs the Test Cases that are given as input parallely.
     A Test Case is a subclass of ooni.nettest.NetTestCase and a list of
@@ -417,6 +418,8 @@ def runTestCases(test_cases, options, cmd_line_options):
             log.err("Error in creating new report")
             log.msg("We will only create reports to a file")
             oonib_reporter = None
+    else:
+        oonib_reporter = None
 
     yield yaml_reporter.createReport(options)
     log.msg("Reporting to file %s" % config.reports.yamloo)
