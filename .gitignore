@@ -19,4 +19,4 @@ pcaps/
 report*.yaml
 docs/build/*
 data/*.dat
-ooniprobe.conf
+./ooniprobe.conf
