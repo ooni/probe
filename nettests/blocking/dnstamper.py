@@ -106,20 +106,29 @@ class DNSTamperTest(dnst.DNSTest):
         control_answers = yield self.performALookup(hostname, self.control_dns_server)
 
         for test_resolver in self.test_resolvers:
-            log.msg("Going for %s" % test_resolver)
+            log.msg("Testing %s test resolver" % test_resolver)
             test_dns_server = (test_resolver, 53)
 
             experiment_answers = yield self.performALookup(hostname, test_dns_server)
-            log.debug("Got these answers %s" % experiment_answers)
+            log.debug("Got the following A lookup answers %s for %s" % (experiment_answers, test_resolver))
 
             if not experiment_answers:
                 log.err("Got no response, perhaps the DNS resolver is down?")
                 self.report['tampering'][test_resolver] = 'no_answer'
                 continue
 
+            def lookup_details():
+                """
+                A closure useful for printing test details.
+                """
+                log.msg("test resolver: %s" % test_resolver)
+                log.msg("experiment answers: %s" % experiment_answers)
+                log.msg("control answers: %s" % control_answers)
+
             log.debug("Comparing %s with %s" % (experiment_answers, control_answers))
             if set(experiment_answers) & set(control_answers):
-                log.msg("Address has not tampered with on DNS server")
+                lookup_details()
+                log.msg("tampering: false")
                 self.report['tampering'][test_resolver] = False
             else:
                 log.msg("Trying to do reverse lookup")
@@ -129,8 +138,11 @@ class DNSTamperTest(dnst.DNSTest):
 
                 if experiment_reverse == control_reverse:
                     log.msg("Further testing has eliminated false positives")
+                    lookup_details()
+                    log.msg("tampering: reverse_match")
                     self.report['tampering'][test_resolver] = 'reverse_match'
                 else:
-                    log.msg("Reverse DNS on the results returned by returned")
-                    log.msg("which does not match the expected domainname")
+                    log.msg("Reverse lookups do not match")
+                    lookup_details()
+                    log.msg("tampering: true")
                     self.report['tampering'][test_resolver] = True
