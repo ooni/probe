@@ -29,6 +29,7 @@ On debian based systems these can be installed with:
 
 The python dependencies required for running ooniprobe are:
 
+  * Tor (>2.2.x): http://torproject.org/
   * Twisted (>12.1.0): http://twistedmatrix.com/trac/
   * PyYAML: http://pyyaml.org/
   * Scapy: http://www.secdev.org/projects/scapy/
@@ -36,6 +37,19 @@ The python dependencies required for running ooniprobe are:
       * libdnet: http://code.google.com/p/libdnet/
   * BeautifulSoup: http://www.crummy.com/software/BeautifulSoup/
   * txtorcon: https://github.com/meejah/txtorcon
+
+## Install Tor
+
+To get the latest version of Tor you should do the following (from: https://www.torproject.org/docs/debian):
+
+    # put in here the value of lsb_release -c (ex. oneirc for ubuntu 11.10 or squeeze for debian 6.0)
+    export DISTRIBUTION="squeeze"
+    echo "deb http://deb.torproject.org/torproject.org $DISTRIBUTION main" >> /etc/apt/sources.list
+    gpg --keyserver keys.gnupg.net --recv 886DDD89
+    gpg --export A3C4F0F979CAA22CDBA8F512EE8CBC9E886DDD89 | sudo apt-key add -
+    apt-get update
+    apt-get install tor
+
 
 ## Configurating a virtual environment
 
