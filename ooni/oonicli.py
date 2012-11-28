@@ -166,6 +166,8 @@ def run():
             cmd_line_options = test['options']
             if resume:
                 cmd_line_options['resume'] = True
+            else:
+                cmd_line_options['resume'] = False
             test_list.append(runner.loadTest(cmd_line_options))
     else:
         log.msg("No test deck detected")

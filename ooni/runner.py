@@ -442,7 +442,7 @@ def runTestCases(test_cases, options, cmd_line_options):
         log.debug("Resuming %s" % test_filename)
         resumeTest(test_filename, input_unit_factory)
     else:
-        log.debug("Nothing to resume for %s" % test_filename)
+        log.debug("Not going to resume %s" % test_filename)
         config.stateDict[test_filename] = 0
 
     updateProgressMeters(test_filename, input_unit_factory, len(test_cases))
