@@ -253,10 +253,10 @@ def runTestCases(test_cases, options,
                                            input_list, oreporter)
     except Exception, ex:
         # XXX we probably want to add a log.warn() at some point
-        log.msg("Problem in running test")
+        log.warn("Problem in running test")
         log.exception(ex)
 
+    oreporter.allDone()
     if reactor.running:
         reactor.stop()
-    oreporter.allDone()
 
