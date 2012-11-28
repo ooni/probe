@@ -239,7 +239,7 @@ def runTestCasesWithInput(test_cases, test_input, yaml_reporter,
     test_methods_d.addCallback(tests_done, test_cases[0][0])
     return test_methods_d
 
-def runTestCasesWithInputUnit(test_cases, input_unit, oreporter):
+def runTestCasesWithInputUnit(test_cases, input_unit, yaml_reporter, oonib_reporter):
     """
     Runs the Test Cases that are given as input parallely.
     A Test Case is a subclass of ooni.nettest.NetTestCase and a list of
@@ -252,14 +252,13 @@ def runTestCasesWithInputUnit(test_cases, input_unit, oreporter):
 
     input_unit: A generator that yields an input per iteration
 
-    oreporter: An instance of a subclass of ooni.reporter.OReporter
     """
     log.debug("Running test cases with input unit")
     dl = []
     for test_input in input_unit:
         log.debug("Running test with this input %s" % test_input)
         d = runTestCasesWithInput(test_cases,
-                test_input, oreporter)
+                test_input, yaml_reporter, oonib_reporter)
         dl.append(d)
     return defer.DeferredList(dl)
 
@@ -373,10 +372,13 @@ def updateProgressMeters(test_filename, input_unit_factory,
     config.state[test_filename].per_item_average = 2.0
 
     input_unit_idx = float(config.stateDict[test_filename])
-    input_unit_items = float(len(input_unit_factory))
+    input_unit_items = float(len(input_unit_factory) + 1)
     test_case_number = float(test_case_number)
     total_iterations = input_unit_items * test_case_number
     current_iteration = input_unit_idx * test_case_number
+
+    log.debug("input_unit_items: %s" % input_unit_items)
+    log.debug("test_case_number: %s" % test_case_number)
 
     log.debug("Test case number: %s" % test_case_number)
     log.debug("Total iterations: %s" % total_iterations)
