@@ -11,9 +11,9 @@ from . import runner
 from . import templates
 from . import utils
 
+__author__ = "Arturo Filastò"
+__version__ = "0.0.7.1-alpha"
+
 __all__ = ['config', 'inputunit', 'kit',
            'lib', 'nettest', 'oonicli', 'reporter',
            'runner', 'templates', 'utils']
-
-__author__ = "Arturo Filastò"
-__version__ = "0.0.7.1-alpha"
