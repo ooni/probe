@@ -149,18 +149,25 @@ class TrueHeaders(http_headers.Headers):
         self._rawHeaders[name.lower()]['name'] = name
         self._rawHeaders[name.lower()]['values'] = values
 
-    def getDiff(self, header_dict, ignore=[]):
+    def getDiff(self, headers, ignore=[]):
         """
-        ignore: specify a list of header fields to ignore
 
-        Returns a set containing the header names that are not present in
-        header_dict or not present in self.
+        Args:
+
+            headers: a TrueHeaders object
+
+            ignore: specify a list of header fields to ignore
+
+        Returns:
+
+            a set containing the header names that are not present in
+            header_dict or not present in self.
         """
         diff = set()
         field_names = []
 
         headers_a = copy(self)
-        headers_b = TrueHeaders(header_dict)
+        headers_b = copy(headers)
         for name in ignore:
             try:
                 del headers_a._rawHeaders[name.lower()]
@@ -176,8 +183,7 @@ class TrueHeaders(http_headers.Headers):
             field_names.append(k)
 
         for name in field_names:
-            if self.getRawHeaders(name) and \
-                name in header_dict:
+            if self.getRawHeaders(name) and headers.getRawHeaders(name):
                 pass
             else:
                 diff.add(name)

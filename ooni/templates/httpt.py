@@ -115,9 +115,10 @@ class HTTPTest(NetTestCase):
             failure (instance): An instance of :class:twisted.internet.failure.Failure
         """
         log.debug("Adding %s to report" % request)
+        request_headers = TrueHeaders(request['headers'])
         request_response = {
             'request': {
-                'headers': request['headers'],
+                'headers': list(request_headers.getAllRawHeaders()),
                 'body': request['body'],
                 'url': request['url'],
                 'method': request['method']
