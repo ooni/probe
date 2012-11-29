@@ -71,8 +71,12 @@ class SimpleHTTPChannel(basic.LineReceiver, policies.TimeoutMixin):
             self.__header = line
 
     def headerReceived(self, line):
-        header, data = line.split(':', 1)
-        self.headers.append((header, data.strip()))
+        try:
+            header, data = line.split(':', 1)
+            self.headers.append((header, data.strip()))
+        except:
+            log.err("Got malformed HTTP Header request field")
+            log.err("%s" % line)
 
     def allHeadersReceived(self):
         headers_dict = {}
@@ -85,8 +89,9 @@ class SimpleHTTPChannel(basic.LineReceiver, policies.TimeoutMixin):
             'request_line': self.requestLine,
             'headers_dict': headers_dict
         }
+        json_response = json.dumps(response)
         self.transport.write('HTTP/1.1 200 OK\r\n\r\n')
-        self.transport.write(json.dumps(response))
+        self.transport.write('%s' % json_response)
         self.transport.loseConnection()
 
 
