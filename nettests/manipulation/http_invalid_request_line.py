@@ -1,12 +1,14 @@
 # -*- encoding: utf-8 -*-
 from twisted.python import usage
 
-from ooni.utils import randomStr
+from ooni.utils import log
+from ooni.utils import randomStr, randomSTR
 from ooni.templates import tcpt
 
 class UsageOptions(usage.Options):
     optParameters = [['backend', 'b', '127.0.0.1',
-                        'The OONI backend that runs a TCP echo server']]
+                        'The OONI backend that runs a TCP echo server'],
+                    ['backendport', 'p', 80, 'Specify the port that the TCP echo server is running (should only be set for debugging)']]
 
 class HTTPInvalidRequestLine(tcpt.TCPTest):
     """
@@ -14,10 +16,10 @@ class HTTPInvalidRequestLine(tcpt.TCPTest):
     on the HTTP request line. We generate a series of requests that are not
     valid HTTP requests.
 
-    Unless elsewhere stated 'Xx'*N refers to N*2 random upper or lowercase ascii
-    letters or numbers ('XxXx' will be 4).
+    Unless elsewhere stated 'Xx'*N refers to N*2 random upper or lowercase
+    ascii letters or numbers ('XxXx' will be 4).
     """
-    name = "HTTP Invalid Requests"
+    name = "HTTP Invalid Request Line"
     version = "0.1.3"
     authors = "Arturo Filastò"
 
@@ -28,14 +30,15 @@ class HTTPInvalidRequestLine(tcpt.TCPTest):
     requiredOptions = ['backend']
 
     def setUp(self):
-        self.port = 80
+        self.port = int(self.localOptions['backendport'])
         self.address = self.localOptions['backend']
 
     def check_for_manipulation(self, response, payload):
+        log.debug("Checking if %s == %s" % (response, payload))
         if response != payload:
             self.report['tampering'] = True
         else:
-            self.report['tampering'] = 'unknown'
+            self.report['tampering'] = False
 
     def test_random_invalid_method(self):
         """
@@ -57,7 +60,7 @@ class HTTPInvalidRequestLine(tcpt.TCPTest):
             Proxy-Connection: close
 
         """
-        payload = randomStr(10) + " / HTTP/1.1\n\r"
+        payload = randomSTR(4) + " / HTTP/1.1\n\r"
 
         d = self.sendPayload(payload)
         d.addCallback(self.check_for_manipulation, payload)

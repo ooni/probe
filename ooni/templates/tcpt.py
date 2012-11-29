@@ -68,7 +68,7 @@ class TCPTest(NetTestCase):
             self.report['received'].append(proto.received_data)
             proto.transport.loseConnection()
             log.debug("Closing connection")
-            d1.callback(self.report['received'])
+            d1.callback(proto.received_data)
 
         def timedOut(proto):
             self.report['failure'] = 'tcp_timed_out_error'
