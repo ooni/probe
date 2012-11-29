@@ -155,6 +155,9 @@ into:
 
 `for sd in ('lib', 'lib64', 'lib/x86_64-linux-gnu', ''):`
 
+On a 32 bit ubuntu 12.10 use the line:
+
+    for sd in ('lib', 'lib64', 'lib/i386-linux-gnu', ''):
 
 ## Including your geo data in the test report
 
