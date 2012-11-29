@@ -26,7 +26,7 @@ class SimpleHTTPChannel(basic.LineReceiver, policies.TimeoutMixin):
     The returned JSON dict looks like so:
 
     {
-        'request_headers': 
+        'request_headers':
             [['User-Agent', 'IE6'], ['Content-Length', 200]]
         'request_line':
             'GET / HTTP/1.1'
