@@ -136,7 +136,8 @@ class HTTPHeaderFieldManipulation(httpt.HTTPTest):
             self.report['tampering']['request_line_capitalization'] = True
 
         request_headers = TrueHeaders(self.request_headers)
-        diff = request_headers.getDiff(response_headers_dict, ignore=['Connection'])
+        diff = request_headers.getDiff(TrueHeaders(response_headers_dict),
+                ignore=['Connection'])
         if diff:
             self.report['tampering']['header_field_name'] = True
         else:

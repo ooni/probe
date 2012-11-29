@@ -5,7 +5,6 @@
 # In here go functions related to the understanding of
 # geographical information of the probe
 #
-# :authors: Arturo Filastò
 # :licence: see LICENSE
 
 import re

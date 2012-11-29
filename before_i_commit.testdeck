@@ -12,7 +12,7 @@
     logfile: before_i_commit.log
     pcapfile: null
     reportfile: dns_tamper_test.yamloo
-    subargs: [-T, test_inputs/dns_tamper_test_resolvers.txt, -f, test_inputs/dns_tamper_file.txt]
+    subargs: [-T, example_inputs/dns_tamper_test_resolvers.txt, -f, example_inputs/dns_tamper_file.txt]
     test: nettests/blocking/dnstamper.py
 - options:
     collector: null
@@ -20,7 +20,7 @@
     logfile: before_i_commit.log
     pcapfile: null
     reportfile: http_host.yamloo
-    subargs: [-b, 'http://ooni.nu/test', -f, test_inputs/http_host_file.txt]
+    subargs: [-b, 'http://ooni.nu/test', -f, example_inputs/http_host_file.txt]
     test: nettests/manipulation/http_host.py
 # XXX this is disabled because it requires oonib to be running
 #- options:
@@ -29,5 +29,5 @@
 #    logfile: null
 #    pcapfile: null
 #    reportfile: null
-#    subargs: [-h, test_inputs/test_header_field_manipulation.txt]
+#    subargs: [-h, example_inputs/test_header_field_manipulation.txt]
 #    test: nettests/core/http_header_field_manipulation.py

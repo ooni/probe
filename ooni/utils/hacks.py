@@ -4,8 +4,7 @@
 # ********
 # When some software has issues and we need to fix it in a
 # hackish way, we put it in here. This one day will be empty.
-# 
-# :authors: Arturo Filastò
+#
 # :licence: see LICENSE
 
 

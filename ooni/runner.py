@@ -5,7 +5,6 @@
 # Handles running ooni.nettests as well as
 # ooni.plugoo.tests.OONITests.
 #
-# :authors: Arturo Filastò, Isis Lovecruft
 # :license: see included LICENSE file
 
 import os
