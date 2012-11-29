@@ -14,15 +14,15 @@ def get_requirements():
     # satisfy the dependency using that url (as long as it is in standard sdist
     # format, a single .py file or an egg).
     pypi_packages = []
-    external_links = []
+    dependency_links = []
     for package_desc in requirements:
         if '#egg=' in package_desc:
-            external_links.append(package_desc)
+            dependency_links.append(package_desc)
             pypi_packages.append(package_desc.split('#egg=')[-1])
         else:
             pypi_packages.append(package_desc)
 
-    return pypi_packages, external_links
+    return pypi_packages, dependency_links
 
 install_requires, dependency_links = get_requirements()
 
