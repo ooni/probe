@@ -13,15 +13,16 @@ class UsageOptions(usage.Options):
                      ['factor', 'f', 0.8, 'What factor should be used for triggering censorship (0.8 == 80%)']
                     ]
 
-class HTTPBodyLength(httpt.HTTPTest):
+class HTTPRequestsTest(httpt.HTTPTest):
     """
     Performs a two GET requests to the set of sites to be tested for
     censorship, one over a known good control channel (Tor), the other over the
     test network.
-    We then look at the response body lengths and see if the control response
-    differs from the experiment response by a certain factor.
+
+    We check to see if the response headers match and if the response body
+    lengths match.
     """
-    name = "HTTP Body length test"
+    name = "HTTP Requests Test"
     author = "Arturo Filastò"
     version = "0.1"
 
@@ -59,9 +60,16 @@ class HTTPBodyLength(httpt.HTTPTest):
         self.report['body_proportion'] = rel
         self.report['factor'] = self.factor
         if rel < self.factor:
-            self.report['censorship'] = True
+            self.report['body_length_match'] = True
         else:
-            self.report['censorship'] = False
+            self.report['body_length_match'] = False
+
+    def compare_headers(self):
+        diff = TrueHeaders(self.control_headers).getDiff(self.experiment_headers)
+        if diff:
+            self.report['headers_match'] = False
+        else:
+            self.report['headers_match'] = True
 
     def test_get(self):
         def errback(failure):
@@ -69,20 +77,42 @@ class HTTPBodyLength(httpt.HTTPTest):
             log.exception(failure)
 
         def control_body(result):
+            """
+            Callback for processing the control HTTP body response.
+            """
             self.control_body_length = len(result)
             if self.experiment_body_length:
                 self.compare_body_lengths()
 
         def experiment_body(result):
+            """
+            Callback for processing the experiment HTTP body response.
+            """
             self.experiment_body_length = len(result)
             if self.control_body_length:
                 self.compare_body_lengths()
 
+        def control_headers(headers_dict):
+            """
+            Callback for processing the control HTTP headers response.
+            """
+            self.control_headers = headers_dict
+
+        def experiment_headers(headers_dict):
+            """
+            Callback for processing the experiment HTTP headers response.
+            """
+            self.experiment_headers = headers_dict
+
         dl = []
         experiment_request = self.doRequest(self.url, method="GET",
-                body_processor=experiment_body)
+                body_processor=experiment_body,
+                headers_processor=control_headers)
+
         control_request = self.doRequest(self.url, method="GET",
-                use_tor=True, body_processor=control_body)
+                use_tor=True, body_processor=control_body,
+                headers_processor=control_headers)
+
         dl.append(experiment_request)
         dl.append(control_request)
         d = defer.DeferredList(dl)
