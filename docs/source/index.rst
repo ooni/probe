@@ -48,27 +48,27 @@ respectively.
 Content Blocking Tests
 ......................
 
-  * ::`DNSTamper tests/dnstamper`
+  * `DNSTamper <tests/dnstamper.html>`_
 
-  * ::`HTTP Requests tests/http_requests`
+  * `HTTP Requests <tests/http_requests.html>`_
 
-  * ::`TCP Connect tests/tcpconnect`
+  * `TCP Connect <tests/tcpconnect.html>`_
 
 
 Traffic Manipulation Tests
 ..........................
 
-  * ::`HTTP Invalid Request Line: tests/http_invalid_request_line`
+  * `HTTP Invalid Request Line: <tests/http_invalid_request_line.html>`_
 
-  * ::`DNS Spoof: tests/dnsspoof`
+  * `DNS Spoof: <tests/dnsspoof.html>`_
 
-  * ::`HTTP Header Field Manipulation: tests/http_header_field_manipulation`
+  * `HTTP Header Field Manipulation: <tests/http_header_field_manipulation>`_
 
-  * ::`Traceroute: tests/traceroute`
+  * `Traceroute: <tests/traceroute.html>`_
 
-  * ::`HTTP Host: tests/http_host`
+  * `HTTP Host: <tests/http_host.html>`_
 
-  * ::`Daphne: tests/daphne`
+  * `Daphne: <tests/daphne.html>`_
 
 Other tests
 ...........
