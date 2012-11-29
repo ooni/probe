@@ -60,15 +60,15 @@ Traffic Manipulation Tests
 
   * `HTTP Invalid Request Line: <tests/http_invalid_request_line.html>`_
 
-  * `DNS Spoof: <tests/dnsspoof.html>`_
+  * `DNS Spoof <tests/dnsspoof.html>`_
 
-  * `HTTP Header Field Manipulation: <tests/http_header_field_manipulation>`_
+  * `HTTP Header Field Manipulation <tests/http_header_field_manipulation>`_
 
-  * `Traceroute: <tests/traceroute.html>`_
+  * `Traceroute <tests/traceroute.html>`_
 
-  * `HTTP Host: <tests/http_host.html>`_
+  * `HTTP Host <tests/http_host.html>`_
 
-  * `Daphne: <tests/daphne.html>`_
+  * `Daphne <tests/daphne.html>`_
 
 Other tests
 ...........
@@ -99,17 +99,17 @@ Test Helpers
 
 The currently implemented test helpers are the following:
 
-  * ::`SSL Test Helpers:
-    https://gitweb.torproject.org/ooni-probe.git/tree/HEAD:/oonib/testhelpers/ssl_helpers.py`.
+  * `SSL Test Helpers
+    <https://gitweb.torproject.org/ooni-probe.git/blob/HEAD:/oonib/testhelpers/ssl_helpers.py>`_
 
-  * ::`HTTP Test Helpers:
-    https://gitweb.torproject.org/ooni-probe.git/tree/HEAD:/oonib/testhelpers/http_helpers.py`.
+  * `HTTP Test Helpers
+    <https://gitweb.torproject.org/ooni-probe.git/blob/HEAD:/oonib/testhelpers/http_helpers.py>`_
 
-  * ::`TCP Test Helpers:
-    https://gitweb.torproject.org/ooni-probe.git/tree/HEAD:/oonib/testhelpers/tcp_helpers.py`.
+  * `TCP Test Helpers
+    <https://gitweb.torproject.org/ooni-probe.git/blob/HEAD:/oonib/testhelpers/tcp_helpers.py>`_
 
-  * ::`DNS Test Helpers:
-    https://gitweb.torproject.org/ooni-probe.git/tree/HEAD:/oonib/testhelpers/dns_helpers.py`.
+  * `DNS Test Helpers
+    <https://gitweb.torproject.org/ooni-probe.git/blob/HEAD:/oonib/testhelpers/dns_helpers.py>`_
 
 More developer documentation
 *****************************
