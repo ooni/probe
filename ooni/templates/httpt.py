@@ -23,6 +23,8 @@ from ooni import config
 from ooni.utils.net import BodyReceiver, StringProducer, userAgents
 
 from ooni.utils.txagentwithsocks import Agent, SOCKSError, TrueHeaders
+from ooni.nettest import failureToString
+
 
 class InvalidSocksProxyOption(Exception):
     pass
@@ -131,25 +133,8 @@ class HTTPTest(NetTestCase):
                 'code': response.code
         }
         if failure:
-            if isinstance(failure.value, ConnectionRefusedError):
-                log.err("Connection refused. The backend may be down")
-                request_response['failure'] = 'connection_refused_error'
+            request_response['failure'] = failureToString(failure)
 
-            elif isinstance(failure.value, SOCKSError):
-                log.err("Sock error. The SOCKS proxy may be down")
-                request_response['failure'] = 'socks_error'
-
-            elif isinstance(failure.value, DNSLookupError):
-                log.err("DNS lookup failure")
-                request_response['failure'] = 'dns_lookup_error'
-
-            elif isinstance(failure.value, TCPTimedOutError):
-                log.err("TCP Timed Out Error")
-                request_response['failure'] = 'tcp_timed_out_error'
-
-            elif isinstance(failure.value, ResponseNeverReceived):
-                log.err("Response Never Received")
-                request_response['failure'] = 'response_never_received'
         self.report['requests'].append(request_response)
 
     def _processResponseBody(self, response_body, request, response, body_processor):

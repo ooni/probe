@@ -5,7 +5,6 @@
 # In here is the NetTest API definition. This is how people
 # interested in writing ooniprobe tests will be specifying them
 #
-# :authors: Arturo Filastò, Isis Lovecruft
 # :license: see included LICENSE file
 
 import sys
@@ -17,11 +16,46 @@ from twisted.trial import unittest, itrial, util
 from twisted.internet import defer, utils
 from twisted.python import usage
 
+from twisted.internet.error import ConnectionRefusedError, DNSLookupError, TCPTimedOutError
+
 from ooni.utils import log
+
+def failureToString(failure):
+    """
+    Given a failure instance return a string representing the kind of error
+    that occurred.
+
+    Args:
+
+        failure: a :class:twisted.internet.error instance
+
+    Returns:
+
+        A string representing the HTTP response error message.
+    """
+    if isinstance(failure.value, ConnectionRefusedError):
+        log.err("Connection refused. The backend may be down")
+        string = 'connection_refused_error'
+
+    elif isinstance(failure.value, SOCKSError):
+        log.err("Sock error. The SOCKS proxy may be down")
+        string = 'socks_error'
+
+    elif isinstance(failure.value, DNSLookupError):
+        log.err("DNS lookup failure")
+        string = 'dns_lookup_error'
+
+    elif isinstance(failure.value, TCPTimedOutError):
+        log.err("TCP Timed Out Error")
+        string = 'tcp_timed_out_error'
+
+    elif isinstance(failure.value, ResponseNeverReceived):
+        log.err("Response Never Received")
+        string = 'response_never_received'
+    return string
 
 class NoPostProcessor(Exception):
     pass
-
 
 class NetTestCase(object):
     """

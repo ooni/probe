@@ -2,13 +2,14 @@ from twisted.internet import protocol, defer, reactor
 from twisted.internet.error import ConnectionDone
 from twisted.internet.endpoints import TCP4ClientEndpoint
 
-from ooni.nettest import NetTestCase
+from ooni.nettest import NetTestCase, failureToString
 from ooni.utils import log
 
 class TCPSender(protocol.Protocol):
-    report = None
-    payload_len = None
-    received_data = ''
+    def __init__(self):
+        self.received_data = ''
+        self.sent_data = ''
+
     def dataReceived(self, data):
         """
         We receive data until the total amount of data received reaches that
@@ -27,18 +28,19 @@ class TCPSender(protocol.Protocol):
         """
         if self.payload_len:
             self.received_data += data
-            if len(self.received_data) >= self.payload_len:
-                self.transport.loseConnection()
-                self.report['received'].append(data)
-                self.deferred.callback(self.report['received'])
 
     def sendPayload(self, payload):
         """
         Write the payload to the wire and set the expected size of the payload
         we are to receive.
+
+        Args:
+
+            payload: the data to be sent on the wire.
+
         """
         self.payload_len = len(payload)
-        self.report['sent'].append(payload)
+        self.sent_data = payload
         self.transport.write(payload)
 
 class TCPSenderFactory(protocol.Factory):
@@ -50,7 +52,7 @@ class TCPTest(NetTestCase):
     version = "0.1"
 
     requiresRoot = False
-    timeout = 2
+    timeout = 5
     address = None
     port = None
 
@@ -61,26 +63,34 @@ class TCPTest(NetTestCase):
     def sendPayload(self, payload):
         d1 = defer.Deferred()
 
-        def closeConnection(p):
-            p.transport.loseConnection()
+        def closeConnection(proto):
+            self.report['sent'].append(proto.sent_data)
+            self.report['received'].append(proto.received_data)
+            proto.transport.loseConnection()
             log.debug("Closing connection")
             d1.callback(self.report['received'])
 
+        def timedOut(proto):
+            self.report['failure'] = 'tcp_timed_out_error'
+            proto.transport.loseConnection()
+
         def errback(failure):
-            self.report['error'] = str(failure)
+            self.report['failure'] = failureToString(failure)
             d1.errback(failure)
 
-        def connected(p):
+        def connected(proto):
             log.debug("Connected to %s:%s" % (self.address, self.port))
-            p.report = self.report
-            p.deferred = d1
-            p.sendPayload(payload)
-            reactor.callLater(self.timeout, closeConnection, p)
+            proto.report = self.report
+            proto.deferred = d1
+            proto.sendPayload(payload)
+            if self.timeout:
+                # XXX-Twisted this logic should probably go inside of the protocol
+                reactor.callLater(self.timeout, closeConnection, proto)
 
         point = TCP4ClientEndpoint(reactor, self.address, self.port)
+        log.debug("Connecting to %s:%s" % (self.address, self.port))
         d2 = point.connect(TCPSenderFactory())
         d2.addCallback(connected)
         d2.addErrback(errback)
         return d1
-
 
