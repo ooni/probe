@@ -9,14 +9,6 @@ lib Package
     :undoc-members:
     :show-inheritance:
 
-:mod:`rfc3339` Module
----------------------
-
-.. automodule:: ooni.lib.rfc3339
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 :mod:`txscapy` Module
 ---------------------
 
