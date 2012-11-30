@@ -8,13 +8,3 @@ lib Package
     :members:
     :undoc-members:
     :show-inheritance:
-
-:mod:`txtraceroute` Module
---------------------------
-
-.. automodule:: ooni.lib.txtraceroute
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-
