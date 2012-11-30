@@ -95,7 +95,7 @@ collected from ooniprobes and it will run a series of Test Helpers that assist
 `Traffic Manipulation`_ in performing their measurements.
 
 Test Helpers
-............
+------------
 
 The currently implemented test helpers are the following:
 
@@ -112,7 +112,7 @@ The currently implemented test helpers are the following:
     <https://gitweb.torproject.org/ooni-probe.git/blob/HEAD:/oonib/testhelpers/dns_helpers.py>`_
 
 More developer documentation
-*****************************
+****************************
 
 .. toctree::
     :maxdepth: 2
