@@ -62,7 +62,6 @@ Subpackages
 
 .. toctree::
 
-    ooni.kit
     ooni.lib
     ooni.templates
     ooni.utils
