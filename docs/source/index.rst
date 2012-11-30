@@ -92,7 +92,7 @@ oonib
 
 This is the server side component of ooniprobe. It will store that data
 collected from ooniprobes and it will run a series of Test Helpers that assist
-`Traffic Manipulation`_ in performing their measurements.
+`Traffic Manipulation Tests`_ in performing their measurements.
 
 Test Helpers
 ------------
