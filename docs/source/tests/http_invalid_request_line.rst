@@ -46,7 +46,7 @@ The request on the wire will look like this:
 
 
 test random invalid field count
-******************************
+*******************************
 
 This generates a request that looks like this:
 

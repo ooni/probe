@@ -76,26 +76,30 @@ Other tests
 We also have some other tests that are currently not fully supported or still
 being experimented with.
 
-You can find these in ::`nettests/experimental:
-https://gitweb.torproject.org/ooni-probe.git/tree/HEAD:/nettests/experimental`.
+You can find these in:
 
-Tests that don't do a measurement but are useful for scanning can be found in
-::`nettests/scanning:
-https://gitweb.torproject.org/ooni-probe.git/tree/HEAD:/nettests/scanning`.
+  * `nettests/experimental
+    <https://gitweb.torproject.org/ooni-probe.git/tree/HEAD:/nettests/experimental>`_
 
-Tests that involve running third party tools may be found in
-::`nettests/third_party:
-https://gitweb.torproject.org/ooni-probe.git/tree/HEAD:/nettests/third_party`.
+Tests that don't do a measurement but are useful for scanning can be found in:
+
+  * `nettests/scanning
+    <https://gitweb.torproject.org/ooni-probe.git/tree/HEAD:/nettests/scanning>`_
+
+Tests that involve running third party tools may be found in:
+
+  * `nettests/third_party
+    <https://gitweb.torproject.org/ooni-probe.git/tree/HEAD:/nettests/third_party>`_
 
 oonib
 *****
 
 This is the server side component of ooniprobe. It will store that data
 collected from ooniprobes and it will run a series of Test Helpers that assist
-`Traffic Manipulation`_ in performing their measurements.
+`Traffic Manipulation Tests`_ in performing their measurements.
 
 Test Helpers
-............
+------------
 
 The currently implemented test helpers are the following:
 
@@ -112,16 +116,13 @@ The currently implemented test helpers are the following:
     <https://gitweb.torproject.org/ooni-probe.git/blob/HEAD:/oonib/testhelpers/dns_helpers.py>`_
 
 More developer documentation
-*****************************
+****************************
 
 .. toctree::
     :maxdepth: 2
     :glob:
 
     oonib
-    install
     writing_tests
     api/*
     glossary
-
-
