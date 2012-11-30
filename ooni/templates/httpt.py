@@ -176,7 +176,7 @@ class HTTPTest(NetTestCase):
         Note: if self.followRedirects is set to True, then this method will
             never be called.
             XXX perhaps we may want to hook _handleResponse in RedirectAgent to
-                call processRedirect every time we get redirected.
+            call processRedirect every time we get redirected.
 
         Args:
 
