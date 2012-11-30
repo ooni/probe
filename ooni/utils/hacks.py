@@ -107,4 +107,3 @@ class OSafeDumper(Emitter, Serializer, OSafeRepresenter, Resolver):
         OSafeRepresenter.__init__(self, default_style=default_style,
                 default_flow_style=default_flow_style)
         Resolver.__init__(self)
-

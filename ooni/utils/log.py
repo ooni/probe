@@ -49,6 +49,11 @@ def msg(msg, *arg, **kw):
 def debug(msg, *arg, **kw):
     txlog.msg(msg, logLevel=logging.DEBUG, *arg, **kw)
 
+def warn(msg, *arg, **kw):
+    txlog.logging.captureWarnings('true')
+    txlog.logging.warn(msg)
+    #txlog.showwarning()
+
 def err(msg, *arg, **kw):
     txlog.err("Error: " + str(msg), logLevel=logging.ERROR, *arg, **kw)
 
@@ -60,7 +65,10 @@ def exception(msg):
 def exception(*msg):
     logging.exception(msg)
 
-def catcher(func):
+def fail(*failure):
+    logging.critical(failure)
+
+def catch(func):
     """
     Quick wrapper to add around test methods for debugging purposes,
     catches the given Exception. Use like so:
@@ -71,12 +79,12 @@ def catcher(func):
                 raise Exception("catch me no matter what I am")
         foo("baz")
     """
-    def _catcher(*args, **kwargs):
+    def _catch(*args, **kwargs):
         try:
             func(*args, **kwargs)
         except Exception, exc:
             exception(exc)
-    return _catcher
+    return _catch
 
 class LoggerFactory(object):
     """

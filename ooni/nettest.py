@@ -166,3 +166,8 @@ class NetTestCase(object):
     def __repr__(self):
         return "<%s inputs=%s>" % (self.__class__, self.inputs)
 
+    def __test_done__(self):
+        up = inspect.stack()
+        parent = up[1]
+        # XXX call oreporter.allDone() from parent stack frame
+        raise NotImplemented

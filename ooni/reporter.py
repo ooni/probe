@@ -19,16 +19,12 @@ from twisted.python.util import untilConcludes
 from twisted.trial import reporter
 from twisted.internet import defer, reactor
 
+from ooni import config
 from ooni.templates.httpt import BodyReceiver, StringProducer
 from ooni.utils import otime, log, geodata
-
 from ooni.utils.hacks import OSafeRepresenter, OSafeDumper
-from ooni import config
 
 try:
-    ## Get rid of the annoying "No route found for
-    ## IPv6 destination warnings":
-    logging.getLogger("scapy.runtime").setLevel(logging.ERROR)
     from scapy.all import packet
 except:
     class FooClass:
@@ -54,8 +50,17 @@ def getTestDetails(options):
             config.privacy.includeasn or \
             config.privacy.includecountry or \
             config.privacy.includecity:
-        log.msg("Running geo IP lookup via check.torproject.org")
-        client_ip = yield geodata.myIP()
+        log.msg("Running geoIP lookup via check.torproject.org")
+        if config.privacy.checktimeout is not None and \
+                isinstance(config.privacy.checktimeout, int):
+            my_ip_timeout = config.privacy.checktimeout
+        else:
+            log.debug(
+                "reporter.getTestDetails(): bad config.privacy.checktimeout %s"
+                % str(config.privacy.checktimeout)
+                )
+            my_ip_timeout = 15
+        client_ip = yield geodata.myIP(connectTimeout=my_ip_timeout)
         client_location = geodata.IPToLocation(client_ip)
     else:
         client_ip = "127.0.0.1"
