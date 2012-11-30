@@ -25,10 +25,10 @@ ooni Package
     :undoc-members:
     :show-inheritance:
 
-:mod:`oconfig` Module
+:mod:`config` Module
 ---------------------
 
-.. automodule:: ooni.oconfig
+.. automodule:: ooni.config
     :members:
     :undoc-members:
     :show-inheritance:
