@@ -16,14 +16,6 @@ utils Package
         :undoc-members:
         :show-inheritance:
 
-:mod:`config` Module
---------------------
-
-.. automodule:: ooni.utils.config
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 :mod:`date` Module
 ------------------
 
