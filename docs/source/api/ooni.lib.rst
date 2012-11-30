@@ -9,14 +9,6 @@ lib Package
     :undoc-members:
     :show-inheritance:
 
-:mod:`txscapy` Module
----------------------
-
-.. automodule:: ooni.lib.txscapy
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 :mod:`txtraceroute` Module
 --------------------------
 

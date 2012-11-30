@@ -105,6 +105,13 @@ utils Package
         :undoc-members:
         :show-inheritance:
 
+:mod:`txscapy` Module
+---------------------
+
+.. automodule:: ooni.utils.txscapy
+    :members:
+    :undoc-members:
+    :show-inheritance:
 ..
     XXX this is commented out because it triggers this error
     gcooni/utils/onion.py:docstring of
