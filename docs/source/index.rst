@@ -119,7 +119,6 @@ More developer documentation
     :glob:
 
     oonib
-    install
     writing_tests
     api/*
     glossary
