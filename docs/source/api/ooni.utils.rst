@@ -16,14 +16,6 @@ utils Package
         :undoc-members:
         :show-inheritance:
 
-:mod:`date` Module
-------------------
-
-.. automodule:: ooni.utils.date
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 :mod:`geodata` Module
 ---------------------
 
