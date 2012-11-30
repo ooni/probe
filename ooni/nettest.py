@@ -159,7 +159,7 @@ class NetTestCase(object):
         that you will be able to properly process.
 
         For example you may wish to have an input processor that will allow you
-        to ignore comments in files. This can be easily achieved like so:
+        to ignore comments in files. This can be easily achieved like so::
 
             fp = open(filename)
             for x in fp.xreadlines():
