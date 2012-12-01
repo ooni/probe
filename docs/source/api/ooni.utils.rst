@@ -16,22 +16,6 @@ utils Package
         :undoc-members:
         :show-inheritance:
 
-:mod:`config` Module
---------------------
-
-.. automodule:: ooni.utils.config
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-:mod:`date` Module
-------------------
-
-.. automodule:: ooni.utils.date
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 :mod:`geodata` Module
 ---------------------
 
@@ -105,6 +89,13 @@ utils Package
         :undoc-members:
         :show-inheritance:
 
+:mod:`txscapy` Module
+---------------------
+
+.. automodule:: ooni.utils.txscapy
+    :members:
+    :undoc-members:
+    :show-inheritance:
 ..
     XXX this is commented out because it triggers this error
     gcooni/utils/onion.py:docstring of

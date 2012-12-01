@@ -24,7 +24,8 @@ class BaseScapyTest(NetTestCase):
 
     report:
         sent_packets: [{'raw_packet': BASE64Encoding of packet,
-                        'summary': 'IP / TCP 192.168.2.66:ftp_data > 8.8.8.8:http S']
+                        'summary': 'IP / TCP 192.168.2.66:ftp_data > 8.8.8.8:http S'}]
+
         answered_packets: []
 
     """
