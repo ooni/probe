@@ -104,6 +104,11 @@ class DNSTamperTest(dnst.DNSTest):
         self.report['tampering'] = {}
 
         control_answers = yield self.performALookup(hostname, self.control_dns_server)
+        if not control_answers:
+                log.err("Got no response from control DNS server %s," \
+                        " perhaps the DNS resolver is down?" % self.control_dns_server[0])
+                self.report['tampering'][self.control_dns_server] = 'no_answer'
+                return
 
         for test_resolver in self.test_resolvers:
             log.msg("Testing %s test resolver" % test_resolver)
