@@ -63,7 +63,7 @@ class DNSTamperTest(dnst.DNSTest):
             with open(test_resolvers_file) as f:
                 self.test_resolvers = [x.split('#')[0].strip() for x in f.readlines()]
                 self.report['test_resolvers'] = self.test_resolvers
-            fp.close()
+            f.close()
 
         except IOError:
             log.exception(e)
