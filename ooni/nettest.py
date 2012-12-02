@@ -152,7 +152,7 @@ class NetTestCase(object):
     def inputProcessor(self, filename=None):
         """
         You may replace this with your own custom input processor. It takes as
-        input a file descriptor so remember to close it when you are done.
+        input a file name.
 
         This can be useful when you have some input data that is in a certain
         format and you want to set the input attribute of the test to something
