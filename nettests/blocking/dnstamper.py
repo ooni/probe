@@ -61,9 +61,9 @@ class DNSTamperTest(dnst.DNSTest):
 
         try:
             with open(test_resolvers_file) as f:
-                self.test_resolvers = [x.strip() for x in f.readlines()]
+                self.test_resolvers = [x.split('#')[0].strip() for x in f.readlines()]
                 self.report['test_resolvers'] = self.test_resolvers
-            fp.close()
+            f.close()
 
         except IOError:
             log.exception(e)
@@ -104,6 +104,11 @@ class DNSTamperTest(dnst.DNSTest):
         self.report['tampering'] = {}
 
         control_answers = yield self.performALookup(hostname, self.control_dns_server)
+        if not control_answers:
+                log.err("Got no response from control DNS server %s," \
+                        " perhaps the DNS resolver is down?" % self.control_dns_server[0])
+                self.report['tampering'][self.control_dns_server] = 'no_answer'
+                return
 
         for test_resolver in self.test_resolvers:
             log.msg("Testing %s test resolver" % test_resolver)
@@ -146,3 +151,16 @@ class DNSTamperTest(dnst.DNSTest):
                     lookup_details()
                     log.msg("tampering: true")
                     self.report['tampering'][test_resolver] = True
+
+    def inputProcessor(self, filename=None):
+        """
+        This inputProcessor extracts domain names from urls
+        """
+        log.debug("Running dnstamper default processor")
+        if filename:
+            fp = open(filename)
+            for x in fp.readlines():
+                yield x.strip().split('//')[-1].split('/')[0]
+            fp.close()
+        else:
+            pass
