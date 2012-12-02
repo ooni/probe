@@ -151,3 +151,16 @@ class DNSTamperTest(dnst.DNSTest):
                     lookup_details()
                     log.msg("tampering: true")
                     self.report['tampering'][test_resolver] = True
+
+    def inputProcessor(self, filename=None):
+        """
+        This inputProcessor extracts domain names from urls
+        """
+        log.debug("Running dnstamper default processor")
+        if filename:
+            fp = open(filename)
+            for x in fp.readlines():
+                yield x.strip().split('//')[-1].split('/')[0]
+            fp.close()
+        else:
+            pass
