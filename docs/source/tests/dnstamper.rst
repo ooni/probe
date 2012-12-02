@@ -34,7 +34,7 @@ How to run the test
 
 *test resolvers file* is a file containing the IP addresses of the resolvers to test for censorship, one per line.
 
-*input file* is a file containing the hostnames to check for tampering.
+*input file* is a file containing hostnames or urls to check for tampering.
 
 *IP:PORT* is the address of the known good "control" resolver.
 
