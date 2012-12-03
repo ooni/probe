@@ -15,13 +15,14 @@ import inspect
 import traceback
 import itertools
 
-from twisted.python import reflect, usage
+from twisted.python import reflect, usage, failure
 from twisted.internet import defer
 from twisted.trial.runner import filenameToModule
+from twisted.trial import util as txtrutil
 from twisted.internet import reactor, threads
 
 from ooni.inputunit import InputUnitFactory
-from ooni.nettest import NetTestCase
+from ooni.nettest import NetTestCase, isTestCase
 
 from ooni import reporter
 
@@ -92,12 +93,6 @@ def processTest(obj, cmd_line_options):
 
     return obj
 
-def isTestCase(obj):
-    try:
-        return issubclass(obj, NetTestCase)
-    except TypeError:
-        return False
-
 def findTestClassesFromConfig(cmd_line_options):
     """
     Takes as input the command line config parameters and returns the test
@@ -112,7 +107,6 @@ def findTestClassesFromConfig(cmd_line_options):
         A list of class objects found in a file or module given on the
         commandline.
     """
-
     filename = cmd_line_options['test']
     classes = []
 
@@ -150,11 +144,63 @@ def loadTestsAndOptions(classes, cmd_line_options):
 
     return test_cases, options
 
+def abortTestRun(test_class, warn_err_fail, test_input, oreporter):
+    """
+    Abort the entire test, and record the error, failure, or warning for why
+    it could not be completed.
+    """
+    log.warn("Aborting remaining tests for %s" % test_name)
+
+def abortTestWasCalled(abort_reason, abort_what, test_class, test_instance, 
+                       test_method, test_input, oreporter):
+    """
+    XXX
+    """
+    if not abort_what in ['class', 'method', 'input']:
+        log.warn("__test_abort__() must specify 'class', 'method', or 'input'")
+        abort_what = 'input'    
+
+    if not isinstance(abort_reason, Exception):
+        abort_reason = Exception(str(abort_reason))
+    if abort_what == 'input':
+        log.msg("%s test requested to abort for input: %s"
+                % (test_instance.name, test_input))
+        d = maybeDeferred()
+
+    if hasattr(test_instance, "abort_all"):
+        log.msg("%s test requested to abort all remaining inputs"
+                % test_instance.name)
+    else:
+        d = defer.Deferred()
+        d.cancel()
+        d = abortTestRun(test_class, reason, test_input, oreporter)
+    
+
 def runTestWithInput(test_class, test_method, test_input, oreporter):
     """
     Runs a single testcase from a NetTestCase with one input.
     """
     log.debug("Running %s with %s" % (test_method, test_input))
+
+    def test_abort_single_input(reason, test_instance, test_name):
+        pass
+
+    def test_timeout(d):
+        err = defer.TimeoutError("%s test for %s timed out after %s seconds"
+                                 % (test_name, test_instance.input, 
+                                    test_instance.timeout))
+        fail = failure.Failure(err)
+        try:
+            d.errback(fail)
+        except defer.AlreadyCalledError:
+            # if the deferred has already been called but the *back chain is
+            # still unfinished, crash the reactor and report the timeout
+            reactor.crash()
+            test_instance._timedOut = True    # see test_instance._wait
+            # XXX result is TestResult utils? 
+            RESULT.addExpectedFailure(test_instance, fail)
+    test_timeout = utils.suppressWarnings(
+        test_timeout, util.suppress(category=DeprecationWarning))
 
     def test_done(result, test_instance, test_name):
         log.debug("runTestWithInput: concluded %s" % test_name)
@@ -169,16 +215,45 @@ def runTestWithInput(test_class, test_method, test_input, oreporter):
     log.debug("Processing %s" % test_instance.name)
     # use this to keep track of the test runtime
     test_instance._start_time = time.time()
+    test_instance.timeout = test_instance._getTimeout()
     # call setups on the test
     test_instance._setUp()
     test_instance.setUp()
+    test_ignored = util.acquireAttribute(test_instance._parents, 'skip', None)
+
     test = getattr(test_instance, test_method)
 
-    d = defer.maybeDeferred(test)
-    d.addCallback(test_done, test_instance, test_method)
-    d.addErrback(test_error, test_instance, test_method)
-    log.debug("returning %s input" % test_method)
-    return d
+    # check if we've aborted
+    test_skip = test.getSkip()
+    if test_skip is not None:
+        log.debug("%s.getSkip() returned %s" % (str(test_class), 
+                                                str(test_skip)) )
+ 
+    abort_reason, abort_what = getattr(test_instance, 'abort', ('input', None))
+    if abort_reason is not None:
+        do_abort = abortTestWasCalled(abort_reason, abort_what, test_class,
+                                      test_instance, test_method, test_input,
+                                      oreporter)
+        return defer.maybeDeferred(do_abort)
+    else:
+        d = defer.maybeDeferred(test)
+
+        # register the timer with the reactor
+        call = reactor.callLater(test_timeout, test_timed_out, d)
+        d.addBoth(lambda x: call.active() and call.cancel() or x)
+
+        # XXX check if test called test_abort...
+        d.addCallbacks(test_abort, 
+                       test_error, 
+                       callbackArgs=(test_instance, test_method), 
+                       errbackArgs=(test_instance, test_method) )
+        d.addCallback(test_done, test_instance, test_method)
+        d.addErrback(test_error, test_instance, test_method)
+        log.debug("returning %s input" % test_method)
+
+        ignored = d.getSkip()
+
+        return d
 
 def runTestWithInputUnit(test_class, test_method, input_unit, oreporter):
     """

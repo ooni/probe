@@ -63,7 +63,7 @@ class TCPFlagTest(nettest.NetTestCase):
 
     #destinations = {}
 
-    @log.catcher
+    @log.catch
     def setUp(self, *a, **kw):
         """Configure commandline parameters for TCPSynTest."""
         self.report = {}

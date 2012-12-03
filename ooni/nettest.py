@@ -13,11 +13,25 @@ import os
 import itertools
 import traceback
 
-from twisted.trial import unittest, itrial, util
+from twisted.trial import unittest, itrial
+from twisted.trial import util as txtrutil
 from twisted.internet import defer, utils
 from twisted.python import usage
 
+from ooni import runner
 from ooni.utils import log
+
+# This needs to be here so that NetTestCase.abort() can call it, since we
+# cannot import runner because runner imports NetTestCase.
+def isTestCase(obj):
+    """
+    Return True if obj is a subclass of NetTestCase, false if otherwise.
+    """
+    try:
+        return issubclass(obj, NetTestCase)
+    except TypeError:
+        return False
+
 
 class NetTestCase(object):
     """
@@ -61,21 +75,28 @@ class NetTestCase(object):
 
     * requiresRoot: set to True if the test must be run as root.
 
-    * optFlags: is assigned a list of lists. Each list represents a flag parameter, as so:
+    * optFlags: 
+          is assigned a list of lists. Each list represents a flag
+          parameter, as so:
 
-        optFlags = [['verbose', 'v', 'Makes it tell you what it doing.'], | ['quiet', 'q', 'Be vewy vewy quiet.']]
+        optFlags = [
+            ['verbose', 'v', 'Makes it tell you what it doing.'],
+            ['quiet', 'q', 'Be vewy vewy quiet.']]
 
     As you can see, the first item is the long option name (prefixed with
     '--' on the command line), followed by the short option name (prefixed with
     '-'), and the description. The description is used for the built-in handling of
     the --help switch, which prints a usage summary.
 
+    * optParameters: 
+          is much the same, except the list also contains a default value:
 
-    * optParameters: is much the same, except the list also contains a default value:
+        optParameters = [
+            ['outfile', 'O', 'outfile.log', 'Description...']]
 
-        | optParameters = [['outfile', 'O', 'outfile.log', 'Description...']]
-
-    * usageOptions: a subclass of twisted.python.usage.Options for more advanced command line arguments fun.
+    * usageOptions: 
+          a subclass of twisted.python.usage.Options for more advanced command
+          line arguments fun.
 
     * requiredOptions: a list containing the name of the options that are
                        required for proper running of a test.
@@ -97,22 +118,18 @@ class NetTestCase(object):
 
     optFlags = None
     optParameters = None
-
     usageOptions = None
     requiredOptions = []
     requiresRoot = False
 
     localOptions = {}
+
     def _setUp(self):
-        """
-        This is the internal setup method to be overwritten by templates.
-        """
+        """This is the internal setup method to be overwritten by templates."""
         pass
 
     def setUp(self):
-        """
-        Place here your logic to be executed when the test is being setup.
-        """
+        """Place your logic to be executed when the test is being setup here."""
         pass
 
     def inputProcessor(self, filename=None):
@@ -166,8 +183,68 @@ class NetTestCase(object):
     def __repr__(self):
         return "<%s inputs=%s>" % (self.__class__, self.inputs)
 
-    def __test_done__(self):
-        up = inspect.stack()
-        parent = up[1]
-        # XXX call oreporter.allDone() from parent stack frame
-        raise NotImplemented
+    def _getSkip(self):
+        return txtrutil.acquireAttribute(self._parents, 'skip', None)
+
+    #def _getSkipReason(self, method, skip):
+    #    return super(TestCase, self)._getSkipReason(self, method, skip)
+
+    def _getTimeout(self):
+        """
+        Returns the timeout value set on this test. Check on the instance
+        first, the the class, then the module, then package. As soon as it
+        finds something with a timeout attribute, returns that. Returns
+        twisted.trial.util.DEFAULT_TIMEOUT_DURATION if it cannot find
+        anything. See TestCase docstring for more details.
+        """
+        testMethod = getattr(self, methodName)
+        self._parents = [testMethod, self]
+        self._parents.extend(txtrutil.getPythonContainers(testMethod))
+        timeout = txtrutil.acquireAttribute(self._parents, 'timeout', 
+                                            txtrutil.DEFAULT_TIMEOUT_DURATION)
+        try:
+            return float(timeout)
+        except (ValueError, TypeError):
+            warnings.warn("'timeout' attribute needs to be a number.",
+                          category=DeprecationWarning)
+            return txtrutil.DEFAULT_TIMEOUT_DURATION
+
+    def _abort(self, reason, obj=None):
+        """
+        Abort running an input, test_method, or test_class. If called with only
+        one argument, assume we're going to ignore the current input. Otherwise,
+        the name of the method or class in relation to the test_instance,
+        i.e. "self" should be given as value for the keyword argument "obj".
+
+        XXX call oreporter.allDone() from parent stack frame
+        """
+        reason = str(reason) # XXX should probably coerce
+        raise SkipTest("%s\n%s" % (str(reason), str(self.input)) )
+
+    def _abortMethod(self, reason, method):
+        if inspect.ismethod(method):
+            abort = getattr(self.__class__, method, False)
+            log.debug("Aborting remaining inputs for %s" % str(abort.func_name))
+            setattr(abort, 'skip', reason)
+        else:
+            log.debug("abortMethod(): could not find method %s" % str(method))
+
+    @log.catch
+    def _abortClass(self, reason, cls):
+        if not inspect.isclass(obj) or not runner.isTestCase(obj):
+            log.debug("_abortClass() could not find class %s" % str(cls))
+            return
+        abort = getattr(obj, '__class__', self.__class__)
+        log.debug("Aborting %s test" % str(abort.name))
+        setattr(abort, 'skip', reason)
+
+    def abortCurrentInput(self, reason):
+        """
+        Abort the current input.
+        
+        @param reason: A string explaining why this test is being skipped.
+        """
+        return self._abort(reason)
+
+    def abortInput(self, reason):
+        return self._abort(reason)
