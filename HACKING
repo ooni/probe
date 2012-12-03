@@ -168,13 +168,8 @@ Class attributes should also follow camelCase with the first letter non-capital.
 
 Functions should follow camelCase with the first letter non-capital.
 
-Functions that are inside the local scope of a class or method should be all
-lowercase separated by an underscore.
-
-
-
-
-
+Functions and variables that are inside the local scope of a class or method
+should be all lowercase separated by an underscore.
 
 Indentation
 ...........
