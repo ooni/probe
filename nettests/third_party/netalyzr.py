@@ -10,6 +10,7 @@ from ooni import nettest
 from ooni.utils import log
 import time
 import os
+from twisted.internet import reactor, threads, defer
 
 class NetalyzrWrapperTest(nettest.NetTestCase):
     name = "NetalyzrWrapper"
@@ -30,6 +31,19 @@ class NetalyzrWrapperTest(nettest.NetTestCase):
         self.output_file.strip()
         self.run_me = program + " 2>&1 >> " + self.output_file
 
+    def blocking_call(self):
+        try:
+            result = threads.blockingCallFromThread(reactor, os.system(self.run_me))
+        except:
+            print "Please check " + self.output_file + "for Netalyzr output"
+        finally:
+            reactor.callFromThread(reactor.stop)
+            self.clean_up()
+
+    def clean_up(self):
+        self.report['netalyzr_report'] = self.output_file
+        log.debug("finished running NetalzrWrapper")
+
     def test_run_netalyzr(self):
         """
         This test simply wraps netalyzr and runs it from command line
@@ -41,7 +55,4 @@ class NetalyzrWrapperTest(nettest.NetTestCase):
         # (currently there is no progress because the stdout of os.system is
         # trapped by twisted) and to include the link to the netalyzr report
         # directly in the OONI report, perhaps even downloading it.
-        os.system(self.run_me)
-        self.report['netalyzr_report'] = self.output_file
-        log.debug("finished running NetalzrWrapper")
-
+        reactor.callInThread(self.blocking_call)
