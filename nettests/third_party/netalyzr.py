@@ -33,9 +33,9 @@ class NetalyzrWrapperTest(nettest.NetTestCase):
 
     def blocking_call(self):
         try:
-            result = threads.blockingCallFromThread(reactor, os.system(self.run_me))
+            result = threads.blockingCallFromThread(reactor, os.system, self.run_me) 
         except:
-            print "Please check " + self.output_file + "for Netalyzr output"
+            log.debug("Netalyzr had an error, please see the log file: %s" % self.output_file)
         finally:
             reactor.callFromThread(reactor.stop)
             self.clean_up()
@@ -43,6 +43,7 @@ class NetalyzrWrapperTest(nettest.NetTestCase):
     def clean_up(self):
         self.report['netalyzr_report'] = self.output_file
         log.debug("finished running NetalzrWrapper")
+        log.debug("Please check %s for Netalyzr output" % self.output_file)
 
     def test_run_netalyzr(self):
         """
