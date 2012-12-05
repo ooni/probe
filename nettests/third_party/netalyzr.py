@@ -21,7 +21,7 @@ class NetalyzrWrapperTest(nettest.NetTestCase):
         outputdir = os.path.join(cwd, '..', '..')
 
         program_path = os.path.join(cwd, 'NetalyzrCLI.jar')
-        program = "java -jar %s " % program_path
+        program = "java -jar %s -d" % program_path
 
         test_token = time.asctime(time.gmtime()).replace(" ", "_").strip()
 
