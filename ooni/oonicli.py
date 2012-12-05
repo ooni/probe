@@ -134,5 +134,6 @@ def run():
                                   cmd_line_options, yamloo_filename)
     tests_d.addBoth(testsEnded)
 
-    reactor.run()
+    ## it appears that tests run without this?
+    #reactor.run()
 

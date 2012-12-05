@@ -21,6 +21,7 @@ from twisted.trial.runner import filenameToModule
 from twisted.trial import util as txtrutil
 from twisted.trial import reporter as txreporter
 from twisted.trial.unittest import utils as txtrutils
+from twisted.trial.unittest import SkipTest
 from twisted.internet import reactor, threads
 
 from ooni.inputunit import InputUnitFactory
@@ -75,7 +76,7 @@ def processTest(obj, cmd_line_options):
             obj.localOptions = options
 
         if input_file and options:
-            log.debug("Got input file")
+            log.debug("Added input file to options list")
             obj.inputFile = options[input_file[0]]
 
         try:
@@ -181,80 +182,78 @@ def runTestWithInput(test_class, test_method, test_input, oreporter):
     """
     log.debug("Running %s with %s" % (test_method, test_input))
 
-    def test_abort_single_input(reason, test_instance, test_name):
-        pass
-
     def test_timeout(d):
-        err = defer.TimeoutError("%s test for %s timed out after %s seconds"
-                                 % (test_name, test_instance.input, 
-                                    test_instance.timeout))
-        fail = failure.Failure(err)
+        timeout_error = defer.TimeoutError(
+            "%s test for %s timed out after %s seconds"
+            % (test_name, test_instance.input, test_instance.timeout))
+        timeout_fail = failure.Failure(err)
         try:
-            d.errback(fail)
+            d.errback(timeout_fail)
         except defer.AlreadyCalledError:
             # if the deferred has already been called but the *back chain is
             # still unfinished, crash the reactor and report the timeout
             reactor.crash()
             test_instance._timedOut = True    # see test_instance._wait
-            # XXX result is TestResult utils? 
             test_instance._test_result.addExpectedFailure(test_instance, fail)
     test_timeout = txtrutils.suppressWarnings(
         test_timeout, txtrutil.suppress(category=DeprecationWarning))
 
     def test_done(result, test_instance, test_name):
-        log.debug("runTestWithInput: concluded %s" % test_name)
+        log.debug("Concluded %s with inputs %s"
+                  % (test_name, test_instance.input))
         return oreporter.testDone(test_instance, test_name)
 
     def test_error(error, test_instance, test_name):
-        log.exception(error)
+        if isinstance(error, SkipTest):
+            log.info("%s" % error.message)
+        else:
+            log.exception(error)
 
     test_instance = test_class()
     test_instance.input = test_input
     test_instance.report = {}
-    log.debug("Processing %s" % test_instance.name)
+    # XXX TODO
+    # the twisted.trial.reporter.TestResult is expected by test_timeout(),
+    # but we should eventually replace it with a stub class
+    test_instance._test_result = txreporter.TestResult()
     # use this to keep track of the test runtime
     test_instance._start_time = time.time()
     test_instance.timeout = test_instance._getTimeout()
-    test_instance._test_result = txreporter.TestResult()
     # call setups on the test
     test_instance._setUp()
     test_instance.setUp()
-    test_ignored = txtrutil.acquireAttribute(test_instance._parents, 
-                                             'skip', None)
 
-    test = getattr(test_instance, test_method)
+    # check that we haven't inherited a skip
+    test_ignored = txtrutil.acquireAttribute(
+        test_instance._parents, 'skip', None)
+    if test_ignored is not None:
+        # XXX we'll need to do something more than warn
+        log.warn("test_skip is %s" % test_ignored)
 
-    # check if we've aborted
-    test_skip = test_instance._getSkip()
-    if test_skip is not None:
-        log.debug("%s.getSkip() returned %s" % (str(test_class), 
-                                                str(test_skip)) )
- 
-    abort_reason, abort_what = getattr(test_instance, 'abort', ('input', None))
-    if abort_reason is not None:
-        do_abort = abortTestWasCalled(abort_reason, abort_what, test_class,
-                                      test_instance, test_method, test_input,
-                                      oreporter)
-        return defer.maybeDeferred(do_abort)
+    # now check our instance for test_methods set to be skipped:
+    skip_list = test_instance._getSkip()
+    if skip_list is not None:
+        log.debug("%s marked these tests to be skipped: %s"
+                  % (test_instance.name, skip_list))
     else:
+        log.debug("No tests marked as skip")
+    skip_list = [skip_list]
+
+    if not test_method in skip_list:
+        test = getattr(test_instance, test_method)
         d = defer.maybeDeferred(test)
 
         # register the timer with the reactor
-        call = reactor.callLater(test_timeout, test_timed_out, d)
+        call = reactor.callLater(test_instance.timeout, test_timeout, d)
         d.addBoth(lambda x: call.active() and call.cancel() or x)
-
-        # XXX check if test called test_abort...
-        d.addCallbacks(test_abort, 
-                       test_error, 
-                       callbackArgs=(test_instance, test_method), 
-                       errbackArgs=(test_instance, test_method) )
+    
         d.addCallback(test_done, test_instance, test_method)
         d.addErrback(test_error, test_instance, test_method)
         log.debug("returning %s input" % test_method)
+    else:
+        d = defer.Deferred()
 
-        ignored = d.getSkip()
-
-        return d
+    return d
 
 def runTestWithInputUnit(test_class, test_method, input_unit, oreporter):
     """

@@ -130,13 +130,14 @@ class OReporter(object):
         return self.writeReportEntry(report)
 
     def allDone(self):
-        log.debug("allDone: Finished running all tests")
-        try:
-            log.debug("Stopping the reactor")
-            reactor.stop()
-        except:
-            log.debug("Unable to stop the reactor")
-            pass
+        log.debug("Running pending timed reactor calls")
+        reactor.runUntilCurrent()
+        if reactor.running:
+            log.debug("Reactor running. Stopping the reactor...")
+            try:
+                reactor.stop()
+            except:
+                log.debug("Unable to stop the reactor")
         return None
 
 class YAMLReporter(OReporter):

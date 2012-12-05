@@ -200,12 +200,15 @@ class NetTestCase(object):
                           category=DeprecationWarning)
             return txtrutil.DEFAULT_TIMEOUT_DURATION
     
-    def _abort(self, reason, obj=None):
+    def _abort(self, reason):
         """
-        Abort running an input, test_method, or test_class. If called with only
-        one argument, assume we're going to ignore the current input. Otherwise,
-        the name of the method or class in relation to the test_instance,
-        i.e. "self" should be given as value for the keyword argument "obj".
+
+        Abort running the current input. Raises
+        :class:`twisted.trial.test.skipping.SkipTest <SkipTest>` test_method,
+        or test_class. If called with only one argument, assume we're going to
+        ignore the current input. Otherwise, the name of the method or class
+        in relation to the test_instance, i.e. "self" should be given as value
+        for the keyword argument "obj".
 
         XXX call oreporter.allDone() from parent stack frame
         """

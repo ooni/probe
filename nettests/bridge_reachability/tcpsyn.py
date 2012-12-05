@@ -73,7 +73,7 @@ class TCPFlagTest(nettest.NetTestCase):
                 setattr(self, key, value)
         if not self.interface:
             try:
-                iface = log.catch(net.getDefaultIface())
+                iface = net.getDefaultIface()
             except net.IfaceError, ie:
                 log.warn("Could not find a working network interface!")
                 log.fail(ie)
