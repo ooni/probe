@@ -18,19 +18,7 @@ from twisted.trial import util as txtrutil
 from twisted.internet import defer, utils
 from twisted.python import usage
 
-from ooni import runner
 from ooni.utils import log
-
-# This needs to be here so that NetTestCase.abort() can call it, since we
-# cannot import runner because runner imports NetTestCase.
-def isTestCase(obj):
-    """
-    Return True if obj is a subclass of NetTestCase, false if otherwise.
-    """
-    try:
-        return issubclass(obj, NetTestCase)
-    except TypeError:
-        return False
 
 
 class NetTestCase(object):
@@ -185,10 +173,10 @@ class NetTestCase(object):
 
     def _getSkip(self):
         return txtrutil.acquireAttribute(self._parents, 'skip', None)
-
-    #def _getSkipReason(self, method, skip):
-    #    return super(TestCase, self)._getSkipReason(self, method, skip)
-
+    
+    def _getSkipReason(self, method, skip):
+        return super(TestCase, self)._getSkipReason(self, method, skip)
+    
     def _getTimeout(self):
         """
         Returns the timeout value set on this test. Check on the instance
@@ -197,7 +185,10 @@ class NetTestCase(object):
         twisted.trial.util.DEFAULT_TIMEOUT_DURATION if it cannot find
         anything. See TestCase docstring for more details.
         """
-        testMethod = getattr(self, methodName)
+        try:
+            testMethod = getattr(self, methodName)
+        except:
+            testMethod = self.setUp
         self._parents = [testMethod, self]
         self._parents.extend(txtrutil.getPythonContainers(testMethod))
         timeout = txtrutil.acquireAttribute(self._parents, 'timeout', 
@@ -208,7 +199,7 @@ class NetTestCase(object):
             warnings.warn("'timeout' attribute needs to be a number.",
                           category=DeprecationWarning)
             return txtrutil.DEFAULT_TIMEOUT_DURATION
-
+    
     def _abort(self, reason, obj=None):
         """
         Abort running an input, test_method, or test_class. If called with only
@@ -218,7 +209,7 @@ class NetTestCase(object):
 
         XXX call oreporter.allDone() from parent stack frame
         """
-        reason = str(reason) # XXX should probably coerce
+        reason = str(reason)
         raise SkipTest("%s\n%s" % (str(reason), str(self.input)) )
 
     def _abortMethod(self, reason, method):
@@ -228,10 +219,10 @@ class NetTestCase(object):
             setattr(abort, 'skip', reason)
         else:
             log.debug("abortMethod(): could not find method %s" % str(method))
-
+    
     @log.catch
     def _abortClass(self, reason, cls):
-        if not inspect.isclass(obj) or not runner.isTestCase(obj):
+        if not inspect.isclass(obj) or not isTestCase(obj):
             log.debug("_abortClass() could not find class %s" % str(cls))
             return
         abort = getattr(obj, '__class__', self.__class__)
@@ -248,3 +239,17 @@ class NetTestCase(object):
 
     def abortInput(self, reason):
         return self._abort(reason)
+
+
+# This needs to be here so that NetTestCase.abort() can call it, since we
+# cannot import runner because runner imports NetTestCase.
+def isTestCase(obj):
+    """
+    Return True if obj is a subclass of NetTestCase, false if otherwise.
+    """
+    try:
+        return issubclass(obj, NetTestCase)
+    except TypeError:
+        return False
+
+

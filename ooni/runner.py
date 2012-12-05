@@ -19,13 +19,12 @@ from twisted.python import reflect, usage, failure
 from twisted.internet import defer
 from twisted.trial.runner import filenameToModule
 from twisted.trial import util as txtrutil
+from twisted.trial import reporter as txreporter
+from twisted.trial.unittest import utils as txtrutils
 from twisted.internet import reactor, threads
 
 from ooni.inputunit import InputUnitFactory
-from ooni.nettest import NetTestCase, isTestCase
-
-from ooni import reporter
-
+from ooni import reporter, nettest
 from ooni.utils import log, checkForRoot, PermissionsError
 
 def processTest(obj, cmd_line_options):
@@ -112,7 +111,7 @@ def findTestClassesFromConfig(cmd_line_options):
 
     module = filenameToModule(filename)
     for name, val in inspect.getmembers(module):
-        if isTestCase(val):
+        if nettest.isTestCase(val):
             classes.append(processTest(val, cmd_line_options))
     return classes
 
@@ -165,15 +164,15 @@ def abortTestWasCalled(abort_reason, abort_what, test_class, test_instance,
     if abort_what == 'input':
         log.msg("%s test requested to abort for input: %s"
                 % (test_instance.name, test_input))
-        d = maybeDeferred()
+        d = defer.maybeDeferred(lambda x: object)
 
     if hasattr(test_instance, "abort_all"):
         log.msg("%s test requested to abort all remaining inputs"
                 % test_instance.name)
-    else:
-        d = defer.Deferred()
-        d.cancel()
-        d = abortTestRun(test_class, reason, test_input, oreporter)
+    #else:
+    #    d = defer.Deferred()
+    #    d.cancel()
+    #    d = abortTestRun(test_class, reason, test_input, oreporter)
     
 
 def runTestWithInput(test_class, test_method, test_input, oreporter):
@@ -198,9 +197,9 @@ def runTestWithInput(test_class, test_method, test_input, oreporter):
             reactor.crash()
             test_instance._timedOut = True    # see test_instance._wait
             # XXX result is TestResult utils? 
-            RESULT.addExpectedFailure(test_instance, fail)
-    test_timeout = utils.suppressWarnings(
-        test_timeout, util.suppress(category=DeprecationWarning))
+            test_instance._test_result.addExpectedFailure(test_instance, fail)
+    test_timeout = txtrutils.suppressWarnings(
+        test_timeout, txtrutil.suppress(category=DeprecationWarning))
 
     def test_done(result, test_instance, test_name):
         log.debug("runTestWithInput: concluded %s" % test_name)
@@ -216,15 +215,17 @@ def runTestWithInput(test_class, test_method, test_input, oreporter):
     # use this to keep track of the test runtime
     test_instance._start_time = time.time()
     test_instance.timeout = test_instance._getTimeout()
+    test_instance._test_result = txreporter.TestResult()
     # call setups on the test
     test_instance._setUp()
     test_instance.setUp()
-    test_ignored = util.acquireAttribute(test_instance._parents, 'skip', None)
+    test_ignored = txtrutil.acquireAttribute(test_instance._parents, 
+                                             'skip', None)
 
     test = getattr(test_instance, test_method)
 
     # check if we've aborted
-    test_skip = test.getSkip()
+    test_skip = test_instance._getSkip()
     if test_skip is not None:
         log.debug("%s.getSkip() returned %s" % (str(test_class), 
                                                 str(test_skip)) )
