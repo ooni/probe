@@ -25,10 +25,10 @@ class NetalyzrWrapperTest(nettest.NetTestCase):
 
         test_token = time.asctime(time.gmtime()).replace(" ", "_").strip()
 
-        output_file = os.path.join(outputdir,
+        self.output_file = os.path.join(outputdir,
                 "NetalyzrCLI_" + test_token + ".out")
-        output_file.strip()
-        self.run_me = program + " 2>&1 >> " + output_file
+        self.output_file.strip()
+        self.run_me = program + " 2>&1 >> " + self.output_file
 
     def test_run_netalyzr(self):
         """
