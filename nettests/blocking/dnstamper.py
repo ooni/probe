@@ -65,7 +65,7 @@ class DNSTamperTest(dnst.DNSTest):
                 self.report['test_resolvers'] = self.test_resolvers
             f.close()
 
-        except IOError:
+        except IOError, e:
             log.exception(e)
             raise usage.UsageError("Invalid test resolvers file")
 
