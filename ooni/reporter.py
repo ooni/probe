@@ -111,8 +111,7 @@ class OReporter(object):
         pass
 
     def testDone(self, test, test_name):
-        log.debug("Finished running %s" % test_name)
-        log.debug("Writing report")
+        log.debug("Calling reporter to record results")
         test_report = dict(test.report)
 
         if isinstance(test.input, packet.Packet):

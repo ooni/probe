@@ -171,35 +171,6 @@ class NetTestCase(object):
     def __repr__(self):
         return "<%s inputs=%s>" % (self.__class__, self.inputs)
 
-    def _getSkip(self):
-        return txtrutil.acquireAttribute(self._parents, 'skip', None)
-    
-    def _getSkipReason(self, method, skip):
-        return super(TestCase, self)._getSkipReason(self, method, skip)
-    
-    def _getTimeout(self):
-        """
-        Returns the timeout value set on this test. Check on the instance
-        first, the the class, then the module, then package. As soon as it
-        finds something with a timeout attribute, returns that. Returns
-        twisted.trial.util.DEFAULT_TIMEOUT_DURATION if it cannot find
-        anything. See TestCase docstring for more details.
-        """
-        try:
-            testMethod = getattr(self, methodName)
-        except:
-            testMethod = self.setUp
-        self._parents = [testMethod, self]
-        self._parents.extend(txtrutil.getPythonContainers(testMethod))
-        timeout = txtrutil.acquireAttribute(self._parents, 'timeout', 
-                                            txtrutil.DEFAULT_TIMEOUT_DURATION)
-        try:
-            return float(timeout)
-        except (ValueError, TypeError):
-            warnings.warn("'timeout' attribute needs to be a number.",
-                          category=DeprecationWarning)
-            return txtrutil.DEFAULT_TIMEOUT_DURATION
-    
     def _abort(self, reason):
         """
 

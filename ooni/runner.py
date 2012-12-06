@@ -18,8 +18,8 @@ import itertools
 from twisted.python import reflect, usage, failure
 from twisted.internet import defer
 from twisted.trial.runner import filenameToModule
-from twisted.trial import util as txtrutil
 from twisted.trial import reporter as txreporter
+from twisted.trial import util as txtrutil
 from twisted.trial.unittest import utils as txtrutils
 from twisted.trial.unittest import SkipTest
 from twisted.internet import reactor, threads
@@ -144,37 +144,31 @@ def loadTestsAndOptions(classes, cmd_line_options):
 
     return test_cases, options
 
-def abortTestRun(test_class, warn_err_fail, test_input, oreporter):
+def getTimeout(test_instance, test_method):
     """
-    Abort the entire test, and record the error, failure, or warning for why
-    it could not be completed.
-    """
-    log.warn("Aborting remaining tests for %s" % test_name)
+    Returns the timeout value set on this test. Check on the instance first,
+    the the class, then the module, then package. As soon as it finds
+    something with a timeout attribute, returns that. Returns
+    twisted.trial.util.DEFAULT_TIMEOUT_DURATION if it cannot find anything.
 
-def abortTestWasCalled(abort_reason, abort_what, test_class, test_instance, 
-                       test_method, test_input, oreporter):
+    See twisted.trial.unittest.TestCase docstring for more details.
     """
-    XXX
-    """
-    if not abort_what in ['class', 'method', 'input']:
-        log.warn("__test_abort__() must specify 'class', 'method', or 'input'")
-        abort_what = 'input'    
-
-    if not isinstance(abort_reason, Exception):
-        abort_reason = Exception(str(abort_reason))
-    if abort_what == 'input':
-        log.msg("%s test requested to abort for input: %s"
-                % (test_instance.name, test_input))
-        d = defer.maybeDeferred(lambda x: object)
-
-    if hasattr(test_instance, "abort_all"):
-        log.msg("%s test requested to abort all remaining inputs"
-                % test_instance.name)
-    #else:
-    #    d = defer.Deferred()
-    #    d.cancel()
-    #    d = abortTestRun(test_class, reason, test_input, oreporter)
-    
+    try:
+        testMethod = getattr(test_instance, test_method)
+    except:
+        log.debug("_getTimeout couldn't find self.methodName!")
+        return txtrutil.DEFAULT_TIMEOUT_DURATION
+    else:
+        test_instance._parents = [testMethod, test_instance]
+        test_instance._parents.extend(txtrutil.getPythonContainers(testMethod))
+        timeout = txtrutil.acquireAttribute(test_instance._parents, 'timeout', 
+                                            txtrutil.DEFAULT_TIMEOUT_DURATION)
+        try:
+            return float(timeout)
+        except (ValueError, TypeError):
+            warnings.warn("'timeout' attribute needs to be a number.",
+                          category=DeprecationWarning)
+            return txtrutil.DEFAULT_TIMEOUT_DURATION
 
 def runTestWithInput(test_class, test_method, test_input, oreporter):
     """
@@ -205,6 +199,9 @@ def runTestWithInput(test_class, test_method, test_input, oreporter):
 
     def test_error(error, test_instance, test_name):
         if isinstance(error, SkipTest):
+            if len(error.args) > 0:
+                skip_what = error.args[1]
+                # XXX we'll need to handle methods and classes
             log.info("%s" % error.message)
         else:
             log.exception(error)
@@ -212,32 +209,23 @@ def runTestWithInput(test_class, test_method, test_input, oreporter):
     test_instance = test_class()
     test_instance.input = test_input
     test_instance.report = {}
-    # XXX TODO
-    # the twisted.trial.reporter.TestResult is expected by test_timeout(),
-    # but we should eventually replace it with a stub class
+    # XXX TODO the twisted.trial.reporter.TestResult is expected by
+    # test_timeout(), but we should eventually replace it with a stub class
     test_instance._test_result = txreporter.TestResult()
     # use this to keep track of the test runtime
     test_instance._start_time = time.time()
-    test_instance.timeout = test_instance._getTimeout()
+    test_instance.timeout = getTimeout(test_instance, test_method)
     # call setups on the test
     test_instance._setUp()
     test_instance.setUp()
 
-    # check that we haven't inherited a skip
-    test_ignored = txtrutil.acquireAttribute(
+    test_skip = txtrutil.acquireAttribute(
         test_instance._parents, 'skip', None)
-    if test_ignored is not None:
+    if test_skip is not None:
         # XXX we'll need to do something more than warn
-        log.warn("test_skip is %s" % test_ignored)
-
-    # now check our instance for test_methods set to be skipped:
-    skip_list = test_instance._getSkip()
-    if skip_list is not None:
-        log.debug("%s marked these tests to be skipped: %s"
-                  % (test_instance.name, skip_list))
-    else:
-        log.debug("No tests marked as skip")
-    skip_list = [skip_list]
+        log.warn("%s marked these tests to be skipped: %s"
+                  % (test_instance.name, test_skip))
+    skip_list = [test_skip]
 
     if not test_method in skip_list:
         test = getattr(test_instance, test_method)
@@ -249,10 +237,8 @@ def runTestWithInput(test_class, test_method, test_input, oreporter):
     
         d.addCallback(test_done, test_instance, test_method)
         d.addErrback(test_error, test_instance, test_method)
-        log.debug("returning %s input" % test_method)
     else:
         d = defer.Deferred()
-
     return d
 
 def runTestWithInputUnit(test_class, test_method, input_unit, oreporter):

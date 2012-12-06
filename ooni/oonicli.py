@@ -81,7 +81,7 @@ class Options(usage.Options, app.ReactorSelectionMixin):
 
 def testsEnded(*arg, **kw):
     """You can place here all the post shutdown tasks."""
-    log.debug("testsEnded: Finished running all tests")
+    log.debug("Finished running all tests")
 
 def run():
     """Call me to begin testing from a file."""
@@ -133,7 +133,3 @@ def run():
     tests_d = runner.runTestCases(test_cases, options,
                                   cmd_line_options, yamloo_filename)
     tests_d.addBoth(testsEnded)
-
-    ## it appears that tests run without this?
-    #reactor.run()
-
