@@ -21,8 +21,8 @@ and over Tor. It then compares the two responses to see if the response bodies o
 proportion between the expected body length (the one over Tor) and the one over
 the control network match.
 
-If the proportion between the two body lengths is <= a certain tollerance
-factor (by default set to 0.8), then we say that they do not match.
+If the proportion between the two body lengths is <= a certain tolerance factor
+(by default set to 0.8), then we say that they do not match.
 
 The reason for doing so is that a lot of sites serve geolocalized content based
 on the location from which the request originated from.

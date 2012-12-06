@@ -1,8 +1,6 @@
 utils Package
 =============
 
-:mod:`utils` Package
---------------------
 .. automodule:: ooni.utils
     :members:
     :undoc-members:

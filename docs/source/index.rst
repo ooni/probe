@@ -62,13 +62,11 @@ Traffic Manipulation Tests
 
   * `DNS Spoof <tests/dnsspoof.html>`_
 
-  * `HTTP Header Field Manipulation <tests/http_header_field_manipulation>`_
+  * `HTTP Header Field Manipulation <tests/http_header_field_manipulation.html>`_
 
   * `Traceroute <tests/traceroute.html>`_
 
   * `HTTP Host <tests/http_host.html>`_
-
-  * `Daphne <tests/daphne.html>`_
 
 Other tests
 ...........
@@ -125,4 +123,5 @@ More developer documentation
     oonib
     writing_tests
     api/*
+    nettests/modules
     glossary
