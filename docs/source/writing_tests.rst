@@ -3,7 +3,7 @@ Writing OONI tests
 
 
 The OONI testing API is heavily influenced and partially based on the python
-:class:`unittest` module and :class:`twsted.trial`.
+:class:`unittest` module and :class:`twisted.trial`.
 
 
 Test Cases
@@ -28,8 +28,8 @@ templates, then the setUp method that is overwritable by users.
 Inputs
 ------
 
-Inputs are what is given as input to every iteration of the Test Case. You have
-100 inputs, then every test case will be run 100 times.
+Inputs are what is given as input to every iteration of the Test Case.
+Iflyou have 100 inputs, then every test case will be run 100 times.
 
 To configure a static set of inputs you should define the
 :class:`ooni.nettest.TestCase` attribute ``inputs``. The test will be run
@@ -131,9 +131,15 @@ functionality that is useful to running a test of that type. They also take
 care of writing the data they collect that is relevant to the test run to the
 report file.
 
-Currently implemented test templates are `ooni.templates.scapt` for tests based
-on Scapy, `ooni.templates.tcpt` for tests based on TCP, `ooni.templates.httpt`
-for tests based on HTTP, `ooni.templates.dnst` for tests based on DNS.
+Currently implemented test templates are `ooni.templates.scapyt
+<https://gitweb.torproject.org/ooni-probe.git/blob/HEAD:/ooni/templates/scapyt.py>`
+for tests based on Scapy, `ooni.templates.tcpt
+<https://gitweb.torproject.org/ooni-probe.git/blob/HEAD:/ooni/templates/tcpt.py>`
+for tests based on TCP, `ooni.templates.httpt
+<https://gitweb.torproject.org/ooni-probe.git/blob/HEAD:/ooni/templates/httpt.py>`
+for tests based on HTTP, `ooni.templates.dnst
+<https://gitweb.torproject.org/ooni-probe.git/blob/HEAD:/ooni/templates/dnst.py>`
+for tests based on DNS.
 
 
 Scapy based tests
