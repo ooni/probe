@@ -118,8 +118,10 @@ More developer documentation
 
 .. toctree::
     :maxdepth: 2
+    :glob:
 
     oonib
     writing_tests
     api/*
+    nettests/modules
     glossary
