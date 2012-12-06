@@ -22,8 +22,8 @@ lookup on the first A record address of both sets and check if they both
 resolve to the same name.
 
 NOTE: This test frequently results in false positives due to GeoIP-based
-load balancing on major global sites such as google, facebook, and
-youtube, etc.
+load balancing on major global sites such as Google, Facebook, and
+Youtube, etc.
 
 How to run the test
 ===================
@@ -176,5 +176,5 @@ From running:
     test_started: 1354187839.512434
     ...
 
-Notes: Query is the string repsentation of :class:twisted.names.dns.Query
+Notes: Query is the string representation of :class:twisted.names.dns.Query
 

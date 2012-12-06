@@ -24,7 +24,7 @@ on the HTTP request line. We generate a series of requests that are not
 valid HTTP requests.
 
 The remote backend runs a TCP echo server. If the response from the backend
-does not match with what we have sent then we say that tampering is occuring.
+does not match with what we have sent then we say that tampering is occurring.
 
 The idea behind this is that certain transparent HTTP proxies may not be
 properly parsing the HTTP request line.
@@ -75,7 +75,7 @@ This generates a request that looks like this:
 ::
     GET / HTTP/XxX
 
-This attemps to trigger bugs in the parsing of the HTTP version number, that
+This attempts to trigger bugs in the parsing of the HTTP version number, that
 is usually being split on the `.`.
 
 How to run the test

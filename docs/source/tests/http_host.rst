@@ -22,7 +22,7 @@ enumerating the sites that are being censored by it.
 It places inside of the Host header field the hostname of the site that is to
 be tested for censorship and then determines if the probe is behind a
 transparent HTTP proxy (because the response from the backend server does not
-match) and if the site is censorsed, by checking if the page that it got back
+match) and if the site is censored, by checking if the page that it got back
 matches the input block page.
 
 *Why do content blocking?*
@@ -30,7 +30,7 @@ matches the input block page.
 Q: Why should be do content blocking measurements with this test when we have
 other tests that also do this?
 
-A: Why not? Although you are correct that tecnically the two tests are
+A: Why not? Although you are correct that technically the two tests are
 equivalent even though the IP layer differs in the two tests.
 
 Note: We may in the future remove the Content Blocking aspect of the HTTP Host
@@ -46,9 +46,9 @@ How to run the test
 *backend url* is the url of the backend that will be used for checking if the
 site is blocked or not.
 
-*content* is the content of a blockpage. When a transparent HTTP proxy is
-present we will do comparisons against this to verify if the requested site is
-blocked or not.
+*content* is the content of a page. When a transparent HTTP proxy is present we
+will do comparisons against this to verify if the requested site is blocked or
+not.
 
 
 Sample report
