@@ -45,6 +45,7 @@ from scapy.all import BasePacketList, conf, PcapReader
 from scapy.all import conf, Gen, SetGen, MTU
 
 def getNetworksFromRoutes():
+    """ Return a list of networks from the routing table """
     from scapy.all import conf, ltoa, read_routes
     from ipaddr    import IPNetwork, IPAddress
 
@@ -65,6 +66,10 @@ class IfaceError(Exception):
     pass
 
 def getDefaultIface():
+    """ Return the default interface or raise IfaceError """
+    #XXX: currently broken on OpenVZ environments, because
+    # the routing table does not contain a default route
+    # Workaround: Set the default interface in ooniprobe.conf
     networks = getNetworksFromRoutes()
     for net in networks:
         if net.is_private:
