@@ -41,7 +41,7 @@ specifies what command line option may be used to control this value.
 
 By default the ``inputProcessor`` is set to read the file line by line and
 strip newline characters. To change this behavior you must set the
-``inputProcessor`` attribute to a function that takes as arugment a file
+``inputProcessor`` attribute to a function that takes as argument a file
 descriptor and yield the next item. The default ``inputProcessor`` looks like
 this::
 
@@ -57,7 +57,7 @@ Setup and command line passing
 ------------------------------
 
 Tests may define the `setUp` method that will be called every time the Test
-Case object is intantiated, in here you may place some common logic to all your
+Case object is instantiated, in here you may place some common logic to all your
 Test Methods that should be run before any testing occurs.
 
 Command line arguments can be parsed thanks to the twisted
@@ -181,8 +181,8 @@ To implement a simple ICMP ping based on this function you can do like so
           return d
 
 The arguments taken by self.sr() are exactly the same as the scapy send and
-receive function, the only difference is that instead of using the regualar
-scapy super socket it uses our twisted drivven wrapper around it.
+receive function, the only difference is that instead of using the regular
+scapy super socket it uses our twisted driven wrapper around it.
 
 Alternatively this test can also be written using the
 `twisted.defer.inlineCallbacks` decorator, that makes it look more similar to

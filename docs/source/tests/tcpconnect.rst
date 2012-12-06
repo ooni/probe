@@ -16,7 +16,7 @@ Details
 Description
 ===========
 
-This test performs TCP connections to a set of sepecified IP:PORT pairs and
+This test performs TCP connections to a set of specified IP:PORT pairs and
 reports the reason for which it failed connecting to the target address.
 
 The reason for failure may be: "timeout", when the connection timed out,

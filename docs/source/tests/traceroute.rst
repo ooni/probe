@@ -40,7 +40,7 @@ other means that are not the src and destination IP address.
 
 In particular the ICMP TTL expired citations will contain the IP headers.
 
-We could theorically strip these though even if that were the case there would
+We could theoretically strip these though even if that were the case there would
 still be at least a reduction of the anonymity set given by the fact that we
 received a TTL expired from a router in a certain network range.
 
