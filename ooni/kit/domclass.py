@@ -28,11 +28,11 @@
 #          resepectively the eigenvalues for the probability matrix A and the
 #          probability matrix B.
 #
-
 import yaml
 import numpy
-from bs4 import BeautifulSoup
 import time
+
+from ooni import log
 
 # All HTML4 tags
 # XXX add link to W3C page where these came from
@@ -118,6 +118,11 @@ def readDOM(content=None, filename=None, debug=False):
     :filename: the filename to be read from for getting the content of the
                page.
     """
+    try:
+        from bs4 import BeautifulSoup
+    except ImportError:
+        log.err("BeautifulSoup is not installed. This test canno run")
+        raise Exception
 
     if filename:
         f = open(filename)
