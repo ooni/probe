@@ -4,8 +4,10 @@ import json
 import re
 import os
 
-from oonib.report import generateReportID
+from twisted.internet import fdesc
+
 from oonib.report import MissingField, InvalidRequestField
+from ooni.utils import randomStr
 
 from cyclone import web
 
@@ -15,11 +17,14 @@ def parseNewReportRequest(request):
     """
     version_string = re.compile("[0-9A-Za-z_\-\.]+$")
     name = re.compile("[a-zA-Z0-9_\- ]+$")
+    probe_asn = re.compile("AS[0-9]+$")
 
-    expected_request = {'software_name': name,
+    expected_request = {
+     'software_name': name,
      'software_version': version_string,
      'test_name': name,
-     'test_version': version_string
+     'test_version': version_string,
+     'probe_asn': probe_asn
     }
 
     parsed_request = json.loads(request)
@@ -28,17 +33,20 @@ def parseNewReportRequest(request):
             value_to_check = parsed_request[k]
         except KeyError:
             raise MissingField(k)
+
         print "Matching %s with %s | %s" % (regexp, value_to_check, k)
         if re.match(regexp, str(value_to_check)):
             continue
         else:
             raise InvalidRequestField(k)
+
     return parsed_request
 
 class NewReportHandlerFile(web.RequestHandler):
     """
     Responsible for creating and updating reports by writing to flat file.
     """
+
     def post(self):
         """
         Creates a new report with the input
@@ -49,7 +57,7 @@ class NewReportHandlerFile(web.RequestHandler):
            'software_version': 'XXX',
            'test_name': 'XXX',
            'test_version': 'XXX',
-           'progress': 'XXX',
+           'probe_asn': 'XXX'
            'content': 'XXX'
            }
 
@@ -91,49 +99,58 @@ class NewReportHandlerFile(web.RequestHandler):
         software_version = report_data['software_version']
         test_name = report_data['test_name']
         test_version = report_data['test_version']
+        probe_asn = report_data['test_version']
         content = report_data['content']
 
-        report_id = generateReportID()
+        if not probe_asn:
+            probe_asn = "AS0"
 
-        #report_filename = '_'.join((report_id,
-        #    report_data['software_name'],
-        #    report_data['software_version'],
-        #    report_data['test_name'],
-        #    report_data['test_version']))
+        report_id = otime.timestamp() + '_' \
+                + probe_asn + '_' \
+                + randomStr(50)
 
         # The report filename contains the timestamp of the report plus a
         # random nonce
         report_filename = os.path.join(config.main.report_dir, report_id)
-        report_filename += '.yamloo'
 
         response = {'backend_version': backend_version,
                 'report_id': report_id
-                }
+        }
 
-        fp = open(report_filename, 'w+')
-        fp.write(report_data['content'])
-        fp.close()
+        self.writeToReport(report_filename,
+                report_data['content'])
+
         self.write(response)
+
+    def writeToReport(report_filename, data):
+        with open(report_filename, 'w+') as fd:
+            fdesc.setNonBlocking(fd)
+            fdesc.writeToFD(data)
 
     def put(self):
         """
         Update an already existing report.
 
-          {'report_id': 'XXX',
+          {
+           'report_id': 'XXX',
            'content': 'XXX'
           }
         """
         parsed_request = parseUpdateReportRequest(self.request.body)
-        report_id = parsed_request['report_id']
-        print "Got this request %s" % parsed_request
 
-        report_filename = os.path.join(config.main.report_dir, report_id)
-        report_filename += '.yamloo'
+        report_id = parsed_request['report_id']
+
+        print "Got this request %s" % parsed_request
+        report_filename = os.path.join(config.main.report_dir,
+                report_id)
+
+        self.updateReport(report_filename, parsed_request['content'])
+
+    def updateReport(report_filename, data):
         try:
-            with open(report_filename, 'a+') as f:
-                # XXX-Twisted change this to use t.i.a.fdesc and perhaps make a
-                # nice little object for it.
-                f.write(parsed_request['content'])
+            with open(report_filename, 'a+') as fd:
+                fdesc.setNonBlocking(fd)
+                fdesc.writeToFD(data)
         except IOError as e:
             web.HTTPError(404, "Report not found")
 
