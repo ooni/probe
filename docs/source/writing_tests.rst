@@ -352,7 +352,8 @@ response body (based on nettests/examples/example_httpt.py):
           body_sha256sum = sha256(body).hexdigest()
           self.report['checksum'] = body_sha256sum
 
-The report for this test looks like this:
+Report format
+*************
 
 ::
 
@@ -450,7 +451,8 @@ For example (taken from nettets/examples/example_dnst.py):
           d.addCallback(gotResult)
           return d
 
-The report looks like this:
+Report format
+*************
 
 ::
 
