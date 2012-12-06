@@ -12,7 +12,7 @@ from twisted.python import log as txlog
 from twisted.python.failure import Failure
 from twisted.python.logfile import DailyLogFile
 
-from ooni.utils import otime
+from ooni import otime
 from ooni import config
 
 ## Get rid of the annoying "No route found for

@@ -8,7 +8,7 @@ import yaml
 
 from twisted.internet import reactor, threads, defer
 
-from ooni.utils import otime
+from ooni import otime
 from ooni.utils import Storage
 
 reports = Storage()
