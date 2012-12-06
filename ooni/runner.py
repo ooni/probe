@@ -474,9 +474,14 @@ def startTor():
 
         socks_port = yield state.protocol.get_conf("SocksPort")
         control_port = yield state.protocol.get_conf("ControlPort")
+        client_ip = yield state.protocol.get_info("address")
 
         config.tor.socks_port = int(socks_port.values()[0])
         config.tor.control_port = int(control_port.values()[0])
+
+        config.probe_ip = client_ip.values()[0]
+
+        log.debug("Obtained our IP address from a Tor Relay %s" % config.privacy.client_ip)
 
     def setup_failed(failure):
         log.exception(failure)

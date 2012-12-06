@@ -36,6 +36,9 @@ tor_control = None
 config_file = None
 sample_config_file = None
 
+# This is used to store the probes IP address obtained via Tor
+probe_ip = None
+
 def get_root_path():
     this_directory = os.path.dirname(__file__)
     root = os.path.join(this_directory, '..')
