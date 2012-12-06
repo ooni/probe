@@ -20,16 +20,22 @@ from yaml.representer import *
 from yaml.emitter import *
 from yaml.serializer import *
 from yaml.resolver import *
-
-from scapy.packet import Packet
-
 from twisted.python.util import untilConcludes
 from twisted.trial import reporter
 from twisted.internet import defer, reactor
 from twisted.internet.error import ConnectionRefusedError
 
+from ooni.utils import log
+
+try:
+    from scapy.packet import Packet
+except ImportError:
+    log.err("Scapy is not installed.")
+
+
+from ooni import otime
+from ooni.utils import geodata
 from ooni.utils.net import BodyReceiver, StringProducer, userAgents
-from ooni.utils import otime, log, geodata
 
 from ooni import config
 

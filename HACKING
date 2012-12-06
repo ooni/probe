@@ -75,6 +75,9 @@ Code Structure
   Handles running ooni.nettests as well as
   ooni.plugoo.tests.OONITests.
 
+- ooni/otime.py
+  Generation of timestamps, time conversions and all the rest
+
 - ooni/kit/
   In here go utilities that can be used by tests.
 
@@ -101,9 +104,6 @@ Code Structure
 - ooni/utils/onion.py
   Utilities for working with Tor.
   XXX this code should be removed and merged into txtorcon.
-
-- ooni/utils/otime.py
-  Generation of timestamps, time conversions and all the rest
 
 - ooni/utils/txscapy.py
   Tools for making scapy work well with twisted.

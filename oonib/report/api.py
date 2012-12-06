@@ -16,7 +16,8 @@ from twisted.internet import reactor, defer
 
 from cyclone import web
 
-from ooni.utils import randomStr, otime
+from ooni import otime
+from ooni.utils import randomStr
 from oonib import models, config
 from oonib.report import file_collector
 
