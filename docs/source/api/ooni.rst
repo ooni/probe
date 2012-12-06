@@ -1,14 +1,6 @@
 ooni Package
 ============
 
-:mod:`ooni` Package
--------------------
-
-.. automodule:: ooni.__init__
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 :mod:`inputunit` Module
 -----------------------
 

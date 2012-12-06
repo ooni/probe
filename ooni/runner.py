@@ -464,6 +464,10 @@ class UnableToStartTor(Exception):
     pass
 
 def startTor():
+    """ Starts Tor
+    Launches a Tor with :param: socks_port :param: control_port
+    :param: tor_binary set in ooniprobe.conf
+    """
     @defer.inlineCallbacks
     def state_complete(state):
         config.tor_state = state
@@ -521,12 +525,16 @@ def startTor():
     log.debug("Setting SOCKS port as %s" % tor_config.SocksPort)
 
     d = launch_tor(tor_config, reactor,
+            tor_binary=config.advanced.tor_binary,
             progress_updates=updates)
     d.addCallback(setup_complete)
     d.addErrback(setup_failed)
     return d
 
 def startSniffing():
+    """ Start sniffing with Scapy. Exits if required privileges (root) are not
+    available.
+    """
     from ooni.utils.txscapy import ScapyFactory, ScapySniffer
     try:
         checkForRoot()
