@@ -17,4 +17,10 @@ templates Package
     :undoc-members:
     :show-inheritance:
 
+:mod:`dnst` Module
+--------------------
 
+.. automodule:: ooni.templates.dnst
+    :members:
+    :undoc-members:
+    :show-inheritance:
