@@ -3,7 +3,7 @@ Writing OONI tests
 
 
 The OONI testing API is heavily influenced and partially based on the python
-:class:`unittest` module and :class:`twisted.trial`.
+:mod:`unittest` module and :mod:`twisted.trial`.
 
 
 Test Cases
@@ -32,8 +32,9 @@ Inputs are what is given as input to every iteration of the Test Case.
 Iflyou have 100 inputs, then every test case will be run 100 times.
 
 To configure a static set of inputs you should define the
-:class:`ooni.nettest.TestCase` attribute ``inputs``. The test will be run
-``len(inputs)`` times. Any iterable object is a valid ``inputs`` attribute.
+:class:`ooni.nettest.NetTestCase` attribute ``inputs``. The test will be
+run ``len(inputs)`` times. Any iterable object is a valid ``inputs``
+attribute.
 
 If you would like to have inputs be determined from a user specified input
 file, then you must set the ``inputFile`` attribute. This is an array that
@@ -56,12 +57,12 @@ this::
 Setup and command line passing
 ------------------------------
 
-Tests may define the `setUp` method that will be called every time the Test
-Case object is instantiated, in here you may place some common logic to all your
-Test Methods that should be run before any testing occurs.
+Tests may define the `setUp` method that will be called every time the
+Test Case object is instantiated, in here you may place some common logic
+to all your Test Methods that should be run before any testing occurs.
 
 Command line arguments can be parsed thanks to the twisted
-`twisted.python.usage.UsageOptions` class.
+:class:`twisted.python.usage.UsageOptions` class.
 
 You will have to subclass this and define the NetTestCase attribute
 usageOptions to point to a subclass of this.
@@ -73,7 +74,7 @@ usageOptions to point to a subclass of this.
                         'URL of the test backend to use']
                     ]
 
-  class MyTestCase(nettest.TestCase):
+  class MyTestCase(nettest.NetTestCase):
     usageOptions = UsageOptions
 
     inputFile = ['file', 'f', None, "Some foo file"]
@@ -83,30 +84,31 @@ usageOptions to point to a subclass of this.
       self.localOptions['backend']
 
 
-You will then be able to access the parsed command line arguments via the class
-attribute localOptions.
+You will then be able to access the parsed command line arguments via the
+class attribute localOptions.
 
 The `requiredOptions` attributes specifies an array of parameters that are
 required for the test to run properly.
 
-`inputFile` is a special class attribute that will be used for processing of
-the inputFile. The filename that is read here will be given to the
-`ooni.nettest.NetTestCase.inputProcessor` method that will yield, by default,
-one line of the file at a time.
+`inputFile` is a special class attribute that will be used for processing
+of the inputFile. The filename that is read here will be given to the
+:class:`ooni.nettest.NetTestCase.inputProcessor` method that will yield, by
+default, one line of the file at a time.
 
 
 
 Test Methods
 ------------
 
-These shall be defined inside of your :class:`ooni.nettest.TestCase` subclass.
-These will be class methods.
+These shall be defined inside of your :class:`ooni.nettest.NetTestCase`
+subclass.  These will be class methods.
 
-All class methods that are prefixed with test\_ shall be run. Functions that
-are relevant to your test should be all lowercase separated by underscore.
+All class methods that are prefixed with test\_ shall be run. Functions
+that are relevant to your test should be all lowercase separated by
+underscore.
 
-To add data to the test report you may write directly to the report object like
-so::
+To add data to the test report you may write directly to the report object
+like so::
 
     def test_my_function():
         result = do_something()
@@ -126,36 +128,31 @@ input.
 Test Templates
 --------------
 
-Test templates assist you in writing tests. They already contain all the common
-functionality that is useful to running a test of that type. They also take
-care of writing the data they collect that is relevant to the test run to the
-report file.
+Test templates assist you in writing tests. They already contain all the
+common functionality that is useful to running a test of that type. They
+also take care of writing the data they collect that is relevant to the
+test run to the report file.
 
-Currently implemented test templates are `ooni.templates.scapyt
-<https://gitweb.torproject.org/ooni-probe.git/blob/HEAD:/ooni/templates/scapyt.py>`
-for tests based on Scapy, `ooni.templates.tcpt
-<https://gitweb.torproject.org/ooni-probe.git/blob/HEAD:/ooni/templates/tcpt.py>`
-for tests based on TCP, `ooni.templates.httpt
-<https://gitweb.torproject.org/ooni-probe.git/blob/HEAD:/ooni/templates/httpt.py>`
-for tests based on HTTP, `ooni.templates.dnst
-<https://gitweb.torproject.org/ooni-probe.git/blob/HEAD:/ooni/templates/dnst.py>`
-for tests based on DNS.
+Currently implemented test templates are :mod:`ooni.templates.scapyt` for
+tests based on Scapy, :mod:`ooni.templates.tcpt` for tests based on TCP,
+:mod:`ooni.templates.httpt` for tests based on HTTP, and
+:mod:`ooni.templates.dnst` for tests based on DNS.
 
 
 Scapy based tests
 .................
 
-Scapy based tests will be a subclass of `ooni.templates.scapyt.BaseScapyTest`.
+Scapy based tests will be a subclass of :class:`ooni.templates.scapyt.BaseScapyTest`.
 
 It provides a wrapper around the scapy send and receive function that will
-write the sent and received packets to the report with sanitization of the src
-and destination IP addresses.
+write the sent and received packets to the report with sanitization of the
+src and destination IP addresses.
 
-It has the same syntax as the Scapy sr function, except that it will return a
-deferred.
+It has the same syntax as the Scapy sr function, except that it will
+return a deferred.
 
 To implement a simple ICMP ping based on this function you can do like so
-(taken from nettest/examples/example_scapyt.py):
+(Taken from :class:`nettest.examples.example_scapyt.ExampleICMPPingScapy`)
 
 
 ::
@@ -191,7 +188,7 @@ receive function, the only difference is that instead of using the regular
 scapy super socket it uses our twisted driven wrapper around it.
 
 Alternatively this test can also be written using the
-`twisted.defer.inlineCallbacks` decorator, that makes it look more similar to
+:func:`twisted.defer.inlineCallbacks` decorator, that makes it look more similar to
 regular sequential code.
 
 ::
@@ -253,7 +250,7 @@ Report Format
 TCP based tests
 ...............
 
-TCP based tests will subclass `ooni.templates.tcpt.TCPTest`.
+TCP based tests will subclass :class:`ooni.templates.tcpt.TCPTest`.
 
 This test template facilitates the sending of TCP payloads to the wire and
 recording the response.
@@ -284,12 +281,12 @@ recording the response.
 
 The possible failures for a TCP connection are:
 
-`twisted.internet.error.NoRouteError` that corresponds to errno.ENETUNREACH
+:class:`twisted.internet.error.NoRouteError` that corresponds to errno.ENETUNREACH
 
-`twisted.internet.error.ConnectionRefusedError` that corresponds to
+:class:`twisted.internet.error.ConnectionRefusedError` that corresponds to
 errno.ECONNREFUSED
 
-`twisted.internet.error.TCPTimedOutError` that corresponds to errno.ETIMEDOUT
+:class:`twisted.internet.error.TCPTimedOutError` that corresponds to errno.ETIMEDOUT
 
 Report format
 *************
@@ -323,14 +320,14 @@ TODO finish this with more details
 HTTP based tests
 ................
 
-HTTP based tests will be a subclass of  `ooni.templates.httpt.HTTPTest`.
+HTTP based tests will be a subclass of  :class:`ooni.templates.httpt.HTTPTest`.
 
-It provides methods `ooni.templates.httpt.HTTPTest.processResponseBody` and
-`ooni.templates.httpt.HTTPTest.processResponseHeaders` for interacting with the
+It provides methods :func:`ooni.templates.httpt.HTTPTest.processResponseBody` and
+:func:`ooni.templates.httpt.HTTPTest.processResponseHeaders` for interacting with the
 response body and headers respectively.
 
 For example, to implement a HTTP test that returns the sha256 hash of the
-response body (based on nettests/examples/example_httpt.py):
+response body (based on :mod:`nettests.examples.example_httpt`):
 
 ::
 
@@ -436,12 +433,12 @@ Report format
 DNS based tests
 ...............
 
-DNS based tests will be a subclass of  `ooni.templates.dnst.DNSTest`.
+DNS based tests will be a subclass of :class:`ooni.templates.dnst.DNSTest`.
 
-It provides methods `ooni.templates.dnst.DNSTest.performPTRLookup` and
-`ooni.templates.dnst.DNSTest.performALookup`
+It provides methods :func:`ooni.templates.dnst.DNSTest.performPTRLookup`
+and :func:`ooni.templates.dnst.DNSTest.performALookup`
 
-For example (taken from nettets/examples/example_dnst.py):
+For example (taken from :mod:`nettests.examples.example_dnst`):
 
 ::
 
@@ -507,4 +504,4 @@ Report format
   test_started: 1354801371.980114
   ...
 
-For a more complex example, see: `DNS Tamper Test <https://gitweb.torproject.org/ooni-probe.git/blob/HEAD:/nettests/blocking/dnstamper.py>`_
+For a more complex example, see: :mod:`nettests.blocking.dnstamper`
