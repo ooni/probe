@@ -1,12 +1,3 @@
-# -*- encoding: utf-8 -*-
-#
-# geodata.py
-# **********
-# In here go functions related to the understanding of
-# geographical information of the probe
-#
-# :licence: see LICENSE
-
 import re
 import os
 
@@ -20,27 +11,6 @@ try:
     import pygeoip
 except ImportError:
     log.err("Unable to import pygeoip. We will not be able to run geo IP related measurements")
-
-@defer.inlineCallbacks
-def myIP():
-    target_site = 'https://check.torproject.org/'
-    regexp = "Your IP address appears to be: <b>(.+?)<\/b>"
-    myAgent = Agent(reactor)
-
-    result = yield myAgent.request('GET', target_site)
-
-    finished = defer.Deferred()
-    result.deliverBody(net.BodyReceiver(finished))
-
-    body = yield finished
-
-    match = re.search(regexp, body)
-    try:
-        myip = match.group(1)
-    except:
-        myip = "unknown"
-
-    defer.returnValue(myip)
 
 class GeoIPDataFilesNotFound(Exception):
     pass

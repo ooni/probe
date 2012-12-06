@@ -1,14 +1,3 @@
-# -*- encoding: utf-8 -*-
-#
-# net.py
-# --------
-# OONI utilities for network infrastructure and hardware.
-#
-# :authors: Isis Lovecruft, Arturo Filasto
-# :version: 0.0.1-pre-alpha
-# :license: (c) 2012 Isis Lovecruft, Arturo Filasto
-#           see attached LICENCE file
-
 import sys
 import socket
 from random import randint
@@ -22,7 +11,6 @@ from ooni.utils import log, txscapy
 
 #if sys.platform.system() == 'Windows':
 #    import _winreg as winreg
-
 
 userAgents = [
     ("Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.8.1.6) Gecko/20070725 Firefox/2.0.0.6", "Firefox 2.0, Windows XP"),
@@ -54,7 +42,6 @@ PLATFORMS = {'LINUX': sys.platform.startswith("linux"),
              'DARWIN': sys.platform.startswith("darwin"),
              'SOLARIS': sys.platform.startswith("sunos"),
              'WINDOWS': sys.platform.startswith("win32")}
-
 
 class StringProducer(object):
     implements(IBodyProducer)

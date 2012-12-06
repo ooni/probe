@@ -1,12 +1,3 @@
-#-*- coding: utf-8 -*-
-#
-# reporter.py 
-# -----------
-# In here goes the logic for the creation of ooniprobe reports.
-#
-# :authors: Arturo Filastò, Isis Lovecruft
-# :license: see included LICENSE file
-
 import traceback
 import itertools
 import logging

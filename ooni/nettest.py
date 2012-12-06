@@ -1,16 +1,7 @@
-# -*- encoding: utf-8 -*-
-#
-# nettest.py
-# ----------
-# In here is the NetTest API definition. This is how people
-# interested in writing ooniprobe tests will be specifying them
-#
-# :license: see included LICENSE file
-
-import sys
-import os
 import itertools
 import traceback
+import sys
+import os
 
 from twisted.trial import unittest, itrial, util
 from twisted.internet import defer, utils

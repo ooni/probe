@@ -1,11 +1,3 @@
-# -*- coding:utf8 -*-
-# txscapy
-# *******
-# Here shall go functions related to using scapy with twisted.
-#
-# This software has been written to be part of OONI, the Open Observatory of
-# Network Interference. More information on that here: http://ooni.nu/
-
 import struct
 import socket
 import os

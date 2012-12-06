@@ -1,12 +1,3 @@
-#-*- coding: utf-8 -*-
-#
-# runner.py
-# ---------
-# Handles running ooni.nettests as well as
-# ooni.plugoo.tests.OONITests.
-#
-# :license: see included LICENSE file
-
 import os
 import sys
 import time

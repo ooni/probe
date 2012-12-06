@@ -1,8 +1,3 @@
-# -*- encoding: utf-8 -*-
-#
-# :authors: Arturo Filastò
-# :licence: see LICENSE
-
 import os
 import yaml
 

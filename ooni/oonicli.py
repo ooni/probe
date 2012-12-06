@@ -1,13 +1,4 @@
-# -*- coding: UTF-8
-#
-# oonicli
-# -------
-# In here we take care of running ooniprobe from the command
-# line interface
-#
-# :authors: Arturo Filastò, Isis Lovecruft
-# :license: see included LICENSE file
-
+#-*- coding: utf-8 -*-
 
 import sys
 import os
