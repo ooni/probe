@@ -29,13 +29,13 @@ On debian based systems these can be installed with:
 
 The python dependencies required for running ooniprobe are:
 
-  * Tor (>2.2.x): http://torproject.org/
-  * Twisted (>12.1.0): http://twistedmatrix.com/trac/
+  * Tor (>2.2.x): https://torproject.org/
+  * Twisted (>12.1.0): https://twistedmatrix.com/trac/
   * PyYAML: http://pyyaml.org/
   * Scapy: http://www.secdev.org/projects/scapy/
-      * pypcap: http://code.google.com/p/pypcap/
-      * libdnet: http://code.google.com/p/libdnet/
-  * BeautifulSoup: http://www.crummy.com/software/BeautifulSoup/
+      * pypcap: https://code.google.com/p/pypcap/
+      * libdnet: https://code.google.com/p/libdnet/
+  * BeautifulSoup: https://www.crummy.com/software/BeautifulSoup/
   * txtorcon: https://github.com/meejah/txtorcon
 
 ## Install Tor
@@ -110,7 +110,7 @@ If you don't already have Subversion installed:
 
 For libdnet:
 
-    wget http://libdnet.googlecode.com/files/libdnet-1.12.tgz
+    wget https://libdnet.googlecode.com/files/libdnet-1.12.tgz
     tar xzf libdnet-1.12.tgz
     cd libdnet-1.12
     ./configure  && make
@@ -120,7 +120,7 @@ For libdnet:
 
 For pypcap:
 
-    svn checkout http://pypcap.googlecode.com/svn/trunk/ pypcap-read-only
+    svn checkout https://pypcap.googlecode.com/svn/trunk/ pypcap-read-only
     cd pypcap-read-only/
     pip install pyrex
     make
