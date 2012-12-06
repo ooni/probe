@@ -10,11 +10,12 @@
 import traceback
 import itertools
 import logging
-import sys
-import os
 import time
 import yaml
 import json
+import sys
+import os
+import re
 
 from yaml.representer import *
 from yaml.emitter import *
@@ -116,7 +117,6 @@ def safe_dump(data, stream=None, **kw):
     """
     return yaml.dump_all([data], stream, Dumper=OSafeDumper, **kw)
 
-@defer.inlineCallbacks
 def getTestDetails(options):
     from ooni import __version__ as software_version
 
@@ -126,28 +126,27 @@ def getTestDetails(options):
             config.privacy.includecountry or \
             config.privacy.includecity:
         log.msg("Running geo IP lookup via check.torproject.org")
-        client_ip = yield geodata.myIP()
-        client_location = geodata.IPToLocation(client_ip)
-    else:
-        client_ip = "127.0.0.1"
+        client_geodata = geodata.IPToLocation(config.probe_ip)
 
     if config.privacy.includeip:
-        client_geodata['ip'] = client_ip
+        client_geodata['ip'] = config.probe_ip
     else:
         client_geodata['ip'] = "127.0.0.1"
 
-    client_geodata['asn'] = None
-    client_geodata['city'] = None
-    client_geodata['countrycode'] = None
+    # Here we unset all the client geodata if the option to not include then
+    # has been specified
+    if client_geodata and not config.privacy.includeasn:
+        client_geodata['asn'] = None
+    else:
+        # XXX this regexp should probably go inside of geodata
+        client_geodata['asn'] = \
+                re.search('AS\d+', client_geodata['asn']).group(0)
 
-    if config.privacy.includeasn:
-        client_geodata['asn'] = client_location['asn']
+    if client_geodata and not config.privacy.includecity:
+        client_geodata['city'] = None
 
-    if config.privacy.includecity:
-        client_geodata['city'] = client_location['city']
-
-    if config.privacy.includecountry:
-        client_geodata['countrycode'] = client_location['countrycode']
+    if client_geodata and not config.privacy.includecountry:
+        client_geodata['countrycode'] = None
 
     test_details = {'start_time': otime.utcTimeNow(),
                     'probe_asn': client_geodata['asn'],
@@ -158,7 +157,7 @@ def getTestDetails(options):
                     'software_name': 'ooniprobe',
                     'software_version': software_version
     }
-    defer.returnValue(test_details)
+    return test_details
 
 class OReporter(object):
     def __init__(self, cmd_line_options):
@@ -230,14 +229,13 @@ class YAMLReporter(OReporter):
         self._write(safe_dump(entry))
         self._write('...\n')
 
-    @defer.inlineCallbacks
     def createReport(self, options):
         self._writeln("###########################################")
         self._writeln("# OONI Probe Report for %s test" % options['name'])
         self._writeln("# %s" % otime.prettyDateNow())
         self._writeln("###########################################")
 
-        test_details = yield getTestDetails(options)
+        test_details = getTestDetails(options)
         test_details['options'] = self.cmd_line_options
 
         self.writeReportEntry(test_details)
@@ -305,13 +303,10 @@ class OONIBReporter(OReporter):
         """
         Creates a report on the oonib collector.
         """
-        test_name = options['name']
-        test_version = options['version']
-
         url = self.backend_url + '/report/new'
 
         try:
-            test_details = yield getTestDetails(options)
+            test_details = getTestDetails(options)
         except Exception, e:
             log.exception(e)
 
@@ -323,8 +318,12 @@ class OONIBReporter(OReporter):
         content += safe_dump(test_details)
         content += '...\n'
 
+        test_name = options['name']
+        test_version = options['version']
+
         request = {'software_name': test_details['software_name'],
             'software_version': test_details['software_version'],
+            'probe_asn': test_details['probe_asn'],
             'test_name': test_name,
             'test_version': test_version,
             'content': content
