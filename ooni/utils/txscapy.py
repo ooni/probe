@@ -31,10 +31,16 @@ except ImportError, e:
     conf.use_pcap = False
     conf.use_dnet = False
 
-    from scapy.all import PcapWriter
+    class DummyPcapWriter:
+        def __init__(self, pcap_filename, *arg, **kw):
+            log.err("Initializing DummyPcapWriter. We will not actually write to a pcapfile")
 
-from scapy.all import BasePacketList, conf, PcapReader
-from scapy.all import conf, Gen, SetGen, MTU
+        def write(self):
+            pass
+
+    PcapWriter = DummyPcapWriter
+
+
 
 def getNetworksFromRoutes():
     """ Return a list of networks from the routing table """
@@ -80,6 +86,8 @@ class ScapyFactory(abstract.FileDescriptor):
     https://github.com/enki/muXTCP/blob/master/scapyLink.py
     """
     def __init__(self, interface, super_socket=None, timeout=5):
+        from scapy.all import Gen, SetGen, MTU
+
         abstract.FileDescriptor.__init__(self, reactor)
         if interface == 'auto':
             interface = getDefaultIface()
@@ -146,7 +154,7 @@ class ScapyProtocol(object):
 
 class ScapySender(ScapyProtocol):
     timeout = 5
-    
+
     # This deferred will fire when we have finished sending a receiving packets.
     # Should we look for multiple answers for the same sent packet?
     multi = False

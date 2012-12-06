@@ -14,7 +14,7 @@ rm before_i_commit.log
 
 find . -type f -name "*.py[co]" -delete
 
-./bin/ooniprobe -i before_i_commit.testdeck
+./bin/ooniprobe -i decks/before_i_commit.testdeck
 
 echo "Below you should not see anything"
 echo "---------------------------------"
