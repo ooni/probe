@@ -317,14 +317,186 @@ TODO finish this with more details
 HTTP based tests
 ................
 
-see nettests/examples/example_httpt.py
+HTTP based tests will be a subclass of  `ooni.templates.httpt.HTTPTest`.
 
-TODO
+It provides methods `ooni.templates.httpt.HTTPTest.processResponseBody` and
+`ooni.templates.httpt.HTTPTest.processResponseHeaders` for interacting with the
+response body and headers respectively.
+
+For example, to implement a HTTP test that returns the sha256 hash of the
+response body (based on nettests/examples/example_httpt.py):
+
+::
+
+  from ooni.utils import log
+  from ooni.templates import httpt
+  from hashlib import sha256
+  
+  class SHA256HTTPBodyTest(httpt.HTTPTest):
+      name = "ChecksumHTTPBodyTest"
+      author = "Aaron Gibson"
+      version = 0.1
+  
+      inputFile = ['url file', 'f', None,
+              'List of URLS to perform GET requests to']
+      requiredOptions = ['url file']
+  
+      def test_http(self):
+          if self.input:
+              url = self.input
+              return self.doRequest(url)
+          else:
+              raise Exception("No input specified")
+  
+      def processResponseBody(self, body):
+          body_sha256sum = sha256(body).hexdigest()
+          self.report['checksum'] = body_sha256sum
+
+The report for this test looks like this:
+
+::
+
+  ###########################################
+  # OONI Probe Report for ChecksumHTTPBodyTest test
+  # Thu Dec  6 17:31:57 2012
+  ###########################################
+  ---
+  options:
+    collector: null
+    help: 0
+    logfile: null
+    pcapfile: null
+    reportfile: null
+    resume: 0
+    subargs: [-f, hosts]
+    test: nettests/examples/example_http_checksum.py
+  probe_asn: null
+  probe_cc: null
+  probe_ip: 127.0.0.1
+  software_name: ooniprobe
+  software_version: 0.0.7.1-alpha
+  start_time: 1354786317.0
+  test_name: ChecksumHTTPBodyTest
+  test_version: 0.1
+  ...
+  ---
+  input: http://www.google.com
+  report:
+    agent: agent
+    checksum: d630fa2efd547d3656e349e96ff7af5496889dad959e8e29212af1ff843e7aa1
+    requests:
+    - request:
+        body: null
+        headers:
+        - - User-Agent
+          - - [Opera/9.00 (Windows NT 5.1; U; en), 'Opera 9.0, Windows XP']
+        method: GET
+        url: http://www.google.com
+      response:
+        body: '<!doctype html><html ... snip ...  </html>'
+        code: 200
+        headers:
+        - - X-XSS-Protection
+          - [1; mode=block]
+        - - Set-Cookie
+          - ['PREF=ID=fada4216eb3684f9:FF=0:TM=1354800717:LM=1354800717:S=IT-2GCkNAocyXlVa;
+              expires=Sat, 06-Dec-2014 13:31:57 GMT; path=/; domain=.google.com', 'NID=66=KWaLbNQumuGuYf0HrWlGm54u9l-DKJwhFCMQXfhQPZM-qniRhmF6QRGXUKXb_8CIUuCOHnyoC5oAX5jWNrsfk-LLJLW530UiMp6hemTtDMh_e6GSiEB4GR3yOP_E0TCN;
+              expires=Fri, 07-Jun-2013 13:31:57 GMT; path=/; domain=.google.com; HttpOnly']
+        - - Expires
+          - ['-1']
+        - - Server
+          - [gws]
+        - - Connection
+          - [close]
+        - - Cache-Control
+          - ['private, max-age=0']
+        - - Date
+          - ['Thu, 06 Dec 2012 13:31:57 GMT']
+        - - P3P
+          - ['CP="This is not a P3P policy! See http://www.google.com/support/accounts/bin/answer.py?hl=en&answer=151657
+              for more info."']
+        - - Content-Type
+          - [text/html; charset=UTF-8]
+        - - X-Frame-Options
+          - [SAMEORIGIN]
+    socksproxy: null
+  test_name: test_http
+  test_runtime: 0.08298492431640625
+  test_started: 1354800717.478403
+  ...
+ 
 
 DNS based tests
 ...............
 
-see nettests/core/dnstamper.py
+DNS based tests will be a subclass of  `ooni.templates.dnst.DNSTest`.
 
-TODO
+It provides methods `ooni.templates.dnst.DNSTest.performPTRLookup` and
+`ooni.templates.dnst.DNSTest.performALookup`
 
+For example (taken from nettets/examples/example_dnst.py):
+
+::
+
+  from ooni.templates.dnst import DNSTest
+  
+  class ExampleDNSTest(DNSTest):
+      def test_a_lookup(self):
+          def gotResult(result):
+              # Result is an array containing all the A record lookup results
+              print result
+  
+          d = self.performALookup('torproject.org', ('8.8.8.8', 53))
+          d.addCallback(gotResult)
+          return d
+
+The report looks like this:
+
+::
+
+  ###########################################
+  # OONI Probe Report for Base DNS Test test
+  # Thu Dec  6 17:42:51 2012
+  ###########################################
+  ---
+  options:
+    collector: null
+    help: 0
+    logfile: null
+    pcapfile: null
+    reportfile: null
+    resume: 0
+    subargs: []
+    test: nettests/examples/example_dnst.py
+  probe_asn: null
+  probe_cc: null
+  probe_ip: 127.0.0.1
+  software_name: ooniprobe
+  software_version: 0.0.7.1-alpha
+  start_time: 1354786971.0
+  test_name: Base DNS Test
+  test_version: 0.1
+  ...
+  ---
+  input: null
+  report:
+    queries:
+    - addrs: [82.195.75.101, 86.59.30.40, 38.229.72.14, 38.229.72.16]
+      answers:
+      - [<RR name=torproject.org type=A class=IN ttl=782s auth=False>, <A address=82.195.75.101
+          ttl=782>]
+      - [<RR name=torproject.org type=A class=IN ttl=782s auth=False>, <A address=86.59.30.40
+          ttl=782>]
+      - [<RR name=torproject.org type=A class=IN ttl=782s auth=False>, <A address=38.229.72.14
+          ttl=782>]
+      - [<RR name=torproject.org type=A class=IN ttl=782s auth=False>, <A address=38.229.72.16
+          ttl=782>]
+      query: '[Query(''torproject.org'', 1, 1)]'
+      query_type: A
+      resolver: [8.8.8.8, 53]
+  test_name: test_a_lookup
+  test_runtime: 0.028924942016601562
+  test_started: 1354801371.980114
+  ...
+
+For a more complex example, see: `DNS Tamper Test <https://gitweb.torproject.org/ooni-probe.git/blob/HEAD:/nettests/blocking/dnstamper.py>`_
