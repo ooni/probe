@@ -120,44 +120,11 @@ For libdnet:
 
 For pypcap:
 
-    svn checkout https://pypcap.googlecode.com/svn/trunk/ pypcap-read-only
-    cd pypcap-read-only/
+    git clone https://github.com/hellais/pypcap
+    cd pypcap/
     pip install pyrex
-    make
-    python setup.py install
+    make && make install
     cd ../ && rm -rf pypcap-read-only
-
-
-On a 64 bit machine on ubuntu 12.10 you may get this error:
-
-    Traceback (most recent call last):
-      File "setup.py", line 103, in <module>
-        ext_modules = [ pcap ])
-      File "/usr/lib/python2.7/distutils/core.py", line 152, in setup
-        dist.run_commands()
-      File "/usr/lib/python2.7/distutils/dist.py", line 953, in run_commands
-        self.run_command(cmd)
-      File "/usr/lib/python2.7/distutils/dist.py", line 972, in run_command
-        cmd_obj.run()
-      File "setup.py", line 68, in run
-        print self._pcap_config([self.with_pcap])
-      File "setup.py", line 64, in _pcap_config
-        raise Exception("couldn't find pcap build or installation directory")
-    Exception: couldn't find pcap build or installation directory
-
-The quick and dirty fix is to edit the setup.py line 49:
-
-from:
-
-`for sd in ('lib', 'lib64', ''):`
-
-into:
-
-`for sd in ('lib', 'lib64', 'lib/x86_64-linux-gnu', ''):`
-
-On a 32 bit ubuntu 12.10 use the line:
-
-    for sd in ('lib', 'lib64', 'lib/i386-linux-gnu', ''):
 
 ## Including your geo data in the test report
 
