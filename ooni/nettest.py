@@ -17,8 +17,13 @@ from twisted.internet import defer, utils
 from twisted.python import usage
 
 from twisted.internet.error import ConnectionRefusedError, DNSLookupError, TCPTimedOutError
+from twisted.internet.defer import TimeoutError
+from twisted.web._newclient import ResponseNeverReceived
 
 from ooni.utils import log
+from ooni.utils.txagentwithsocks import SOCKSError
+
+from socket import gaierror
 
 def failureToString(failure):
     """
@@ -33,9 +38,14 @@ def failureToString(failure):
 
         A string representing the HTTP response error message.
     """
+    string = None
     if isinstance(failure.value, ConnectionRefusedError):
         log.err("Connection refused. The backend may be down")
         string = 'connection_refused_error'
+
+    elif isinstance(failure.value, gaierror):
+        log.err("Address family for hostname not supported")
+        string = 'address_family_not_supported_error'
 
     elif isinstance(failure.value, SOCKSError):
         log.err("Sock error. The SOCKS proxy may be down")
@@ -52,6 +62,13 @@ def failureToString(failure):
     elif isinstance(failure.value, ResponseNeverReceived):
         log.err("Response Never Received")
         string = 'response_never_received'
+
+    elif isinstance(failure.value, TimeoutError):
+        log.err("Deferred Timed Out Error")
+        string = 'deferred_timed_out_error'
+
+    else:
+        log.err("Unknown failure type: %s" % type(failure))
     return string
 
 class NoPostProcessor(Exception):
