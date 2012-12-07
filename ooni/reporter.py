@@ -194,13 +194,25 @@ class YAMLReporter(OReporter):
     These are useful functions for reporting to YAML format.
     """
     def __init__(self, cmd_line_options):
-        if os.path.exists(cmd_line_options['reportfile']):
-            log.msg("Report already exists with filename %s" % cmd_line_options['reportfile'])
-            log.msg("Renaming it to %s" % cmd_line_options['reportfile']+'.old')
-            os.rename(cmd_line_options['reportfile'], cmd_line_options['reportfile']+'.old')
+        if cmd_line_options['reportfile'] is None:
+            try:
+                test_filename = os.path.basename(cmd_line_options['test'])
+            except IndexError:
+                raise TestFilenameNotSet
 
-        log.debug("Creating %s" % cmd_line_options['reportfile'])
-        self._stream = open(cmd_line_options['reportfile'], 'w+')
+            test_name = '.'.join(test_filename.split(".")[:-1])
+            frm_str = "report_%s_"+otime.timestamp()+".%s"
+            reportfile = frm_str % (test_name, "yamloo")
+        else:
+            reportfile = cmd_line_options['reportfile']
+
+        if os.path.exists(reportfile):
+            log.msg("Report already exists with filename %s" % reportfile)
+            log.msg("Renaming it to %s" % reportfile+'.old')
+            os.rename(reportfile, reportfile+'.old')
+
+        log.debug("Creating %s" % reportfile)
+        self._stream = open(reportfile, 'w+')
         OReporter.__init__(self, cmd_line_options)
 
     def _writeln(self, line):
