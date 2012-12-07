@@ -15,7 +15,7 @@ print "Test name: %s" % report_header['test_name']
 print "Test version: %s" % report_header['test_version']
 
 for report_entry in yamloo:
-    print "Test: %s" % report_entry['test']
+    print "Test: %s" % report_entry['test_name']
     print "Input: %s" % report_entry['input']
     print "Report: %s" % report_entry['report']
 
