@@ -4,13 +4,15 @@
 # :licence: see LICENSE
 
 from twisted.internet import defer
+from twisted.internet.defer import TimeoutError
 from twisted.names import client, dns
 from twisted.names.client import Resolver
 
 from twisted.names.error import DNSQueryRefusedError
 
 from ooni.utils import log
-from ooni.nettest import NetTestCase
+from ooni.nettest import NetTestCase, failureToString
+from socket import gaierror
 
 class DNSTest(NetTestCase):
     name = "Base DNS Test"
@@ -39,23 +41,14 @@ class DNSTest(NetTestCase):
             for answer in message.answers:
                 if answer.type is 12:
                     name = answer.payload.name
-
-            result = {}
-            result['resolver'] = dns_server
-            result['query_type'] = 'PTR'
-            result['query'] = repr(query)
-            result['answers'] = answers
-            result['name'] = name
-            self.report['queries'].append(result)
+            self.addToReport(query, resolver=dns_server,
+                    query_type = 'PTR', answers=answers, name=name)
             return name
 
         def gotError(failure):
-            log.exception(failure)
-            result = {}
-            result['resolver'] = dns_server
-            result['query_type'] = 'PTR'
-            result['query'] = repr(query)
-            result['error'] = str(failure)
+            failure.trap(gaierror, TimeoutError)
+            self.addToReport(query, resolver=dns_server,
+                    query_type = 'PTR', failure=failure)
             return None
 
         resolver = Resolver(servers=[dns_server])
@@ -86,23 +79,15 @@ class DNSTest(NetTestCase):
                 # tuple
                 r = (repr(answer), repr(answer.payload))
                 answers.append(r)
-            result = {}
-            result['resolver'] = dns_server
-            result['query_type'] = 'A'
-            result['query'] = repr(query)
-            result['answers'] = answers
-            result['addrs'] = addrs
-            self.report['queries'].append(result)
+            self.addToReport(query, resolver=dns_server, query_type='A',
+                    answers=answers, addrs=addrs)
             return addrs
 
         def gotError(failure):
-            log.exception(failure)
-            result = {}
-            result['resolver'] = dns_server
-            result['query_type'] = 'A'
-            result['query'] = repr(query)
-            result['error'] = str(failure)
-            return None
+            failure.trap(gaierror, TimeoutError)
+            self.addToReport(query, resolver=dns_server, query_type='A',
+                    failure=failure)
+            return failure
 
         resolver = Resolver(servers=[dns_server])
         d = resolver.queryUDP(query, timeout=self.queryTimeout)
@@ -110,3 +95,17 @@ class DNSTest(NetTestCase):
         d.addErrback(gotError)
         return d
 
+    def addToReport(self, query, resolver=None, query_type=None,
+                    answers=None, name=None, addrs=None, failure=None):
+        log.debug("Adding %s to report)" % query)
+        result = {}
+        result['resolver'] = resolver
+        result['query_type'] = query_type
+        result['query'] = repr(query)
+        if failure:
+            result['failure'] = failureToString(failure)
+        if answers:
+            result['answers'] = answers
+            if name: result['name'] = name
+            if addrs: result['addrs'] = addrs
+        self.report['queries'].append(result)
