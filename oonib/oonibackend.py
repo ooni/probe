@@ -31,8 +31,8 @@ serviceCollection = service.IServiceCollection(application)
 if config.helpers.ssl.port:
     print "Starting SSL helper on %s" % config.helpers.ssl.port
     ssl_helper = internet.SSLServer(int(config.helpers.ssl.port),
-                   http_helpers.HTTPReturnJSONHeadersHelper()),
-                   SSLContext(config))
+                   http_helpers.HTTPReturnJSONHeadersHelper(),
+                   ssl_helpers.SSLContext(config))
     ssl_helper.setServiceParent(serviceCollection)
 
 # Start the DNS Server related services
