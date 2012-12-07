@@ -116,7 +116,7 @@ def getTestDetails(options):
             config.privacy.includeasn or \
             config.privacy.includecountry or \
             config.privacy.includecity:
-        log.msg("Running geo IP lookup via check.torproject.org")
+        log.msg("We will include some geo data in the report")
         client_geodata = geodata.IPToLocation(config.probe_ip)
 
     if config.privacy.includeip:
@@ -132,6 +132,7 @@ def getTestDetails(options):
         # XXX this regexp should probably go inside of geodata
         client_geodata['asn'] = \
                 re.search('AS\d+', client_geodata['asn']).group(0)
+        log.msg("Your AS number is: %s" % client_geodata['asn'])
 
     if client_geodata and not config.privacy.includecity:
         client_geodata['city'] = None

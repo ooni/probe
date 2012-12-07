@@ -171,7 +171,7 @@ def runTestCasesWithInput(test_cases, test_input, yaml_reporter,
     tests_report = {}
 
     def test_done(result, test_instance, test_name):
-        log.msg("Successfully finished running %s" % test_name)
+        log.msg("Finished running %s" % test_name)
         log.debug("Deferred callback result: %s" % result)
         tests_report[test_name] = dict(test_instance.report)
         if not oonib_reporter:
@@ -356,7 +356,6 @@ def updateProgressMeters(test_filename, input_unit_factory,
     """
     Update the progress meters for keeping track of test state.
     """
-    log.msg("Setting up progress meters")
     if not config.state.test_filename:
         config.state[test_filename] = Storage()
 
