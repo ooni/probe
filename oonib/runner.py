@@ -42,6 +42,7 @@ def startTor():
     torconfig.SocksPort = 9055
     torconfig.save()
     d = txtorcon.launch_tor(torconfig, reactor,
+            tor_binary=config.main.tor_binary,
             progress_updates=updates)
     d.addCallback(setupCollector)
     d.addErrback(txSetupFailed)
