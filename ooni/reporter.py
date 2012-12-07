@@ -127,7 +127,7 @@ def getTestDetails(options):
     # Here we unset all the client geodata if the option to not include then
     # has been specified
     if client_geodata and not config.privacy.includeasn:
-        client_geodata['asn'] = None
+        client_geodata['asn'] = 'AS0'
     else:
         # XXX this regexp should probably go inside of geodata
         client_geodata['asn'] = \
