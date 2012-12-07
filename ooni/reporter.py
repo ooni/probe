@@ -194,13 +194,13 @@ class YAMLReporter(OReporter):
     These are useful functions for reporting to YAML format.
     """
     def __init__(self, cmd_line_options):
-        if os.path.exists(config.reports.yamloo):
-            log.msg("Report already exists with filename %s" % config.reports.yamloo)
-            log.msg("Renaming it to %s" % config.reports.yamloo+'.old')
-            os.rename(config.reports.yamloo, config.reports.yamloo+'.old')
+        if os.path.exists(cmd_line_options['reportfile']):
+            log.msg("Report already exists with filename %s" % cmd_line_options['reportfile'])
+            log.msg("Renaming it to %s" % cmd_line_options['reportfile']+'.old')
+            os.rename(cmd_line_options['reportfile'], cmd_line_options['reportfile']+'.old')
 
-        log.debug("Creating %s" % config.reports.yamloo)
-        self._stream = open(config.reports.yamloo, 'w+')
+        log.debug("Creating %s" % cmd_line_options['reportfile'])
+        self._stream = open(cmd_line_options['reportfile'], 'w+')
         OReporter.__init__(self, cmd_line_options)
 
     def _writeln(self, line):
