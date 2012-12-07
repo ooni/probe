@@ -7,6 +7,8 @@ def get_root_path():
     root = os.path.abspath(root)
     return root
 
+backend_version = '0.0.1'
+
 # XXX convert this to something that is a proper config file
 main = Storage()
 
@@ -19,6 +21,8 @@ main.tor_datadir = os.path.join(get_root_path(), 'oonib', 'data', 'tor')
 
 main.database_uri = "sqlite:"+get_root_path()+"oonib_test_db.db"
 main.db_threadpool_size = 10
+#main.tor_binary = '/usr/sbin/tor'
+main.tor_binary = '/usr/local/bin/tor'
 
 helpers = Storage()
 

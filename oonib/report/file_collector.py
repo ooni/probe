@@ -6,10 +6,38 @@ import os
 
 from twisted.internet import fdesc
 
-from oonib.report import MissingField, InvalidRequestField
-from ooni.utils import randomStr
-
 from cyclone import web
+
+from ooni.utils import randomStr
+from ooni import otime
+
+from oonib.report import MissingField, InvalidRequestField
+
+from oonib import config
+
+def parseUpdateReportRequest(request):
+    #db_report_id_regexp = re.compile("[a-zA-Z0-9]+$")
+
+    # this is the regexp for the reports that include the timestamp
+    report_id_regexp = re.compile("[a-zA-Z0-9_\-]+$")
+
+    # XXX here we are actually parsing a json object that could be quite big.
+    # If we want this to scale properly we only want to look at the test_id
+    # field.
+    # We are also keeping in memory multiple copies of the same object. A lot
+    # of optimization can be done.
+    parsed_request = json.loads(request)
+    try:
+        report_id = parsed_request['report_id']
+    except KeyError:
+        raise MissingField('report_id')
+
+    if not re.match(report_id_regexp, report_id):
+        raise InvalidRequestField('report_id')
+
+    return parsed_request
+
+
 
 def parseNewReportRequest(request):
     """
@@ -99,7 +127,7 @@ class NewReportHandlerFile(web.RequestHandler):
         software_version = report_data['software_version']
         test_name = report_data['test_name']
         test_version = report_data['test_version']
-        probe_asn = report_data['test_version']
+        probe_asn = report_data['probe_asn']
         content = report_data['content']
 
         if not probe_asn:
@@ -113,7 +141,7 @@ class NewReportHandlerFile(web.RequestHandler):
         # random nonce
         report_filename = os.path.join(config.main.report_dir, report_id)
 
-        response = {'backend_version': backend_version,
+        response = {'backend_version': config.backend_version,
                 'report_id': report_id
         }
 
@@ -122,10 +150,10 @@ class NewReportHandlerFile(web.RequestHandler):
 
         self.write(response)
 
-    def writeToReport(report_filename, data):
+    def writeToReport(self, report_filename, data):
         with open(report_filename, 'w+') as fd:
-            fdesc.setNonBlocking(fd)
-            fdesc.writeToFD(data)
+            fdesc.setNonBlocking(fd.fileno())
+            fdesc.writeToFD(fd.fileno(), data)
 
     def put(self):
         """
@@ -146,11 +174,11 @@ class NewReportHandlerFile(web.RequestHandler):
 
         self.updateReport(report_filename, parsed_request['content'])
 
-    def updateReport(report_filename, data):
+    def updateReport(self, report_filename, data):
         try:
             with open(report_filename, 'a+') as fd:
-                fdesc.setNonBlocking(fd)
-                fdesc.writeToFD(data)
+                fdesc.setNonBlocking(fd.fileno())
+                fdesc.writeToFD(fd.fileno(), data)
         except IOError as e:
             web.HTTPError(404, "Report not found")
 
