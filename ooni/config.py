@@ -79,8 +79,11 @@ def loadConfigFile():
 
     # Process the tor configuration options
     tor = Storage()
-    for k, v in configuration['tor'].items():
-        tor[k] = v
+    try:
+        for k, v in configuration['tor'].items():
+            tor[k] = v
+    except AttributeError:
+        pass
 
     return basic, privacy, advanced, tor
 
