@@ -40,6 +40,8 @@ def startTor():
 
     torconfig = txtorcon.TorConfig()
     torconfig.SocksPort = 9055
+    if config.main.tor2webmode:
+        torconfig.Tor2webMode = True
     torconfig.save()
     d = txtorcon.launch_tor(torconfig, reactor,
             tor_binary=config.main.tor_binary,
