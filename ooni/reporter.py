@@ -269,7 +269,7 @@ class OONIBReporter(OReporter):
         content += safe_dump(entry)
         content += '...\n'
 
-        url = self.backend_url + '/report/new'
+        url = self.backend_url + '/report'
 
         request = {'report_id': self.report_id,
                 'content': content}
@@ -294,7 +294,7 @@ class OONIBReporter(OReporter):
         """
         Creates a report on the oonib collector.
         """
-        url = self.backend_url + '/report/new'
+        url = self.backend_url + '/report'
 
         try:
             test_details = getTestDetails(options)
