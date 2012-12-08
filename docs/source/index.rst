@@ -120,6 +120,7 @@ More developer documentation
     :maxdepth: 2
     :glob:
 
+    architecture
     oonib
     writing_tests
     api/*
