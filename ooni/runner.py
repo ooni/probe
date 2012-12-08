@@ -411,7 +411,7 @@ def runTestCases(test_cases, options, cmd_line_options):
         oonib_reporter = None
 
     yield yaml_reporter.createReport(options)
-    log.msg("Reporting to file %s" % config.reports.yamloo)
+    log.msg("Reporting to file %s" % yaml_reporter._stream.name)
 
     try:
         input_unit_factory = InputUnitFactory(test_inputs)
@@ -546,10 +546,6 @@ def loadTest(cmd_line_options):
     """
     config.cmd_line_options = cmd_line_options
     config.generateReportFilenames()
-
-    if cmd_line_options['reportfile']:
-        config.reports.yamloo = cmd_line_options['reportfile']+'.yamloo'
-        config.reports.pcap = config.reports.yamloo+'.pcap'
 
     if os.path.exists(config.reports.pcap):
         print "Report PCAP already exists with filename %s" % config.reports.pcap
