@@ -87,21 +87,6 @@ def testsEnded(*arg, **kw):
     try: reactor.stop()
     except: pass
 
-def startSniffing():
-    from ooni.utils.txscapy import ScapyFactory, ScapySniffer
-    try:
-        checkForRoot()
-    except NotRootError:
-        print "[!] Includepcap options requires root priviledges to run"
-        print "    you should run ooniprobe as root or disable the options in ooniprobe.conf"
-        sys.exit(1)
-
-    print "Starting sniffer"
-    config.scapyFactory = ScapyFactory(config.advanced.interface)
-
-    sniffer = ScapySniffer(config.reports.pcap)
-    config.scapyFactory.registerProtocol(sniffer)
-
 def runTestList(none, test_list):
     """
     none: is always None.
