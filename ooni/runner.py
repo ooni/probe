@@ -26,7 +26,7 @@ from ooni.utils import log, checkForRoot, pushFilenameStack
 from ooni.utils import NotRootError, Storage
 from ooni.utils.net import randomFreePort
 
-def processTest(obj):
+def processTest(obj, cmd_line_options):
     """
     Process the parameters and :class:`twisted.python.usage.Options` of a
     :class:`ooni.nettest.Nettest`.
@@ -58,7 +58,7 @@ def processTest(obj):
 
     options = obj.usageOptions()
 
-    options.parseOptions(config.cmd_line_options['subargs'])
+    options.parseOptions(cmd_line_options['subargs'])
     obj.localOptions = options
 
     if obj.inputFile:
@@ -91,7 +91,7 @@ def isTestCase(obj):
     except TypeError:
         return False
 
-def findTestClassesFromFile(filename):
+def findTestClassesFromFile(cmd_line_options):
     """
     Takes as input the command line config parameters and returns the test
     case classes.
@@ -103,11 +103,12 @@ def findTestClassesFromFile(filename):
         A list of class objects found in a file or module given on the
         commandline.
     """
+    filename = cmd_line_options['test']
     classes = []
     module = filenameToModule(filename)
     for name, val in inspect.getmembers(module):
         if isTestCase(val):
-            classes.append(processTest(val))
+            classes.append(processTest(val, cmd_line_options))
     return classes
 
 def makeTestCases(klass, tests, method_prefix):
@@ -550,7 +551,10 @@ def loadTest(cmd_line_options):
     Takes care of parsing test command line arguments and loading their
     options.
     """
-    classes = findTestClassesFromFile(cmd_line_options['test'])
+    # XXX here there is too much strong coupling with cmd_line_options
+    # Ideally this would get all wrapped in a nice little class that get's
+    # instanced with it's cmd_line_options as an instance attribute
+    classes = findTestClassesFromFile(cmd_line_options)
     test_cases, options = loadTestsAndOptions(classes, cmd_line_options)
 
     return test_cases, options, cmd_line_options
