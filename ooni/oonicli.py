@@ -126,9 +126,13 @@ def run():
 
     log.start(cmd_line_options['logfile'])
 
+    config.cmd_line_options = cmd_line_options
+
     if config.privacy.includepcap:
         log.msg("Starting")
-        runner.startSniffing(cmd_line_options)
+        if not config.reports.pcap:
+            config.generatePcapFilename()
+        runner.startSniffing()
 
     resume = cmd_line_options['resume']
 

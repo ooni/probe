@@ -26,7 +26,7 @@ except ImportError:
 
 
 from ooni import otime
-from ooni.utils import geodata
+from ooni.utils import geodata, pushFilenameStack
 from ooni.utils.net import BodyReceiver, StringProducer, userAgents
 
 from ooni import config
@@ -208,8 +208,7 @@ class YAMLReporter(OReporter):
 
         if os.path.exists(reportfile):
             log.msg("Report already exists with filename %s" % reportfile)
-            log.msg("Renaming it to %s" % reportfile+'.old')
-            os.rename(reportfile, reportfile+'.old')
+            pushFilenameStack(reportfile)
 
         log.debug("Creating %s" % reportfile)
         self._stream = open(reportfile, 'w+')

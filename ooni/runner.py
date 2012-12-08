@@ -4,6 +4,7 @@ import time
 import inspect
 import traceback
 import itertools
+
 import yaml
 
 from twisted.python import reflect, usage
@@ -21,7 +22,7 @@ from ooni.reporter import OONIBReporter, YAMLReporter, OONIBReportError
 from ooni.inputunit import InputUnitFactory
 from ooni.nettest import NetTestCase, NoPostProcessor
 
-from ooni.utils import log, checkForRoot
+from ooni.utils import log, checkForRoot, pushFilenameStack
 from ooni.utils import NotRootError, Storage
 from ooni.utils.net import randomFreePort
 
@@ -521,7 +522,7 @@ def startTor():
     d.addErrback(setup_failed)
     return d
 
-def startSniffing(cmd_line_options):
+def startSniffing():
     """ Start sniffing with Scapy. Exits if required privileges (root) are not
     available.
     """
@@ -536,13 +537,10 @@ def startSniffing(cmd_line_options):
     print "Starting sniffer"
     config.scapyFactory = ScapyFactory(config.advanced.interface)
 
-    if not config.reports.pcap:
-        config.cmd_line_options = cmd_line_options
-        config.generatePcapFilename()
-        if os.path.exists(config.reports.pcap):
-            print "Report PCAP already exists with filename %s" % config.reports.pcap
-            print "Renaming it to %s" % config.reports.pcap+".old"
-            os.rename(config.reports.pcap, config.reports.pcap+".old")
+    if os.path.exists(config.reports.pcap):
+        print "Report PCAP already exists with filename %s" % config.reports.pcap
+        print "Renaming files with such name..."
+        pushFilenameStack(config.reports.pcap)
 
     sniffer = ScapySniffer(config.reports.pcap)
     config.scapyFactory.registerProtocol(sniffer)
