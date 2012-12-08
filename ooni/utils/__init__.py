@@ -105,7 +105,8 @@ def pushFilenameStack(filename):
     """
     stack = glob.glob(filename+".*")
     for f in reversed(stack):
-        c_filename, c_idx = f.split(".")
+        c_idx = f.split(".")[-1]
+        c_filename = '.'.join(f.split(".")[:-1])
         new_idx = int(c_idx) + 1
         new_filename = "%s.%s" % (c_filename, new_idx)
         os.rename(f, new_filename)
