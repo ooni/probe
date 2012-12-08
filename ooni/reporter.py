@@ -171,7 +171,7 @@ class OReporter(object):
         """
         raise NotImplemented
 
-    def finish():
+    def finish(self):
         pass
 
     def testDone(self, test, test_name):
