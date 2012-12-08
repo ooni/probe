@@ -26,7 +26,7 @@ except ImportError:
 
 
 from ooni import otime
-from ooni.utils import geodata
+from ooni.utils import geodata, pushFilenameStack
 from ooni.utils.net import BodyReceiver, StringProducer, userAgents
 
 from ooni import config
@@ -112,10 +112,10 @@ def getTestDetails(options):
     from ooni import __version__ as software_version
 
     client_geodata = {}
-    if config.privacy.includeip or \
+    if config.probe_ip and (config.privacy.includeip or \
             config.privacy.includeasn or \
             config.privacy.includecountry or \
-            config.privacy.includecity:
+            config.privacy.includecity):
         log.msg("We will include some geo data in the report")
         client_geodata = geodata.IPToLocation(config.probe_ip)
 
@@ -128,16 +128,20 @@ def getTestDetails(options):
     # has been specified
     if client_geodata and not config.privacy.includeasn:
         client_geodata['asn'] = 'AS0'
-    else:
+    elif 'asn' in client_geodata:
         # XXX this regexp should probably go inside of geodata
         client_geodata['asn'] = \
                 re.search('AS\d+', client_geodata['asn']).group(0)
         log.msg("Your AS number is: %s" % client_geodata['asn'])
+    else:
+        client_geodata['asn'] = None
 
-    if client_geodata and not config.privacy.includecity:
+    if (client_geodata and not config.privacy.includecity) \
+            or ('city' not in client_geodata):
         client_geodata['city'] = None
 
-    if client_geodata and not config.privacy.includecountry:
+    if (client_geodata and not config.privacy.includecountry) \
+            or ('countrycode' not in client_geodata):
         client_geodata['countrycode'] = None
 
     test_details = {'start_time': otime.utcTimeNow(),
@@ -208,8 +212,7 @@ class YAMLReporter(OReporter):
 
         if os.path.exists(reportfile):
             log.msg("Report already exists with filename %s" % reportfile)
-            log.msg("Renaming it to %s" % reportfile+'.old')
-            os.rename(reportfile, reportfile+'.old')
+            pushFilenameStack(reportfile)
 
         log.debug("Creating %s" % reportfile)
         self._stream = open(reportfile, 'w+')

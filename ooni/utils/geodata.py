@@ -30,6 +30,7 @@ def IPToLocation(ipaddr):
 
         asn_dat = pygeoip.GeoIP(asn_file)
         location['asn'] = asn_dat.org_by_addr(ipaddr)
+
     except IOError:
         log.err("Could not find GeoIP data files. Go into data/ "
                 "and run make geoip")
