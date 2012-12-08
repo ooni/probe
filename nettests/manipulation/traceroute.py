@@ -26,7 +26,7 @@ class TracerouteTest(scapyt.BaseScapyTest):
     version = "0.1.1"
 
     usageOptions = UsageOptions
-    dst_ports = [22, 23, 53, 80, 123, 443]
+    dst_ports = [0, 22, 23, 53, 80, 123, 443, 8080, 65535]
 
     def setUp(self):
         def get_sport(protocol):
