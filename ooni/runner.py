@@ -521,7 +521,7 @@ def startTor():
     d.addErrback(setup_failed)
     return d
 
-def startSniffing():
+def startSniffing(cmd_line_options):
     """ Start sniffing with Scapy. Exits if required privileges (root) are not
     available.
     """
@@ -536,6 +536,14 @@ def startSniffing():
     print "Starting sniffer"
     config.scapyFactory = ScapyFactory(config.advanced.interface)
 
+    if not config.reports.pcap:
+        config.cmd_line_options = cmd_line_options
+        config.generatePcapFilename()
+        if os.path.exists(config.reports.pcap):
+            print "Report PCAP already exists with filename %s" % config.reports.pcap
+            print "Renaming it to %s" % config.reports.pcap+".old"
+            os.rename(config.reports.pcap, config.reports.pcap+".old")
+
     sniffer = ScapySniffer(config.reports.pcap)
     config.scapyFactory.registerProtocol(sniffer)
 
@@ -544,14 +552,6 @@ def loadTest(cmd_line_options):
     Takes care of parsing test command line arguments and loading their
     options.
     """
-    config.cmd_line_options = cmd_line_options
-    config.generateReportFilenames()
-
-    if os.path.exists(config.reports.pcap):
-        print "Report PCAP already exists with filename %s" % config.reports.pcap
-        print "Renaming it to %s" % config.reports.pcap+".old"
-        os.rename(config.reports.pcap, config.reports.pcap+".old")
-
     classes = findTestClassesFromFile(cmd_line_options['test'])
     test_cases, options = loadTestsAndOptions(classes, cmd_line_options)
 

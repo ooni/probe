@@ -128,7 +128,7 @@ def run():
 
     if config.privacy.includepcap:
         log.msg("Starting")
-        runner.startSniffing()
+        runner.startSniffing(cmd_line_options)
 
     resume = cmd_line_options['resume']
 

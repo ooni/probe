@@ -90,15 +90,18 @@ def loadConfigFile():
 class TestFilenameNotSet(Exception):
     pass
 
-def generateReportFilenames():
-    try:
-        test_filename = os.path.basename(cmd_line_options['test'])
-    except IndexError:
-        raise TestFilenameNotSet
+def generatePcapFilename():
+    if cmd_line_options['pcapfile']:
+        reports.pcap = cmd_line_options['pcapfile']
+    else:
+        if cmd_line_options['test']:
+            test_filename = os.path.basename(cmd_line_options['test'])
+        else:
+            test_filename = os.path.basename(cmd_line_options['testdeck'])
 
-    test_name = '.'.join(test_filename.split(".")[:-1])
-    frm_str = "report_%s_"+otime.timestamp()+".%s"
-    reports.pcap = frm_str % (test_name, "pcap")
+        test_name = '.'.join(test_filename.split(".")[:-1])
+        frm_str = "report_%s_"+otime.timestamp()+".%s"
+        reports.pcap = frm_str % (test_name, "pcap")
 
 if not basic:
     # Here we make sure that we instance the config file attributes only once
