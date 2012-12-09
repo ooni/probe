@@ -25,6 +25,10 @@ Tests are driven by inputs. For every input a new test instance is created,
 internally the _setUp method is called that is defined inside of test
 templates, then the setUp method that is overwritable by users.
 
+Gotchas:
+**never** call reactor.start of reactor.stop inside of your test method and all
+will be good.
+
 Inputs
 ------
 
