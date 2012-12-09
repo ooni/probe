@@ -5,7 +5,6 @@
 # In here is the NetTest API definition. This is how people
 # interested in writing ooniprobe tests will be specifying them
 #
-# :authors: Arturo Filastò, Isis Lovecruft
 # :license: see included LICENSE file
 
 import sys
@@ -17,7 +16,46 @@ from twisted.trial import unittest, itrial, util
 from twisted.internet import defer, utils
 from twisted.python import usage
 
+from twisted.internet.error import ConnectionRefusedError, DNSLookupError, TCPTimedOutError
+
 from ooni.utils import log
+
+def failureToString(failure):
+    """
+    Given a failure instance return a string representing the kind of error
+    that occurred.
+
+    Args:
+
+        failure: a :class:twisted.internet.error instance
+
+    Returns:
+
+        A string representing the HTTP response error message.
+    """
+    if isinstance(failure.value, ConnectionRefusedError):
+        log.err("Connection refused. The backend may be down")
+        string = 'connection_refused_error'
+
+    elif isinstance(failure.value, SOCKSError):
+        log.err("Sock error. The SOCKS proxy may be down")
+        string = 'socks_error'
+
+    elif isinstance(failure.value, DNSLookupError):
+        log.err("DNS lookup failure")
+        string = 'dns_lookup_error'
+
+    elif isinstance(failure.value, TCPTimedOutError):
+        log.err("TCP Timed Out Error")
+        string = 'tcp_timed_out_error'
+
+    elif isinstance(failure.value, ResponseNeverReceived):
+        log.err("Response Never Received")
+        string = 'response_never_received'
+    return string
+
+class NoPostProcessor(Exception):
+    pass
 
 class NetTestCase(object):
     """
@@ -46,8 +84,8 @@ class NetTestCase(object):
           ``ooniprobe mytest.py -c path/to/file.txt``
 
 
-    * inputProcessor: should be set to a function that takes as argument an
-      open file descriptor and it will return the input to be passed to the test
+    * inputProcessor: should be set to a function that takes as argument a
+      filename and it will return the input to be passed to the test
       instance.
 
     * name: should be set to the name of the test.
@@ -61,24 +99,7 @@ class NetTestCase(object):
 
     * requiresRoot: set to True if the test must be run as root.
 
-    * optFlags: is assigned a list of lists. Each list represents a flag parameter, as so:
-
-        optFlags = [['verbose', 'v', 'Makes it tell you what it doing.'], | ['quiet', 'q', 'Be vewy vewy quiet.']]
-
-    As you can see, the first item is the long option name (prefixed with
-    '--' on the command line), followed by the short option name (prefixed with
-    '-'), and the description. The description is used for the built-in handling of
-    the --help switch, which prints a usage summary.
-
-
-    * optParameters: is much the same, except the list also contains a default value:
-
-        | optParameters = [['outfile', 'O', 'outfile.log', 'Description...']]
-
-    * usageOptions: a subclass of twisted.python.usage.Options for more advanced command line arguments fun.
-
-    * requiredOptions: a list containing the name of the options that are
-                       required for proper running of a test.
+    * usageOptions: a subclass of twisted.python.usage.Options for processing of command line arguments
 
     * localOptions: contains the parsed command line arguments.
 
@@ -91,14 +112,17 @@ class NetTestCase(object):
 
     inputs = [None]
     inputFile = None
+    inputFilename = None
 
     report = {}
     report['errors'] = []
 
-    optFlags = None
-    optParameters = None
+    usageOptions = usage.Options
 
-    usageOptions = None
+    optParameters = None
+    baseParameters = None
+    baseFlags = None
+
     requiredOptions = []
     requiresRoot = False
 
@@ -115,17 +139,27 @@ class NetTestCase(object):
         """
         pass
 
+    def postProcessor(self, report):
+        """
+        Subclass this to do post processing tasks that are to occur once all
+        the test methods have been called. Once per input.
+        postProcessing works exactly like test methods, in the sense that
+        anything that gets written to the object self.report[] will be added to
+        the final test report.
+        """
+        raise NoPostProcessor
+
     def inputProcessor(self, filename=None):
         """
         You may replace this with your own custom input processor. It takes as
-        input a file descriptor so remember to close it when you are done.
+        input a file name.
 
         This can be useful when you have some input data that is in a certain
         format and you want to set the input attribute of the test to something
         that you will be able to properly process.
 
         For example you may wish to have an input processor that will allow you
-        to ignore comments in files. This can be easily achieved like so:
+        to ignore comments in files. This can be easily achieved like so::
 
             fp = open(filename)
             for x in fp.xreadlines():
@@ -151,17 +185,22 @@ class NetTestCase(object):
             if not self.localOptions[required_option]:
                 raise usage.UsageError("%s not specified!" % required_option)
 
-    def _processOptions(self, options=None):
-        if self.inputFile:
-            self.inputs = self.inputProcessor(self.inputFile)
+    def _processOptions(self):
+        if self.inputFilename:
+            inputProcessor = self.inputProcessor
+            inputFilename = self.inputFilename
+            class inputProcessorIterator(object):
+                """
+                Here we convert the input processor generator into an iterator
+                so that we can run it twice.
+                """
+                def __iter__(self):
+                    return inputProcessor(inputFilename)
+            self.inputs = inputProcessorIterator()
 
-        self._checkRequiredOptions()
-
-        # XXX perhaps we may want to name and version to be inside of a
-        # different method that is not called options.
         return {'inputs': self.inputs,
-                'name': self.name,
-                'version': self.version}
+                'name': self.name, 'version': self.version
+               }
 
     def __repr__(self):
         return "<%s inputs=%s>" % (self.__class__, self.inputs)

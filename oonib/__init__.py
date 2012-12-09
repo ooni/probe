@@ -14,6 +14,8 @@ from storm.uri import URI
 from storm.twisted.transact import Transactor
 from storm.databases.sqlite import SQLite
 
+__version__ = '0.0.1'
+
 from oonib import config
 
 database = SQLite(URI(config.main.database_uri))

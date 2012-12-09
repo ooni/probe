@@ -10,6 +10,7 @@ from ooni import nettest
 from ooni.utils import log
 import time
 import os
+from twisted.internet import reactor, threads, defer
 
 class NetalyzrWrapperTest(nettest.NetTestCase):
     name = "NetalyzrWrapper"
@@ -21,14 +22,28 @@ class NetalyzrWrapperTest(nettest.NetTestCase):
         outputdir = os.path.join(cwd, '..', '..')
 
         program_path = os.path.join(cwd, 'NetalyzrCLI.jar')
-        program = "java -jar %s " % program_path
+        program = "java -jar %s -d" % program_path
 
         test_token = time.asctime(time.gmtime()).replace(" ", "_").strip()
 
-        output_file = os.path.join(outputdir,
+        self.output_file = os.path.join(outputdir,
                 "NetalyzrCLI_" + test_token + ".out")
-        output_file.strip()
-        self.run_me = program + " 2>&1 >> " + output_file
+        self.output_file.strip()
+        self.run_me = program + " 2>&1 >> " + self.output_file
+
+    def blocking_call(self):
+        try:
+            result = threads.blockingCallFromThread(reactor, os.system, self.run_me) 
+        except:
+            log.debug("Netalyzr had an error, please see the log file: %s" % self.output_file)
+        finally:
+            reactor.callFromThread(reactor.stop)
+            self.clean_up()
+
+    def clean_up(self):
+        self.report['netalyzr_report'] = self.output_file
+        log.debug("finished running NetalzrWrapper")
+        log.debug("Please check %s for Netalyzr output" % self.output_file)
 
     def test_run_netalyzr(self):
         """
@@ -41,7 +56,4 @@ class NetalyzrWrapperTest(nettest.NetTestCase):
         # (currently there is no progress because the stdout of os.system is
         # trapped by twisted) and to include the link to the netalyzr report
         # directly in the OONI report, perhaps even downloading it.
-        os.system(self.run_me)
-        self.report['netalyzr_report'] = self.output_file
-        log.debug("finished running NetalzrWrapper")
-
+        reactor.callInThread(self.blocking_call)

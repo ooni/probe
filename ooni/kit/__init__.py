@@ -1,1 +1,2 @@
-__all__ = ['domclass']
+#__all__ = ['domclass']
+#from . import domclass

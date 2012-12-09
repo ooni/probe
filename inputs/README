@@ -3,7 +3,8 @@ the correct functionality of the various OONIProbe tests.
 
 # DNS Tamper
 
-./bin/ooniprobe -o dns_tamper_test.yamloo nettests/core/dnstamper.py -t test_inputs/dns_tamper_test_resolvers.txt -f test_inputs/dns_tamper_file.txt
+./bin/ooniprobe -o dns_tamper_test.yamloo nettests/blocking/dnstamper.py -t
+example_inputs/dns_tamper_test_resolvers.txt -f example_inputs/dns_tamper_file.txt
 
 less dns_tamper_test.yamloo
 
@@ -15,7 +16,7 @@ less captive_portal_test.yamloo
 
 # HTTP Host
 
-./bin/ooniprobe -o http_host.yamloo nettests/core/http_host.py -b http://ooni.nu/test -f test_inputs/http_host_file.txt
+./bin/ooniprobe -o http_host.yamloo nettests/manipulation/http_host.py -b http://ooni.nu/test -f example_inputs/http_host_file.txt
 
 less http_host.yamloo
 

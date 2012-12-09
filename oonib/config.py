@@ -9,9 +9,14 @@ def get_root_path():
 
 # XXX convert this to something that is a proper config file
 main = Storage()
-main.collector_port = 8888
 
-# XXX make this be the server name that is of 
+# This is the location where submitted reports get stored
+main.report_dir = os.path.join(get_root_path(), 'oonib', 'reports')
+
+# This is where tor will place it's Hidden Service hostname and Hidden service
+# private key
+main.tor_datadir = os.path.join(get_root_path(), 'oonib', 'data', 'tor')
+
 main.database_uri = "sqlite:"+get_root_path()+"oonib_test_db.db"
 main.db_threadpool_size = 10
 
@@ -38,6 +43,6 @@ helpers.dns.tcp_port = 57005
 helpers.ssl = Storage()
 #helpers.ssl.private_key = /path/to/data/private.key
 #helpers.ssl.certificate = /path/to/data/certificate.crt
-#helpers.ssl.port = 57007
+#helpers.ssl.port = 57006
 
 

@@ -7,33 +7,105 @@
 # :authors: Arturo Filastò, Isis Lovecruft
 # :license: see included LICENSE file
 
+import traceback
 import itertools
 import logging
 import sys
+import os
 import time
 import yaml
 import json
-import traceback
 
+from yaml.representer import *
+from yaml.emitter import *
+from yaml.serializer import *
+from yaml.resolver import *
 from twisted.python.util import untilConcludes
 from twisted.trial import reporter
 from twisted.internet import defer, reactor
+from twisted.internet.error import ConnectionRefusedError
 
-from ooni.templates.httpt import BodyReceiver, StringProducer
-from ooni.utils import otime, log, geodata
-
-from ooni.utils.hacks import OSafeRepresenter, OSafeDumper
-from ooni import config
+from ooni.utils import log
 
 try:
-    ## Get rid of the annoying "No route found for
-    ## IPv6 destination warnings":
-    logging.getLogger("scapy.runtime").setLevel(logging.ERROR)
-    from scapy.all import packet
-except:
-    class FooClass:
-        Packet = object
-    packet = FooClass
+    from scapy.packet import Packet
+except ImportError:
+    log.err("Scapy is not installed.")
+
+
+from ooni import otime
+from ooni.utils import geodata
+from ooni.utils.net import BodyReceiver, StringProducer, userAgents
+
+from ooni import config
+
+def createPacketReport(packet_list):
+    """
+    Takes as input a packet a list.
+
+    Returns a dict containing a dict with the packet
+    summary and the raw packet.
+    """
+    report = []
+    for packet in packet_list:
+        report.append({'raw_packet': str(packet),
+            'summary': str(packet.summary())})
+    return report
+
+class OSafeRepresenter(SafeRepresenter):
+    """
+    This is a custom YAML representer that allows us to represent reports
+    safely.
+    It extends the SafeRepresenter to be able to also represent complex
+    numbers and scapy packet.
+    """
+    def represent_data(self, data):
+        """
+        This is very hackish. There is for sure a better way either by using
+        the add_multi_representer or add_representer, the issue though lies in
+        the fact that Scapy packets are metaclasses that leads to
+        yaml.representer.get_classobj_bases to not be able to properly get the
+        base of class of a Scapy packet.
+        XXX fully debug this problem
+        """
+        if isinstance(data, Packet):
+            data = createPacketReport(data)
+        return SafeRepresenter.represent_data(self, data)
+
+    def represent_complex(self, data):
+        if data.imag == 0.0:
+            data = u'%r' % data.real
+        elif data.real == 0.0:
+            data = u'%rj' % data.imag
+        elif data.imag > 0:
+            data = u'%r+%rj' % (data.real, data.imag)
+        else:
+            data = u'%r%rj' % (data.real, data.imag)
+        return self.represent_scalar(u'tag:yaml.org,2002:python/complex', data)
+
+OSafeRepresenter.add_representer(complex,
+                                 OSafeRepresenter.represent_complex)
+
+class OSafeDumper(Emitter, Serializer, OSafeRepresenter, Resolver):
+    """
+    This is a modification of the YAML Safe Dumper to use our own Safe
+    Representer that supports complex numbers.
+    """
+    def __init__(self, stream,
+            default_style=None, default_flow_style=None,
+            canonical=None, indent=None, width=None,
+            allow_unicode=None, line_break=None,
+            encoding=None, explicit_start=None, explicit_end=None,
+            version=None, tags=None):
+        Emitter.__init__(self, stream, canonical=canonical,
+                indent=indent, width=width,
+                allow_unicode=allow_unicode, line_break=line_break)
+        Serializer.__init__(self, encoding=encoding,
+                explicit_start=explicit_start, explicit_end=explicit_end,
+                version=version, tags=tags)
+        OSafeRepresenter.__init__(self, default_style=default_style,
+                default_flow_style=default_flow_style)
+        Resolver.__init__(self)
 
 class NoTestIDSpecified(Exception):
     pass
@@ -49,7 +121,6 @@ def getTestDetails(options):
     from ooni import __version__ as software_version
 
     client_geodata = {}
-
     if config.privacy.includeip or \
             config.privacy.includeasn or \
             config.privacy.includecountry or \
@@ -86,11 +157,14 @@ def getTestDetails(options):
                     'test_version': options['version'],
                     'software_name': 'ooniprobe',
                     'software_version': software_version
-                    }
+    }
     defer.returnValue(test_details)
 
 class OReporter(object):
-    def createReport(options):
+    def __init__(self, cmd_line_options):
+        self.cmd_line_options = dict(cmd_line_options)
+
+    def createReport(self, options):
         """
         Override this with your own logic to implement tests.
         """
@@ -106,40 +180,37 @@ class OReporter(object):
         pass
 
     def testDone(self, test, test_name):
-        log.debug("Finished running %s" % test_name)
-        log.debug("Writing report")
+        log.msg("Finished running %s" % test_name)
         test_report = dict(test.report)
 
-        if isinstance(test.input, packet.Packet):
+        if isinstance(test.input, Packet):
             test_input = createPacketReport(test.input)
         else:
             test_input = test.input
 
         test_started = test._start_time
-        test_runtime = test_started - time.time()
+        test_runtime = time.time() - test_started
 
         report = {'input': test_input,
                 'test_name': test_name,
                 'test_started': test_started,
+                'test_runtime': test_runtime,
                 'report': test_report}
-        return self.writeReportEntry(report)
-
-    def allDone(self):
-        log.debug("allDone: Finished running all tests")
-        try:
-            log.debug("Stopping the reactor")
-            reactor.stop()
-        except:
-            log.debug("Unable to stop the reactor")
-            pass
-        return None
+        return defer.maybeDeferred(self.writeReportEntry, report)
 
 class YAMLReporter(OReporter):
     """
     These are useful functions for reporting to YAML format.
     """
-    def __init__(self, stream):
-        self._stream = stream
+    def __init__(self, cmd_line_options):
+        if os.path.exists(config.reports.yamloo):
+            log.msg("Report already exists with filename %s" % config.reports.yamloo)
+            log.msg("Renaming it to %s" % config.reports.yamloo+'.old')
+            os.rename(config.reports.yamloo, config.reports.yamloo+'.old')
+
+        log.debug("Creating %s" % config.reports.yamloo)
+        self._stream = open(config.reports.yamloo, 'w+')
+        OReporter.__init__(self, cmd_line_options)
 
     def _writeln(self, line):
         self._write("%s\n" % line)
@@ -167,6 +238,7 @@ class YAMLReporter(OReporter):
         self._writeln("###########################################")
 
         test_details = yield getTestDetails(options)
+        test_details['options'] = self.cmd_line_options
 
         self.writeReportEntry(test_details)
 
@@ -174,21 +246,32 @@ class YAMLReporter(OReporter):
         self._stream.close()
 
 
-class OONIBReportUpdateFailed(Exception):
+class OONIBReportError(Exception):
     pass
 
-class OONIBReportCreationFailed(Exception):
+class OONIBReportUpdateError(OONIBReportError):
     pass
 
-class OONIBTestDetailsLookupFailed(Exception):
+class OONIBReportCreationError(OONIBReportError):
+    pass
+
+class OONIBTestDetailsLookupError(OONIBReportError):
     pass
 
 class OONIBReporter(OReporter):
-    def __init__(self, backend_url):
-        from twisted.web.client import Agent
+    def __init__(self, cmd_line_options):
+        self.backend_url = cmd_line_options['collector']
+        self.report_id = None
+
+        from ooni.utils.txagentwithsocks import Agent
         from twisted.internet import reactor
-        self.agent = Agent(reactor)
-        self.backend_url = backend_url
+        try:
+            self.agent = Agent(reactor, sockshost="127.0.0.1",
+                socksport=int(config.tor.socks_port))
+        except Exception, e:
+            log.exception(e)
+
+        OReporter.__init__(self, cmd_line_options)
 
     @defer.inlineCallbacks
     def writeReportEntry(self, entry):
@@ -202,25 +285,20 @@ class OONIBReporter(OReporter):
         request = {'report_id': self.report_id,
                 'content': content}
 
-        log.debug("Updating report with id %s" % self.report_id)
+        log.debug("Updating report with id %s (%s)" % (self.report_id, url))
         request_json = json.dumps(request)
         log.debug("Sending %s" % request_json)
 
         bodyProducer = StringProducer(json.dumps(request))
-        log.debug("Creating report via url %s" % url)
 
         try:
-            response = yield self.agent.request("PUT", url, 
+            response = yield self.agent.request("PUT", url,
                                 bodyProducer=bodyProducer)
         except:
-            # XXX we must trap this in the runner and make sure to report the data later.
-            raise OONIBReportUpdateFailed
-
-        #parsed_response = json.loads(backend_response)
-        #self.report_id = parsed_response['report_id']
-        #self.backend_version = parsed_response['backend_version']
-        #log.debug("Created report with id %s" % parsed_response['report_id'])
-
+            # XXX we must trap this in the runner and make sure to report the
+            # data later.
+            log.err("Error in writing report entry")
+            raise OONIBReportUpdateError
 
     @defer.inlineCallbacks
     def createReport(self, options):
@@ -230,35 +308,47 @@ class OONIBReporter(OReporter):
         test_name = options['name']
         test_version = options['version']
 
-        log.debug("Creating report with OONIB Reporter")
         url = self.backend_url + '/report/new'
-        software_version = '0.0.1'
 
-        test_details = yield getTestDetails(options)
+        try:
+            test_details = yield getTestDetails(options)
+        except Exception, e:
+            log.exception(e)
+
+        test_details['options'] = self.cmd_line_options
+
+        log.debug("Obtained test_details: %s" % test_details)
 
         content = '---\n'
         content += safe_dump(test_details)
         content += '...\n'
 
-        request = {'software_name': 'ooniprobe',
-            'software_version': software_version,
+        request = {'software_name': test_details['software_name'],
+            'software_version': test_details['software_version'],
             'test_name': test_name,
             'test_version': test_version,
-            'progress': 0,
             'content': content
         }
-        log.debug("Creating report via url %s" % url)
+
+        log.msg("Reporting %s" % url)
         request_json = json.dumps(request)
         log.debug("Sending %s" % request_json)
 
         bodyProducer = StringProducer(json.dumps(request))
-        log.debug("Creating report via url %s" % url)
+
+        log.msg("Creating report with OONIB Reporter. Please be patient.")
+        log.msg("This may take up to 1-2 minutes...")
 
         try:
-            response = yield self.agent.request("POST", url, 
+            response = yield self.agent.request("POST", url,
                                 bodyProducer=bodyProducer)
-        except:
-            raise OONIBReportCreationFailed
+        except ConnectionRefusedError:
+            log.err("Connection to reporting backend failed (ConnectionRefusedError)")
+            raise OONIBReportCreationError
+
+        except Exception, e:
+            log.exception(e)
+            raise OONIBReportCreationError
 
         # This is a little trix to allow us to unspool the response. We create
         # a deferred and call yield on it.
@@ -267,7 +357,12 @@ class OONIBReporter(OReporter):
 
         backend_response = yield response_body
 
-        parsed_response = json.loads(backend_response)
+        try:
+            parsed_response = json.loads(backend_response)
+        except Exception, e:
+            log.exception(e)
+            raise OONIBReportCreationError
+
         self.report_id = parsed_response['report_id']
         self.backend_version = parsed_response['backend_version']
         log.debug("Created report with id %s" % parsed_response['report_id'])

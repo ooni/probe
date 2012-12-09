@@ -1,0 +1,38 @@
+# This is the configuration file for OONIProbe
+# This file follows the YAML markup format: http://yaml.org/spec/1.2/spec.html
+# Keep in mind that indentation matters.
+
+basic:
+    # Where OONIProbe should be writing it's log file
+    logfile: ooniprobe.log
+privacy:
+    # Should we include the IP address of the probe in the report?
+    includeip: false
+    # Should we include the ASN of the probe in the report?
+    includeasn: false
+    # Should we include the ASN of the probe in the report?
+    includecountry: false
+    # Should we include the ASN of the probe in the report?
+    includecity: false
+    # Should we collect a full packet capture on the client?
+    includepcap: false
+advanced:
+    # XXX change this to point to the directory where you have stored the GeoIP
+    # database file. This should be the directory in which OONI is installed
+    # /path/to/ooni-probe/data/
+    geoip_data_dir: /usr/share/GeoIP/
+    debug: true
+    tor_binary: '/usr/sbin/tor'
+    # For auto detection
+    interface: auto
+    # Of specify a specific interface
+    #interface: wlan0
+    # If you do not specify start_tor, you will have to have Tor running and
+    # explicitly set the control port and orport.
+    start_tor: true
+tor:
+    #socks_port: 9050
+    #control_port: 9051
+    # Specify the absolute path to the Tor bridges to use for testing
+    bridges: bridges.list
+
