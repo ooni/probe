@@ -87,6 +87,10 @@ def testsEnded(*arg, **kw):
     try: reactor.stop()
     except: pass
 
+def testFailed(failure):
+    log.err("Failed in running a test inside a test list")
+    failure.printTraceback()
+
 def runTestList(none, test_list):
     """
     none: is always None.
@@ -102,7 +106,8 @@ def runTestList(none, test_list):
         deck_dl.append(d1)
 
     d2 = defer.DeferredList(deck_dl)
-    d2.addBoth(testsEnded)
+    d2.addCallback(testsEnded)
+    d2.addErrback(testFailed)
 
     # Print every 5 second the list of current tests running
     l = task.LoopingCall(updateStatusBar)
@@ -110,6 +115,7 @@ def runTestList(none, test_list):
     return d2
 
 def errorRunningTests(failure):
+    log.err("There was an error in running a test")
     failure.printTraceback()
 
 def run():

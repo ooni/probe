@@ -451,6 +451,7 @@ def runTestCases(test_cases, options, cmd_line_options):
 
     except Exception:
         log.exception("Problem in running test")
+    yaml_reporter.finish()
 
 class UnableToStartTor(Exception):
     pass
