@@ -16,7 +16,7 @@ import traceback
 import itertools
 
 from twisted.python import reflect, usage, failure
-from twisted.internet import defer
+from twisted.internet import defer, reactor
 from twisted.trial.runner import filenameToModule
 from twisted.trial import reporter as txreporter
 from twisted.trial import util as txtrutil
@@ -27,6 +27,15 @@ from twisted.internet import reactor, threads
 from ooni.inputunit import InputUnitFactory
 from ooni import reporter, nettest
 from ooni.utils import log, checkForRoot, PermissionsError
+
+def isTestCase(obj):
+    """
+    Return True if obj is a subclass of NetTestCase, false if otherwise.
+    """
+    try:
+        return issubclass(obj, nettest.NetTestCase)
+    except TypeError:
+        return False
 
 def processTest(obj, cmd_line_options):
     """
@@ -112,7 +121,7 @@ def findTestClassesFromConfig(cmd_line_options):
 
     module = filenameToModule(filename)
     for name, val in inspect.getmembers(module):
-        if nettest.isTestCase(val):
+        if isTestCase(val):
             classes.append(processTest(val, cmd_line_options))
     return classes
 
@@ -185,12 +194,18 @@ def runTestWithInput(test_class, test_method, test_input, oreporter):
             d.errback(timeout_fail)
         except defer.AlreadyCalledError:
             # if the deferred has already been called but the *back chain is
-            # still unfinished, crash the reactor and report the timeout
+            # still unfinished, safely crash the reactor and report the timeout
             reactor.crash()
             test_instance._timedOut = True    # see test_instance._wait
             test_instance._test_result.addExpectedFailure(test_instance, fail)
     test_timeout = txtrutils.suppressWarnings(
         test_timeout, txtrutil.suppress(category=DeprecationWarning))
+
+    def test_skip_class(reason):
+        try:
+            d.errback(failure.Failure(SkipTest("%s" % reason)))
+        except defer.AlreadyCalledError:
+            pass # XXX not sure what to do here...
 
     def test_done(result, test_instance, test_name):
         log.debug("Concluded %s with inputs %s"
@@ -199,10 +214,7 @@ def runTestWithInput(test_class, test_method, test_input, oreporter):
 
     def test_error(error, test_instance, test_name):
         if isinstance(error, SkipTest):
-            if len(error.args) > 0:
-                skip_what = error.args[1]
-                # XXX we'll need to handle methods and classes
-            log.info("%s" % error.message)
+            log.warn("%s" % error.message)
         else:
             log.exception(error)
 
@@ -219,26 +231,30 @@ def runTestWithInput(test_class, test_method, test_input, oreporter):
     test_instance._setUp()
     test_instance.setUp()
 
-    test_skip = txtrutil.acquireAttribute(
-        test_instance._parents, 'skip', None)
-    if test_skip is not None:
-        # XXX we'll need to do something more than warn
+    test_skip = txtrutil.acquireAttribute(test_instance._parents, 'skip', None)
+    if test_skip:
         log.warn("%s marked these tests to be skipped: %s"
-                  % (test_instance.name, test_skip))
+                 % (test_instance.name, test_skip))
     skip_list = [test_skip]
 
-    if not test_method in skip_list:
-        test = getattr(test_instance, test_method)
-        d = defer.maybeDeferred(test)
+    test = getattr(test_instance, test_method)
+    test_instance._testMethod = test
 
-        # register the timer with the reactor
-        call = reactor.callLater(test_instance.timeout, test_timeout, d)
-        d.addBoth(lambda x: call.active() and call.cancel() or x)
-    
-        d.addCallback(test_done, test_instance, test_method)
-        d.addErrback(test_error, test_instance, test_method)
-    else:
-        d = defer.Deferred()
+    d = defer.maybeDeferred(test)
+
+    # register the timer with the reactor
+    call_timeout = reactor.callLater(test_instance.timeout, test_timeout, d)
+    d.addBoth(lambda x: call_timeout.active() and call_timeout.cancel() or x)
+
+    # check if the class has been aborted
+    if hasattr(test_instance.__class__, 'skip'):
+        reason = getattr(test_instance.__class__, 'skip')
+        call_skip = reactor.callLater(0, test_skip_class, reason)
+        d.addBoth(lambda x: call_skip.active() and call_skip.cancel() or x)
+
+    d.addCallback(test_done, test_instance, test_method)
+    d.addErrback(test_error, test_instance, test_method)
+
     return d
 
 def runTestWithInputUnit(test_class, test_method, input_unit, oreporter):

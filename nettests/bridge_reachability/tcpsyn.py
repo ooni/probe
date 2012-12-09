@@ -16,32 +16,29 @@
 import os
 import sys
 
-from ipaddr                 import IPAddress
 from twisted.python         import usage
 from twisted.python.failure import Failure
-from twisted.internet       import reactor, defer, address
+from twisted.internet       import reactor, defer
 from ooni                   import nettest, config
 from ooni.utils             import net, log
 from ooni.utils.otime       import timestamp
 
 try:
-    from scapy.all          import TCP, IP
+    from scapy.all          import TCP, IP, sr
     from ooni.utils         import txscapy
 except:
     log.msg("This test requires scapy, see www.secdev.org/projects/scapy")
 
 
-class TCPFlagOptions(usage.Options):
+class TCPFlagsOptions(usage.Options):
     """Options for TCPTest."""
     optParameters = [
         ['dst', 'd', None, 'Host IP to ping'],
         ['port', 'p', None, 'Host port'],
-        ['flags', 's', None, 'Comma separated flags to set [S|A|F]'],
+        ['flags', 's', 'S', 'Comma separated flags to set, eg. "SA"'],
         ['count', 'c', 3, 'Number of SYN packets to send', int],
         ['interface', 'i', None, 'Network interface to use'],
-        ['hexdump', 'x', False, 'Show hexdump of responses'],
-        ['pdf', 'y', False,
-         'Create pdf of visual representation of packet conversations']]
+        ['hexdump', 'x', False, 'Show hexdump of responses']]
 
 class TCPFlagsTest(nettest.NetTestCase):
     """
@@ -57,29 +54,28 @@ class TCPFlagsTest(nettest.NetTestCase):
     version      = '0.1.1'
     requiresRoot = True
 
-    usageOptions = TCPFlagOptions
+    usageOptions = TCPFlagsOptions
     inputFile    = ['file', 'f', None, 'File of list of IP:PORTs to ping']
+
+    destinations = {}
 
     def setUp(self, *a, **kw):
         """Configure commandline parameters for TCPSynTest."""
-        self.report = {}
-        self.packets = {'results': [], 'unanswered': []}
-
         if self.localOptions:
             for key, value in self.localOptions.items():
                 setattr(self, key, value)
         if not self.interface:
             try:
                 iface = net.getDefaultIface()
-            except net.IfaceError, ie:
-                log.warn("Could not find a working network interface!")
-                log.fail(ie)
-            else:
                 self.interface = iface
+            except net.IfaceError:
+                self.abortClass("Could not find a working network interface!")
+        if self.flags:
+            self.flags = self.flags.split(',')
         if config.advanced.debug:
             defer.setDebugging('on')
 
-    def addToDestinations(self, addr='0.0.0.0', port='443'):
+    def addToDestinations(self, addr=None, port='443'):
         """
         Validate and add an IP address and port to the dictionary of
         destinations to send to. If the host's IP is already in the
@@ -89,12 +85,16 @@ class TCPFlagsTest(nettest.NetTestCase):
         @param port: A string representing a port number.
         @returns: A 2-tuple containing the address and port.
         """
+        if addr is None:
+            return (None, None) # do we want to return SkipTest?
+
         dst, dport = net.checkIPandPort(addr, port)
-        if not dst in self.report.keys():
-            self.report[dst] = {'dst': dst, 'dport': [dport]}
+        if not dst in self.destinations.keys():
+            self.destinations[dst] = {'dst': dst,
+                                      'dport': [dport]}
         else:
             log.debug("Got additional port for destination.")
-            self.report[dst]['dport'].append(dport)
+            self.destinations[dst]['dport'].append(dport)
         return (dst, dport)
 
     def inputProcessor(self, input_file=None):
@@ -118,7 +118,7 @@ class TCPFlagsTest(nettest.NetTestCase):
                     raw_ip, raw_port = one.rsplit(':', 1)
                     yield self.addToDestinations(raw_ip, raw_port)
 
-    def tcp_flags(self, flags=None):
+    def test_tcp_flags(self):
         """
         Generate, send, and listen for responses to, a list of TCP/IP packets
         to an address and port pair taken from the current input, and a string
@@ -128,11 +128,14 @@ class TCPFlagsTest(nettest.NetTestCase):
             A string representing the TCP flags to be set, i.e. "SA" or "F".
             Defaults to "S".
         """
-        def build_packets(addr, port, flags=None, count=3):
+        def build_packets(addr, port):
             """Construct a list of packets to send out."""
             packets = []
-            for x in xrange(count):
-                packets.append( IP(dst=addr)/TCP(dport=port, flags=flags) )
+            for flag in self.flags:
+                log.debug("Generating packets with %s flags for %s:%d..."
+                          % (flag, addr, port))
+                for x in xrange(self.count):
+                    packets.append( IP(dst=addr)/TCP(dport=port, flags=flag) )
             return packets
 
         def process_packets(packet_list):
@@ -144,72 +147,45 @@ class TCPFlagsTest(nettest.NetTestCase):
             @param packet_list:
                 A :class:scapy.plist.PacketList
             """
+            log.msg("Processing received packets...")
             results, unanswered = packet_list
-            self.packets['results'].append([r for r in results])
-            self.packets['unanswered'].append([u for u in unanswered])
-    
+
             for (q, r) in results:
-                request_data = {'dst': q.dst,
-                                'dport': q.dport,
-                                'summary': q.summary(),
-                                'command': q.command(),
-                                'hexdump': None,
-                                'sent_time': q.time}
-                response_data = {'src': r['IP'].src,
-                                 'flags': r['IP'].flags,
-                                 'summary': r.summary(),
-                                 'command': r.command(),
-                                 'hexdump': None,
-                                 'recv_time': r.time,
-                                 'delay': r.time - q.time}
+                request = {'dst': q.dst,
+                           'dport': q.dport,
+                           'summary': q.summary(),
+                           'hexdump': None,
+                           'sent_time': q.time}
+                response = {'src': r['IP'].src,
+                            'flags': r['IP'].flags,
+                            'summary': r.summary(),
+                            'hexdump': None,
+                            'recv_time': r.time,
+                            'delay': r.time - q.time}
                 if self.hexdump:
-                    request_data.update('hexdump', q.hexdump())
-                    response_data.update('hexdump', r.hexdump())
+                    request['hexdump'] = q.hexdump()
+                    response['hexdump'] = r.hexdump()
 
-                for dest, data in self.report.items():
-                    if data['dst'] == response_data['src']:
-                        if not 'reachable' in data:
-                            if self.hexdump:
-                                log.msg("%s\n%s" % (q.hexdump(), r.hexdump()))
-                            else:
-                                log.msg(" Received response:\n%s ==> %s"
-                                        % (q.mysummary(), r.mysummary()))
-                            data.update( {'reachable': True,
-                                          'request': request_data,
-                                          'response': response_data} )
-                            self.report[response_data['src']['data'].update(data)
+                for dest, data in self.destinations.items():
+                    if response['src'] == data['dst']:
+                        log.msg(" Received response from %s:\n%s ==> %s" % (
+                                response['src'], q.mysummary(), r.mysummary()))
+                        if self.hexdump:
+                            log.msg("%s\n%s" % (q.hexdump(), r.hexdump()))
 
-            if unanswered is not None and len(unanswered) > 0:
-                log.msg("Waiting on responses from\n%s" %
-                        '\n'.join( [unans.summary() for unans in unanswered] ))
-            log.msg("Writing response packet information to report...")
- 
-        (addr, port) = self.input
-        packets = build_packets(addr, port, str(flags), self.count)
-        d = txscapy.sr(packets, iface=self.interface)
-        #d.addCallbacks(process_packets, log.exception)
-        #d.addCallbacks(process_unanswered, log.exception)
-        d.addCallback(process_packets)
-        d.addErrback(process_unanswered)
+                        self.report['request'] = request
+                        self.report['response'] = response
 
-        return d
+            if unanswered is not None:
+                unans = [un.summary() for un in unanswered]
+                log.msg(" Waiting on responses from:\n%s" % '\n'.join(unans))
+                self.report['unanswered'] = unans
 
-    @log.catch
-    def createPDF(self):
-        pdfname = self.name + '_' + timestamp()
-        self.packets['results'].pdfdump(pdfname)
-        log.msg("Visual packet conversation saved to %s.pdf" % pdfname)
-
-    def test_tcp_flags(self):
-        """Send packets with given TCP flags to an address:port pair."""
-        flag_list = self.flags.split(',')
-
-        dl = []
-        for flag in flag_list:
-            dl.append(self.tcp_flags(flag))
-        d = defer.DeferredList(dl)
-
-        if self.pdf:
-            d.addCallback(self.createPDF)
-
-        return d
+        try:
+            self.report = {}
+            (addr, port) = self.input
+            pkts = build_packets(addr, port)
+            d = process_packets(sr(pkts, iface=self.interface, timeout=5))
+            return d
+        except Exception, ex:
+            log.exception(ex)

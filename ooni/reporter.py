@@ -218,7 +218,8 @@ class OONIBReporter(OReporter):
             response = yield self.agent.request("PUT", url, 
                                 bodyProducer=bodyProducer)
         except:
-            # XXX we must trap this in the runner and make sure to report the data later.
+            # XXX we must trap this in the runner and make sure to report the
+            # data later.
             raise OONIBReportUpdateFailed
 
         #parsed_response = json.loads(backend_response)

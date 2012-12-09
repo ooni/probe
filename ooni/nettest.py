@@ -12,9 +12,11 @@ import sys
 import os
 import itertools
 import traceback
+import inspect
 
 from twisted.trial import unittest, itrial
 from twisted.trial import util as txtrutil
+from twisted.trial.test import skipping
 from twisted.internet import defer, utils
 from twisted.python import usage
 
@@ -171,59 +173,46 @@ class NetTestCase(object):
     def __repr__(self):
         return "<%s inputs=%s>" % (self.__class__, self.inputs)
 
-    def _abort(self, reason):
-        """
-
-        Abort running the current input. Raises
-        :class:`twisted.trial.test.skipping.SkipTest <SkipTest>` test_method,
-        or test_class. If called with only one argument, assume we're going to
-        ignore the current input. Otherwise, the name of the method or class
-        in relation to the test_instance, i.e. "self" should be given as value
-        for the keyword argument "obj".
-
-        XXX call oreporter.allDone() from parent stack frame
-        """
-        reason = str(reason)
-        raise SkipTest("%s\n%s" % (str(reason), str(self.input)) )
-
-    def _abortMethod(self, reason, method):
-        if inspect.ismethod(method):
-            abort = getattr(self.__class__, method, False)
-            log.debug("Aborting remaining inputs for %s" % str(abort.func_name))
-            setattr(abort, 'skip', reason)
+    def _abortMethod(self, reason, method=None):
+        if method is None:
+            test_method = self._testMethod
         else:
-            log.debug("abortMethod(): could not find method %s" % str(method))
-    
-    @log.catch
-    def _abortClass(self, reason, cls):
-        if not inspect.isclass(obj) or not isTestCase(obj):
-            log.debug("_abortClass() could not find class %s" % str(cls))
-            return
-        abort = getattr(obj, '__class__', self.__class__)
-        log.debug("Aborting %s test" % str(abort.name))
-        setattr(abort, 'skip', reason)
+            test_method = getattr(self.__class__, method, False)
 
-    def abortCurrentInput(self, reason):
+        if inspect.ismethod(test_method):
+            method_name = test_method.im_func.func_name
+            setattr(test_method, 'skip', reason)
+            raise skipping.SkipTest("Aborting %s for reason: %s"
+                                    % (method_name, reason) )
+        else:
+            log.debug("_abortMethod(): could not find method %s" % test_method)
+    
+    def abortInput(self, reason):
         """
         Abort the current input.
         
         @param reason: A string explaining why this test is being skipped.
+        @raises: A :class:`twisted.trial.test.skipping.SkipTest <SkipTest>` 
         """
-        return self._abort(reason)
+        raise skipping.SkipTest(" Reason: %s\nCurrent input: %s"
+                                % (reason, self.input))
 
-    def abortInput(self, reason):
-        return self._abort(reason)
+    def abortMethod(self, reason, test_method=None):
+        """
+        Abort all remaining inputs for the current test method.
 
+        @param reason: A string explaining why the current test_method is
+                       being skipped.
+        @param test_method: (optional) The test_method to skip, defaults to
+                            the currently running test_method.
+        """
+        return self._abortMethod(reason, test_method)
 
-# This needs to be here so that NetTestCase.abort() can call it, since we
-# cannot import runner because runner imports NetTestCase.
-def isTestCase(obj):
-    """
-    Return True if obj is a subclass of NetTestCase, false if otherwise.
-    """
-    try:
-        return issubclass(obj, NetTestCase)
-    except TypeError:
-        return False
+    def abortClass(self, reason='unspecified'):
+        """
+        Abort the entire NetTestCase class.
 
-
+        @param reason: A string explaining why the class is being skipped.
+        """
+        log.msg("Aborting %s: %s" % (self.__class__.name, reason))
+        setattr(self.__class__, 'skip', reason)
