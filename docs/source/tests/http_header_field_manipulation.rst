@@ -7,20 +7,17 @@ Details
 
 *NetTest*: HTTPHeaderFieldManipulation (https://gitweb.torproject.org/ooni-probe.git/blob/HEAD:/nettests/manipulation/http_header_field_manipulation.py)
 
-*Test Helper*: SimpleHTTPChannel (https://gitweb.torproject.org/ooni-probe.git/blob/HEAD:/oonib/testhelpers/http_helpers.py)
+*Test Helper*: HTTP Return JSON Headers (https://gitweb.torproject.org/ooni-probe.git/blob/HEAD:/oonib/testhelpers/http_helpers.py)
 
 *Test Type*: Traffic Manipulation
 
 *Requires Root*: No
 
-*WARNING*: This test is more dangerous to run than any other one and you
-should do it only if you know what you are doing.
-
 Description
 ===========
 It performes HTTP requests with request headers that vary capitalization
-towards a SimpleHTTPChannel test helper backend. If we detect that the
-headers the backend received matches the ones we have sent then we have
+towards a HTTPReturnJSONHeaders test helper backend. If we detect that the
+headers the backend received don't matche the ones we have sent then we have
 detected tampering.
 
 How to run the test
