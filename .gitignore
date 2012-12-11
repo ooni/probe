@@ -13,7 +13,6 @@ ooni/lib/txtorcon
 ooni/plugins/dropin.cache
 ooni/report*.yaml
 oonib/oonibackend.conf
-oonib/data/*
 fluff/
 pcaps/
 report*.yaml
