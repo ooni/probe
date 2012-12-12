@@ -27,7 +27,6 @@ from twisted.internet.error import ConnectionRefusedError
 
 from ooni import config, otime
 from ooni.utils import log, geodata
-from ooni.utils.hacks import OSafeRepresenter, OSafeDumper
 from ooni.utils.net import BodyReceiver, StringProducer, userAgents
 
 try:
