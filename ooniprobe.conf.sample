@@ -22,9 +22,9 @@ advanced:
     # /path/to/ooni-probe/data/
     geoip_data_dir: /usr/share/GeoIP/
     debug: true
-    # If we're including the client's IP address, how long should we wait for
-    # the connection to complete before timing out?
+    # How many seconds should we wait for connections before timing out?:
     checktimeout: 15
+    # Location where Tor is installed:
     tor_binary: '/usr/sbin/tor'
     # For auto detection
     interface: auto
