@@ -180,12 +180,6 @@ class NetTestCase(object):
         else:
             pass
 
-    def _checkRequiredOptions(self):
-        for required_option in self.requiredOptions:
-            log.debug("Checking if %s is present" % required_option)
-            if not self.localOptions[required_option]:
-                raise usage.UsageError("%s not specified!" % required_option)
-
     def _processOptions(self):
         if self.inputFilename:
             inputProcessor = self.inputProcessor
@@ -199,11 +193,9 @@ class NetTestCase(object):
                     return inputProcessor(inputFilename)
             self.inputs = inputProcessorIterator()
 
-        self._checkRequiredOptions()
-
-        return {'inputs': self.inputs,
-                'name': self.name, 'version': self.version
-               }
+        return {'inputs': self.inputs, 
+                'name': self.name,
+                'version': self.version}
 
     def __repr__(self):
         return "<%s inputs=%s>" % (self.__class__, self.inputs)

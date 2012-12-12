@@ -47,6 +47,9 @@ class noResumeSession(Exception):
 class InvalidConfigFile(Exception):
     message = "Invalid setting in ooniprobe.conf: "
 
+class UnableToStartTor(Exception):
+    pass
+
 
 def isTestCase(obj):
     """Return True if obj is a subclass of NetTestCase, False otherwise."""
@@ -54,6 +57,18 @@ def isTestCase(obj):
         return issubclass(obj, nettest.NetTestCase)
     except TypeError:
         return False
+
+def checkRequiredOptions(test_instance):
+    """
+    If test_instance has an attribute 'requiredOptions', then check that
+    those options were utilised on the commandline.
+    """
+    required = getattr(test_instance, 'requiredOptions', None)
+    if required:
+        for required_option in required:
+            log.debug("Checking if %s is present" % required_option)
+            if not test_instance.localOptions[required_option]:
+                raise usage.UsageError("%s not specified!" % required_option)
 
 def processTest(obj, cmd_line_options):
     """
@@ -91,7 +106,6 @@ def processTest(obj, cmd_line_options):
 
     options = obj.usageOptions()
     options.parseOptions(config.cmd_line_options['subargs'])
-
     obj.localOptions = options
 
     if obj.inputFile:                   # inputFilename is the actual filename
@@ -99,12 +113,11 @@ def processTest(obj, cmd_line_options):
 
     try:
         log.debug("Parsing commandline options")
-        tmp_test_case_object = obj()
-        tmp_test_case_object._checkRequiredOptions()
+        tmp_test_instance = obj()
+        checkRequiredOptions(tmp_test_instance)
     except usage.UsageError, ue:
         log.err("%s" % ue)
         options.opt_help()
-
         raise usage.UsageError("Error parsing command line args for %s"
                                % tmp_test_case_object.name)
     else:
@@ -162,7 +175,6 @@ def loadTestsAndOptions(classes, cmd_line_options):
 
 def getTestTimeout(test_instance, test_method):
     """
-
     Returns the timeout value set on this test. Check on the instance first,
     the the class, then the module, then package. As soon as it finds
     something with a timeout attribute, returns that. Returns the value set in
@@ -199,7 +211,7 @@ def getTestTimeout(test_instance, test_method):
             return float(default_timeout)
 
 def runTestCasesWithInput(test_cases, test_input, yaml_reporter,
-        oonib_reporter=None):
+                          oonib_reporter=None):
     """
     Runs in parallel all the test methods that are inside of the specified test case.
     Reporting happens every time a Test Method has concluded running.
@@ -552,9 +564,6 @@ def runTestCases(test_cases, options, cmd_line_options):
     except Exception:
         log.exception("Problem in running test")
 
-class UnableToStartTor(Exception):
-    pass
-
 def startTor():
     @defer.inlineCallbacks
     def state_complete(state):
@@ -617,7 +626,7 @@ def startSniffing():
     from ooni.utils.txscapy import ScapyFactory, ScapySniffer
     try:
         checkForRoot()
-    except NotRootError:
+    except PermissionsError:
         print "[!] Includepcap options requires root priviledges to run"
         print "    you should run ooniprobe as root or disable the options in ooniprobe.conf"
         sys.exit(1)
