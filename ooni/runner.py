@@ -18,9 +18,9 @@ import yaml
 
 from twisted.python import reflect, usage, failure
 from twisted.internet import defer, reactor, threads
-from twisted.trial.runner import filenameToModule
 from twisted.trial import reporter as txreporter
-from twisted.trial import util as txtrutil
+from twisted.trial import util as txutil
+from twisted.trial.runner import filenameToModule
 from twisted.trial.unittest import utils as txtrutils
 from twisted.trial.unittest import SkipTest
 
@@ -28,16 +28,28 @@ from txtorcon import TorProtocolFactory, TorConfig
 from txtorcon import TorState, launch_tor
 
 from ooni import config, nettest, reporter
-from ooni.reporter import OONIBReporter, YAMLReporter, OONIBReportError
 from ooni.inputunit import InputUnitFactory
+from ooni.reporter import OONIBReporter, YAMLReporter, OONIBReportError
 from ooni.utils import log, checkForRoot
 from ooni.utils import PermissionsError, Storage
 from ooni.utils.net import randomFreePort
 
+
+class NoTestCasesFound(Exception):
+    pass
+
+class InvalidResumeFile(Exception):
+    pass
+
+class noResumeSession(Exception):
+    pass
+
+class InvalidConfigFile(Exception):
+    message = "Invalid setting in ooniprobe.conf: "
+
+
 def isTestCase(obj):
-    """
-    Return True if obj is a subclass of NetTestCase, false if otherwise.
-    """
+    """Return True if obj is a subclass of NetTestCase, False otherwise."""
     try:
         return issubclass(obj, nettest.NetTestCase)
     except TypeError:
@@ -55,14 +67,7 @@ def processTest(obj, cmd_line_options):
     :param cmd_line_options:
         A configured and instantiated :class:`twisted.python.usage.Options`
         class.
-
     """
-    if not hasattr(obj.usageOptions, 'optParameters'):
-        obj.usageOptions.optParameters = []
-
-    if obj.inputFile:
-        obj.usageOptions.optParameters.append(obj.inputFile)
-
     if obj.requiresRoot:
         try:
             checkForRoot()
@@ -70,37 +75,40 @@ def processTest(obj, cmd_line_options):
             log.err("%s requires root to run" % obj.name)
             sys.exit(1)
 
+    if not hasattr(obj.usageOptions, 'optParameters'):
+        obj.usageOptions.optParameters = []
+
     if obj.baseParameters:
         for parameter in obj.baseParameters:
             obj.usageOptions.optParameters.append(parameter)
-
     if obj.baseFlags:
         if not hasattr(obj.usageOptions, 'optFlags'):
             obj.usageOptions.optFlags = []
         for flag in obj.baseFlags:
             obj.usageOptions.optFlags.append(flag)
+    if obj.inputFile:                   # inputFile is the optParameters list
+        obj.usageOptions.optParameters.append(obj.inputFile)
 
     options = obj.usageOptions()
-
     options.parseOptions(config.cmd_line_options['subargs'])
+
     obj.localOptions = options
 
-    if obj.inputFile:
+    if obj.inputFile:                   # inputFilename is the actual filename
         obj.inputFilename = options[obj.inputFile[0]]
 
     try:
-        log.debug("processing options")
+        log.debug("Parsing commandline options")
         tmp_test_case_object = obj()
         tmp_test_case_object._checkRequiredOptions()
-
-    except usage.UsageError, e:
-        test_name = tmp_test_case_object.name
-        log.err("There was an error in running %s!" % test_name)
-        log.err("%s" % e)
+    except usage.UsageError, ue:
+        log.err("%s" % ue)
         options.opt_help()
-        raise usage.UsageError("Error in parsing command line args for %s" % test_name)
 
-    return obj
+        raise usage.UsageError("Error parsing command line args for %s"
+                               % tmp_test_case_object.name)
+    else:
+        return obj
 
 def findTestClassesFromFile(filename):
     """
@@ -131,9 +139,6 @@ def makeTestCases(klass, tests, method_prefix):
         cases.append((klass, method_prefix+test))
     return cases
 
-class NoTestCasesFound(Exception):
-    pass
-
 def loadTestsAndOptions(classes, cmd_line_options):
     """
     Takes a list of test classes and returns their testcases and options.
@@ -155,31 +160,43 @@ def loadTestsAndOptions(classes, cmd_line_options):
 
     return test_cases, options
 
-def getTimeout(test_instance, test_method):
+def getTestTimeout(test_instance, test_method):
     """
+
     Returns the timeout value set on this test. Check on the instance first,
     the the class, then the module, then package. As soon as it finds
-    something with a timeout attribute, returns that. Returns
-    twisted.trial.util.DEFAULT_TIMEOUT_DURATION if it cannot find anything.
+    something with a timeout attribute, returns that. Returns the value set in
+    ooniprobe.conf, :attr:`ooni.config.advanced.default_timeout
+    <default_timeout>` if it cannot find anything.
 
     See twisted.trial.unittest.TestCase docstring for more details.
+
+    @param test_instance:
+        The instance of a :class:`ooni.nettest.NetTestCase` currently running.
+    @param test_method:
+        The test_instance.test_method currently being processed.
     """
+    default = config.advanced.default_timeout
+
     try:
-        testMethod = getattr(test_instance, test_method)
+        tm = getattr(test_instance, test_method)
     except:
-        log.debug("_getTimeout couldn't find self.methodName!")
-        return txtrutil.DEFAULT_TIMEOUT_DURATION
+        log.debug("runner.getTestTimeout() couldn't find %s.%s!"
+                  % (test_instance, test_method))
+        try:
+            return float(default)
+        except (ValueError, TypeError):
+            raise InvalidConfigFile("'default_timeout' must be a number!")
     else:
-        test_instance._parents = [testMethod, test_instance]
-        test_instance._parents.extend(txtrutil.getPythonContainers(testMethod))
-        timeout = txtrutil.acquireAttribute(test_instance._parents, 'timeout', 
-                                            txtrutil.DEFAULT_TIMEOUT_DURATION)
+        test_instance._parents = [tm, test_instance]
+        test_instance._parents.extend(txutil.getPythonContainers(tm))
+        timeout = txutil.acquireAttribute(
+            test_instance._parents, 'timeout', default)
         try:
             return float(timeout)
         except (ValueError, TypeError):
-            warnings.warn("'timeout' attribute needs to be a number.",
-                          category=DeprecationWarning)
-            return txtrutil.DEFAULT_TIMEOUT_DURATION
+            log.warn("'timeout' attribute must be a number!")
+            return float(default_timeout)
 
 def runTestCasesWithInput(test_cases, test_input, yaml_reporter,
         oonib_reporter=None):
@@ -204,7 +221,6 @@ def runTestCasesWithInput(test_cases, test_input, yaml_reporter,
             this is set to none then we will only report to the YAML reporter.
 
     """
-
     # This is used to store a copy of all the test reports
     tests_report = {}
 
@@ -267,31 +283,24 @@ def runTestCasesWithInput(test_cases, test_input, yaml_reporter,
 
     dl = []
     for test_case in test_cases:
-        log.debug("Processing %s" % test_case[1])
         test_class = test_case[0]
         test_method = test_case[1]
+        log.debug("%s: Setting up: %s" % (test_class.name, test_method))
+
         test_instance = test_class()
         test_instance.input = test_input
         test_instance.report = {}
 
-        # XXX TODO the twisted.trial.reporter.TestResult is expected by
-        # test_timeout(), but we should eventually replace it with a stub class
+        # XXX txreporter.TestResult is expected by test_timeout(), but we
+        # should eventually replace it with a stub class
         test_instance._test_result = txreporter.TestResult()
-
         # use this to keep track of the test runtime
         test_instance._start_time = time.time()
-        test_instance.timeout = getTimeout(test_instance, test_method)
-
         # call setups on the test
         test_instance._setUp()
         test_instance.setUp()
-
-        # check if we're inherited from anything marked to be skipped
-        test_skip = txtrutil.acquireAttribute(test_instance._parents, 'skip', None)
-        if test_skip:
-            log.warn("%s marked these tests to be skipped: %s"
-                     % (test_instance.name, test_skip))
-        skip_list = [test_skip]
+        # get the timeout and _parents, in case it was set in setUp()
+        test_instance.timeout = getTestTimeout(test_instance, test_method)
 
         test = getattr(test_instance, test_method)
         test_instance._testMethod = test
@@ -302,9 +311,14 @@ def runTestCasesWithInput(test_cases, test_input, yaml_reporter,
         call_timeout = reactor.callLater(test_instance.timeout, test_timeout, d)
         d.addBoth(lambda x: call_timeout.active() and call_timeout.cancel() or x)
 
-        # check if the class has been aborted
+        # check if anything has been aborted or marked as 'skip'
         if hasattr(test_instance.__class__, 'skip'):
             reason = getattr(test_instance.__class__, 'skip')
+        else:
+            reason = txutil.acquireAttribute(test_instance._parents, 'skip', None)
+            log.warn("%s marked some tests to be skipped. Reason: %s"
+                     % (test_instance.name, test_skip))
+        if reason is not None:
             call_skip = reactor.callLater(0, test_skip_class, reason)
             d.addBoth(lambda x: call_skip.active() and call_skip.cancel() or x)
 
@@ -316,8 +330,8 @@ def runTestCasesWithInput(test_cases, test_input, yaml_reporter,
     test_methods_d.addCallback(tests_done, test_cases[0][0])
     return test_methods_d
 
-def runTestCasesWithInputUnit(test_cases, input_unit, yaml_reporter,
-        oonib_reporter):
+def runTestCasesWithInputUnit(test_cases, input_unit, yaml_reporter, 
+                              oonib_reporter):
     """
     Runs the Test Cases that are given as input parallely.
     A Test Case is a subclass of ooni.nettest.NetTestCase and a list of
@@ -341,12 +355,6 @@ def runTestCasesWithInputUnit(test_cases, input_unit, yaml_reporter,
         dl.append(d)
     return defer.DeferredList(dl)
 
-class InvalidResumeFile(Exception):
-    pass
-
-class noResumeSession(Exception):
-    pass
-
 def loadResumeFile():
     """
     Sets the singleton stateDict object to the content of the resume file.
@@ -355,7 +363,6 @@ def loadResumeFile():
     Raises:
 
         :class:ooni.runner.InvalidResumeFile if the resume file is not valid
-
     """
     if not config.stateDict:
         try:
@@ -391,7 +398,6 @@ def resumeTest(test_filename, input_unit_factory):
 
         :class:ooni.inputunit.InputUnitFactory that is at the index of the
             previous test run.
-
     """
     try:
         idx = config.stateDict[test_filename]
@@ -412,7 +418,7 @@ def resumeTest(test_filename, input_unit_factory):
 @defer.inlineCallbacks
 def updateResumeFile(test_filename):
     """
-    update the resume file with the current stateDict state.
+    Update the resume file with the current stateDict state.
     """
     log.debug("Acquiring lock for %s" % test_filename)
     yield config.resume_lock.acquire()
@@ -434,16 +440,13 @@ def increaseInputUnitIdx(test_filename):
             including the .py extension.
 
         input_unit_idx (int): the current input unit index for the test.
-
     """
     config.stateDict[test_filename] += 1
     yield updateResumeFile(test_filename)
 
 def updateProgressMeters(test_filename, input_unit_factory, 
-        test_case_number):
-    """
-    Update the progress meters for keeping track of test state.
-    """
+                         test_case_number):
+    """Update the progress meters for keeping track of test state."""
     log.msg("Setting up progress meters")
     if not config.state.test_filename:
         config.state[test_filename] = Storage()
