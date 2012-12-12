@@ -4,9 +4,14 @@
 # ********
 # When some software has issues and we need to fix it in a
 # hackish way, we put it in here. This one day will be empty.
-#
+# 
+# :authors: Arturo Filastò, Isis Lovecruft
 # :licence: see LICENSE
 
+from yaml.representer import *
+from yaml.emitter import *
+from yaml.serializer import *
+from yaml.resolver import *
 
 import copy_reg
 

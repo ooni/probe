@@ -7,7 +7,6 @@
 # :authors: Arturo Filastò, Isis Lovecruft
 # :license: see included LICENSE file
 
-import traceback
 import itertools
 import logging
 import sys
@@ -15,6 +14,7 @@ import os
 import time
 import yaml
 import json
+import traceback
 
 from yaml.representer import *
 from yaml.emitter import *
@@ -25,19 +25,15 @@ from twisted.trial import reporter
 from twisted.internet import defer, reactor
 from twisted.internet.error import ConnectionRefusedError
 
-from ooni.utils import log
+from ooni import config, otime
+from ooni.utils import log, geodata
+from ooni.utils.hacks import OSafeRepresenter, OSafeDumper
+from ooni.utils.net import BodyReceiver, StringProducer, userAgents
 
 try:
     from scapy.packet import Packet
 except ImportError:
     log.err("Scapy is not installed.")
-
-
-from ooni import otime
-from ooni.utils import geodata
-from ooni.utils.net import BodyReceiver, StringProducer, userAgents
-
-from ooni import config
 
 def createPacketReport(packet_list):
     """
@@ -125,8 +121,17 @@ def getTestDetails(options):
             config.privacy.includeasn or \
             config.privacy.includecountry or \
             config.privacy.includecity:
-        log.msg("Running geo IP lookup via check.torproject.org")
-        client_ip = yield geodata.myIP()
+        log.msg("Running geoIP lookup via check.torproject.org")
+        if config.privacy.checktimeout is not None and \
+                isinstance(config.privacy.checktimeout, int):
+            my_ip_timeout = config.privacy.checktimeout
+        else:
+            log.debug(
+                "reporter.getTestDetails(): bad config.privacy.checktimeout %s"
+                % str(config.privacy.checktimeout)
+                )
+            my_ip_timeout = 15
+        client_ip = yield geodata.myIP(connectTimeout=my_ip_timeout)
         client_location = geodata.IPToLocation(client_ip)
     else:
         client_ip = "127.0.0.1"
@@ -157,7 +162,7 @@ def getTestDetails(options):
                     'test_version': options['version'],
                     'software_name': 'ooniprobe',
                     'software_version': software_version
-    }
+                    }
     defer.returnValue(test_details)
 
 class OReporter(object):
@@ -180,7 +185,7 @@ class OReporter(object):
         pass
 
     def testDone(self, test, test_name):
-        log.msg("Finished running %s" % test_name)
+        log.debug("Calling reporter to record results")
         test_report = dict(test.report)
 
         if isinstance(test.input, Packet):
@@ -268,8 +273,8 @@ class OONIBReporter(OReporter):
         try:
             self.agent = Agent(reactor, sockshost="127.0.0.1",
                 socksport=int(config.tor.socks_port))
-        except Exception, e:
-            log.exception(e)
+        except Exception, ex:
+            log.exception(ex)
 
         OReporter.__init__(self, cmd_line_options)
 
@@ -312,8 +317,8 @@ class OONIBReporter(OReporter):
 
         try:
             test_details = yield getTestDetails(options)
-        except Exception, e:
-            log.exception(e)
+        except Exception, ex:
+            log.exception(ex)
 
         test_details['options'] = self.cmd_line_options
 
@@ -328,7 +333,7 @@ class OONIBReporter(OReporter):
             'test_name': test_name,
             'test_version': test_version,
             'content': content
-        }
+            }
 
         log.msg("Reporting %s" % url)
         request_json = json.dumps(request)
@@ -346,8 +351,8 @@ class OONIBReporter(OReporter):
             log.err("Connection to reporting backend failed (ConnectionRefusedError)")
             raise OONIBReportCreationError
 
-        except Exception, e:
-            log.exception(e)
+        except Exception, ex:
+            log.exception(ex)
             raise OONIBReportCreationError
 
         # This is a little trix to allow us to unspool the response. We create

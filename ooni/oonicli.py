@@ -20,13 +20,16 @@ from twisted.application import app
 from twisted.python import usage, failure
 from twisted.python.util import spewer
 
+# Supress scapy's "No route found for IPv6 destination" warnings:
+import logging as pylogging
+pylogging.getLogger("scapy.runtime").setLevel(pylogging.ERROR)
+
 from ooni import nettest, runner, reporter, config
-
 from ooni.inputunit import InputUnitFactory
-
 from ooni.utils import net
-from ooni.utils import checkForRoot, NotRootError
+from ooni.utils import checkForRoot, PermissionsError
 from ooni.utils import log
+
 
 class Options(usage.Options):
     synopsis = """%s [options] [path to test].py
@@ -88,13 +91,12 @@ def updateStatusBar():
         print progress_bar_frmt
 
 def testsEnded(*arg, **kw):
-    """
-    You can place here all the post shutdown tasks.
-    """
-    log.debug("testsEnded: Finished running all tests")
+    """You can place here all the post shutdown tasks."""
+    log.debug("Finished running all tests")
     config.start_reactor = False
-    try: reactor.stop()
-    except: pass
+    if not reactor.running:
+        try: reactor.stop()
+        except: reactor.runUntilCurrent()
 
 def startSniffing():
     from ooni.utils.txscapy import ScapyFactory, ScapySniffer
@@ -137,9 +139,8 @@ def errorRunningTests(failure):
     failure.printTraceback()
 
 def run():
-    """
-    Parses command line arguments of test.
-    """
+    """Call me to begin testing from a file."""
+
     cmd_line_options = Options()
     if len(sys.argv) == 1:
         cmd_line_options.getUsage()
@@ -151,8 +152,17 @@ def run():
     log.start(cmd_line_options['logfile'])
 
     if config.privacy.includepcap:
-        log.msg("Starting")
-        runner.startSniffing()
+        try:
+            checkForRoot()
+        except PermissionsError, pe:
+            m = ("Capturing packets requires administrator/root privileges. ",
+                 "Run ooniprobe as root or set 'includepcap = false' in ",
+                 "ooniprobe.conf .")
+            log.warn("%s" % m)
+            sys.exit(1)
+        else:
+            log.msg("Starting packet capture")
+            runner.startSniffing()
 
     resume = cmd_line_options['resume']
 
@@ -185,4 +195,6 @@ def run():
         d = runTestList(None, test_list)
         d.addErrback(errorRunningTests)
 
+    # XXX I believe we don't actually need this:
     reactor.run()
+

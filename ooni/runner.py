@@ -5,6 +5,7 @@
 # Handles running ooni.nettests as well as
 # ooni.plugoo.tests.OONITests.
 #
+# :authors: Arturo Filastò, Isis Lovecruft
 # :license: see included LICENSE file
 
 import os
@@ -15,26 +16,34 @@ import traceback
 import itertools
 import yaml
 
-from twisted.python import reflect, usage
-from twisted.internet import defer
+from twisted.python import reflect, usage, failure
+from twisted.internet import defer, reactor, threads
 from twisted.trial.runner import filenameToModule
-from twisted.internet import reactor, threads
+from twisted.trial import reporter as txreporter
+from twisted.trial import util as txtrutil
+from twisted.trial.unittest import utils as txtrutils
+from twisted.trial.unittest import SkipTest
 
 from txtorcon import TorProtocolFactory, TorConfig
 from txtorcon import TorState, launch_tor
 
-from ooni import config
-
+from ooni import config, nettest, reporter
 from ooni.reporter import OONIBReporter, YAMLReporter, OONIBReportError
-
 from ooni.inputunit import InputUnitFactory
-from ooni.nettest import NetTestCase, NoPostProcessor
-
 from ooni.utils import log, checkForRoot
-from ooni.utils import NotRootError, Storage
+from ooni.utils import PermissionsError, Storage
 from ooni.utils.net import randomFreePort
 
-def processTest(obj):
+def isTestCase(obj):
+    """
+    Return True if obj is a subclass of NetTestCase, false if otherwise.
+    """
+    try:
+        return issubclass(obj, nettest.NetTestCase)
+    except TypeError:
+        return False
+
+def processTest(obj, cmd_line_options):
     """
     Process the parameters and :class:`twisted.python.usage.Options` of a
     :class:`ooni.nettest.Nettest`.
@@ -53,6 +62,13 @@ def processTest(obj):
 
     if obj.inputFile:
         obj.usageOptions.optParameters.append(obj.inputFile)
+
+    if obj.requiresRoot:
+        try:
+            checkForRoot()
+        except PermissionsError:
+            log.err("%s requires root to run" % obj.name)
+            sys.exit(1)
 
     if obj.baseParameters:
         for parameter in obj.baseParameters:
@@ -84,20 +100,7 @@ def processTest(obj):
         options.opt_help()
         raise usage.UsageError("Error in parsing command line args for %s" % test_name)
 
-    if obj.requiresRoot:
-        try:
-            checkForRoot()
-        except NotRootError:
-            log.err("%s requires root to run" % obj.name)
-            sys.exit(1)
-
     return obj
-
-def isTestCase(obj):
-    try:
-        return issubclass(obj, NetTestCase)
-    except TypeError:
-        return False
 
 def findTestClassesFromFile(filename):
     """
@@ -152,6 +155,32 @@ def loadTestsAndOptions(classes, cmd_line_options):
 
     return test_cases, options
 
+def getTimeout(test_instance, test_method):
+    """
+    Returns the timeout value set on this test. Check on the instance first,
+    the the class, then the module, then package. As soon as it finds
+    something with a timeout attribute, returns that. Returns
+    twisted.trial.util.DEFAULT_TIMEOUT_DURATION if it cannot find anything.
+
+    See twisted.trial.unittest.TestCase docstring for more details.
+    """
+    try:
+        testMethod = getattr(test_instance, test_method)
+    except:
+        log.debug("_getTimeout couldn't find self.methodName!")
+        return txtrutil.DEFAULT_TIMEOUT_DURATION
+    else:
+        test_instance._parents = [testMethod, test_instance]
+        test_instance._parents.extend(txtrutil.getPythonContainers(testMethod))
+        timeout = txtrutil.acquireAttribute(test_instance._parents, 'timeout', 
+                                            txtrutil.DEFAULT_TIMEOUT_DURATION)
+        try:
+            return float(timeout)
+        except (ValueError, TypeError):
+            warnings.warn("'timeout' attribute needs to be a number.",
+                          category=DeprecationWarning)
+            return txtrutil.DEFAULT_TIMEOUT_DURATION
+
 def runTestCasesWithInput(test_cases, test_input, yaml_reporter,
         oonib_reporter=None):
     """
@@ -179,6 +208,28 @@ def runTestCasesWithInput(test_cases, test_input, yaml_reporter,
     # This is used to store a copy of all the test reports
     tests_report = {}
 
+    def test_timeout(d):
+        timeout_error = defer.TimeoutError(
+            "%s test for %s timed out after %s seconds"
+            % (test_name, test_instance.input, test_instance.timeout))
+        timeout_fail = failure.Failure(err)
+        try:
+            d.errback(timeout_fail)
+        except defer.AlreadyCalledError:
+            # if the deferred has already been called but the *back chain is
+            # still unfinished, safely crash the reactor and report the timeout
+            reactor.crash()
+            test_instance._timedOut = True    # see test_instance._wait
+            test_instance._test_result.addExpectedFailure(test_instance, fail)
+    test_timeout = txtrutils.suppressWarnings(
+        test_timeout, txtrutil.suppress(category=DeprecationWarning))
+
+    def test_skip_class(reason):
+        try:
+            d.errback(failure.Failure(SkipTest("%s" % reason)))
+        except defer.AlreadyCalledError:
+            pass # XXX not sure what to do here...
+
     def test_done(result, test_instance, test_name):
         log.msg("Successfully finished running %s" % test_name)
         log.debug("Deferred callback result: %s" % result)
@@ -189,9 +240,12 @@ def runTestCasesWithInput(test_cases, test_input, yaml_reporter,
         d2 = yaml_reporter.testDone(test_instance, test_name)
         return defer.DeferredList([d1, d2])
 
-    def test_error(failure, test_instance, test_name):
-        log.err("Error in running %s" % test_name)
-        log.exception(failure)
+    def test_error(error, test_instance, test_name):
+        if isinstance(error, SkipTest):
+            log.warn("%s" % error.message)
+        else:
+            log.err("Error in running %s" % test_name)
+            log.exception(error)
         return
 
     def tests_done(result, test_class):
@@ -216,20 +270,44 @@ def runTestCasesWithInput(test_cases, test_input, yaml_reporter,
         log.debug("Processing %s" % test_case[1])
         test_class = test_case[0]
         test_method = test_case[1]
-
-        log.msg("Running %s with %s..." % (test_method, test_input))
-
         test_instance = test_class()
         test_instance.input = test_input
         test_instance.report = {}
+
+        # XXX TODO the twisted.trial.reporter.TestResult is expected by
+        # test_timeout(), but we should eventually replace it with a stub class
+        test_instance._test_result = txreporter.TestResult()
+
         # use this to keep track of the test runtime
         test_instance._start_time = time.time()
+        test_instance.timeout = getTimeout(test_instance, test_method)
+
         # call setups on the test
         test_instance._setUp()
         test_instance.setUp()
+
+        # check if we're inherited from anything marked to be skipped
+        test_skip = txtrutil.acquireAttribute(test_instance._parents, 'skip', None)
+        if test_skip:
+            log.warn("%s marked these tests to be skipped: %s"
+                     % (test_instance.name, test_skip))
+        skip_list = [test_skip]
+
         test = getattr(test_instance, test_method)
+        test_instance._testMethod = test
 
         d = defer.maybeDeferred(test)
+
+        # register the timer with the reactor
+        call_timeout = reactor.callLater(test_instance.timeout, test_timeout, d)
+        d.addBoth(lambda x: call_timeout.active() and call_timeout.cancel() or x)
+
+        # check if the class has been aborted
+        if hasattr(test_instance.__class__, 'skip'):
+            reason = getattr(test_instance.__class__, 'skip')
+            call_skip = reactor.callLater(0, test_skip_class, reason)
+            d.addBoth(lambda x: call_skip.active() and call_skip.cancel() or x)
+
         d.addCallback(test_done, test_instance, test_method)
         d.addErrback(test_error, test_instance, test_method)
         dl.append(d)
@@ -248,12 +326,13 @@ def runTestCasesWithInputUnit(test_cases, input_unit, yaml_reporter,
     The deferred list will fire once all the test methods have been
     run once per item in the input unit.
 
-    test_cases: A list of tuples containing the test class and the test method as a string.
-
-    input_unit: A generator that yields an input per iteration
-
+    @param test_cases:
+        A tuple containing the test_class and test_method as strings.
+    @param input_unit:
+        A generator that contains the inputs to be run on the test.
+    @return: 
+        A DeferredList containing all the tests to be run at this time.
     """
-    log.debug("Running test cases with input unit")
     dl = []
     for test_input in input_unit:
         log.debug("Running test with this input %s" % test_input)
@@ -400,6 +479,16 @@ def updateProgressMeters(test_filename, input_unit_factory,
 
 @defer.inlineCallbacks
 def runTestCases(test_cases, options, cmd_line_options):
+    """
+    Run all test cases found in specified files and modules.
+
+    @param test_cases:
+        A list of tuples, each tuple in containing the test_class
+        and test_method to run.
+    @param cmd_line_options:
+        The parsed :attr:`twisted.python.usage.Options.optParameters`
+        obtained from the main ooni commandline.
+    """
     log.debug("Running %s" % test_cases)
     log.debug("Options %s" % options)
     log.debug("cmd_line_options %s" % dict(cmd_line_options))

@@ -1,4 +1,5 @@
-# -*- coding:utf8 -*-
+# -*- coding: utf-8 -*-
+#
 # txscapy
 # *******
 # Here shall go functions related to using scapy with twisted.
@@ -18,6 +19,9 @@ from twisted.internet import defer, abstract
 from zope.interface import implements
 
 from scapy.config import conf
+from scapy.all import PcapWriter, MTU
+from scapy.all import BasePacketList, conf, PcapReader
+from scapy.all import Gen, SetGen
 
 from ooni.utils import log
 from ooni import config
@@ -41,15 +45,12 @@ except ImportError, e:
 
     from scapy.all import PcapWriter
 
-from scapy.all import BasePacketList, conf, PcapReader
-from scapy.all import conf, Gen, SetGen, MTU
+from scapy.all import BasePacketList, PcapReader
+from scapy.all import Gen, SetGen, MTU
 
 def getNetworksFromRoutes():
     from scapy.all import conf, ltoa, read_routes
     from ipaddr    import IPNetwork, IPAddress
-
-    ## Hide the 'no routes' warnings
-    conf.verb = 0
 
     networks = []
     for nw, nm, gw, iface, addr in read_routes():
@@ -174,7 +175,7 @@ class ScapySender(ScapyProtocol):
                 break
 
         if len(self.answered_packets) == len(self.sent_packets):
-            log.debug("All of our questions have been answered.")
+            # All of our questions have been answered.
             self.stopSending()
             return
 

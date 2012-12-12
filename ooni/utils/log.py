@@ -3,6 +3,7 @@
 # :authors: Arturo Filastò
 # :licence: see LICENSE
 
+from functools import wraps
 import sys
 import os
 import traceback
@@ -53,6 +54,11 @@ def msg(msg, *arg, **kw):
 def debug(msg, *arg, **kw):
     txlog.msg(msg, logLevel=logging.DEBUG, *arg, **kw)
 
+def warn(msg, *arg, **kw):
+    txlog.logging.captureWarnings('true')
+    txlog.logging.warn(msg)
+    #txlog.showwarning()
+
 def err(msg, *arg, **kw):
     txlog.err("Error: " + str(msg), logLevel=logging.ERROR, *arg, **kw)
 
@@ -66,6 +72,27 @@ def exception(error):
     else:
         exc_type, exc_value, exc_traceback = sys.exc_info()
         traceback.print_exception(exc_type, exc_value, exc_traceback)
+
+def fail(*failure):
+    logging.critical(failure)
+
+def catch(func):
+    """
+    Quick wrapper to add around test methods for debugging purposes,
+    catches the given Exception. Use like so:
+
+        @log.catcher
+        def foo(bar):
+            if bar == 'baz':
+                raise Exception("catch me no matter what I am")
+        foo("baz")
+    """
+    def _catch(*args, **kwargs):
+        try:
+            func(*args, **kwargs)
+        except Exception, exc:
+            exception(exc)
+    return _catch
 
 class LoggerFactory(object):
     """
