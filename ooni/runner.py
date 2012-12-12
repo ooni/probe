@@ -21,7 +21,7 @@ from twisted.internet import defer, reactor, threads
 from twisted.trial import reporter as txreporter
 from twisted.trial import util as txutil
 from twisted.trial.runner import filenameToModule
-from twisted.trial.unittest import utils as txtrutils
+from twisted.trial.unittest import utils as txutils
 from twisted.trial.unittest import SkipTest
 
 from txtorcon import TorProtocolFactory, TorConfig
@@ -70,7 +70,7 @@ def checkRequiredOptions(test_instance):
             if not test_instance.localOptions[required_option]:
                 raise usage.UsageError("%s not specified!" % required_option)
 
-def processTest(obj, cmd_line_options):
+def processTest(obj):
     """
     Process the parameters and :class:`twisted.python.usage.Options` of a
     :class:`ooni.nettest.Nettest`.
@@ -249,8 +249,8 @@ def runTestCasesWithInput(test_cases, test_input, yaml_reporter,
             reactor.crash()
             test_instance._timedOut = True    # see test_instance._wait
             test_instance._test_result.addExpectedFailure(test_instance, fail)
-    test_timeout = txtrutils.suppressWarnings(
-        test_timeout, txtrutil.suppress(category=DeprecationWarning))
+    test_timeout = txutils.suppressWarnings(
+        test_timeout, txutil.suppress(category=DeprecationWarning))
 
     def test_skip_class(reason):
         try:
@@ -289,7 +289,7 @@ def runTestCasesWithInput(test_cases, test_input, yaml_reporter,
             d1 = oonib_reporter.testDone(test_instance, 'summary')
             d2 = yaml_reporter.testDone(test_instance, 'summary')
             return defer.DeferredList([d1, d2])
-        except NoPostProcessor:
+        except nettest.NoPostProcessor:
             log.debug("No post processor configured")
             return
 
@@ -329,7 +329,7 @@ def runTestCasesWithInput(test_cases, test_input, yaml_reporter,
         else:
             reason = txutil.acquireAttribute(test_instance._parents, 'skip', None)
             log.warn("%s marked some tests to be skipped. Reason: %s"
-                     % (test_instance.name, test_skip))
+                     % (test_instance.name, reason))
         if reason is not None:
             call_skip = reactor.callLater(0, test_skip_class, reason)
             d.addBoth(lambda x: call_skip.active() and call_skip.cancel() or x)
@@ -361,7 +361,7 @@ def runTestCasesWithInputUnit(test_cases, input_unit, yaml_reporter,
     """
     dl = []
     for test_input in input_unit:
-        log.debug("Running test with this input %s" % test_input)
+        log.debug("Running test with this input %s" % str(test_input))
         d = runTestCasesWithInput(test_cases,
                 test_input, yaml_reporter, oonib_reporter)
         dl.append(d)
