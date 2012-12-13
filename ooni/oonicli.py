@@ -42,13 +42,14 @@ class Options(usage.Options):
     optFlags = [["help", "h"],
                 ["resume", "r"]]
 
-    optParameters = [["reportfile", "o", None, "report file name"],
-                     ["testdeck", "i", None,
-                         "Specify as input a test deck: a yaml file containig the tests to run an their arguments"],
-                     ["collector", "c", None,
-                         "Address of the collector of test results. (example: http://127.0.0.1:8888)"],
-                     ["logfile", "l", None, "log file name"],
-                     ["pcapfile", "p", None, "pcap file name"]]
+    optParameters = [
+        ["reportfile", "o", None, "report file name"],
+        ["testdeck", "i", None,
+         "Specify a test deck: a yaml file containing tests and their arguments"],
+        ["collector", "c", None,
+         "Address of the collector of test results. (e.g.: http://127.0.0.1:8888)"],
+        ["logfile", "l", None, "log file name"],
+        ["pcapfile", "p", None, "pcap file name"]]
 
     compData = usage.Completions(
         extraActions=[usage.CompleteFiles(
@@ -81,14 +82,34 @@ class Options(usage.Options):
         except:
             raise usage.UsageError("No test filename specified!")
 
-def updateStatusBar():
+class CooperativeTimer(object):
+    """
+    A simple timer for the callback to functions on
+    :class:`twisted.internet.task.Cooperator <t.i.t.Cooperator>`. see
+    :meth:`oonicli.runTestList <runTestList>`.
+
+    @param seconds:
+        An integer specifying the second to wait in between updating the
+        status and ETA bars.
+    """
+    def __init__(self, seconds=5):
+        self.max_timer_interval = float(seconds)
+        self.end = time.time() + self.max_timer_interval
+
+    def __call__(self):
+        return time.time() >= self.end
+
+def updateStatusBar(stop_func):
     for test_filename in config.state.keys():
         # The ETA is not updated so we we will not print it out for the
         # moment.
         eta = config.state[test_filename].eta()
         progress = config.state[test_filename].progress()
-        progress_bar_frmt = "[%s] %s%%" % (test_filename, progress)
-        print progress_bar_frmt
+        while progress is not None:
+            print "[%s] %s%%" % (test_filename, progress)
+        else:
+            print "[%s] All tests in file completed." % test_filename
+            stop_func()
 
 def testsEnded(*arg, **kw):
     """You can place here all the post shutdown tasks."""
@@ -102,7 +123,7 @@ def startSniffing():
     from ooni.utils.txscapy import ScapyFactory, ScapySniffer
     try:
         checkForRoot()
-    except NotRootError:
+    except PermissionsError:
         print "[!] Includepcap options requires root priviledges to run"
         print "    you should run ooniprobe as root or disable the options in ooniprobe.conf"
         sys.exit(1)
@@ -130,9 +151,14 @@ def runTestList(none, test_list):
     d2 = defer.DeferredList(deck_dl)
     d2.addBoth(testsEnded)
 
-    # Print every 5 second the list of current tests running
-    l = task.LoopingCall(updateStatusBar)
-    l.start(5.0)
+    try:
+        # Print every 5 second the list of current tests running
+        coop = task.Cooperator(started=False)
+        coop.cooperate(updateStatusBar) #this will need a .next() method
+        coop.start()
+    except StopIteration:
+        return d2
+
     return d2
 
 def errorRunningTests(failure):

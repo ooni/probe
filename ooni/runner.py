@@ -328,9 +328,9 @@ def runTestCasesWithInput(test_cases, test_input, yaml_reporter,
             reason = getattr(test_instance.__class__, 'skip')
         else:
             reason = txutil.acquireAttribute(test_instance._parents, 'skip', None)
+        if reason is not None:
             log.warn("%s marked some tests to be skipped. Reason: %s"
                      % (test_instance.name, reason))
-        if reason is not None:
             call_skip = reactor.callLater(0, test_skip_class, reason)
             d.addBoth(lambda x: call_skip.active() and call_skip.cancel() or x)
 
@@ -456,14 +456,14 @@ def increaseInputUnitIdx(test_filename):
     config.stateDict[test_filename] += 1
     yield updateResumeFile(test_filename)
 
-def updateProgressMeters(test_filename, input_unit_factory, 
-                         test_case_number):
+def updateProgressMeters(test_filename, input_unit_factory, test_case_number):
     """Update the progress meters for keeping track of test state."""
     log.msg("Setting up progress meters")
     if not config.state.test_filename:
         config.state[test_filename] = Storage()
 
-    config.state[test_filename].per_item_average = 2.0
+    per_item_avg = float(2)
+    config.state[test_filename].per_item_average = per_item_avg
 
     input_unit_idx = float(config.stateDict[test_filename])
     input_unit_items = float(len(input_unit_factory) + 1)
@@ -471,26 +471,23 @@ def updateProgressMeters(test_filename, input_unit_factory,
     total_iterations = input_unit_items * test_case_number
     current_iteration = input_unit_idx * test_case_number
 
-    log.debug("input_unit_items: %s" % input_unit_items)
-    log.debug("test_case_number: %s" % test_case_number)
-
+    log.debug("Total InputUnits: %s" % input_unit_items)
     log.debug("Test case number: %s" % test_case_number)
     log.debug("Total iterations: %s" % total_iterations)
     log.debug("Current iteration: %s" % current_iteration)
 
     def progress():
-        return (current_iteration / total_iterations) * 100.0
-
+        current_progress = (current_iteration / total_iterations) * 100.0
+        while float(current_progress) < float(100):
+            return current_progress
     config.state[test_filename].progress = progress
 
     def eta():
-        return (total_iterations - current_iteration) \
-                * config.state[test_filename].per_item_average
+        return (total_iterations - current_iteration) * per_item_avg
     config.state[test_filename].eta = eta
 
     config.state[test_filename].input_unit_idx = input_unit_idx
     config.state[test_filename].input_unit_items = input_unit_items
-
 
 @defer.inlineCallbacks
 def runTestCases(test_cases, options, cmd_line_options):
