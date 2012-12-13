@@ -17,13 +17,14 @@ privacy:
     # Should we collect a full packet capture on the client?
     includepcap: false
 advanced:
-    # XXX change this to point to the directory where you have stored the GeoIP
-    # database file. This should be the directory in which OONI is installed
-    # /path/to/ooni-probe/data/
+    # XXX change this to point to the directory where you have stored the
+    # GeoIP database file. This should be the directory in which OONI is
+    # installed /path/to/ooni-probe/data/
     geoip_data_dir: /usr/share/GeoIP/
+    # Should we display debug messages:
     debug: true
     # How many seconds should we wait for connections before timing out?:
-    checktimeout: 15
+    default_timeout: 30
     # Location where Tor is installed:
     tor_binary: '/usr/sbin/tor'
     # For auto detection

@@ -121,15 +121,13 @@ def getTestDetails(options):
             config.privacy.includecountry or \
             config.privacy.includecity:
         log.msg("Running geoIP lookup via check.torproject.org")
-        if config.privacy.checktimeout is not None and \
-                isinstance(config.privacy.checktimeout, int):
-            my_ip_timeout = config.privacy.checktimeout
+        if config.advanced.default_timeout is not None and \
+                isinstance(config.advanced.default_timeout, int):
+            my_ip_timeout = float(config.advanced.default_timeout)
         else:
-            log.debug(
-                "reporter.getTestDetails(): bad config.privacy.checktimeout %s"
-                % str(config.privacy.checktimeout)
-                )
-            my_ip_timeout = 15
+            log.debug("getTestDetails(): bad config: default_timeout %s"
+                      % str(config.advanced.default_timeout))
+            my_ip_timeout = float(120)
         client_ip = yield geodata.myIP(connectTimeout=my_ip_timeout)
         client_location = geodata.IPToLocation(client_ip)
     else:
