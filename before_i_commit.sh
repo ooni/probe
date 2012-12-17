@@ -10,7 +10,7 @@
 # rm *.yamloo; rm before_i_commit.log
 #
 
-rm before_i_commit.log
+rm -f before_i_commit.log
 
 find . -type f -name "*.py[co]" -delete
 
@@ -18,7 +18,7 @@ find . -type f -name "*.py[co]" -delete
 
 echo "Below you should not see anything"
 echo "---------------------------------"
-grep "Error: " before_i_commit.log
+[ -f before_i_commit.log ] && grep "Error: " before_i_commit.log
 echo "---------------------------------"
 echo "If you do, it means something is wrong."
 echo "Read through the log file and fix it."
