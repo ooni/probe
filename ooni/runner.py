@@ -103,13 +103,19 @@ def findTestClassesFromFile(cmd_line_options):
         A list of class objects found in a file or module given on the
         commandline.
     """
-    filename = cmd_line_options['test']
     classes = []
-    module = filenameToModule(filename)
-    for name, val in inspect.getmembers(module):
-        if isTestCase(val):
-            classes.append(processTest(val, cmd_line_options))
-    return classes
+    filename = cmd_line_options['test']
+    relative = filename.rsplit('/', 1)[1]
+    try:
+        module = filenameToModule(filename)
+    except ValueError, ve:
+        log.fail("%r doesn't exist." % relative)
+    else:
+        for name, val in inspect.getmembers(module):
+            if isTestCase(val):
+                classes.append(processTest(val, cmd_line_options))
+    finally:
+        return classes
 
 def makeTestCases(klass, tests, method_prefix):
     """
@@ -556,6 +562,12 @@ def loadTest(cmd_line_options):
     # Ideally this would get all wrapped in a nice little class that get's
     # instanced with it's cmd_line_options as an instance attribute
     classes = findTestClassesFromFile(cmd_line_options)
-    test_cases, options = loadTestsAndOptions(classes, cmd_line_options)
-
-    return test_cases, options, cmd_line_options
+    try:
+        test_cases, options = loadTestsAndOptions(classes, cmd_line_options)
+        return test_cases, options, cmd_line_options
+    except NoTestCasesFound, ntcf:
+        log.warn(ntcf)
+        if not 'testdeck' in cmd_line_options: # exit if this was this only test
+            sys.exit(1)                        # file and there aren't any tests
+        else:
+            pass # there are more tests, so continue
