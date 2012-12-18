@@ -1,13 +1,4 @@
-# -*- coding: UTF-8
-#
-# oonicli
-# -------
-# In here we take care of running ooniprobe from the command
-# line interface
-#
-# :authors: Arturo Filastò, Isis Lovecruft
-# :license: see included LICENSE file
-
+#-*- coding: utf-8 -*-
 
 import sys
 import os
@@ -96,20 +87,9 @@ def testsEnded(*arg, **kw):
     try: reactor.stop()
     except: pass
 
-def startSniffing():
-    from ooni.utils.txscapy import ScapyFactory, ScapySniffer
-    try:
-        checkForRoot()
-    except NotRootError:
-        print "[!] Includepcap options requires root priviledges to run"
-        print "    you should run ooniprobe as root or disable the options in ooniprobe.conf"
-        sys.exit(1)
-
-    print "Starting sniffer"
-    config.scapyFactory = ScapyFactory(config.advanced.interface)
-
-    sniffer = ScapySniffer(config.reports.pcap)
-    config.scapyFactory.registerProtocol(sniffer)
+def testFailed(failure):
+    log.err("Failed in running a test inside a test list")
+    failure.printTraceback()
 
 def runTestList(none, test_list):
     """
@@ -126,7 +106,8 @@ def runTestList(none, test_list):
         deck_dl.append(d1)
 
     d2 = defer.DeferredList(deck_dl)
-    d2.addBoth(testsEnded)
+    d2.addCallback(testsEnded)
+    d2.addErrback(testFailed)
 
     # Print every 5 second the list of current tests running
     l = task.LoopingCall(updateStatusBar)
@@ -134,6 +115,7 @@ def runTestList(none, test_list):
     return d2
 
 def errorRunningTests(failure):
+    log.err("There was an error in running a test")
     failure.printTraceback()
 
 def run():
@@ -150,8 +132,12 @@ def run():
 
     log.start(cmd_line_options['logfile'])
 
+    config.cmd_line_options = cmd_line_options
+
     if config.privacy.includepcap:
         log.msg("Starting")
+        if not config.reports.pcap:
+            config.generatePcapFilename()
         runner.startSniffing()
 
     resume = cmd_line_options['resume']

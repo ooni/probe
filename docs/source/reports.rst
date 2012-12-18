@@ -18,12 +18,15 @@ following convention:
 
 ``dateInISO8601Format`` _ ``probeASNumber`` .yamloo
 
-The date is expressed using `ISO 8601 <http://en.wikipedia.org/wiki/ISO_8601`_
+The date is expressed using `ISO 8601 <http://en.wikipedia.org/wiki/ISO_8601>`_
 including seconds and with no ``:`` to delimit hours, minutes, days.
 
-Like so
+Like so:
 
-  ``YEAR`` - ``MONTH`` - ``DAY`` T ``HOURS`` ``MINUTES`` ``SECONDS`` Z
+``YEAR`` - ``MONTH`` - ``DAY`` T ``HOURS`` ``MINUTES`` ``SECONDS`` Z
+
+Look `here for the up to date list of ISO 8601 country codes
+<http://www.iso.org/iso/home/standards/country_codes/country_names_and_code_elements_txt.htm>`_
 
 The time is **always** expressed in UTC.
 

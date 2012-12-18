@@ -4,8 +4,6 @@ import yaml
 from twisted.internet import protocol, defer
 from twisted.internet.error import ConnectionDone
 
-from scapy.all import IP, Raw, rdpcap
-
 from ooni.utils import log
 
 def read_pcap(filename):
@@ -15,6 +13,8 @@ def read_pcap(filename):
     Returns:
       [{"client": "\x17\x52\x15"}, {"server": "\x17\x15\x13"}]
     """
+    from scapy.all import IP, Raw, rdpcap
+
     packets = rdpcap(filename)
 
     checking_first_packet = True

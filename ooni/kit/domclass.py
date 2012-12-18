@@ -1,38 +1,31 @@
-#!/usr/bin/env python
-#-*- encoding: utf-8 -*-
-#
-#    domclass
-#    ********
-#
-#    :copyright: (c) 2012 by Arturo Filastò
-#    :license: see LICENSE for more details.
-#
-#    how this works
-#    --------------
-#
-#    This classifier uses the DOM structure of a website to determine how similar
-#    the two sites are.
-#    The procedure we use is the following:
-#        * First we parse all the DOM tree of the web page and we build a list of
-#          TAG parent child relationships (ex. <html><a><b></b></a><c></c></html> =>
-#          (html, a), (a, b), (html, c)).
-#
-#        * We then use this information to build a matrix (M) where m[i][j] = P(of
-#          transitioning from tag[i] to tag[j]). If tag[i] does not exists P() = 0.
-#          Note: M is a square matrix that is number_of_tags wide.
-#
-#        * We then calculate the eigenvectors (v_i) and eigenvalues (e) of M.
-#
-#        * The corelation between page A and B is given via this formula:
-#          correlation = dot_product(e_A, e_B), where e_A and e_B are
-#          resepectively the eigenvalues for the probability matrix A and the
-#          probability matrix B.
-#
+"""
+how this works
+--------------
+
+This classifier uses the DOM structure of a website to determine how similar
+the two sites are.
+The procedure we use is the following:
+   * First we parse all the DOM tree of the web page and we build a list of
+     TAG parent child relationships (ex. <html><a><b></b></a><c></c></html> =>
+     (html, a), (a, b), (html, c)).
+
+   * We then use this information to build a matrix (M) where m[i][j] = P(of
+     transitioning from tag[i] to tag[j]). If tag[i] does not exists P() = 0.
+     Note: M is a square matrix that is number_of_tags wide.
+
+   * We then calculate the eigenvectors (v_i) and eigenvalues (e) of M.
+
+   * The corelation between page A and B is given via this formula:
+     correlation = dot_product(e_A, e_B), where e_A and e_B are
+     resepectively the eigenvalues for the probability matrix A and the
+     probability matrix B.
+"""
 
 import yaml
 import numpy
-from bs4 import BeautifulSoup
 import time
+
+from ooni import log
 
 # All HTML4 tags
 # XXX add link to W3C page where these came from
@@ -118,6 +111,11 @@ def readDOM(content=None, filename=None, debug=False):
     :filename: the filename to be read from for getting the content of the
                page.
     """
+    try:
+        from bs4 import BeautifulSoup
+    except ImportError:
+        log.err("BeautifulSoup is not installed. This test canno run")
+        raise Exception
 
     if filename:
         f = open(filename)

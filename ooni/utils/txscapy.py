@@ -1,11 +1,3 @@
-# -*- coding:utf8 -*-
-# txscapy
-# *******
-# Here shall go functions related to using scapy with twisted.
-#
-# This software has been written to be part of OONI, the Open Observatory of
-# Network Interference. More information on that here: http://ooni.nu/
-
 import struct
 import socket
 import os
@@ -30,6 +22,7 @@ try:
     from scapy.arch import pcapdnet
 
     config.pcap_dnet = True
+    from scapy.all import Gen, SetGen, MTU
 
 except ImportError, e:
     log.err("pypcap or dnet not installed. "
@@ -39,12 +32,19 @@ except ImportError, e:
     conf.use_pcap = False
     conf.use_dnet = False
 
-    from scapy.all import PcapWriter
+    class DummyPcapWriter:
+        def __init__(self, pcap_filename, *arg, **kw):
+            log.err("Initializing DummyPcapWriter. We will not actually write to a pcapfile")
 
-from scapy.all import BasePacketList, conf, PcapReader
-from scapy.all import conf, Gen, SetGen, MTU
+        def write(self):
+            pass
+
+    PcapWriter = DummyPcapWriter
+
+
 
 def getNetworksFromRoutes():
+    """ Return a list of networks from the routing table """
     from scapy.all import conf, ltoa, read_routes
     from ipaddr    import IPNetwork, IPAddress
 
@@ -65,6 +65,10 @@ class IfaceError(Exception):
     pass
 
 def getDefaultIface():
+    """ Return the default interface or raise IfaceError """
+    #XXX: currently broken on OpenVZ environments, because
+    # the routing table does not contain a default route
+    # Workaround: Set the default interface in ooniprobe.conf
     networks = getNetworksFromRoutes()
     for net in networks:
         if net.is_private:
@@ -83,6 +87,7 @@ class ScapyFactory(abstract.FileDescriptor):
     https://github.com/enki/muXTCP/blob/master/scapyLink.py
     """
     def __init__(self, interface, super_socket=None, timeout=5):
+
         abstract.FileDescriptor.__init__(self, reactor)
         if interface == 'auto':
             interface = getDefaultIface()
@@ -149,7 +154,7 @@ class ScapyProtocol(object):
 
 class ScapySender(ScapyProtocol):
     timeout = 5
-    
+
     # This deferred will fire when we have finished sending a receiving packets.
     # Should we look for multiple answers for the same sent packet?
     multi = False

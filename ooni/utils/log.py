@@ -1,14 +1,10 @@
-# -*- encoding: utf-8 -*-
-#
-# :authors: Arturo Filastò
-# :licence: see LICENSE
-
 import sys
 import os
-import traceback
 import logging
+import traceback
 
 from twisted.python import log as txlog
+from twisted.python import util
 from twisted.python.failure import Failure
 from twisted.python.logfile import DailyLogFile
 
@@ -18,6 +14,15 @@ from ooni import config
 ## Get rid of the annoying "No route found for
 ## IPv6 destination warnings":
 logging.getLogger("scapy.runtime").setLevel(logging.ERROR)
+
+class LogWithNoPrefix(txlog.FileLogObserver):
+    def emit(self, eventDict):
+        text = txlog.textFromEventDict(eventDict)
+        if text is None:
+            return
+
+        util.untilConcludes(self.write, "%s\n" % text)
+        util.untilConcludes(self.flush)  # Hoorj!
 
 def start(logfile=None, application_name="ooniprobe"):
     daily_logfile = None
@@ -32,29 +37,22 @@ def start(logfile=None, application_name="ooniprobe"):
 
     txlog.msg("Starting %s on %s (%s UTC)" %  (application_name, otime.prettyDateNow(),
                                                  otime.utcPrettyDateNow()))
-    logging.basicConfig()
-    python_logging = txlog.PythonLoggingObserver(application_name)
 
-    if config.advanced.debug:
-        python_logging.logger.setLevel(logging.DEBUG)
-    else:
-        python_logging.logger.setLevel(logging.INFO)
-
-    txlog.startLoggingWithObserver(python_logging.emit)
-
+    txlog.startLoggingWithObserver(LogWithNoPrefix(sys.stdout).emit)
     txlog.addObserver(txlog.FileLogObserver(daily_logfile).emit)
 
 def stop():
-    txlog.msg("Stopping OONI")
+    print "Stopping OONI"
 
 def msg(msg, *arg, **kw):
-    txlog.msg(msg, logLevel=logging.INFO, *arg, **kw)
+    print "%s" % msg
 
 def debug(msg, *arg, **kw):
-    txlog.msg(msg, logLevel=logging.DEBUG, *arg, **kw)
+    if config.advanced.debug:
+        print "[D] %s" % msg
 
 def err(msg, *arg, **kw):
-    txlog.err("Error: " + str(msg), logLevel=logging.ERROR, *arg, **kw)
+    print "[!] %s" % msg
 
 def exception(error):
     """
@@ -76,7 +74,7 @@ class LoggerFactory(object):
 
     def start(self, application):
         # XXX parametrize this
-        start('/tmp/oonib.log', "OONIB")
+        start('oonib.log', "OONIB")
 
     def stop(self):
         txlog.msg("Stopping OONIB")

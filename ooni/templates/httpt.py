@@ -1,7 +1,3 @@
-# -*- encoding: utf-8 -*-
-#
-# :authors: Arturo Filastò
-# :licence: see LICENSE
 import copy
 import random
 import struct

@@ -1,9 +1,10 @@
 """
-/new
+/report
 
 /pcap
 
-This is the async pcap reporting system. It requires the client to have created a report already, but can work independently from test progress.
+This is the async pcap reporting system. It requires the client to have created
+a report already, but can work independently from test progress.
 
 """
 import random
@@ -18,6 +19,7 @@ from cyclone import web
 
 from ooni import otime
 from ooni.utils import randomStr
+
 from oonib import models, config
 from oonib.report import file_collector
 
