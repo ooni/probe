@@ -215,5 +215,5 @@ def run():
         d.addErrback(errorRunningTests)
 
     # XXX I believe we don't actually need this:
-    reactor.run()
+    #reactor.run()
 

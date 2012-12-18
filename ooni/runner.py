@@ -248,10 +248,10 @@ def runTestCasesWithInput(test_cases, test_input, yaml_reporter,
     # This is used to store a copy of all the test reports
     tests_report = {}
 
-    def test_timeout(d):
+    def test_timeout(d, test_instance):
         timeout_error = defer.TimeoutError(
             "%s test for %s timed out after %s seconds"
-            % (test_name, test_instance.input, test_instance.timeout))
+            % (test_instance.name, test_instance.input, test_instance.timeout))
         timeout_fail = failure.Failure(err)
         try:
             d.errback(timeout_fail)
@@ -323,8 +323,10 @@ def runTestCasesWithInput(test_cases, test_input, yaml_reporter,
         # call setups on the test
         test_instance._setUp()
         test_instance.setUp()
+
         # get the timeout and _parents, in case it was set in setUp()
         test_instance.timeout = getTestTimeout(test_instance, test_method)
+        test_instance.timedOut = False
 
         test = getattr(test_instance, test_method)
         test_instance._testMethod = test
@@ -332,7 +334,8 @@ def runTestCasesWithInput(test_cases, test_input, yaml_reporter,
         d = defer.maybeDeferred(test)
 
         # register the timer with the reactor
-        call_timeout = reactor.callLater(test_instance.timeout, test_timeout, d)
+        call_timeout = reactor.callLater(test_instance.timeout, test_timeout, d,
+                                         test_instance)
         d.addBoth(lambda x: call_timeout.active() and call_timeout.cancel() or x)
 
         # check if anything has been aborted or marked as 'skip'
@@ -678,7 +681,7 @@ def loadTest(cmd_line_options):
         test_cases, options = loadTestsAndOptions(classes, cmd_line_options)
         return test_cases, options, cmd_line_options
     except NoTestCasesFound, ntcf:
-        log.warn(ntcf)
+        log.err(ntcf)
         if not 'testdeck' in cmd_line_options: # exit if this was this only test
             sys.exit(1)                        # file and there aren't any tests
         else:

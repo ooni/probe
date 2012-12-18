@@ -50,17 +50,16 @@ def stop():
 def msg(msg, *arg, **kw):
     print "%s" % msg
 
-def debug(msg, *arg, **kw):
+def debug(message, *arg, **kw):
     if config.advanced.debug:
-        print "[D] %s" % msg
+        print "[D] %s" % message
 
-def warn(msg, *arg, **kw):
-    txlog.logging.captureWarnings('true')
-    txlog.logging.warn(msg)
-    #txlog.showwarning()
+def warn(message, *arg, **kw):
+    if config.advanced.show_warnings:
+        print "[W] %s" % message
 
-def err(msg, *arg, **kw):
-    print "[!] %s" % msg
+def err(message, *arg, **kw):
+    print "[!] %s" % message
 
 def exception(error):
     """
