@@ -21,39 +21,6 @@ try:
 except ImportError:
     log.err("Unable to import pygeoip. We will not be able to run geo IP related measurements")
 
-@defer.inlineCallbacks
-def myIP(*args, **kwargs):
-    """
-    Get the client's public IP address.
-
-    @param:
-        All parameters are passed to the instantiation of
-        :class:`twisted.client.Agent`.
-    @ivar connectTimeout:
-        Seconds to timeout after for HTTP requests.
-    """
-    target_site = 'https://check.torproject.org/'
-    regexp = "Your IP address appears to be: <b>(.+?)<\/b>"
-    if 'connectTimeout' in kwargs:
-        myAgent = Agent(reactor, connectTimeout=kwargs['connectTimeout'])
-    else:
-        myAgent = Agent(reactor, *args, **kwargs)
-
-    result = yield myAgent.request('GET', target_site)
-
-    finished = defer.Deferred()
-    result.deliverBody(net.BodyReceiver(finished))
-
-    body = yield finished
-
-    match = re.search(regexp, body)
-    try:
-        myip = match.group(1)
-    except:
-        myip = "unknown"
-
-    defer.returnValue(myip)
-
 class GeoIPDataFilesNotFound(Exception):
     pass
 

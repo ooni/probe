@@ -36,7 +36,13 @@ except ImportError:
     config.pcap_dnet = False
     conf.use_pcap = False
     conf.use_dnet = False
-    from scapy.all import PcapWriter
+
+    class DummyPcapWriter:
+        def __init__(self, pcap_filename, *arg, **kw):
+            log.err("Initializing DummyPcapWriter. We will not actually write to a pcapfile")
+        def write(self):
+            pass
+    PcapWriter = DummyPcapWriter
 
 
 class ProtocolNotRegistered(Exception):
@@ -47,6 +53,7 @@ class ProtocolAlreadyRegistered(Exception):
 
 
 def getNetworksFromRoutes():
+    """ Return a list of networks from the routing table """
     from scapy.all import conf, ltoa, read_routes
     from ipaddr    import IPNetwork, IPAddress
 
@@ -64,6 +71,10 @@ class IfaceError(Exception):
     pass
 
 def getDefaultIface():
+    """ Return the default interface or raise IfaceError """
+    #XXX: currently broken on OpenVZ environments, because
+    # the routing table does not contain a default route
+    # Workaround: Set the default interface in ooniprobe.conf
     networks = getNetworksFromRoutes()
     for net in networks:
         if net.is_private:

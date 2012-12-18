@@ -119,20 +119,9 @@ def testsEnded(*arg, **kw):
         try: reactor.stop()
         except: reactor.runUntilCurrent()
 
-def startSniffing():
-    from ooni.utils.txscapy import ScapyFactory, ScapySniffer
-    try:
-        checkForRoot()
-    except PermissionsError:
-        print "[!] Includepcap options requires root priviledges to run"
-        print "    you should run ooniprobe as root or disable the options in ooniprobe.conf"
-        sys.exit(1)
-
-    print "Starting sniffer"
-    config.scapyFactory = ScapyFactory(config.advanced.interface)
-
-    sniffer = ScapySniffer(config.reports.pcap)
-    config.scapyFactory.registerProtocol(sniffer)
+def testFailed(failure):
+    log.err("Failed in running a test inside a test list")
+    failure.printTraceback()
 
 def runTestList(none, test_list):
     """
@@ -149,7 +138,8 @@ def runTestList(none, test_list):
         deck_dl.append(d1)
 
     d2 = defer.DeferredList(deck_dl)
-    d2.addBoth(testsEnded)
+    d2.addCallback(testsEnded)
+    d2.addErrback(testFailed)
 
     try:
         # Print every 5 second the list of current tests running
@@ -162,6 +152,7 @@ def runTestList(none, test_list):
     return d2
 
 def errorRunningTests(failure):
+    log.err("There was an error in running a test")
     failure.printTraceback()
 
 def run():
@@ -176,6 +167,8 @@ def run():
         raise SystemExit, "%s: %s" % (sys.argv[0], ue)
 
     log.start(cmd_line_options['logfile'])
+
+    config.cmd_line_options = cmd_line_options
 
     if config.privacy.includepcap:
         try:

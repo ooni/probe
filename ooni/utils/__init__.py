@@ -1,12 +1,9 @@
-"""
-
-"""
-
 import imp
 import os
 import logging
 import string
 import random
+import glob
 import yaml
 
 class Storage(dict):
@@ -88,3 +85,33 @@ def randomStr(length, num=True):
     if num:
         chars += string.digits
     return ''.join(random.choice(chars) for x in range(length))
+
+def pushFilenameStack(filename):
+    """
+    Takes as input a target filename and checks to see if a file by such name
+    already exists. If it does exist then it will attempt to rename it to .1,
+    if .1 exists it will rename .1 to .2 if .2 exists then it will rename it to
+    .3, etc.
+    This is similar to pushing into a LIFO stack.
+
+    XXX: This will not work with stacks bigger than 10 elements because
+    glob.glob(".*") will return them in the wrong order (a.1, a.11, a.2, a.3,
+    etc.)
+    This is probably not an issue since the only thing it causes is that files
+    will be renamed in the wrong order and you shouldn't have the same report
+    filename for more than 10 reports anyways, because you should be making
+    ooniprobe generate the filename for you.
+
+    Args:
+        filename (str): the path to filename that you wish to create.
+    """
+    stack = glob.glob(filename+".*")
+    for f in reversed(stack):
+        c_idx = f.split(".")[-1]
+        c_filename = '.'.join(f.split(".")[:-1])
+        new_idx = int(c_idx) + 1
+        new_filename = "%s.%s" % (c_filename, new_idx)
+        os.rename(f, new_filename)
+    os.rename(filename, filename+".1")
+
+

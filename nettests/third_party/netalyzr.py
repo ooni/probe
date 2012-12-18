@@ -37,7 +37,6 @@ class NetalyzrWrapperTest(nettest.NetTestCase):
         except:
             log.debug("Netalyzr had an error, please see the log file: %s" % self.output_file)
         finally:
-            reactor.callFromThread(reactor.stop)
             self.clean_up()
 
     def clean_up(self):

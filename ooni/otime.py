@@ -1,6 +1,3 @@
-"""
-Here is the location for all time and date related utility functions.
-"""
 import time
 from datetime import datetime
 

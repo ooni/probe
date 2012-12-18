@@ -30,6 +30,10 @@ from txtorcon import TorState, launch_tor
 from ooni import config, nettest, reporter
 from ooni.inputunit import InputUnitFactory
 from ooni.reporter import OONIBReporter, YAMLReporter, OONIBReportError
+
+from ooni.inputunit import InputUnitFactory
+from ooni.nettest import NetTestCase, NoPostProcessor
+
 from ooni.utils import log, checkForRoot
 from ooni.utils import PermissionsError, Storage
 from ooni.utils.net import randomFreePort
@@ -70,7 +74,7 @@ def checkRequiredOptions(test_instance):
             if not test_instance.localOptions[required_option]:
                 raise usage.UsageError("%s not specified!" % required_option)
 
-def processTest(obj):
+def processTest(obj, cmd_line_options):
     """
     Process the parameters and :class:`twisted.python.usage.Options` of a
     :class:`ooni.nettest.Nettest`.
@@ -105,7 +109,7 @@ def processTest(obj):
         obj.usageOptions.optParameters.append(obj.inputFile)
 
     options = obj.usageOptions()
-    options.parseOptions(config.cmd_line_options['subargs'])
+    options.parseOptions(cmd_line_options['subargs'])
     obj.localOptions = options
 
     if obj.inputFile:                   # inputFilename is the actual filename
@@ -123,7 +127,7 @@ def processTest(obj):
     else:
         return obj
 
-def findTestClassesFromFile(filename):
+def findTestClassesFromFile(cmd_line_options):
     """
     Takes as input the command line config parameters and returns the test
     case classes.
@@ -135,11 +139,12 @@ def findTestClassesFromFile(filename):
         A list of class objects found in a file or module given on the
         commandline.
     """
+    filename = cmd_line_options['test']
     classes = []
     module = filenameToModule(filename)
     for name, val in inspect.getmembers(module):
         if isTestCase(val):
-            classes.append(processTest(val))
+            classes.append(processTest(val, cmd_line_options))
     return classes
 
 def makeTestCases(klass, tests, method_prefix):
@@ -233,6 +238,7 @@ def runTestCasesWithInput(test_cases, test_input, yaml_reporter,
             this is set to none then we will only report to the YAML reporter.
 
     """
+
     # This is used to store a copy of all the test reports
     tests_report = {}
 
@@ -458,7 +464,6 @@ def increaseInputUnitIdx(test_filename):
 
 def updateProgressMeters(test_filename, input_unit_factory, test_case_number):
     """Update the progress meters for keeping track of test state."""
-    log.msg("Setting up progress meters")
     if not config.state.test_filename:
         config.state[test_filename] = Storage()
 
@@ -522,7 +527,7 @@ def runTestCases(test_cases, options, cmd_line_options):
         oonib_reporter = None
 
     yield yaml_reporter.createReport(options)
-    log.msg("Reporting to file %s" % config.reports.yamloo)
+    log.msg("Reporting to file %s" % yaml_reporter._stream.name)
 
     try:
         input_unit_factory = InputUnitFactory(test_inputs)
@@ -560,8 +565,13 @@ def runTestCases(test_cases, options, cmd_line_options):
 
     except Exception:
         log.exception("Problem in running test")
+    yaml_reporter.finish()
 
 def startTor():
+    """ Starts Tor
+    Launches a Tor with :param: socks_port :param: control_port
+    :param: tor_binary set in ooniprobe.conf
+    """
     @defer.inlineCallbacks
     def state_complete(state):
         config.tor_state = state
@@ -572,9 +582,14 @@ def startTor():
 
         socks_port = yield state.protocol.get_conf("SocksPort")
         control_port = yield state.protocol.get_conf("ControlPort")
+        client_ip = yield state.protocol.get_info("address")
 
         config.tor.socks_port = int(socks_port.values()[0])
         config.tor.control_port = int(control_port.values()[0])
+
+        config.probe_ip = client_ip.values()[0]
+
+        log.debug("Obtained our IP address from a Tor Relay %s" % config.privacy.client_ip)
 
     def setup_failed(failure):
         log.exception(failure)
@@ -614,12 +629,16 @@ def startTor():
     log.debug("Setting SOCKS port as %s" % tor_config.SocksPort)
 
     d = launch_tor(tor_config, reactor,
+            tor_binary=config.advanced.tor_binary,
             progress_updates=updates)
     d.addCallback(setup_complete)
     d.addErrback(setup_failed)
     return d
 
 def startSniffing():
+    """ Start sniffing with Scapy. Exits if required privileges (root) are not
+    available.
+    """
     from ooni.utils.txscapy import ScapyFactory, ScapySniffer
     try:
         checkForRoot()
@@ -631,6 +650,12 @@ def startSniffing():
     print "Starting sniffer"
     config.scapyFactory = ScapyFactory(config.advanced.interface)
 
+    pcapfile = config.reports.pcap
+    if pcapfile and os.path.exists(pcapfile):
+        print "Report PCAP already exists with filename %s" % config.reports.pcap
+        print "Renaming files with such name..."
+        pushFilenameStack(config.reports.pcap)
+
     sniffer = ScapySniffer(config.reports.pcap)
     config.scapyFactory.registerProtocol(sniffer)
 
@@ -639,19 +664,10 @@ def loadTest(cmd_line_options):
     Takes care of parsing test command line arguments and loading their
     options.
     """
-    config.cmd_line_options = cmd_line_options
-    config.generateReportFilenames()
-
-    if cmd_line_options['reportfile']:
-        config.reports.yamloo = cmd_line_options['reportfile']+'.yamloo'
-        config.reports.pcap = config.reports.yamloo+'.pcap'
-
-    if os.path.exists(config.reports.pcap):
-        print "Report PCAP already exists with filename %s" % config.reports.pcap
-        print "Renaming it to %s" % config.reports.pcap+".old"
-        os.rename(config.reports.pcap, config.reports.pcap+".old")
-
-    classes = findTestClassesFromFile(cmd_line_options['test'])
+    # XXX here there is too much strong coupling with cmd_line_options
+    # Ideally this would get all wrapped in a nice little class that get's
+    # instanced with it's cmd_line_options as an instance attribute
+    classes = findTestClassesFromFile(cmd_line_options)
     test_cases, options = loadTestsAndOptions(classes, cmd_line_options)
 
     return test_cases, options, cmd_line_options

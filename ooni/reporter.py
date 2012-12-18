@@ -7,6 +7,7 @@
 # :authors: Arturo Filastò, Isis Lovecruft
 # :license: see included LICENSE file
 
+import traceback
 import itertools
 import logging
 import sys
@@ -14,7 +15,7 @@ import os
 import time
 import yaml
 import json
-import traceback
+import re
 
 from yaml.representer import *
 from yaml.emitter import *
@@ -26,13 +27,14 @@ from twisted.internet import defer, reactor
 from twisted.internet.error import ConnectionRefusedError
 
 from ooni import config, otime
-from ooni.utils import log, geodata
+from ooni.utils import log, geodata, pushFilenameStack
 from ooni.utils.net import BodyReceiver, StringProducer, userAgents
 
 try:
     from scapy.packet import Packet
 except ImportError:
     log.err("Scapy is not installed.")
+
 
 def createPacketReport(packet_list):
     """
@@ -111,45 +113,41 @@ def safe_dump(data, stream=None, **kw):
     """
     return yaml.dump_all([data], stream, Dumper=OSafeDumper, **kw)
 
-@defer.inlineCallbacks
 def getTestDetails(options):
     from ooni import __version__ as software_version
 
     client_geodata = {}
-    if config.privacy.includeip or \
+    if config.probe_ip and (config.privacy.includeip or \
             config.privacy.includeasn or \
             config.privacy.includecountry or \
-            config.privacy.includecity:
-        log.msg("Running geoIP lookup via check.torproject.org")
-        if config.advanced.default_timeout is not None and \
-                isinstance(config.advanced.default_timeout, int):
-            my_ip_timeout = float(config.advanced.default_timeout)
-        else:
-            log.debug("getTestDetails(): bad config: default_timeout %s"
-                      % str(config.advanced.default_timeout))
-            my_ip_timeout = float(120)
-        client_ip = yield geodata.myIP(connectTimeout=my_ip_timeout)
-        client_location = geodata.IPToLocation(client_ip)
-    else:
-        client_ip = "127.0.0.1"
+            config.privacy.includecity):
+        log.msg("We will include some geo data in the report")
+        client_geodata = geodata.IPToLocation(config.probe_ip)
 
     if config.privacy.includeip:
-        client_geodata['ip'] = client_ip
+        client_geodata['ip'] = config.probe_ip
     else:
         client_geodata['ip'] = "127.0.0.1"
 
-    client_geodata['asn'] = None
-    client_geodata['city'] = None
-    client_geodata['countrycode'] = None
+    # Here we unset all the client geodata if the option to not include then
+    # has been specified
+    if client_geodata and not config.privacy.includeasn:
+        client_geodata['asn'] = 'AS0'
+    elif 'asn' in client_geodata:
+        # XXX this regexp should probably go inside of geodata
+        client_geodata['asn'] = \
+                re.search('AS\d+', client_geodata['asn']).group(0)
+        log.msg("Your AS number is: %s" % client_geodata['asn'])
+    else:
+        client_geodata['asn'] = None
 
-    if config.privacy.includeasn:
-        client_geodata['asn'] = client_location['asn']
+    if (client_geodata and not config.privacy.includecity) \
+            or ('city' not in client_geodata):
+        client_geodata['city'] = None
 
-    if config.privacy.includecity:
-        client_geodata['city'] = client_location['city']
-
-    if config.privacy.includecountry:
-        client_geodata['countrycode'] = client_location['countrycode']
+    if (client_geodata and not config.privacy.includecountry) \
+            or ('countrycode' not in client_geodata):
+        client_geodata['countrycode'] = None
 
     test_details = {'start_time': otime.utcTimeNow(),
                     'probe_asn': client_geodata['asn'],
@@ -160,7 +158,7 @@ def getTestDetails(options):
                     'software_name': 'ooniprobe',
                     'software_version': software_version
                     }
-    defer.returnValue(test_details)
+    return test_details
 
 class OReporter(object):
     def __init__(self, cmd_line_options):
@@ -178,7 +176,7 @@ class OReporter(object):
         """
         raise NotImplemented
 
-    def finish():
+    def finish(self):
         pass
 
     def testDone(self, test, test_name):
@@ -205,13 +203,24 @@ class YAMLReporter(OReporter):
     These are useful functions for reporting to YAML format.
     """
     def __init__(self, cmd_line_options):
-        if os.path.exists(config.reports.yamloo):
-            log.msg("Report already exists with filename %s" % config.reports.yamloo)
-            log.msg("Renaming it to %s" % config.reports.yamloo+'.old')
-            os.rename(config.reports.yamloo, config.reports.yamloo+'.old')
+        if cmd_line_options['reportfile'] is None:
+            try:
+                test_filename = os.path.basename(cmd_line_options['test'])
+            except IndexError:
+                raise TestFilenameNotSet
 
-        log.debug("Creating %s" % config.reports.yamloo)
-        self._stream = open(config.reports.yamloo, 'w+')
+            test_name = '.'.join(test_filename.split(".")[:-1])
+            frm_str = "report_%s_"+otime.timestamp()+".%s"
+            reportfile = frm_str % (test_name, "yamloo")
+        else:
+            reportfile = cmd_line_options['reportfile']
+
+        if os.path.exists(reportfile):
+            log.msg("Report already exists with filename %s" % reportfile)
+            pushFilenameStack(reportfile)
+
+        log.debug("Creating %s" % reportfile)
+        self._stream = open(reportfile, 'w+')
         OReporter.__init__(self, cmd_line_options)
 
     def _writeln(self, line):
@@ -232,14 +241,13 @@ class YAMLReporter(OReporter):
         self._write(safe_dump(entry))
         self._write('...\n')
 
-    @defer.inlineCallbacks
     def createReport(self, options):
         self._writeln("###########################################")
         self._writeln("# OONI Probe Report for %s test" % options['name'])
         self._writeln("# %s" % otime.prettyDateNow())
         self._writeln("###########################################")
 
-        test_details = yield getTestDetails(options)
+        test_details = getTestDetails(options)
         test_details['options'] = self.cmd_line_options
 
         self.writeReportEntry(test_details)
@@ -282,7 +290,7 @@ class OONIBReporter(OReporter):
         content += safe_dump(entry)
         content += '...\n'
 
-        url = self.backend_url + '/report/new'
+        url = self.backend_url + '/report'
 
         request = {'report_id': self.report_id,
                 'content': content}
@@ -307,13 +315,10 @@ class OONIBReporter(OReporter):
         """
         Creates a report on the oonib collector.
         """
-        test_name = options['name']
-        test_version = options['version']
-
-        url = self.backend_url + '/report/new'
+        url = self.backend_url + '/report'
 
         try:
-            test_details = yield getTestDetails(options)
+            test_details = getTestDetails(options)
         except Exception, ex:
             log.exception(ex)
 
@@ -325,8 +330,12 @@ class OONIBReporter(OReporter):
         content += safe_dump(test_details)
         content += '...\n'
 
+        test_name = options['name']
+        test_version = options['version']
+
         request = {'software_name': test_details['software_name'],
             'software_version': test_details['software_version'],
+            'probe_asn': test_details['probe_asn'],
             'test_name': test_name,
             'test_version': test_version,
             'content': content

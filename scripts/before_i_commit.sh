@@ -10,11 +10,25 @@
 # rm *.yamloo; rm before_i_commit.log
 #
 
-rm -f before_i_commit.log
+if [ -f before_i_commit.log ];
+then
+  # this is technically the date it was moved, not the date it was created
+  mv before_i_commit.log before_i_commit-`date +%s`.log;
+  touch before_i_commit.log;
+else
+  touch before_i_commit.log;
+fi
 
 find . -type f -name "*.py[co]" -delete
 
-./bin/ooniprobe -i before_i_commit.testdeck
+if [ -f env/bin/activate ];
+then
+  source env/bin/activate;
+else
+  echo "Assuming that your virtual environment is pre-configured...";
+fi
+
+./bin/ooniprobe -i decks/before_i_commit.testdeck
 
 echo "Below you should not see anything"
 echo "---------------------------------"

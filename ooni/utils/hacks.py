@@ -8,10 +8,6 @@
 # :authors: Arturo Filastò, Isis Lovecruft
 # :licence: see LICENSE
 
-from yaml.representer import *
-from yaml.emitter import *
-from yaml.serializer import *
-from yaml.resolver import *
 
 import copy_reg
 

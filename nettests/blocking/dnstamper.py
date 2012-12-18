@@ -111,16 +111,16 @@ class DNSTamperTest(dnst.DNSTest):
                 return
 
         for test_resolver in self.test_resolvers:
-            log.msg("Testing %s test resolver" % test_resolver)
+            log.msg("Testing resolver: %s" % test_resolver)
             test_dns_server = (test_resolver, 53)
 
             experiment_answers = yield self.performALookup(hostname, test_dns_server)
-            log.debug("Got the following A lookup answers %s for %s" % (experiment_answers, test_resolver))
-
             if not experiment_answers:
                 log.err("Got no response, perhaps the DNS resolver is down?")
                 self.report['tampering'][test_resolver] = 'no_answer'
                 continue
+            else:
+                log.debug("Got the following A lookup answers %s from %s" % (experiment_answers, test_resolver))
 
             def lookup_details():
                 """
