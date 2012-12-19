@@ -4,7 +4,7 @@
 #  +-----------+
 #  | tcpflags.py |
 #  +-----------+
-#     Send packets with various TCP flags set to a test server 
+#     Send packets with various TCP flags set to a test server
 #     to check that it is reachable.
 #
 # @authors: Isis Lovecruft, <isis@torproject.org>
