@@ -7,10 +7,9 @@ The extra dependencies necessary to run OONIB are:
 
 We recommend that you use a python virtualenv. See OONI's README.md.
 
-#XXX: add instructions for isolating the python environment, sandboxing
-#XXX: see pypy-sandbox
-
 # Generate self signed certs for OONIB
+
+If you want to use the HTTPS test helper, you will need to create a certificate:
 
     openssl genrsa -des3 -out private.key 4096
     openssl req -new -key private.key -out server.csr
@@ -20,7 +19,12 @@ We recommend that you use a python virtualenv. See OONI's README.md.
     openssl x509 -req -days 365 -in server.csr -signkey private.key -out certificate.crt
     rm private.key.org
 
+Don't forget to update oonib/config.py options helpers.ssl.private_key and
+helpers.ssl.certificate
+
 # Redirect low ports with iptables
+
+The following iptables commands will map connections on low ports to those bound by oonib
 
     # Map port 80 to config.helpers.http_return_request.port  (default: 57001)
     iptables -t nat -A PREROUTING -p tcp -m tcp --dport 80 -j REDIRECT --to-ports 57001
@@ -33,8 +37,10 @@ We recommend that you use a python virtualenv. See OONI's README.md.
 
 # Install Tor (Debian).
 
-See also: https://www.torproject.org/docs/tor-doc-unix.html.en,
-https://www.torproject.org/docs/rpms.html.en
+You will need a Tor binary on your system. For complete instructions, see also:
+
+    https://www.torproject.org/docs/tor-doc-unix.html.en
+    https://www.torproject.org/docs/rpms.html.en
 
 Add this line to your /etc/apt/sources.list, replacing <DISTRIBUTION>
 where appropriate:
@@ -49,12 +55,12 @@ Add the Tor Project gpg key to apt:
     apt-get update
     apt-get install deb.torproject.org-keyring tor tor-geoipdb
 
-# Edit ooni-probe/oonib/config.py and configure 
+# Update ooni-probe/oonib/config.py
 
     Set config.main.tor_binary to your Tor path
     Set config.main.tor2webmode = False
 
-# (For Experts Only) To use Tor2webmode:
+# (For Experts Only) Tor2webmode:
 
 WARNING: provides no anonymity! Use only if you know what you are doing!
 Tor2webmode will improve the performance of the collector Hidden Service
@@ -98,5 +104,14 @@ Build Tor with enable-tor2web-mode
 Copy the tor binary from src/or/tor somewhere and set the corresponding
 options in oonib/config.py
 
-#XXX: add instructions for launching on boot
-#XXX: see: supervisord, crontab @restart, etc
+# To launch oonib on system boot
+
+To launch oonib on startup, you may want to use supervisord (www.supervisord.org)
+The following supervisord config will use the virtual environment in
+/home/ooni/venv_oonib and start oonib on boot:
+
+    [program:oonib]
+    command=/home/ooni/venv_oonib/bin/python /home/ooni/ooni-probe/bin/oonib
+    autostart=true
+    user=oonib
+    directory=/home/oonib/
