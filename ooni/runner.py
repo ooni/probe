@@ -219,7 +219,7 @@ def getTestTimeout(test_instance, test_method):
             return float(timeout)
         except (ValueError, TypeError):
             log.warn("'timeout' attribute must be a number!")
-            return float(default_timeout)
+            return float(default)
 
 def runTestCasesWithInput(test_cases, test_input, yaml_reporter,
                           oonib_reporter=None):
