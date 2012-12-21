@@ -1,12 +1,8 @@
 *.pyc
 assets/*
-build/*
-docs/build/*
-data/*.dat
 ENV/*
-fluff/
+build/*
 package/*
-pcaps/*
 proxy-lists/ip-cc.txt
 proxy-lists/ips.txt
 proxy-lists/italy-dns-ips.txt
@@ -18,12 +14,9 @@ ooni/plugins/dropin.cache
 ooni/report*.yaml
 oonib/oonibackend.conf
 oonib/data/*
-*.resume
 fluff/
 pcaps/
 report*.yaml
 docs/build/*
 data/*.dat
 ooniprobe.conf
-report*.yaml
-report*.yamloo

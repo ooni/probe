@@ -6,9 +6,8 @@
 # units. Input units are how the inputs to be fed to tests are
 # split up into.
 #
-# :authors: Arturo Filastò, Isis Lovecruft
+# :authors: Arturo Filastò
 # :license: see included LICENSE file
-
 
 class InputUnitFactory(object):
     """
@@ -62,37 +61,24 @@ class InputUnitFactory(object):
 class InputUnit(object):
     """
     This is a python iterable object that contains the input elements to be
-    passed onto a :class:`ooni.nettest.NetTestCase`.
+    passed onto a TestCase.
     """
     def __init__(self, inputs=[]):
-        """
-        Create an iterable from a list of inputs, which can be given to a NetTestCase.
-
-        @param inputs: A list of inputs for a NetTestCase.
-        """
         self._inputs = iter(inputs)
-        # _inputs_copy is to avoid stealing things from
-        # the iterator when __repr__ is called:
-        self._inputs_copy = inputs
 
     def __str__(self):
-        """Prints the original input list."""
-        return "<%s inputs=%s>" % (self.__class__, self._inputs_copy)
+        return "<%s inputs=%s>" % (self.__class__, self._inputs)
 
     def __add__(self, inputs):
-        """Add a list of inputs to the iterator."""
         for i in inputs:
             self._inputs.append(i)
 
     def __iter__(self):
-        """Self explanatory."""
         return self
 
     def next(self):
-        """Return the next item from the InputUnit iterator."""
         return self._inputs.next()
 
     def append(self, input):
-        """Add an item to the end of the InputUnit iterator."""
         self._inputs.append(input)
 

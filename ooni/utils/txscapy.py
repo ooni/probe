@@ -1,12 +1,3 @@
-# -*- coding: utf-8 -*-
-#
-# txscapy
-# *******
-# Here shall go functions related to using scapy with twisted.
-#
-# This software has been written to be part of OONI, the Open Observatory of
-# Network Interference. More information on that here: http://ooni.nu/
-
 import struct
 import socket
 import os
@@ -18,21 +9,25 @@ from twisted.internet import reactor, threads, error
 from twisted.internet import defer, abstract
 from zope.interface import implements
 
-from scapy.all import BasePacketList, conf, PcapReader
-from scapy.all import Gen, SetGen, MTU
-from scapy.error import Scapy_Exception
+from scapy.config import conf
 
-from ooni import config
 from ooni.utils import log
+from ooni import config
 
 try:
-    from scapy.all import PcapWriter
-    from scapy.arch import pcapdnet
-    config.pcap_dnet = True
     conf.use_pcap = True
     conf.use_dnet = True
-except ImportError:
-    log.err("pypcap or dnet not installed. Certain tests may not work.")
+
+    from scapy.all import PcapWriter
+    from scapy.arch import pcapdnet
+
+    config.pcap_dnet = True
+    from scapy.all import Gen, SetGen, MTU
+
+except ImportError, e:
+    log.err("pypcap or dnet not installed. "
+            "Certain tests may not work.")
+
     config.pcap_dnet = False
     conf.use_pcap = False
     conf.use_dnet = False
@@ -40,22 +35,21 @@ except ImportError:
     class DummyPcapWriter:
         def __init__(self, pcap_filename, *arg, **kw):
             log.err("Initializing DummyPcapWriter. We will not actually write to a pcapfile")
+
         def write(self):
             pass
+
     PcapWriter = DummyPcapWriter
 
-
-class ProtocolNotRegistered(Exception):
-    pass
-
-class ProtocolAlreadyRegistered(Exception):
-    pass
 
 
 def getNetworksFromRoutes():
     """ Return a list of networks from the routing table """
     from scapy.all import conf, ltoa, read_routes
     from ipaddr    import IPNetwork, IPAddress
+
+    ## Hide the 'no routes' warnings
+    conf.verb = 0
 
     networks = []
     for nw, nm, gw, iface, addr in read_routes():
@@ -81,6 +75,11 @@ def getDefaultIface():
             return net.iface
     raise IfaceError
 
+class ProtocolNotRegistered(Exception):
+    pass
+
+class ProtocolAlreadyRegistered(Exception):
+    pass
 
 class ScapyFactory(abstract.FileDescriptor):
     """
@@ -88,27 +87,14 @@ class ScapyFactory(abstract.FileDescriptor):
     https://github.com/enki/muXTCP/blob/master/scapyLink.py
     """
     def __init__(self, interface, super_socket=None, timeout=5):
+
         abstract.FileDescriptor.__init__(self, reactor)
         if interface == 'auto':
             interface = getDefaultIface()
         if not super_socket:
-            try:
-                # scapy is missing an import in /scapy/arch/linux.py
-                # see /ooni/lib/000-scapy-missing-exc.patch
-                super_socket = conf.L3socket(iface=interface,
-                                             promisc=True, filter='')
-                #super_socket = conf.L2socket(iface=interface)
-            except NameError, ne:
-                raise Scapy_Exception("Filter parse error")
-            except Scapy_Exception, se:
-                log.err("txscapy: %s" % se.message)
-                log.debug("txscapy: Trying socket setup again without filter")
-                try:
-                    super_socket = conf.L3socket(iface=interface, 
-                                                 promisc=True)
-                except:
-                    log.err("txscapy: Socket setup failed, giving up...")
-                    raise sys.exit(1)
+            super_socket = conf.L3socket(iface=interface,
+                    promisc=True, filter='')
+            #super_socket = conf.L2socket(iface=interface)
 
         self.protocols = []
         fdesc._setCloseOnExec(super_socket.ins.fileno())
@@ -167,13 +153,9 @@ class ScapyProtocol(object):
         raise NotImplementedError
 
 class ScapySender(ScapyProtocol):
-    
-    # This deferred will fire when we have finished sending and receiving
-    # packets.   
     timeout = 5
-    if config.advanced.default_timeout:
-        timeout = int(config.advanced.default_timeout)
 
+    # This deferred will fire when we have finished sending a receiving packets.
     # Should we look for multiple answers for the same sent packet?
     multi = False
 
@@ -197,7 +179,7 @@ class ScapySender(ScapyProtocol):
                 break
 
         if len(self.answered_packets) == len(self.sent_packets):
-            # All of our questions have been answered.
+            log.debug("All of our questions have been answered.")
             self.stopSending()
             return
 
@@ -254,10 +236,7 @@ class ScapySender(ScapyProtocol):
 
 class ScapySniffer(ScapyProtocol):
     def __init__(self, pcap_filename, *arg, **kw):
-        # The "str(pcap_filename)" explicit typing is due to an error where
-        # scapy.utils.PcapWriter expects strings, and it's getting unicode
-        # due to the "# -*- coding: utf-8 -*-"...this might be a problem...
-        self.pcapwriter = PcapWriter(str(pcap_filename), *arg, **kw)
+        self.pcapwriter = PcapWriter(pcap_filename, *arg, **kw)
 
     def packetReceived(self, packet):
         self.pcapwriter.write(packet)

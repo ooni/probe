@@ -1,78 +1,30 @@
-#-*- coding: utf-8 -*-
-#
-# runner.py
-# ---------
-# Handles running ooni.nettests as well as
-# ooni.plugoo.tests.OONITests.
-#
-# :authors: Arturo Filastò, Isis Lovecruft
-# :license: see included LICENSE file
-
 import os
 import sys
 import time
 import inspect
 import traceback
 import itertools
+
 import yaml
 
-from twisted.python import reflect, usage, failure
-from twisted.internet import defer, reactor, threads
-from twisted.trial import reporter as txreporter
-from twisted.trial import util as txutil
+from twisted.python import reflect, usage
+from twisted.internet import defer
 from twisted.trial.runner import filenameToModule
-from twisted.trial.unittest import utils as txutils
-from twisted.trial.unittest import SkipTest
+from twisted.internet import reactor, threads
 
 from txtorcon import TorProtocolFactory, TorConfig
 from txtorcon import TorState, launch_tor
 
-from ooni import config, nettest, reporter
-from ooni.inputunit import InputUnitFactory
+from ooni import config
+
 from ooni.reporter import OONIBReporter, YAMLReporter, OONIBReportError
 
 from ooni.inputunit import InputUnitFactory
 from ooni.nettest import NetTestCase, NoPostProcessor
 
-from ooni.utils import log, checkForRoot
-from ooni.utils import PermissionsError, Storage
+from ooni.utils import log, checkForRoot, pushFilenameStack
+from ooni.utils import NotRootError, Storage
 from ooni.utils.net import randomFreePort
-
-
-class NoTestCasesFound(Exception):
-    pass
-
-class InvalidResumeFile(Exception):
-    pass
-
-class noResumeSession(Exception):
-    pass
-
-class InvalidConfigFile(Exception):
-    message = "Invalid setting in ooniprobe.conf: "
-
-class UnableToStartTor(Exception):
-    pass
-
-
-def isTestCase(obj):
-    """Return True if obj is a subclass of NetTestCase, False otherwise."""
-    try:
-        return issubclass(obj, nettest.NetTestCase)
-    except TypeError:
-        return False
-
-def checkRequiredOptions(test_instance):
-    """
-    If test_instance has an attribute 'requiredOptions', then check that
-    those options were utilised on the commandline.
-    """
-    required = getattr(test_instance, 'requiredOptions', None)
-    if required:
-        for required_option in required:
-            log.debug("Checking if %s is present" % required_option)
-            if not test_instance.localOptions[required_option]:
-                raise usage.UsageError("%s not specified!" % required_option)
 
 def processTest(obj, cmd_line_options):
     """
@@ -86,46 +38,58 @@ def processTest(obj, cmd_line_options):
     :param cmd_line_options:
         A configured and instantiated :class:`twisted.python.usage.Options`
         class.
-    """
-    if obj.requiresRoot:
-        try:
-            checkForRoot()
-        except PermissionsError:
-            log.err("%s requires root to run" % obj.name)
-            sys.exit(1)
 
+    """
     if not hasattr(obj.usageOptions, 'optParameters'):
         obj.usageOptions.optParameters = []
+
+    if obj.inputFile:
+        obj.usageOptions.optParameters.append(obj.inputFile)
 
     if obj.baseParameters:
         for parameter in obj.baseParameters:
             obj.usageOptions.optParameters.append(parameter)
+
     if obj.baseFlags:
         if not hasattr(obj.usageOptions, 'optFlags'):
             obj.usageOptions.optFlags = []
         for flag in obj.baseFlags:
             obj.usageOptions.optFlags.append(flag)
-    if obj.inputFile:                   # inputFile is the optParameters list
-        obj.usageOptions.optParameters.append(obj.inputFile)
 
     options = obj.usageOptions()
+
     options.parseOptions(cmd_line_options['subargs'])
     obj.localOptions = options
 
-    if obj.inputFile:                   # inputFilename is the actual filename
+    if obj.inputFile:
         obj.inputFilename = options[obj.inputFile[0]]
 
     try:
-        log.debug("Parsing commandline options")
-        tmp_test_instance = obj()
-        checkRequiredOptions(tmp_test_instance)
-    except usage.UsageError, ue:
-        log.err("%s" % ue)
+        log.debug("processing options")
+        tmp_test_case_object = obj()
+        tmp_test_case_object._checkRequiredOptions()
+
+    except usage.UsageError, e:
+        test_name = tmp_test_case_object.name
+        log.err("There was an error in running %s!" % test_name)
+        log.err("%s" % e)
         options.opt_help()
-        raise usage.UsageError("Error parsing command line args for %s"
-                               % tmp_test_case_object.name)
-    else:
-        return obj
+        raise usage.UsageError("Error in parsing command line args for %s" % test_name)
+
+    if obj.requiresRoot:
+        try:
+            checkForRoot()
+        except NotRootError:
+            log.err("%s requires root to run" % obj.name)
+            sys.exit(1)
+
+    return obj
+
+def isTestCase(obj):
+    try:
+        return issubclass(obj, NetTestCase)
+    except TypeError:
+        return False
 
 def findTestClassesFromFile(cmd_line_options):
     """
@@ -139,19 +103,13 @@ def findTestClassesFromFile(cmd_line_options):
         A list of class objects found in a file or module given on the
         commandline.
     """
-    classes = []
     filename = cmd_line_options['test']
-    relative = filename.rsplit('/', 1)[1]
-    try:
-        module = filenameToModule(filename)
-    except ValueError, ve:
-        log.fail("%r doesn't exist." % relative)
-    else:
-        for name, val in inspect.getmembers(module):
-            if isTestCase(val):
-                classes.append(processTest(val, cmd_line_options))
-    finally:
-        return classes
+    classes = []
+    module = filenameToModule(filename)
+    for name, val in inspect.getmembers(module):
+        if isTestCase(val):
+            classes.append(processTest(val, cmd_line_options))
+    return classes
 
 def makeTestCases(klass, tests, method_prefix):
     """
@@ -162,6 +120,9 @@ def makeTestCases(klass, tests, method_prefix):
     for test in tests:
         cases.append((klass, method_prefix+test))
     return cases
+
+class NoTestCasesFound(Exception):
+    pass
 
 def loadTestsAndOptions(classes, cmd_line_options):
     """
@@ -184,45 +145,8 @@ def loadTestsAndOptions(classes, cmd_line_options):
 
     return test_cases, options
 
-def getTestTimeout(test_instance, test_method):
-    """
-    Returns the timeout value set on this test. Check on the instance first,
-    the the class, then the module, then package. As soon as it finds
-    something with a timeout attribute, returns that. Returns the value set in
-    ooniprobe.conf, :attr:`ooni.config.advanced.default_timeout
-    <default_timeout>` if it cannot find anything.
-
-    See twisted.trial.unittest.TestCase docstring for more details.
-
-    @param test_instance:
-        The instance of a :class:`ooni.nettest.NetTestCase` currently running.
-    @param test_method:
-        The test_instance.test_method currently being processed.
-    """
-    default = config.advanced.default_timeout
-
-    try:
-        tm = getattr(test_instance, test_method)
-    except:
-        log.debug("runner.getTestTimeout() couldn't find %s.%s!"
-                  % (test_instance, test_method))
-        try:
-            return float(default)
-        except (ValueError, TypeError):
-            raise InvalidConfigFile("'default_timeout' must be a number!")
-    else:
-        test_instance._parents = [tm, test_instance]
-        test_instance._parents.extend(txutil.getPythonContainers(tm))
-        timeout = txutil.acquireAttribute(
-            test_instance._parents, 'timeout', default)
-        try:
-            return float(timeout)
-        except (ValueError, TypeError):
-            log.warn("'timeout' attribute must be a number!")
-            return float(default)
-
 def runTestCasesWithInput(test_cases, test_input, yaml_reporter,
-                          oonib_reporter=None):
+        oonib_reporter=None):
     """
     Runs in parallel all the test methods that are inside of the specified test case.
     Reporting happens every time a Test Method has concluded running.
@@ -248,30 +172,8 @@ def runTestCasesWithInput(test_cases, test_input, yaml_reporter,
     # This is used to store a copy of all the test reports
     tests_report = {}
 
-    def test_timeout(d, test_instance):
-        timeout_error = defer.TimeoutError(
-            "%s test for %s timed out after %s seconds"
-            % (test_instance.name, test_instance.input, test_instance.timeout))
-        timeout_fail = failure.Failure(err)
-        try:
-            d.errback(timeout_fail)
-        except defer.AlreadyCalledError:
-            # if the deferred has already been called but the *back chain is
-            # still unfinished, safely crash the reactor and report the timeout
-            reactor.crash()
-            test_instance._timedOut = True    # see test_instance._wait
-            test_instance._test_result.addExpectedFailure(test_instance, fail)
-    test_timeout = txutils.suppressWarnings(
-        test_timeout, txutil.suppress(category=DeprecationWarning))
-
-    def test_skip_class(reason):
-        try:
-            d.errback(failure.Failure(SkipTest("%s" % reason)))
-        except defer.AlreadyCalledError:
-            pass # XXX not sure what to do here...
-
     def test_done(result, test_instance, test_name):
-        log.msg("Successfully finished running %s" % test_name)
+        log.msg("Finished running %s" % test_name)
         log.debug("Deferred callback result: %s" % result)
         tests_report[test_name] = dict(test_instance.report)
         if not oonib_reporter:
@@ -280,12 +182,9 @@ def runTestCasesWithInput(test_cases, test_input, yaml_reporter,
         d2 = yaml_reporter.testDone(test_instance, test_name)
         return defer.DeferredList([d1, d2])
 
-    def test_error(error, test_instance, test_name):
-        if isinstance(error, SkipTest):
-            log.warn("%s" % error.message)
-        else:
-            log.err("Error in running %s" % test_name)
-            log.exception(error)
+    def test_error(failure, test_instance, test_name):
+        log.err("Error in running %s" % test_name)
+        log.exception(failure)
         return
 
     def tests_done(result, test_class):
@@ -301,54 +200,29 @@ def runTestCasesWithInput(test_cases, test_input, yaml_reporter,
             d1 = oonib_reporter.testDone(test_instance, 'summary')
             d2 = yaml_reporter.testDone(test_instance, 'summary')
             return defer.DeferredList([d1, d2])
-        except nettest.NoPostProcessor:
+        except NoPostProcessor:
             log.debug("No post processor configured")
             return
 
     dl = []
     for test_case in test_cases:
+        log.debug("Processing %s" % test_case[1])
         test_class = test_case[0]
         test_method = test_case[1]
-        log.debug("%s: Setting up: %s" % (test_class.name, test_method))
+
+        log.msg("Running %s with %s..." % (test_method, test_input))
 
         test_instance = test_class()
         test_instance.input = test_input
         test_instance.report = {}
-
-        # XXX txreporter.TestResult is expected by test_timeout(), but we
-        # should eventually replace it with a stub class
-        test_instance._test_result = txreporter.TestResult()
         # use this to keep track of the test runtime
         test_instance._start_time = time.time()
         # call setups on the test
         test_instance._setUp()
         test_instance.setUp()
-
-        # get the timeout and _parents, in case it was set in setUp()
-        test_instance.timeout = getTestTimeout(test_instance, test_method)
-        test_instance.timedOut = False
-
         test = getattr(test_instance, test_method)
-        test_instance._testMethod = test
 
         d = defer.maybeDeferred(test)
-
-        # register the timer with the reactor
-        call_timeout = reactor.callLater(test_instance.timeout, test_timeout, d,
-                                         test_instance)
-        d.addBoth(lambda x: call_timeout.active() and call_timeout.cancel() or x)
-
-        # check if anything has been aborted or marked as 'skip'
-        if hasattr(test_instance.__class__, 'skip'):
-            reason = getattr(test_instance.__class__, 'skip')
-        else:
-            reason = txutil.acquireAttribute(test_instance._parents, 'skip', None)
-        if reason is not None:
-            log.warn("%s marked some tests to be skipped. Reason: %s"
-                     % (test_instance.name, reason))
-            call_skip = reactor.callLater(0, test_skip_class, reason)
-            d.addBoth(lambda x: call_skip.active() and call_skip.cancel() or x)
-
         d.addCallback(test_done, test_instance, test_method)
         d.addErrback(test_error, test_instance, test_method)
         dl.append(d)
@@ -357,8 +231,8 @@ def runTestCasesWithInput(test_cases, test_input, yaml_reporter,
     test_methods_d.addCallback(tests_done, test_cases[0][0])
     return test_methods_d
 
-def runTestCasesWithInputUnit(test_cases, input_unit, yaml_reporter, 
-                              oonib_reporter):
+def runTestCasesWithInputUnit(test_cases, input_unit, yaml_reporter,
+        oonib_reporter):
     """
     Runs the Test Cases that are given as input parallely.
     A Test Case is a subclass of ooni.nettest.NetTestCase and a list of
@@ -367,20 +241,25 @@ def runTestCasesWithInputUnit(test_cases, input_unit, yaml_reporter,
     The deferred list will fire once all the test methods have been
     run once per item in the input unit.
 
-    @param test_cases:
-        A tuple containing the test_class and test_method as strings.
-    @param input_unit:
-        A generator that contains the inputs to be run on the test.
-    @return: 
-        A DeferredList containing all the tests to be run at this time.
+    test_cases: A list of tuples containing the test class and the test method as a string.
+
+    input_unit: A generator that yields an input per iteration
+
     """
+    log.debug("Running test cases with input unit")
     dl = []
     for test_input in input_unit:
-        log.debug("Running test with this input %s" % str(test_input))
+        log.debug("Running test with this input %s" % test_input)
         d = runTestCasesWithInput(test_cases,
                 test_input, yaml_reporter, oonib_reporter)
         dl.append(d)
     return defer.DeferredList(dl)
+
+class InvalidResumeFile(Exception):
+    pass
+
+class noResumeSession(Exception):
+    pass
 
 def loadResumeFile():
     """
@@ -390,6 +269,7 @@ def loadResumeFile():
     Raises:
 
         :class:ooni.runner.InvalidResumeFile if the resume file is not valid
+
     """
     if not config.stateDict:
         try:
@@ -425,6 +305,7 @@ def resumeTest(test_filename, input_unit_factory):
 
         :class:ooni.inputunit.InputUnitFactory that is at the index of the
             previous test run.
+
     """
     try:
         idx = config.stateDict[test_filename]
@@ -445,7 +326,7 @@ def resumeTest(test_filename, input_unit_factory):
 @defer.inlineCallbacks
 def updateResumeFile(test_filename):
     """
-    Update the resume file with the current stateDict state.
+    update the resume file with the current stateDict state.
     """
     log.debug("Acquiring lock for %s" % test_filename)
     yield config.resume_lock.acquire()
@@ -467,17 +348,20 @@ def increaseInputUnitIdx(test_filename):
             including the .py extension.
 
         input_unit_idx (int): the current input unit index for the test.
+
     """
     config.stateDict[test_filename] += 1
     yield updateResumeFile(test_filename)
 
-def updateProgressMeters(test_filename, input_unit_factory, test_case_number):
-    """Update the progress meters for keeping track of test state."""
+def updateProgressMeters(test_filename, input_unit_factory, 
+        test_case_number):
+    """
+    Update the progress meters for keeping track of test state.
+    """
     if not config.state.test_filename:
         config.state[test_filename] = Storage()
 
-    per_item_avg = float(2)
-    config.state[test_filename].per_item_average = per_item_avg
+    config.state[test_filename].per_item_average = 2.0
 
     input_unit_idx = float(config.stateDict[test_filename])
     input_unit_items = float(len(input_unit_factory) + 1)
@@ -485,36 +369,29 @@ def updateProgressMeters(test_filename, input_unit_factory, test_case_number):
     total_iterations = input_unit_items * test_case_number
     current_iteration = input_unit_idx * test_case_number
 
-    log.debug("Total InputUnits: %s" % input_unit_items)
+    log.debug("input_unit_items: %s" % input_unit_items)
+    log.debug("test_case_number: %s" % test_case_number)
+
     log.debug("Test case number: %s" % test_case_number)
     log.debug("Total iterations: %s" % total_iterations)
     log.debug("Current iteration: %s" % current_iteration)
 
     def progress():
-        current_progress = (current_iteration / total_iterations) * 100.0
-        while float(current_progress) < float(100):
-            return current_progress
+        return (current_iteration / total_iterations) * 100.0
+
     config.state[test_filename].progress = progress
 
     def eta():
-        return (total_iterations - current_iteration) * per_item_avg
+        return (total_iterations - current_iteration) \
+                * config.state[test_filename].per_item_average
     config.state[test_filename].eta = eta
 
     config.state[test_filename].input_unit_idx = input_unit_idx
     config.state[test_filename].input_unit_items = input_unit_items
 
+
 @defer.inlineCallbacks
 def runTestCases(test_cases, options, cmd_line_options):
-    """
-    Run all test cases found in specified files and modules.
-
-    @param test_cases:
-        A list of tuples, each tuple in containing the test_class
-        and test_method to run.
-    @param cmd_line_options:
-        The parsed :attr:`twisted.python.usage.Options.optParameters`
-        obtained from the main ooni commandline.
-    """
     log.debug("Running %s" % test_cases)
     log.debug("Options %s" % options)
     log.debug("cmd_line_options %s" % dict(cmd_line_options))
@@ -575,6 +452,9 @@ def runTestCases(test_cases, options, cmd_line_options):
     except Exception:
         log.exception("Problem in running test")
     yaml_reporter.finish()
+
+class UnableToStartTor(Exception):
+    pass
 
 def startTor():
     """ Starts Tor
@@ -651,7 +531,7 @@ def startSniffing():
     from ooni.utils.txscapy import ScapyFactory, ScapySniffer
     try:
         checkForRoot()
-    except PermissionsError:
+    except NotRootError:
         print "[!] Includepcap options requires root priviledges to run"
         print "    you should run ooniprobe as root or disable the options in ooniprobe.conf"
         sys.exit(1)
@@ -659,8 +539,7 @@ def startSniffing():
     print "Starting sniffer"
     config.scapyFactory = ScapyFactory(config.advanced.interface)
 
-    pcapfile = config.reports.pcap
-    if pcapfile and os.path.exists(pcapfile):
+    if os.path.exists(config.reports.pcap):
         print "Report PCAP already exists with filename %s" % config.reports.pcap
         print "Renaming files with such name..."
         pushFilenameStack(config.reports.pcap)
@@ -677,12 +556,6 @@ def loadTest(cmd_line_options):
     # Ideally this would get all wrapped in a nice little class that get's
     # instanced with it's cmd_line_options as an instance attribute
     classes = findTestClassesFromFile(cmd_line_options)
-    try:
-        test_cases, options = loadTestsAndOptions(classes, cmd_line_options)
-        return test_cases, options, cmd_line_options
-    except NoTestCasesFound, ntcf:
-        log.err(ntcf)
-        if not 'testdeck' in cmd_line_options: # exit if this was this only test
-            sys.exit(1)                        # file and there aren't any tests
-        else:
-            pass # there are more tests, so continue
+    test_cases, options = loadTestsAndOptions(classes, cmd_line_options)
+
+    return test_cases, options, cmd_line_options

@@ -1,20 +1,11 @@
-#-*- coding: utf-8 -*-
-#
-# reporter.py 
-# -----------
-# In here goes the logic for the creation of ooniprobe reports.
-#
-# :authors: Arturo Filastò, Isis Lovecruft
-# :license: see included LICENSE file
-
 import traceback
 import itertools
 import logging
-import sys
-import os
 import time
 import yaml
 import json
+import sys
+import os
 import re
 
 from yaml.representer import *
@@ -26,15 +17,19 @@ from twisted.trial import reporter
 from twisted.internet import defer, reactor
 from twisted.internet.error import ConnectionRefusedError
 
-from ooni import config, otime
-from ooni.utils import log, geodata, pushFilenameStack
-from ooni.utils.net import BodyReceiver, StringProducer, userAgents
+from ooni.utils import log
 
 try:
     from scapy.packet import Packet
 except ImportError:
     log.err("Scapy is not installed.")
 
+
+from ooni import otime
+from ooni.utils import geodata, pushFilenameStack
+from ooni.utils.net import BodyReceiver, StringProducer, userAgents
+
+from ooni import config
 
 def createPacketReport(packet_list):
     """
@@ -157,7 +152,7 @@ def getTestDetails(options):
                     'test_version': options['version'],
                     'software_name': 'ooniprobe',
                     'software_version': software_version
-                    }
+    }
     return test_details
 
 class OReporter(object):
@@ -180,7 +175,7 @@ class OReporter(object):
         pass
 
     def testDone(self, test, test_name):
-        log.debug("Calling reporter to record results")
+        log.msg("Finished running %s" % test_name)
         test_report = dict(test.report)
 
         if isinstance(test.input, Packet):
@@ -278,8 +273,8 @@ class OONIBReporter(OReporter):
         try:
             self.agent = Agent(reactor, sockshost="127.0.0.1",
                 socksport=int(config.tor.socks_port))
-        except Exception, ex:
-            log.exception(ex)
+        except Exception, e:
+            log.exception(e)
 
         OReporter.__init__(self, cmd_line_options)
 
@@ -319,8 +314,8 @@ class OONIBReporter(OReporter):
 
         try:
             test_details = getTestDetails(options)
-        except Exception, ex:
-            log.exception(ex)
+        except Exception, e:
+            log.exception(e)
 
         test_details['options'] = self.cmd_line_options
 
@@ -339,7 +334,7 @@ class OONIBReporter(OReporter):
             'test_name': test_name,
             'test_version': test_version,
             'content': content
-            }
+        }
 
         log.msg("Reporting %s" % url)
         request_json = json.dumps(request)
@@ -357,8 +352,8 @@ class OONIBReporter(OReporter):
             log.err("Connection to reporting backend failed (ConnectionRefusedError)")
             raise OONIBReportCreationError
 
-        except Exception, ex:
-            log.exception(ex)
+        except Exception, e:
+            log.exception(e)
             raise OONIBReportCreationError
 
         # This is a little trix to allow us to unspool the response. We create
