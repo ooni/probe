@@ -19,6 +19,11 @@ ooni/report*.yaml
 oonib/oonibackend.conf
 oonib/data/*
 *.resume
+fluff/
+pcaps/
+report*.yaml
+docs/build/*
+data/*.dat
 ooniprobe.conf
 report*.yaml
 report*.yamloo
