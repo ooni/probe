@@ -266,6 +266,69 @@ Like so for example
 Implementation status
 =====================
 
-.. TODO
+ooniprobe
+.........
 
+**Reporting**
+
+  * To flat YAML file: *alpha*
+
+  * To remote httpo backend: *alpha*
+
+**Test templates**
+
+  * HTTP test template: *alpha*
+
+  * Scapy test template: *alpha*
+
+  * DNS test template: *alpha*
+
+  * TCP test template: *prototype*
+
+**Tests**
+
+To see the list of implemented tests see:
+https://ooni.torproject.org/docs/#core-ooniprobe-tests
+
+**ooniprobe API**
+
+  * Specification: *draft*
+
+  * HTTP API: *not implemented*
+
+**ooniprobe HTML5/JS user interface**
+
+  Not implemented.
+
+**ooniprobe build system**
+
+  Not implemented.
+
+**ooniprobe command line interface**
+
+  Implemented in alpha quality, though needs to be ported to use the HTTP based
+  API.
+
+oonib
+.....
+
+**Collector**
+
+  * collection of YAML reports to flat file: *alpha*
+
+  * collection of pcap reports: *not implemented*
+
+  * association of reports with test helpers: *not implemented*
+
+**Test helpers**
+
+  * HTTP Return JSON Helper: *alpha*
+
+  * DNS Test helper: *prototype*
+
+  * Test Helper - collector mapping: *Not implemented*
+
+  * TCP Test helper: *prototype*
+
+  * Daphn3 Test helper: *prototype*
 
