@@ -4,8 +4,6 @@ Architecture
 :Contact: art@torproject.org
 :Copyright: This document has been placed in the public domain.
 
-.. [[Image(https://github.com/hellais/ooni-docsnspecs/raw/master/graphics/CnCView.png, width=550px, align=right)]]
-
 The goal of this document is provide an overview of how ooni works, what are
 it's pieces and how they interact with one another.
 
@@ -15,6 +13,9 @@ To get an idea of what is implemented and with what sort of quality see the
 `Implementation status`_ section of this page.
 
 The two main components of ooni are `oonib`_ and `ooniprobe`_.
+
+.. image:: _static/images/ooniprobe-architecture.png
+    :width: 700px
 
 ooniprobe
 ---------
