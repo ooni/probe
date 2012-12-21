@@ -174,10 +174,8 @@ def run():
         try:
             checkForRoot()
         except PermissionsError, pe:
-            m = ("Capturing packets requires administrator/root privileges. ",
-                 "Run ooniprobe as root or set 'includepcap = false' in ",
-                 "ooniprobe.conf .")
-            log.warn("%s" % m)
+            log.warn("Capturing packets requires administrator/root privileges. ")
+            log.warn("Run ooniprobe as root or set 'includepcap = false' in ooniprobe.conf .")
             sys.exit(1)
         else:
             log.msg("Starting packet capture")
