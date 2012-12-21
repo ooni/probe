@@ -181,20 +181,86 @@ Draft API specification
 Through the ooniprobe API it will be possible to `start tests`_, `stop tests`_ and `monitor test
 progress`_.
 
+List tests
+..........
+
+`GET /test`
+
+Shall return the list of available tests as an array.
+
+This is how a response looks like
+::
+
+  [{'id': 'http_requests',
+    'name': 'HTTP Requests Test',
+    'description': 'This test perform a HTTP GET request for the / resource over the test network and over Tor',
+    'type': [ 'blocking' ],
+    'version': '0.1',
+    'arguments': {
+      'urllist': 'Specify the list of URLs to be used for the test'
+    }
+  }]
+
+*type* may be either **blocking** or **manipulation**.
+
 Start tests
 ...........
 
-.. TODO
+
+`POST /test/<test_id>/start`
+
+Is used to start a test with the specified test_id.
+
+Inside of the request you will specify the arguments supported by the test
+
+This is how a request could look like
+::
+  {
+    'urllist':
+      ['http://google.com/', 'http://torproject.org/']
+  }
+
+The server will then respond with the test object
+::
+  {
+    'status': 'running',
+    'percentage': 0,
+    'current_input': 'http://google.com/',
+    'urllist':
+      ['http://google.com/', 'http://torproject.org/']
+  }
+
 
 Stop tests
 ...........
 
-.. TODO
+`POST /test/<test_id>/stop`
+
+This will terminate the execution of the test with the specified test_id.
+
+The request may optionally contain a reason for stopping the test such as
+::
+  {
+    'reason': 'some reason'
+  }
 
 Monitor test progress
-......................
+.....................
 
-.. TODO
+`GET /test/<test_id>`
+
+Will return the status of a test
+
+Like so for example
+::
+  {
+    'status': 'running',
+    'percentage': 0,
+    'current_input': 'http://google.com/',
+    'urllist':
+      ['http://google.com/', 'http://torproject.org/']
+  }
+
 
 Implementation status
 =====================
