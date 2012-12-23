@@ -36,7 +36,9 @@ class Options(usage.Options):
                      ["collector", "c", None,
                          "Address of the collector of test results. (example: http://127.0.0.1:8888)"],
                      ["logfile", "l", None, "log file name"],
-                     ["pcapfile", "p", None, "pcap file name"]]
+                     ["pcapfile", "O", None, "pcap file name"],
+                     ["parallelism", "p", "10", "input parallelism"],
+                     ]
 
     compData = usage.Completions(
         extraActions=[usage.CompleteFiles(
