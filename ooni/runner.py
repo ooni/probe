@@ -420,6 +420,7 @@ def runTestCases(test_cases, options, cmd_line_options):
 
     try:
         input_unit_factory = InputUnitFactory(test_inputs)
+        input_unit_factory.inputUnitSize = int(cmd_line_options['parallelism'])
     except Exception, e:
         log.exception(e)
 
