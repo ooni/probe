@@ -185,7 +185,12 @@ def runTestCasesWithInput(test_cases, test_input, yaml_reporter,
     def test_error(failure, test_instance, test_name):
         log.err("Error in running %s" % test_name)
         log.exception(failure)
-        return
+        test_instance.report['error'] = failure
+        if not oonib_reporter:
+            return yaml_reporter.testDone(test_instance, test_name)
+        d1 = oonib_reporter.testDone(test_instance, test_name)
+        d2 = yaml_reporter.testDone(test_instance, test_name)
+        return defer.DeferredList([d1, d2])
 
     def tests_done(result, test_class):
         test_instance = test_class()
