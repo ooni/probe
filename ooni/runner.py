@@ -172,25 +172,23 @@ def runTestCasesWithInput(test_cases, test_input, yaml_reporter,
     # This is used to store a copy of all the test reports
     tests_report = {}
 
-    def test_done(result, test_instance, test_name):
-        log.msg("Finished running %s" % test_name)
-        log.debug("Deferred callback result: %s" % result)
-        tests_report[test_name] = dict(test_instance.report)
+    def write_report(test_instance, test_name):
         if not oonib_reporter:
             return yaml_reporter.testDone(test_instance, test_name)
         d1 = oonib_reporter.testDone(test_instance, test_name)
         d2 = yaml_reporter.testDone(test_instance, test_name)
         return defer.DeferredList([d1, d2])
 
+    def test_done(result, test_instance, test_name):
+        log.msg("Finished running %s" % test_name)
+        log.debug("Deferred callback result: %s" % result)
+        tests_report[test_name] = dict(test_instance.report)
+        return write_report(test_instance, test_name)
+
     def test_error(failure, test_instance, test_name):
         log.err("Error in running %s" % test_name)
         log.exception(failure)
-        test_instance.report['error'] = failure
-        if not oonib_reporter:
-            return yaml_reporter.testDone(test_instance, test_name)
-        d1 = oonib_reporter.testDone(test_instance, test_name)
-        d2 = yaml_reporter.testDone(test_instance, test_name)
-        return defer.DeferredList([d1, d2])
+        return write_report(test_instance, test_name)
 
     def tests_done(result, test_class):
         test_instance = test_class()
