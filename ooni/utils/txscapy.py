@@ -51,6 +51,9 @@ class ProtocolNotRegistered(Exception):
 class ProtocolAlreadyRegistered(Exception):
     pass
 
+class IfaceError(Exception):
+    pass
+
 
 def getNetworksFromRoutes():
     """ Return a list of networks from the routing table """
@@ -64,11 +67,7 @@ def getNetworksFromRoutes():
         n.iface = iface
         if not n.compressed in networks:
             networks.append(n)
-
     return networks
-
-class IfaceError(Exception):
-    pass
 
 def getDefaultIface():
     """ Return the default interface or raise IfaceError """
@@ -79,7 +78,7 @@ def getDefaultIface():
     for net in networks:
         if net.is_private:
             return net.iface
-    raise IfaceError
+    raise IfaceError("Automatic network interface discover failed! Please try setting the desired interface under the [advanced] section in ooniprobe.conf.")
 
 
 class ScapyFactory(abstract.FileDescriptor):
@@ -90,7 +89,11 @@ class ScapyFactory(abstract.FileDescriptor):
     def __init__(self, interface, super_socket=None, timeout=5):
         abstract.FileDescriptor.__init__(self, reactor)
         if interface == 'auto':
-            interface = getDefaultIface()
+            try:
+                interface = getDefaultIface()
+            except IfaceError, ie:
+                log.warn(ie)
+                raise SystemExit
         if not super_socket:
             try:
                 # scapy is missing an import in /scapy/arch/linux.py
