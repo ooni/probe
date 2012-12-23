@@ -419,7 +419,10 @@ def runTestCases(test_cases, options, cmd_line_options):
     log.msg("Reporting to file %s" % yaml_reporter._stream.name)
 
     try:
-        input_unit_factory = InputUnitFactory(test_inputs)
+        kwargs = {}
+        kwargs.update(options)
+        kwargs.update(cmd_line_options)
+        input_unit_factory = InputUnitFactory(**kwargs)
     except Exception, e:
         log.exception(e)
 

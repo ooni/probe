@@ -18,16 +18,17 @@ class InputUnitFactory(object):
     This object is a python iterable, this means that it does not need to keep
     all the elements in memory to be able to produce InputUnits.
     """
-    inputUnitSize = 10
     length = None
-    def __init__(self, inputs=[]):
+    def __init__(self, *args, **kwargs):
         """
         Args:
             inputs (iterable): inputs *must* be an iterable.
         """
+        inputs = kwargs.get('inputs',[])
         self._inputs = iter(inputs)
         self.inputs = iter(inputs)
         self._ended = False
+        self.inputUnitSize = int(kwargs.get('parallelism'))
 
     def __iter__(self):
         return self
