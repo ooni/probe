@@ -299,7 +299,7 @@ class HTTPTest(NetTestCase):
         def errback(failure, request):
             failure_string = handleAllFailures(failure)
             log.err("Error performing %s" % request)
-            self.addToReport(request, failure=failure_string)
+            self.addToReport(request, failure_string=failure_string)
             return
 
         d = agent.request(request['method'], request['url'], headers,
