@@ -99,7 +99,7 @@ class HTTPTest(NetTestCase):
     def processInputs(self):
         pass
 
-    def addToReport(self, request, response=None, response_body=None, failure=None):
+    def addToReport(self, request, response=None, response_body=None, failure_string=None):
         """
         Adds to the report the specified request and response.
 
@@ -128,8 +128,8 @@ class HTTPTest(NetTestCase):
                 'body': response_body,
                 'code': response.code
         }
-        if failure:
-            request_response['failure'] = failureToString(failure)
+        if failure_string:
+            request_response['failure'] = failure_string
 
         self.report['requests'].append(request_response)
 
@@ -297,9 +297,9 @@ class HTTPTest(NetTestCase):
         headers = TrueHeaders(request['headers'])
 
         def errback(failure, request):
-            failure.trap(ConnectionRefusedError, SOCKSError, DNSLookupError, TCPTimedOutError)
+            failure_string = handleAllFailures(failure)
             log.err("Error performing %s" % request)
-            self.addToReport(request, failure=failure)
+            self.addToReport(request, failure=failure_string)
             return
 
         d = agent.request(request['method'], request['url'], headers,
