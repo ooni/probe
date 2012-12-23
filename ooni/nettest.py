@@ -7,14 +7,28 @@ from twisted.trial import unittest, itrial, util
 from twisted.internet import defer, utils
 from twisted.python import usage
 
-from twisted.internet.error import ConnectionRefusedError, DNSLookupError, TCPTimedOutError
-from twisted.internet.defer import TimeoutError
+from twisted.internet.error import ConnectionRefusedError, TCPTimedOutError
+from twisted.internet.error import DNSLookupError
+from twisted.internet.error import TimeoutError as GenericTimeoutError
+
+from twisted.internet.defer import TimeoutError as DeferTimeoutError
 from twisted.web._newclient import ResponseNeverReceived
 
 from ooni.utils import log
 from ooni.utils.txagentwithsocks import SOCKSError
 
 from socket import gaierror
+
+def handleAllFailures(failure):
+    """
+    Here we make sure to trap all the failures that are supported by the
+    failureToString function and we return the the string that represents the
+    failure.
+    """
+    failure.trap(ConnectionRefusedError, gaierror, SOCKSError,
+        DNSLookupError, TCPTimedOutError, ResponseNeverReceived,
+        DeferTimeoutError, GenericTimeoutError)
+    return failureToString(failure)
 
 def failureToString(failure):
     """
@@ -54,12 +68,18 @@ def failureToString(failure):
         log.err("Response Never Received")
         string = 'response_never_received'
 
-    elif isinstance(failure.value, TimeoutError):
-        log.err("Deferred Timed Out Error")
-        string = 'deferred_timed_out_error'
+    elif isinstance(failure.value, DeferTimeoutError):
+        log.err("Deferred Timeout Error")
+        string = 'deferred_timeout_error'
+
+    elif isinstance(failure.value, GenericTimeoutError):
+        log.err("Time Out Error")
+        string = 'generic_timeout_error'
 
     else:
         log.err("Unknown failure type: %s" % type(failure))
+        string = 'unknown_failure %s' % str(failure.value)
+
     return string
 
 class NoPostProcessor(Exception):
