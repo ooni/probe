@@ -15,7 +15,8 @@ from twisted.internet.defer import TimeoutError as DeferTimeoutError
 from twisted.web._newclient import ResponseNeverReceived
 
 from ooni.utils import log
-from ooni.utils.txagentwithsocks import SOCKSError
+
+from txsocksx.errors import SOCKSError
 
 from socket import gaierror
 

@@ -18,7 +18,7 @@ from ooni import config
 
 from ooni.utils.net import BodyReceiver, StringProducer, userAgents
 
-from ooni.utils.txagentwithsocks import Agent, SOCKSError, TrueHeaders
+from ooni.utils.txagentwithsocks import Agent, TrueHeaders
 from ooni.nettest import handleAllFailures
 
 
