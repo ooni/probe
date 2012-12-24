@@ -276,13 +276,15 @@ def loadResumeFile():
     """
     if not config.stateDict:
         try:
-            config.stateDict = yaml.safe_load(open(config.resume_filename))
+            with open(config.resume_filename) as f:
+                config.stateDict = yaml.safe_load(f)
         except:
             log.err("Error loading YAML file")
             raise InvalidResumeFile
 
         if not config.stateDict:
-            yaml.safe_dump(dict(), open(config.resume_filename, 'w+'))
+            with open(config.resume_filename, 'w+') as f:
+                yaml.safe_dump(dict(), f)
             config.stateDict = dict()
 
         elif isinstance(config.stateDict, dict):
