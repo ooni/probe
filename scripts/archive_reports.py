@@ -36,13 +36,15 @@ def filter_reports_by_age(report):
     except (InvalidTimestampFormat, ValueError):
         return False
 
+class InvalidReportField(Exception):
+    pass
+
 def validate_fields(fields):
     log.debug("Report fields are: %s" % fields)
 
     # check report version
     if fields['test_version'] not in valid_test_versions:
-        log.err("Report submitted with invalid report version!")
-        return False
+        raise InvalidReportField('test_version')
 
     # check report CC
     #XXX: confirm what value we use for default CC and whether
@@ -50,33 +52,28 @@ def validate_fields(fields):
     if fields['probe_cc'] is None:
         fields['probe_cc'] = default_probe_cc
     if not re.match('[A-Z\?]{2,4}', fields['probe_cc'].upper()):
-        log.err("Report submitted with invalid CC!")
-        return False
+        raise InvalidReportField('probe_cc')
 
     # check report ASN
     if fields['probe_asn'] is None:
         fields['probe_asn'] = 'AS0'
     if not re.match('^AS[0-9]{1,10}', fields['probe_asn'].upper()):
-        log.err("Report submitted with invalid AS Number!")
-        return False
+        raise InvalidReportField('probe_asn')
 
     # check report timestamp
     try:
         datetime_ts = datetime.fromtimestamp(fields['start_time'])
         datetime_str = timestamp(datetime_ts)
     except InvalidTimestampFormat:
-        log.err("Report submitted with invalid timestamp!")
-        return False
+        raise InvalidReportField('start_time')
 
     # check report IP
     try:
         IPAddress(fields['probe_ip'])
     except ValueError:
-        log.err("Report submitted with invalid IP Address!")
-        return False
+        raise InvalidReportField('probe_ip')
 
     # all looks good!
-    return True
 
 def get_report_header_fields(report_header):
     required_fields = ['probe_asn', 'probe_cc', 'probe_ip', 'start_time',
@@ -141,7 +138,13 @@ for report in reports_to_archive:
     yamloo = yaml.safe_load_all(f)
     report_header = yamloo.next()
     fields = get_report_header_fields(report_header)
-    if not validate_fields(fields):
+    try:
+        validate_fields(fields)
+    except InvalidReportField, field_name:
+        log.err("Report %s contains invalid field called %s" % (report, field_name))
+        continue
+    except:
+        log.err("An unhandled error occurred while processing %s" % report)
         continue
 
     # get a target filename or fail
