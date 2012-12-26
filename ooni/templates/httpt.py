@@ -220,11 +220,15 @@ class HTTPTest(NetTestCase):
         else:
             self.processResponseHeaders(response_headers_dict)
 
+        try:
+            content_length = response.headers.getRawHeaders('content-length')
+        except IndexError:
+            content_length = None
+
         finished = defer.Deferred()
-        response.deliverBody(BodyReceiver(finished))
+        response.deliverBody(BodyReceiver(finished, content_length))
         finished.addCallback(self._processResponseBody, request,
                 response, body_processor)
-
         return finished
 
     def doRequest(self, url, method="GET",

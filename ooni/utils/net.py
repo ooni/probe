@@ -61,11 +61,17 @@ class StringProducer(object):
         pass
 
 class BodyReceiver(protocol.Protocol):
-    def __init__(self, finished):
+    def __init__(self, finished, content_length=None):
         self.finished = finished
         self.data = ""
+        self.bytes_remaining = content_length
 
     def dataReceived(self, bytes):
+        if self.bytes_remaining:
+            if self.bytes_remaining == 0:
+                self.connectionLost(None)
+            else:
+                self.bytes_remaining -= len(bytes)
         self.data += bytes
 
     def connectionLost(self, reason):
