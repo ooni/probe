@@ -177,7 +177,12 @@ def runTestCasesWithInput(test_cases, test_input, yaml_reporter,
             return yaml_reporter.testDone(test_instance, test_name)
         d1 = oonib_reporter.testDone(test_instance, test_name)
         d2 = yaml_reporter.testDone(test_instance, test_name)
-        return defer.DeferredList([d1, d2])
+        dl = defer.DeferredList([d1, d2])
+        @dl.addErrback
+        def reportingFailed(failure):
+            log.err("Error in reporting %s" % test_name)
+            log.exception(failure)
+        return dl
 
     def test_done(result, test_instance, test_name):
         log.msg("Finished running %s" % test_name)
@@ -232,6 +237,11 @@ def runTestCasesWithInput(test_cases, test_input, yaml_reporter,
 
     test_methods_d = defer.DeferredList(dl)
     test_methods_d.addCallback(tests_done, test_cases[0][0])
+    @test_methods_d.addErrback
+    def deferredListFailed(failure):
+        log.err("Error Test Method Deferred List")
+        log.exception(failure)
+
     return test_methods_d
 
 def runTestCasesWithInputUnit(test_cases, input_unit, yaml_reporter,
