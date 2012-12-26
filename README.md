@@ -37,6 +37,7 @@ The python dependencies required for running ooniprobe are:
       * libdnet: https://code.google.com/p/libdnet/
   * BeautifulSoup: https://www.crummy.com/software/BeautifulSoup/
   * txtorcon: https://github.com/meejah/txtorcon
+  * txsocksx: https://github.com/hellais/txsocksx
 
 ## Install Tor
 
