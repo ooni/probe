@@ -78,7 +78,7 @@ def updateStatusBar():
         eta = config.state[test_filename].eta()
         progress = config.state[test_filename].progress()
         progress_bar_frmt = "[%s] %s%%" % (test_filename, progress)
-        print progress_bar_frmt
+        log.debug(progress_bar_frmt)
 
 def testsEnded(*arg, **kw):
     """
@@ -158,7 +158,7 @@ def run():
                 cmd_line_options['resume'] = False
             test_list.append(runner.loadTest(cmd_line_options))
     else:
-        log.msg("No test deck detected")
+        log.debug("No test deck detected")
         del cmd_line_options['testdeck']
         test_list.append(runner.loadTest(cmd_line_options))
 

@@ -218,7 +218,7 @@ def runTestCasesWithInput(test_cases, test_input, yaml_reporter,
         test_class = test_case[0]
         test_method = test_case[1]
 
-        log.msg("Running %s with %s..." % (test_method, test_input))
+        log.debug("Running %s with %s..." % (test_method, test_input))
 
         test_instance = test_class()
         test_instance.input = test_input
@@ -511,7 +511,7 @@ def startTor():
         return state.post_bootstrap
 
     def updates(prog, tag, summary):
-        log.msg("%d%%: %s" % (prog, summary))
+        log.debug("%d%%: %s" % (prog, summary))
 
     tor_config = TorConfig()
     if config.tor.control_port:

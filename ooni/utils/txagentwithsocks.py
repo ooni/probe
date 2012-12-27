@@ -17,6 +17,8 @@ from twisted.internet import interfaces, defer
 from twisted.internet.defer import Deferred, succeed, fail, maybeDeferred
 
 from txsocksx.client import SOCKS5ClientEndpoint
+from txsocksx.client import SOCKS5ClientFactory
+SOCKS5ClientFactory.noisy = False
 
 from ooni.utils import log
 
@@ -138,6 +140,7 @@ class HTTP11ClientProtocol(_newclient.HTTP11ClientProtocol):
         return self._finishedRequest
 
 class _HTTP11ClientFactory(client._HTTP11ClientFactory):
+    noisy = False
     def buildProtocol(self, addr):
         return HTTP11ClientProtocol(self._quiescentCallback)
 
