@@ -379,7 +379,7 @@ def updateProgressMeters(test_filename, input_unit_factory,
     config.state[test_filename].per_item_average = 2.0
 
     input_unit_idx = float(config.stateDict[test_filename])
-    input_unit_items = float(len(input_unit_factory) + 1)
+    input_unit_items = len(input_unit_factory)
     test_case_number = float(test_case_number)
     total_iterations = input_unit_items * test_case_number
     current_iteration = input_unit_idx * test_case_number
