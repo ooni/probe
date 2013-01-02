@@ -38,7 +38,7 @@ class InputUnitFactory(object):
         Returns the number of input units in the input unit factory.
         """
         if not self.length:
-            self.length = ceil(sum(1 for _ in self._inputs)/self.inputUnitSize)
+            self.length = ceil(float(sum(1 for _ in self._inputs))/self.inputUnitSize)
         return self.length
 
     def next(self):
