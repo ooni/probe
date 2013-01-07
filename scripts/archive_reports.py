@@ -83,6 +83,10 @@ def get_report_header_fields(report_header):
     except KeyError:
         return None
 
+def get_test_name(fields):
+    test_name = fields['test_name'].lower().replace(' ', '_')
+    return test_name
+
 def get_target_or_fail(fields, report):
     # set the target filename
     reportFormatVersion = fields['test_version']
@@ -90,6 +94,7 @@ def get_target_or_fail(fields, report):
     # XXX: wouldn't hurt to check timestamp for sanity again?
     dateInISO8601Format,__,__ = os.path.basename(report).split('_')
     probeASNumber       = fields['probe_asn']
+    testName            = get_test_name(fields)
 
     # make sure path reportFormatVersion/CC exists
     path = os.path.abspath(report_archive_dir)
@@ -103,15 +108,15 @@ def get_target_or_fail(fields, report):
                 return None
 
     # if the target file already exists, try to find another filename
-    filename = "%s_%s.yamloo" % (dateInISO8601Format, probeASNumber)
+    filename = "%s-%s-%s.yamloo" % (testName, dateInISO8601Format, probeASNumber)
     target = os.path.join(path, filename)
 
     # try to get a unique filename. os.open as used below requires
     # that the file not already exist
     naming_attempts = 1
     while os.path.exists(target) and naming_attempts < retry_attempts:
-        filename = "%s_%s.%d.yamloo" % (dateInISO8601Format, probeASNumber,
-                                        naming_attempts)
+        filename = "%s-%s-%s.%d.yamloo" % (testName, dateInISO8601Format,
+                probeASNumber, naming_attempts)
         target = os.path.join(path, filename)
         naming_attempts = naming_attempts + 1
 
