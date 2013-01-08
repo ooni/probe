@@ -35,4 +35,8 @@ tor:
     #control_port: 9051
     # Specify the absolute path to the Tor bridges to use for testing
     bridges: bridges.list
+    # Specify path of the tor datadirectory.
+    # This should be set to something to avoid having Tor download each time
+    # the descriptors and consensus data.
+    data_dir: ~/.tor/
 

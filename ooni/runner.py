@@ -528,6 +528,12 @@ def startTor():
         tor_config.SocksPort = socks_port
         config.tor.socks_port = socks_port
 
+    if config.tor.data_dir:
+        if not os.path.exists(config.tor.data_dir):
+            log.msg("%s does not exist. Creating it." % config.tor.data_dir)
+            os.makedirs(config.tor.data_dir)
+        tor_config.DataDirectory = os.path.expanduser(config.tor.data_dir)
+
     tor_config.save()
 
     log.debug("Setting control port as %s" % tor_config.ControlPort)
