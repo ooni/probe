@@ -11,7 +11,7 @@ from . import templates
 from . import utils
 
 __author__ = "Arturo Filastò"
-__version__ = "0.0.8"
+__version__ = "0.0.10"
 
 __all__ = ['config', 'inputunit', 'kit',
            'lib', 'nettest', 'oonicli', 'reporter',
