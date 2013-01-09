@@ -1,10 +1,10 @@
-import imp
-import os
 import logging
 import string
 import random
 import glob
 import yaml
+import imp
+import os
 
 class Storage(dict):
     """
@@ -48,18 +48,16 @@ class Storage(dict):
         for (k, v) in value.items():
             self[k] = v
 
-class PermissionsError(Exception):
-    """This test requires administrator or root permissions."""
+class NotRootError(Exception):
+    pass
 
 def checkForRoot():
-    """Check permissions."""
     if os.getuid() != 0:
-        raise PermissionsError
+        raise NotRootError("This test requires root")
 
 def randomSTR(length, num=True):
     """
-    Returns a random, all-uppercase, alpha-numeric (if num=True), string of
-    specified character length.
+    Returns a random all uppercase alfa-numerical (if num True) string long length
     """
     chars = string.ascii_uppercase
     if num:
@@ -68,8 +66,7 @@ def randomSTR(length, num=True):
 
 def randomstr(length, num=True):
     """
-    Returns a random, all-lowercase, alpha-numeric (if num=True), string
-    specified character length.
+    Returns a random all lowercase alfa-numerical (if num True) string long length
     """
     chars = string.ascii_lowercase
     if num:
@@ -78,13 +75,14 @@ def randomstr(length, num=True):
 
 def randomStr(length, num=True):
     """
-    Returns a random a mixed lowercase, uppercase, alpha-numeric (if num=True)
-    string of specified character length.
+    Returns a random a mixed lowercase, uppercase, alfanumerical (if num True)
+    string long length
     """
     chars = string.ascii_lowercase + string.ascii_uppercase
     if num:
         chars += string.digits
     return ''.join(random.choice(chars) for x in range(length))
+
 
 def pushFilenameStack(filename):
     """

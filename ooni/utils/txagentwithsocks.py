@@ -16,122 +16,11 @@ from twisted.internet.endpoints import TCP4ClientEndpoint, SSL4ClientEndpoint, _
 from twisted.internet import interfaces, defer
 from twisted.internet.defer import Deferred, succeed, fail, maybeDeferred
 
+from txsocksx.client import SOCKS5ClientEndpoint
+from txsocksx.client import SOCKS5ClientFactory
+SOCKS5ClientFactory.noisy = False
+
 from ooni.utils import log
-
-class SOCKSError(Exception):
-    def __init__(self, value):
-        Exception.__init__(self)
-        self.code = value
-
-class SOCKSv5ClientProtocol(_WrappingProtocol):
-    state = 0
-
-    def __init__(self, connectedDeferred, wrappedProtocol, host, port):
-        _WrappingProtocol.__init__(self, connectedDeferred, wrappedProtocol)
-        self._host = host
-        self._port = port
-        self.ready = False
-
-    def logPrefix(self):
-        return 'SOCKSv5ClientProtocol'
-
-    def socks_state_0(self, data):
-        # error state
-        self._connectedDeferred.errback(SOCKSError(0x00))
-        return
-
-    def socks_state_1(self, data):
-        if data != "\x05\x00":
-            self._connectedDeferred.errback(SOCKSError(0x00))
-            return
-
-        # Anonymous access allowed - let's issue connect
-        self.transport.write(struct.pack("!BBBBB", 5, 1, 0, 3,
-                                         len(self._host)) + 
-                                         self._host +
-                                         struct.pack("!H", self._port))
-
-    def socks_state_2(self, data):
-        if data[:2] != "\x05\x00":
-            # Anonymous access denied
-
-            errcode = ord(data[1])
-            self._connectedDeferred.errback(SOCKSError(errcode))
-
-            return
-
-        self.ready = True
-        self._wrappedProtocol.transport = self.transport
-        self._wrappedProtocol.connectionMade()
-
-        self._connectedDeferred.callback(self._wrappedProtocol)
-
-    def connectionMade(self):
-        # We implement only Anonymous access
-        self.transport.write(struct.pack("!BB", 5, len("\x00")) + "\x00")
-
-        self.state = self.state + 1
-
-    def write(self, data):
-        if self.ready:
-            self.transport.write(data)
-        else:
-            self.buf.append(data)
-
-    def dataReceived(self, data):
-        if self.state != 3:
-            getattr(self, 'socks_state_%s' % (self.state),
-                    self.socks_state_0)(data)
-            self.state = self.state + 1
-        else:
-            self._wrappedProtocol.dataReceived(data)
-
-class SOCKSv5ClientFactory(_WrappingFactory):
-    protocol = SOCKSv5ClientProtocol
-
-    def __init__(self, wrappedFactory, host, port):
-        _WrappingFactory.__init__(self, wrappedFactory)
-        self._host, self._port = host, port
-
-    def logPrefix(self):
-        return 'SOCKSv5ClientFactory'
-
-    def buildProtocol(self, addr):
-        try:
-            proto = self._wrappedFactory.buildProtocol(addr)
-        except:
-            self._onConnection.errback()
-        else:
-            return self.protocol(self._onConnection, proto,
-                                 self._host, self._port)
-
-class SOCKS5ClientEndpoint(object):
-    implements(interfaces.IStreamClientEndpoint)
-
-    def __init__(self, reactor, sockshost, socksport,
-                 host, port, timeout=30, bindAddress=None):
-
-        self._reactor = reactor
-        self._sockshost = sockshost
-        self._socksport = socksport
-        self._host = host
-        self._port = port
-        self._timeout = timeout
-        self._bindAddress = bindAddress
-
-    def logPrefix(self):
-        return 'SOCKSv5ClientEndpoint'
-
-    def connect(self, protocolFactory):
-        try:
-            wf = SOCKSv5ClientFactory(protocolFactory, self._host, self._port)
-            self._reactor.connectTCP(
-                self._sockshost, self._socksport, wf,
-                timeout=self._timeout, bindAddress=self._bindAddress)
-            return wf._onConnection
-        except:
-            return defer.fail()
-
 
 class TrueHeaders(http_headers.Headers):
     def __init__(self, rawHeaders=None):
@@ -251,6 +140,7 @@ class HTTP11ClientProtocol(_newclient.HTTP11ClientProtocol):
         return self._finishedRequest
 
 class _HTTP11ClientFactory(client._HTTP11ClientFactory):
+    noisy = False
     def buildProtocol(self, addr):
         return HTTP11ClientProtocol(self._quiescentCallback)
 
@@ -295,12 +185,10 @@ class Agent(client.Agent):
         kwargs['bindAddress'] = self._bindAddress
         if scheme == 'http':
             return TCP4ClientEndpoint(self._reactor, host, port, **kwargs)
-        elif scheme == 'shttp':
-            return SOCKS5ClientEndpoint(self._reactor, self._sockshost,
-                    self._socksport, host, port, **kwargs)
-        elif scheme == 'httpo':
-            return SOCKS5ClientEndpoint(self._reactor, self._sockshost,
-                    self._socksport, host, port, **kwargs)
+        elif scheme == 'shttp' or scheme == 'httpo':
+            socksProxy = TCP4ClientEndpoint(self._reactor, self._sockshost,
+                    self._socksport)
+            return SOCKS5ClientEndpoint(host, port, socksProxy)
         elif scheme == 'https':
             return SSL4ClientEndpoint(self._reactor, host, port,
                     self._wrapContextFactory(host, port), **kwargs)

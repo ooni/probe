@@ -1,33 +1,47 @@
-# -*- encoding: utf-8 -*-
-#
-# nettest.py
-# ----------
-# In here is the NetTest API definition. This is how people
-# interested in writing ooniprobe tests will be specifying them
-#
-# :authors: Arturo Filastò, Isis Lovecruft
-# :license: see included LICENSE file
-
-import sys
-import os
 import itertools
 import traceback
-import inspect
+import sys
+import os
 
-from twisted.trial import unittest, itrial
-from twisted.trial import util as txtrutil
-from twisted.trial.test import skipping
+from twisted.trial import unittest, itrial, util
 from twisted.internet import defer, utils
 from twisted.python import usage
 
-from twisted.internet.error import ConnectionRefusedError, DNSLookupError, TCPTimedOutError
-from twisted.internet.defer import TimeoutError
+from twisted.internet.error import ConnectionRefusedError, TCPTimedOutError
+from twisted.internet.error import DNSLookupError
+from twisted.internet.error import TimeoutError as GenericTimeoutError
+
+from twisted.internet.defer import TimeoutError as DeferTimeoutError
 from twisted.web._newclient import ResponseNeverReceived
 
 from ooni.utils import log
-from ooni.utils.txagentwithsocks import SOCKSError
+
+from txsocksx.errors import SOCKSError
+from txsocksx.errors import MethodsNotAcceptedError, AddressNotSupported
+from txsocksx.errors import ConnectionError, NetworkUnreachable
+from txsocksx.errors import ConnectionLostEarly, ConnectionNotAllowed
+from txsocksx.errors import NoAcceptableMethods, ServerFailure
+from txsocksx.errors import HostUnreachable, ConnectionRefused
+from txsocksx.errors import TTLExpired, CommandNotSupported
+
 
 from socket import gaierror
+
+def handleAllFailures(failure):
+    """
+    Here we make sure to trap all the failures that are supported by the
+    failureToString function and we return the the string that represents the
+    failure.
+    """
+    failure.trap(ConnectionRefusedError, gaierror, DNSLookupError,
+            TCPTimedOutError, ResponseNeverReceived, DeferTimeoutError,
+            GenericTimeoutError,
+            SOCKSError, MethodsNotAcceptedError, AddressNotSupported,
+            ConnectionError, NetworkUnreachable, ConnectionLostEarly,
+            ConnectionNotAllowed, NoAcceptableMethods, ServerFailure,
+            HostUnreachable, ConnectionRefused, TTLExpired, CommandNotSupported)
+
+    return failureToString(failure)
 
 def failureToString(failure):
     """
@@ -51,10 +65,6 @@ def failureToString(failure):
         log.err("Address family for hostname not supported")
         string = 'address_family_not_supported_error'
 
-    elif isinstance(failure.value, SOCKSError):
-        log.err("Sock error. The SOCKS proxy may be down")
-        string = 'socks_error'
-
     elif isinstance(failure.value, DNSLookupError):
         log.err("DNS lookup failure")
         string = 'dns_lookup_error'
@@ -67,12 +77,53 @@ def failureToString(failure):
         log.err("Response Never Received")
         string = 'response_never_received'
 
-    elif isinstance(failure.value, TimeoutError):
-        log.err("Deferred Timed Out Error")
-        string = 'deferred_timed_out_error'
+    elif isinstance(failure.value, DeferTimeoutError):
+        log.err("Deferred Timeout Error")
+        string = 'deferred_timeout_error'
+
+    elif isinstance(failure.value, GenericTimeoutError):
+        log.err("Time Out Error")
+        string = 'generic_timeout_error'
+
+    elif isinstance(failure.value, ServerFailure):
+        log.err("SOCKS error: ServerFailure")
+        string = 'socks_server_failure'
+
+    elif isinstance(failure.value, ConnectionNotAllowed):
+        log.err("SOCKS error: ConnectionNotAllowed")
+        string = 'socks_connection_not_allowed'
+
+    elif isinstance(failure.value, NetworkUnreachable):
+        log.err("SOCKS error: NetworkUnreachable")
+        string = 'socks_network_unreachable'
+
+    elif isinstance(failure.value, HostUnreachable):
+        log.err("SOCKS error: HostUnreachable")
+        string = 'socks_host_unreachable'
+
+    elif isinstance(failure.value, ConnectionRefused):
+        log.err("SOCKS error: ConnectionRefused")
+        string = 'socks_connection_refused'
+
+    elif isinstance(failure.value, TTLExpired):
+        log.err("SOCKS error: TTLExpired")
+        string = 'socks_ttl_expired'
+
+    elif isinstance(failure.value, CommandNotSupported):
+        log.err("SOCKS error: CommandNotSupported")
+        string = 'socks_command_not_supported'
+
+    elif isinstance(failure.value, AddressNotSupported):
+        log.err("SOCKS error: AddressNotSupported")
+        string = 'socks_address_not_supported'
+    elif isinstance(failure.value, SOCKSError):
+        log.err("Generic SOCKS error")
+        string = 'socks_error'
 
     else:
         log.err("Unknown failure type: %s" % type(failure))
+        string = 'unknown_failure %s' % str(failure.value)
+
     return string
 
 class NoPostProcessor(Exception):
@@ -148,13 +199,16 @@ class NetTestCase(object):
     requiresRoot = False
 
     localOptions = {}
-
     def _setUp(self):
-        """This is the internal setup method to be overwritten by templates."""
+        """
+        This is the internal setup method to be overwritten by templates.
+        """
         pass
 
     def setUp(self):
-        """Place your logic to be executed when the test is being setup here."""
+        """
+        Place here your logic to be executed when the test is being setup.
+        """
         pass
 
     def postProcessor(self, report):
@@ -197,6 +251,12 @@ class NetTestCase(object):
         else:
             pass
 
+    def _checkRequiredOptions(self):
+        for required_option in self.requiredOptions:
+            log.debug("Checking if %s is present" % required_option)
+            if not self.localOptions[required_option]:
+                raise usage.UsageError("%s not specified!" % required_option)
+
     def _processOptions(self):
         if self.inputFilename:
             inputProcessor = self.inputProcessor
@@ -210,53 +270,9 @@ class NetTestCase(object):
                     return inputProcessor(inputFilename)
             self.inputs = inputProcessorIterator()
 
-        return {'inputs': self.inputs, 
-                'name': self.name,
-                'version': self.version}
+        return {'inputs': self.inputs,
+                'name': self.name, 'version': self.version
+               }
 
     def __repr__(self):
         return "<%s inputs=%s>" % (self.__class__, self.inputs)
-
-    def _abortMethod(self, reason, method=None):
-        if method is None:
-            test_method = self._testMethod
-        else:
-            test_method = getattr(self.__class__, method, False)
-
-        if inspect.ismethod(test_method):
-            method_name = test_method.im_func.func_name
-            setattr(test_method, 'skip', reason)
-            raise skipping.SkipTest("Aborting %s for reason: %s"
-                                    % (method_name, reason) )
-        else:
-            log.debug("_abortMethod(): could not find method %s" % test_method)
-    
-    def abortInput(self, reason):
-        """
-        Abort the current input.
-        
-        @param reason: A string explaining why this test is being skipped.
-        @raises: A :class:`twisted.trial.test.skipping.SkipTest <SkipTest>` 
-        """
-        raise skipping.SkipTest(" Reason: %s\nCurrent input: %s"
-                                % (reason, self.input))
-
-    def abortMethod(self, reason, test_method=None):
-        """
-        Abort all remaining inputs for the current test method.
-
-        @param reason: A string explaining why the current test_method is
-                       being skipped.
-        @param test_method: (optional) The test_method to skip, defaults to
-                            the currently running test_method.
-        """
-        return self._abortMethod(reason, test_method)
-
-    def abortClass(self, reason='unspecified'):
-        """
-        Abort the entire NetTestCase class.
-
-        @param reason: A string explaining why the class is being skipped.
-        """
-        log.msg("Aborting %s: %s" % (self.__class__.name, reason))
-        setattr(self.__class__, 'skip', reason)

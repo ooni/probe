@@ -122,6 +122,7 @@ More developer documentation
 
     architecture
     oonib
+    reports
     writing_tests
     api/*
     nettests/modules

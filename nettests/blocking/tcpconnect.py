@@ -3,9 +3,10 @@ from twisted.internet.protocol import Factory, Protocol
 from twisted.internet.endpoints import TCP4ClientEndpoint
 
 from twisted.internet.error import ConnectionRefusedError
-from twisted.internet.error import TCPTimedOutError 
+from twisted.internet.error import TCPTimedOutError, TimeoutError
 
 from ooni import nettest
+from ooni.nettest import handleAllFailures
 from ooni.utils import log
 
 class TCPFactory(Factory):
@@ -33,14 +34,7 @@ class TCPConnectTest(nettest.NetTestCase):
             self.report["connection"] = 'success'
 
         def connectionFailed(failure):
-            failure.trap(ConnectionRefusedError, TCPTimedOutError)
-            log.debug("Unable to connect to %s" % self.input)
-            if isinstance(failure, ConnectionRefusedError):
-                self.report["connection"] = 'refused'
-            elif isinstance(failure, TCPTimedOutError):
-                self.report["connection"] = 'timeout'
-            else:
-                self.report["connection"] = 'failed'
+            self.report['connection'] = handleAllFailures(failure)
 
         from twisted.internet import reactor
         point = TCP4ClientEndpoint(reactor, host, int(port))

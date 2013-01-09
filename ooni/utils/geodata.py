@@ -1,12 +1,3 @@
-# -*- encoding: utf-8 -*-
-#
-# geodata.py
-# **********
-# In here go functions related to the understanding of
-# geographical information of the probe
-#
-# :licence: see LICENSE
-
 import re
 import os
 
@@ -39,12 +30,11 @@ def IPToLocation(ipaddr):
 
         asn_dat = pygeoip.GeoIP(asn_file)
         location['asn'] = asn_dat.org_by_addr(ipaddr)
+
     except IOError:
-        try:
-            raise GeoIPDataFilesNotFound(
-                "Couldn't find GeoIP files. Go to ./data and run \"make geoip\".")
-        except GeoIPDataFilesNotFound, gnf:
-            log.err(gnf)
+        log.err("Could not find GeoIP data files. Go into data/ "
+                "and run make geoip")
+        raise GeoIPDataFilesNotFound
 
     return location
 

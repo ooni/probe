@@ -1,13 +1,7 @@
-# -*- encoding: utf-8 -*-
-#
-# :authors: Arturo Filastò
-# :licence: see LICENSE
-
-from functools import wraps
 import sys
 import os
-import traceback
 import logging
+import traceback
 
 from twisted.python import log as txlog
 from twisted.python import util
@@ -17,6 +11,9 @@ from twisted.python.logfile import DailyLogFile
 from ooni import otime
 from ooni import config
 
+## Get rid of the annoying "No route found for
+## IPv6 destination warnings":
+logging.getLogger("scapy.runtime").setLevel(logging.ERROR)
 
 class LogWithNoPrefix(txlog.FileLogObserver):
     def emit(self, eventDict):
@@ -50,16 +47,12 @@ def stop():
 def msg(msg, *arg, **kw):
     print "%s" % msg
 
-def debug(message, *arg, **kw):
+def debug(msg, *arg, **kw):
     if config.advanced.debug:
-        print "[D] %s" % message
+        print "[D] %s" % msg
 
-def warn(message, *arg, **kw):
-    if config.advanced.show_warnings:
-        print "[W] %s" % message
-
-def err(message, *arg, **kw):
-    print "[!] %s" % message
+def err(msg, *arg, **kw):
+    print "[!] %s" % msg
 
 def exception(error):
     """
@@ -71,27 +64,6 @@ def exception(error):
     else:
         exc_type, exc_value, exc_traceback = sys.exc_info()
         traceback.print_exception(exc_type, exc_value, exc_traceback)
-
-def fail(*failure):
-    logging.critical(failure)
-
-def catch(func):
-    """
-    Quick wrapper to add around test methods for debugging purposes,
-    catches the given Exception. Use like so:
-
-        @log.catcher
-        def foo(bar):
-            if bar == 'baz':
-                raise Exception("catch me no matter what I am")
-        foo("baz")
-    """
-    def _catch(*args, **kwargs):
-        try:
-            func(*args, **kwargs)
-        except Exception, exc:
-            exception(exc)
-    return _catch
 
 class LoggerFactory(object):
     """
