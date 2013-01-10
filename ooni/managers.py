@@ -108,9 +108,11 @@ class OManager(object):
 
         self.netTests = []
 
-        self.measurements_tracker = MeasurementsTracker(manager=self,
+        self.measurementsManager = MeasurementsManager(manager=self,
                 netTests=self.netTests)
-        self.measurements_tracker.manager = self
+        self.measurementsManager.manager = self
+
+        self.reportingManager
 
     def writeReport(self, measurement):
         """
