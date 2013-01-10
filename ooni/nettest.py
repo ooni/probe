@@ -7,124 +7,70 @@ from twisted.trial import unittest, itrial, util
 from twisted.internet import defer, utils
 from twisted.python import usage
 
-from twisted.internet.error import ConnectionRefusedError, TCPTimedOutError
-from twisted.internet.error import DNSLookupError
-from twisted.internet.error import TimeoutError as GenericTimeoutError
-
-from twisted.internet.defer import TimeoutError as DeferTimeoutError
-from twisted.web._newclient import ResponseNeverReceived
-
+from ooni.errors import handleAllFailures, failureToString
 from ooni.utils import log
 
-from txsocksx.errors import SOCKSError
-from txsocksx.errors import MethodsNotAcceptedError, AddressNotSupported
-from txsocksx.errors import ConnectionError, NetworkUnreachable
-from txsocksx.errors import ConnectionLostEarly, ConnectionNotAllowed
-from txsocksx.errors import NoAcceptableMethods, ServerFailure
-from txsocksx.errors import HostUnreachable, ConnectionRefused
-from txsocksx.errors import TTLExpired, CommandNotSupported
+class NetTest(object):
+    director = None
 
+    def __init__(self, net_test_file, inputs, options, report):
+        """
+        The NetTest object is responsible for keeping a reference to the
+        Report and the loading of NetTestCases from test files.
 
-from socket import gaierror
+        net_test_file:
+            is a file object containing the test to be run.
 
-def handleAllFailures(failure):
-    """
-    Here we make sure to trap all the failures that are supported by the
-    failureToString function and we return the the string that represents the
-    failure.
-    """
-    failure.trap(ConnectionRefusedError, gaierror, DNSLookupError,
-            TCPTimedOutError, ResponseNeverReceived, DeferTimeoutError,
-            GenericTimeoutError,
-            SOCKSError, MethodsNotAcceptedError, AddressNotSupported,
-            ConnectionError, NetworkUnreachable, ConnectionLostEarly,
-            ConnectionNotAllowed, NoAcceptableMethods, ServerFailure,
-            HostUnreachable, ConnectionRefused, TTLExpired, CommandNotSupported)
+        inputs:
+            is a generator containing the inputs to the net test.
 
-    return failureToString(failure)
+        options:
+            is a dict containing the opitions to be passed to the net test.
+        """
+        self.test_cases = self.loadNetTestFile(net_test_file)
+        self.inputs = inputs
+        self.options = options
 
-def failureToString(failure):
-    """
-    Given a failure instance return a string representing the kind of error
-    that occurred.
+    def loadNetTestFile(self, net_test_file):
+        """
+        Creates all the necessary test_cases (a list of tuples containing the
+        NetTestCase (test_class, test_method))
 
-    Args:
+        example:
+            [(test_classA, test_method1),
+            (test_classA, test_method2),
+            (test_classA, test_method3),
+            (test_classA, test_method4),
+            (test_classA, test_method5),
 
-        failure: a :class:twisted.internet.error instance
+            (test_classB, test_method1),
+            (test_classB, test_method2)]
 
-    Returns:
+        Note: the inputs must be valid for test_classA and test_classB.
 
-        A string representing the HTTP response error message.
-    """
-    string = None
-    if isinstance(failure.value, ConnectionRefusedError):
-        log.err("Connection refused. The backend may be down")
-        string = 'connection_refused_error'
+        net_test_file:
+            is a file like object that will be used to generate the test_cases.
+        """
+        # XXX Not implemented
+        raise NotImplemented
 
-    elif isinstance(failure.value, gaierror):
-        log.err("Address family for hostname not supported")
-        string = 'address_family_not_supported_error'
+    def succeeded(self, measurement):
+        """
+        This gets called when a measurement has failed.
+        """
+        self.report.write(measurement)
 
-    elif isinstance(failure.value, DNSLookupError):
-        log.err("DNS lookup failure")
-        string = 'dns_lookup_error'
-
-    elif isinstance(failure.value, TCPTimedOutError):
-        log.err("TCP Timed Out Error")
-        string = 'tcp_timed_out_error'
-
-    elif isinstance(failure.value, ResponseNeverReceived):
-        log.err("Response Never Received")
-        string = 'response_never_received'
-
-    elif isinstance(failure.value, DeferTimeoutError):
-        log.err("Deferred Timeout Error")
-        string = 'deferred_timeout_error'
-
-    elif isinstance(failure.value, GenericTimeoutError):
-        log.err("Time Out Error")
-        string = 'generic_timeout_error'
-
-    elif isinstance(failure.value, ServerFailure):
-        log.err("SOCKS error: ServerFailure")
-        string = 'socks_server_failure'
-
-    elif isinstance(failure.value, ConnectionNotAllowed):
-        log.err("SOCKS error: ConnectionNotAllowed")
-        string = 'socks_connection_not_allowed'
-
-    elif isinstance(failure.value, NetworkUnreachable):
-        log.err("SOCKS error: NetworkUnreachable")
-        string = 'socks_network_unreachable'
-
-    elif isinstance(failure.value, HostUnreachable):
-        log.err("SOCKS error: HostUnreachable")
-        string = 'socks_host_unreachable'
-
-    elif isinstance(failure.value, ConnectionRefused):
-        log.err("SOCKS error: ConnectionRefused")
-        string = 'socks_connection_refused'
-
-    elif isinstance(failure.value, TTLExpired):
-        log.err("SOCKS error: TTLExpired")
-        string = 'socks_ttl_expired'
-
-    elif isinstance(failure.value, CommandNotSupported):
-        log.err("SOCKS error: CommandNotSupported")
-        string = 'socks_command_not_supported'
-
-    elif isinstance(failure.value, AddressNotSupported):
-        log.err("SOCKS error: AddressNotSupported")
-        string = 'socks_address_not_supported'
-    elif isinstance(failure.value, SOCKSError):
-        log.err("Generic SOCKS error")
-        string = 'socks_error'
-
-    else:
-        log.err("Unknown failure type: %s" % type(failure))
-        string = 'unknown_failure %s' % str(failure.value)
-
-    return string
+    def generateMeasurements(self):
+        """
+        This is a generator that yields measurements and sets their timeout
+        value and their netTest attribute.
+        """
+        for test_input in self.inputs:
+            for test_class, test_method in self.test_cases:
+                measurement = Measurement(test_class, test_method, test_input)
+                measurement.netTest = self
+                measurement.timeout = self.rateLimiter.timeout
+                yield measurement
 
 class NoPostProcessor(Exception):
     pass
