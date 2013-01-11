@@ -16,7 +16,7 @@ Details
 Description
 ===========
 
-This test performs A queries to a test resolver and a known good control resolver. The query is considered tampered with if the two responses match.
+This test performs A queries to a test resolver and a known good control resolver. The query is considered tampered with if the two responses do not match.
 
 How to run the test
 ===================
