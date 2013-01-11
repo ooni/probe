@@ -17,7 +17,8 @@ import sys
 
 from twisted.python   import usage
 from twisted.internet import reactor, defer
-from ooni             import nettest, config, templates
+from ooni             import nettest, config
+from ooni.templates   import scapyt
 from ooni.utils       import log, net, txscapy, packet, randomStr
 
 try:
@@ -43,7 +44,7 @@ class UsageOptions(usage.Options):
         ['payload-size', 'p', 56, 'Bytes to send in ICMP data field', int],
         ['ttl', 't', 25, 'Set the IP Time to Live', int]]
 
-class EchoTest(templates.ScapyTest):
+class EchoTest(scapyt.ScapyTest):
     """
     Basic ping test. This takes an input file containing one IP or hostname
     per line.
