@@ -6,8 +6,9 @@
  Utilities for building and working with packets with Scapy.
 
  @authors: Isis Lovecruft
+ @version: 0.0.9-alpha
  @license: see included LICENSE file
- @version: 0.0.8-alpha
+ @copyright: (c) 2013 Isis Lovecruft, The Tor Project Inc.
 '''
 
 def build(resources):
@@ -115,62 +116,3 @@ def nicely(packets):
     packet.summary() for each packet.
     """
     return list([x.summary() for x in packets])
-
-
-class NetTestResource(object):
-    def __init__(self, ipaddr_or_domain=None, dport=None, *args, **kwargs):
-        ## xxx finish
-        raise NotImplemented
-
-        if ipaddr_or_domain is not None:
-           self.dst = ipaddr_or_domain
-        if dport is not None:
-            self.dport = dport
-        if args:                           ## e.g. if we're given
-            for arg in args:               ## 'checkSOA' as an arg,
-                setattr(self, arg, True)   ## we set it to True
-        if kwargs:
-            for k,v in kwargs.items():
-                setattr(self, k, v)
-
-
-## for debugging
-if __name__ == "__main__":
-    from scapy.all import IP, ICMP, TCP
-    from ooni.utils import log
-
-    log.debug("Testing packet.py")
-
-    resources = [('8.8.8.8', 443),
-                 ('127.0.0.1', 0),
-                 ('192.168.0.1', 80)]
-
-    # test decorating functions:
-    log.debug("Testing @build and @count decorators with function calls...")
-
-    @count(3)
-    @build(resources)
-    def icmp_constructor(rsrc):
-        log.debug("Testing build packet for %s" % rsrc[0])
-        return IP(dst=rsrc[0])/ICMP()
-
-    @count(5)
-    @build(resources)
-    def tcp_constructor(rsrc, flags):
-        (addr, dport) = rsrc
-        log.debug("Building packet for %s:%s with flags=%s"
-                  % (addr, dport, flags))
-        return TCP(dport=dport, flags=flags)/IP(dst=addr)
-
-    icmp_list = icmp_constructor()
-    tcp_list = tcp_constructor('S')
-
-    assert isinstance(icmp_list, list), "icmp_constructor did not return list"
-    assert isinstance(tcp_list, list), "tcp_constructor did not return list"
-    assert len(icmp_list) == 9, "wrong number of packets generated"
-    assert len(tcp_list) == 15, "wrong number of packets generated"
-
-    log.debug("Generated ICMP packets:")
-    log.debug("\n%s" % '\n'.join( [n for n in nicely(icmp_list)] ))
-    log.debug("Generated TCP packets:")
-    log.debug("\n%s" % '\n'.join( [n for n in nicely(tcp_list)] ))
