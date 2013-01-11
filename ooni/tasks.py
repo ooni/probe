@@ -72,4 +72,53 @@ class TaskWithTimeout(BaseTask):
         """
         pass
 
+class Measurement(TaskWithTimeout):
+    def __init__(self, test_class, test_method, test_input, net_test):
+        """
+        test_class:
+            is the class, subclass of NetTestCase, of the test to be run
+
+        test_method:
+            is a string representing the test method to be called to perform
+            this measurement
+
+        test_input:
+            is the input to the test
+
+        net_test:
+            a reference to the net_test object such measurement belongs to.
+        """
+        self.test_instance = test_class()
+        self.test_instance.input = test_input
+        self.test_instance.report = {}
+        self.test_instance._start_time = time.time()
+        self.test_instance._setUp()
+        self.test_instance.setUp()
+        self.test = getattr(self.test_instance, test_method)
+
+        self.netTest = net_test
+
+    def succeeded(self):
+        self.net_test.succeeded()
+
+    def failed(self):
+        pass
+
+    def timedOut(self):
+        self.net_test.timedOut()
+
+    def run(self):
+        d = defer.maybeDeferred(self.test)
+        d.addCallback(self.success)
+        d.addErrback(self.failure)
+        return d
+
+class ReportEntry(TimedOutTask):
+    def __init__(self, reporter, measurement):
+        self.reporter = reporter
+        self.measurement = measurement
+        TimedOutTask.__init__(self)
+
+    def run(self):
+        return self.reporter.writeReportEntry(self.measurement)
 
