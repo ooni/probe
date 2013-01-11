@@ -1,45 +1,9 @@
 from .tasks import TaskWithTimeout
 
-class Measurement(TaskWithTimeout):
-    def __init__(self, test_class, test_method, test_input, net_test):
-        """
-        test_class:
-            is the class, subclass of NetTestCase, of the test to be run
-
-        test_method:
-            is a string representing the test method to be called to perform
-            this measurement
-
-        test_input:
-            is the input to the test
-        """
-        self.test_instance = test_class()
-        self.test_instance.input = test_input
-        self.test_instance.report = {}
-        self.test_instance._start_time = time.time()
-        self.test_instance._setUp()
-        self.test_instance.setUp()
-        self.test = getattr(self.test_instance, test_method)
-
-    def succeeded(self):
-        self.net_test.measurementSuccess()
-
-    def failed(self):
-        pass
-
-    def timedOut(self):
-        self.net_test.measurementTimeOut()
-
-    def run(self):
-        d = defer.maybeDeferred(self.test)
-        d.addCallback(self.success)
-        d.addErrback(self.failure)
-        return d
-
 class NetTest(object):
-    manager = None
+    director = None
 
-    def __init__(self, net_test_file, inputs, options):
+    def __init__(self, net_test_file, inputs, options, report):
         """
         net_test_file:
             is a file object containing the test to be run.
@@ -53,8 +17,6 @@ class NetTest(object):
         self.test_cases = self.loadNetTestFile(net_test_file)
         self.inputs = inputs
         self.options = options
-
-        self.rateLimiter = StaticRateLimiter()
 
     def loadNetTestFile(self, net_test_file):
         """
@@ -79,28 +41,27 @@ class NetTest(object):
         # XXX Not implemented
         raise NotImplemented
 
-    def measurementTimedOut(self, measurement):
+    def timedOut(self, measurement):
         """
         This gets called when a measurement has timed out. This may or may not
         trigger a retry inside of MeasurementsTracker.
         """
-        self.manager.measurementTimedOut(measurement)
-        self.rateLimiter.timedOut(measurement)
+        self.director.measurementTimedOut(measurement)
 
-    def measurementFailed(self, measurement, failure):
+    def failed(self, measurement, failure):
         """
         This gets called when a measurement has failed in the sense that all
         the retries have failed at successfully running the test.
         This means that it's a definitive failure and we will no longer make
         any attempts at re-running the measurement.
         """
-        self.manager.writeFailure(measurement, failure)
+        self.director.measurementFailed(measurement, failure)
 
-    def measurementSucceeded(self, measurement):
+    def succeeded(self, measurement):
         """
         This gets called when a measurement has failed.
         """
-        self.manager.writeReport(measurement)
+        self.report.write(measurement)
 
     def generateMeasurements(self):
         """
