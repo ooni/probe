@@ -1,11 +1,12 @@
-from ooni.measurements import Measurement, NetTest
-from ooni.managers import Director, MeasurementsManager
-from ooni.tasks import BaseTask, TaskWithTimeout
-from os import unlink
+import os
 from StringIO import StringIO
 from tempfile import TemporaryFile, mkstemp
+
 from twisted.trial import unittest
 from twisted.internet import defer, reactor
+
+from ooni.nettest import NetTest
+from ooni.tasks import BaseTask
 
 net_test_string = """
 from twisted.python import usage
@@ -88,5 +89,5 @@ class TestNetTest(unittest.TestCase):
 
         #self.assertEqual(net_test_from_string.test_cases,
         #        net_test_from_file.test_cases)
-        unlink(net_test_file)
+        os.unlink(net_test_file)
 
