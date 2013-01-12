@@ -1,6 +1,6 @@
 from twisted.trial import unittest
 from twisted.python import failure
-from twisted.internet import defer
+from twisted.internet import defer, task
 
 from ooni.tasks import BaseTask, TaskWithTimeout
 from ooni.managers import TaskManager, MeasurementManager
@@ -26,6 +26,17 @@ class MockSuccessTaskWithTimeout(TaskWithTimeout):
     def run(self):
         return defer.succeed(42)
 
+class MockFailTaskThatTimesOut(TaskWithTimeout):
+    def run(self):
+        return defer.Deferred()
+
+class MockTimeoutOnceTask(TaskWithTimeout):
+    def run(self):
+        if self.failures >= 1:
+            return defer.succeed(42)
+        else:
+            return defer.Deferred()
+
 class MockFailTaskWithTimeout(TaskWithTimeout):
     def run(self):
         return defer.fail(mockFailure)
@@ -48,6 +59,24 @@ class TestTaskManager(unittest.TestCase):
 
         self.measurementManager.start()
 
+        self.clock = task.Clock()
+
+    def schedule_successful_tasks(self, task_type, number=1):
+        all_done = []
+        for x in range(number):
+            mock_task = task_type()
+            all_done.append(mock_task.done)
+            self.measurementManager.schedule(mock_task)
+
+        d = defer.DeferredList(all_done)
+        @d.addCallback
+        def done(res):
+            for task_result, task_instance in self.measurementManager.successes:
+                self.assertEqual(task_result, 42)
+                self.assertIsInstance(task_instance, task_type)
+
+        return d
+
     def schedule_failing_tasks(self, task_type, number=1):
         all_done = []
         for x in range(number):
@@ -66,27 +95,58 @@ class TestTaskManager(unittest.TestCase):
 
         return d
 
-    def schedule_successful_tasks(self, task_type, number=1):
-        all_done = []
-        for x in range(number):
-            mock_task = task_type()
-            all_done.append(mock_task.done)
-            self.measurementManager.schedule(mock_task)
-
-        d = defer.DeferredList(all_done)
-        @d.addCallback
-        def done(res):
-            for task_result, task_instance in self.measurementManager.successes:
-                self.assertEqual(task_result, 42)
-                self.assertIsInstance(task_instance, task_type)
-
-        return d
-
     def test_schedule_successful_one_task(self):
         return self.schedule_successful_tasks(MockSuccessTask)
 
     def test_schedule_successful_one_task_with_timeout(self):
         return self.schedule_successful_tasks(MockSuccessTaskWithTimeout)
+
+    def test_schedule_failing_tasks_that_timesout(self):
+        self.measurementManager.retries = 0
+
+        task_type = MockFailTaskThatTimesOut
+        task_timeout = 5
+
+        mock_task = task_type()
+        mock_task.timeout = task_timeout
+        mock_task.clock = self.clock
+
+        self.measurementManager.schedule(mock_task)
+
+        self.clock.advance(task_timeout)
+
+        @mock_task.done.addBoth
+        def done(res):
+            self.assertEqual(len(self.measurementManager.failures), 1)
+            for task_result, task_instance in self.measurementManager.failures:
+                self.assertIsInstance(task_instance, task_type)
+
+        return mock_task.done
+
+    def test_schedule_time_out_once(self):
+        task_type = MockTimeoutOnceTask
+        task_timeout = 5
+
+        mock_task = task_type()
+        mock_task.timeout = task_timeout
+        mock_task.clock = self.clock
+
+        self.measurementManager.schedule(mock_task)
+
+        self.clock.advance(task_timeout)
+
+        @mock_task.done.addBoth
+        def done(res):
+            self.assertEqual(len(self.measurementManager.failures), 1)
+            for task_result, task_instance in self.measurementManager.failures:
+                self.assertIsInstance(task_instance, task_type)
+
+            for task_result, task_instance in self.measurementManager.successes:
+                self.assertEqual(task_result, 42)
+                self.assertIsInstance(task_instance, task_type)
+
+        return mock_task.done
+
 
     def test_schedule_failing_one_task(self):
         return self.schedule_failing_tasks(MockFailTask)
