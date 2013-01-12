@@ -18,8 +18,13 @@ class TaskManager(object):
     failures = []
     concurrency = 10
 
-    _tasks = iter()
+    _tasks = iter(())
     _active_tasks = []
+
+    def _tasksDone(self):
+        self.tasksDone.callback(None)
+
+        self.tasksDone = defer.Deferred()
 
     def _failed(self, failure, task):
         """
@@ -31,9 +36,9 @@ class TaskManager(object):
 
         if task.failures < self.retries:
             self._tasks = itertools.chain(self._tasks,
-                    iter(task))
+                    makeIterable(task))
 
-        self.fillSlots()
+        self._fillSlots()
 
         self.failed(failure, task)
 
@@ -42,11 +47,12 @@ class TaskManager(object):
         Called on test completion and schedules measurements to be run for the
         available slots.
         """
-        for _ in range(self.availableSlots()):
+        for _ in range(self.availableSlots):
             try:
                 task = self._tasks.next()
                 self._run(task)
             except StopIteration:
+                self._tasksDone()
                 break
 
     def _suceeded(self, result, task):
@@ -56,7 +62,7 @@ class TaskManager(object):
         self._active_tasks.remove(task)
         self.completedTasks += 1
 
-        self.fillSlots()
+        self._fillSlots()
 
         self.suceeded(result, task)
 
@@ -68,13 +74,14 @@ class TaskManager(object):
         self._active_tasks.append(task)
 
         d = task.run()
-        d.addCallback(self.succeeded)
-        d.addCallback(self.failed)
+        d.addCallback(self.succeeded, task)
+        d.addErrback(self.failed, task)
 
     @property
     def failedMeasurements(self):
         return len(self.failures)
 
+    @property
     def availableSlots(self):
         """
         Returns the number of available slots for running tests.
@@ -86,19 +93,15 @@ class TaskManager(object):
         Takes as argument a single task or a task iterable and appends it to the task
         generator queue.
         """
-        self._tasks = itertools.chain(self._tasks, task_or_task_iterator)
 
-    def start(self):
-        self.initializeTaskList()
+        iterable = makeIterable(task_or_task_iterator)
+
+        self._tasks = itertools.chain(self._tasks, iterable)
         self._fillSlots()
 
-    def initializeTaskList(self):
-        """
-        This should contain all the logic that gets run at first start to
-        pre-populate the list of tasks to be run and the tasks currently
-        running.
-        """
-        raise NotImplemented
+    def start(self):
+        self.tasksDone = defer.Deferred()
+        self._fillSlots()
 
     def failed(self, failure, task):
         """
@@ -132,13 +135,6 @@ class MeasurementsManager(TaskManager):
 
     director = None
 
-    def __init__(self, netTests=None):
-        self.netTests = netTests if netTests else []
-
-    def initializeTaskList(self):
-        for net_test in self.netTests:
-            self.schedule(net_test.generateMeasurements())
-
     def suceeded(self, result, measurement):
         pass
 
@@ -146,6 +142,8 @@ class MeasurementsManager(TaskManager):
         pass
 
 class Report(object):
+    reportEntryManager = None
+
     def __init__(self, reporters, net_test):
         """
         This will instantiate all the reporters and add them to the list of
@@ -178,6 +176,7 @@ class Report(object):
             @reporter.created.addCallback
             def cb(result):
                 report_write_task = ReportWrite(reporter, measurement)
+                self.reportEntryManager.schedule(report_write_task)
 
 class ReportEntryManager(object):
 
