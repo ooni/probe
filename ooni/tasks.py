@@ -21,10 +21,10 @@ class BaseTask(object):
         return result
 
     def start(self):
-        d = self.run()
-        d.addErrback(self._failed)
-        d.addCallback(self._succeeded)
-        return d
+        self.running = self.run()
+        self.running.addErrback(self._failed)
+        self.running.addCallback(self._succeeded)
+        return self.running
 
     def succeeded(self, result):
         """
@@ -50,13 +50,17 @@ class TaskTimedOut(Exception):
 
 class TaskWithTimeout(BaseTask):
     timeout = 5
+    # So that we can test the callLater calls
+    clock = reactor
 
     def _timedOut(self):
         """Internal method for handling timeout failure"""
         self.timedOut()
+        self.running.errback(TaskTimedOut)
 
     def _cancelTimer(self):
-        if self._timer:
+        #import pdb; pdb.set_trace()
+        if self._timer.active():
             self._timer.cancel()
 
     def _succeeded(self, result):
@@ -68,9 +72,8 @@ class TaskWithTimeout(BaseTask):
         return BaseTask._failed(self, failure)
 
     def start(self):
-        self._timer = reactor.callLater(self.timeout, self._timedOut)
-        d = BaseTask.start(self)
-        return d
+        self._timer = self.clock.callLater(self.timeout, self._timedOut)
+        return BaseTask.start(self)
 
     def timedOut(self):
         """
