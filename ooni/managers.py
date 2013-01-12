@@ -117,7 +117,7 @@ class TaskManager(object):
     def succeeded(self, result, task):
         raise NotImplemented
 
-class MeasurementsManager(TaskManager):
+class MeasurementManager(TaskManager):
     """
     This is the Measurement Tracker. In here we keep track of active measurements
     and issue new measurements once the active ones have been completed.
@@ -137,10 +137,10 @@ class MeasurementsManager(TaskManager):
     director = None
 
     def succeeded(self, result, measurement):
-        pass
+        self.director.measurementSucceeded(measurement)
 
     def failed(self, failure, measurement):
-        pass
+        self.director.measurementFailed(failure, measurement)
 
 class Report(object):
     reportEntryManager = None
