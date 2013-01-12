@@ -2,9 +2,8 @@ from twisted.trial import unittest
 from twisted.python import failure
 from twisted.internet import defer
 
-from ooni.tasks import BaseTask
-from ooni.managers import TaskManager
-
+from ooni.tasks import BaseTask, TaskWithTimeout
+from ooni.managers import TaskManager, MeasurementManager
 
 mockFailure = failure.Failure(Exception('mock'))
 
@@ -23,15 +22,19 @@ class MockFailOnceTask(BaseTask):
         else:
             return defer.fail(mockFailure)
 
+class MockSuccessTaskWithTimeout(TaskWithTimeout):
+    def run(self):
+        return defer.succeed(42)
+
+class MockFailTaskWithTimeout(TaskWithTimeout):
+    def run(self):
+        return defer.fail(mockFailure)
+
 class MockTaskManager(TaskManager):
     def __init__(self):
         self.successes = []
 
     def failed(self, failure, task):
-        # print "TASK"
-        # print task
-        # print "FAILURES (%s)" % task.failures
-        # print failure
         pass
 
     def succeeded(self, result, task):
@@ -39,117 +42,81 @@ class MockTaskManager(TaskManager):
 
 class TestTaskManager(unittest.TestCase):
     def setUp(self):
-        self.taskManager = MockTaskManager()
-        self.taskManager.concurrency = 10
-        self.taskManager.retries = 2
+        self.measurementManager = MockTaskManager()
+        self.measurementManager.concurrency = 10
+        self.measurementManager.retries = 2
 
-        self.taskManager.start()
+        self.measurementManager.start()
 
-    def tearDown(self):
-        pass
+    def schedule_failing_tasks(self, task_type, number=1):
+        all_done = []
+        for x in range(number):
+            mock_task = task_type()
+            all_done.append(mock_task.done)
+            self.measurementManager.schedule(mock_task)
+
+        d = defer.DeferredList(all_done)
+        @d.addCallback
+        def done(res):
+            # 10*2 because 2 is the number of retries
+            self.assertEqual(len(self.measurementManager.failures), number*3)
+            for task_result, task_instance in self.measurementManager.failures:
+                self.assertEqual(task_result, mockFailure)
+                self.assertIsInstance(task_instance, task_type)
+
+        return d
+
+    def schedule_successful_tasks(self, task_type, number=1):
+        all_done = []
+        for x in range(number):
+            mock_task = task_type()
+            all_done.append(mock_task.done)
+            self.measurementManager.schedule(mock_task)
+
+        d = defer.DeferredList(all_done)
+        @d.addCallback
+        def done(res):
+            for task_result, task_instance in self.measurementManager.successes:
+                self.assertEqual(task_result, 42)
+                self.assertIsInstance(task_instance, task_type)
+
+        return d
 
     def test_schedule_successful_one_task(self):
-        mock_task = MockSuccessTask()
-        self.taskManager.schedule(mock_task)
+        return self.schedule_successful_tasks(MockSuccessTask)
 
-        @mock_task.done.addCallback
-        def done(res):
-            self.assertEqual(self.taskManager.successes,
-                    [(42, mock_task)])
-        return mock_task.done
+    def test_schedule_successful_one_task_with_timeout(self):
+        return self.schedule_successful_tasks(MockSuccessTaskWithTimeout)
 
     def test_schedule_failing_one_task(self):
-        mock_task = MockFailTask()
-        self.taskManager.schedule(mock_task)
+        return self.schedule_failing_tasks(MockFailTask)
 
-        @mock_task.done.addCallback
-        def done(failure):
-            self.assertEqual(len(self.taskManager.failures), 3)
-
-            self.assertEqual(failure, (mockFailure, mock_task))
-
-        return mock_task.done
+    def test_schedule_failing_one_task_with_timeout(self):
+        return self.schedule_failing_tasks(MockFailTaskWithTimeout)
 
     def test_schedule_successful_ten_tasks(self):
-        all_done = []
-        for x in range(10):
-            mock_task = MockSuccessTask()
-            all_done.append(mock_task.done)
-            self.taskManager.schedule(mock_task)
-
-        d = defer.DeferredList(all_done)
-        @d.addCallback
-        def done(res):
-            for task_result, task_instance in self.taskManager.successes:
-                self.assertEqual(task_result, 42)
-                self.assertIsInstance(task_instance, MockSuccessTask)
-
-        return d
+        return self.schedule_successful_tasks(MockSuccessTask, number=10)
 
     def test_schedule_failing_ten_tasks(self):
-        all_done = []
-        for x in range(10):
-            mock_task = MockFailTask()
-            all_done.append(mock_task.done)
-            self.taskManager.schedule(mock_task)
-
-        d = defer.DeferredList(all_done)
-        @d.addCallback
-        def done(res):
-            # 10*2 because 2 is the number of retries
-            self.assertEqual(len(self.taskManager.failures), 10*3)
-            for task_result, task_instance in self.taskManager.failures:
-                self.assertEqual(task_result, mockFailure)
-                self.assertIsInstance(task_instance, MockFailTask)
-
-        return d
+        return self.schedule_failing_tasks(MockFailTask, number=10)
 
     def test_schedule_successful_27_tasks(self):
-        all_done = []
-        for x in range(27):
-            mock_task = MockSuccessTask()
-            all_done.append(mock_task.done)
-            self.taskManager.schedule(mock_task)
-
-        d = defer.DeferredList(all_done)
-        @d.addCallback
-        def done(res):
-            for task_result, task_instance in self.taskManager.successes:
-                self.assertEqual(task_result, 42)
-                self.assertIsInstance(task_instance, MockSuccessTask)
-
-        return d
+        return self.schedule_successful_tasks(MockSuccessTask, number=27)
 
     def test_schedule_failing_27_tasks(self):
-        all_done = []
-        for x in range(27):
-            mock_task = MockFailTask()
-            all_done.append(mock_task.done)
-            self.taskManager.schedule(mock_task)
-
-        d = defer.DeferredList(all_done)
-        @d.addCallback
-        def done(res):
-            # 10*2 because 2 is the number of retries
-            self.assertEqual(len(self.taskManager.failures), 27*3)
-            for task_result, task_instance in self.taskManager.failures:
-                self.assertEqual(task_result, mockFailure)
-                self.assertIsInstance(task_instance, MockFailTask)
-
-        return d
-
+        return self.schedule_failing_tasks(MockFailTask, number=27)
 
     def test_task_retry_and_succeed(self):
         mock_task = MockFailOnceTask()
-        self.taskManager.schedule(mock_task)
+        self.measurementManager.schedule(mock_task)
 
         @mock_task.done.addCallback
         def done(res):
-            self.assertEqual(len(self.taskManager.failures), 1)
+            self.assertEqual(len(self.measurementManager.failures), 1)
 
-            self.assertEqual(self.taskManager.failures,
+            self.assertEqual(self.measurementManager.failures,
                     [(mockFailure, mock_task)])
-            self.assertEqual(self.taskManager.successes,
+            self.assertEqual(self.measurementManager.successes,
                     [(42, mock_task)])
 
         return mock_task.done

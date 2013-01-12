@@ -1,4 +1,4 @@
-from ooni.managers import ReportingEntryManager, MeasurementsManager
+from ooni.managers import ReportingEntryManager, MeasurementManager
 from ooni.nettest import NetTest
 
 class Director(object):
@@ -50,9 +50,9 @@ class Director(object):
 
         self.netTests = []
 
-        self.measurementsManager = MeasurementsManager(manager=self,
+        self.measurementManager = MeasurementManager(manager=self,
                 netTests=self.netTests)
-        self.measurementsManager.director = self
+        self.measurementManager.director = self
 
         self.reportEntryManager = ReportingEntryManager()
         self.reportEntryManager.director = self
@@ -67,7 +67,7 @@ class Director(object):
         net_test = NetTest(net_test_file, inputs, options, report)
         net_test.director = self
 
-        self.measurementsManager.schedule(net_test.generateMeasurements())
+        self.measurementManager.schedule(net_test.generateMeasurements())
 
     def measurementTimedOut(self, measurement):
         """
