@@ -1,4 +1,4 @@
-from twisted.internet import defer
+from twisted.internet import defer, reactor
 
 class BaseTask(object):
     _timer = None
@@ -61,15 +61,15 @@ class TaskWithTimeout(BaseTask):
 
     def _succeeded(self, result):
         self._cancelTimer()
-        BaseTask._succeeded(self, result)
+        return BaseTask._succeeded(self, result)
 
     def _failed(self, failure):
         self._cancelTimer()
-        BaseTask._failed(self, failure)
+        return BaseTask._failed(self, failure)
 
-    def _run(self):
-        d = BaseTask._run(self)
+    def start(self):
         self._timer = reactor.callLater(self.timeout, self._timedOut)
+        d = BaseTask.start(self)
         return d
 
     def timedOut(self):
@@ -121,7 +121,7 @@ class ReportEntry(TaskWithTimeout):
     def __init__(self, reporter, measurement):
         self.reporter = reporter
         self.measurement = measurement
-        TimedOutTask.__init__(self)
+        TaskWithTimeout.__init__(self)
 
     def run(self):
         return self.reporter.writeReportEntry(self.measurement)
