@@ -5,7 +5,8 @@ from tempfile import TemporaryFile, mkstemp
 from twisted.trial import unittest
 from twisted.internet import defer, reactor
 
-from ooni.nettest import NetTest
+from ooni.nettest import NetTest, InvalidOption, MissingRequiredOption
+from ooni.nettest import FailureToLoadNetTest
 from ooni.tasks import BaseTask
 
 net_test_string = """
@@ -25,8 +26,17 @@ class DummyTestCase(NetTestCase):
         self.report['foo'] = 'foo'
 """
 
+net_test_root_required = net_test_string+"""
+    requiresRoot = True
+"""
+
+#XXX you should actually implement this
+net_test_with_required_option = net_test_string
+
 dummyInputs = range(1)
 dummyOptions = {'spam': 'notham'}
+dummyInvalidOptions = {'':''} # XXX: make invalid options
+dummyOptionsWithRequiredOptions = {'':''} #XXX: set required options here
 
 #dummyNetTest = NetTest(net_test_file, inputs, options)
 
@@ -113,3 +123,49 @@ class TestNetTest(unittest.TestCase):
 
         self.assertEqual(set(['test_a', 'test_b']), test_methods)
 
+    def test_load_with_option(self):
+        self.assertIsInstance(NetTest(StringIO(net_test_string),
+                    dummyInputs, dummyOptions, None), NetTest)
+
+    #def test_load_with_invalid_option(self):
+    #    #XXX: raises TypeError??
+    #    self.assertRaises(InvalidOption, NetTest(StringIO(net_test_string), dummyInputs,
+    #                dummyInvalidOptions, None))
+
+    def test_load_with_required_option(self):
+        self.assertIsInstance(NetTest(StringIO(net_test_with_required_option),
+                dummyInputs, dummyOptionsWithRequiredOptions, None), NetTest)
+
+    #def test_load_with_missing_required_option(self):
+    #    #XXX: raises TypeError
+    #    self.assertRaises(MissingRequiredOption,
+    #            NetTest(StringIO(net_test_with_required_option), dummyInputs,
+    #                dummyOptions, None))
+
+    def test_require_root_succeed(self):
+        #XXX: make root succeed
+        NetTest(StringIO(net_test_root_required),
+                dummyInputs, dummyOptions, None)
+
+    def test_require_root_failed(self):
+        #XXX: make root fail
+        NetTest(StringIO(net_test_root_required),
+                dummyInputs, dummyOptions, None)
+
+    #def test_create_report_succeed(self):
+    #    pass
+
+    #def test_create_report_failed(self):
+    #    pass
+
+    #def test_run_all_test(self):
+    #    raise NotImplementedError
+
+    #def test_resume_test(self):
+    #    pass
+
+    #def test_progress(self):
+    #    pass
+
+    #def test_time_out(self):
+    #    raise NotImplementedError
