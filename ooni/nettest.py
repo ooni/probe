@@ -10,14 +10,22 @@ from twisted.python import usage
 from ooni.errors import handleAllFailures, failureToString
 from ooni.utils import log
 
+from .tasks import TaskWithTimeout
+from inspect import getmembers
+from ooni.nettest import NetTestCase
+from ooni.ratelimiting import StaticRateLimiter
+from twisted.python.reflect import prefixedMethodNames
+from twisted.trial.runner import filenameToModule
+from StringIO import StringIO
+from os.path import isfile
+
+
 class NetTest(object):
     director = None
+    method_prefix = 'test'
 
     def __init__(self, net_test_file, inputs, options, report):
         """
-        The NetTest object is responsible for keeping a reference to the
-        Report and the loading of NetTestCases from test files.
-
         net_test_file:
             is a file object containing the test to be run.
 
@@ -25,13 +33,13 @@ class NetTest(object):
             is a generator containing the inputs to the net test.
 
         options:
-            is a dict containing the opitions to be passed to the net test.
+            is a dict containing the options to be passed to the net test.
         """
-        self.test_cases = self.loadNetTestFile(net_test_file)
+        self.test_cases = self.loadNetTest(net_test_file)
         self.inputs = inputs
         self.options = options
 
-    def loadNetTestFile(self, net_test_file):
+    def loadNetTest(self, net_test_object):
         """
         Creates all the necessary test_cases (a list of tuples containing the
         NetTestCase (test_class, test_method))
@@ -48,11 +56,51 @@ class NetTest(object):
 
         Note: the inputs must be valid for test_classA and test_classB.
 
-        net_test_file:
+        net_test_object:
             is a file like object that will be used to generate the test_cases.
         """
-        # XXX Not implemented
-        raise NotImplemented
+        try:
+            if isfile(net_test_object):
+                return self._loadNetTestFile(net_test_object)
+        except TypeError:
+            if isinstance(net_test_object, StringIO) or \
+                isinstance(net_test_object, str):
+                return self._loadNetTestString(net_test_object)
+
+    def _loadNetTestString(self, net_test_string):
+        """
+        Load NetTest from a string
+        """
+        ns = {}
+        test_cases = []
+        exec net_test_string.read() in ns
+        for item in ns.itervalues():
+            test_cases.extend(self._get_test_methods(item))
+        return test_cases
+
+    def _loadNetTestFile(self, net_test_file):
+        """
+        Load NetTest from a file
+        """
+        test_cases = []
+        module = filenameToModule(net_test_file)
+        for __, item in getmembers(module):
+            test_cases.extend(self._get_test_methods(item))
+        return test_cases
+
+    def _get_test_methods(self, item):
+        """
+        Look for test_ methods in subclasses of NetTestCase
+        """
+        test_cases = []
+        try:
+            assert issubclass(item, NetTestCase)
+            methods = prefixedMethodNames(item, self.method_prefix)
+            for method in methods:
+                test_cases.append((item, self.method_prefix + method))
+        except (TypeError, AssertionError):
+            pass
+        return test_cases
 
     def succeeded(self, measurement):
         """
