@@ -67,9 +67,12 @@ class DummyReporter(object):
         pass
 
 class TestNetTest(unittest.TestCase):
+    def assertCallable(self, thing):
+        self.assertIn('__call__', dir(thing))
+
     def test_load_net_test_from_file(self):
         """
-        Given a file like object verify that the net test cases are properly
+        Given a file verify that the net test cases are properly
         generated.
         """
         __, net_test_file = mkstemp()
@@ -77,17 +80,36 @@ class TestNetTest(unittest.TestCase):
             f.write(net_test_string)
         f.close()
 
-        net_test_from_string = NetTest(StringIO(net_test_string),
-                dummyInputs, dummyOptions, DummyReporter())
         net_test_from_file = NetTest(net_test_file, dummyInputs,
                 dummyOptions, DummyReporter())
 
-        # XXX: the returned classes are not the same because the
-        # module path is not correct, so the test below fails.
-        # TODO: figure out how to verify that the instantiated
-        # classes are done so properly.
+        test_methods = set()
+        for test_class, test_method in net_test_from_file.test_cases:
+            instance = test_class()
+            c = getattr(instance, test_method)
+            self.assertCallable(c)
 
-        #self.assertEqual(net_test_from_string.test_cases,
-        #        net_test_from_file.test_cases)
+            test_methods.add(test_method)
+
+        self.assertEqual(set(['test_a', 'test_b']), test_methods)
+
         os.unlink(net_test_file)
+
+    def test_load_net_test_from_string(self):
+        """
+        Given a file like object verify that the net test cases are properly
+        generated.
+        """
+        net_test_from_string = NetTest(StringIO(net_test_string),
+                dummyInputs, dummyOptions, DummyReporter())
+
+        test_methods = set()
+        for test_class, test_method in net_test_from_string.test_cases:
+            instance = test_class()
+            c = getattr(instance, test_method)
+            self.assertCallable(c)
+
+            test_methods.add(test_method)
+
+        self.assertEqual(set(['test_a', 'test_b']), test_methods)
 
