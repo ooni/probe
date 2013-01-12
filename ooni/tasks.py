@@ -1,23 +1,30 @@
+from twisted.internet import defer
+
 class BaseTask(object):
     _timer = None
 
     def __init__(self):
         self.running = False
         self.failures = 0
+        # This is a deferred that gets called when a test has reached it's
+        # final status, this means: all retries have been attempted or the test
+        # has successfully executed.
+        self.done = defer.Deferred()
 
     def _failed(self, failure):
         self.failures += 1
         self.failed(failure)
-        return
+        return failure
 
-    def _run(self):
+    def _succeeded(self, result):
+        self.succeeded(result)
+        return result
+
+    def start(self):
         d = self.run()
         d.addErrback(self._failed)
         d.addCallback(self._succeeded)
         return d
-
-    def _succeeded(self, result):
-        self.succeeded(result)
 
     def succeeded(self, result):
         """
@@ -113,7 +120,7 @@ class Measurement(TaskWithTimeout):
         d.addErrback(self.failure)
         return d
 
-class ReportEntry(TimedOutTask):
+class ReportEntry(TaskWithTimeout):
     def __init__(self, reporter, measurement):
         self.reporter = reporter
         self.measurement = measurement
