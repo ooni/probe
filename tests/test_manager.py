@@ -65,6 +65,11 @@ class TestNetTest(unittest.TestCase):
         self.assertEqual([(DummyTestCase, 'test_a'), (DummyTestCase,
             'test_b')], net_test.test_cases)
 
+    def test_net_test_timeout(self):
+        """Instantiate a test and verify that the timeout works properly when we call it."""
+        net_test = NetTest(net_test_file, dummyInputs, dummyOptions)
+        # Where net_test_file is a test that will take longer than 
+
 class TestMeasurementsTracker(unittest.TestCase):
     def setUp(self):
         self.mock_mt = MeasurementsTracker(DummyManager())
