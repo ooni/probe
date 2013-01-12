@@ -1,24 +1,13 @@
-import itertools
-import traceback
-import sys
 import os
 
-from twisted.trial import unittest, itrial, util
-from twisted.internet import defer, utils
-from twisted.python import usage
+from twisted.trial.runner import filenameToModule
+from twisted.python import usage, reflect
 
-from ooni.errors import handleAllFailures, failureToString
+from ooni.tasks import Measurement
 from ooni.utils import log
 
-from .tasks import TaskWithTimeout
 from inspect import getmembers
-from ooni.nettest import NetTestCase
-from ooni.ratelimiting import StaticRateLimiter
-from twisted.python.reflect import prefixedMethodNames
-from twisted.trial.runner import filenameToModule
 from StringIO import StringIO
-from os.path import isfile
-
 
 class NetTest(object):
     director = None
@@ -38,6 +27,8 @@ class NetTest(object):
         self.test_cases = self.loadNetTest(net_test_file)
         self.inputs = inputs
         self.options = options
+
+        self.report = report
 
     def loadNetTest(self, net_test_object):
         """
@@ -60,7 +51,7 @@ class NetTest(object):
             is a file like object that will be used to generate the test_cases.
         """
         try:
-            if isfile(net_test_object):
+            if os.path.isfile(net_test_object):
                 return self._loadNetTestFile(net_test_object)
         except TypeError:
             if isinstance(net_test_object, StringIO) or \
@@ -95,7 +86,7 @@ class NetTest(object):
         test_cases = []
         try:
             assert issubclass(item, NetTestCase)
-            methods = prefixedMethodNames(item, self.method_prefix)
+            methods = reflect.prefixedMethodNames(item, self.method_prefix)
             for method in methods:
                 test_cases.append((item, self.method_prefix + method))
         except (TypeError, AssertionError):
@@ -117,7 +108,6 @@ class NetTest(object):
             for test_class, test_method in self.test_cases:
                 measurement = Measurement(test_class, test_method, test_input)
                 measurement.netTest = self
-                measurement.timeout = self.rateLimiter.timeout
                 yield measurement
 
 class NoPostProcessor(Exception):
