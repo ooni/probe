@@ -30,6 +30,12 @@ class NetTest(object):
 
         self.report = report
 
+    def start(self):
+        """
+        Start tests and generate measurements.
+        """
+        raise NotImplementedError
+
     def loadNetTest(self, net_test_object):
         """
         Creates all the necessary test_cases (a list of tuples containing the
@@ -52,11 +58,16 @@ class NetTest(object):
         """
         try:
             if os.path.isfile(net_test_object):
-                return self._loadNetTestFile(net_test_object)
+                test_cases = self._loadNetTestFile(net_test_object)
         except TypeError:
             if isinstance(net_test_object, StringIO) or \
                 isinstance(net_test_object, str):
-                return self._loadNetTestString(net_test_object)
+                test_cases = self._loadNetTestString(net_test_object)
+
+        if not test_cases:
+            raise NoTestCasesFound
+
+        return test_cases
 
     def _loadNetTestString(self, net_test_string):
         """
@@ -110,8 +121,79 @@ class NetTest(object):
                 measurement.netTest = self
                 yield measurement
 
-class NoPostProcessor(Exception):
-    pass
+    def processTestCasesOptions(self):
+        self.options #XXX is this cmd_line_options?
+
+        # get set of unique classes
+        test_classes = set([])
+        for test_class, test_method in self.test_cases:
+            test_classes.add(test_class)
+
+        #XXX where should the options bound to a test_class get stashed?
+        for test_class in test_classes:
+            options = self._processOptions()
+
+    #XXX: is options passed to init the same as cmd_line_options???
+    def _processTest(self, nettest_test_case, cmd_line_options):
+        """
+        Process the parameters and :class:`twisted.python.usage.Options` of a
+        :class:`ooni.nettest.Nettest`.
+
+        :param obj:
+            An uninstantiated old test, which should be a subclass of
+            :class:`ooni.plugoo.tests.OONITest`.
+
+        :param cmd_line_options:
+            A configured and instantiated :class:`twisted.python.usage.Options`
+            class.
+
+        """
+        obj = nettest_test_case
+        if not hasattr(obj.usageOptions, 'optParameters'):
+            obj.usageOptions.optParameters = []
+
+        if obj.inputFile:
+            obj.usageOptions.optParameters.append(obj.inputFile)
+
+        if obj.baseParameters:
+            for parameter in obj.baseParameters:
+                obj.usageOptions.optParameters.append(parameter)
+
+        if obj.baseFlags:
+            if not hasattr(obj.usageOptions, 'optFlags'):
+                obj.usageOptions.optFlags = []
+            for flag in obj.baseFlags:
+                obj.usageOptions.optFlags.append(flag)
+
+        options = obj.usageOptions()
+
+        options.parseOptions(cmd_line_options['subargs'])
+        obj.localOptions = options
+
+        if obj.inputFile:
+            obj.inputFilename = options[obj.inputFile[0]]
+
+        try:
+            log.debug("processing options")
+            tmp_test_case_object = obj()
+            tmp_test_case_object._checkRequiredOptions()
+
+        except usage.UsageError, e:
+            test_name = tmp_test_case_object.name
+            log.err("There was an error in running %s!" % test_name)
+            log.err("%s" % e)
+            options.opt_help()
+            raise usage.UsageError("Error in parsing command line args for %s" % test_name)
+
+        # who checks for root?
+        if obj.requiresRoot:
+            try:
+                checkForRoot()
+            except NotRootError:
+                log.err("%s requires root to run" % obj.name)
+                sys.exit(1)
+
+        return obj
 
 class NetTestCase(object):
     """
@@ -261,3 +343,11 @@ class NetTestCase(object):
     def __repr__(self):
         return "<%s inputs=%s>" % (self.__class__, self.inputs)
 
+class FailureToLoadNetTest(Exception):
+    pass
+class NoPostProcessor(Exception):
+    pass
+class InvalidOption(Exception):
+    pass
+class MissingRequiredOption(Exception):
+    pass
