@@ -1,7 +1,16 @@
 import itertools
+from twisted.internet import defer
 
-from .ratelimiting import StaticRateLimiter
-from .measurements import Measurement, NetTest
+def makeIterable(item):
+    """
+    Takes as argument or an iterable and if it's not an iterable object then it
+    will return a listiterator.
+    """
+    try:
+        iterable = iter(item)
+    except TypeError:
+        iterable = iter([item])
+    return iterable
 
 class TaskManager(object):
     retries = 2
