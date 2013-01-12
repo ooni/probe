@@ -106,7 +106,7 @@ class Measurement(TaskWithTimeout):
         self.netTest = net_test
 
     def succeeded(self):
-        self.net_test.succeeded()
+        self.net_test.succeeded(self)
 
     def failed(self):
         pass
@@ -115,10 +115,7 @@ class Measurement(TaskWithTimeout):
         self.net_test.timedOut()
 
     def run(self):
-        d = defer.maybeDeferred(self.test)
-        d.addCallback(self.success)
-        d.addErrback(self.failure)
-        return d
+        return defer.maybeDeferred(self.test)
 
 class ReportEntry(TaskWithTimeout):
     def __init__(self, reporter, measurement):
