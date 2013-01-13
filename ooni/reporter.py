@@ -373,3 +373,39 @@ class OONIBReporter(OReporter):
         self.backend_version = parsed_response['backend_version']
         log.debug("Created report with id %s" % parsed_response['report_id'])
 
+class Report(object):
+    reportEntryManager = None
+
+    def __init__(self, reporters):
+        """
+        This will instantiate all the reporters and add them to the list of
+        available reporters.
+
+        net_test:
+            is a reference to the net_test to which the report object belongs to.
+        """
+        self.reporters = []
+        for r in reporters:
+            reporter = r()
+            self.reporters.append(reporter)
+
+        self.createReports()
+
+    def createReports(self):
+        """
+        This will create all the reports that need to be created.
+        """
+        for reporter in self.reporters:
+            reporter.createReport()
+
+    def write(self, measurement):
+        """
+        This will write to all the reporters, by waiting on the created
+        callback to fire.
+        """
+        for reporter in self.reporters:
+            @reporter.created.addCallback
+            def cb(result):
+                report_write_task = ReportWrite(reporter, measurement)
+                self.reportEntryManager.schedule(report_write_task)
+

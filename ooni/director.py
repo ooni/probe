@@ -1,4 +1,6 @@
-from ooni.managers import ReportingEntryManager, MeasurementManager
+from ooni.managers import ReportEntryManager, MeasurementManager
+from ooni.reporter import Report
+
 from ooni.nettest import NetTest
 
 class Director(object):
@@ -45,29 +47,51 @@ class Director(object):
     """
     _scheduledTests = 0
 
-    def __init__(self):
+    def __init__(self, reporters):
         self.reporters = reporters
 
         self.netTests = []
 
-        self.measurementManager = MeasurementManager(manager=self,
-                netTests=self.netTests)
+        self.measurementManager = MeasurementManager()
         self.measurementManager.director = self
 
-        self.reportEntryManager = ReportingEntryManager()
+        self.reportEntryManager = ReportEntryManager()
         self.reportEntryManager.director = self
 
-    def startTest(self, net_test_file, inputs, options):
-        """
-        Create the Report for the NetTest and start the report NetTest.
-        """
-        report = Report()
-        report.reportEntryManager = self.reportEntryManager
+        self.successfulMeasurements = 0
+        self.failedMeasurements = 0
 
-        net_test = NetTest(net_test_file, inputs, options, report)
-        net_test.director = self
+        self.totalMeasurements = 0
 
-        self.measurementManager.schedule(net_test.generateMeasurements())
+        # The cumulative runtime of all the measurements
+        self.totalMeasurementRuntime = 0
+
+        self.failures = []
+
+    @property
+    def measurementSuccessRatio(self):
+        return self.successfulMeasurements / self.totalMeasurements
+
+    @property
+    def measurementFailureRatio(self):
+        return self.failedMeasurements / self.totalMeasurements
+
+    @property
+    def measurementSuccessRate(self):
+        """
+        The speed at which tests are succeeding globally.
+
+        This means that fast tests that perform a lot of measurements will
+        impact this value quite heavily.
+        """
+        return self.successfulMeasurements / self.totalMeasurementRuntime
+
+    @property
+    def measurementFailureRate(self):
+        """
+        The speed at which tests are failing globally.
+        """
+        return self.failedMeasurements / self.totalMeasurementRuntime
 
     def measurementTimedOut(self, measurement):
         """
@@ -76,12 +100,41 @@ class Director(object):
         """
         pass
 
+    def measurementStarted(self, measurement):
+        self.totalMeasurements += 1
+
+    def measurementSucceeded(self, measurement):
+        self.totalMeasurementRuntime += measurement.runtime
+
+        self.successfulMeasurements += 1
+
     def measurementFailed(self, failure, measurement):
-        pass
+        self.totalMeasurementRuntime += measurement.runtime
 
-    def writeFailure(self, measurement, failure):
-        pass
+        self.failedMeasurements += 1
+        self.failures.append((failure, measurement))
 
-    def writeReport(self, report_write_task):
-        self.reportingManager.write(report_write_task)
+    def startTest(self, net_test_file, options):
+        """
+        Create the Report for the NetTest and start the report NetTest.
+
+        Args:
+            net_test_file:
+                is either a file path or a file like object that will be used to
+                generate the test_cases.
+
+            options:
+                is a dict containing the options to be passed to the chosen net
+                test.
+        """
+        report = Report(self.reporters)
+        report.reportEntryManager = self.reportEntryManager
+
+        net_test = NetTest(net_test_file, options, report)
+        net_test.measurmentManager = self.measurementManager
+
+        try:
+            net_test.start()
+        except Exception, e:
+            pass
 
