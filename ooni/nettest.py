@@ -13,7 +13,7 @@ class NoTestCasesFound(Exception):
     pass
 
 class NetTest(object):
-    director = None
+    measurementManager = None
     method_prefix = 'test'
 
     def __init__(self, net_test_file, options, report):
@@ -26,15 +26,15 @@ class NetTest(object):
         """
         self.options = options
         self.report = report
-
         self.test_cases = self.loadNetTest(net_test_file)
-        self.setUpNetTestCases()
 
     def start(self):
         """
+        Set up tests and start running.
         Start tests and generate measurements.
         """
-        raise NotImplementedError
+        self.setUpNetTestCases()
+        self.measurementManager.schedule(self.generateMeasurements())
 
     def loadNetTest(self, net_test_file):
         """
