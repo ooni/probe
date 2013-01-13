@@ -31,6 +31,8 @@ from ooni.utils.net import BodyReceiver, StringProducer, userAgents
 
 from ooni import config
 
+from ooni.tasks import ReportEntry, TaskMediator
+
 def createPacketReport(packet_list):
     """
     Takes as input a packet a list.
@@ -391,6 +393,11 @@ class Report(object):
 
         self.createReports()
 
+        self.done = defer.Deferred()
+        self.done.addCallback(self.finish)
+
+        self.report_mediator = TaskMediator(self.done)
+
     def createReports(self):
         """
         This will create all the reports that need to be created.
@@ -406,6 +413,13 @@ class Report(object):
         for reporter in self.reporters:
             @reporter.created.addCallback
             def cb(result):
-                report_write_task = ReportWrite(reporter, measurement)
+                report_write_task = ReportEntry(reporter, measurement,
+                        self.report_mediator)
                 self.reportEntryManager.schedule(report_write_task)
+
+    def finish(self):
+        for reporter in self.reporters:
+            d = defer.maybeDeferred(reporter.finish)
+            dl.append(d)
+        return defer.DeferredList(dl)
 
