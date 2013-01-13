@@ -143,10 +143,8 @@ class Director(object):
         report.reportEntryManager = self.reportEntryManager
 
         net_test = NetTest(net_test_file, options, report)
-        net_test.measurmentManager = self.measurementManager
+        net_test.measurementManager = self.measurementManager
 
-        try:
-            net_test.start()
-        except Exception, e:
-            pass
+        d = net_test.start()
+        return d
 
