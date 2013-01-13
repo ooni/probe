@@ -52,6 +52,7 @@ class MockTaskManager(TaskManager):
         self.successes.append((result, task))
 
 class TestTaskManager(unittest.TestCase):
+    timeout = 1
     def setUp(self):
         self.measurementManager = MockTaskManager()
         self.measurementManager.concurrency = 10
