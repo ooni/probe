@@ -99,15 +99,22 @@ class TaskManager(object):
         self._fillSlots()
 
     def start(self):
+        """
+        This is called to start the task manager.
+        """
         self.failures = []
 
-        self.tasksDone = defer.Deferred()
         self._fillSlots()
+
+    def started(self, task):
+        """
+        This hook will get called every time a task has been started.
+        """
+        pass
 
     def failed(self, failure, task):
         """
-        This method should be overriden by the subclass and should contains
-        logic for dealing with a failure that is subclass specific.
+        This hoook is called every time a task has failed.
 
         The default failure handling logic is to reschedule the task up until
         we reach the maximum number of retries.
@@ -115,6 +122,9 @@ class TaskManager(object):
         raise NotImplemented
 
     def succeeded(self, result, task):
+        """
+        This hook is called every time a task has been successfully executed.
+        """
         raise NotImplemented
 
 class MeasurementManager(TaskManager):
@@ -135,6 +145,9 @@ class MeasurementManager(TaskManager):
     concurrency = 10
 
     director = None
+
+    def started(self, measurement):
+        self.director.measurementStarted(measurement)
 
     def succeeded(self, result, measurement):
         self.director.measurementSucceeded(measurement)
@@ -182,16 +195,6 @@ class Report(object):
 class ReportEntryManager(object):
 
     director = None
-
-    def __init__(self, manager, netTests=None):
-        self.netTests = netTests if netTests else []
-        self.manager = manager
-
-    def addNetTest(self, netTest):
-        self.netTests.append(netTest)
-
-    def initializeTaskList(self):
-        pass
 
     def succeeded(self, result, measurement):
         pass
