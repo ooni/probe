@@ -186,16 +186,97 @@ class TestTaskManager(unittest.TestCase):
         for x in range(56):
             mock_task = MockFailOnceTask()
             all_done.append(mock_task.done)
-            self.taskManager.schedule(mock_task)
+            self.measurementManager.schedule(mock_task)
 
         d = defer.DeferredList(all_done)
         @d.addCallback
         def done(res):
-            self.assertEqual(len(self.taskManager.failures), 56)
+            self.assertEqual(len(self.measurementManager.failures), 56)
 
-            for task_result, task_instance in self.taskManager.successes:
+            for task_result, task_instance in self.measurementManager.successes:
                 self.assertEqual(task_result, 42)
                 self.assertIsInstance(task_instance, MockFailOnceTask)
 
         return d
+
+class MockNetTest(object):
+    def __init__(self):
+        self.successes = []
+
+    def succeeded(self, measurement):
+        self.successes.append(measurement)
+
+class MockMeasurement(TaskWithTimeout):
+    def __init__(self, net_test):
+        TaskWithTimeout.__init__(self)
+        self.netTest = net_test
+
+    def succeeded(self, result):
+        return self.netTest.succeeded(self)
+
+class MockSuccessMeasurement(MockMeasurement):
+    def run(self):
+        return defer.succeed(42)
+
+class MockFailMeasurement(MockMeasurement):
+    def run(self):
+        return defer.fail(mockFailure)
+
+class MockFailOnceMeasurement(MockMeasurement):
+    def run(self):
+        if self.failures >= 1:
+            return defer.succeed(42)
+        else:
+            return defer.fail(mockFailure)
+
+class MockDirector(object):
+    def __init__(self):
+        self.successes = []
+
+    def measurementFailed(self, failure, measurement):
+        pass
+
+    def measurementSucceeded(self, measurement):
+        self.successes.append(measurement)
+
+class TestMeasurementManager(unittest.TestCase):
+    def setUp(self):
+        mock_director = MockDirector()
+
+        self.measurementManager = MeasurementManager()
+        self.measurementManager.director = mock_director
+
+        self.measurementManager.concurrency = 10
+        self.measurementManager.retries = 2
+
+        self.measurementManager.start()
+
+        self.mockNetTest = MockNetTest()
+
+    def test_schedule_and_net_test_notified(self, number=1):
+        # XXX we should probably be inheriting from the base test class
+        mock_task = MockSuccessMeasurement(self.mockNetTest)
+        self.measurementManager.schedule(mock_task)
+
+        @mock_task.done.addCallback
+        def done(res):
+            self.assertEqual(self.mockNetTest.successes,
+                    [mock_task])
+
+            self.assertEqual(len(self.mockNetTest.successes), 1)
+        return mock_task.done
+
+    def test_schedule_failing_one_measurement(self):
+        mock_task = MockFailMeasurement(self.mockNetTest)
+        self.measurementManager.schedule(mock_task)
+
+        @mock_task.done.addCallback
+        def done(failure):
+            self.assertEqual(len(self.measurementManager.failures), 3)
+
+            self.assertEqual(failure, (mockFailure, mock_task))
+            self.assertEqual(len(self.mockNetTest.successes), 0)
+
+        return mock_task.done
+
 
