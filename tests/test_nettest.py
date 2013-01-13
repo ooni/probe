@@ -190,24 +190,29 @@ class TestNetTest(unittest.TestCase):
         net_test = NetTest(StringIO(net_test_string),
                 dummyOptions, None)
         self.assertIsInstance(net_test, NetTest)
+        net_test.setUpNetTestCases()
         for test_klass, test_meth in net_test.test_cases:
             for option in dummyOptions.keys():
                 self.assertIn(option, test_klass.usageOptions())
 
     def test_load_with_invalid_option(self):
         try:
-            NetTest(StringIO(net_test_string), dummyInvalidOptions, None)
+            net_test = NetTest(StringIO(net_test_string), dummyInvalidOptions, None)
+            net_test.setUpNetTestCases()
         except InvalidOption:
             pass
 
     def test_load_with_required_option(self):
-        self.assertIsInstance(NetTest(StringIO(net_test_with_required_option),
-                dummyOptionsWithRequiredOptions, None), NetTest)
+        net_test = NetTest(StringIO(net_test_with_required_option),
+                dummyOptionsWithRequiredOptions, None)
+        net_test.setUpNetTestCases()
+        self.assertIsInstance(net_test, NetTest)
 
     def test_load_with_missing_required_option(self):
         try:
-            NetTest(StringIO(net_test_with_required_option),
+            net_test = NetTest(StringIO(net_test_with_required_option),
                     dummyOptions, None)
+            net_test.setUpNetTestCases()
         except MissingRequiredOption:
             pass
 
@@ -217,6 +222,7 @@ class TestNetTest(unittest.TestCase):
 
         net_test = NetTest(StringIO(net_test_string_with_file),
             dummyOptionsWithFile, None)
+        net_test.setUpNetTestCases()
 
         for test_class, test_method in net_test.test_cases:
             self.assertEqual(len(list(test_class.inputs)), 10)
@@ -224,6 +230,7 @@ class TestNetTest(unittest.TestCase):
     def test_setup_local_options_in_test_cases(self):
         net_test = NetTest(StringIO(net_test_string),
             dummyOptions, None)
+        net_test.setUpNetTestCases()
 
         for test_class, test_method in net_test.test_cases:
             self.assertEqual(test_class.localOptions, dummyOptions)
@@ -234,7 +241,7 @@ class TestNetTest(unittest.TestCase):
 
         net_test = NetTest(StringIO(net_test_string_with_file),
             dummyOptionsWithFile, None)
-
+        net_test.setUpNetTestCases()
         measurements = list(net_test.generateMeasurements())
         self.assertEqual(len(measurements), 20)
 
@@ -248,8 +255,9 @@ class TestNetTest(unittest.TestCase):
     def test_require_root_failed(self):
         #XXX: will fail if you run as root
         try:
-            NetTest(StringIO(net_test_root_required),
+            net_test = NetTest(StringIO(net_test_root_required),
                     dummyOptions, None)
+            net_test.setUpNetTestCases()
         except NotRootError:
             pass
 
