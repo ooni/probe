@@ -9,6 +9,9 @@ from ooni.utils import log, checkForRoot, NotRootError
 from inspect import getmembers
 from StringIO import StringIO
 
+class NoTestCasesFound(Exception):
+    pass
+
 class NetTest(object):
     director = None
     method_prefix = 'test'
@@ -33,7 +36,7 @@ class NetTest(object):
         """
         raise NotImplementedError
 
-    def loadNetTest(self, net_test_object):
+    def loadNetTest(self, net_test_file):
         """
         Creates all the necessary test_cases (a list of tuples containing the
         NetTestCase (test_class, test_method))
@@ -50,23 +53,28 @@ class NetTest(object):
 
         Note: the inputs must be valid for test_classA and test_classB.
 
-        net_test_object:
-            is a file like object that will be used to generate the test_cases.
+        net_test_file:
+            is either a file path or a file like object that will be used to
+            generate the test_cases.
         """
+        test_cases = None
         try:
-            if os.path.isfile(net_test_object):
-                test_cases = self._loadNetTestFile(net_test_object)
+            if os.path.isfile(net_test_file):
+                test_cases = self._loadNetTestFile(net_test_file)
+            else:
+                net_test_file = StringIO(net_test_file)
+                raise TypeError("not a file path")
+
         except TypeError:
-            if isinstance(net_test_object, StringIO) or \
-                isinstance(net_test_object, str):
-                test_cases = self._loadNetTestString(net_test_object)
+            if hasattr(net_test_file, 'read'):
+                test_cases = self._loadNetTestFromFileObject(net_test_file)
 
         if not test_cases:
             raise NoTestCasesFound
 
         return test_cases
 
-    def _loadNetTestString(self, net_test_string):
+    def _loadNetTestFromFileObject(self, net_test_string):
         """
         Load NetTest from a string
         """
