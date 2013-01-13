@@ -10,6 +10,8 @@ from ooni.nettest import FailureToLoadNetTest
 from ooni.tasks import BaseTask
 from ooni.utils import NotRootError
 
+from ooni.managers import TaskManager
+
 net_test_string = """
 from twisted.python import usage
 from ooni.nettest import NetTestCase
@@ -116,7 +118,22 @@ class DummyReporter(object):
     def write(self, result):
         pass
 
+class MockMeasurementManager(TaskManager):
+    def __init__(self):
+        self.successes = []
+
+    def failed(self, failure, task):
+        pass
+
+    def succeeded(self, result, task):
+        self.successes.append((result, task))
+
+class MockReporter(object):
+    def write(self, measurement):
+        pass
+
 class TestNetTest(unittest.TestCase):
+    timeout = 1
     def setUp(self):
         with open('dummyInputFile.txt', 'w') as f:
             for i in range(10):
@@ -244,6 +261,21 @@ class TestNetTest(unittest.TestCase):
         net_test.setUpNetTestCases()
         measurements = list(net_test.generateMeasurements())
         self.assertEqual(len(measurements), 20)
+
+    def test_net_test_completed_callback(self):
+        dummyOptionsWithFile = dict(dummyOptions)
+        dummyOptionsWithFile['file'] = 'dummyInputFile.txt'
+
+        net_test = NetTest(StringIO(net_test_string_with_file),
+            dummyOptionsWithFile, MockReporter())
+        net_test.measurementManager = MockMeasurementManager()
+
+        d = net_test.start()
+        @d.addCallback
+        def complete(result):
+            self.assertEqual(result, None)
+
+        return d
 
     #def test_require_root_succeed(self):
     #    #XXX: will require root to run
