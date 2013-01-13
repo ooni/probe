@@ -4,7 +4,7 @@ from twisted.trial.runner import filenameToModule
 from twisted.python import usage, reflect
 
 from ooni.tasks import Measurement
-from ooni.utils import log
+from ooni.utils import log, checkForRoot, NotRootError
 
 from inspect import getmembers
 from StringIO import StringIO
@@ -13,22 +13,19 @@ class NetTest(object):
     director = None
     method_prefix = 'test'
 
-    def __init__(self, net_test_file, inputs, options, report):
+    def __init__(self, net_test_file, options, report):
         """
         net_test_file:
             is a file object containing the test to be run.
 
-        inputs:
-            is a generator containing the inputs to the net test.
-
         options:
             is a dict containing the options to be passed to the net test.
         """
-        self.test_cases = self.loadNetTest(net_test_file)
-        self.inputs = inputs
         self.options = options
-
         self.report = report
+
+        self.test_cases = self.loadNetTest(net_test_file)
+        self.setUpNetTestCases()
 
     def start(self):
         """
@@ -115,85 +112,30 @@ class NetTest(object):
         This is a generator that yields measurements and sets their timeout
         value and their netTest attribute.
         """
-        for test_input in self.inputs:
-            for test_class, test_method in self.test_cases:
-                measurement = Measurement(test_class, test_method, test_input)
+        for test_class, test_method in self.test_cases:
+            for test_input in test_class.inputs:
+                measurement = Measurement(test_class, test_method,
+                        test_input, self)
                 measurement.netTest = self
                 yield measurement
 
-    def processTestCasesOptions(self):
-        self.options #XXX is this cmd_line_options?
-
-        # get set of unique classes
+    def setUpNetTestCases(self):
+        """
+        Call processTest and processOptions methods of each NetTestCase
+        """
         test_classes = set([])
         for test_class, test_method in self.test_cases:
             test_classes.add(test_class)
 
-        #XXX where should the options bound to a test_class get stashed?
-        for test_class in test_classes:
-            options = self._processOptions()
+        for klass in test_classes:
+            klass.localOptions = self.options
 
-    #XXX: is options passed to init the same as cmd_line_options???
-    def _processTest(self, nettest_test_case, cmd_line_options):
-        """
-        Process the parameters and :class:`twisted.python.usage.Options` of a
-        :class:`ooni.nettest.Nettest`.
-
-        :param obj:
-            An uninstantiated old test, which should be a subclass of
-            :class:`ooni.plugoo.tests.OONITest`.
-
-        :param cmd_line_options:
-            A configured and instantiated :class:`twisted.python.usage.Options`
-            class.
-
-        """
-        obj = nettest_test_case
-        if not hasattr(obj.usageOptions, 'optParameters'):
-            obj.usageOptions.optParameters = []
-
-        if obj.inputFile:
-            obj.usageOptions.optParameters.append(obj.inputFile)
-
-        if obj.baseParameters:
-            for parameter in obj.baseParameters:
-                obj.usageOptions.optParameters.append(parameter)
-
-        if obj.baseFlags:
-            if not hasattr(obj.usageOptions, 'optFlags'):
-                obj.usageOptions.optFlags = []
-            for flag in obj.baseFlags:
-                obj.usageOptions.optFlags.append(flag)
-
-        options = obj.usageOptions()
-
-        options.parseOptions(cmd_line_options['subargs'])
-        obj.localOptions = options
-
-        if obj.inputFile:
-            obj.inputFilename = options[obj.inputFile[0]]
-
-        try:
-            log.debug("processing options")
-            tmp_test_case_object = obj()
-            tmp_test_case_object._checkRequiredOptions()
-
-        except usage.UsageError, e:
-            test_name = tmp_test_case_object.name
-            log.err("There was an error in running %s!" % test_name)
-            log.err("%s" % e)
-            options.opt_help()
-            raise usage.UsageError("Error in parsing command line args for %s" % test_name)
-
-        # who checks for root?
-        if obj.requiresRoot:
-            try:
+            test_instance = klass()
+            if test_instance.requiresRoot:
                 checkForRoot()
-            except NotRootError:
-                log.err("%s requires root to run" % obj.name)
-                sys.exit(1)
+            test_instance._checkRequiredOptions()
 
-        return obj
+            klass.inputs = test_instance.getInputProcessor()
 
 class NetTestCase(object):
     """
@@ -317,16 +259,16 @@ class NetTestCase(object):
         else:
             pass
 
-    def _checkRequiredOptions(self):
-        for required_option in self.requiredOptions:
-            log.debug("Checking if %s is present" % required_option)
-            if not self.localOptions[required_option]:
-                raise usage.UsageError("%s not specified!" % required_option)
+    def getInputProcessor(self):
+        """
+        This method must be called afterr
+        """
+        if self.inputFile:
+            self.inputFilename = self.localOptions[self.inputFile[0]]
 
-    def _processOptions(self):
-        if self.inputFilename:
             inputProcessor = self.inputProcessor
             inputFilename = self.inputFilename
+
             class inputProcessorIterator(object):
                 """
                 Here we convert the input processor generator into an iterator
@@ -334,11 +276,16 @@ class NetTestCase(object):
                 """
                 def __iter__(self):
                     return inputProcessor(inputFilename)
-            self.inputs = inputProcessorIterator()
 
-        return {'inputs': self.inputs,
-                'name': self.name, 'version': self.version
-               }
+            return inputProcessorIterator()
+
+        return iter(())
+
+    def _checkRequiredOptions(self):
+        for required_option in self.requiredOptions:
+            log.debug("Checking if %s is present" % required_option)
+            if not self.localOptions[required_option]:
+                raise usage.UsageError("%s not specified!" % required_option)
 
     def __repr__(self):
         return "<%s inputs=%s>" % (self.__class__, self.inputs)
