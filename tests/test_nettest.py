@@ -51,15 +51,34 @@ class DummyTestCase(NetTestCase):
         self.report['foo'] = 'foo'
 """
 
-#XXX you should actually implement this
-net_test_with_required_option = net_test_string
+net_test_with_required_option = """
+from twisted.python import usage
+from ooni.nettest import NetTestCase
+
+class UsageOptions(usage.Options):
+    optParameters = [['spam', 's', None, 'ham'],
+                     ['foo', 'o', None, 'moo'],
+                     ['bar', 'o', None, 'baz'],
+    ]
+
+class DummyTestCase(NetTestCase):
+    inputFile = ['file', 'f', None, 'The input File']
+
+    usageOptions = UsageOptions
+
+    def test_a(self):
+        self.report['bar'] = 'bar'
+
+    def test_b(self):
+        self.report['foo'] = 'foo'
+
+    requiredOptions = ['foo', 'bar']
+"""
 
 dummyInputs = range(1)
 dummyOptions = {'spam': 'notham'}
-dummyInvalidOptions = {'':''} # XXX: make invalid options
-dummyOptionsWithRequiredOptions = {'':''} #XXX: set required options here
-
-#dummyNetTest = NetTest(net_test_file, inputs, options)
+dummyInvalidOptions = {'cram': 'jam'}
+dummyOptionsWithRequiredOptions = {'foo':'moo', 'bar':'baz'}
 
 class DummyMeasurement(BaseTask):
     def run(self):
@@ -167,29 +186,30 @@ class TestNetTest(unittest.TestCase):
 
         self.assertEqual(set(['test_a', 'test_b']), test_methods)
 
-    def dd_test_load_with_option(self):
+    def test_load_with_option(self):
         net_test = NetTest(StringIO(net_test_string),
                 dummyOptions, None)
-
-        self.assertIsNotNone(net_test.usageOptions)
-        self.assertIsNotNone(net_test.usageOptions.optParameters)
         self.assertIsInstance(net_test, NetTest)
+        for test_klass, test_meth in net_test.test_cases:
+            for option in dummyOptions.keys():
+                self.assertIn(option, test_klass.usageOptions())
 
-    #def test_load_with_invalid_option(self):
-    #    #XXX: raises TypeError??
-    #    self.assertRaises(InvalidOption, NetTest(StringIO(net_test_string), dummyInputs,
-    #                dummyInvalidOptions, None))
+    def test_load_with_invalid_option(self):
+        try:
+            NetTest(StringIO(net_test_string), dummyInvalidOptions, None)
+        except InvalidOption:
+            pass
 
     def test_load_with_required_option(self):
         self.assertIsInstance(NetTest(StringIO(net_test_with_required_option),
                 dummyOptionsWithRequiredOptions, None), NetTest)
 
-    #def test_load_with_missing_required_option(self):
-    #    #XXX: raises TypeError
-    #    self.assertRaises(MissingRequiredOption,
-    #            NetTest(StringIO(net_test_with_required_option), dummyInputs,
-    #                dummyOptions, None))
-
+    def test_load_with_missing_required_option(self):
+        try:
+            NetTest(StringIO(net_test_with_required_option),
+                    dummyOptions, None)
+        except MissingRequiredOption:
+            pass
 
     def test_net_test_inputs(self):
         dummyOptionsWithFile = dict(dummyOptions)
@@ -218,14 +238,15 @@ class TestNetTest(unittest.TestCase):
         measurements = list(net_test.generateMeasurements())
         self.assertEqual(len(measurements), 20)
 
-    def dd_test_require_root_succeed(self):
-        n = NetTest(StringIO(net_test_root_required),
-                dummyOptions, None)
-        for test_class, method in n.test_cases:
-            self.assertTrue(test_class.requiresRoot)
+    #def test_require_root_succeed(self):
+    #    #XXX: will require root to run
+    #    n = NetTest(StringIO(net_test_root_required),
+    #            dummyOptions, None)
+    #    for test_class, method in n.test_cases:
+    #        self.assertTrue(test_class.requiresRoot)
 
     def test_require_root_failed(self):
-        #XXX: make root fail
+        #XXX: will fail if you run as root
         try:
             NetTest(StringIO(net_test_root_required),
                     dummyOptions, None)
