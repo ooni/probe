@@ -71,6 +71,28 @@ class Options(usage.Options):
         except:
             raise usage.UsageError("No test filename specified!")
 
+def parseNetTestOptions(obj, argv):
+    if not hasattr(obj.usageOptions, 'optParameters'):
+        obj.usageOptions.optParameters = []
+
+    if obj.inputFile:
+        obj.usageOptions.optParameters.append(obj.inputFile)
+
+    if obj.baseParameters:
+        for parameter in obj.baseParameters:
+            obj.usageOptions.optParameters.append(parameter)
+
+    if obj.baseFlags:
+        if not hasattr(obj.usageOptions, 'optFlags'):
+            obj.usageOptions.optFlags = []
+        for flag in obj.baseFlags:
+            obj.usageOptions.optFlags.append(flag)
+
+    options = obj.usageOptions()
+    options.parseOptions(argv)
+
+    return options
+
 def updateStatusBar():
     for test_filename in config.state.keys():
         # The ETA is not updated so we we will not print it out for the
