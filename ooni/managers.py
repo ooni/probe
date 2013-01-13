@@ -63,7 +63,6 @@ class TaskManager(object):
         self._fillSlots()
 
         task.done.callback(result)
-
         self.succeeded(result, task)
 
     def _run(self, task):
@@ -155,50 +154,16 @@ class MeasurementManager(TaskManager):
     def failed(self, failure, measurement):
         self.director.measurementFailed(failure, measurement)
 
-class Report(object):
-    reportEntryManager = None
 
-    def __init__(self, reporters, net_test):
-        """
-        This will instantiate all the reporters and add them to the list of
-        available reporters.
-
-        net_test:
-            is a reference to the net_test to which the report object belongs to.
-        """
-        self.netTest = net_test
-        self.reporters = []
-        for r in reporters:
-            reporter = r()
-            self.reporters.append(reporter)
-
-        self.createReports()
-
-    def createReports(self):
-        """
-        This will create all the reports that need to be created.
-        """
-        for reporter in self.reporters:
-            reporter.createReport()
-
-    def write(self, measurement):
-        """
-        This will write to all the reporters, by waiting on the created
-        callback to fire.
-        """
-        for reporter in self.reporters:
-            @reporter.created.addCallback
-            def cb(result):
-                report_write_task = ReportWrite(reporter, measurement)
-                self.reportEntryManager.schedule(report_write_task)
-
-class ReportEntryManager(object):
-
+class ReportEntryManager(TaskManager):
     director = None
 
-    def succeeded(self, result, measurement):
+    def started(self, task):
         pass
 
-    def failed(self, failure, measurement):
+    def succeeded(self, result, task):
+        pass
+
+    def failed(self, failure, task):
         pass
 
