@@ -70,10 +70,16 @@ class Director(object):
 
     @property
     def measurementSuccessRatio(self):
+        if self.totalMeasurements == 0:
+            return 0
+
         return self.successfulMeasurements / self.totalMeasurements
 
     @property
     def measurementFailureRatio(self):
+        if self.totalMeasurements == 0:
+            return 0
+
         return self.failedMeasurements / self.totalMeasurements
 
     @property
@@ -84,6 +90,9 @@ class Director(object):
         This means that fast tests that perform a lot of measurements will
         impact this value quite heavily.
         """
+        if self.totalMeasurementRuntime == 0:
+            return 0
+
         return self.successfulMeasurements / self.totalMeasurementRuntime
 
     @property
@@ -91,6 +100,9 @@ class Director(object):
         """
         The speed at which tests are failing globally.
         """
+        if self.totalMeasurementRuntime == 0:
+            return 0
+
         return self.failedMeasurements / self.totalMeasurementRuntime
 
     def measurementTimedOut(self, measurement):
