@@ -51,7 +51,6 @@ class DummyTestCase(NetTestCase):
         self.report['foo'] = 'foo'
 """
 
-
 #XXX you should actually implement this
 net_test_with_required_option = net_test_string
 
@@ -132,7 +131,25 @@ class TestNetTest(unittest.TestCase):
 
         os.unlink(net_test_file)
 
-    def test_load_net_test_from_string(self):
+    def test_load_net_test_from_str(self):
+        """
+        Given a file like object verify that the net test cases are properly
+        generated.
+        """
+        net_test_from_string = NetTest(net_test_string,
+                dummyOptions, DummyReporter())
+
+        test_methods = set()
+        for test_class, test_method in net_test_from_string.test_cases:
+            instance = test_class()
+            c = getattr(instance, test_method)
+            self.assertCallable(c)
+
+            test_methods.add(test_method)
+
+        self.assertEqual(set(['test_a', 'test_b']), test_methods)
+
+    def test_load_net_test_from_StringIO(self):
         """
         Given a file like object verify that the net test cases are properly
         generated.
@@ -199,8 +216,7 @@ class TestNetTest(unittest.TestCase):
             dummyOptionsWithFile, None)
 
         measurements = list(net_test.generateMeasurements())
-        self.assertEqual(len(measuremenets), 20)
-
+        self.assertEqual(len(measurements), 20)
 
     def dd_test_require_root_succeed(self):
         n = NetTest(StringIO(net_test_root_required),
