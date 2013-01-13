@@ -1,9 +1,10 @@
 import os
 
+from twisted.internet import defer, reactor
 from twisted.trial.runner import filenameToModule
 from twisted.python import usage, reflect
 
-from ooni.tasks import Measurement
+from ooni.tasks import Measurement, TaskMediator
 from ooni.utils import log, checkForRoot, NotRootError
 
 from inspect import getmembers
@@ -28,6 +29,18 @@ class NetTest(object):
         self.report = report
         self.test_cases = self.loadNetTest(net_test_file)
 
+        self.allMeasurementsDone = defer.Deferred()
+        self.allReportsDone = defer.Deferred()
+
+        # This should fire when all the measurements have been completed and
+        # all the reports are done. Done means that they have either completed
+        # successfully or all the possible retries have been reached.
+        # self.done = defer.DeferredList([self.allMeasurementsDone,
+        #     self.allReportsDone])
+
+        # XXX Fire the done when also all the reporting tasks have been completed.
+        self.done = self.allMeasurementsDone
+
     def start(self):
         """
         Set up tests and start running.
@@ -35,6 +48,8 @@ class NetTest(object):
         """
         self.setUpNetTestCases()
         self.measurementManager.schedule(self.generateMeasurements())
+
+        return self.done
 
     def loadNetTest(self, net_test_file):
         """
@@ -111,7 +126,7 @@ class NetTest(object):
 
     def succeeded(self, measurement):
         """
-        This gets called when a measurement has failed.
+        This gets called when a measurement has succeeded.
         """
         self.report.write(measurement)
 
@@ -120,12 +135,15 @@ class NetTest(object):
         This is a generator that yields measurements and sets their timeout
         value and their netTest attribute.
         """
+
+        task_mediator = TaskMediator(self.allMeasurementsDone)
         for test_class, test_method in self.test_cases:
             for test_input in test_class.inputs:
                 measurement = Measurement(test_class, test_method,
-                        test_input, self)
+                        test_input, self, task_mediator)
                 measurement.netTest = self
                 yield measurement
+        task_mediator.allTasksScheduled()
 
     def setUpNetTestCases(self):
         """

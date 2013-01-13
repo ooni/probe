@@ -5,7 +5,11 @@ from twisted.internet import defer, reactor
 class BaseTask(object):
     _timer = None
 
-    def __init__(self):
+    def __init__(self, mediator=None):
+        """
+        If you want to schedule a task multiple times, remember to create fresh
+        instances of it.
+        """
         self.running = False
         self.failures = 0
 
@@ -16,6 +20,9 @@ class BaseTask(object):
         # final status, this means: all retries have been attempted or the test
         # has successfully executed.
         self.done = defer.Deferred()
+        if mediator:
+            mediator.created()
+            self.done.addCallback(mediator.taskDone)
 
     def _failed(self, failure):
         self.failures += 1
@@ -90,7 +97,8 @@ class TaskWithTimeout(BaseTask):
         pass
 
 class Measurement(TaskWithTimeout):
-    def __init__(self, test_class, test_method, test_input, net_test):
+    def __init__(self, test_class, test_method, test_input, net_test,
+            mediator):
         """
         test_class:
             is the class, subclass of NetTestCase, of the test to be run
@@ -115,24 +123,59 @@ class Measurement(TaskWithTimeout):
 
         self.netTest = net_test
 
-    def succeeded(self):
-        self.net_test.succeeded(self)
+        TaskWithTimeout.__init__(self, mediator)
 
-    def failed(self):
+    def succeeded(self, result):
+        return self.netTest.succeeded(self)
+
+    def failed(self, failure):
         pass
 
     def timedOut(self):
-        self.net_test.timedOut()
+        self.netTest.timedOut()
 
     def run(self):
-        return defer.maybeDeferred(self.test)
+        d = defer.maybeDeferred(self.test)
+        return d
 
 class ReportEntry(TaskWithTimeout):
-    def __init__(self, reporter, measurement):
+    def __init__(self, reporter, measurement, task_mediator):
         self.reporter = reporter
         self.measurement = measurement
-        TaskWithTimeout.__init__(self)
+
+        TaskWithTimeout.__init__(self, task_mediator)
 
     def run(self):
         return self.reporter.writeReportEntry(self.measurement)
+
+
+class TaskMediator(object):
+    def __init__(self, allTasksDone):
+        """
+        This implements a Mediator/Observer pattern to keep track of when Tasks
+        that are logically linked together have all reached a final done stage.
+
+        Args:
+            allTasksDone is a deferred that will get fired once all the tasks
+            have been completed.
+        """
+        self.doneTasks = 0
+        self.tasks = 0
+
+        self.completedScheduling = False
+
+        self.allTasksDone = allTasksDone
+
+    def created(self):
+        self.tasks += 1
+
+    def taskDone(self, result):
+        self.doneTasks += 1
+        if self.completedScheduling and \
+                self.doneTasks == self.tasks:
+            self.allTasksDone.callback(None)
+
+    def allTasksScheduled(self):
+        self.completedScheduling = True
+
 
