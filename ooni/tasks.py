@@ -1,3 +1,5 @@
+import time
+
 from twisted.internet import defer, reactor
 
 class BaseTask(object):
@@ -6,6 +8,10 @@ class BaseTask(object):
     def __init__(self):
         self.running = False
         self.failures = 0
+
+        self.startTime = time.time()
+        self.runtime = 0
+
         # This is a deferred that gets called when a test has reached it's
         # final status, this means: all retries have been attempted or the test
         # has successfully executed.
@@ -17,6 +23,7 @@ class BaseTask(object):
         return failure
 
     def _succeeded(self, result):
+        self.runtime = time.time() - self.startTime
         self.succeeded(result)
         return result
 
