@@ -375,6 +375,9 @@ class OONIBReporter(OReporter):
         self.backend_version = parsed_response['backend_version']
         log.debug("Created report with id %s" % parsed_response['report_id'])
 
+class ReportClosed(Exception):
+    pass
+
 class Report(object):
     reportEntryManager = None
 
@@ -407,14 +410,18 @@ class Report(object):
 
     def write(self, measurement):
         """
-        This will write to all the reporters, by waiting on the created
-        callback to fire.
+        This is a lazy call that will write to all the reporters by waiting on
+        the created callback to fire.
+
+        The report_write_task is created before we attach the callback so that
+        the report mediator is aware of the total number of created reportEntry
+        tasks.
         """
         for reporter in self.reporters:
+            report_write_task = ReportEntry(reporter, measurement,
+                    self.report_mediator)
             @reporter.created.addCallback
             def cb(result):
-                report_write_task = ReportEntry(reporter, measurement,
-                        self.report_mediator)
                 self.reportEntryManager.schedule(report_write_task)
 
     def finish(self):
