@@ -35,11 +35,11 @@ class NetTest(object):
         # This should fire when all the measurements have been completed and
         # all the reports are done. Done means that they have either completed
         # successfully or all the possible retries have been reached.
-        # self.done = defer.DeferredList([self.allMeasurementsDone,
-        #     self.allReportsDone])
+        self.done = defer.DeferredList([self.allMeasurementsDone,
+            self.allReportsDone])
 
         # XXX Fire the done when also all the reporting tasks have been completed.
-        self.done = self.allMeasurementsDone
+        # self.done = self.allMeasurementsDone
 
     def start(self):
         """
@@ -135,7 +135,6 @@ class NetTest(object):
         This is a generator that yields measurements and sets their timeout
         value and their netTest attribute.
         """
-
         task_mediator = TaskMediator(self.allMeasurementsDone)
         for test_class, test_method in self.test_cases:
             for test_input in test_class.inputs:
@@ -144,6 +143,12 @@ class NetTest(object):
                 measurement.netTest = self
                 yield measurement
         task_mediator.allTasksScheduled()
+
+        # Once all the MeasurementsTasks have been completed all the report
+        # tasks will have been scheduled.
+        @task_mediator.allTasksDone.addCallback
+        def done(result):
+            self.report.report_mediator.allTasksScheduled()
 
     def setUpNetTestCases(self):
         """
