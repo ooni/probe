@@ -40,6 +40,7 @@ class MockReporter(object):
         pass
 
 class TestDirector(unittest.TestCase):
+    timeout = 1
     def setUp(self):
         with open('dummyInputFile.txt', 'w') as f:
             for i in range(10):
