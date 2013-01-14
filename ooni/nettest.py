@@ -144,10 +144,12 @@ class NetTest(object):
                 yield measurement
         task_mediator.allTasksScheduled()
 
-        # Once all the MeasurementsTasks have been completed all the report
-        # tasks will have been scheduled.
         @task_mediator.allTasksDone.addCallback
         def done(result):
+            """
+            Once all the MeasurementsTasks have been completed all the report
+            tasks will have been scheduled.
+            """
             self.report.report_mediator.allTasksScheduled()
 
     def setUpNetTestCases(self):

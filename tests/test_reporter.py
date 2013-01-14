@@ -1,76 +1,58 @@
+from twisted.internet import defer
 from twisted.trial import unittest
+
 from ooni.reporter import Report, YAMLReporter, OONIBReporter
-from ooni.managers import ReportEntryManager
+from ooni.managers import ReportEntryManager, TaskManager
 from ooni.nettest import NetTest
-from ooni.tasks import TaskMediator
+
+from ooni.tasks import TaskMediator, TaskWithTimeout
 
 mockReportOptions = {'name':'foo_test', 'version': '0.1'}
 
-class TestYAMLReporter(unittest.TestCase):
-    def setUp(self):
+class MockOReporter(object):
+    def __init__(self):
+        self.created = defer.Deferred()
+
+    def writeReportEntry(self, entry):
         pass
 
-    def test_create_yaml_reporter(self):
+    def finish(self):
+        pass
 
-        YAMLReporter.reportFilePrefix = "spam"
-        YAMLReporter.options = mockReportOptions
-        report = Report([YAMLReporter])
-        #XXX: calls createReport on init. is that what we want?
-        report.reportEntryManager = ReportEntryManager()
-        allTasksDone = defer.Deferred()
-        report.taskmediator = TaskMediator()
+    def createReport(self):
+        pass
 
-    #def test_create_yaml_report(self):
-    #    # should create a YAML report
-    #    raise NotImplementedError
+class MockMeasurement(TaskWithTimeout):
+    def __init__(self):
+        TaskWithTimeout.__init__(self)
 
-    def test_write_yaml_report(self):
-        YAMLReporter.reportFilePrefix = "spam"
-        YAMLReporter.options = mockReportOptions
-        report = Report([YAMLReporter])
-        #XXX: fire createReport on init. is that what we want?
-        report.reportEntryManager = ReportEntryManager()
-        report.write("HAI")
+    def succeeded(self, result):
+        pass
 
-    def test_write_yaml_report_before_create(self):
-       # should write to YAML report before it has been created
-       # the write should not occur until after the created callback has fired
-       raise NotImplementedError
+class MockTaskManager(TaskManager):
+    def __init__(self):
+        self.successes = []
 
-    def test_yaml_report_completed(self):
-       # should test that a report will complete successfully
-       # it should fire a callback after the report.finish method is called,
-       # XXX: a report should not be finalized until after all pending
-       # writes have completed
-       raise NotImplementedError
+    def failed(self, failure, task):
+        pass
 
-    def test_write_after_completed(self):
-       # try to call write after a report is completed/finalized. it must fail
-       # it should also fail in the sense that as long as the finalize-report has
-       # been called no additional reports entries can be added, but
-       # existing/pending entries should be completed before the report
-       # finalized callback is fired
-       raise NotImplementedError
+    def succeeded(self, result, task):
+        self.successes.append((result, task))
 
+class TestReport(unittest.TestCase):
+    def setUp(self):
+        self.report = Report([MockOReporter])
+        self.report.reportEntryManager = MockTaskManager()
 
-#class OONIBReporter(unittest.TestCase):
-#    def setUp(self):
-#        #XXX set up a dummy OONIB backend
-#        pass
-#
-#    def test_create_oonib_reporter(self):
-#        # should instance a OONIB reporter
-#        raise NotImplementedError
-#
-#    def test_create_oonib_report(self):
-#        # should create a YAML report
-#        raise NotImplementedError
-#
-#    def test_write_oonib_report(self):
-#        # should write to YAML report
-#        raise NotImplementedError
-#
-#    def test_write_oonib_report_before_create(self):
-#        # should write to YAML report before it has been created
-#        # the write should not occur until after the created callback has fired
-#        raise NotImplementedError
+    def test_report_alltasksdone_callback_fires(self):
+        for m in range(10):
+            measurement = MockMeasurement()
+            self.report.write(measurement)
+
+        self.report.report_mediator.allTasksScheduled()
+
+        @self.report.done.addCallback
+        def done(reporters):
+            self.assertEqual(len(reporters), 1)
+
+        return self.report.done

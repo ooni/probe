@@ -35,7 +35,7 @@ class BaseTask(object):
         return result
 
     def start(self):
-        self.running = self.run()
+        self.running = defer.maybeDeferred(self.run)
         self.running.addErrback(self._failed)
         self.running.addCallback(self._succeeded)
         return self.running
@@ -163,19 +163,36 @@ class TaskMediator(object):
         self.tasks = 0
 
         self.completedScheduling = False
-
         self.allTasksDone = allTasksDone
 
     def created(self):
         self.tasks += 1
 
-    def taskDone(self, result):
-        self.doneTasks += 1
+    def checkAllTasksDone(self):
         if self.completedScheduling and \
                 self.doneTasks == self.tasks:
-            self.allTasksDone.callback(None)
+            self.allTasksDone.callback(self.doneTasks)
+
+    def taskDone(self, result):
+        """
+        This is called every time a task has finished running.
+        """
+        self.doneTasks += 1
+        self.checkAllTasksDone()
 
     def allTasksScheduled(self):
+        """
+        This should be called once all the tasks that need to run have been
+        scheduled.
+
+        XXX this is ghetto.
+        The reason for which we are calling allTasksDone inside of the
+        allTasksScheduled method is called after all tasks are done, then we
+        will run into a race condition. The race is that we don't end up
+        checking that all the tasks are complete because no task is to be
+        scheduled.
+        """
         self.completedScheduling = True
+        self.checkAllTasksDone()
 
 
