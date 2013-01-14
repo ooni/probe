@@ -177,6 +177,7 @@ class OReporter(object):
         pass
 
     def testDone(self, test, test_name):
+        # XXX 
         log.msg("Finished running %s" % test_name)
         test_report = dict(test.report)
 
@@ -406,7 +407,8 @@ class Report(object):
         This will create all the reports that need to be created.
         """
         for reporter in self.reporters:
-            reporter.createReport()
+            d = defer.maybeDeferred(reporter.createReport)
+            d.addCallback(reporter.created.callback)
 
     def write(self, measurement):
         """
@@ -424,7 +426,8 @@ class Report(object):
             def cb(result):
                 self.reportEntryManager.schedule(report_write_task)
 
-    def finish(self):
+    def finish(self, result):
+        dl = []
         for reporter in self.reporters:
             d = defer.maybeDeferred(reporter.finish)
             dl.append(d)
