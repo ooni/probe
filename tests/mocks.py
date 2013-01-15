@@ -25,7 +25,13 @@ class MockMeasurementManager(TaskManager):
         self.successes.append((result, task))
 
 class MockReporter(object):
+    def __init__(self):
+        self.created = defer.succeed(None)
+
     def write(self, measurement):
+        pass
+
+    def createReport(self):
         pass
 
 ## from test_managers
