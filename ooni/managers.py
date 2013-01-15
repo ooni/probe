@@ -35,11 +35,11 @@ class TaskManager(object):
                     makeIterable(task))
         else:
             # This fires the errback when the task is done but has failed.
-            task.done.callback(failure)
-
-        self.failed(failure, task)
+            task.done.errback(failure)
 
         self._fillSlots()
+
+        self.failed(failure, task)
 
     def _fillSlots(self):
         """
@@ -53,6 +53,17 @@ class TaskManager(object):
             except StopIteration:
                 break
 
+    def _run(self, task):
+        """
+        This gets called to add a task to the list of currently active and
+        running tasks.
+        """
+        self._active_tasks.append(task)
+
+        d = task.start()
+        d.addCallback(self._succeeded, task)
+        d.addErrback(self._failed, task)
+
     def _succeeded(self, result, task):
         """
         We have successfully completed a measurement.
@@ -64,17 +75,6 @@ class TaskManager(object):
         # Fires the done deferred when the task has completed
         task.done.callback(task)
         self.succeeded(result, task)
-
-    def _run(self, task):
-        """
-        This gets called to add a task to the list of currently active and
-        running tasks.
-        """
-        self._active_tasks.append(task)
-
-        d = task.start()
-        d.addCallback(self._succeeded, task)
-        d.addErrback(self._failed, task)
 
     @property
     def failedMeasurements(self):
@@ -136,13 +136,11 @@ class MeasurementManager(TaskManager):
     retries = 2
     concurrency = 10
 
-    director = None
-
     def succeeded(self, result, measurement):
-        self.director.measurementSucceeded(measurement)
+        pass
 
     def failed(self, failure, measurement):
-        self.director.measurementFailed(failure, measurement)
+        pass
 
 class ReportEntryManager(TaskManager):
     # XXX tweak these values
