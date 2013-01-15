@@ -4,7 +4,7 @@ from twisted.internet import defer, reactor
 from twisted.trial.runner import filenameToModule
 from twisted.python import usage, reflect
 
-from ooni.tasks import Measurement, TaskMediator
+from ooni.tasks import Measurement
 from ooni.utils import log, checkForRoot, NotRootError
 
 from inspect import getmembers
@@ -13,8 +13,53 @@ from StringIO import StringIO
 class NoTestCasesFound(Exception):
     pass
 
+class NetTestState(object):
+    def __init__(self, allTasksDone):
+        """
+        This keeps track of the state of a running NetTests case.
+
+        Args:
+            allTasksDone is a deferred that will get fired once all the NetTest
+            cases have reached a final done state.
+        """
+        self.doneTasks = 0
+        self.tasks = 0
+
+        self.completedScheduling = False
+        self.allTasksDone = allTasksDone
+
+    def created(self):
+        self.tasks += 1
+
+    def checkAllTasksDone(self):
+        if self.completedScheduling and \
+                self.doneTasks == self.tasks:
+            self.allTasksDone.callback(self.doneTasks)
+
+    def taskDone(self, result):
+        """
+        This is called every time a task has finished running.
+        """
+        self.doneTasks += 1
+        self.checkAllTasksDone()
+
+    def allTasksScheduled(self):
+        """
+        This should be called once all the tasks that need to run have been
+        scheduled.
+
+        XXX this is ghetto.
+        The reason for which we are calling allTasksDone inside of the
+        allTasksScheduled method is called after all tasks are done, then we
+        will run into a race condition. The race is that we don't end up
+        checking that all the tasks are complete because no task is to be
+        scheduled.
+        """
+        self.completedScheduling = True
+        self.checkAllTasksDone()
+
 class NetTest(object):
-    measurementManager = None
+    director = None
     method_prefix = 'test'
 
     def __init__(self, net_test_file, options, report):
@@ -29,17 +74,12 @@ class NetTest(object):
         self.report = report
         self.test_cases = self.loadNetTest(net_test_file)
 
-        self.allMeasurementsDone = defer.Deferred()
-        self.allReportsDone = defer.Deferred()
-
-        # This should fire when all the measurements have been completed and
+        # This will fire when all the measurements have been completed and
         # all the reports are done. Done means that they have either completed
         # successfully or all the possible retries have been reached.
-        self.done = defer.DeferredList([self.allMeasurementsDone,
-            self.allReportsDone])
+        self.done = defer.Deferred()
 
-        # XXX Fire the done when also all the reporting tasks have been completed.
-        # self.done = self.allMeasurementsDone
+        self.state = NetTestState(self.done)
 
     def start(self):
         """
@@ -47,9 +87,41 @@ class NetTest(object):
         Start tests and generate measurements.
         """
         self.setUpNetTestCases()
-        self.measurementManager.schedule(self.generateMeasurements())
-
+        self.director.startMeasurements(self.generateMeasurements())
         return self.done
+
+    def doneReport(self, result):
+        """
+        This will get called every time a measurement is done and therefore a
+        measurement is done.
+
+        The state for the NetTest is informed of the fact that another task has
+        reached the done state.
+        """
+        self.state.taskDone()
+        return result
+
+    def generateMeasurements(self):
+        """
+        This is a generator that yields measurements and registers the
+        callbacks for when a measurement is successful or has failed.
+        """
+        for test_class, test_method in self.test_cases:
+            for test_input in test_class.inputs:
+                measurement = Measurement(test_class, test_method, test_input)
+
+                measurement.done.addCallback(self.director.measurementSucceeded)
+                measurement.done.addErrback(self.director.measurementFailed)
+
+                measurement.done.addCallback(self.report.write)
+                measurement.done.addErrback(self.director.reportEntryFailed)
+
+                measurement.done.addBoth(self.doneReport)
+
+                self.state.taskCreated()
+                yield measurement
+
+        self.state.allTasksScheduled()
 
     def loadNetTest(self, net_test_file):
         """
@@ -124,33 +196,6 @@ class NetTest(object):
             pass
         return test_cases
 
-    def succeeded(self, measurement):
-        """
-        This gets called when a measurement has succeeded.
-        """
-        self.report.write(measurement)
-
-    def generateMeasurements(self):
-        """
-        This is a generator that yields measurements and sets their timeout
-        value and their netTest attribute.
-        """
-        task_mediator = TaskMediator(self.allMeasurementsDone)
-        for test_class, test_method in self.test_cases:
-            for test_input in test_class.inputs:
-                measurement = Measurement(test_class, test_method,
-                        test_input, self, task_mediator)
-                measurement.netTest = self
-                yield measurement
-        task_mediator.allTasksScheduled()
-
-        @task_mediator.allTasksDone.addCallback
-        def done(result):
-            """
-            Once all the MeasurementsTasks have been completed all the report
-            tasks will have been scheduled.
-            """
-            self.report.report_mediator.allTasksScheduled()
 
     def setUpNetTestCases(self):
         """
