@@ -120,13 +120,25 @@ class Director(object):
 
         self.successfulMeasurements += 1
 
+        return measurement.report.write(measurement)
+
     def measurementFailed(self, failure, measurement):
         self.totalMeasurementRuntime += measurement.runtime
 
         self.failedMeasurements += 1
         self.failures.append((failure, measurement))
 
-    def startTest(self, net_test_file, options):
+    def reportEntryFailed(self, failure):
+        # XXX add failure handling logic
+        return
+
+    def startMeasurements(self, measurements):
+        self.measurementManager.schedule(measurements)
+
+    def netTestDone(self, net_test):
+        self.activeNetTests.remove(net_test)
+
+    def startNetTest(self, net_test_file, options):
         """
         Create the Report for the NetTest and start the report NetTest.
 
@@ -139,12 +151,15 @@ class Director(object):
                 is a dict containing the options to be passed to the chosen net
                 test.
         """
-        report = Report(self.reporters)
-        report.reportEntryManager = self.reportEntryManager
+        report = Report(self.reporters, self.reportEntryManager)
 
         net_test = NetTest(net_test_file, options, report)
-        net_test.measurementManager = self.measurementManager
+        net_test.director = self
+
+        self.activeNetTests.append(net_test)
+        self.activeNetTests.append(net_test)
 
         d = net_test.start()
+        d.addBoth(self.netTestDone)
         return d
 
