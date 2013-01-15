@@ -114,3 +114,28 @@ class MockDirector(object):
 
     def measurementSucceeded(self, measurement):
         self.successes.append(measurement)
+
+## from test_reporter.py
+class MockOReporter(object):
+    def __init__(self):
+        self.created = defer.Deferred()
+
+    def writeReportEntry(self, entry):
+        pass
+
+    def finish(self):
+        pass
+
+    def createReport(self):
+        pass
+
+
+class MockTaskManager(TaskManager):
+    def __init__(self):
+        self.successes = []
+
+    def failed(self, failure, task):
+        pass
+
+    def succeeded(self, result, task):
+        self.successes.append((result, task))
