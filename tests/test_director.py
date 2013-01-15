@@ -2,10 +2,8 @@ from twisted.internet import defer, base
 from twisted.trial import unittest
 
 from ooni.director import Director
+from tests.mocks import MockReporter
 base.DelayedCall.debug = True
-class MockMeasurement(object):
-    def run(self):
-        return defer.succeed(42)
 
 net_test_string = """
 from twisted.python import usage
@@ -28,16 +26,6 @@ class DummyTestCase(NetTestCase):
 
 
 dummyOptions = {'spam': 1, 'file': 'dummyInputFile.txt'}
-
-class MockReporter(object):
-    def __init__(self):
-        self.created = defer.succeed(None)
-
-    def createReport(self):
-        pass
-
-    def write(self):
-        pass
 
 class TestDirector(unittest.TestCase):
     timeout = 1
