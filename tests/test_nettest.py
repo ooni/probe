@@ -12,6 +12,10 @@ from ooni.utils import NotRootError
 
 from ooni.managers import TaskManager
 
+from tests.mocks import MockMeasurement, MockMeasurementFailOnce
+from tests.mocks import MockNetTest, MockDirector, MockReporter
+from tests.mocks import MockMeasurementManager
+
 net_test_string = """
 from twisted.python import usage
 from ooni.nettest import NetTestCase
@@ -82,56 +86,6 @@ dummyOptions = {'spam': 'notham'}
 dummyInvalidOptions = {'cram': 'jam'}
 dummyOptionsWithRequiredOptions = {'foo':'moo', 'bar':'baz'}
 
-class DummyMeasurement(BaseTask):
-    def run(self):
-        f = open('foo.txt', 'w')
-        f.write('testing')
-        f.close()
-
-        return defer.succeed(self)
-
-class DummyMeasurementFailOnce(BaseTask):
-    def run(self):
-        f = open('dummyTaskFailOnce.txt', 'w')
-        f.write('fail')
-        f.close()
-        if self.failure >= 1:
-            return defer.succeed()
-        else:
-            return defer.fail()
-
-class DummyNetTest(NetTest):
-    def __init__(self, num_measurements=1):
-        NetTest.__init__(self, StringIO(net_test_string), dummyOptions)
-        self.num_measurements = num_measurements
-    def generateMeasurements(self):
-        for i in range(self.num_measurements):
-            yield DummyMeasurement()
-
-class DummyDirector(object):
-    def __init__(self):
-        pass
-
-class DummyReporter(object):
-    def __init__(self):
-        pass
-    def write(self, result):
-        pass
-
-class MockMeasurementManager(TaskManager):
-    def __init__(self):
-        self.successes = []
-
-    def failed(self, failure, task):
-        pass
-
-    def succeeded(self, result, task):
-        self.successes.append((result, task))
-
-class MockReporter(object):
-    def write(self, measurement):
-        pass
-
 class TestNetTest(unittest.TestCase):
     timeout = 1
     def setUp(self):
@@ -153,7 +107,7 @@ class TestNetTest(unittest.TestCase):
         f.close()
 
         net_test_from_file = NetTest(net_test_file,
-                dummyOptions, DummyReporter())
+                dummyOptions, MockReporter())
 
         test_methods = set()
         for test_class, test_method in net_test_from_file.test_cases:
@@ -173,7 +127,7 @@ class TestNetTest(unittest.TestCase):
         generated.
         """
         net_test_from_string = NetTest(net_test_string,
-                dummyOptions, DummyReporter())
+                dummyOptions, MockReporter())
 
         test_methods = set()
         for test_class, test_method in net_test_from_string.test_cases:
@@ -191,7 +145,7 @@ class TestNetTest(unittest.TestCase):
         generated.
         """
         net_test_from_string = NetTest(StringIO(net_test_string),
-                dummyOptions, DummyReporter())
+                dummyOptions, MockReporter())
 
         test_methods = set()
         for test_class, test_method in net_test_from_string.test_cases:
