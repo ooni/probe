@@ -17,6 +17,7 @@ class MockMeasurementFailOnce(BaseTask):
 class MockMeasurementManager(TaskManager):
     def __init__(self):
         self.successes = []
+        TaskManager.__init__(self)
 
     def failed(self, failure, task):
         pass
@@ -34,8 +35,11 @@ class MockReporter(object):
     def createReport(self):
         pass
 
+class MockFailure(Exception):
+    pass
+
 ## from test_managers
-mockFailure = failure.Failure(Exception('mock'))
+mockFailure = failure.Failure(MockFailure('mock'))
 
 class MockSuccessTask(BaseTask):
     def run(self):
@@ -71,15 +75,6 @@ class MockFailTaskWithTimeout(TaskWithTimeout):
     def run(self):
         return defer.fail(mockFailure)
 
-class MockTaskManager(TaskManager):
-    def __init__(self):
-        self.successes = []
-
-    def failed(self, failure, task):
-        pass
-
-    def succeeded(self, result, task):
-        self.successes.append((result, task))
 
 class MockNetTest(object):
     def __init__(self):
@@ -135,13 +130,14 @@ class MockOReporter(object):
     def createReport(self):
         pass
 
-
 class MockTaskManager(TaskManager):
     def __init__(self):
         self.successes = []
+        TaskManager.__init__(self)
 
     def failed(self, failure, task):
         pass
 
     def succeeded(self, result, task):
         self.successes.append((result, task))
+

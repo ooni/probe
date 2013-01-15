@@ -12,8 +12,12 @@ from twisted.python import usage, failure
 from twisted.python.util import spewer
 
 from ooni import nettest, runner, reporter, config
+from ooni.director import Director
+from ooni.reporter import YAMLReporter, OONIBReporter
 
 from ooni.inputunit import InputUnitFactory
+
+from ooni.nettest import NetTestLoader, MissingRequiredOption
 
 from ooni.utils import net
 from ooni.utils import checkForRoot, NotRootError
@@ -142,10 +146,8 @@ def errorRunningTests(failure):
     log.err("There was an error in running a test")
     failure.printTraceback()
 
-def run():
-    """
-    Parses command line arguments of test.
-    """
+
+def parseOptions():
     cmd_line_options = Options()
     if len(sys.argv) == 1:
         cmd_line_options.getUsage()
@@ -154,9 +156,43 @@ def run():
     except usage.UsageError, ue:
         raise SystemExit, "%s: %s" % (sys.argv[0], ue)
 
-    log.start(cmd_line_options['logfile'])
+    return dict(cmd_line_options)
 
-    config.cmd_line_options = cmd_line_options
+def runWithDirector():
+    """
+    Instance the director, parse command line options and start an ooniprobe
+    test!
+    """
+    global_options = parseOptions()
+    config.cmd_line_options = global_options
+
+    log.start(global_options['logfile'])
+
+    net_test_args = global_options.pop('subargs')
+    net_test_file = global_options['test']
+
+    net_test_loader = NetTestLoader(net_test_file)
+    options = net_test_loader.usageOptions()
+    options.parseOptions(net_test_args)
+
+    net_test_options = dict(options)
+
+    # reporters = [YAMLReporter, OONIBReporter]
+
+    yaml_reporter = YAMLReporter(net_test_loader.testDetails)
+    reporters = [yaml_reporter]
+
+    director = Director(reporters)
+    try:
+        director.startNetTest(net_test_loader, net_test_options)
+    except MissingRequiredOption, option_name:
+        log.err('Missing required option: "%s"' % option_name)
+        print options.getUsage()
+
+def run():
+    """
+    Parses command line arguments of test.
+    """
 
     if config.privacy.includepcap:
         log.msg("Starting")
@@ -196,3 +232,5 @@ def run():
         d.addErrback(errorRunningTests)
 
     reactor.run()
+
+

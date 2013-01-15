@@ -6,6 +6,8 @@ from twisted.python import usage, reflect
 
 from ooni.tasks import Measurement
 from ooni.utils import log, checkForRoot, NotRootError
+from ooni import config
+from ooni import otime
 
 from inspect import getmembers
 from StringIO import StringIO
@@ -58,70 +60,73 @@ class NetTestState(object):
         self.completedScheduling = True
         self.checkAllTasksDone()
 
-class NetTest(object):
-    director = None
+class NetTestLoader(object):
     method_prefix = 'test'
 
-    def __init__(self, net_test_file, options, report):
-        """
-        net_test_file:
-            is a file object containing the test to be run.
+    def __init__(self, net_test_file):
+        self.testCases = self.loadNetTest(net_test_file)
+        # XXX Remove
+        self.testName = 'fooo'
+        self.testVersion = '0.1'
 
-        options:
-            is a dict containing the options to be passed to the net test.
-        """
-        self.options = options
-        self.report = report
-        self.test_cases = self.loadNetTest(net_test_file)
+    @property
+    def testDetails(self):
+        from ooni import __version__ as software_version
 
-        # This will fire when all the measurements have been completed and
-        # all the reports are done. Done means that they have either completed
-        # successfully or all the possible retries have been reached.
-        self.done = defer.Deferred()
+        client_geodata = {}
+        if config.probe_ip and (config.privacy.includeip or \
+                config.privacy.includeasn or \
+                config.privacy.includecountry or \
+                config.privacy.includecity):
+            log.msg("We will include some geo data in the report")
+            client_geodata = geodata.IPToLocation(config.probe_ip)
 
-        self.state = NetTestState(self.done)
+        if config.privacy.includeip:
+            client_geodata['ip'] = config.probe_ip
+        else:
+            client_geodata['ip'] = "127.0.0.1"
 
-    def start(self):
-        """
-        Set up tests and start running.
-        Start tests and generate measurements.
-        """
-        self.setUpNetTestCases()
-        self.director.startMeasurements(self.generateMeasurements())
-        return self.done
+        # Here we unset all the client geodata if the option to not include then
+        # has been specified
+        if client_geodata and not config.privacy.includeasn:
+            client_geodata['asn'] = 'AS0'
+        elif 'asn' in client_geodata:
+            # XXX this regexp should probably go inside of geodata
+            client_geodata['asn'] = \
+                    re.search('AS\d+', client_geodata['asn']).group(0)
+            log.msg("Your AS number is: %s" % client_geodata['asn'])
+        else:
+            client_geodata['asn'] = None
 
-    def doneReport(self, result):
-        """
-        This will get called every time a measurement is done and therefore a
-        measurement is done.
+        if (client_geodata and not config.privacy.includecity) \
+                or ('city' not in client_geodata):
+            client_geodata['city'] = None
 
-        The state for the NetTest is informed of the fact that another task has
-        reached the done state.
-        """
-        self.state.taskDone()
-        return result
+        if (client_geodata and not config.privacy.includecountry) \
+                or ('countrycode' not in client_geodata):
+            client_geodata['countrycode'] = None
 
-    def generateMeasurements(self):
-        """
-        This is a generator that yields measurements and registers the
-        callbacks for when a measurement is successful or has failed.
-        """
-        for test_class, test_method in self.test_cases:
-            for test_input in test_class.inputs:
-                measurement = Measurement(test_class, test_method, test_input)
+        test_details = {'start_time': otime.utcTimeNow(),
+                        'probe_asn': client_geodata['asn'],
+                        'probe_cc': client_geodata['countrycode'],
+                        'probe_ip': client_geodata['ip'],
+                        'test_name': self.testName,
+                        'test_version': self.testVersion,
+                        'software_name': 'ooniprobe',
+                        'software_version': software_version
+        }
+        return test_details
 
-                measurement.done.addCallback(self.director.measurementSucceeded)
-                measurement.done.addErrback(self.director.measurementFailed)
 
-                measurement.done.addCallback(self.report.write)
-                measurement.done.addErrback(self.director.reportEntryFailed)
-
-                measurement.done.addBoth(self.doneReport)
-
-                self.state.taskCreated()
-                yield measurement
-
-        self.state.allTasksScheduled()
+    @property
+    def usageOptions(self):
+        usage_options = None
+        for test_class, test_method in self.testCases:
+            if not usage_options:
+                usage_options = test_class.usageOptions
+            else:
+                assert usage_options == test_class.usageOptions
+        return usage_options
 
     def loadNetTest(self, net_test_file):
         """
@@ -144,6 +149,10 @@ class NetTest(object):
             is either a file path or a file like object that will be used to
             generate the test_cases.
         """
+        # XXX
+        # self.testName = 
+        # os.path.basename('/foo/bar/python.py').replace('.py','')
+        # self.testVersion = '0.1'
         test_cases = None
         try:
             if os.path.isfile(net_test_file):
@@ -196,13 +205,67 @@ class NetTest(object):
             pass
         return test_cases
 
+class NetTest(object):
+    director = None
+
+    def __init__(self, net_test_loader, options, report):
+        """
+        net_test_file:
+            is a file object containing the test to be run.
+
+        options:
+            is a dict containing the options to be passed to the net test.
+        """
+        self.options = options
+        self.report = report
+        self.testCases = net_test_loader.testCases
+
+        # This will fire when all the measurements have been completed and
+        # all the reports are done. Done means that they have either completed
+        # successfully or all the possible retries have been reached.
+        self.done = defer.Deferred()
+
+        self.state = NetTestState(self.done)
+
+    def doneReport(self, result):
+        """
+        This will get called every time a measurement is done and therefore a
+        measurement is done.
+
+        The state for the NetTest is informed of the fact that another task has
+        reached the done state.
+        """
+        self.state.taskDone()
+        return result
+
+    def generateMeasurements(self):
+        """
+        This is a generator that yields measurements and registers the
+        callbacks for when a measurement is successful or has failed.
+        """
+        for test_class, test_method in self.testCases:
+            for test_input in test_class.inputs:
+                measurement = Measurement(test_class, test_method, test_input)
+
+                measurement.done.addCallback(self.director.measurementSucceeded)
+                measurement.done.addErrback(self.director.measurementFailed)
+
+                measurement.done.addCallback(self.report.write)
+                measurement.done.addErrback(self.director.reportEntryFailed)
+
+                measurement.done.addBoth(self.doneReport)
+
+                self.state.taskCreated()
+                yield measurement
+
+        self.state.allTasksScheduled()
 
     def setUpNetTestCases(self):
         """
         Call processTest and processOptions methods of each NetTestCase
         """
         test_classes = set([])
-        for test_class, test_method in self.test_cases:
+        for test_class, test_method in self.testCases:
             test_classes.add(test_class)
 
         for klass in test_classes:
@@ -373,7 +436,7 @@ class NetTestCase(object):
         for required_option in self.requiredOptions:
             log.debug("Checking if %s is present" % required_option)
             if required_option not in self.localOptions:
-               raise MissingRequiredOption
+               raise MissingRequiredOption(required_option)
 
     def __repr__(self):
         return "<%s inputs=%s>" % (self.__class__, self.inputs)
