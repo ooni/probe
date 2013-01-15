@@ -10,6 +10,8 @@ from ooni.nettest import FailureToLoadNetTest
 from ooni.tasks import BaseTask
 from ooni.utils import NotRootError
 
+from ooni.director import Director
+
 from ooni.managers import TaskManager
 
 from tests.mocks import MockMeasurement, MockMeasurementFailOnce
@@ -223,6 +225,7 @@ class TestNetTest(unittest.TestCase):
         net_test = NetTest(StringIO(net_test_string_with_file),
             dummyOptionsWithFile, MockReporter())
         net_test.measurementManager = MockMeasurementManager()
+        net_test.director = Director()
 
         d = net_test.start()
         @d.addCallback

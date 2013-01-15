@@ -31,7 +31,7 @@ from ooni.utils.net import BodyReceiver, StringProducer, userAgents
 
 from ooni import config
 
-from ooni.tasks import ReportEntry, TaskMediator
+from ooni.tasks import ReportEntry
 
 def createPacketReport(packet_list):
     """
@@ -158,6 +158,8 @@ def getTestDetails(options):
     return test_details
 
 class OReporter(object):
+    created = defer.Deferred()
+
     def __init__(self, cmd_line_options):
         self.cmd_line_options = dict(cmd_line_options)
 
@@ -380,15 +382,19 @@ class ReportClosed(Exception):
     pass
 
 class Report(object):
-    reportEntryManager = None
-
-    def __init__(self, reporters):
+    def __init__(self, reporters, reportEntryManager):
         """
-        This will instantiate all the reporters and add them to the list of
-        available reporters.
+        This is an abstraction layer on top of all the configured reporters.
 
-        net_test:
-            is a reference to the net_test to which the report object belongs to.
+        It allows to lazily write to the reporters that are to be used.
+
+        Args:
+
+            reporters:
+                a list of :class:ooni.reporter.OReporter
+
+            reportEntryManager:
+                an instance of :class:ooni.tasks.ReportEntryManager
         """
         self.reporters = []
         for r in reporters:
@@ -398,13 +404,14 @@ class Report(object):
         self.createReports()
 
         self.done = defer.Deferred()
-        self.done.addCallback(self.finish)
+        self.done.addCallback(self.close)
 
-        self.report_mediator = TaskMediator(self.done)
+        self.reportEntryManager = reportEntryManager
 
-    def createReports(self):
+    def open(self):
         """
-        This will create all the reports that need to be created.
+        This will create all the reports that need to be created and fires the
+        created callback of the reporter whose report got created.
         """
         for reporter in self.reporters:
             d = defer.maybeDeferred(reporter.createReport)
@@ -413,20 +420,41 @@ class Report(object):
     def write(self, measurement):
         """
         This is a lazy call that will write to all the reporters by waiting on
-        the created callback to fire.
+        them to be created.
 
-        The report_write_task is created before we attach the callback so that
-        the report mediator is aware of the total number of created reportEntry
-        tasks.
+        Will return a deferred that will fire once the report for the specified
+        measurement have been written to all the reporters.
+
+        Args:
+
+            measurement:
+                an instance of :class:ooni.tasks.Measurement
+
+        Returns:
+            a deferred list that will fire once all the report entries have
+            been written.
         """
+        dl = []
         for reporter in self.reporters:
-            report_write_task = ReportEntry(reporter, measurement,
-                    self.report_mediator)
-            @reporter.created.addCallback
-            def cb(result):
+            def writeReportEntry(result):
+                report_write_task = ReportEntry(reporter, measurement)
                 self.reportEntryManager.schedule(report_write_task)
+                return report_write_task.done
 
-    def finish(self, result):
+            d = reporter.created.addBoth(writeReportEntry)
+            dl.append(d)
+
+        return defer.DeferredList(dl)
+
+    def close(self, _):
+        """
+        Close the report by calling it's finish method.
+
+        Returns:
+            a :class:twisted.internet.defer.DeferredList that will fire when
+            all the reports have been closed.
+
+        """
         dl = []
         for reporter in self.reporters:
             d = defer.maybeDeferred(reporter.finish)

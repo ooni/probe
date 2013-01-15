@@ -15,13 +15,12 @@ def makeIterable(item):
 class TaskManager(object):
     retries = 2
 
-    failures = []
     concurrency = 10
 
-    completedTasks = 0
-
-    _tasks = iter(())
-    _active_tasks = []
+    def __init__(self):
+        self._tasks = iter(())
+        self._active_tasks = []
+        self.failures = []
 
     def _failed(self, failure, task):
         """
@@ -35,7 +34,8 @@ class TaskManager(object):
             self._tasks = itertools.chain(self._tasks,
                     makeIterable(task))
         else:
-            task.done.callback((failure, task))
+            # This fires the errback when the task is done but has failed.
+            task.done.callback(failure)
 
         self.failed(failure, task)
 
@@ -58,11 +58,11 @@ class TaskManager(object):
         We have successfully completed a measurement.
         """
         self._active_tasks.remove(task)
-        self.completedTasks += 1
 
         self._fillSlots()
 
-        task.done.callback(result)
+        # Fires the done deferred when the task has completed
+        task.done.callback(task)
         self.succeeded(result, task)
 
     def _run(self, task):
@@ -105,12 +105,6 @@ class TaskManager(object):
 
         self._fillSlots()
 
-    def started(self, task):
-        """
-        This hook will get called every time a task has been started.
-        """
-        pass
-
     def failed(self, failure, task):
         """
         This hoook is called every time a task has failed.
@@ -138,15 +132,11 @@ class MeasurementManager(TaskManager):
     NetTest on the contrary is aware of the typology of measurements that it is
     dispatching as they are logically grouped by test file.
     """
+    # XXX tweak these values
     retries = 2
-
-    failures = []
     concurrency = 10
 
     director = None
-
-    def started(self, measurement):
-        self.director.measurementStarted(measurement)
 
     def succeeded(self, result, measurement):
         self.director.measurementSucceeded(measurement)
@@ -154,12 +144,12 @@ class MeasurementManager(TaskManager):
     def failed(self, failure, measurement):
         self.director.measurementFailed(failure, measurement)
 
-
 class ReportEntryManager(TaskManager):
-    director = None
+    # XXX tweak these values
+    retries = 3
+    concurrency = 20
 
-    def started(self, task):
-        pass
+    director = None
 
     def succeeded(self, result, task):
         pass
