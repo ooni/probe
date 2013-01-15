@@ -5,12 +5,13 @@ from twisted.internet import defer, reactor
 class BaseTask(object):
     _timer = None
 
+    _running = None
+
     def __init__(self):
         """
         If you want to schedule a task multiple times, remember to create fresh
         instances of it.
         """
-        self.running = False
         self.failures = 0
 
         self.startTime = time.time()
@@ -33,10 +34,10 @@ class BaseTask(object):
         return result
 
     def start(self):
-        self.running = defer.maybeDeferred(self.run)
-        self.running.addErrback(self._failed)
-        self.running.addCallback(self._succeeded)
-        return self.running
+        self._running = defer.maybeDeferred(self.run)
+        self._running.addErrback(self._failed)
+        self._running.addCallback(self._succeeded)
+        return self._running
 
     def succeeded(self, result):
         """
@@ -67,8 +68,7 @@ class TaskWithTimeout(BaseTask):
 
     def _timedOut(self):
         """Internal method for handling timeout failure"""
-        self.timedOut()
-        self.running.errback(TaskTimedOut)
+        self._running.errback(TaskTimedOut)
 
     def _cancelTimer(self):
         #import pdb; pdb.set_trace()
@@ -86,13 +86,6 @@ class TaskWithTimeout(BaseTask):
     def start(self):
         self._timer = self.clock.callLater(self.timeout, self._timedOut)
         return BaseTask.start(self)
-
-    def timedOut(self):
-        """
-        Override this with the operations to happen when the task has timed
-        out.
-        """
-        pass
 
 class Measurement(TaskWithTimeout):
     def __init__(self, test_class, test_method, test_input):
@@ -116,7 +109,8 @@ class Measurement(TaskWithTimeout):
         self.test_instance._start_time = time.time()
         self.test_instance._setUp()
         self.test_instance.setUp()
-        self.test = getattr(self.test_instance, test_method)
+
+        self.net_test_method = getattr(self.test_instance, test_method)
 
         TaskWithTimeout.__init__(self)
 
@@ -126,11 +120,8 @@ class Measurement(TaskWithTimeout):
     def failed(self, failure):
         pass
 
-    def timedOut(self):
-        self.netTest.timedOut()
-
     def run(self):
-        d = defer.maybeDeferred(self.test)
+        d = self.net_test_method()
         return d
 
 class ReportEntry(TaskWithTimeout):
