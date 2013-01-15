@@ -51,6 +51,7 @@ class Director(object):
         self.reporters = reporters
 
         self.netTests = []
+        self.activeNetTests = []
 
         self.measurementManager = MeasurementManager()
         self.measurementManager.director = self
@@ -132,20 +133,18 @@ class Director(object):
         # XXX add failure handling logic
         return
 
-    def startMeasurements(self, measurements):
-        self.measurementManager.schedule(measurements)
-
-    def netTestDone(self, net_test):
+    def netTestDone(self, result, net_test):
+        print result
+        print "Completed %s" % net_test
         self.activeNetTests.remove(net_test)
 
-    def startNetTest(self, net_test_file, options):
+    def startNetTest(self, net_test_loader, options):
         """
         Create the Report for the NetTest and start the report NetTest.
 
         Args:
-            net_test_file:
-                is either a file path or a file like object that will be used to
-                generate the test_cases.
+            net_test_loader:
+                an instance of :class:ooni.nettest.NetTestLoader
 
             options:
                 is a dict containing the options to be passed to the chosen net
@@ -153,13 +152,13 @@ class Director(object):
         """
         report = Report(self.reporters, self.reportEntryManager)
 
-        net_test = NetTest(net_test_file, options, report)
+        net_test = NetTest(net_test_loader, options, report)
+        net_test.setUpNetTestCases()
         net_test.director = self
 
-        self.activeNetTests.append(net_test)
-        self.activeNetTests.append(net_test)
+        self.measurementManager.schedule(net_test.generateMeasurements())
 
-        d = net_test.start()
-        d.addBoth(self.netTestDone)
-        return d
+        self.activeNetTests.append(net_test)
+        net_test.done.addBoth(self.netTestDone, net_test)
+        return net_test.done
 
