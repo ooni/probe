@@ -139,9 +139,17 @@ class Director(object):
         self.failures.append((failure, measurement))
         return failure
 
-    def reportEntryFailed(self, failure):
-        # XXX add failure handling logic
-        return
+    def reporterFailed(self, failure, net_test):
+        """
+        This gets called every time a reporter is failing and has been removed
+        from the reporters of a NetTest.
+        Once a report has failed to be created that net_test will never use the
+        reporter again.
+
+        XXX hook some logic here.
+        note: failure contains an extra attribute called failure.reporter
+        """
+        pass
 
     def netTestDone(self, result, net_test):
         self.activeNetTests.remove(net_test)

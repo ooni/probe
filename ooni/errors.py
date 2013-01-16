@@ -118,5 +118,11 @@ class DirectorException(Exception):
     pass
 
 class UnableToStartTor(DirectorException):
+    pass
+
 class InvalidOONIBCollectorAddress(Exception):
     pass
+
+class AllReportersFailed(Exception):
+    pass
+
