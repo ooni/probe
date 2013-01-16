@@ -28,8 +28,6 @@ class TaskManager(object):
         The has failed to complete, we append it to the end of the task chain
         to be re-run once all the currently scheduled tasks have run.
         """
-        print "This task has failed"
-        print failure
         self._active_tasks.remove(task)
         self.failures.append((failure, task))
 
