@@ -2,25 +2,19 @@
 
 import sys
 import os
-import random
 import time
 import yaml
 
 from twisted.internet import defer, reactor, task
-from twisted.application import app
-from twisted.python import usage, failure
+from twisted.python import usage
 from twisted.python.util import spewer
 
-from ooni import nettest, runner, reporter, config
+from ooni import config
 from ooni.director import Director
 from ooni.reporter import YAMLReporter, OONIBReporter
 
-from ooni.inputunit import InputUnitFactory
-
 from ooni.nettest import NetTestLoader, MissingRequiredOption
 
-from ooni.utils import net
-from ooni.utils import checkForRoot, NotRootError
 from ooni.utils import log
 
 class Options(usage.Options):
@@ -241,5 +235,3 @@ def run():
         d.addErrback(errorRunningTests)
 
     reactor.run()
-
-
