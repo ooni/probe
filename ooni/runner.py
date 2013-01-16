@@ -1,18 +1,13 @@
 import os
 import sys
 import time
-import inspect
-import traceback
-import itertools
 
 import yaml
 
-from twisted.python import reflect, usage
 from twisted.internet import defer
-from twisted.trial.runner import filenameToModule
-from twisted.internet import reactor, threads
+from twisted.internet import reactor
 
-from txtorcon import TorProtocolFactory, TorConfig
+from txtorcon import TorConfig
 from txtorcon import TorState, launch_tor
 
 from ooni import config
@@ -20,7 +15,6 @@ from ooni import config
 from ooni.reporter import OONIBReporter, YAMLReporter, OONIBReportError
 
 from ooni.inputunit import InputUnitFactory
-from ooni.nettest import NetTestCase, NoPostProcessor
 
 from ooni.utils import log, checkForRoot, pushFilenameStack
 from ooni.utils import NotRootError, Storage
