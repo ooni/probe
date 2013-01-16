@@ -158,7 +158,7 @@ def shutdown(result):
     This will get called once all the operations that need to be done in the
     current oonicli session have been completed.
     """
-    reator.stop()
+    reactor.stop()
 
 def runWithDirector():
     """
