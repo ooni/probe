@@ -363,8 +363,6 @@ class Report(object):
         self.done.addCallback(self.close)
 
         self.reportEntryManager = reportEntryManager
-        # XXX call this when starting test
-        # self.open()
 
     def open(self):
         """

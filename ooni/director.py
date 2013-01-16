@@ -1,6 +1,6 @@
 from ooni.managers import ReportEntryManager, MeasurementManager
 from ooni.reporter import Report
-
+from ooni.utils import log
 from ooni.nettest import NetTest
 
 class Director(object):
@@ -117,11 +117,13 @@ class Director(object):
         self.totalMeasurements += 1
 
     def measurementSucceeded(self, measurement):
+        log.msg("Successfully completed measurement: %s" % measurement)
         self.totalMeasurementRuntime += measurement.runtime
         self.successfulMeasurements += 1
         return measurement.testInstance.report
 
     def measurementFailed(self, failure, measurement):
+        log.msg("Failed doing measurement: %s" % measurement)
         self.totalMeasurementRuntime += measurement.runtime
 
         self.failedMeasurements += 1
