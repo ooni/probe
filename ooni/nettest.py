@@ -20,7 +20,8 @@ class NoTestCasesFound(Exception):
 class NetTestLoader(object):
     method_prefix = 'test'
 
-    def __init__(self, net_test_file):
+    def __init__(self, net_test_file, net_test_args):
+        self.netTestArgs = net_test_args
         self.testCases = self.loadNetTest(net_test_file)
 
     @property
@@ -145,8 +146,32 @@ class NetTestLoader(object):
         test_class, _ = test_cases[0]
         self.testVersion = test_class.version
         self.testName = os.path.basename(net_test_file).strip('.py')
-
         return test_cases
+
+    def checkOptions(self):
+        """
+        Call processTest and processOptions methods of each NetTestCase
+        """
+        test_classes = set([])
+        for test_class, test_method in self.testCases:
+            test_classes.add(test_class)
+
+        for klass in test_classes:
+            options = self.usageOptions()
+            options.parseOptions(self.netTestArgs)
+            if options:
+                klass.localOptions = options
+
+            test_instance = klass()
+            if test_instance.requiresRoot:
+                checkForRoot()
+            test_instance._checkRequiredOptions()
+            test_instance._checkValidOptions()
+
+            inputs = test_instance.getInputProcessor()
+            if not inputs:
+                inputs = [None]
+            klass.inputs = inputs
 
     def _loadNetTestFromFileObject(self, net_test_string):
         """
@@ -231,15 +256,12 @@ class NetTestState(object):
 class NetTest(object):
     director = None
 
-    def __init__(self, net_test_loader, options, report):
+    def __init__(self, net_test_loader, report):
         """
-        net_test_file:
-            is a file object containing the test to be run.
-
-        options:
-            is a dict containing the options to be passed to the net test.
+        net_test_loader:
+             an instance of :class:ooni.nettest.NetTestLoader containing
+             the test to be run.
         """
-        self.options = options
         self.report = report
         self.testCases = net_test_loader.testCases
 
@@ -321,28 +343,6 @@ class NetTest(object):
                 yield measurement
 
         self.state.allTasksScheduled()
-
-    def setUpNetTestCases(self):
-        """
-        Call processTest and processOptions methods of each NetTestCase
-        """
-        test_classes = set([])
-        for test_class, test_method in self.testCases:
-            test_classes.add(test_class)
-
-        for klass in test_classes:
-            klass.localOptions = self.options
-
-            test_instance = klass()
-            if test_instance.requiresRoot:
-                checkForRoot()
-            test_instance._checkRequiredOptions()
-            test_instance._checkValidOptions()
-
-            inputs = test_instance.getInputProcessor()
-            if not inputs:
-                inputs = [None]
-            klass.inputs = inputs
 
 class NetTestCase(object):
     """

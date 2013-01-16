@@ -173,12 +173,18 @@ def runWithDirector():
 
     net_test_args = global_options.pop('subargs')
     net_test_file = global_options['test']
+    net_test_loader = NetTestLoader(net_test_file, net_test_args)
 
-    net_test_loader = NetTestLoader(net_test_file)
-    options = net_test_loader.usageOptions()
-    options.parseOptions(net_test_args)
-
-    net_test_options = dict(options)
+    try:
+        net_test_loader.checkOptions()
+    except MissingRequiredOption, option_name:
+        log.err('Missing required option: "%s"' % option_name)
+        print net_test_loader.usageOptions().getUsage()
+        sys.exit(2)
+    except usage.UsageError, e:
+        log.err(e)
+        print net_test_loader.usageOptions().getUsage()
+        sys.exit(2)
 
     # reporters = [YAMLReporter, OONIBReporter]
 
@@ -197,13 +203,11 @@ def runWithDirector():
             sys.exit(1)
 
     director = Director(reporters)
-    try:
-        d = director.startNetTest(net_test_loader, net_test_options)
-        d.addBoth(shutdown)
-        reactor.run()
-    except MissingRequiredOption, option_name:
-        log.err('Missing required option: "%s"' % option_name)
-        print options.getUsage()
+    d = director.start()
+
+    d.addCallback(director.startNetTest, net_test_loader)
+    d.addBoth(shutdown)
+    reactor.run()
 
 def run():
     """
