@@ -15,51 +15,6 @@ from StringIO import StringIO
 class NoTestCasesFound(Exception):
     pass
 
-class NetTestState(object):
-    def __init__(self, allTasksDone):
-        """
-        This keeps track of the state of a running NetTests case.
-
-        Args:
-            allTasksDone is a deferred that will get fired once all the NetTest
-            cases have reached a final done state.
-        """
-        self.doneTasks = 0
-        self.tasks = 0
-
-        self.completedScheduling = False
-        self.allTasksDone = allTasksDone
-
-    def taskCreated(self):
-        self.tasks += 1
-
-    def checkAllTasksDone(self):
-        if self.completedScheduling and \
-                self.doneTasks == self.tasks:
-            self.allTasksDone.callback(self.doneTasks)
-
-    def taskDone(self):
-        """
-        This is called every time a task has finished running.
-        """
-        self.doneTasks += 1
-        self.checkAllTasksDone()
-
-    def allTasksScheduled(self):
-        """
-        This should be called once all the tasks that need to run have been
-        scheduled.
-
-        XXX this is ghetto.
-        The reason for which we are calling allTasksDone inside of the
-        allTasksScheduled method is called after all tasks are done, then we
-        will run into a race condition. The race is that we don't end up
-        checking that all the tasks are complete because no task is to be
-        scheduled.
-        """
-        self.completedScheduling = True
-        self.checkAllTasksDone()
-
 class NetTestLoader(object):
     method_prefix = 'test'
 
@@ -226,6 +181,51 @@ class NetTestLoader(object):
             pass
         return test_cases
 
+class NetTestState(object):
+    def __init__(self, allTasksDone):
+        """
+        This keeps track of the state of a running NetTests case.
+
+        Args:
+            allTasksDone is a deferred that will get fired once all the NetTest
+            cases have reached a final done state.
+        """
+        self.doneTasks = 0
+        self.tasks = 0
+
+        self.completedScheduling = False
+        self.allTasksDone = allTasksDone
+
+    def taskCreated(self):
+        self.tasks += 1
+
+    def checkAllTasksDone(self):
+        if self.completedScheduling and \
+                self.doneTasks == self.tasks:
+            self.allTasksDone.callback(self.doneTasks)
+
+    def taskDone(self):
+        """
+        This is called every time a task has finished running.
+        """
+        self.doneTasks += 1
+        self.checkAllTasksDone()
+
+    def allTasksScheduled(self):
+        """
+        This should be called once all the tasks that need to run have been
+        scheduled.
+
+        XXX this is ghetto.
+        The reason for which we are calling allTasksDone inside of the
+        allTasksScheduled method is called after all tasks are done, then we
+        will run into a race condition. The race is that we don't end up
+        checking that all the tasks are complete because no task is to be
+        scheduled.
+        """
+        self.completedScheduling = True
+        self.checkAllTasksDone()
+
 class NetTest(object):
     director = None
 
@@ -295,12 +295,7 @@ class NetTest(object):
         """
         self.report.open()
         for test_class, test_method in self.testCases:
-            if not test_class.inputs:
-                # XXX this is a bit dirty, refactor me
-                yield self.makeMeasurement(test_class, test_method)
-                self.state.taskCreated()
-                break
-
+            log.debug("Running %s %s" % (test_class, test_method))
             for test_input in test_class.inputs:
                 measurement = self.makeMeasurement(test_class, test_method,
                         test_input)

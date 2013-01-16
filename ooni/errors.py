@@ -14,7 +14,7 @@ from txsocksx.errors import HostUnreachable, ConnectionRefused
 from txsocksx.errors import TTLExpired, CommandNotSupported
 
 from socket import gaierror
-
+from ooni.utils import log
 def handleAllFailures(failure):
     """
     Here we make sure to trap all the failures that are supported by the
