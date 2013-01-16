@@ -419,10 +419,13 @@ class NetTestCase(object):
         """
         raise NoPostProcessor
 
-    def inputProcessor(self, filename=None):
+    def inputProcessor(self, filename):
         """
         You may replace this with your own custom input processor. It takes as
         input a file name.
+
+        An inputProcessor is an iterator that will yield one item from the file
+        and takes as argument a filename.
 
         This can be useful when you have some input data that is in a certain
         format and you want to set the input attribute of the test to something
@@ -441,36 +444,44 @@ class NetTestCase(object):
         Other fun stuff is also possible.
         """
         log.debug("Running default input processor")
-        if filename:
-            fp = open(filename)
-            for x in fp.xreadlines():
-                yield x.strip()
-            fp.close()
+        with open(filename) as f:
+            for line in f:
+                yield line.strip()
+
+    @property
+    def inputFileSpecified(self):
+        """
+        Returns:
+            True
+                when inputFile is supported and is specified
+            False
+                when input is either not support or not specified
+        """
+        if not self.inputFile:
+            return False
+
+        k = self.inputFile[0]
+        if self.localOptions.get(k):
+            return True
         else:
-            pass
+            return False
 
     def getInputProcessor(self):
         """
         This method must be called after all options are validated by
         _checkValidOptions and _checkRequiredOptions, which ensure that
         if the inputFile is a required option it will be present.
+
+        We check to see if it's possible to have an input file and if the user
+        has specified such file.
+
+        Returns:
+            a generator that will yield one item from the file based on the
+            inputProcessor.
         """
-        if self.inputFile:
-            if self.inputFile[0] in self.localOptions:
-                self.inputFilename = self.localOptions[self.inputFile[0]]
-
-                inputProcessor = self.inputProcessor
-                inputFilename = self.inputFilename
-
-                class inputProcessorIterator(object):
-                    """
-                    Here we convert the input processor generator into an iterator
-                    so that we can run it twice.
-                    """
-                    def __iter__(self):
-                        return inputProcessor(inputFilename)
-
-                return inputProcessorIterator()
+        if self.inputFileSpecified:
+            self.inputFilename = self.localOptions[self.inputFile[0]]
+            return self.inputProcessor(self.inputFilename)
 
         return None
 
