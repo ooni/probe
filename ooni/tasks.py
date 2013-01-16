@@ -103,25 +103,25 @@ class Measurement(TaskWithTimeout):
         net_test:
             a reference to the net_test object such measurement belongs to.
         """
-        self.test_instance = test_class()
-        self.test_instance.input = test_input
-        self.test_instance.report = {}
-        self.test_instance._start_time = time.time()
-        self.test_instance._setUp()
-        self.test_instance.setUp()
+        self.testInstance = test_class()
+        self.testInstance.input = test_input
+        self.testInstance.report = {}
+        self.testInstance._start_time = time.time()
+        self.testInstance._setUp()
+        self.testInstance.setUp()
 
-        self.net_test_method = getattr(self.test_instance, test_method)
+        self.netTestMethod = getattr(self.testInstance, test_method)
 
         TaskWithTimeout.__init__(self)
 
     def succeeded(self, result):
-        return self.netTest.succeeded(self)
+        pass
 
     def failed(self, failure):
         pass
 
     def run(self):
-        d = self.net_test_method()
+        d = self.netTestMethod()
         return d
 
 class ReportEntry(TaskWithTimeout):

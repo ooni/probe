@@ -12,8 +12,6 @@ from tests.mocks import MockTaskManager, mockFailure, MockDirector
 from tests.mocks import MockNetTest, MockMeasurement, MockSuccessMeasurement
 from tests.mocks import MockFailMeasurement, MockFailOnceMeasurement
 
-from decotrace import traced
-
 class TestTaskManager(unittest.TestCase):
     timeout = 1
     def setUp(self):

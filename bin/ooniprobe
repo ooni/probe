@@ -1,12 +1,4 @@
 #!/usr/bin/env python
-# -*- encoding: utf-8 -*-
-# oonicli
-# -----------
-# Runs ooniprobe tests from command line
-#
-# :authors: Arturo Filastò, Isis Lovecruft
-# :licence: see included LICENSE file
-
 import os, sys
 import copy_reg
 from twisted.internet import reactor
@@ -19,5 +11,7 @@ sys.path.insert(0, os.path.abspath(os.getcwd()))
 from ooni.utils.hacks import patched_reduce_ex
 copy_reg._reduce_ex = patched_reduce_ex
 
-from ooni.oonicli import run
-run()
+# from ooni.oonicli import run
+# run()
+from ooni.oonicli import runWithDirector
+runWithDirector()

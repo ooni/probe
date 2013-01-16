@@ -30,7 +30,7 @@ class NetTestState(object):
         self.completedScheduling = False
         self.allTasksDone = allTasksDone
 
-    def created(self):
+    def taskCreated(self):
         self.tasks += 1
 
     def checkAllTasksDone(self):
@@ -38,7 +38,7 @@ class NetTestState(object):
                 self.doneTasks == self.tasks:
             self.allTasksDone.callback(self.doneTasks)
 
-    def taskDone(self, result):
+    def taskDone(self):
         """
         This is called every time a task has finished running.
         """
@@ -238,22 +238,51 @@ class NetTest(object):
         self.state.taskDone()
         return result
 
+    def makeMeasurement(self, test_class, test_method, test_input=None):
+        """
+        Creates a new instance of :class:ooni.tasks.Measurement and add's it's
+        callbacks and errbacks.
+
+        Args:
+            test_class:
+                a subclass of :class:ooni.nettest.NetTestCase
+
+            test_method:
+                a string that represents the method to be called on test_class
+
+            test_input:
+                optional argument that represents the input to be passed to the
+                NetTestCase
+
+        """
+        measurement = Measurement(test_class, test_method, test_input)
+        measurement.netTest = self
+
+        measurement.done.addCallback(self.director.measurementSucceeded)
+        measurement.done.addErrback(self.director.measurementFailed, measurement)
+
+        measurement.done.addCallback(self.report.write)
+        measurement.done.addErrback(self.director.reportEntryFailed)
+
+        measurement.done.addBoth(self.doneReport)
+        return measurement
+
     def generateMeasurements(self):
         """
         This is a generator that yields measurements and registers the
         callbacks for when a measurement is successful or has failed.
         """
+        self.report.open()
         for test_class, test_method in self.testCases:
+            if not test_class.inputs:
+                # XXX this is a bit dirty, refactor me
+                yield self.makeMeasurement(test_class, test_method)
+                self.state.taskCreated()
+                break
+
             for test_input in test_class.inputs:
-                measurement = Measurement(test_class, test_method, test_input)
-
-                measurement.done.addCallback(self.director.measurementSucceeded)
-                measurement.done.addErrback(self.director.measurementFailed)
-
-                measurement.done.addCallback(self.report.write)
-                measurement.done.addErrback(self.director.reportEntryFailed)
-
-                measurement.done.addBoth(self.doneReport)
+                measurement = self.makeMeasurement(test_class, test_method,
+                        test_input)
 
                 self.state.taskCreated()
                 yield measurement
@@ -277,7 +306,10 @@ class NetTest(object):
             test_instance._checkRequiredOptions()
             test_instance._checkValidOptions()
 
-            klass.inputs = test_instance.getInputProcessor()
+            inputs = test_instance.getInputProcessor()
+            if not inputs:
+                inputs = [None]
+            klass.inputs = inputs
 
 class NetTestCase(object):
     """
@@ -424,7 +456,7 @@ class NetTestCase(object):
 
                 return inputProcessorIterator()
 
-        return iter(())
+        return None
 
     def _checkValidOptions(self):
         for option in self.localOptions:
