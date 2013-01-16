@@ -33,7 +33,6 @@ from ooni import config
 
 from ooni.tasks import ReportEntry
 
-
 class ReporterException(Exception):
     pass
 
@@ -204,13 +203,16 @@ class YAMLReporter(OReporter):
         log.debug("Writing report with YAML reporter")
         self._write('---\n')
         self._write(safe_dump(entry))
+        self._write('...\n')
 
     def createReport(self):
         """
         Writes the report header and fire callbacks on self.created
         """
         self._writeln("###########################################")
-        self._writeln("# OONI Probe Report for %s test" % self.test_name)
+
+        self._writeln("# OONI Probe Report for %s (%s)" % (self.testDetails['test_name'],
+                    self.testDetails['test_version']))
         self._writeln("# %s" % otime.prettyDateNow())
         self._writeln("###########################################")
 
@@ -390,7 +392,7 @@ class Report(object):
             a deferred list that will fire once all the report entries have
             been written.
         """
-        dl = []
+        l = []
         for reporter in self.reporters:
             def writeReportEntry(result):
                 report_write_task = ReportEntry(reporter, measurement)
@@ -398,9 +400,10 @@ class Report(object):
                 return report_write_task.done
 
             d = reporter.created.addBoth(writeReportEntry)
-            dl.append(d)
+            l.append(d)
 
-        return defer.DeferredList(dl)
+        dl = defer.DeferredList(l)
+        return dl
 
     def close(self, _):
         """
@@ -411,9 +414,10 @@ class Report(object):
             all the reports have been closed.
 
         """
-        dl = []
+        l = []
         for reporter in self.reporters:
             d = defer.maybeDeferred(reporter.finish)
-            dl.append(d)
-        return defer.DeferredList(dl)
+            l.append(d)
+        dl = defer.DeferredList(l)
+        return dl
 

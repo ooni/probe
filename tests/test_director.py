@@ -45,7 +45,6 @@ class TestDirector(unittest.TestCase):
 
         @d.addCallback
         def done(result):
-            print "SOMETHING"
             self.assertEqual(self.director.successfulMeasurements, 20)
 
         return d
