@@ -118,4 +118,5 @@ class DirectorException(Exception):
     pass
 
 class UnableToStartTor(DirectorException):
+class InvalidOONIBCollectorAddress(Exception):
     pass
