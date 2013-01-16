@@ -25,6 +25,8 @@ except ImportError:
     log.err("Scapy is not installed.")
 
 
+from ooni.errors import InvalidOONIBCollectorAddress
+
 from ooni import otime
 from ooni.utils import geodata, pushFilenameStack
 from ooni.utils.net import BodyReceiver, StringProducer, userAgents
@@ -234,10 +236,11 @@ class OONIBTestDetailsLookupError(OONIBReportError):
     pass
 
 class OONIBReporter(OReporter):
-    collector_address = ''
     def __init__(self, test_details, collector_address):
-        self.collector_address = collector_address
-        self.report_id = None
+        self.collectorAddress = collector_address
+        self.validateCollectorAddress()
+
+        self.reportID = None
 
         from ooni.utils.txagentwithsocks import Agent
         from twisted.internet import reactor
@@ -249,6 +252,15 @@ class OONIBReporter(OReporter):
 
         OReporter.__init__(self, test_details)
 
+    def validateCollectorAddress(self):
+        """
+        Will raise :class:ooni.errors.InvalidOONIBCollectorAddress an exception
+        if the oonib reporter is not valid.
+        """
+        regexp = re.compile('^(http|httpo):\/\/\w+(:\d+)?$')
+        if not regexp.match(self.collectorAddress):
+            raise InvalidOONIBCollectorAddress
+
     @defer.inlineCallbacks
     def writeReportEntry(self, entry):
         log.debug("Writing report with OONIB reporter")
@@ -256,12 +268,12 @@ class OONIBReporter(OReporter):
         content += safe_dump(entry)
         content += '...\n'
 
-        url = self.collector_address + '/report'
+        url = self.collectorAddress + '/report'
 
-        request = {'report_id': self.report_id,
+        request = {'report_id': self.reportID,
                 'content': content}
 
-        log.debug("Updating report with id %s (%s)" % (self.report_id, url))
+        log.debug("Updating report with id %s (%s)" % (self.reportID, url))
         request_json = json.dumps(request)
         log.debug("Sending %s" % request_json)
 
@@ -277,28 +289,24 @@ class OONIBReporter(OReporter):
             raise OONIBReportUpdateError
 
     @defer.inlineCallbacks
-    def createReport(self, options):
+    def createReport(self):
         """
         Creates a report on the oonib collector.
         """
-        url = self.collector_address + '/report'
-
-        test_details['options'] = self.cmd_line_options
-
-        log.debug("Obtained test_details: %s" % test_details)
+        url = self.collectorAddress + '/report'
 
         content = '---\n'
-        content += safe_dump(test_details)
+        content += safe_dump(self.testDetails)
         content += '...\n'
 
-        test_name = options['name']
-        test_version = options['version']
-
-        request = {'software_name': test_details['software_name'],
-            'software_version': test_details['software_version'],
-            'probe_asn': test_details['probe_asn'],
-            'test_name': test_details['test_name'],
-            'test_version': test_details['test_version'],
+        request = {'software_name': self.testDetails['software_name'],
+            'software_version': self.testDetails['software_version'],
+            'probe_asn': self.testDetails['probe_asn'],
+            'test_name': self.testDetails['test_name'],
+            'test_version': self.testDetails['test_version'],
+            # XXX there is a bunch of redundancy in the arguments getting sent
+            # to the backend. This may need to get changed in the client and the
+            # backend.
             'content': content
         }
 
@@ -335,8 +343,8 @@ class OONIBReporter(OReporter):
             log.exception(e)
             raise OONIBReportCreationError
 
-        self.report_id = parsed_response['report_id']
-        self.backend_version = parsed_response['backend_version']
+        self.reportID = parsed_response['report_id']
+        self.backendVersion = parsed_response['backend_version']
         log.debug("Created report with id %s" % parsed_response['report_id'])
 
 class ReportClosed(Exception):
