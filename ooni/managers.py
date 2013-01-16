@@ -23,10 +23,13 @@ class TaskManager(object):
         self.failures = []
 
     def _failed(self, failure, task):
+        # XXX INFINITE RECURSION LOOP INSIDE OF THIS THING
         """
         The has failed to complete, we append it to the end of the task chain
         to be re-run once all the currently scheduled tasks have run.
         """
+        print "This task has failed"
+        print failure
         self._active_tasks.remove(task)
         self.failures.append((failure, task))
 
@@ -146,8 +149,6 @@ class ReportEntryManager(TaskManager):
     # XXX tweak these values
     retries = 3
     concurrency = 20
-
-    director = None
 
     def succeeded(self, result, task):
         pass

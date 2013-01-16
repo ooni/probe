@@ -118,24 +118,21 @@ class Director(object):
 
     def measurementSucceeded(self, measurement):
         self.totalMeasurementRuntime += measurement.runtime
-
         self.successfulMeasurements += 1
-
-        return measurement.report.write(measurement)
+        return measurement.testInstance.report
 
     def measurementFailed(self, failure, measurement):
         self.totalMeasurementRuntime += measurement.runtime
 
         self.failedMeasurements += 1
         self.failures.append((failure, measurement))
+        return failure
 
     def reportEntryFailed(self, failure):
         # XXX add failure handling logic
         return
 
     def netTestDone(self, result, net_test):
-        print result
-        print "Completed %s" % net_test
         self.activeNetTests.remove(net_test)
 
     def startNetTest(self, net_test_loader, options):
