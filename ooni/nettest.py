@@ -65,9 +65,6 @@ class NetTestLoader(object):
 
     def __init__(self, net_test_file):
         self.testCases = self.loadNetTest(net_test_file)
-        # XXX Remove
-        self.testName = 'fooo'
-        self.testVersion = '0.1'
 
     @property
     def testDetails(self):
@@ -118,12 +115,36 @@ class NetTestLoader(object):
         return test_details
 
 
+    def _parseNetTestOptions(self, klass):
+        """
+        Helper method to assemble the options into a single UsageOptions object
+        """
+        usage_options = klass.usageOptions
+
+        if not hasattr(usage_options, 'optParameters'):
+            usage_options.optParameters = []
+
+        if klass.inputFile:
+            usage_options.optParameters.append(klass.inputFile)
+
+        if klass.baseParameters:
+            for parameter in klass.baseParameters:
+                usage_options.optParameters.append(parameter)
+
+        if klass.baseFlags:
+            if not hasattr(usage_options, 'optFlags'):
+                usage_options.optFlags = []
+            for flag in klass.baseFlags:
+                usage_options.optFlags.append(flag)
+
+        return usage_options
+
     @property
     def usageOptions(self):
         usage_options = None
         for test_class, test_method in self.testCases:
             if not usage_options:
-                usage_options = test_class.usageOptions
+                usage_options = self._parseNetTestOptions(test_class)
             else:
                 assert usage_options == test_class.usageOptions
         return usage_options
@@ -149,10 +170,6 @@ class NetTestLoader(object):
             is either a file path or a file like object that will be used to
             generate the test_cases.
         """
-        # XXX
-        # self.testName = 
-        # os.path.basename('/foo/bar/python.py').replace('.py','')
-        # self.testVersion = '0.1'
         test_cases = None
         try:
             if os.path.isfile(net_test_file):
@@ -167,6 +184,10 @@ class NetTestLoader(object):
 
         if not test_cases:
             raise NoTestCasesFound
+
+        test_class, _ = test_cases[0]
+        self.testVersion = test_class.version
+        self.testName = os.path.basename(net_test_file).strip('.py')
 
         return test_cases
 
@@ -467,8 +488,9 @@ class NetTestCase(object):
     def _checkRequiredOptions(self):
         for required_option in self.requiredOptions:
             log.debug("Checking if %s is present" % required_option)
-            if required_option not in self.localOptions:
-               raise MissingRequiredOption(required_option)
+            if required_option not in self.localOptions or \
+                self.localOptions[required_option] == None:
+                raise MissingRequiredOption(required_option)
 
     def __repr__(self):
         return "<%s inputs=%s>" % (self.__class__, self.inputs)
