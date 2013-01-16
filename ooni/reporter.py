@@ -380,6 +380,19 @@ class Report(object):
         for reporter in self.reporters:
             d = defer.maybeDeferred(reporter.createReport)
             d.addCallback(reporter.created.callback)
+            d.addErrback(reporter.created.callback)
+
+    def failedOpeningReport(self, failure, reporter):
+        """
+        This errback get's called every time we fail to create a report.
+        By fail we mean that the number of retries has exceeded.
+        Once a report has failed to be created with a reporter we give up and
+        remove the reporter from the list of reporters to write to.
+        """
+        log.err("Failed to open %s reporter, giving up..." % reporter)
+        self.reporters.remove(reporter)
+        failure.reporter = reporter
+        return failure
 
     def write(self, measurement):
         """
@@ -406,6 +419,8 @@ class Report(object):
                 return report_write_task.done
 
             d = reporter.created.addBoth(writeReportEntry)
+            # Give up on writing to the reporter if the task fails X times
+            d.addErrback(self.failedOpeningReport, reporter)
             l.append(d)
 
         dl = defer.DeferredList(l)
