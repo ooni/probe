@@ -114,3 +114,8 @@ def failureToString(failure):
 
     return string
 
+class DirectorException(Exception):
+    pass
+
+class UnableToStartTor(DirectorException):
+    pass

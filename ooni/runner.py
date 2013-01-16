@@ -1,5 +1,4 @@
 import os
-import sys
 import time
 
 import yaml
@@ -7,18 +6,14 @@ import yaml
 from twisted.internet import defer
 from twisted.internet import reactor
 
-from txtorcon import TorConfig
-from txtorcon import TorState, launch_tor
-
 from ooni import config
 
 from ooni.reporter import OONIBReporter, YAMLReporter, OONIBReportError
 
 from ooni.inputunit import InputUnitFactory
 
-from ooni.utils import log, checkForRoot, pushFilenameStack
-from ooni.utils import NotRootError, Storage
-from ooni.utils.net import randomFreePort
+from ooni.utils import log
+from ooni.utils import Storage
 
 class InvalidResumeFile(Exception):
     pass
@@ -220,108 +215,6 @@ def runTestCases(test_cases, options, cmd_line_options):
     except Exception:
         log.exception("Problem in running test")
     yaml_reporter.finish()
-
-class UnableToStartTor(Exception):
-    pass
-
-def startTor():
-    """ Starts Tor
-    Launches a Tor with :param: socks_port :param: control_port
-    :param: tor_binary set in ooniprobe.conf
-    """
-    @defer.inlineCallbacks
-    def state_complete(state):
-        config.tor_state = state
-        log.msg("Successfully bootstrapped Tor")
-        log.debug("We now have the following circuits: ")
-        for circuit in state.circuits.values():
-            log.debug(" * %s" % circuit)
-
-        socks_port = yield state.protocol.get_conf("SocksPort")
-        control_port = yield state.protocol.get_conf("ControlPort")
-        client_ip = yield state.protocol.get_info("address")
-
-        config.tor.socks_port = int(socks_port.values()[0])
-        config.tor.control_port = int(control_port.values()[0])
-
-        config.probe_ip = client_ip.values()[0]
-
-        log.debug("Obtained our IP address from a Tor Relay %s" % config.privacy.client_ip)
-
-    def setup_failed(failure):
-        log.exception(failure)
-        raise UnableToStartTor
-
-    def setup_complete(proto):
-        """
-        Called when we read from stdout that Tor has reached 100%.
-        """
-        log.debug("Building a TorState")
-        state = TorState(proto.tor_protocol)
-        state.post_bootstrap.addCallback(state_complete)
-        state.post_bootstrap.addErrback(setup_failed)
-        return state.post_bootstrap
-
-    def updates(prog, tag, summary):
-        log.debug("%d%%: %s" % (prog, summary))
-
-    tor_config = TorConfig()
-    if config.tor.control_port:
-        tor_config.ControlPort = config.tor.control_port
-    else:
-        control_port = int(randomFreePort())
-        tor_config.ControlPort = control_port
-        config.tor.control_port = control_port
-
-    if config.tor.socks_port:
-        tor_config.SocksPort = config.tor.socks_port
-    else:
-        socks_port = int(randomFreePort())
-        tor_config.SocksPort = socks_port
-        config.tor.socks_port = socks_port
-
-    if config.tor.data_dir:
-        data_dir = os.path.expanduser(config.tor.data_dir)
-
-        if not os.path.exists(data_dir):
-            log.msg("%s does not exist. Creating it." % data_dir)
-            os.makedirs(data_dir)
-        tor_config.DataDirectory = data_dir
-
-    tor_config.save()
-
-    log.debug("Setting control port as %s" % tor_config.ControlPort)
-    log.debug("Setting SOCKS port as %s" % tor_config.SocksPort)
-
-    d = launch_tor(tor_config, reactor,
-            tor_binary=config.advanced.tor_binary,
-            progress_updates=updates)
-    d.addCallback(setup_complete)
-    d.addErrback(setup_failed)
-    return d
-
-def startSniffing():
-    """ Start sniffing with Scapy. Exits if required privileges (root) are not
-    available.
-    """
-    from ooni.utils.txscapy import ScapyFactory, ScapySniffer
-    try:
-        checkForRoot()
-    except NotRootError:
-        print "[!] Includepcap options requires root priviledges to run"
-        print "    you should run ooniprobe as root or disable the options in ooniprobe.conf"
-        sys.exit(1)
-
-    print "Starting sniffer"
-    config.scapyFactory = ScapyFactory(config.advanced.interface)
-
-    if os.path.exists(config.reports.pcap):
-        print "Report PCAP already exists with filename %s" % config.reports.pcap
-        print "Renaming files with such name..."
-        pushFilenameStack(config.reports.pcap)
-
-    sniffer = ScapySniffer(config.reports.pcap)
-    config.scapyFactory.registerProtocol(sniffer)
 
 def loadTest(cmd_line_options):
     """
