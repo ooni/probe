@@ -59,13 +59,13 @@ class NetTestLoader(object):
             client_geodata['countrycode'] = None
 
         test_details = {'start_time': otime.utcTimeNow(),
-                        'probe_asn': client_geodata['asn'],
-                        'probe_cc': client_geodata['countrycode'],
-                        'probe_ip': client_geodata['ip'],
-                        'test_name': self.testName,
-                        'test_version': self.testVersion,
-                        'software_name': 'ooniprobe',
-                        'software_version': software_version
+            'probe_asn': client_geodata['asn'],
+            'probe_cc': client_geodata['countrycode'],
+            'probe_ip': client_geodata['ip'],
+            'test_name': self.testName,
+            'test_version': self.testVersion,
+            'software_name': 'ooniprobe',
+            'software_version': software_version
         }
         return test_details
 
