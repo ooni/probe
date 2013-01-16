@@ -189,6 +189,8 @@ def runWithDirector():
         log.err('Missing required option: "%s"' % option_name)
         print options.getUsage()
 
+    reactor.run()
+
 def run():
     """
     Parses command line arguments of test.
