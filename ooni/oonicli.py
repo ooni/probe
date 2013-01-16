@@ -158,6 +158,13 @@ def parseOptions():
 
     return dict(cmd_line_options)
 
+def shutdown(result):
+    """
+    This will get called once all the operations that need to be done in the
+    current oonicli session have been completed.
+    """
+    reator.stop()
+
 def runWithDirector():
     """
     Instance the director, parse command line options and start an ooniprobe
@@ -184,12 +191,12 @@ def runWithDirector():
 
     director = Director(reporters)
     try:
-        director.startNetTest(net_test_loader, net_test_options)
+        d = director.startNetTest(net_test_loader, net_test_options)
+        d.addBoth(shutdown)
+        reactor.run()
     except MissingRequiredOption, option_name:
         log.err('Missing required option: "%s"' % option_name)
         print options.getUsage()
-
-    reactor.run()
 
 def run():
     """
