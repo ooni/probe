@@ -6,6 +6,9 @@ import yaml
 from twisted.internet import defer
 from twisted.internet import reactor
 
+from txtorcon import TorConfig
+from txtorcon import TorState, launch_tor
+
 from ooni import config
 from ooni.reporter import OONIBReporter, YAMLReporter, OONIBReportError
 from ooni.inputunit import InputUnitFactory
