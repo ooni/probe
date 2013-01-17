@@ -242,14 +242,6 @@ class OONIBReporter(OReporter):
 
         self.reportID = None
 
-        from ooni.utils.txagentwithsocks import Agent
-        from twisted.internet import reactor
-        try:
-            self.agent = Agent(reactor, sockshost="127.0.0.1",
-                socksport=int(config.tor.socks_port))
-        except Exception, e:
-            log.exception(e)
-
         OReporter.__init__(self, test_details)
 
     def validateCollectorAddress(self):
@@ -293,6 +285,20 @@ class OONIBReporter(OReporter):
         """
         Creates a report on the oonib collector.
         """
+        # XXX we should probably be setting this inside of the constructor,
+        # however config.tor.socks_port is not set until Tor is started and the
+        # reporter is instantiated before Tor is started. We probably want to
+        # do this with some deferred kung foo or instantiate the reporter after
+        # tor is started.
+
+        from ooni.utils.txagentwithsocks import Agent
+        from twisted.internet import reactor
+        try:
+            self.agent = Agent(reactor, sockshost="127.0.0.1",
+                socksport=int(config.tor.socks_port))
+        except Exception, e:
+            log.exception(e)
+
         url = self.collectorAddress + '/report'
 
         content = '---\n'
