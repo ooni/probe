@@ -249,8 +249,8 @@ class OONIBReporter(OReporter):
         Will raise :class:ooni.errors.InvalidOONIBCollectorAddress an exception
         if the oonib reporter is not valid.
         """
-        regexp = re.compile('^(http|httpo):\/\/\w+(:\d+)?$')
-        if not regexp.match(self.collectorAddress):
+        regexp = '^(http|httpo):\/\/[a-zA-Z0-9\-\.]+(:\d+)?$'
+        if not re.match(regexp, self.collectorAddress):
             raise InvalidOONIBCollectorAddress
 
     @defer.inlineCallbacks
