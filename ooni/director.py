@@ -1,4 +1,6 @@
 import sys
+import os
+
 from ooni import config
 from ooni.managers import ReportEntryManager, MeasurementManager
 from ooni.reporter import Report
