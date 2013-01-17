@@ -36,7 +36,9 @@ class Options(usage.Options):
                      ["collector", "c", None,
                          "Address of the collector of test results. (example: http://127.0.0.1:8888)"],
                      ["logfile", "l", None, "log file name"],
-                     ["pcapfile", "p", None, "pcap file name"]]
+                     ["pcapfile", "O", None, "pcap file name"],
+                     ["parallelism", "p", "10", "input parallelism"],
+                     ]
 
     compData = usage.Completions(
         extraActions=[usage.CompleteFiles(
@@ -76,7 +78,7 @@ def updateStatusBar():
         eta = config.state[test_filename].eta()
         progress = config.state[test_filename].progress()
         progress_bar_frmt = "[%s] %s%%" % (test_filename, progress)
-        print progress_bar_frmt
+        log.debug(progress_bar_frmt)
 
 def testsEnded(*arg, **kw):
     """
@@ -156,7 +158,7 @@ def run():
                 cmd_line_options['resume'] = False
             test_list.append(runner.loadTest(cmd_line_options))
     else:
-        log.msg("No test deck detected")
+        log.debug("No test deck detected")
         del cmd_line_options['testdeck']
         test_list.append(runner.loadTest(cmd_line_options))
 

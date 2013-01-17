@@ -7,14 +7,41 @@ from twisted.trial import unittest, itrial, util
 from twisted.internet import defer, utils
 from twisted.python import usage
 
-from twisted.internet.error import ConnectionRefusedError, DNSLookupError, TCPTimedOutError
-from twisted.internet.defer import TimeoutError
+from twisted.internet.error import ConnectionRefusedError, TCPTimedOutError
+from twisted.internet.error import DNSLookupError
+from twisted.internet.error import TimeoutError as GenericTimeoutError
+
+from twisted.internet.defer import TimeoutError as DeferTimeoutError
 from twisted.web._newclient import ResponseNeverReceived
 
 from ooni.utils import log
-from ooni.utils.txagentwithsocks import SOCKSError
+
+from txsocksx.errors import SOCKSError
+from txsocksx.errors import MethodsNotAcceptedError, AddressNotSupported
+from txsocksx.errors import ConnectionError, NetworkUnreachable
+from txsocksx.errors import ConnectionLostEarly, ConnectionNotAllowed
+from txsocksx.errors import NoAcceptableMethods, ServerFailure
+from txsocksx.errors import HostUnreachable, ConnectionRefused
+from txsocksx.errors import TTLExpired, CommandNotSupported
+
 
 from socket import gaierror
+
+def handleAllFailures(failure):
+    """
+    Here we make sure to trap all the failures that are supported by the
+    failureToString function and we return the the string that represents the
+    failure.
+    """
+    failure.trap(ConnectionRefusedError, gaierror, DNSLookupError,
+            TCPTimedOutError, ResponseNeverReceived, DeferTimeoutError,
+            GenericTimeoutError,
+            SOCKSError, MethodsNotAcceptedError, AddressNotSupported,
+            ConnectionError, NetworkUnreachable, ConnectionLostEarly,
+            ConnectionNotAllowed, NoAcceptableMethods, ServerFailure,
+            HostUnreachable, ConnectionRefused, TTLExpired, CommandNotSupported)
+
+    return failureToString(failure)
 
 def failureToString(failure):
     """
@@ -38,10 +65,6 @@ def failureToString(failure):
         log.err("Address family for hostname not supported")
         string = 'address_family_not_supported_error'
 
-    elif isinstance(failure.value, SOCKSError):
-        log.err("Sock error. The SOCKS proxy may be down")
-        string = 'socks_error'
-
     elif isinstance(failure.value, DNSLookupError):
         log.err("DNS lookup failure")
         string = 'dns_lookup_error'
@@ -54,12 +77,53 @@ def failureToString(failure):
         log.err("Response Never Received")
         string = 'response_never_received'
 
-    elif isinstance(failure.value, TimeoutError):
-        log.err("Deferred Timed Out Error")
-        string = 'deferred_timed_out_error'
+    elif isinstance(failure.value, DeferTimeoutError):
+        log.err("Deferred Timeout Error")
+        string = 'deferred_timeout_error'
+
+    elif isinstance(failure.value, GenericTimeoutError):
+        log.err("Time Out Error")
+        string = 'generic_timeout_error'
+
+    elif isinstance(failure.value, ServerFailure):
+        log.err("SOCKS error: ServerFailure")
+        string = 'socks_server_failure'
+
+    elif isinstance(failure.value, ConnectionNotAllowed):
+        log.err("SOCKS error: ConnectionNotAllowed")
+        string = 'socks_connection_not_allowed'
+
+    elif isinstance(failure.value, NetworkUnreachable):
+        log.err("SOCKS error: NetworkUnreachable")
+        string = 'socks_network_unreachable'
+
+    elif isinstance(failure.value, HostUnreachable):
+        log.err("SOCKS error: HostUnreachable")
+        string = 'socks_host_unreachable'
+
+    elif isinstance(failure.value, ConnectionRefused):
+        log.err("SOCKS error: ConnectionRefused")
+        string = 'socks_connection_refused'
+
+    elif isinstance(failure.value, TTLExpired):
+        log.err("SOCKS error: TTLExpired")
+        string = 'socks_ttl_expired'
+
+    elif isinstance(failure.value, CommandNotSupported):
+        log.err("SOCKS error: CommandNotSupported")
+        string = 'socks_command_not_supported'
+
+    elif isinstance(failure.value, AddressNotSupported):
+        log.err("SOCKS error: AddressNotSupported")
+        string = 'socks_address_not_supported'
+    elif isinstance(failure.value, SOCKSError):
+        log.err("Generic SOCKS error")
+        string = 'socks_error'
 
     else:
         log.err("Unknown failure type: %s" % type(failure))
+        string = 'unknown_failure %s' % str(failure.value)
+
     return string
 
 class NoPostProcessor(Exception):

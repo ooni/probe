@@ -1,6 +1,8 @@
-from ooni.templates.dnst import DNSTest
+from ooni.templates import dnst
 
-class ExampleDNSTest(DNSTest):
+class ExampleDNSTest(dnst.DNSTest):
+    inputFile = ['file', 'f', None, 'foobar']
+
     def test_a_lookup(self):
         def gotResult(result):
             # Result is an array containing all the A record lookup results

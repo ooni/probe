@@ -172,20 +172,28 @@ def runTestCasesWithInput(test_cases, test_input, yaml_reporter,
     # This is used to store a copy of all the test reports
     tests_report = {}
 
-    def test_done(result, test_instance, test_name):
-        log.msg("Finished running %s" % test_name)
-        log.debug("Deferred callback result: %s" % result)
-        tests_report[test_name] = dict(test_instance.report)
+    def write_report(test_instance, test_name):
         if not oonib_reporter:
             return yaml_reporter.testDone(test_instance, test_name)
         d1 = oonib_reporter.testDone(test_instance, test_name)
         d2 = yaml_reporter.testDone(test_instance, test_name)
-        return defer.DeferredList([d1, d2])
+        dl = defer.DeferredList([d1, d2])
+        @dl.addErrback
+        def reportingFailed(failure):
+            log.err("Error in reporting %s" % test_name)
+            log.exception(failure)
+        return dl
+
+    def test_done(result, test_instance, test_name):
+        log.msg("Finished running %s" % test_name)
+        log.debug("Deferred callback result: %s" % result)
+        tests_report[test_name] = dict(test_instance.report)
+        return write_report(test_instance, test_name)
 
     def test_error(failure, test_instance, test_name):
         log.err("Error in running %s" % test_name)
         log.exception(failure)
-        return
+        return write_report(test_instance, test_name)
 
     def tests_done(result, test_class):
         test_instance = test_class()
@@ -210,7 +218,7 @@ def runTestCasesWithInput(test_cases, test_input, yaml_reporter,
         test_class = test_case[0]
         test_method = test_case[1]
 
-        log.msg("Running %s with %s..." % (test_method, test_input))
+        log.debug("Running %s with %s..." % (test_method, test_input))
 
         test_instance = test_class()
         test_instance.input = test_input
@@ -229,6 +237,11 @@ def runTestCasesWithInput(test_cases, test_input, yaml_reporter,
 
     test_methods_d = defer.DeferredList(dl)
     test_methods_d.addCallback(tests_done, test_cases[0][0])
+    @test_methods_d.addErrback
+    def deferredListFailed(failure):
+        log.err("Error Test Method Deferred List")
+        log.exception(failure)
+
     return test_methods_d
 
 def runTestCasesWithInputUnit(test_cases, input_unit, yaml_reporter,
@@ -273,13 +286,15 @@ def loadResumeFile():
     """
     if not config.stateDict:
         try:
-            config.stateDict = yaml.safe_load(open(config.resume_filename))
+            with open(config.resume_filename) as f:
+                config.stateDict = yaml.safe_load(f)
         except:
             log.err("Error loading YAML file")
             raise InvalidResumeFile
 
         if not config.stateDict:
-            yaml.safe_dump(dict(), open(config.resume_filename, 'w+'))
+            with open(config.resume_filename, 'w+') as f:
+                yaml.safe_dump(dict(), f)
             config.stateDict = dict()
 
         elif isinstance(config.stateDict, dict):
@@ -364,7 +379,7 @@ def updateProgressMeters(test_filename, input_unit_factory,
     config.state[test_filename].per_item_average = 2.0
 
     input_unit_idx = float(config.stateDict[test_filename])
-    input_unit_items = float(len(input_unit_factory) + 1)
+    input_unit_items = len(input_unit_factory)
     test_case_number = float(test_case_number)
     total_iterations = input_unit_items * test_case_number
     current_iteration = input_unit_idx * test_case_number
@@ -417,6 +432,7 @@ def runTestCases(test_cases, options, cmd_line_options):
 
     try:
         input_unit_factory = InputUnitFactory(test_inputs)
+        input_unit_factory.inputUnitSize = int(cmd_line_options['parallelism'])
     except Exception, e:
         log.exception(e)
 
@@ -495,7 +511,7 @@ def startTor():
         return state.post_bootstrap
 
     def updates(prog, tag, summary):
-        log.msg("%d%%: %s" % (prog, summary))
+        log.debug("%d%%: %s" % (prog, summary))
 
     tor_config = TorConfig()
     if config.tor.control_port:
@@ -511,6 +527,14 @@ def startTor():
         socks_port = int(randomFreePort())
         tor_config.SocksPort = socks_port
         config.tor.socks_port = socks_port
+
+    if config.tor.data_dir:
+        data_dir = os.path.expanduser(config.tor.data_dir)
+
+        if not os.path.exists(data_dir):
+            log.msg("%s does not exist. Creating it." % data_dir)
+            os.makedirs(data_dir)
+        tor_config.DataDirectory = data_dir
 
     tor_config.save()
 

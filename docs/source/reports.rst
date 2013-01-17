@@ -16,7 +16,7 @@ https://ooni.torproject.org/reports/0.1/IT/
 This directory shall contain the various reports for the test using the
 following convention:
 
-``dateInISO8601Format`` _ ``probeASNumber`` .yamloo
+``testName`` - ``dateInISO8601Format`` - ``probeASNumber`` .yamloo
 
 The date is expressed using `ISO 8601 <http://en.wikipedia.org/wiki/ISO_8601>`_
 including seconds and with no ``:`` to delimit hours, minutes, days.
