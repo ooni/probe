@@ -295,7 +295,7 @@ class NetTest(object):
         self.state.taskDone()
 
         if len(self.report.reporters) == 0:
-            raise NoMoreReporters
+            raise AllReportersFailed
 
         return report_results
 
