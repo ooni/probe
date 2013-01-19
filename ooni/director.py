@@ -58,9 +58,7 @@ class Director(object):
     """
     _scheduledTests = 0
 
-    def __init__(self, reporters):
-        self.reporters = reporters
-
+    def __init__(self):
         self.netTests = []
         self.activeNetTests = []
 
@@ -172,7 +170,7 @@ class Director(object):
     def netTestDone(self, result, net_test):
         self.activeNetTests.remove(net_test)
 
-    def startNetTest(self, _, net_test_loader):
+    def startNetTest(self, _, net_test_loader, reporters):
         """
         Create the Report for the NetTest and start the report NetTest.
 
@@ -182,7 +180,7 @@ class Director(object):
 
             _: #XXX very dirty hack
         """
-        report = Report(self.reporters, self.reportEntryManager)
+        report = Report(reporters, self.reportEntryManager)
 
         net_test = NetTest(net_test_loader, report)
         net_test.director = self
