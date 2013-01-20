@@ -2,7 +2,6 @@ import copy
 import random
 import struct
 
-from twisted.python import usage
 from twisted.plugin import IPlugin
 from twisted.internet import protocol, defer
 from twisted.internet.ssl import ClientContextFactory
