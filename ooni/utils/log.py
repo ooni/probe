@@ -51,8 +51,35 @@ def debug(msg, *arg, **kw):
     if config.advanced.debug:
         print "[D] %s" % msg
 
+def warn(msg, *arg, **kw):
+    txlog.logging.captureWarnings('true')
+    #txlog.logging.warn(msg)
+    print "[#] %s" % msg
+
 def err(msg, *arg, **kw):
     print "[!] %s" % msg
+
+def fail(*failure):
+    logging.critical(failure)
+    ## XXX should we take steps to exit here?
+
+def catch(func):
+    """
+    Quick wrapper to add around test methods for debugging purposes,
+    catches the given Exception. Use like so:
+
+        @log.catcher
+        def foo(bar):
+            if bar == 'baz':
+                raise Exception("catch me no matter what I am")
+        foo("baz")
+    """
+    def _catch(*args, **kwargs):
+        try:
+            func(*args, **kwargs)
+        except Exception, exc:
+            exception(exc)
+    return _catch
 
 def exception(error):
     """
