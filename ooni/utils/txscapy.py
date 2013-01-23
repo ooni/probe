@@ -95,8 +95,11 @@ class ScapyFactory(abstract.FileDescriptor):
                 log.warn(ie)
                 raise SystemExit
         if not super_socket:
-            super_socket = conf.L3socket(iface=interface,
-                    promisc=True, filter='')
+            ## XXX this one raise a bug due to scapy attempting to set a
+            ## pointer to the BPF in /scapy/arch/linux.py L199:
+            #super_socket = conf.L3socket(iface=interface,
+            #                             promisc=True, filter='')
+            super_socket = conf.L3socket(iface=interface, promisc=True)
             #super_socket = conf.L2socket(iface=interface)
 
         self.protocols = []
