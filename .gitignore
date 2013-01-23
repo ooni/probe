@@ -1,4 +1,5 @@
 *.pyc
+*.yamloo
 assets/*
 ENV/*
 build/*
