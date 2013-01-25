@@ -16,6 +16,7 @@ from twisted.python.util import untilConcludes
 from twisted.trial import reporter
 from twisted.internet import defer, reactor
 from twisted.internet.error import ConnectionRefusedError
+from twisted.python.failure import Failure
 
 from ooni.utils import log
 
@@ -201,10 +202,12 @@ class YAMLReporter(OReporter):
         untilConcludes(self._stream.flush)
 
     def writeReportEntry(self, entry):
-        #XXX: all _write, _writeln inside this call should be atomic
         log.debug("Writing report with YAML reporter")
         self._write('---\n')
-        self._write(safe_dump(entry))
+        if isinstance(entry, Failure):
+            self._write(entry.value)
+        else:
+            self._write(safe_dump(entry))
         self._write('...\n')
 
     def createReport(self):
@@ -374,7 +377,7 @@ class Report(object):
         self.reporters = reporters
 
         self.done = defer.Deferred()
-        self.done.addCallback(self.close)
+        #self.done.addCallback(self.close)
 
         self.reportEntryManager = reportEntryManager
 
