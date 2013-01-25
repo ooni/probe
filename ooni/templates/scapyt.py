@@ -135,10 +135,11 @@ class BaseScapyTest(NetTestCase):
         scapySender = ScapySender()
 
         config.scapyFactory.registerProtocol(scapySender)
-        scapySender.sendPackets(packets)
+        scapySender.startSending(packets)
+        #scapySender.sendPackets(packets)
 
         scapySender.stopSending()
-        for packet in packets:
-            self.reportSentPacket(packet)
+        for sent_packet in packets:
+            self.report['sent_packets'].append(sent_packet)
 
 ScapyTest = BaseScapyTest
