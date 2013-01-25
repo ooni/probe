@@ -145,7 +145,7 @@ class NetTestLoader(object):
 
         test_class, _ = test_cases[0]
         self.testVersion = test_class.version
-        self.testName = os.path.basename(net_test_file).strip('.py')
+        self.testName = test_class.name.lower().replace(' ','_')
         return test_cases
 
     def checkOptions(self):
