@@ -5,7 +5,7 @@ import os
 import time
 import yaml
 
-from twisted.internet import defer, reactor, task
+from twisted.internet import reactor
 from twisted.python import usage
 from twisted.python.util import spewer
 
@@ -72,78 +72,6 @@ class Options(usage.Options):
         except:
             raise usage.UsageError("No test filename specified!")
 
-def parseNetTestOptions(obj, argv):
-    if not hasattr(obj.usageOptions, 'optParameters'):
-        obj.usageOptions.optParameters = []
-
-    if obj.inputFile:
-        obj.usageOptions.optParameters.append(obj.inputFile)
-
-    if obj.baseParameters:
-        for parameter in obj.baseParameters:
-            obj.usageOptions.optParameters.append(parameter)
-
-    if obj.baseFlags:
-        if not hasattr(obj.usageOptions, 'optFlags'):
-            obj.usageOptions.optFlags = []
-        for flag in obj.baseFlags:
-            obj.usageOptions.optFlags.append(flag)
-
-    options = obj.usageOptions()
-    options.parseOptions(argv)
-
-    return options
-
-def updateStatusBar():
-    for test_filename in config.state.keys():
-        # The ETA is not updated so we we will not print it out for the
-        # moment.
-        eta = config.state[test_filename].eta()
-        progress = config.state[test_filename].progress()
-        progress_bar_frmt = "[%s] %s%%" % (test_filename, progress)
-        log.debug(progress_bar_frmt)
-
-def testsEnded(*arg, **kw):
-    """
-    You can place here all the post shutdown tasks.
-    """
-    log.debug("testsEnded: Finished running all tests")
-    config.start_reactor = False
-    try: reactor.stop()
-    except: pass
-
-def testFailed(failure):
-    log.err("Failed in running a test inside a test list")
-    failure.printTraceback()
-
-def runTestList(none, test_list):
-    """
-    none: is always None.
-
-    test_list (list): a list of tuples containing (test_cases, options,
-        cmd_line_options)
-    """
-    deck_dl = []
-
-    for test in test_list:
-        test_cases, options, cmd_line_options = test
-        d1 = runner.runTestCases(test_cases, options, cmd_line_options)
-        deck_dl.append(d1)
-
-    d2 = defer.DeferredList(deck_dl)
-    d2.addCallback(testsEnded)
-    d2.addErrback(testFailed)
-
-    # Print every 5 second the list of current tests running
-    l = task.LoopingCall(updateStatusBar)
-    l.start(5.0)
-    return d2
-
-def errorRunningTests(failure):
-    log.err("There was an error in running a test")
-    failure.printTraceback()
-
-
 def parseOptions():
     cmd_line_options = Options()
     if len(sys.argv) == 1:
@@ -160,7 +88,9 @@ def shutdown(result):
     This will get called once all the operations that need to be done in the
     current oonicli session have been completed.
     """
-    reactor.stop()
+    log.debug("Halting reactor")
+    try: reactor.stop()
+    except: pass
 
 def runWithDirector():
     """
@@ -191,7 +121,6 @@ def runWithDirector():
     d = director.start()
 
     for net_test_loader in test_list:
-
         try:
             net_test_loader.checkOptions()
         except MissingRequiredOption, option_name:
@@ -219,5 +148,6 @@ def runWithDirector():
 
         #XXX add all the tests to be run sequentially
         d.addCallback(director.startNetTest, net_test_loader, reporters)
-    d.addBoth(shutdown)
+    d.addCallback(shutdown)
+    #XXX: if errback is called they do not propagate
     reactor.run()
