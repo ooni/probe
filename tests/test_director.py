@@ -2,6 +2,7 @@ from twisted.internet import defer, base
 from twisted.trial import unittest
 
 from ooni.director import Director
+from ooni.nettest import NetTestLoader
 from tests.mocks import MockReporter
 base.DelayedCall.debug = True
 
@@ -25,7 +26,7 @@ class DummyTestCase(NetTestCase):
 """
 
 
-dummyOptions = {'spam': 1, 'file': 'dummyInputFile.txt'}
+dummyArgs = ('--spam', 1, '--file', 'dummyInputFile.txt')
 
 class TestDirector(unittest.TestCase):
     timeout = 1
@@ -34,14 +35,16 @@ class TestDirector(unittest.TestCase):
             for i in range(10):
                 f.write("%s\n" % i)
 
-        reporters = [MockReporter]
-        self.director = Director(reporters)
+        self.reporters = [MockReporter()]
+        self.director = Director()
 
     def tearDown(self):
         pass
 
     def test_start_net_test(self):
-        d = self.director.startTest(net_test_string, dummyOptions)
+        net_test_loader = NetTestLoader(net_test_string, dummyArgs)
+        net_test_loader.checkOptions()
+        d = self.director.startNetTest('', net_test_loader, self.reporters)
 
         @d.addCallback
         def done(result):
