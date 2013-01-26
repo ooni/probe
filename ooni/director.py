@@ -184,6 +184,7 @@ class Director(object):
 
         net_test = NetTest(net_test_loader, report)
         net_test.director = self
+        net_test.report.open()
 
         self.measurementManager.schedule(net_test.generateMeasurements())
 
