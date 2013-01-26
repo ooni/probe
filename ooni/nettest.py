@@ -319,12 +319,16 @@ class NetTest(object):
         measurement = Measurement(test_class, test_method, test_input)
         measurement.netTest = self
 
-        measurement.done.addCallback(self.director.measurementSucceeded)
-        measurement.done.addErrback(self.director.measurementFailed, measurement)
+        if self.director:
+            measurement.done.addCallback(self.director.measurementSucceeded)
+            measurement.done.addErrback(self.director.measurementFailed, measurement)
 
-        measurement.done.addBoth(self.report.write)
-        # here we are dealing with a deferred list
-        measurement.done.addBoth(self.doneReport)
+        if self.report:
+            measurement.done.addBoth(self.report.write)
+
+        if self.report and self.director:
+            measurement.done.addBoth(self.doneReport)
+
         return measurement
 
     def generateMeasurements(self):
