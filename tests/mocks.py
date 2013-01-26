@@ -27,12 +27,16 @@ class MockMeasurementManager(TaskManager):
 
 class MockReporter(object):
     def __init__(self):
-        self.created = defer.succeed(None)
+        self.created = defer.Deferred()
 
-    def write(self, measurement):
+    def writeReportEntry(self, entry):
         pass
 
     def createReport(self):
+        self.created.callback(True)
+        return self.created
+
+    def finish(self):
         pass
 
 class MockFailure(Exception):
