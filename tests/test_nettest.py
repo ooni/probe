@@ -104,6 +104,16 @@ class TestNetTest(unittest.TestCase):
     def assertCallable(self, thing):
         self.assertIn('__call__', dir(thing))
 
+    def verifyMethods(self, testCases):
+        uniq_test_methods = set()
+        for test_class, test_methods in testCases:
+            instance = test_class()
+            for test_method in test_methods:
+                c = getattr(instance, test_method)
+                self.assertCallable(c)
+                uniq_test_methods.add(test_method)
+        self.assertEqual(set(['test_a', 'test_b']), uniq_test_methods)
+
     def test_load_net_test_from_file(self):
         """
         Given a file verify that the net test cases are properly
@@ -116,17 +126,7 @@ class TestNetTest(unittest.TestCase):
 
         ntl = NetTestLoader(net_test_file,
                 dummyArgs)
-
-        test_methods = set()
-        for test_class, test_method in ntl.testCases:
-            instance = test_class()
-            c = getattr(instance, test_method)
-            self.assertCallable(c)
-
-            test_methods.add(test_method)
-
-        self.assertEqual(set(['test_a', 'test_b']), test_methods)
-
+        self.verifyMethods(ntl.testCases)
         os.unlink(net_test_file)
 
     def test_load_net_test_from_str(self):
@@ -136,16 +136,7 @@ class TestNetTest(unittest.TestCase):
         """
         ntl = NetTestLoader(net_test_string,
                 dummyArgs)
-
-        test_methods = set()
-        for test_class, test_method in ntl.testCases:
-            instance = test_class()
-            c = getattr(instance, test_method)
-            self.assertCallable(c)
-
-            test_methods.add(test_method)
-
-        self.assertEqual(set(['test_a', 'test_b']), test_methods)
+        self.verifyMethods(ntl.testCases)
 
     def test_load_net_test_from_StringIO(self):
         """
@@ -154,16 +145,7 @@ class TestNetTest(unittest.TestCase):
         """
         ntl = NetTestLoader(StringIO(net_test_string),
                 dummyArgs)
-
-        test_methods = set()
-        for test_class, test_method in ntl.testCases:
-            instance = test_class()
-            c = getattr(instance, test_method)
-            self.assertCallable(c)
-
-            test_methods.add(test_method)
-
-        self.assertEqual(set(['test_a', 'test_b']), test_methods)
+        self.verifyMethods(ntl.testCases)
 
     def test_load_with_option(self):
         ntl = NetTestLoader(StringIO(net_test_string),
