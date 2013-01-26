@@ -202,8 +202,11 @@ class NetTestLoader(object):
         try:
             assert issubclass(item, NetTestCase)
             methods = reflect.prefixedMethodNames(item, self.method_prefix)
+            test_methods = []
             for method in methods:
-                test_cases.append((item, self.method_prefix + method))
+                test_methods.append(self.method_prefix + method)
+            if test_methods:
+                test_cases.append((item, test_methods))
         except (TypeError, AssertionError):
             pass
         return test_cases
@@ -336,15 +339,13 @@ class NetTest(object):
         This is a generator that yields measurements and registers the
         callbacks for when a measurement is successful or has failed.
         """
-        self.report.open()
-        for test_class, test_method in self.testCases:
-            log.debug("Running %s %s" % (test_class, test_method))
-            for test_input in test_class.inputs:
-                measurement = self.makeMeasurement(test_class, test_method,
-                        test_input)
-
-                self.state.taskCreated()
-                yield measurement
+        for test_class, test_methods in self.testCases:
+            for input in test_class.inputs:
+                for method in test_methods:
+                    log.debug("Running %s %s" % (test_class, method))
+                    measurement = self.makeMeasurement(test_class, method, input)
+                    self.state.taskCreated()
+                    yield measurement
 
         self.state.allTasksScheduled()
 
