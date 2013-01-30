@@ -9,6 +9,8 @@
 import json
 from twisted.python import usage
 
+from ooni.utils import randomStr, randomSTR
+
 from ooni.utils import log
 from ooni.templates import httpt
 
@@ -31,7 +33,7 @@ class HTTPHost(httpt.HTTPTest):
     """
     name = "HTTP Host"
     author = "Arturo Filastò"
-    version = "0.2"
+    version = "0.2.1"
 
     usageOptions = UsageOptions
 
@@ -39,6 +41,24 @@ class HTTPHost(httpt.HTTPTest):
             'List of hostnames to test for censorship']
 
     requiredOptions = ['backend']
+
+    def test_filtering_add_tab_to_host(self):
+        headers = {}
+        headers["Host"] = [self.input + '\t']
+        return self.doRequest('http://'+self.input,
+                headers=headers)
+
+    def test_filtering_of_subdomain(self):
+        headers = {}
+        headers["Host"] = [randomStr(10) + '.' + self.input]
+        return self.doRequest('http://'+self.input,
+                headers=headers)
+
+    def test_filtering_via_fuzzy_matching(self):
+        headers = {}
+        headers["Host"] = [randomStr(10) + self.input + randomStr(10)]
+        return self.doRequest('http://'+self.input,
+                headers=headers)
 
     def test_send_host_header(self):
         """
