@@ -35,12 +35,19 @@ class HTTPHost(httpt.HTTPTest):
     author = "Arturo Filastò"
     version = "0.2.1"
 
+    randomizeUA = False
     usageOptions = UsageOptions
 
     inputFile = ['file', 'f', None,
             'List of hostnames to test for censorship']
 
     requiredOptions = ['backend']
+
+    def test_filtering_prepend_newline_to_method(self):
+        headers = {}
+        headers["Host"] = [self.input]
+        return self.doRequest('http://'+self.input, method="\nGET",
+                headers=headers)
 
     def test_filtering_add_tab_to_host(self):
         headers = {}
