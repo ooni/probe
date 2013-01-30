@@ -25,23 +25,26 @@ try:
     config.pcap_dnet = True
 
 except ImportError, e:
-    log.err("pypcap or dnet not installed. "
-            "Certain tests may not work.")
+    log.err("Warning: pypcap or dnet not installed. Certain tests may not work.")
 
-    config.pcap_dnet = False
     conf.use_pcap = False
     conf.use_dnet = False
 
     class DummyPcapWriter:
         def __init__(self, pcap_filename, *arg, **kw):
-            log.err("Initializing DummyPcapWriter. We will not actually write to a pcapfile")
-
-        def write(self):
+            log.err("Initializing DummyPcapWriter.")
+            log.err("We will not actually write to a pcapfile.")
+        @staticmethod
+        def write(packet):
             pass
-
     PcapWriter = DummyPcapWriter
 
-    from scapy.all import Gen, SetGen, MTU
+    config.pcap_dnet = False
+
+
+class IfaceError(Exception):
+    pass
+
 
 def getNetworksFromRoutes():
     """ Return a list of networks from the routing table """
@@ -58,11 +61,7 @@ def getNetworksFromRoutes():
         n.iface = iface
         if not n.compressed in networks:
             networks.append(n)
-
     return networks
-
-class IfaceError(Exception):
-    pass
 
 def getDefaultIface():
     """ Return the default interface or raise IfaceError """
