@@ -10,6 +10,7 @@ from twisted.internet import defer, abstract
 from zope.interface import implements
 
 from scapy.config import conf
+from scapy.all import Gen, SetGen, MTU
 
 from ooni.utils import log
 from ooni import config
@@ -22,7 +23,6 @@ try:
     from scapy.arch import pcapdnet
 
     config.pcap_dnet = True
-    from scapy.all import Gen, SetGen, MTU
 
 except ImportError, e:
     log.err("pypcap or dnet not installed. "
