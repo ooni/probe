@@ -72,7 +72,7 @@ def getDefaultIface():
     for net in networks:
         if net.is_private:
             return net.iface
-    raise IfaceError
+    raise IfaceError("Automatic network interface discover failed! Please try setting the desired interface under the [advanced] section in ooniprobe.conf.")
 
 class ProtocolNotRegistered(Exception):
     pass
@@ -89,7 +89,11 @@ class ScapyFactory(abstract.FileDescriptor):
 
         abstract.FileDescriptor.__init__(self, reactor)
         if interface == 'auto':
-            interface = getDefaultIface()
+            try:
+                interface = getDefaultIface()
+            except IfaceError, ie:
+                log.warn(ie)
+                raise SystemExit
         if not super_socket:
             super_socket = conf.L3socket(iface=interface,
                     promisc=True, filter='')
