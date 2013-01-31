@@ -124,6 +124,8 @@ class EchoTest(nettest.NetTestCase):
             self.report[self.input]['sent'] = sent
 
             if answered:
+                if not isinstance(answered, list):
+                    answered = list(answered)
                 for resp in answered:
                     log.msg("Received echo-reply:\n%s" % resp.summary())
                     for snd in sent:
