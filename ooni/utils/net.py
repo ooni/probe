@@ -206,4 +206,3 @@ def getNonLoopbackIfaces(platform_name=None):
 def getLocalAddress():
     default_iface = getDefaultIface()
     return default_iface.ipaddr
-

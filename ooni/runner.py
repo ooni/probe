@@ -262,7 +262,7 @@ def runTestCasesWithInputUnit(test_cases, input_unit, yaml_reporter,
     log.debug("Running test cases with input unit")
     dl = []
     for test_input in input_unit:
-        log.debug("Running test with this input %s" % test_input)
+        log.debug("Running test with this input %s" % str(test_input))
         d = runTestCasesWithInput(test_cases,
                 test_input, yaml_reporter, oonib_reporter)
         dl.append(d)
@@ -305,7 +305,7 @@ def loadResumeFile():
 
 def resumeTest(test_filename, input_unit_factory):
     """
-    Returns the an input_unit_factory that is at the index of the previous run of the test 
+    Returns the an input_unit_factory that is at the index of the previous run of the test
     for the specified test_filename.
 
     Args:
@@ -368,7 +368,7 @@ def increaseInputUnitIdx(test_filename):
     config.stateDict[test_filename] += 1
     yield updateResumeFile(test_filename)
 
-def updateProgressMeters(test_filename, input_unit_factory, 
+def updateProgressMeters(test_filename, input_unit_factory,
         test_case_number):
     """
     Update the progress meters for keeping track of test state.

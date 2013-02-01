@@ -1,0 +1,10 @@
+# google's dns servers
+8.8.8.8
+# ooni.nu
+192.31.186.46
+# measurementlab.net
+72.249.86.184
+# torproject.org
+38.229.72.16
+127.0.0.1
+192.168.0.1

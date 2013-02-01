@@ -31,9 +31,9 @@ The following iptables commands will map connections on low ports to those bound
     # Map port 443 to config.helpers.ssl.port  (default: 57006)
     iptables -t nat -A PREROUTING -p tcp -m tcp --dport 443 -j REDIRECT --to-ports 57006
     # Map port 53 udp to config.helpers.dns.udp_port (default: 57004)
-    iptables -t nat -A PREROUTING -p tcp -m udp --dport 53 -j REDIRECT --tor-ports 
+    iptables -t nat -A PREROUTING -p tcp -m udp --dport 53 -j REDIRECT --tor-ports
     # Map port 53 tcp to config.helpers.dns.tcp_port (default: 57005)
-    iptables -t nat -A PREROUTING -p tcp -m tcp --dport 53 -j REDIRECT --tor-ports 
+    iptables -t nat -A PREROUTING -p tcp -m tcp --dport 53 -j REDIRECT --tor-ports
 
 # Install Tor (Debian).
 
@@ -80,7 +80,7 @@ You should see:
     type commit
     tag tor-0.2.3.25
     tagger Roger Dingledine <arma@torproject.org> 1353399116 -0500
-    
+
     tag 0.2.3.25
     gpg: Signature made Tue 20 Nov 2012 08:11:59 AM UTC using RSA key ID 19F78451
     gpg: Good signature from "Roger Dingledine <arma@mit.edu>"
@@ -99,8 +99,8 @@ It is always good idea to verify.
 
 Build Tor with enable-tor2web-mode
 
-    ./autogen.sh ; ./configure --enable-tor2web-mode ; make 
-    
+    ./autogen.sh ; ./configure --enable-tor2web-mode ; make
+
 Copy the tor binary from src/or/tor somewhere and set the corresponding
 options in oonib/config.py
 

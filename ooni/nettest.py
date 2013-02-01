@@ -276,4 +276,3 @@ class NetTestCase(object):
 
     def __repr__(self):
         return "<%s inputs=%s>" % (self.__class__, self.inputs)
-

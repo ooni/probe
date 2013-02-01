@@ -1,0 +1,61 @@
+#!/bin/bash
+##############################################################################
+#
+# test_bridge_tests.sh
+# -------------------
+# Iterate through the bridge tests with cmdline bin/ooniprobe to test
+# functionality.
+#
+# @authors: Isis Agora Lovecruft, 0x2cdb8b35
+# @version: 0.0.1
+# @license: see LICENSE file
+##############################################################################
+
+
+HERE=$(pwd)
+PATH_TO_OONI=${HERE%%/ooni-probe}
+CUR_DIR=${HERE#$PATH_TO_OONI/}
+
+OONIDIR=${PATH_TO_OONI}/ooni-probe
+OONIBIN=${OONIDIR}/bin
+OONICLI=${OONIBIN}/ooniprobe
+OONILISTS=${OONIDIR}/example-inputs
+OONITESTS=${OONIDIR}/nettests
+
+BRIDGE_TEST_DIR=${OONITESTS}/experimental/bridge_reachability
+BRIDGE_TEST_ALL=$(find ${BRIDGE_TEST_DIR} -name "*.py")
+
+ECHO_TEST=${BRIDGE_TEST_DIR}/echo.py
+ECHO_LIST=${OONILISTS}/echo-file.txt
+
+if [[ "${CUR_DIR}" != "ooni-probe" ]] ; then
+    echo "[test_bridge_tests] Moving to top-level ooni-probe/ directory..."
+    cd ${PATH_TO_OONI}/ooni-probe
+else
+    echo "[test_bridge_tests] Called from top level ooni-probe/ directory...(good)"
+fi
+
+if ! test -r "$OONICLI" ; then
+    echo "Error: $OONICLI missing"
+    exit 1
+elif ! test -d "$BRIDGE_TEST_DIR" ; then
+    echo "Error: $BRIDGE_TEST_DIR missing"
+    exit 1
+else
+    echo "[test_bridge_tests] Initiating tests..."
+fi
+
+if [[ "$#" == "0" ]]; then
+    echo "[test_bridge_tests] Testing all tests in ${BRIDGE_TEST_DIR}..."
+    for bridgetest in ${BRIDGE_TEST_ALL} ; do
+        FILENAME=${bridgetest%%.py}
+        TESTNAME=${FILENAME##/*/}
+        echo
+        echo "[${TESTNAME}] Starting ooniprobe to test ${TESTNAME}..."
+        if [[ "$TESTNAME" == "tcpflags" ]] ; then
+            sudo $OONICLI $bridgetest -f $ECHO_LIST -s S
+        else
+            sudo $OONICLI $bridgetest -f $ECHO_LIST -s S
+        fi
+    done
+fi

@@ -1,0 +1,28 @@
+# The following are for testing the bridge tests:
+# echo:
+- options:
+     collector: null
+     help: 0
+     logfile: bridge_tests.log
+     pcapfile: bridge_tests.pcap
+     reportfile: echo.yaml
+     subargs: [-f, example_inputs/echo-file.txt]
+     test: nettests/experimental/bridge_reachability/echo.py
+# tcpflags
+- options:
+     collector: null
+     help: 0
+     logfile: bridge_tests.log
+     pcapfile: bridge_tests.pcap
+     reportfile: tcpflags.yaml
+     subargs: [-f, example_inputs/echo-file.txt, -s, "S"]
+     test: nettests/experimental/bridge_reachability/tcpflags.py
+# bridget
+- options:
+     collector: null
+     help: 0
+     logfile: bridge_tests.log
+     pcapfile: bridge_tests.pcap
+     reportfile: bridget.yaml
+     subargs: [-f, example_inputs/echo-file.txt]
+     test: nettests/experimental/bridge_reachability/bridget.py

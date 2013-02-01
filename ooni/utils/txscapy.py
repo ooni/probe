@@ -42,6 +42,9 @@ except ImportError, e:
     PcapWriter = DummyPcapWriter
 
 
+class IfaceError(Exception):
+    pass
+
 
 def getNetworksFromRoutes():
     """ Return a list of networks from the routing table """
@@ -58,11 +61,7 @@ def getNetworksFromRoutes():
         n.iface = iface
         if not n.compressed in networks:
             networks.append(n)
-
     return networks
-
-class IfaceError(Exception):
-    pass
 
 def getDefaultIface():
     """ Return the default interface or raise IfaceError """
@@ -73,7 +72,7 @@ def getDefaultIface():
     for net in networks:
         if net.is_private:
             return net.iface
-    raise IfaceError
+    raise IfaceError("Automatic network interface discover failed! Please try setting the desired interface under the [advanced] section in ooniprobe.conf.")
 
 class ProtocolNotRegistered(Exception):
     pass
@@ -90,10 +89,17 @@ class ScapyFactory(abstract.FileDescriptor):
 
         abstract.FileDescriptor.__init__(self, reactor)
         if interface == 'auto':
-            interface = getDefaultIface()
+            try:
+                interface = getDefaultIface()
+            except IfaceError, ie:
+                log.warn(ie)
+                raise SystemExit
         if not super_socket:
-            super_socket = conf.L3socket(iface=interface,
-                    promisc=True, filter='')
+            ## XXX this one raise a bug due to scapy attempting to set a
+            ## pointer to the BPF in /scapy/arch/linux.py L199:
+            #super_socket = conf.L3socket(iface=interface,
+            #                             promisc=True, filter='')
+            super_socket = conf.L3socket(iface=interface, promisc=True)
             #super_socket = conf.L2socket(iface=interface)
 
         self.protocols = []
