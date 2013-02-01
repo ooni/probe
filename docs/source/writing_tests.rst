@@ -168,7 +168,7 @@ To implement a simple ICMP ping based on this function you can do like so
   from ooni.templates import scapyt
 
   class UsageOptions(usage.Options):
-      optParameters = [['target', 't', '8.8.8.8', "Specify the target to ping"]]
+      optParameters = [['target', 't', '127.0.0.1', "Specify the target to ping"]]
 
   class ExampleICMPPingScapy(scapyt.BaseScapyTest):
       name = "Example ICMP Ping Test"
@@ -205,7 +205,7 @@ regular sequential code.
   from ooni.templates import scapyt
 
   class UsageOptions(usage.Options):
-      optParameters = [['target', 't', self.localOptions['target'], "Specify the target to ping"]]
+      optParameters = [['target', 't', '127.0.0.1', "Specify the target to ping"]]
 
   class ExampleICMPPingScapyYield(scapyt.BaseScapyTest):
       name = "Example ICMP Ping Test"
