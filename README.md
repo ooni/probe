@@ -102,10 +102,14 @@ If you are not in a virtualenv you will have to run the above command as root:
 
 ## Install libdnet and pypcap python bindings
 
-It's ideal to install these manually since the ones in debian or ubuntu are not up to date.
+It's ideal to install these manually since the ones in debian or ubuntu are not
+up to date.
+
+The version of pypcap and libdnet ooniprobe is current tested with are
+libdnet-1.12 and pypcap 1.1, any other version should be considered untested.
 
 If you don't already have Subversion installed:
-   
+
     sudo apt-get install subversion
 
 For libdnet:
