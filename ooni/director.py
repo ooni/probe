@@ -189,6 +189,7 @@ class Director(object):
 
         self.activeNetTests.append(net_test)
         net_test.done.addBoth(self.netTestDone, net_test)
+        net_test.done.addBoth(report.close)
         return net_test.done
 
     def startSniffing(self):
