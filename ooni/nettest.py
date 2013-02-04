@@ -274,7 +274,7 @@ class NetTest(object):
 
     def doneReport(self, report_results):
         """
-        This will get called every time a measurement is done and therefore a
+        This will get called every time a report is done and therefore a
         measurement is done.
 
         The state for the NetTest is informed of the fact that another task has
