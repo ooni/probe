@@ -48,7 +48,7 @@ respectively.
 Content Blocking Tests
 ......................
 
-  * `DNSTamper <tests/dnstamper.html>`_
+  * `DNSConsistency <tests/dnsconsistency.html>`_
 
   * `HTTP Requests <tests/http_requests.html>`_
 

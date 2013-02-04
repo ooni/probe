@@ -1,11 +1,11 @@
 Details
 =======
 
-*Test Name*: DNS Tamper
+*Test Name*: DNS Consistency (Ex DNS Tamper)
 
 *Current version*: 0.4
 
-*NetTest*: DNS Tamper Test (https://gitweb.torproject.org/ooni-probe.git/blob/HEAD:/nettests/blocking/dnstamper.py)
+*NetTest*: DNS Consistency Test (https://gitweb.torproject.org/ooni-probe.git/blob/HEAD:/nettests/blocking/dnsconsistency.py)
 
 *Test Helper*: DNS Test Helper (https://gitweb.torproject.org/ooni-probe.git/blob/HEAD:/oonib/testhelpers/dns_helpers.py)
 
@@ -28,7 +28,7 @@ Youtube, etc.
 How to run the test
 ===================
 
-`./bin/ooniprobe nettests/core/dnstamper.py [-t <test resolvers>|-T <test resolver file>-f <input file> -b IP:PORT`
+`./bin/ooniprobe nettests/core/dnsconsistency.py [-t <test resolvers>|-T <test resolver file>-f <input file> -b IP:PORT`
 
 *test resolvers* is a single test resolver (IP address)
 
@@ -42,7 +42,7 @@ Sample report
 =============
 
 From running:
-`./bin/ooniprobe nettests/core/dnstamper.py -t test_inputs/dns_tamper_test_resolvers.txt -f test_inputs/http_host_file.txt`
+`./bin/ooniprobe nettests/core/dnsconsistency.py -t test_inputs/dns_tamper_test_resolvers.txt -f test_inputs/http_host_file.txt`
 
 ::
 
@@ -59,7 +59,7 @@ From running:
       reportfile: null
       resume: 0
       subargs: [-t, 8.8.8.8, -f, test_inputs/dns_tamper_file.txt]
-      test: nettests/blocking/dnstamper.py
+      test: nettests/blocking/dnsconsistency.py
     probe_asn: null
     probe_cc: null
     probe_ip: 127.0.0.1
