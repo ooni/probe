@@ -33,7 +33,7 @@ from ooni.utils.net import BodyReceiver, StringProducer, userAgents
 
 from ooni import config
 
-from ooni.tasks import ReportEntry
+from ooni.tasks import ReportEntry, TaskTimedOut
 
 class ReporterException(Exception):
     pass
@@ -384,9 +384,11 @@ class Report(object):
         created callback of the reporter whose report got created.
         """
         for reporter in self.reporters:
+            reporter.created.addErrback(self.failedOpeningReport, reporter)
             d = defer.maybeDeferred(reporter.createReport)
             d.addCallback(reporter.created.callback)
             d.addErrback(reporter.created.callback)
+
 
     def failedOpeningReport(self, failure, reporter):
         """
