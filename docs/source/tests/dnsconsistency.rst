@@ -42,7 +42,7 @@ Sample report
 =============
 
 From running:
-`./bin/ooniprobe nettests/core/dnsconsistency.py -t test_inputs/dns_tamper_test_resolvers.txt -f test_inputs/http_host_file.txt`
+`./bin/ooniprobe nettests/core/dnsconsistency.py -T test_inputs/dns_tamper_test_resolvers.txt -f test_inputs/http_host_file.txt`
 
 ::
 
