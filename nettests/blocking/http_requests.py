@@ -51,6 +51,8 @@ class HTTPRequestsTest(httpt.HTTPTest):
             raise Exception("No input specified")
 
         self.factor = self.localOptions['factor']
+        self.report['control_failure'] = None
+        self.report['experiment_failure'] = None
 
     def compare_body_lengths(self, body_length_a, body_length_b):
 
