@@ -12,7 +12,7 @@ from twisted.web import client, _newclient, http_headers
 from twisted.web._newclient import Request, RequestNotSent, RequestGenerationFailed, TransportProxyProducer, STATUS
 from twisted.internet import protocol
 from twisted.internet.protocol import ClientFactory, Protocol
-from twisted.internet.endpoints import TCP4ClientEndpoint, SSL4ClientEndpoint, _WrappingProtocol, _WrappingFactory
+from twisted.internet.endpoints import TCP4ClientEndpoint, SSL4ClientEndpoint
 from twisted.internet import interfaces, defer
 from twisted.internet.defer import Deferred, succeed, fail, maybeDeferred
 
