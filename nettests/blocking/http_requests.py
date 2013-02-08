@@ -5,8 +5,10 @@
 
 from twisted.internet import defer
 from twisted.python import usage
+
 from ooni.utils import log
 from ooni.templates import httpt
+from ooni.nettest import failureToString, handleAllFailures
 
 class UsageOptions(usage.Options):
     optParameters = [
@@ -25,7 +27,7 @@ class HTTPRequestsTest(httpt.HTTPTest):
     """
     name = "HTTP Requests Test"
     author = "Arturo Filastò"
-    version = "0.2"
+    version = "0.2.2"
 
     usageOptions = UsageOptions
 
@@ -85,20 +87,23 @@ class HTTPRequestsTest(httpt.HTTPTest):
             self.report['headers_match'] = True
 
     def test_get(self):
-        def errback(failure):
-            log.err("There was an error while testing %s" % self.url)
-            log.exception(failure)
-
         def callback(res):
             experiment, control = res
-            experiment_success, experiment_response = experiment
-            control_success, control_response = control
+            experiment_succeeded, experiment_result = experiment
+            control_succeeded, control_result = control
 
-            self.compare_body_lengths(len(experiment_response.body),
-                    len(control_response.body))
+            if control_succeeded and experiment_succeeded:
+                self.compare_body_lengths(len(experiment_result.body),
+                        len(control_result.body))
 
-            self.compare_headers(control_response.headers,
-                    experiment_response.headers)
+                self.compare_headers(control_result.headers,
+                        experiment_result.headers)
+
+            if not control_succeeded:
+                self.report['control_failure'] = failureToString(control_result)
+
+            if not experiment_succeeded:
+                self.report['experiment_failure'] = failureToString(experiment_result)
 
         l = []
         log.msg("Performing GET request to %s" % self.url)
@@ -111,9 +116,8 @@ class HTTPRequestsTest(httpt.HTTPTest):
         l.append(experiment_request)
         l.append(control_request)
 
-        dl = defer.DeferredList(l)
+        dl = defer.DeferredList(l, consumeErrors=True)
         dl.addCallback(callback)
-        dl.addErrback(errback)
 
         return dl
 
