@@ -3,10 +3,12 @@
 # :authors: Arturo Filastò
 # :licence: see LICENSE
 
+import random
 from twisted.internet import defer
 from twisted.python import usage
 
 from ooni.utils import log
+from ooni.utils.net import userAgents
 from ooni.templates import httpt
 from ooni.nettest import failureToString, handleAllFailures
 
@@ -27,11 +29,11 @@ class HTTPRequestsTest(httpt.HTTPTest):
     """
     name = "HTTP Requests Test"
     author = "Arturo Filastò"
-    version = "0.2.2"
+    version = "0.2.3"
 
     usageOptions = UsageOptions
 
-    inputFile = ['file', 'f', None, 
+    inputFile = ['file', 'f', None,
             'List of URLS to perform GET and POST requests to']
 
     # These values are used for determining censorship based on response body
@@ -107,13 +109,16 @@ class HTTPRequestsTest(httpt.HTTPTest):
             if not experiment_succeeded:
                 self.report['experiment_failure'] = failureToString(experiment_result)
 
+        headers = {'User-Agent': [random.choice(userAgents)]}
+
         l = []
         log.msg("Performing GET request to %s" % self.url)
-        experiment_request = self.doRequest(self.url, method="GET")
+        experiment_request = self.doRequest(self.url, method="GET",
+                headers=headers)
 
         log.msg("Performing GET request to %s via Tor" % self.url)
         control_request = self.doRequest(self.url, method="GET",
-                use_tor=True)
+                use_tor=True, headers=headers)
 
         l.append(experiment_request)
         l.append(control_request)
