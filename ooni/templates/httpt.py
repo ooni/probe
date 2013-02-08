@@ -305,7 +305,7 @@ class HTTPTest(NetTestCase):
             failure_string = handleAllFailures(failure)
             log.err("Error performing %s" % request)
             self.addToReport(request, failure_string=failure_string)
-            return
+            return failure
 
         d = agent.request(request['method'], request['url'], headers,
                 body_producer)
