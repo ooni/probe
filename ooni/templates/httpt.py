@@ -139,6 +139,8 @@ class HTTPTest(NetTestCase):
             body_processor(response_body)
         else:
             self.processResponseBody(response_body)
+        response.body = response_body
+        return response
 
     def processResponseBody(self, body):
         """

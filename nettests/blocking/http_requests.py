@@ -25,7 +25,7 @@ class HTTPRequestsTest(httpt.HTTPTest):
     """
     name = "HTTP Requests Test"
     author = "Arturo Filastò"
-    version = "0.1"
+    version = "0.2"
 
     usageOptions = UsageOptions
 
@@ -50,9 +50,7 @@ class HTTPRequestsTest(httpt.HTTPTest):
 
         self.factor = self.localOptions['factor']
 
-    def compare_body_lengths(self):
-        body_length_a = self.control_body_length
-        body_length_b = self.experiment_body_length
+    def compare_body_lengths(self, body_length_a, body_length_b):
 
         if body_length_b == 0 and body_length_a != 0:
             rel = float(body_length_b)/float(body_length_a)
@@ -75,13 +73,15 @@ class HTTPRequestsTest(httpt.HTTPTest):
             log.msg("censorship could be happening")
             self.report['body_length_match'] = False
 
-    def compare_headers(self):
-        diff = TrueHeaders(self.control_headers).getDiff(self.experiment_headers)
+    def compare_headers(self, headers_a, headers_b):
+        diff = headers_a.getDiff(headers_b)
         if diff:
-            log.msg("Headers appear to match")
+            log.msg("Headers appear to *not* match")
+            self.report['headers_diff'] = diff
             self.report['headers_match'] = False
         else:
-            log.msg("Headers appear to *not* match")
+            log.msg("Headers appear to match")
+            self.report['headers_diff'] = diff
             self.report['headers_match'] = True
 
     def test_get(self):
@@ -89,47 +89,31 @@ class HTTPRequestsTest(httpt.HTTPTest):
             log.err("There was an error while testing %s" % self.url)
             log.exception(failure)
 
-        def control_body(result):
-            """
-            Callback for processing the control HTTP body response.
-            """
-            self.control_body_length = len(result)
-            if self.experiment_body_length is not None:
-                self.compare_body_lengths()
+        def callback(res):
+            experiment, control = res
+            experiment_success, experiment_response = experiment
+            control_success, control_response = control
 
-        def experiment_body(result):
-            """
-            Callback for processing the experiment HTTP body response.
-            """
-            self.experiment_body_length = len(result)
-            if self.control_body_length is not None:
-                self.compare_body_lengths()
+            self.compare_body_lengths(len(experiment_response.body),
+                    len(control_response.body))
 
-        def control_headers(headers_dict):
-            """
-            Callback for processing the control HTTP headers response.
-            """
-            self.control_headers = headers_dict
-
-        def experiment_headers(headers_dict):
-            """
-            Callback for processing the experiment HTTP headers response.
-            """
-            self.experiment_headers = headers_dict
+            self.compare_headers(control_response.headers,
+                    experiment_response.headers)
 
         l = []
         log.msg("Performing GET request to %s" % self.url)
-        experiment_request = self.doRequest(self.url, method="GET",
-                body_processor=experiment_body,
-                headers_processor=control_headers)
+        experiment_request = self.doRequest(self.url, method="GET")
 
         log.msg("Performing GET request to %s via Tor" % self.url)
         control_request = self.doRequest(self.url, method="GET",
-                use_tor=True, body_processor=control_body,
-                headers_processor=control_headers)
+                use_tor=True)
 
         l.append(experiment_request)
         l.append(control_request)
+
         dl = defer.DeferredList(l)
+        dl.addCallback(callback)
+        dl.addErrback(errback)
+
         return dl
 
