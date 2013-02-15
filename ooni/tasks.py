@@ -62,13 +62,15 @@ class TaskTimedOut(Exception):
     pass
 
 class TaskWithTimeout(BaseTask):
-    timeout = 5
+    timeout = 30
     # So that we can test the callLater calls
     clock = reactor
 
     def _timedOut(self):
         """Internal method for handling timeout failure"""
-        self._running.errback(TaskTimedOut)
+        if not self._running.called:
+            self._running.cancel()
+            self._failed(TaskTimedOut)
 
     def _cancelTimer(self):
         #import pdb; pdb.set_trace()
