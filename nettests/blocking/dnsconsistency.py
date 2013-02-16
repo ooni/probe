@@ -1,7 +1,7 @@
 # -*- encoding: utf-8 -*-
 #
-#  dnstamper
-#  *********
+#  dnsconsistency
+#  **************
 #
 #  The test reports censorship if the cardinality of the intersection of
 #  the query result set from the control server and the query result set
@@ -34,11 +34,11 @@ class UsageOptions(usage.Options):
                          'Specify a single test resolver to use for testing']
                     ]
 
-class DNSTamperTest(dnst.DNSTest):
+class DNSConsistencyTest(dnst.DNSTest):
 
-    name = "DNS tamper"
+    name = "DNS Consistency"
     description = "DNS censorship detection test"
-    version = "0.4"
+    version = "0.5"
     authors = "Arturo Filastò, Isis Lovecruft"
     requirements = None
 
@@ -163,7 +163,7 @@ class DNSTamperTest(dnst.DNSTest):
         """
         This inputProcessor extracts domain names from urls
         """
-        log.debug("Running dnstamper default processor")
+        log.debug("Running dnsconsistency default processor")
         if filename:
             fp = open(filename)
             for x in fp.readlines():
