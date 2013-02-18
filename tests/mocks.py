@@ -10,9 +10,9 @@ class MockMeasurementFailOnce(BaseTask):
         f.write('fail')
         f.close()
         if self.failure >= 1:
-            return defer.succeed()
+            return defer.succeed(self)
         else:
-            return defer.fail()
+            return defer.fail(failure.Failure)
 
 class MockMeasurementManager(TaskManager):
     def __init__(self):
@@ -33,8 +33,7 @@ class MockReporter(object):
         pass
 
     def createReport(self):
-        self.created.callback(True)
-        return self.created
+        self.created.callback(self)
 
     def finish(self):
         pass
@@ -93,7 +92,7 @@ class MockMeasurement(TaskWithTimeout):
         self.netTest = net_test
 
     def succeeded(self, result):
-        return self.netTest.succeeded(self)
+        return self.netTest.succeeded(42)
 
 class MockSuccessMeasurement(MockMeasurement):
     def run(self):
@@ -126,13 +125,35 @@ class MockOReporter(object):
         self.created = defer.Deferred()
 
     def writeReportEntry(self, entry):
-        pass
+        return defer.succeed(42)
 
     def finish(self):
         pass
 
     def createReport(self):
-        pass
+        from ooni.utils import log
+        log.debug("Creating report with %s" % self)
+        self.created.callback(self)
+
+class MockOReporterThatFailsWrite(MockOReporter):
+    def writeReportEntry(self, entry):
+        raise MockFailure
+
+class MockOReporterThatFailsOpen(MockOReporter):
+    def createReport(self):
+        self.created.errback(failure.Failure(MockFailure()))
+
+class MockOReporterThatFailsWriteOnce(MockOReporter):
+    def __init__(self):
+        self.failure = 0
+        MockOReporter.__init__(self)
+
+    def writeReportEntry(self, entry):
+        if self.failure >= 1:
+            return defer.succeed(42)
+        else:
+            self.failure += 1
+            raise MockFailure 
 
 class MockTaskManager(TaskManager):
     def __init__(self):
