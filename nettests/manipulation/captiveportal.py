@@ -80,9 +80,15 @@ class CaptivePortal(nettest.NetTestCase):
         """
         url = urlparse(url).geturl()
         request = urllib2.Request(url, None, headers)
-        response = urllib2.urlopen(request)
-        response_headers = dict(response.headers)
-        return response, response_headers
+        #XXX: HTTP Error 302: The HTTP server returned a redirect error that
+        #would lead to an infinite loop.  The last 30x error message was: Found
+        try:
+            response = urllib2.urlopen(request)
+            response_headers = dict(response.headers)
+            return response, response_headers
+        except urllib2.HTTPError, e:
+            log.err("HTTPError: %s" % e)
+            return None, None
 
     def http_content_match_fuzzy_opt(self, experimental_url, control_result,
                                      headers=None, fuzzy=False):
@@ -102,10 +108,11 @@ class CaptivePortal(nettest.NetTestCase):
             headers = {'User-Agent': default_ua}
 
         response, response_headers = self.http_fetch(experimental_url, headers)
-        response_content = response.read()
-        response_code = response.code
+
+        response_content = response.read() if response else None
+        response_code = response.code if response else None
         if response_content is None:
-            log.warn("HTTP connection appears to have failed.")
+            log.err("HTTP connection appears to have failed.")
             return False, False, False
 
         if fuzzy:
@@ -547,7 +554,7 @@ class CaptivePortal(nettest.NetTestCase):
                 report['result'] = compare_content(snm, True, *args)
 
             else:
-                log.warn("Ooni is trying to run an undefined CP vendor test.")
+                log.err("Ooni is trying to run an undefined CP vendor test.")
             result.append(report)
         return result
 
