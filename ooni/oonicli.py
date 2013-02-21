@@ -4,6 +4,7 @@ import sys
 import os
 import time
 import yaml
+import random
 
 from twisted.internet import reactor
 from twisted.python import usage
@@ -38,6 +39,7 @@ class Options(usage.Options):
                      ["logfile", "l", None, "log file name"],
                      ["pcapfile", "O", None, "pcap file name"],
                      ["parallelism", "p", "10", "input parallelism"],
+                     ["no-default-reporter", "n", False, "disable default reporter"],
                      ]
 
     compData = usage.Completions(
@@ -144,6 +146,14 @@ def runWithDirector():
                 log.msg("Should be in the format http://<collector_address>:<port>")
                 log.msg("for example: ooniprobe -c httpo://nkvphnp3p6agi5qq.onion")
                 sys.exit(1)
+
+        # Select one of the baked-in reporters unless the user has requested otherwise
+        if not global_options['no-default-reporter']:
+            with open('collector') as f:
+                reporter_url = random.choice(f.readlines())
+                reporter_url = choice.split('#')[0]
+                oonib_reporter = OONIBReporter(net_test_loader.testDetails, reporter_url)
+                reporters.append(oonib_reporter)
 
         #XXX add all the tests to be run sequentially
         d.addCallback(director.startNetTest, net_test_loader, reporters)
