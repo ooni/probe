@@ -151,7 +151,7 @@ def runWithDirector():
         if not global_options['no-default-reporter']:
             with open('collector') as f:
                 reporter_url = random.choice(f.readlines())
-                reporter_url = choice.split('#')[0]
+                reporter_url = reporter_url.split('#')[0]
                 oonib_reporter = OONIBReporter(net_test_loader.testDetails, reporter_url)
                 reporters.append(oonib_reporter)
 
