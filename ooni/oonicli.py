@@ -4,6 +4,7 @@ import sys
 import os
 import time
 import yaml
+import random
 
 from twisted.internet import reactor
 from twisted.python import usage
@@ -148,9 +149,17 @@ def runWithDirector():
                     log.msg("for example: ooniprobe -c httpo://nkvphnp3p6agi5qq.onion")
                     sys.exit(1)
 
-            #XXX add all the tests to be run sequentially
+            # Select one of the baked-in reporters unless the user has requested otherwise
+            if not global_options['no-default-reporter']:
+                with open('collector') as f:
+                    reporter_url = random.choice(f.readlines())
+                    reporter_url = reporter_url.split('#')[0].strip()
+                    oonib_reporter = OONIBReporter(net_test_loader.testDetails, reporter_url)
+                    reporters.append(oonib_reporter)
+
             log.debug("adding callback for startNetTest")
             d.addCallback(director.startNetTest, net_test_loader, reporters)
         d.addCallback(shutdown)
+
     d.addCallback(post_director_start)
     reactor.run()
