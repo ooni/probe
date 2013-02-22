@@ -1,11 +1,12 @@
 import os
+import re
 
 from twisted.internet import defer, reactor
 from twisted.trial.runner import filenameToModule
 from twisted.python import usage, reflect
 
 from ooni.tasks import Measurement
-from ooni.utils import log, checkForRoot, NotRootError
+from ooni.utils import log, checkForRoot, NotRootError, geodata
 from ooni import config
 from ooni import otime
 
