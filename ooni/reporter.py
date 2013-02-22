@@ -16,6 +16,7 @@ from twisted.python.util import untilConcludes
 from twisted.trial import reporter
 from twisted.internet import defer, reactor
 from twisted.internet.error import ConnectionRefusedError
+from twisted.python.failure import Failure
 
 from ooni.utils import log
 
@@ -25,11 +26,18 @@ except ImportError:
     log.err("Scapy is not installed.")
 
 
+from ooni.errors import InvalidOONIBCollectorAddress
+
 from ooni import otime
 from ooni.utils import geodata, pushFilenameStack
 from ooni.utils.net import BodyReceiver, StringProducer, userAgents
 
 from ooni import config
+
+from ooni.tasks import ReportEntry, TaskTimedOut
+
+class ReporterException(Exception):
+    pass
 
 def createPacketReport(packet_list):
     """
@@ -108,58 +116,12 @@ def safe_dump(data, stream=None, **kw):
     """
     return yaml.dump_all([data], stream, Dumper=OSafeDumper, **kw)
 
-def getTestDetails(options):
-    from ooni import __version__ as software_version
-
-    client_geodata = {}
-    if config.probe_ip and (config.privacy.includeip or \
-            config.privacy.includeasn or \
-            config.privacy.includecountry or \
-            config.privacy.includecity):
-        log.msg("We will include some geo data in the report")
-        client_geodata = geodata.IPToLocation(config.probe_ip)
-
-    if config.privacy.includeip:
-        client_geodata['ip'] = config.probe_ip
-    else:
-        client_geodata['ip'] = "127.0.0.1"
-
-    # Here we unset all the client geodata if the option to not include then
-    # has been specified
-    if client_geodata and not config.privacy.includeasn:
-        client_geodata['asn'] = 'AS0'
-    elif 'asn' in client_geodata:
-        # XXX this regexp should probably go inside of geodata
-        client_geodata['asn'] = \
-                re.search('AS\d+', client_geodata['asn']).group(0)
-        log.msg("Your AS number is: %s" % client_geodata['asn'])
-    else:
-        client_geodata['asn'] = None
-
-    if (client_geodata and not config.privacy.includecity) \
-            or ('city' not in client_geodata):
-        client_geodata['city'] = None
-
-    if (client_geodata and not config.privacy.includecountry) \
-            or ('countrycode' not in client_geodata):
-        client_geodata['countrycode'] = None
-
-    test_details = {'start_time': otime.utcTimeNow(),
-                    'probe_asn': client_geodata['asn'],
-                    'probe_cc': client_geodata['countrycode'],
-                    'probe_ip': client_geodata['ip'],
-                    'test_name': options['name'],
-                    'test_version': options['version'],
-                    'software_name': 'ooniprobe',
-                    'software_version': software_version
-    }
-    return test_details
-
 class OReporter(object):
-    def __init__(self, cmd_line_options):
-        self.cmd_line_options = dict(cmd_line_options)
+    def __init__(self, test_details):
+        self.created = defer.Deferred()
+        self.testDetails = test_details
 
-    def createReport(self, options):
+    def createReport(self):
         """
         Override this with your own logic to implement tests.
         """
@@ -175,6 +137,8 @@ class OReporter(object):
         pass
 
     def testDone(self, test, test_name):
+        # XXX put this inside of Report.close
+        # or perhaps put something like this inside of netTestDone
         log.msg("Finished running %s" % test_name)
         test_report = dict(test.report)
 
@@ -193,30 +157,37 @@ class OReporter(object):
                 'report': test_report}
         return defer.maybeDeferred(self.writeReportEntry, report)
 
+class InvalidDestination(ReporterException):
+    pass
+
 class YAMLReporter(OReporter):
     """
     These are useful functions for reporting to YAML format.
+
+    report_destination:
+        the destination directory of the report
+
     """
-    def __init__(self, cmd_line_options):
-        if cmd_line_options['reportfile'] is None:
-            try:
-                test_filename = os.path.basename(cmd_line_options['test'])
-            except IndexError:
-                raise TestFilenameNotSet
+    def __init__(self, test_details, report_destination='.'):
+        self.reportDestination = report_destination
 
-            test_name = '.'.join(test_filename.split(".")[:-1])
-            frm_str = "report_%s_"+otime.timestamp()+".%s"
-            reportfile = frm_str % (test_name, "yamloo")
-        else:
-            reportfile = cmd_line_options['reportfile']
+        if not os.path.isdir(report_destination):
+            raise InvalidDestination
 
-        if os.path.exists(reportfile):
-            log.msg("Report already exists with filename %s" % reportfile)
-            pushFilenameStack(reportfile)
+        report_filename = "report-" + \
+                test_details['test_name'] + "-" + \
+                otime.timestamp() + ".yamloo"
 
-        log.debug("Creating %s" % reportfile)
-        self._stream = open(reportfile, 'w+')
-        OReporter.__init__(self, cmd_line_options)
+        report_path = os.path.join(self.reportDestination, report_filename)
+
+        if os.path.exists(report_path):
+            log.msg("Report already exists with filename %s" % report_path)
+            pushFilenameStack(report_path)
+
+        log.debug("Creating %s" % report_path)
+        self._stream = open(report_path, 'w+')
+
+        OReporter.__init__(self, test_details)
 
     def _writeln(self, line):
         self._write("%s\n" % line)
@@ -233,23 +204,27 @@ class YAMLReporter(OReporter):
     def writeReportEntry(self, entry):
         log.debug("Writing report with YAML reporter")
         self._write('---\n')
-        self._write(safe_dump(entry))
+        if isinstance(entry, Failure):
+            self._write(entry.value)
+        else:
+            self._write(safe_dump(entry))
         self._write('...\n')
 
-    def createReport(self, options):
+    def createReport(self):
+        """
+        Writes the report header and fire callbacks on self.created
+        """
         self._writeln("###########################################")
-        self._writeln("# OONI Probe Report for %s test" % options['name'])
+
+        self._writeln("# OONI Probe Report for %s (%s)" % (self.testDetails['test_name'],
+                    self.testDetails['test_version']))
         self._writeln("# %s" % otime.prettyDateNow())
         self._writeln("###########################################")
 
-        test_details = getTestDetails(options)
-        test_details['options'] = self.cmd_line_options
-
-        self.writeReportEntry(test_details)
+        self.writeReportEntry(self.testDetails)
 
     def finish(self):
         self._stream.close()
-
 
 class OONIBReportError(Exception):
     pass
@@ -264,19 +239,22 @@ class OONIBTestDetailsLookupError(OONIBReportError):
     pass
 
 class OONIBReporter(OReporter):
-    def __init__(self, cmd_line_options):
-        self.backend_url = cmd_line_options['collector']
-        self.report_id = None
+    def __init__(self, test_details, collector_address):
+        self.collectorAddress = collector_address
+        self.validateCollectorAddress()
 
-        from ooni.utils.txagentwithsocks import Agent
-        from twisted.internet import reactor
-        try:
-            self.agent = Agent(reactor, sockshost="127.0.0.1",
-                socksport=int(config.tor.socks_port))
-        except Exception, e:
-            log.exception(e)
+        self.reportID = None
 
-        OReporter.__init__(self, cmd_line_options)
+        OReporter.__init__(self, test_details)
+
+    def validateCollectorAddress(self):
+        """
+        Will raise :class:ooni.errors.InvalidOONIBCollectorAddress an exception
+        if the oonib reporter is not valid.
+        """
+        regexp = '^(http|httpo):\/\/[a-zA-Z0-9\-\.]+(:\d+)?$'
+        if not re.match(regexp, self.collectorAddress):
+            raise InvalidOONIBCollectorAddress
 
     @defer.inlineCallbacks
     def writeReportEntry(self, entry):
@@ -285,12 +263,12 @@ class OONIBReporter(OReporter):
         content += safe_dump(entry)
         content += '...\n'
 
-        url = self.backend_url + '/report'
+        url = self.collectorAddress + '/report'
 
-        request = {'report_id': self.report_id,
+        request = {'report_id': self.reportID,
                 'content': content}
 
-        log.debug("Updating report with id %s (%s)" % (self.report_id, url))
+        log.debug("Updating report with id %s (%s)" % (self.reportID, url))
         request_json = json.dumps(request)
         log.debug("Sending %s" % request_json)
 
@@ -306,33 +284,38 @@ class OONIBReporter(OReporter):
             raise OONIBReportUpdateError
 
     @defer.inlineCallbacks
-    def createReport(self, options):
+    def createReport(self):
         """
         Creates a report on the oonib collector.
         """
-        url = self.backend_url + '/report'
+        # XXX we should probably be setting this inside of the constructor,
+        # however config.tor.socks_port is not set until Tor is started and the
+        # reporter is instantiated before Tor is started. We probably want to
+        # do this with some deferred kung foo or instantiate the reporter after
+        # tor is started.
 
+        from ooni.utils.txagentwithsocks import Agent
+        from twisted.internet import reactor
         try:
-            test_details = getTestDetails(options)
+            self.agent = Agent(reactor, sockshost="127.0.0.1",
+                socksport=int(config.tor.socks_port))
         except Exception, e:
             log.exception(e)
 
-        test_details['options'] = self.cmd_line_options
-
-        log.debug("Obtained test_details: %s" % test_details)
+        url = self.collectorAddress + '/report'
 
         content = '---\n'
-        content += safe_dump(test_details)
+        content += safe_dump(self.testDetails)
         content += '...\n'
 
-        test_name = options['name']
-        test_version = options['version']
-
-        request = {'software_name': test_details['software_name'],
-            'software_version': test_details['software_version'],
-            'probe_asn': test_details['probe_asn'],
-            'test_name': test_name,
-            'test_version': test_version,
+        request = {'software_name': self.testDetails['software_name'],
+            'software_version': self.testDetails['software_version'],
+            'probe_asn': self.testDetails['probe_asn'],
+            'test_name': self.testDetails['test_name'],
+            'test_version': self.testDetails['test_version'],
+            # XXX there is a bunch of redundancy in the arguments getting sent
+            # to the backend. This may need to get changed in the client and the
+            # backend.
             'content': content
         }
 
@@ -369,7 +352,104 @@ class OONIBReporter(OReporter):
             log.exception(e)
             raise OONIBReportCreationError
 
-        self.report_id = parsed_response['report_id']
-        self.backend_version = parsed_response['backend_version']
+        self.reportID = parsed_response['report_id']
+        self.backendVersion = parsed_response['backend_version']
         log.debug("Created report with id %s" % parsed_response['report_id'])
+
+class ReportClosed(Exception):
+    pass
+
+class Report(object):
+    def __init__(self, reporters, reportEntryManager):
+        """
+        This is an abstraction layer on top of all the configured reporters.
+
+        It allows to lazily write to the reporters that are to be used.
+
+        Args:
+
+            reporters:
+                a list of :class:ooni.reporter.OReporter instances
+
+            reportEntryManager:
+                an instance of :class:ooni.tasks.ReportEntryManager
+        """
+        self.reporters = reporters
+
+        self.done = defer.Deferred()
+        #self.done.addCallback(self.close)
+
+        self.reportEntryManager = reportEntryManager
+
+    def open(self):
+        """
+        This will create all the reports that need to be created and fires the
+        created callback of the reporter whose report got created.
+        """
+        for reporter in self.reporters:
+            reporter.created.addErrback(self.failedOpeningReport, reporter)
+            d = defer.maybeDeferred(reporter.createReport)
+            d.addCallback(reporter.created.callback)
+            d.addErrback(reporter.created.callback)
+
+
+    def failedOpeningReport(self, failure, reporter):
+        """
+        This errback get's called every time we fail to create a report.
+        By fail we mean that the number of retries has exceeded.
+        Once a report has failed to be created with a reporter we give up and
+        remove the reporter from the list of reporters to write to.
+        """
+        log.err("Failed to open %s reporter, giving up..." % reporter)
+        self.reporters.remove(reporter)
+        failure.reporter = reporter
+        return failure
+
+    def write(self, measurement):
+        """
+        This is a lazy call that will write to all the reporters by waiting on
+        them to be created.
+
+        Will return a deferred that will fire once the report for the specified
+        measurement have been written to all the reporters.
+
+        Args:
+
+            measurement:
+                an instance of :class:ooni.tasks.Measurement
+
+        Returns:
+            a deferred list that will fire once all the report entries have
+            been written.
+        """
+        l = []
+        for reporter in self.reporters:
+            def writeReportEntry(result):
+                report_write_task = ReportEntry(reporter, measurement)
+                self.reportEntryManager.schedule(report_write_task)
+                return report_write_task.done
+
+            d = reporter.created.addBoth(writeReportEntry)
+            # Give up on writing to the reporter if the task fails X times
+            d.addErrback(self.failedOpeningReport, reporter)
+            l.append(d)
+
+        dl = defer.DeferredList(l)
+        return dl
+
+    def close(self, _):
+        """
+        Close the report by calling it's finish method.
+
+        Returns:
+            a :class:twisted.internet.defer.DeferredList that will fire when
+            all the reports have been closed.
+
+        """
+        l = []
+        for reporter in self.reporters:
+            d = defer.maybeDeferred(reporter.finish)
+            l.append(d)
+        dl = defer.DeferredList(l)
+        return dl
 
