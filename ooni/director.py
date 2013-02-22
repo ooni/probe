@@ -239,7 +239,7 @@ class Director(object):
 
             config.probe_ip = client_ip.values()[0]
 
-            log.debug("Obtained our IP address from a Tor Relay %s" % config.privacy.client_ip)
+            log.debug("Obtained our IP address from a Tor Relay %s" % config.probe_ip)
 
         def setup_failed(failure):
             log.exception(failure)
