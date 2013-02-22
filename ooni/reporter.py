@@ -254,7 +254,8 @@ class OONIBReporter(OReporter):
         if the oonib reporter is not valid.
         """
         regexp = '^(http|httpo):\/\/[a-zA-Z0-9\-\.]+(:\d+)?$'
-        if not re.match(regexp, self.collectorAddress):
+        if not re.match(regexp, self.collectorAddress) or \
+            len(self.collectorAddress) < 30:
             raise InvalidOONIBCollectorAddress
 
     @defer.inlineCallbacks
