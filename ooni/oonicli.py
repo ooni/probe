@@ -114,11 +114,7 @@ def runWithDirector():
         log.debug("No test deck detected")
         test_list.append(NetTestLoader(global_options['test'], net_test_args))
 
-
-
-    director = Director()
-    d = director.start()
-
+    # check each test's usageOptions
     for net_test_loader in test_list:
         try:
             net_test_loader.checkOptions()
@@ -131,22 +127,29 @@ def runWithDirector():
             print net_test_loader.usageOptions().getUsage()
             sys.exit(2)
 
-        yaml_reporter = YAMLReporter(net_test_loader.testDetails)
-        reporters = [yaml_reporter]
+    director = Director()
+    d = director.start()
 
-        if global_options['collector']:
-            try:
-                oonib_reporter = OONIBReporter(net_test_loader.testDetails,
-                        global_options['collector'])
-                reporters.append(oonib_reporter)
-            except InvalidOONIBCollectorAddress:
-                log.err("Invalid format for oonib collector address.")
-                log.msg("Should be in the format http://<collector_address>:<port>")
-                log.msg("for example: ooniprobe -c httpo://nkvphnp3p6agi5qq.onion")
-                sys.exit(1)
+    # Wait until director has started up (including bootstrapping Tor) before adding tess
+    def post_director_start(_):
+        for net_test_loader in test_list:
+            yaml_reporter = YAMLReporter(net_test_loader.testDetails)
+            reporters = [yaml_reporter]
 
-        #XXX add all the tests to be run sequentially
-        d.addCallback(director.startNetTest, net_test_loader, reporters)
-    d.addCallback(shutdown)
-    #XXX: if errback is called they do not propagate
+            if global_options['collector']:
+                try:
+                    oonib_reporter = OONIBReporter(net_test_loader.testDetails,
+                            global_options['collector'])
+                    reporters.append(oonib_reporter)
+                except InvalidOONIBCollectorAddress:
+                    log.err("Invalid format for oonib collector address.")
+                    log.msg("Should be in the format http://<collector_address>:<port>")
+                    log.msg("for example: ooniprobe -c httpo://nkvphnp3p6agi5qq.onion")
+                    sys.exit(1)
+
+            #XXX add all the tests to be run sequentially
+            log.debug("adding callback for startNetTest")
+            d.addCallback(director.startNetTest, net_test_loader, reporters)
+        d.addCallback(shutdown)
+    d.addCallback(post_director_start)
     reactor.run()
