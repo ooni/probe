@@ -4,6 +4,7 @@ import time
 import inspect
 import traceback
 import itertools
+import random
 
 import yaml
 
@@ -412,6 +413,14 @@ def runTestCases(test_cases, options, cmd_line_options):
     log.debug("cmd_line_options %s" % dict(cmd_line_options))
 
     test_inputs = options['inputs']
+
+    # Set a default reporter
+    if not cmd_line_options['collector'] and not \
+        cmd_line_options['no-default-reporter']:
+        with open('collector') as f:
+            reporter_url = random.choice(f.readlines())
+            reporter_url = reporter_url.split('#')[0].strip()
+            cmd_line_options['collector'] = reporter_url
 
     oonib_reporter = OONIBReporter(cmd_line_options)
     yaml_reporter = YAMLReporter(cmd_line_options)
