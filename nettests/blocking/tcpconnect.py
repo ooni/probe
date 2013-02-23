@@ -6,7 +6,7 @@ from twisted.internet.error import ConnectionRefusedError
 from twisted.internet.error import TCPTimedOutError, TimeoutError
 
 from ooni import nettest
-from ooni.nettest import handleAllFailures
+from ooni.errors import handleAllFailures
 from ooni.utils import log
 
 class TCPFactory(Factory):
