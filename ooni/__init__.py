@@ -1,12 +1,10 @@
 # -*- encoding: utf-8 -*-
 
 from . import config
-from . import inputunit
 from . import kit
 from . import nettest
 from . import oonicli
 from . import reporter
-from . import runner
 from . import templates
 from . import utils
 
