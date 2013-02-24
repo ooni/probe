@@ -36,6 +36,7 @@ except ImportError, e:
         def __init__(self, pcap_filename, *arg, **kw):
             log.err("Initializing DummyPcapWriter. We will not actually write to a pcapfile")
 
+        @staticmethod
         def write(self):
             pass
 
