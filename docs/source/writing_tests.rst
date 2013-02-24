@@ -508,4 +508,4 @@ Report format
   test_started: 1354801371.980114
   ...
 
-For a more complex example, see: :mod:`nettests.blocking.dnstamper`
+For a more complex example, see: :mod:`nettests.blocking.dnsconsistency`

@@ -41,7 +41,7 @@ except ImportError, e:
 
     PcapWriter = DummyPcapWriter
 
-
+    from scapy.all import Gen, SetGen, MTU
 
 def getNetworksFromRoutes():
     """ Return a list of networks from the routing table """
