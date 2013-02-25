@@ -28,7 +28,8 @@ class Options(usage.Options):
                 " files listed on the command line")
 
     optFlags = [["help", "h"],
-                ["resume", "r"]]
+                ["resume", "r"],
+                ["no-default-reporter", "n"]]
 
     optParameters = [["reportfile", "o", None, "report file name"],
                      ["testdeck", "i", None,
