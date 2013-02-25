@@ -19,3 +19,7 @@ report*.yaml
 docs/build/*
 data/*.dat
 ooniprobe.conf
+*.yamloo
+ooniprobe.resume
+*.log
+!before_i_commit.log

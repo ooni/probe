@@ -117,7 +117,7 @@ class HTTPRequestsTest(httpt.HTTPTest):
             """
             self.experiment_headers = headers_dict
 
-        dl = []
+        l = []
         log.msg("Performing GET request to %s" % self.url)
         experiment_request = self.doRequest(self.url, method="GET",
                 body_processor=experiment_body,
@@ -128,8 +128,8 @@ class HTTPRequestsTest(httpt.HTTPTest):
                 use_tor=True, body_processor=control_body,
                 headers_processor=control_headers)
 
-        dl.append(experiment_request)
-        dl.append(control_request)
-        d = defer.DeferredList(dl)
-        return d
+        l.append(experiment_request)
+        l.append(control_request)
+        dl = defer.DeferredList(l)
+        return dl
 

@@ -1,6 +1,5 @@
 import random
 from zope.interface import implements
-from twisted.python import usage
 from twisted.plugin import IPlugin
 from twisted.internet import protocol, defer, threads
 
