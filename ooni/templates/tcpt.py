@@ -57,6 +57,8 @@ class TCPTest(NetTestCase):
     port = None
 
     def _setUp(self):
+        super(TCPTest, self)._setUp()
+
         self.report['sent'] = []
         self.report['received'] = []
 

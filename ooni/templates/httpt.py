@@ -54,6 +54,8 @@ class HTTPTest(NetTestCase):
     responses = []
 
     def _setUp(self):
+        super(HTTPTest, self)._setUp()
+
         try:
             import OpenSSL
         except:
@@ -134,7 +136,7 @@ class HTTPTest(NetTestCase):
 
     def _processResponseBody(self, response_body, request, response, body_processor):
         log.debug("Processing response body")
-        self.addToReport(request, response, response_body)
+        HTTPTest.addToReport(self, request, response, response_body)
         if body_processor:
             body_processor(response_body)
         else:
@@ -205,7 +207,7 @@ class HTTPTest(NetTestCase):
         """
         if not response:
             log.err("Got no response for request %s" % request)
-            self.addToReport(request, response)
+            HTTPTest.addToReport(self, request, response)
             return
         else:
             log.debug("Got response %s" % response)
@@ -304,7 +306,7 @@ class HTTPTest(NetTestCase):
         def errback(failure, request):
             failure_string = handleAllFailures(failure)
             log.err("Error performing %s" % request)
-            self.addToReport(request, failure_string=failure_string)
+            HTTPTest.addToReport(self, request, failure_string=failure_string)
             return failure
 
         d = agent.request(request['method'], request['url'], headers,
