@@ -4,10 +4,13 @@
 RELEASE="`lsb_release -c|cut -f 2`";
 TOR_DEB_REPO="deb.torproject.org/torproject.org";
 
+echo "sudo is annoying, tell us your password once and sudo won't annoy you for the rest of this process...";
+sudo echo "if you read this, we won't ask for your password again during this process unless something goes wrong";
+
 # This is for Ubuntu's natty
 if [ $RELEASE = "natty" ] || [ $RELEASE = "wheezy" ]; then
   # Add Tor repo
-  HAVE_GPG_KEY="`apt-key finger|grep 'A3C4 F0F9 79CA A22C DBA8  F512 EE8C BC9E 886D DD89'|head -n 1`";
+  HAVE_GPG_KEY="`sudo apt-key finger|grep 'A3C4 F0F9 79CA A22C DBA8  F512 EE8C BC9E 886D DD89'|head -n 1`";
   if [ -z "$HAVE_GPG_KEY" ]; then
     echo "It appears that you do not have the torproject.org Debian repository key installed; installing it...";
     cat apt.key | sudo apt-key add -;
