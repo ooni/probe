@@ -25,6 +25,10 @@ network data that will assist you with your endeavors!
 
 ## The easy way to prep your system for running ooniprobe
 
+We believe that ooniprobe runs reasonably well on Debian GNU/Linux wheezy as
+well as versions of Ubuntu such as natty and later releases. Running ooniprobe
+without installing it is supported with the following commands:
+
   git clone https://git.torproject.org/ooni-probe.git
   cd ooni-probe
   ./setup-dependencies.sh
