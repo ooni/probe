@@ -64,7 +64,7 @@ class HTTPHeaderFieldManipulation(httpt.HTTPTest):
         else:
             # XXX generate these from a random choice taken from whatheaders.com
             # http://s3.amazonaws.com/data.whatheaders.com/whatheaders-latest.xml.zip
-            headers = {"User-Agent": [random.choice(net.userAgents)[0]],
+            headers = {"User-Agent": [random.choice(net.userAgents)],
                 "Accept": ["text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"],
                 "Accept-Encoding": ["gzip,deflate,sdch"],
                 "Accept-Language": ["en-US,en;q=0.8"],

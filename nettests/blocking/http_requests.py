@@ -3,10 +3,14 @@
 # :authors: Arturo Filastò
 # :licence: see LICENSE
 
+import random
 from twisted.internet import defer
 from twisted.python import usage
+
 from ooni.utils import log
+from ooni.utils.net import userAgents
 from ooni.templates import httpt
+from ooni.nettest import failureToString, handleAllFailures
 
 class UsageOptions(usage.Options):
     optParameters = [
@@ -25,11 +29,11 @@ class HTTPRequestsTest(httpt.HTTPTest):
     """
     name = "HTTP Requests Test"
     author = "Arturo Filastò"
-    version = "0.1"
+    version = "0.2.3"
 
     usageOptions = UsageOptions
 
-    inputFile = ['file', 'f', None, 
+    inputFile = ['file', 'f', None,
             'List of URLS to perform GET and POST requests to']
 
     # These values are used for determining censorship based on response body
@@ -49,10 +53,10 @@ class HTTPRequestsTest(httpt.HTTPTest):
             raise Exception("No input specified")
 
         self.factor = self.localOptions['factor']
+        self.report['control_failure'] = None
+        self.report['experiment_failure'] = None
 
-    def compare_body_lengths(self):
-        body_length_a = self.control_body_length
-        body_length_b = self.experiment_body_length
+    def compare_body_lengths(self, body_length_a, body_length_b):
 
         if body_length_b == 0 and body_length_a != 0:
             rel = float(body_length_b)/float(body_length_a)
@@ -75,61 +79,52 @@ class HTTPRequestsTest(httpt.HTTPTest):
             log.msg("censorship could be happening")
             self.report['body_length_match'] = False
 
-    def compare_headers(self):
-        diff = TrueHeaders(self.control_headers).getDiff(self.experiment_headers)
+    def compare_headers(self, headers_a, headers_b):
+        diff = headers_a.getDiff(headers_b)
         if diff:
-            log.msg("Headers appear to match")
+            log.msg("Headers appear to *not* match")
+            self.report['headers_diff'] = diff
             self.report['headers_match'] = False
         else:
-            log.msg("Headers appear to *not* match")
+            log.msg("Headers appear to match")
+            self.report['headers_diff'] = diff
             self.report['headers_match'] = True
 
     def test_get(self):
-        def errback(failure):
-            log.err("There was an error while testing %s" % self.url)
-            log.exception(failure)
+        def callback(res):
+            experiment, control = res
+            experiment_succeeded, experiment_result = experiment
+            control_succeeded, control_result = control
 
-        def control_body(result):
-            """
-            Callback for processing the control HTTP body response.
-            """
-            self.control_body_length = len(result)
-            if self.experiment_body_length is not None:
-                self.compare_body_lengths()
+            if control_succeeded and experiment_succeeded:
+                self.compare_body_lengths(len(experiment_result.body),
+                        len(control_result.body))
 
-        def experiment_body(result):
-            """
-            Callback for processing the experiment HTTP body response.
-            """
-            self.experiment_body_length = len(result)
-            if self.control_body_length is not None:
-                self.compare_body_lengths()
+                self.compare_headers(control_result.headers,
+                        experiment_result.headers)
 
-        def control_headers(headers_dict):
-            """
-            Callback for processing the control HTTP headers response.
-            """
-            self.control_headers = headers_dict
+            if not control_succeeded:
+                self.report['control_failure'] = failureToString(control_result)
 
-        def experiment_headers(headers_dict):
-            """
-            Callback for processing the experiment HTTP headers response.
-            """
-            self.experiment_headers = headers_dict
+            if not experiment_succeeded:
+                self.report['experiment_failure'] = failureToString(experiment_result)
+
+        headers = {'User-Agent': [random.choice(userAgents)]}
 
         l = []
         log.msg("Performing GET request to %s" % self.url)
         experiment_request = self.doRequest(self.url, method="GET",
-                body_processor=experiment_body,
-                headers_processor=control_headers)
+                headers=headers)
 
         log.msg("Performing GET request to %s via Tor" % self.url)
         control_request = self.doRequest(self.url, method="GET",
-                use_tor=True, body_processor=control_body,
-                headers_processor=control_headers)
+                use_tor=True, headers=headers)
 
         l.append(experiment_request)
         l.append(control_request)
-        dl = defer.DeferredList(l)
+
+        dl = defer.DeferredList(l, consumeErrors=True)
+        dl.addCallback(callback)
+
         return dl
 

@@ -41,7 +41,7 @@ class HTTPTest(NetTestCase):
     name = "HTTP Test"
     version = "0.1.1"
 
-    randomizeUA = True
+    randomizeUA = False
     followRedirects = False
 
     baseParameters = [['socksproxy', 's', None,
@@ -139,6 +139,8 @@ class HTTPTest(NetTestCase):
             body_processor(response_body)
         else:
             self.processResponseBody(response_body)
+        response.body = response_body
+        return response
 
     def processResponseBody(self, body):
         """
@@ -303,7 +305,7 @@ class HTTPTest(NetTestCase):
             failure_string = handleAllFailures(failure)
             log.err("Error performing %s" % request)
             self.addToReport(request, failure_string=failure_string)
-            return
+            return failure
 
         d = agent.request(request['method'], request['url'], headers,
                 body_producer)
