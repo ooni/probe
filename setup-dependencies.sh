@@ -51,16 +51,26 @@ if [ $RELEASE = "natty" ]; then
     fi
   fi
 
+  echo "Adding a symlink to your ooni-probe source code checkout...";
+  ln -s `pwd` ~/ooni-probe;
+
   # Allow ooniprobe to run, if all above went well, we hope!
   export PYTHONPATH=$PYTHONPATH:"`pwd`";
   export PATH=$PATH:"`pwd`";
   echo "Please add the following to your respective shell config files:";
   echo ;
-  echo "if [ -e ~/ooni-probe/bin ]; then";
-  echo "   export PATH=~/ooni-probe/bin:$PATH";
-  echo "fi";
-  echo "if [ -e ~/ooni-probe ]; then";
-  echo 'export PYTHONPATH=$PYTHONPATH:~/ooni-probe';
-  echo "fi";
+  echo "  if [ -e ~/ooni-probe/bin ]; then";
+  echo '    export PATH=~/ooni-probe/bin:$PATH';
+  echo "  fi";
+  echo "  if [ -e ~/ooni-probe ]; then";
+  echo '    export PYTHONPATH=$PYTHONPATH:~/ooni-probe';
+  echo "  fi";
+  echo ;
+
+else
+
+  echo "It appears that you are using an unsupported OS - please tell us";
+  echo "by filing a bug: https://trac.torproject.org/projects/tor/newticket";
 
 fi
+
