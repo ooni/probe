@@ -5,7 +5,7 @@ RELEASE="`lsb_release -c|cut -f 2`";
 TOR_DEB_REPO="deb.torproject.org/torproject.org";
 
 # This is for Ubuntu's natty
-if [ $RELEASE = "natty" ]; then
+if [ $RELEASE = "natty" ] || [ $RELEASE = "wheezy" ]; then
   # Add Tor repo
   HAVE_GPG_KEY="`apt-key finger|grep 'A3C4 F0F9 79CA A22C DBA8  F512 EE8C BC9E 886D DD89'|head -n 1`";
   if [ -z "$HAVE_GPG_KEY" ]; then
