@@ -27,7 +27,7 @@ if [ $RELEASE = "natty" ] || [ $RELEASE = "wheezy" ]; then
   echo "Updating OS package list...";
   sudo apt-get update 2>&1 > /dev/null;
   echo "Installing packages for your system...";
-  sudo apt-get install git-core python python-pip python-dev build-essential libdumbnet1 python-dumbnet python-libpcap python-pypcap python-pcapy python-dnspython python-virtualenv virtualenvwrapper tor tor-geoipdb;
+  sudo apt-get install git-core python python-pip python-dev build-essential libdumbnet1 python-dumbnet python-libpcap python-pypcap python-dnspython python-virtualenv virtualenvwrapper tor tor-geoipdb;
 
   if [ ! -f ~/.virtualenvs/ooniprobe/bin/activate ]; then
     # Set up the virtual environment
