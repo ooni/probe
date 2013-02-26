@@ -28,7 +28,7 @@ advanced:
     # Of specify a specific interface
     #interface: wlan0
     # If you do not specify start_tor, you will have to have Tor running and
-    # explicitly set the control port and orport.
+    # explicitly set the control port and SOCKS port
     start_tor: true
 tor:
     #socks_port: 9050
