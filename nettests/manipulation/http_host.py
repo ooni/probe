@@ -121,7 +121,7 @@ class HTTPHost(httpt.HTTPTest):
             content = json.loads(body)
         except:
             log.msg("The json does not parse, this is not what we expected")
-            self.report['trans_http_proxy'] = True
+            self.report['transparent_http_proxy'] = True
             self.check_for_censorship(body)
             return
 
@@ -132,10 +132,10 @@ class HTTPHost(httpt.HTTPTest):
                 'request_line' in content and \
                 'headers_dict' in content:
             log.msg("Found the keys I expected in %s" % content)
-            self.report['trans_http_proxy'] = False
+            self.report['transparent_http_proxy'] = False
             self.report['censored'] = False
         else:
             log.msg("Did not find the keys I expected in %s" % content)
-            self.report['trans_http_proxy'] = True
+            self.report['transparent_http_proxy'] = True
             self.check_for_censorship(body)
 
