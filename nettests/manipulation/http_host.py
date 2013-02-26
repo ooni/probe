@@ -15,10 +15,12 @@ from ooni.utils import log
 from ooni.templates import httpt
 
 class UsageOptions(usage.Options):
-    optParameters = [['backend', 'b', 'http://127.0.0.1:57001', 
-                        'URL of the test backend to use'],
-                     ['content', 'c', None, 
-                        'The file to read from containing the content of a block page']]
+    optParameters = [['backend', 'b', 'http://127.0.0.1:57001',
+                      'URL of the test backend to use. Should be \
+                              listening on port 80 and be a \
+                              HTTPReturnJSONHeadersHelper'],
+                     ['content', 'c', None, 'The file to read \
+                            from containing the content of a block page']]
 
 class HTTPHost(httpt.HTTPTest):
     """
@@ -33,7 +35,7 @@ class HTTPHost(httpt.HTTPTest):
     """
     name = "HTTP Host"
     author = "Arturo Filastò"
-    version = "0.2.1"
+    version = "0.2.3"
 
     randomizeUA = False
     usageOptions = UsageOptions
@@ -46,25 +48,25 @@ class HTTPHost(httpt.HTTPTest):
     def test_filtering_prepend_newline_to_method(self):
         headers = {}
         headers["Host"] = [self.input]
-        return self.doRequest('http://'+self.input, method="\nGET",
+        return self.doRequest(self.localOptions['backend'], method="\nGET",
                 headers=headers)
 
     def test_filtering_add_tab_to_host(self):
         headers = {}
         headers["Host"] = [self.input + '\t']
-        return self.doRequest('http://'+self.input,
+        return self.doRequest(self.localOptions['backend'],
                 headers=headers)
 
     def test_filtering_of_subdomain(self):
         headers = {}
         headers["Host"] = [randomStr(10) + '.' + self.input]
-        return self.doRequest('http://'+self.input,
+        return self.doRequest(self.localOptions['backend'],
                 headers=headers)
 
     def test_filtering_via_fuzzy_matching(self):
         headers = {}
         headers["Host"] = [randomStr(10) + self.input + randomStr(10)]
-        return self.doRequest('http://'+self.input,
+        return self.doRequest(self.localOptions['backend'],
                 headers=headers)
 
     def test_send_host_header(self):
@@ -89,7 +91,6 @@ class HTTPHost(httpt.HTTPTest):
         """
         if self.localOptions['content']:
             self.report['censored'] = True
-
             censorship_page = open(self.localOptions['content'])
             response_page = iter(body.split("\n"))
 
@@ -100,6 +101,8 @@ class HTTPHost(httpt.HTTPTest):
                     break
 
             censorship_page.close()
+        else:
+            self.report['censored'] = None
 
     def processResponseBody(self, body):
         """
@@ -110,13 +113,14 @@ class HTTPHost(httpt.HTTPTest):
         # If we don't see a json array we know that something is wrong for
         # sure
         if not body.startswith("{"):
+            log.msg("This does not appear to be JSON")
             self.report['transparent_http_proxy'] = True
             self.check_for_censorship(body)
             return
         try:
             content = json.loads(body)
         except:
-            log.debug("The json does not parse, this is not what we expected")
+            log.msg("The json does not parse, this is not what we expected")
             self.report['trans_http_proxy'] = True
             self.check_for_censorship(body)
             return
@@ -124,13 +128,14 @@ class HTTPHost(httpt.HTTPTest):
         # We base the determination of the presence of a transparent HTTP
         # proxy on the basis of the response containing the json that is to be
         # returned by a HTTP Request Test Helper
-        if 'request_method' in content and \
-                'request_uri' in content and \
-                'request_headers' in content:
-            log.debug("Found the keys I expected in %s" % content)
+        if 'request_headers' in content and \
+                'request_line' in content and \
+                'headers_dict' in content:
+            log.msg("Found the keys I expected in %s" % content)
             self.report['trans_http_proxy'] = False
+            self.report['censored'] = False
         else:
-            log.debug("Did not find the keys I expected in %s" % content)
+            log.msg("Did not find the keys I expected in %s" % content)
             self.report['trans_http_proxy'] = True
+            self.check_for_censorship(body)
 
-        self.check_for_censorship(body)

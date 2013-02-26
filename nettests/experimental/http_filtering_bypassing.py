@@ -66,7 +66,7 @@ class HTTPFilteringBypass(tcpt.TCPTest):
         return d
 
     def test_fuzzy_match_blocking(self):
-        hostname_field = randomStr(10) + self.input ++ randomStr(10)
+        hostname_field = randomStr(10) + self.input + randomStr(10)
         payload = "GET / HTTP/1.1\n\r"
         payload += "Host: %s\n\r" % hostname_field
 
