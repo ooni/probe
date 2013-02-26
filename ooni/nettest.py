@@ -21,9 +21,9 @@ class NoTestCasesFound(Exception):
 class NetTestLoader(object):
     method_prefix = 'test'
 
-    def __init__(self, net_test_file, net_test_args):
-        self.netTestArgs = net_test_args
-        self.testCases = self.loadNetTest(net_test_file)
+    def __init__(self, options):
+        self.options = options
+        self.testCases = self.loadNetTest(options['test'])
 
     @property
     def testDetails(self):
@@ -69,7 +69,8 @@ class NetTestLoader(object):
             'test_name': self.testName,
             'test_version': self.testVersion,
             'software_name': 'ooniprobe',
-            'software_version': software_version
+            'software_version': software_version,
+            'options': self.options
         }
         return test_details
 
@@ -159,7 +160,7 @@ class NetTestLoader(object):
 
         for klass in test_classes:
             options = self.usageOptions()
-            options.parseOptions(self.netTestArgs)
+            options.parseOptions(self.options['subargs'])
             if options:
                 klass.localOptions = options
 

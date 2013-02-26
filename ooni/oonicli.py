@@ -100,7 +100,6 @@ def runWithDirector():
     """
     global_options = parseOptions()
     log.start(global_options['logfile'])
-    net_test_args = global_options.get('subargs')
 
     # contains (test_cases, options, cmd_line_options)
     test_list = []
@@ -108,13 +107,10 @@ def runWithDirector():
     if global_options['testdeck']:
         test_deck = yaml.safe_load(open(global_options['testdeck']))
         for test in test_deck:
-            test_options = test['options']
-            test_file = test_options['test']
-            test_subargs = test_options['subargs']
-            test_list.append(NetTestLoader(test_file, test_subargs))
+            test_list.append(NetTestLoader(test['options']))
     else:
         log.debug("No test deck detected")
-        test_list.append(NetTestLoader(global_options['test'], net_test_args))
+        test_list.append(NetTestLoader(global_options))
 
     # check each test's usageOptions
     for net_test_loader in test_list:
