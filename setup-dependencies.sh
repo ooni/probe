@@ -55,6 +55,8 @@ if [ $RELEASE = "natty" ] || [ $RELEASE = "wheezy" ]; then
   ln -s `pwd` ~/ooni-probe;
   echo "Adding a default ooniprobe.conf file...";
   cp -v ooniprobe.conf.sample ooniprobe.conf
+  echo "Creating reports/ directory to store output from ooniprobe...";
+  mkdir `pwd`/reports/
 
   # Allow ooniprobe to run, if all above went well, we hope!
   export PYTHONPATH=$PYTHONPATH:"`pwd`";
