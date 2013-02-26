@@ -18,7 +18,7 @@ if [ $RELEASE = "natty" ] || [ $RELEASE = "wheezy" ]; then
   HAVE_TOR_REPO="`grep deb.torproject.org/torproject.org /etc/apt/sources.list /etc/apt/sources.list.d/* 2>&1|grep torproject|head -n 1`";
   if [ -z "$HAVE_TOR_REPO" ]; then
     echo "It appears that you do not have the torproject.org Debian repository installed; installing it...";
-    sudo apt-add-repository "deb $TOR_DEB_REPO $RELEASE main"
+    sudo apt-add-repository "deb $TOR_DEB_REPO $RELEASE main";
   else
     echo "It appears that you have the torproject.org Debian repository installed!";
   fi
@@ -27,7 +27,7 @@ if [ $RELEASE = "natty" ] || [ $RELEASE = "wheezy" ]; then
   echo "Updating OS package list...";
   sudo apt-get update 2>&1 > /dev/null;
   echo "Installing packages for your system...";
-  sudo apt-get install git-core python python-pip python-dev build-essential libdumbnet1 python-dumbnet python-libpcap python-pypcap python-pcapy python-dnspython python-virtualenv virtualenvwrapper tor tor-geoipdb
+  sudo apt-get install git-core python python-pip python-dev build-essential libdumbnet1 python-dumbnet python-libpcap python-pypcap python-pcapy python-dnspython python-virtualenv virtualenvwrapper tor tor-geoipdb;
 
   if [ ! -f ~/.virtualenvs/ooniprobe/bin/activate ]; then
     # Set up the virtual environment
