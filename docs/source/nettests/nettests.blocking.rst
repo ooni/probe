@@ -1,10 +1,10 @@
 nettests blocking Package
 =========================
 
-:mod:`nettests.blocking.dnstamper` Module
+:mod:`nettests.blocking.dnsconsistency` Module
 -----------------------------------------
 
-.. automodule:: nettests.blocking.dnstamper
+.. automodule:: nettests.blocking.dnsconsistency
      :members:
      :undoc-members:
      :show-inheritance:

@@ -9,25 +9,69 @@ using Free and Open Source Software (FL/OSS) to share observations and data
 about the various types, methods, and amounts of network tampering in the
 world.
 
-# Let's get started with this already!
+ooniprobe is the first program that users run to probe their network and to
+collect data for the OONI project. Are you interested in testing your network
+for signs of surveillance and censorship? Do you want to collect data to share
+with others, so that you and others may better understand your network? If so,
+please read this document and we hope ooniprobe will help you to gather
+network data that will assist you with your endeavors!
 
-To run OONI-probe without having to install it you must tell python that it
-can import modules from the root of ooni-probe, as well as initialize the
-included submodules.
+## Getting started with ooniprobe is easy
 
-## Getting started
+  0) Open your favorite terminal
+  1) Grab the source and install the dependencies
+  2) Run ooniprobe!
+  3) ... There is no step three ...
 
-Basic requirements:
+## The easy way to prep your system for running ooniprobe
+
+We believe that ooniprobe runs reasonably well on Debian GNU/Linux wheezy as
+well as versions of Ubuntu such as natty and later releases. Running ooniprobe
+without installing it is supported with the following commands:
+
+  git clone https://git.torproject.org/ooni-probe.git
+  cd ooni-probe
+  ./setup-dependencies.sh
+  ./bin/ooniprobe --asciilulz
+
+## Your first network test
+
+We run ooniprobe with a test deck - this is a collection of tests in a single
+file that tells ooniprobe how to run and what data to check or process:
+
+  ./bin/ooniprobe -i decks/before_i_commit.testdeck
+
+The report output files from the above command will be located in the reports/
+directory of the source code checkout. The report output ends with the .yamloo
+suffix.
+
+## The details
+
+We haven't actually installed ooniprobe - we just added the ooniprobe python
+to your PYTHONPATH. We also installed all of the dependencies with your native
+package manager or into a local directory managed by your user.
+
+## ooniprobe requirements explained
+
+Basic system requirements:
 
   * Git: http://git-scm.com/book/en/Getting-Started-Installing-Git
   * Python >= 2.6: http://www.python.org/download/releases/
   * pip: http://www.pip-installer.org/en/latest/
 
-On debian based systems these can be installed with:
 
-    sudo apt-get install git-core python python-pip python-dev build-essential
+## The more detailed way follows
 
-The python dependencies required for running ooniprobe are:
+On Debian or Ubuntu GNU/Linux based systems these can be installed with:
+
+  sudo apt-get install git-core python python-pip python-dev build-essential tor tor-geoipdb
+
+Other packages that may be of interest:
+
+  libdumbnet1 python-dumbnet python-libpcap python-pypcap python-pcapy python-dnspython
+  python-virtualenv virtualenvwrapper tor tor-geoipdb
+
+The Python dependencies required for running ooniprobe are:
 
   * Tor (>2.2.x): https://torproject.org/
   * Twisted (>12.1.0): https://twistedmatrix.com/trac/
@@ -40,16 +84,9 @@ The python dependencies required for running ooniprobe are:
 
 ## Install Tor
 
-To get the latest version of Tor you should do the following (from: https://www.torproject.org/docs/debian):
+Install the latest version of Tor for your platform:
 
-    # put in here the value of lsb_release -c (ex. oneirc for ubuntu 11.10 or squeeze for debian 6.0)
-    export DISTRIBUTION="squeeze"
-    echo "deb http://deb.torproject.org/torproject.org $DISTRIBUTION main" >> /etc/apt/sources.list
-    gpg --keyserver keys.gnupg.net --recv 886DDD89
-    gpg --export A3C4F0F979CAA22CDBA8F512EE8CBC9E886DDD89 | sudo apt-key add -
-    apt-get update
-    apt-get install tor
-
+  https://www.torproject.org/download/download.html
 
 ## Configurating a virtual environment
 
