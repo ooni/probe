@@ -53,6 +53,8 @@ if [ $RELEASE = "natty" ] || [ $RELEASE = "wheezy" ]; then
 
   echo "Adding a symlink to your ooni-probe source code checkout...";
   ln -s `pwd` ~/ooni-probe;
+  echo "Adding a default ooniprobe.conf file...";
+  cp -v ooniprobe.conf.sample ooniprobe.conf
 
   # Allow ooniprobe to run, if all above went well, we hope!
   export PYTHONPATH=$PYTHONPATH:"`pwd`";
