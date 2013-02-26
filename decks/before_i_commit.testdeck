@@ -20,14 +20,13 @@
     logfile: reports/before_i_commit.log
     pcapfile: null
     reportfile: reports/http_host.yamloo
-    subargs: [-b, 'http://ooni.nu/test', -f, example_inputs/http_host_file.txt]
+    subargs: [-b, 'http://93.95.227.200', -c, 'http://nkvphnp3p6agi5qq.onion', -f, example_inputs/http_host_file.txt]
     test: nettests/manipulation/http_host.py
-# XXX this is disabled because it requires oonib to be running
-#- options:
-#    collector: null
-#    help: 0
-#    logfile: null
-#    pcapfile: null
-#    reportfile: null
-#    subargs: [-h, example_inputs/test_header_field_manipulation.txt]
-#    test: nettests/core/http_header_field_manipulation.py
+- options:
+    collector: null
+    help: 0
+    logfile: reports/before_i_commit.log
+    pcapfile: null
+    reportfile: reports/header_field_manipulation.yamloo
+    subargs: [-b, 'http://93.95.227.200']
+    test: nettests/manipulation/http_header_field_manipulation.py
