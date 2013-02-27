@@ -141,3 +141,5 @@ class InsufficientPrivileges(Exception):
 
 class ProbeIPUnknown(Exception):
     pass
+class GeoIPDataFilesNotFound(Exception):
+    pass
