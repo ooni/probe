@@ -38,7 +38,11 @@ class NetTestLoader(object):
                 config.privacy.includecountry or \
                 config.privacy.includecity):
             log.msg("We will include some geo data in the report")
-            client_geodata = geodata.IPToLocation(config.probe_ip)
+            try:
+                client_geodata = geodata.IPToLocation(config.probe_ip)
+            except e.GeoIPDataFilesNotFound:
+                log.err("Unable to find the geoip data files")
+                client_geodata = {'city': None, 'countrycode': None, 'asn': None}
 
         if config.privacy.includeip:
             client_geodata['ip'] = config.probe_ip
@@ -51,8 +55,7 @@ class NetTestLoader(object):
             client_geodata['asn'] = 'AS0'
         elif 'asn' in client_geodata:
             # XXX this regexp should probably go inside of geodata
-            client_geodata['asn'] = \
-                    re.search('AS\d+', client_geodata['asn']).group(0)
+            client_geodata['asn'] = client_geodata['asn']
             log.msg("Your AS number is: %s" % client_geodata['asn'])
         else:
             client_geodata['asn'] = None
@@ -306,7 +309,7 @@ class NetTest(object):
         self.state.taskDone()
 
         if len(self.report.reporters) == 0:
-            raise AllReportersFailed
+            raise e.AllReportersFailed
 
         return report_results
 

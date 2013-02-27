@@ -6,14 +6,12 @@ from twisted.internet import reactor, defer, protocol
 
 from ooni.utils import log, net
 from ooni import config
+from ooni.errors import GeoIPDataFilesNotFound
 
 try:
     import pygeoip
 except ImportError:
     log.err("Unable to import pygeoip. We will not be able to run geo IP related measurements")
-
-class GeoIPDataFilesNotFound(Exception):
-    pass
 
 def IPToLocation(ipaddr):
     city_file = os.path.join(config.advanced.geoip_data_dir, 'GeoLiteCity.dat')
@@ -29,7 +27,8 @@ def IPToLocation(ipaddr):
         location['countrycode'] = country_dat.country_code_by_addr(ipaddr)
 
         asn_dat = pygeoip.GeoIP(asn_file)
-        location['asn'] = asn_dat.org_by_addr(ipaddr)
+        asn = asn_dat.org_by_addr(ipaddr)
+        location['asn'] = re.search('AS\d+', asn).group(0)
 
     except IOError:
         log.err("Could not find GeoIP data files. Go into data/ "
