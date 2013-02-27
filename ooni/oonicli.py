@@ -35,8 +35,8 @@ class Options(usage.Options):
     optParameters = [["reportfile", "o", None, "report file name"],
                      ["testdeck", "i", None,
                          "Specify as input a test deck: a yaml file containig the tests to run an their arguments"],
-                     ["collector", "c", None,
-                         "Address of the collector of test results. (example: http://127.0.0.1:8888)"],
+                     ["collector", "c", 'httpo://nkvphnp3p6agi5qq.onion',
+                         "Address of the collector of test results. default: httpo://nkvphnp3p6agi5qq.onion"],
                      ["logfile", "l", None, "log file name"],
                      ["pcapfile", "O", None, "pcap file name"],
                      ["parallelism", "p", "10", "input parallelism"],
@@ -130,15 +130,22 @@ def runWithDirector():
     director = Director()
     d = director.start()
 
+    def director_startup_failed(failure):
+        log.err("Failed to start the director")
+        log.exception(failure)
+        reactor.stop()
+
     # Wait until director has started up (including bootstrapping Tor) before adding tess
     def post_director_start(_):
         for net_test_loader in test_list:
-            yaml_reporter = YAMLReporter(net_test_loader.testDetails)
+            test_details = net_test_loader.testDetails
+
+            yaml_reporter = YAMLReporter(test_details)
             reporters = [yaml_reporter]
 
             if global_options['collector']:
                 try:
-                    oonib_reporter = OONIBReporter(net_test_loader.testDetails,
+                    oonib_reporter = OONIBReporter(test_details,
                             global_options['collector'])
                     reporters.append(oonib_reporter)
                 except InvalidOONIBCollectorAddress:
@@ -152,7 +159,7 @@ def runWithDirector():
                 with open('collector') as f:
                     reporter_url = random.choice(f.readlines())
                     reporter_url = reporter_url.split('#')[0].strip()
-                    oonib_reporter = OONIBReporter(net_test_loader.testDetails, reporter_url)
+                    oonib_reporter = OONIBReporter(test_details, reporter_url)
                     reporters.append(oonib_reporter)
 
             log.debug("adding callback for startNetTest")
@@ -160,4 +167,5 @@ def runWithDirector():
         d.addCallback(shutdown)
 
     d.addCallback(post_director_start)
+    d.addErrback(director_startup_failed)
     reactor.run()
