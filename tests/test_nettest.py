@@ -61,7 +61,7 @@ class DummyTestCase(NetTestCase):
         self.report['foo'] = 'foo'
 """
 
-net_test_with_required_option = """
+net_test_string_with_required_option = """
 from twisted.python import usage
 from ooni.nettest import NetTestCase
 
@@ -124,8 +124,9 @@ class TestNetTest(unittest.TestCase):
             f.write(net_test_string)
         f.close()
 
-        ntl = NetTestLoader(net_test_file,
-                dummyArgs)
+        ntl = NetTestLoader(dummyArgs)
+        ntl.loadNetTestFile(net_test_file)
+
         self.verifyMethods(ntl.testCases)
         os.unlink(net_test_file)
 
@@ -134,8 +135,9 @@ class TestNetTest(unittest.TestCase):
         Given a file like object verify that the net test cases are properly
         generated.
         """
-        ntl = NetTestLoader(net_test_string,
-                dummyArgs)
+        ntl = NetTestLoader(dummyArgs)
+        ntl.loadNetTestString(net_test_string)
+
         self.verifyMethods(ntl.testCases)
 
     def test_load_net_test_from_StringIO(self):
@@ -143,13 +145,15 @@ class TestNetTest(unittest.TestCase):
         Given a file like object verify that the net test cases are properly
         generated.
         """
-        ntl = NetTestLoader(StringIO(net_test_string),
-                dummyArgs)
+        ntl = NetTestLoader(dummyArgs)
+        ntl.loadNetTestString(net_test_string)
+
         self.verifyMethods(ntl.testCases)
 
     def test_load_with_option(self):
-        ntl = NetTestLoader(StringIO(net_test_string),
-                dummyArgs)
+        ntl = NetTestLoader(dummyArgs)
+        ntl.loadNetTestString(net_test_string)
+
         self.assertIsInstance(ntl, NetTestLoader)
         for test_klass, test_meth in ntl.testCases:
             for option in dummyOptions.keys():
@@ -157,27 +161,32 @@ class TestNetTest(unittest.TestCase):
 
     def test_load_with_invalid_option(self):
         try:
-            ntl = NetTestLoader(StringIO(net_test_string), dummyInvalidArgs)
+            ntl = NetTestLoader(dummyInvalidArgs)
+            ntl.loadNetTestString(net_test_string)
+
             ntl.checkOptions()
             raise Exception
         except UsageError:
             pass
 
     def test_load_with_required_option(self):
-        net_test = NetTestLoader(StringIO(net_test_with_required_option),
-                dummyArgsWithRequiredOptions)
-        self.assertIsInstance(net_test, NetTestLoader)
+        ntl = NetTestLoader(dummyArgsWithRequiredOptions)
+        ntl.loadNetTestString(net_test_string_with_required_option)
+
+        self.assertIsInstance(ntl, NetTestLoader)
 
     def test_load_with_missing_required_option(self):
         try:
-            net_test = NetTestLoader(StringIO(net_test_with_required_option),
-                    dummyArgs)
+            ntl = NetTestLoader(dummyArgs)
+            ntl.loadNetTestString(net_test_string_with_required_option)
+
         except MissingRequiredOption:
             pass
 
     def test_net_test_inputs(self):
-        ntl = NetTestLoader(StringIO(net_test_string_with_file),
-            dummyArgsWithFile)
+        ntl = NetTestLoader(dummyArgsWithFile)
+        ntl.loadNetTestString(net_test_string_with_file)
+
         ntl.checkOptions()
 
         # XXX: if you use the same test_class twice you will have consumed all
@@ -189,17 +198,18 @@ class TestNetTest(unittest.TestCase):
                 self.assertEqual(len(list(test_class.inputs)), 10)
 
     def test_setup_local_options_in_test_cases(self):
-        ntl = NetTestLoader(StringIO(net_test_string),
-            dummyArgs)
+        ntl = NetTestLoader(dummyArgs)
+        ntl.loadNetTestString(net_test_string)
+
         ntl.checkOptions()
 
         for test_class, test_method in ntl.testCases:
             self.assertEqual(test_class.localOptions, dummyOptions)
 
     def test_generate_measurements_size(self):
+        ntl = NetTestLoader(dummyArgsWithFile)
+        ntl.loadNetTestString(net_test_string_with_file)
 
-        ntl = NetTestLoader(StringIO(net_test_string_with_file),
-            dummyArgsWithFile)
         ntl.checkOptions()
         net_test = NetTest(ntl, None)
 
@@ -207,8 +217,9 @@ class TestNetTest(unittest.TestCase):
         self.assertEqual(len(measurements), 20)
 
     def test_net_test_completed_callback(self):
-        ntl = NetTestLoader(StringIO(net_test_string_with_file),
-            dummyArgsWithFile)
+        ntl = NetTestLoader(dummyArgsWithFile)
+        ntl.loadNetTestString(net_test_string_with_file)
+
         ntl.checkOptions()
         director = Director()
 
@@ -224,8 +235,9 @@ class TestNetTest(unittest.TestCase):
 
     def test_require_root_succeed(self):
         #XXX: will require root to run
-        ntl = NetTestLoader(StringIO(net_test_root_required),
-                dummyArgs)
+        ntl = NetTestLoader(dummyArgs)
+        ntl.loadNetTestString(net_test_root_required)
+
         for test_class, method in ntl.testCases:
             self.assertTrue(test_class.requiresRoot)
 
