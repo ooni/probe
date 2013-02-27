@@ -68,7 +68,7 @@ class Options(usage.Options):
         if self['testdeck']:
             return
         try:
-            self['test'] = args[0]
+            self['test_file'] = args[0]
             self['subargs'] = args[1:]
         except:
             raise usage.UsageError("No test filename specified!")
