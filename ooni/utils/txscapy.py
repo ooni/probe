@@ -10,6 +10,7 @@ from twisted.internet import defer, abstract
 from zope.interface import implements
 
 from scapy.config import conf
+from scapy.all import Gen, SetGen, MTU
 
 from ooni.utils import log
 from ooni import config
@@ -22,26 +23,28 @@ try:
     from scapy.arch import pcapdnet
 
     config.pcap_dnet = True
-    from scapy.all import Gen, SetGen, MTU
 
 except ImportError, e:
-    log.err("pypcap or dnet not installed. "
-            "Certain tests may not work.")
+    log.err("Warning: pypcap or dnet not installed. Certain tests may not work.")
 
-    config.pcap_dnet = False
     conf.use_pcap = False
     conf.use_dnet = False
 
     class DummyPcapWriter:
         def __init__(self, pcap_filename, *arg, **kw):
-            log.err("Initializing DummyPcapWriter. We will not actually write to a pcapfile")
-
-        def write(self):
+            log.err("Initializing DummyPcapWriter.")
+            log.err("We will not actually write to a pcapfile.")
+        @staticmethod
+        def write(packet):
             pass
-
     PcapWriter = DummyPcapWriter
 
-    from scapy.all import Gen, SetGen, MTU
+    config.pcap_dnet = False
+
+
+class IfaceError(Exception):
+    pass
+
 
 def getNetworksFromRoutes():
     """ Return a list of networks from the routing table """
@@ -58,11 +61,7 @@ def getNetworksFromRoutes():
         n.iface = iface
         if not n.compressed in networks:
             networks.append(n)
-
     return networks
-
-class IfaceError(Exception):
-    pass
 
 def getDefaultIface():
     """ Return the default interface or raise IfaceError """
@@ -73,7 +72,7 @@ def getDefaultIface():
     for net in networks:
         if net.is_private:
             return net.iface
-    raise IfaceError
+    raise IfaceError("Automatic network interface discover failed! Please try setting the desired interface under the [advanced] section in ooniprobe.conf.")
 
 class ProtocolNotRegistered(Exception):
     pass
@@ -90,11 +89,20 @@ class ScapyFactory(abstract.FileDescriptor):
 
         abstract.FileDescriptor.__init__(self, reactor)
         if interface == 'auto':
-            interface = getDefaultIface()
+            try:
+                interface = getDefaultIface()
+            except IfaceError, ie:
+                log.warn(ie)
+                raise SystemExit
         if not super_socket:
-            super_socket = conf.L3socket(iface=interface,
-                    promisc=True, filter='')
-            #super_socket = conf.L2socket(iface=interface)
+            ## XXX this one raise a bug due to scapy attempting to set a
+            ## pointer to the BPF in /scapy/arch/linux.py L199:
+            #super_socket = conf.L3socket(iface=interface,
+            #                             promisc=True, filter='')
+            if config.privacy.includepcap:
+                super_socket = conf.L3socket(iface=interface, promisc=True)
+            else:
+                super_socket = conf.L2socket(iface=interface)
 
         self.protocols = []
         fdesc._setCloseOnExec(super_socket.ins.fileno())
