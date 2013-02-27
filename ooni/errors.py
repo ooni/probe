@@ -126,3 +126,7 @@ class InvalidOONIBCollectorAddress(Exception):
 class AllReportersFailed(Exception):
     pass
 
+class GeoIPDataFilesNotFound(Exception):
+    pass
+
+

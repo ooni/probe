@@ -10,7 +10,7 @@ from ooni.utils import log, checkForRoot, NotRootError, geodata
 from ooni import config
 from ooni import otime
 
-from ooni.errors import AllReportersFailed
+from ooni import errors as e
 
 from inspect import getmembers
 from StringIO import StringIO
@@ -21,12 +21,12 @@ class NoTestCasesFound(Exception):
 class NetTestLoader(object):
     method_prefix = 'test'
 
-    def __init__(self, options):
+    def __init__(self, options, test_file=None, test_string=None):
         self.options = options
-        if 'test_file' in options:
-            self.loadNetTestFile(options['test_file'])
-        elif 'test_string' in options:
-            self.loadNetTestString(options['test_string'])
+        if test_file:
+            self.loadNetTestFile(test_file)
+        elif test_string:
+            self.loadNetTestString(test_string)
 
     @property
     def testDetails(self):
