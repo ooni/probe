@@ -28,7 +28,8 @@ class Options(usage.Options):
                 " files listed on the command line")
 
     optFlags = [["help", "h"],
-                ["resume", "r"]]
+                ["resume", "r"],
+                ["no-default-reporter", "n"]]
 
     optParameters = [["reportfile", "o", None, "report file name"],
                      ["testdeck", "i", None,
@@ -36,7 +37,9 @@ class Options(usage.Options):
                      ["collector", "c", None,
                          "Address of the collector of test results. (example: http://127.0.0.1:8888)"],
                      ["logfile", "l", None, "log file name"],
-                     ["pcapfile", "p", None, "pcap file name"]]
+                     ["pcapfile", "O", None, "pcap file name"],
+                     ["parallelism", "p", "10", "input parallelism"],
+                     ]
 
     compData = usage.Completions(
         extraActions=[usage.CompleteFiles(
@@ -76,7 +79,7 @@ def updateStatusBar():
         eta = config.state[test_filename].eta()
         progress = config.state[test_filename].progress()
         progress_bar_frmt = "[%s] %s%%" % (test_filename, progress)
-        print progress_bar_frmt
+        log.debug(progress_bar_frmt)
 
 def testsEnded(*arg, **kw):
     """
@@ -87,20 +90,9 @@ def testsEnded(*arg, **kw):
     try: reactor.stop()
     except: pass
 
-def startSniffing():
-    from ooni.utils.txscapy import ScapyFactory, ScapySniffer
-    try:
-        checkForRoot()
-    except NotRootError:
-        print "[!] Includepcap options requires root priviledges to run"
-        print "    you should run ooniprobe as root or disable the options in ooniprobe.conf"
-        sys.exit(1)
-
-    print "Starting sniffer"
-    config.scapyFactory = ScapyFactory(config.advanced.interface)
-
-    sniffer = ScapySniffer(config.reports.pcap)
-    config.scapyFactory.registerProtocol(sniffer)
+def testFailed(failure):
+    log.err("Failed in running a test inside a test list")
+    failure.printTraceback()
 
 def runTestList(none, test_list):
     """
@@ -117,7 +109,8 @@ def runTestList(none, test_list):
         deck_dl.append(d1)
 
     d2 = defer.DeferredList(deck_dl)
-    d2.addBoth(testsEnded)
+    d2.addCallback(testsEnded)
+    d2.addErrback(testFailed)
 
     # Print every 5 second the list of current tests running
     l = task.LoopingCall(updateStatusBar)
@@ -125,6 +118,7 @@ def runTestList(none, test_list):
     return d2
 
 def errorRunningTests(failure):
+    log.err("There was an error in running a test")
     failure.printTraceback()
 
 def run():
@@ -141,8 +135,12 @@ def run():
 
     log.start(cmd_line_options['logfile'])
 
+    config.cmd_line_options = cmd_line_options
+
     if config.privacy.includepcap:
         log.msg("Starting")
+        if not config.reports.pcap:
+            config.generatePcapFilename()
         runner.startSniffing()
 
     resume = cmd_line_options['resume']
@@ -161,7 +159,7 @@ def run():
                 cmd_line_options['resume'] = False
             test_list.append(runner.loadTest(cmd_line_options))
     else:
-        log.msg("No test deck detected")
+        log.debug("No test deck detected")
         del cmd_line_options['testdeck']
         test_list.append(runner.loadTest(cmd_line_options))
 

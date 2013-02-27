@@ -4,6 +4,8 @@ import time
 import inspect
 import traceback
 import itertools
+import random
+
 import yaml
 
 from twisted.python import reflect, usage
@@ -21,11 +23,11 @@ from ooni.reporter import OONIBReporter, YAMLReporter, OONIBReportError
 from ooni.inputunit import InputUnitFactory
 from ooni.nettest import NetTestCase, NoPostProcessor
 
-from ooni.utils import log, checkForRoot
+from ooni.utils import log, checkForRoot, pushFilenameStack
 from ooni.utils import NotRootError, Storage
 from ooni.utils.net import randomFreePort
 
-def processTest(obj):
+def processTest(obj, cmd_line_options):
     """
     Process the parameters and :class:`twisted.python.usage.Options` of a
     :class:`ooni.nettest.Nettest`.
@@ -57,7 +59,7 @@ def processTest(obj):
 
     options = obj.usageOptions()
 
-    options.parseOptions(config.cmd_line_options['subargs'])
+    options.parseOptions(cmd_line_options['subargs'])
     obj.localOptions = options
 
     if obj.inputFile:
@@ -90,7 +92,7 @@ def isTestCase(obj):
     except TypeError:
         return False
 
-def findTestClassesFromFile(filename):
+def findTestClassesFromFile(cmd_line_options):
     """
     Takes as input the command line config parameters and returns the test
     case classes.
@@ -102,11 +104,12 @@ def findTestClassesFromFile(filename):
         A list of class objects found in a file or module given on the
         commandline.
     """
+    filename = cmd_line_options['test']
     classes = []
     module = filenameToModule(filename)
     for name, val in inspect.getmembers(module):
         if isTestCase(val):
-            classes.append(processTest(val))
+            classes.append(processTest(val, cmd_line_options))
     return classes
 
 def makeTestCases(klass, tests, method_prefix):
@@ -170,20 +173,28 @@ def runTestCasesWithInput(test_cases, test_input, yaml_reporter,
     # This is used to store a copy of all the test reports
     tests_report = {}
 
-    def test_done(result, test_instance, test_name):
-        log.msg("Successfully finished running %s" % test_name)
-        log.debug("Deferred callback result: %s" % result)
-        tests_report[test_name] = dict(test_instance.report)
+    def write_report(test_instance, test_name):
         if not oonib_reporter:
             return yaml_reporter.testDone(test_instance, test_name)
         d1 = oonib_reporter.testDone(test_instance, test_name)
         d2 = yaml_reporter.testDone(test_instance, test_name)
-        return defer.DeferredList([d1, d2])
+        dl = defer.DeferredList([d1, d2])
+        @dl.addErrback
+        def reportingFailed(failure):
+            log.err("Error in reporting %s" % test_name)
+            log.exception(failure)
+        return dl
+
+    def test_done(result, test_instance, test_name):
+        log.msg("Finished running %s" % test_name)
+        log.debug("Deferred callback result: %s" % result)
+        tests_report[test_name] = dict(test_instance.report)
+        return write_report(test_instance, test_name)
 
     def test_error(failure, test_instance, test_name):
         log.err("Error in running %s" % test_name)
         log.exception(failure)
-        return
+        return write_report(test_instance, test_name)
 
     def tests_done(result, test_class):
         test_instance = test_class()
@@ -208,7 +219,7 @@ def runTestCasesWithInput(test_cases, test_input, yaml_reporter,
         test_class = test_case[0]
         test_method = test_case[1]
 
-        log.msg("Running %s with %s..." % (test_method, test_input))
+        log.debug("Running %s with %s..." % (test_method, test_input))
 
         test_instance = test_class()
         test_instance.input = test_input
@@ -227,6 +238,11 @@ def runTestCasesWithInput(test_cases, test_input, yaml_reporter,
 
     test_methods_d = defer.DeferredList(dl)
     test_methods_d.addCallback(tests_done, test_cases[0][0])
+    @test_methods_d.addErrback
+    def deferredListFailed(failure):
+        log.err("Error Test Method Deferred List")
+        log.exception(failure)
+
     return test_methods_d
 
 def runTestCasesWithInputUnit(test_cases, input_unit, yaml_reporter,
@@ -271,13 +287,15 @@ def loadResumeFile():
     """
     if not config.stateDict:
         try:
-            config.stateDict = yaml.safe_load(open(config.resume_filename))
+            with open(config.resume_filename) as f:
+                config.stateDict = yaml.safe_load(f)
         except:
             log.err("Error loading YAML file")
             raise InvalidResumeFile
 
         if not config.stateDict:
-            yaml.safe_dump(dict(), open(config.resume_filename, 'w+'))
+            with open(config.resume_filename, 'w+') as f:
+                yaml.safe_dump(dict(), f)
             config.stateDict = dict()
 
         elif isinstance(config.stateDict, dict):
@@ -356,14 +374,13 @@ def updateProgressMeters(test_filename, input_unit_factory,
     """
     Update the progress meters for keeping track of test state.
     """
-    log.msg("Setting up progress meters")
     if not config.state.test_filename:
         config.state[test_filename] = Storage()
 
     config.state[test_filename].per_item_average = 2.0
 
     input_unit_idx = float(config.stateDict[test_filename])
-    input_unit_items = float(len(input_unit_factory) + 1)
+    input_unit_items = len(input_unit_factory)
     test_case_number = float(test_case_number)
     total_iterations = input_unit_items * test_case_number
     current_iteration = input_unit_idx * test_case_number
@@ -397,6 +414,14 @@ def runTestCases(test_cases, options, cmd_line_options):
 
     test_inputs = options['inputs']
 
+    # Set a default reporter
+    if not cmd_line_options['collector'] and not \
+        cmd_line_options['no-default-reporter']:
+        with open('collector') as f:
+            reporter_url = random.choice(f.readlines())
+            reporter_url = reporter_url.split('#')[0].strip()
+            cmd_line_options['collector'] = reporter_url
+
     oonib_reporter = OONIBReporter(cmd_line_options)
     yaml_reporter = YAMLReporter(cmd_line_options)
 
@@ -412,10 +437,11 @@ def runTestCases(test_cases, options, cmd_line_options):
         oonib_reporter = None
 
     yield yaml_reporter.createReport(options)
-    log.msg("Reporting to file %s" % config.reports.yamloo)
+    log.msg("Reporting to file %s" % yaml_reporter._stream.name)
 
     try:
         input_unit_factory = InputUnitFactory(test_inputs)
+        input_unit_factory.inputUnitSize = int(cmd_line_options['parallelism'])
     except Exception, e:
         log.exception(e)
 
@@ -450,6 +476,7 @@ def runTestCases(test_cases, options, cmd_line_options):
 
     except Exception:
         log.exception("Problem in running test")
+    yaml_reporter.finish()
 
 class UnableToStartTor(Exception):
     pass
@@ -493,7 +520,7 @@ def startTor():
         return state.post_bootstrap
 
     def updates(prog, tag, summary):
-        log.msg("%d%%: %s" % (prog, summary))
+        log.debug("%d%%: %s" % (prog, summary))
 
     tor_config = TorConfig()
     if config.tor.control_port:
@@ -509,6 +536,14 @@ def startTor():
         socks_port = int(randomFreePort())
         tor_config.SocksPort = socks_port
         config.tor.socks_port = socks_port
+
+    if config.tor.data_dir:
+        data_dir = os.path.expanduser(config.tor.data_dir)
+
+        if not os.path.exists(data_dir):
+            log.msg("%s does not exist. Creating it." % data_dir)
+            os.makedirs(data_dir)
+        tor_config.DataDirectory = data_dir
 
     tor_config.save()
 
@@ -537,6 +572,11 @@ def startSniffing():
     print "Starting sniffer"
     config.scapyFactory = ScapyFactory(config.advanced.interface)
 
+    if os.path.exists(config.reports.pcap):
+        print "Report PCAP already exists with filename %s" % config.reports.pcap
+        print "Renaming files with such name..."
+        pushFilenameStack(config.reports.pcap)
+
     sniffer = ScapySniffer(config.reports.pcap)
     config.scapyFactory.registerProtocol(sniffer)
 
@@ -545,19 +585,10 @@ def loadTest(cmd_line_options):
     Takes care of parsing test command line arguments and loading their
     options.
     """
-    config.cmd_line_options = cmd_line_options
-    config.generateReportFilenames()
-
-    if cmd_line_options['reportfile']:
-        config.reports.yamloo = cmd_line_options['reportfile']+'.yamloo'
-        config.reports.pcap = config.reports.yamloo+'.pcap'
-
-    if os.path.exists(config.reports.pcap):
-        print "Report PCAP already exists with filename %s" % config.reports.pcap
-        print "Renaming it to %s" % config.reports.pcap+".old"
-        os.rename(config.reports.pcap, config.reports.pcap+".old")
-
-    classes = findTestClassesFromFile(cmd_line_options['test'])
+    # XXX here there is too much strong coupling with cmd_line_options
+    # Ideally this would get all wrapped in a nice little class that get's
+    # instanced with it's cmd_line_options as an instance attribute
+    classes = findTestClassesFromFile(cmd_line_options)
     test_cases, options = loadTestsAndOptions(classes, cmd_line_options)
 
     return test_cases, options, cmd_line_options

@@ -8,7 +8,13 @@ docutils>=0.9.1
 ipaddr>=2.1.10
 pyOpenSSL>=0.13
 pygeoip>=0.2.5
-http://hg.secdev.org/scapy/archive/tip.zip#egg=scapy
+#
+# This is a Tor Project mirror with valid SSL/TLS certs that is stable and fast
+#
+# Originally fetched from the hg repo on secdev.org:
+#   https://hg.secdev.org/scapy/archive/tip.zip#egg=scapy
+# Mirrored on Tor's webserver:
+https://people.torproject.org/~ioerror/src/mirrors/ooniprobe/scapy-02-25-2013-tip.zip
 storm>=0.19
 transaction>=1.3.0
 txtorcon

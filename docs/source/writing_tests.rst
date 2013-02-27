@@ -25,6 +25,10 @@ Tests are driven by inputs. For every input a new test instance is created,
 internally the _setUp method is called that is defined inside of test
 templates, then the setUp method that is overwritable by users.
 
+Gotchas:
+**never** call reactor.start of reactor.stop inside of your test method and all
+will be good.
+
 Inputs
 ------
 
@@ -164,7 +168,7 @@ To implement a simple ICMP ping based on this function you can do like so
   from ooni.templates import scapyt
 
   class UsageOptions(usage.Options):
-      optParameters = [['target', 't', '8.8.8.8', "Specify the target to ping"]]
+      optParameters = [['target', 't', '127.0.0.1', "Specify the target to ping"]]
 
   class ExampleICMPPingScapy(scapyt.BaseScapyTest):
       name = "Example ICMP Ping Test"
@@ -201,7 +205,7 @@ regular sequential code.
   from ooni.templates import scapyt
 
   class UsageOptions(usage.Options):
-      optParameters = [['target', 't', self.localOptions['target'], "Specify the target to ping"]]
+      optParameters = [['target', 't', '127.0.0.1', "Specify the target to ping"]]
 
   class ExampleICMPPingScapyYield(scapyt.BaseScapyTest):
       name = "Example ICMP Ping Test"
@@ -504,4 +508,4 @@ Report format
   test_started: 1354801371.980114
   ...
 
-For a more complex example, see: :mod:`nettests.blocking.dnstamper`
+For a more complex example, see: :mod:`nettests.blocking.dnsconsistency`

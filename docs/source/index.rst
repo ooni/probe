@@ -48,7 +48,7 @@ respectively.
 Content Blocking Tests
 ......................
 
-  * `DNSTamper <tests/dnstamper.html>`_
+  * `DNSConsistency <tests/dnsconsistency.html>`_
 
   * `HTTP Requests <tests/http_requests.html>`_
 
@@ -120,7 +120,9 @@ More developer documentation
     :maxdepth: 2
     :glob:
 
+    architecture
     oonib
+    reports
     writing_tests
     api/*
     nettests/modules

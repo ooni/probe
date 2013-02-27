@@ -1,7 +1,7 @@
 # -*- encoding: utf-8 -*-
 #
-#  dnstamper
-#  *********
+#  dnsconsistency
+#  **************
 #
 #  The test reports censorship if the cardinality of the intersection of
 #  the query result set from the control server and the query result set
@@ -34,11 +34,11 @@ class UsageOptions(usage.Options):
                          'Specify a single test resolver to use for testing']
                     ]
 
-class DNSTamperTest(dnst.DNSTest):
+class DNSConsistencyTest(dnst.DNSTest):
 
-    name = "DNS tamper"
+    name = "DNS Consistency"
     description = "DNS censorship detection test"
-    version = "0.4"
+    version = "0.5"
     authors = "Arturo Filastò, Isis Lovecruft"
     requirements = None
 
@@ -111,16 +111,23 @@ class DNSTamperTest(dnst.DNSTest):
                 return
 
         for test_resolver in self.test_resolvers:
-            log.msg("Testing %s test resolver" % test_resolver)
+            log.msg("Testing resolver: %s" % test_resolver)
             test_dns_server = (test_resolver, 53)
 
-            experiment_answers = yield self.performALookup(hostname, test_dns_server)
-            log.debug("Got the following A lookup answers %s for %s" % (experiment_answers, test_resolver))
+            try:
+                experiment_answers = yield self.performALookup(hostname, test_dns_server)
+            except Exception, e:
+                log.err("Problem performing the DNS lookup")
+                log.exception(e)
+                self.report['tampering'][test_resolver] = 'dns_lookup_error'
+                continue
 
             if not experiment_answers:
                 log.err("Got no response, perhaps the DNS resolver is down?")
                 self.report['tampering'][test_resolver] = 'no_answer'
                 continue
+            else:
+                log.debug("Got the following A lookup answers %s from %s" % (experiment_answers, test_resolver))
 
             def lookup_details():
                 """
@@ -156,7 +163,7 @@ class DNSTamperTest(dnst.DNSTest):
         """
         This inputProcessor extracts domain names from urls
         """
-        log.debug("Running dnstamper default processor")
+        log.debug("Running dnsconsistency default processor")
         if filename:
             fp = open(filename)
             for x in fp.readlines():

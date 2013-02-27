@@ -13,10 +13,13 @@ ooni/lib/txtorcon
 ooni/plugins/dropin.cache
 ooni/report*.yaml
 oonib/oonibackend.conf
-oonib/data/*
 fluff/
 pcaps/
 report*.yaml
 docs/build/*
 data/*.dat
 ooniprobe.conf
+*.yamloo
+ooniprobe.resume
+*.log
+!before_i_commit.log

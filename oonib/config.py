@@ -24,6 +24,12 @@ main.db_threadpool_size = 10
 #main.tor_binary = '/usr/sbin/tor'
 main.tor_binary = '/usr/local/bin/tor'
 
+# This requires compiling Tor with tor2web mode enabled
+# BEWARE!! THIS PROVIDES NO ANONYMITY!!
+# ONLY DO IT IF YOU KNOW WHAT YOU ARE DOING!!
+# HOSTING A COLLECTOR WITH TOR2WEB MODE GIVES YOU NO ANONYMITY!!
+main.tor2webmode = True
+
 helpers = Storage()
 
 helpers.http_return_request = Storage()

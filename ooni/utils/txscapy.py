@@ -22,6 +22,7 @@ try:
     from scapy.arch import pcapdnet
 
     config.pcap_dnet = True
+    from scapy.all import Gen, SetGen, MTU
 
 except ImportError, e:
     log.err("pypcap or dnet not installed. "
@@ -40,7 +41,7 @@ except ImportError, e:
 
     PcapWriter = DummyPcapWriter
 
-
+    from scapy.all import Gen, SetGen, MTU
 
 def getNetworksFromRoutes():
     """ Return a list of networks from the routing table """
@@ -86,7 +87,6 @@ class ScapyFactory(abstract.FileDescriptor):
     https://github.com/enki/muXTCP/blob/master/scapyLink.py
     """
     def __init__(self, interface, super_socket=None, timeout=5):
-        from scapy.all import Gen, SetGen, MTU
 
         abstract.FileDescriptor.__init__(self, reactor)
         if interface == 'auto':

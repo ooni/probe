@@ -2,7 +2,6 @@ import copy
 import random
 import struct
 
-from twisted.python import usage
 from twisted.plugin import IPlugin
 from twisted.internet import protocol, defer
 from twisted.internet.ssl import ClientContextFactory
@@ -18,8 +17,8 @@ from ooni import config
 
 from ooni.utils.net import BodyReceiver, StringProducer, userAgents
 
-from ooni.utils.txagentwithsocks import Agent, SOCKSError, TrueHeaders
-from ooni.nettest import failureToString
+from ooni.utils.txagentwithsocks import Agent, TrueHeaders
+from ooni.nettest import handleAllFailures
 
 
 class InvalidSocksProxyOption(Exception):
@@ -42,7 +41,7 @@ class HTTPTest(NetTestCase):
     name = "HTTP Test"
     version = "0.1.1"
 
-    randomizeUA = True
+    randomizeUA = False
     followRedirects = False
 
     baseParameters = [['socksproxy', 's', None,
@@ -99,7 +98,7 @@ class HTTPTest(NetTestCase):
     def processInputs(self):
         pass
 
-    def addToReport(self, request, response=None, response_body=None, failure=None):
+    def addToReport(self, request, response=None, response_body=None, failure_string=None):
         """
         Adds to the report the specified request and response.
 
@@ -128,8 +127,8 @@ class HTTPTest(NetTestCase):
                 'body': response_body,
                 'code': response.code
         }
-        if failure:
-            request_response['failure'] = failureToString(failure)
+        if failure_string:
+            request_response['failure'] = failure_string
 
         self.report['requests'].append(request_response)
 
@@ -140,6 +139,8 @@ class HTTPTest(NetTestCase):
             body_processor(response_body)
         else:
             self.processResponseBody(response_body)
+        response.body = response_body
+        return response
 
     def processResponseBody(self, body):
         """
@@ -220,11 +221,15 @@ class HTTPTest(NetTestCase):
         else:
             self.processResponseHeaders(response_headers_dict)
 
+        try:
+            content_length = response.headers.getRawHeaders('content-length')
+        except IndexError:
+            content_length = None
+
         finished = defer.Deferred()
-        response.deliverBody(BodyReceiver(finished))
+        response.deliverBody(BodyReceiver(finished, content_length))
         finished.addCallback(self._processResponseBody, request,
                 response, body_processor)
-
         return finished
 
     def doRequest(self, url, method="GET",
@@ -272,7 +277,7 @@ class HTTPTest(NetTestCase):
             log.debug("Using SOCKS proxy %s for request" % (self.localOptions['socksproxy']))
             url = 's'+url
 
-        log.msg("Performing request %s %s %s" % (url, method, headers))
+        log.debug("Performing request %s %s %s" % (url, method, headers))
 
         request = {}
         request['method'] = method
@@ -297,10 +302,10 @@ class HTTPTest(NetTestCase):
         headers = TrueHeaders(request['headers'])
 
         def errback(failure, request):
-            failure.trap(ConnectionRefusedError, SOCKSError, DNSLookupError, TCPTimedOutError)
+            failure_string = handleAllFailures(failure)
             log.err("Error performing %s" % request)
-            self.addToReport(request, failure=failure)
-            return
+            self.addToReport(request, failure_string=failure_string)
+            return failure
 
         d = agent.request(request['method'], request['url'], headers,
                 body_producer)

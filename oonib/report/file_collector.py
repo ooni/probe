@@ -56,6 +56,9 @@ def parseNewReportRequest(request):
     }
 
     parsed_request = json.loads(request)
+    if not parsed_request['probe_asn']:
+        parsed_request['probe_asn'] = 'AS0'
+
     for k, regexp in expected_request.items():
         try:
             value_to_check = parsed_request[k]

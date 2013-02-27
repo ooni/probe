@@ -64,7 +64,7 @@ class HTTPHeaderFieldManipulation(httpt.HTTPTest):
         else:
             # XXX generate these from a random choice taken from whatheaders.com
             # http://s3.amazonaws.com/data.whatheaders.com/whatheaders-latest.xml.zip
-            headers = {"User-Agent": [random.choice(net.userAgents)[0]],
+            headers = {"User-Agent": [random.choice(net.userAgents)],
                 "Accept": ["text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"],
                 "Accept-Encoding": ["gzip,deflate,sdch"],
                 "Accept-Language": ["en-US,en;q=0.8"],
@@ -110,6 +110,8 @@ class HTTPHeaderFieldManipulation(httpt.HTTPTest):
         *  **header_field_value** when the header field value does not match with the
         one we transmitted.
         """
+        log.msg("Checking for tampering on %s" % self.url)
+
         self.report['tampering'] = {
             'total': False,
             'request_line_capitalization': False,
@@ -143,6 +145,11 @@ class HTTPHeaderFieldManipulation(httpt.HTTPTest):
         else:
             self.report['tampering']['header_field_name'] = False
         self.report['tampering']['header_name_diff'] = list(diff)
+        log.msg("    total: %(total)s" % self.report['tampering'])
+        log.msg("    request_line_capitalization: %(request_line_capitalization)s" % self.report['tampering'])
+        log.msg("    header_name_capitalization: %(header_name_capitalization)s" % self.report['tampering'])
+        log.msg("    header_field_value: %(header_field_value)s" % self.report['tampering'])
+        log.msg("    header_field_number: %(header_field_number)s" % self.report['tampering'])
 
     def test_get(self):
         self.request_method = "GET"
