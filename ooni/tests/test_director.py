@@ -42,10 +42,11 @@ class TestDirector(unittest.TestCase):
         pass
 
     def test_start_net_test(self):
-        options = {'test':net_test_string, 'subargs':dummyArgs}
-        net_test_loader = NetTestLoader(options)
-        net_test_loader.checkOptions()
-        d = self.director.startNetTest('', net_test_loader, self.reporters)
+        ntl = NetTestLoader(dummyArgs)
+        ntl.loadNetTestString(net_test_string)
+
+        ntl.checkOptions()
+        d = self.director.startNetTest('', ntl, self.reporters)
 
         @d.addCallback
         def done(result):
