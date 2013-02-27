@@ -8,6 +8,7 @@ pyOpenSSL>=0.13
 pygeoip>=0.2.5
 transaction>=1.3.0
 txtorcon>=0.7
+txsocksx>=0.0.2
 zope.component>=4.0.0
 zope.event>=4.0.0
 zope.interface>=4.0.1
@@ -24,10 +25,6 @@ https://people.torproject.org/~ioerror/src/mirrors/ooniprobe/Parsley-1.1pre1.tar
 #   https://hg.secdev.org/scapy/archive/tip.zip#egg=scapy
 # Mirrored on Tor's webserver:
 https://people.torproject.org/~ioerror/src/mirrors/ooniprobe/scapy-02-25-2013-tip.zip
-# Originally fetched from github:
-#   https://github.com/hellais/txsocksx/archive/master.zip
-# Mirrored on Tor's webserver:
-https://people.torproject.org/~ioerror/src/mirrors/ooniprobe/hellais-txsocksx-02-25-2013-master.zip
 # This was 'dnspython>=1.10.0' above until it failed to download many times.
 # Originally fetched from dnspython but it timed out often:
 #   http://www.dnspython.org/kits/1.10.0/dnspython-1.10.0.zip
