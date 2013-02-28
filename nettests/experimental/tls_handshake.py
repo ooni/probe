@@ -506,17 +506,61 @@ class TLSHandshakeTest(nettest.NetTestCase):
             return connection
 
         def handshakeSucceeded(connection):
-            if connection:
-                host, port = connection.getpeername()
-                self.report['host'] = host
-                self.report['port'] = port
-                self.report['state'] = connection.state_string()
+            """
+            Get the details from the server certificate, cert chain, and
+            server ciphersuite list, and put them in our report.
 
-        def handshakeFailed(connection, addr, port):
-            if connection is None:
-                self.report['host'] = addr
-                self.report['port'] = port
-                self.report['state'] = 'FAILED'
+            WARNING: do *not* do this:
+                >>> server_cert.get_pubkey()
+                    <OpenSSL.crypto.PKey at 0x4985d28>
+                >>> pk = server_cert.get_pubkey()
+                >>> pk.check
+                    <function check>
+                >>> pk.check()
+                    Segmentation fault
+
+            @param connection: A :class:`OpenSSL.SSL.Connection`.
+            @returns: None.
+            """
+            host, port = connection.getpeername()
+            server_cert = self.getPeerCert(connection)
+            server_cert_chain = self.getPeerCert(connection, get_chain=True)
+
+            s_cert          = connection.get_peer_certificate()
+            cert_subject    = s_cert.get_subject()
+            cert_subj_hash  = s_cert.subject_name_hash()
+            cert_issuer     = s_cert.get_issuer()
+            cert_public_key = s_cert.get_pubkey()
+            cert_serial_no  = s_cert.get_serial_number()
+            cert_sig_algo   = s_cert.get_signature_algorithm()
+
+            self.report['host'] = host
+            self.report['port'] = port
+            self.report['state'] = connection.state_string()
+            self.report['renegotiations'] = connection.total_renegotiations()
+            self.report['server_cert'] = server_cert
+            self.report['server_cert_chain'] = \
+                ''.join([cert for cert in server_cert_chain])
+            self.report['server_ciphersuite'] = connection.get_cipher_list()
+            self.report['cert_subject'] = str(cert_subject)
+            self.report['cert_subj_hash'] = str(cert_subj_hash)
+            self.report['cert_issuer'] = str(cert_issuer)
+            ## xxx this needs to be parsed into PEM also
+            self.report['cert_public_key'] = str(cert_public_key)
+            self.report['cert_serial_no'] = str(cert_serial_no)
+            self.report['cert_sig_algo'] = str(cert_sig_algo)
+
+            ## The session's master key is only valid for that session, and
+            ## will allow us to decrypt any packet captures (if they were
+            ## collected). Because we are not requesting URLs, only host:port
+            ## (which would be visible in pcaps anyway, since the FQDN is
+            ## never encrypted) I do not see a way for this to log any user or
+            ## identifying information. Correct me if I'm wrong.
+            self.report['session_key'] = connection.master_key()
+
+            ## xxx do we need this?
+            #return connection
+
             else:
                 return handshakeSucceeded(connection)
 
