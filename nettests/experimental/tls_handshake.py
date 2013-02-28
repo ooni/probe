@@ -692,11 +692,9 @@ class TLSHandshakeTest(nettest.NetTestCase):
             """
             addr, port = host
             log.msg("Handshake with %s:%d failed!" % host)
+
             self.report['host'] = host
             self.report['port'] = port
-            self.report['state'] = "HANDSHAKE_FAILED"
-            ## xxx do we need this?
-            #return connection
 
         @defer.inlineCallbacks
         def deferMakeConnection(host):
