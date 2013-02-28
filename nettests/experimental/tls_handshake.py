@@ -273,8 +273,13 @@ class TLSHandshakeTest(nettest.NetTestCase):
             sckt = self.buildSocket(addr)
             context = self.getContext()
             connection = SSL.Connection(context, sckt)
-            connection.connect(host)
-            return connection
+            try:
+               connection.connect(host)
+            except socket_timeout as stmo:
+               error = ConnectionTimeout(stmo.message)
+               return failure.Failure(error)
+            else:
+               return connection
 
         def connectionFailed(connection, host):
             """
