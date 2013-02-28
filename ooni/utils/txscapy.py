@@ -54,6 +54,8 @@ def pcapdnet_installed():
         log.err("Your platform requires to having libdnet and libpcap installed.")
         raise LibraryNotInstalledError
 
+    return config.pcap_dnet
+
 if pcapdnet_installed():
     from scapy.all import PcapWriter
 
