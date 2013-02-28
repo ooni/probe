@@ -345,8 +345,8 @@ class TLSHandshakeTest(nettest.NetTestCase):
                 log.msg("Connected to %s" % peer_name)
             else:
                 log.debug("Couldn't get peer name from connection: %s" % host)
-                log.msg("Connected to: %s" % host)
-            log.msg("Connection state: %s " % connection.state_string())
+                log.msg("Connected to %s" % host)
+            log.debug("Connection state: %s " % connection.state_string())
 
             return connection
 
@@ -423,6 +423,7 @@ class TLSHandshakeTest(nettest.NetTestCase):
             else:
                 log.debug("connectionShutdown: expected connection, got %s"
                           % connection.__repr__())
+
             return connection
 
         def handleWantRead(connection):
