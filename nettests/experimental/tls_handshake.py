@@ -33,6 +33,7 @@ import types
 from ipaddr                 import IPAddress
 from OpenSSL                import SSL
 from OpenSSL.crypto         import dump_certificate, FILETYPE_PEM
+from OpenSSL.crypto         import X509Name
 from twisted.internet       import defer
 from twisted.python         import usage
 from twisted.python.failure import Failure
@@ -215,9 +216,9 @@ class TLSHandshakeTest(nettest.NetTestCase):
         x509_name = None
 
         try:
-            assert isinstance(certificate, crypto.X509Name), \
+            assert isinstance(certificate, X509Name), \
                 "getX509Name takes OpenSSL.crypto.X509Name as first argument!"
-            x509_name = crypto.X509Name(certificate)
+            x509_name = X509Name(certificate)
         except AssertionError as ae:
             log.err(ae)
         except Exception as exc:
