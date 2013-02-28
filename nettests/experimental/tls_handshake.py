@@ -32,8 +32,8 @@ import types
 
 from ipaddr                 import IPAddress
 from OpenSSL                import SSL
-from OpenSSL.crypto         import dump_certificate, FILETYPE_PEM
-from OpenSSL.crypto         import X509Name
+from OpenSSL.crypto         import dump_certificate, dump_privatekey
+from OpenSSL.crypto         import X509Name, PKey, FILETYPE_PEM
 from twisted.internet       import defer
 from twisted.python         import usage
 from twisted.python.failure import Failure
@@ -231,6 +231,22 @@ class TLSHandshakeTest(nettest.NetTestCase):
                 return x509_name.get_components()
         else:
             log.debug("getX509Name: got None for ivar x509_name")
+
+    @staticmethod
+    def getPublicKey(key):
+        """
+        Get the PEM-encoded format of a host certificate's public key.
+
+        @param key: A :class:`OpenSSL.crypto.PKey` object.
+        """
+        try:
+            assert isinstance(key, PKey), \
+                "getPublicKey expects type OpenSSL.crypto.PKey for parameter key"
+        except AssertionError as ae:
+            log.err(ae)
+        else:
+            pubkey = dump_privatekey(FILETYPE_PEM, key)
+            return pubkey
 
     def test_tlsv1_handshake(self):
         """xxx fill me in"""
@@ -570,12 +586,12 @@ class TLSHandshakeTest(nettest.NetTestCase):
             server_cert_chain = self.getPeerCert(connection, get_chain=True)
 
             s_cert          = connection.get_peer_certificate()
-            cert_subject    = getX509Name(s_cert.get_subject(),
-                                          get_components=True)
+            cert_subject    = self.getX509Name(s_cert.get_subject(),
+                                               get_components=True)
             cert_subj_hash  = s_cert.subject_name_hash()
-            cert_issuer     = getX509Name(s_cert.get_issuer(),
-                                          get_components=True)
-            cert_public_key = s_cert.get_pubkey()
+            cert_issuer     = self.getX509Name(s_cert.get_issuer(),
+                                               get_components=True)
+            cert_public_key = self.getPublicKey(s_cert.get_pubkey())
             cert_serial_no  = s_cert.get_serial_number()
             cert_sig_algo   = s_cert.get_signature_algorithm()
 
