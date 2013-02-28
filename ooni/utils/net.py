@@ -7,7 +7,7 @@ from twisted.internet import protocol, defer
 from twisted.internet import threads, reactor
 from twisted.web.iweb import IBodyProducer
 
-from ooni.utils import log, txscapy
+from ooni.utils import log
 
 #if sys.platform.system() == 'Windows':
 #    import _winreg as winreg
