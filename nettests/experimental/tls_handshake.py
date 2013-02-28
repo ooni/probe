@@ -295,11 +295,82 @@ class TLSHandshakeTest(nettest.NetTestCase):
                     log.debug("State: %s" % connection.state_string())
             return connection
 
+
+        def handleWantRead(connection):
+            """
+            From OpenSSL memory BIO documentation on ssl_read():
+
+                If the underlying BIO is blocking, SSL_read() will only
+                return, once the read operation has been finished or an error
+                occurred, except when a renegotiation take place, in which
+                case a SSL_ERROR_WANT_READ may occur. This behaviour can be
+                controlled with the SSL_MODE_AUTO_RETRY flag of the
+                SSL_CTX_set_mode(3) call.
+
+                If the underlying BIO is non-blocking, SSL_read() will also
+                return when the underlying BIO could not satisfy the needs of
+                SSL_read() to continue the operation. In this case a call to
+                SSL_get_error(3) with the return value of SSL_read() will
+                yield SSL_ERROR_WANT_READ or SSL_ERROR_WANT_WRITE. As at any
+                time a re-negotiation is possible, a call to SSL_read() can
+                also cause write operations!  The calling process then must
+                repeat the call after taking appropriate action to satisfy the
+                needs of SSL_read(). The action depends on the underlying
+                BIO. When using a non-blocking socket, nothing is to be done,
+                but select() can be used to check for the required condition.
+
+            And from the OpenSSL memory BIO documentation on ssl_get_error():
+
+                SSL_ERROR_WANT_READ, SSL_ERROR_WANT_WRITE
+
+                The operation did not complete; the same TLS/SSL I/O function
+                should be called again later. If, by then, the underlying BIO
+                has data available for reading (if the result code is
+                SSL_ERROR_WANT_READ) or allows writing data
+                (SSL_ERROR_WANT_WRITE), then some TLS/SSL protocol progress
+                will take place, i.e. at least part of an TLS/SSL record will
+                be read or written. Note that the retry may again lead to a
+                SSL_ERROR_WANT_READ or SSL_ERROR_WANT_WRITE condition. There
+                is no fixed upper limit for the number of iterations that may
+                be necessary until progress becomes visible at application
+                protocol level.
+
+                For socket BIOs (e.g. when SSL_set_fd() was used), select() or
+                poll() on the underlying socket can be used to find out when
+                the TLS/SSL I/O function should be retried.
+
+                Caveat: Any TLS/SSL I/O function can lead to either of
+                SSL_ERROR_WANT_READ and SSL_ERROR_WANT_WRITE. In particular,
+                SSL_read() or SSL_peek() may want to write data and
+                SSL_write() may want to read data. This is mainly because
+                TLS/SSL handshakes may occur at any time during the protocol
+                (initiated by either the client or the server); SSL_read(),
+                SSL_peek(), and SSL_write() will handle any pending
+                handshakes.
+
+            Also, see http://stackoverflow.com/q/3952104
+            """
             try:
-                connection.do_handshake()
-            except SSL.WantReadError():
-                log.msg("Timeout exceeded.")
-                connection.shutdown()
+                while connection.want_read():
+                    log.debug("Connection to %s HAS want_read" % host)
+                    _read_buffer = connection.pending()
+                    log.debug("Rereading %d bytes..." % _read_buffer)
+                    sleep(1)
+                    rereceived = connection.recv(int(_read_buffer))
+                    log.debug("Received %d bytes" % rereceived)
+                    log.debug("State: %s" % connection.state_string())
+                else:
+                    peername, peerport = connection.getpeername()
+                    log.debug("Connection to %s:%s DOES NOT HAVE want_read"
+                              % (peername, peerport))
+                    log.debug("State: %s" % connection.state_string())
+            except SSL.WantWriteError, wwe:
+                log.debug("Got WantWriteError while handling want_read")
+                log.debug("WantWriteError: %s" % wwe.message)
+                log.debug("Switching to handleWantWrite()...")
+                handleWantWrite(connection)
+            return connection
+
             else:
                 log.msg("State: %s" % connection.state_string())
                 log.msg("Transmitted %d bytes" % connection.send("o\r\n"))
