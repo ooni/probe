@@ -325,7 +325,10 @@ class TLSHandshakeTest(nettest.NetTestCase):
             @param connection: A :class:`OpenSSL.SSL.Connection` object.
             @param host: A tuple of the host IP and port, i.e. ('1.1.1.1', 443).
             """
+            ## xxx TODO to get this to work with a non-blocking socket, see how
+            ##     twisted.internet.tcp.Client handles socket objects.
             connection.setblocking(1)
+
             ## Set the timeout on the connection:
             ##
             ## We want to set SO_RCVTIMEO and SO_SNDTIMEO, which both are
