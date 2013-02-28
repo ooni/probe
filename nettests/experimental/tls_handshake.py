@@ -21,7 +21,8 @@
   @copyright: © 2013 Isis Lovecruft, The Tor Project Inc.
 """
 
-from socket import error as socket_error
+from socket import error   as socket_error
+from socket import timeout as socket_timeout
 from time   import sleep
 
 import os
@@ -30,13 +31,12 @@ import struct
 import sys
 import types
 
+import OpenSSL
+
 from ipaddr                 import IPAddress
-from OpenSSL                import SSL
-from OpenSSL.crypto         import dump_certificate, dump_privatekey
-from OpenSSL.crypto         import X509Name, PKey, FILETYPE_PEM
-from twisted.internet       import defer
-from twisted.python         import usage
-from twisted.python.failure import Failure
+from OpenSSL                import SSL, crypto
+from twisted.internet       import defer, threads
+from twisted.python         import usage, failure
 
 from ooni       import nettest, config
 from ooni.utils import log, NotRootError
@@ -80,6 +80,13 @@ class NoSSLContextError(Exception):
 
 class HostUnreachableError(Exception):
     """Raised when there the host IP address appears to be unreachable."""
+    pass
+
+class ConnectionTimeout(Exception):
+    """
+    Raised when we receive a :class:`socket.timeout`, in order to pass the
+    Exception along to :func:`connectionFailed`.
+    """
     pass
 
 class UsageOptions(usage.Options):
@@ -191,13 +198,14 @@ class TLSHandshakeTest(nettest.NetTestCase):
     def getPeerCert(connection, get_chain=False):
         if not get_chain:
             x509_cert = connection.get_peer_certificate()
-            pem_cert = dump_certificate(FILETYPE_PEM, x509_cert)
+            pem_cert = crypto.dump_certificate(crypto.FILETYPE_PEM, x509_cert)
             return pem_cert
         else:
             cert_chain = []
             x509_cert_chain = connection.get_peer_cert_chain()
             for x509_cert in x509_cert_chain:
-                pem_cert = dump_certificate(FILETYPE_PEM, x509_cert)
+                pem_cert = crypto.dump_certificate(crypto.FILETYPE_PEM,
+                                                   x509_cert)
                 cert_chain.append(pem_cert)
             return cert_chain
 
@@ -216,9 +224,9 @@ class TLSHandshakeTest(nettest.NetTestCase):
         x509_name = None
 
         try:
-            assert isinstance(certificate, X509Name), \
+            assert isinstance(certificate, crypto.X509Name), \
                 "getX509Name takes OpenSSL.crypto.X509Name as first argument!"
-            x509_name = X509Name(certificate)
+            x509_name = crypto.X509Name(certificate)
         except AssertionError as ae:
             log.err(ae)
         except Exception as exc:
@@ -240,12 +248,12 @@ class TLSHandshakeTest(nettest.NetTestCase):
         @param key: A :class:`OpenSSL.crypto.PKey` object.
         """
         try:
-            assert isinstance(key, PKey), \
+            assert isinstance(key, crypto.PKey), \
                 "getPublicKey expects type OpenSSL.crypto.PKey for parameter key"
         except AssertionError as ae:
             log.err(ae)
         else:
-            pubkey = dump_privatekey(FILETYPE_PEM, key)
+            pubkey = crypto.dump_privatekey(crypto.FILETYPE_PEM, key)
             return pubkey
 
     def test_tlsv1_handshake(self):
