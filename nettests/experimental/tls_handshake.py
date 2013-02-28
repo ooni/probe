@@ -561,6 +561,23 @@ class TLSHandshakeTest(nettest.NetTestCase):
             ## xxx do we need this?
             #return connection
 
+        def handshakeFailed(connection, host):
+            """
+            xxx fill me in
+
+            @param connection: A :class:`twisted.python.failure.Failure` or
+                               :class:`exceptions.Exception`.
+            @param host: A tuple of the host IP and port, i.e. ('1.1.1.1', 443).
+            @returns: None.
+            """
+            addr, port = host
+            log.msg("Handshake with %s:%d failed!" % host)
+            self.report['host'] = host
+            self.report['port'] = port
+            self.report['state'] = "HANDSHAKE_FAILED"
+            ## xxx do we need this?
+            #return connection
+
             else:
                 return handshakeSucceeded(connection)
 
