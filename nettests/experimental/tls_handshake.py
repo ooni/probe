@@ -553,17 +553,29 @@ class TLSHandshakeTest(nettest.NetTestCase):
             """
             peername, peerport = connection.getpeername()
 
-            log.msg("Attempting handshake: %s" % peername)
-            connection.do_handshake()
-            log.debug("State: %s" % connection.state_string())
-            if connection.state_string() == \
-                    'SSL negotiation finished successfully':
+            try:
+                log.msg("Attempting handshake: %s" % peername)
+                connection.do_handshake()
+            except OpenSSL.SSL.WantReadError() as wre:
+                self.state = connection.state_string()
+                log.debug("Handshake state: %s" % self.state)
+                log.debug("doHandshake: WantReadError on first handshake attempt.")
+                connection = handleWantRead(connection)
+            except OpenSSL.SSL.WantWriteError() as wwe:
+                self.state = connection.state_string()
+                log.debug("Handshake state: %s" % self.state)
+                log.debug("doHandshake: WantWriteError on first handshake attempt.")
+                connection = handleWantWrite(connection)
+            else:
+                self.state = connection.state_string()
+
+            if self.state == 'SSL negotiation finished successfully':
                 ## jump to handshakeSuccessful and get certchain
                 return connection
-
             else:
                 sent = connection.send("o\r\n")
-                log.debug("State: %s" % connection.state_string())
+                self.state = connection.state_string()
+                log.debug("Handshake state: %s" % self.state)
                 log.debug("Transmitted %d bytes" % sent)
 
                 _read_buffer = connection.pending()
