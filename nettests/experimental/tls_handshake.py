@@ -271,7 +271,30 @@ class TLSHandshakeTest(nettest.NetTestCase):
 
             return connection
 
-        def doHandshake(connection):
+        def connectionRenegotiate(connection, host, error_message):
+            log.msg("Server requested renegotiation from: %s" % host)
+            log.debug("Renegotiation reason: %s" % error_message)
+            log.debug("State: %s" % connection.state_string())
+
+            if connection.renegotiate():
+                log.debug("Renegotiation possible.")
+                log.message("Retrying handshake with %s..." % host)
+                try:
+                    connection.do_handshake()
+                    while connection.renegotiate_pending():
+                        log.msg("Renegotiation with %s in progress..." % host)
+                        log.debug("State: %s" % connection.state_string())
+                        sleep(1)
+                    else:
+                        log.msg("Renegotiation with %s complete!" % host)
+                except SSL.WantReadError, wre:
+                    connection = handleWantRead(connection)
+                    log.debug("State: %s" % connection.state_string())
+                except SSL.WantWriteError, wwe:
+                    connection = handleWantWrite(connection)
+                    log.debug("State: %s" % connection.state_string())
+            return connection
+
             try:
                 connection.do_handshake()
             except SSL.WantReadError():
