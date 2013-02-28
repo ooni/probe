@@ -103,10 +103,8 @@ class TLSHandshakeTest(nettest.NetTestCase):
             self.ciphers = []
             self.methods = []
 
-            ## check that we're actually testing an IP:PORT, else exit
-            ## gracefully:
-            if not (options['host'] and options['port']) \
-                    and not options['file']:
+            ## check that we're testing an IP:PORT, else exit gracefully:
+            if not ((options['host'] and options['port']) or options['file']):
                  sys.exit("Need --host and --port, or --file!")
 
             ## set the SSL/TLS method to use:
