@@ -200,6 +200,37 @@ class TLSHandshakeTest(nettest.NetTestCase):
                 cert_chain.append(pem_cert)
             return cert_chain
 
+    @staticmethod
+    def getX509Name(certificate, get_components=False):
+        """
+        Get the DER encoded form of the Name portions of and X509 certificate.
+
+        @param certificate: A :class:`OpenSSL.crypto.X509Name` object.
+        @param get_components: A boolean. If True, returns a list of tuples of
+                               the (name, value)s of each Name field in the
+                               :param:`certificate`. If False, returns the DER
+                               encoded form of the Name fields of the
+                               :param:`certificate`.
+        """
+        x509_name = None
+
+        try:
+            assert isinstance(certificate, crypto.X509Name), \
+                "getX509Name takes OpenSSL.crypto.X509Name as first argument!"
+            x509_name = crypto.X509Name(certificate)
+        except AssertionError as ae:
+            log.err(ae)
+        except Exception as exc:
+            log.exception(exc)
+
+        if not x509_name is None:
+            if not get_components:
+                return x509_name.der()
+            else:
+                return x509_name.get_components()
+        else:
+            log.debug("getX509Name: got None for ivar x509_name")
+
     def test_tlsv1_handshake(self):
         """xxx fill me in"""
 
@@ -538,9 +569,11 @@ class TLSHandshakeTest(nettest.NetTestCase):
             server_cert_chain = self.getPeerCert(connection, get_chain=True)
 
             s_cert          = connection.get_peer_certificate()
-            cert_subject    = s_cert.get_subject()
+            cert_subject    = getX509Name(s_cert.get_subject(),
+                                          get_components=True)
             cert_subj_hash  = s_cert.subject_name_hash()
-            cert_issuer     = s_cert.get_issuer()
+            cert_issuer     = getX509Name(s_cert.get_issuer(),
+                                          get_components=True)
             cert_public_key = s_cert.get_pubkey()
             cert_serial_no  = s_cert.get_serial_number()
             cert_sig_algo   = s_cert.get_signature_algorithm()
