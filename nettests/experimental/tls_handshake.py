@@ -714,6 +714,9 @@ class TLSHandshakeTest(nettest.NetTestCase):
 
             return None
 
+        def deferMakeConnection(host):
+            return threads.deferToThread(makeConnection, self.input)
+
         connection = deferMakeConnection(self.input)
         connection.addCallbacks(connectionSucceeded, connectionFailed,
                                 callbackArgs=[self.input, self.timeout],
