@@ -182,9 +182,12 @@ class TLSHandshakeTest(nettest.NetTestCase):
             pem_cert = dump_certificate(FILETYPE_PEM, x509_cert)
             return pem_cert
         else:
-            raise Exception("No SSL/TLS method chosen!")
-        context.set_cipher_list(self.ciphersuite)
-        return context
+            cert_chain = []
+            x509_cert_chain = connection.get_peer_cert_chain()
+            for x509_cert in x509_cert_chain:
+                pem_cert = dump_certificate(FILETYPE_PEM, x509_cert)
+                cert_chain.append(pem_cert)
+            return cert_chain
 
     def test_tlsv1_handshake(self):
 
