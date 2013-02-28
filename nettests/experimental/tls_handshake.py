@@ -421,6 +421,58 @@ class TLSHandshakeTest(nettest.NetTestCase):
                 handleWantWrite(connection)
             return connection
 
+        def handleWantWrite(connection):
+            """
+            See :func:`handleWantRead`.
+            """
+            try:
+                while connection.want_write():
+                    log.debug("Connection to %s HAS want_write" % host)
+                    sleep(1)
+                    resent = connection.send("o\r\n")
+                    log.debug("Sent: %d" % resent)
+                    log.debug("State: %s" % connection.state_string())
+            except SSL.WantReadError, wre:
+                log.debug("Got WantReadError while handling want_write")
+                log.debug("WantReadError: %s" % wre.message)
+                log.debug("Switching to handleWantRead()...")
+                handleWantRead(connection)
+            return connection
+
+        def doHandshake(connection):
+            """
+            Attemp a TLS/SSL handshake with the host.
+
+            If, after the first attempt at handshaking, OpenSSL's memory BIO
+            state machine does not report success, then try reading and
+            writing from the connection, and handle any SSL_ERROR_WANT_READ or
+            SSL_ERROR_WANT_WRITE which occurs.
+
+            If multiple want_reads occur, then try renegotiation with the
+            host, and start over. If multiple want_writes occur, then it is
+            possible that the connection has timed out, and move on to the
+            connectionShutdown step.
+
+            @param connection: A :class:`OpenSSL.SSL.Connection`.
+            @ivar peername: The host IP address, as reported by getpeername().
+            @ivar peerport: The host port, reported by getpeername().
+            @ivar sent: The number of bytes sent to to the remote host.
+            @ivar received: The number of bytes received from the remote host.
+            @ivar _read_buffer: An integer for the max bytes that can be read
+                                from the connection.
+            @returns: The :param:connection with handshake completed, else
+                      the unhandled error that was raised.
+            """
+            peername, peerport = connection.getpeername()
+
+            log.msg("Attempting handshake: %s" % peername)
+            connection.do_handshake()
+            log.debug("State: %s" % connection.state_string())
+            if connection.state_string() == \
+                    'SSL negotiation finished successfully':
+                ## jump to handshakeSuccessful and get certchain
+                return connection
+
             else:
                 log.msg("State: %s" % connection.state_string())
                 log.msg("Transmitted %d bytes" % connection.send("o\r\n"))
