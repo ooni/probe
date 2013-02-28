@@ -696,15 +696,23 @@ class TLSHandshakeTest(nettest.NetTestCase):
             self.report['host'] = host
             self.report['port'] = port
 
-        @defer.inlineCallbacks
-        def deferMakeConnection(host):
-            connection = yield makeConnection(host)
-            if isinstance(connection, Failure) \
-                    or isinstance(connection, Exception):
-                failed = connectionFailed(connection, host)
-                defer.returnValue(failed)
+            if isinstance(connection, Exception) \
+                    or isinstance(connection, ConnectionTimeout):
+                log.msg("Handshake failed with reason: %s" % connection.message)
+                self.report['state'] = connection.message
+            elif isinstance(connection, failure.Failure):
+                log.msg("Handshake failed with reason: Socket %s"
+                        % connection.getErrorMessage())
+                self.report['state'] = connection.getErrorMessage()
+                ctmo = connection.trap(ConnectionTimeout)
+                if ctmo == ConnectionTimeout:
+                    connection.cleanFailure()
             else:
-                defer.returnValue(connection)
+                log.msg("Handshake failed with reason: %s" % str(connection))
+                if not 'state' in self.report.keys():
+                    self.report['state'] = str(connection)
+
+            return None
 
         connection = deferMakeConnection(self.input)
         connection.addCallbacks(connectionSucceeded, connectionFailed,
