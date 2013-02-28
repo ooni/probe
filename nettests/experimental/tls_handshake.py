@@ -603,8 +603,6 @@ class TLSHandshakeTest(nettest.NetTestCase):
                 >>> server_cert.get_pubkey()
                     <OpenSSL.crypto.PKey at 0x4985d28>
                 >>> pk = server_cert.get_pubkey()
-                >>> pk.check
-                    <function check>
                 >>> pk.check()
                     Segmentation fault
 
