@@ -1,4 +1,5 @@
 - options:
+    no-default-reporter: false
     collector: null
     help: 0
     logfile: reports/before_i_commit.log
@@ -7,6 +8,7 @@
     subargs: []
     test: nettests/manipulation/captiveportal.py
 - options:
+    no-default-reporter: false
     collector: null
     help: 0
     logfile: reports/before_i_commit.log
@@ -15,14 +17,16 @@
     subargs: [-T, example_inputs/dns_tamper_test_resolvers.txt, -f, example_inputs/dns_tamper_file.txt]
     test: nettests/blocking/dnsconsistency.py
 - options:
+    no-default-reporter: false
     collector: null
     help: 0
     logfile: reports/before_i_commit.log
     pcapfile: null
     reportfile: reports/http_host.yamloo
-    subargs: [-b, 'http://93.95.227.200', -c, 'http://nkvphnp3p6agi5qq.onion', -f, example_inputs/http_host_file.txt]
+    subargs: [-b, 'http://93.95.227.200', -f, example_inputs/http_host_file.txt]
     test: nettests/manipulation/http_host.py
 - options:
+    no-default-reporter: false
     collector: null
     help: 0
     logfile: reports/before_i_commit.log
