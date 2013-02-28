@@ -27,6 +27,7 @@ except ImportError:
 
 
 from ooni.errors import InvalidOONIBCollectorAddress
+from ooni.errors import ReportNotCreated, ReportAlreadyClosed
 
 from ooni import otime
 from ooni.utils import geodata, pushFilenameStack
@@ -184,15 +185,17 @@ class YAMLReporter(OReporter):
             log.msg("Report already exists with filename %s" % report_path)
             pushFilenameStack(report_path)
 
-        log.debug("Creating %s" % report_path)
-        self._stream = open(report_path, 'w+')
-
+        self.report_path = report_path
         OReporter.__init__(self, test_details)
 
     def _writeln(self, line):
         self._write("%s\n" % line)
 
     def _write(self, format_string, *args):
+        if not self._stream:
+            raise ReportNotCreated
+        if self._stream.closed:
+            raise ReportAlreadyClosed
         s = str(format_string)
         assert isinstance(s, type(''))
         if args:
@@ -214,6 +217,9 @@ class YAMLReporter(OReporter):
         """
         Writes the report header and fire callbacks on self.created
         """
+        log.debug("Creating %s" % self.report_path)
+        self._stream = open(self.report_path, 'w+')
+
         self._writeln("###########################################")
 
         self._writeln("# OONI Probe Report for %s (%s)" % (self.testDetails['test_name'],

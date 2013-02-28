@@ -126,3 +126,9 @@ class InvalidOONIBCollectorAddress(Exception):
 class AllReportersFailed(Exception):
     pass
 
+class ReportNotCreated(Exception):
+    pass
+
+class ReportAlreadyClosed(Exception):
+    pass
+
