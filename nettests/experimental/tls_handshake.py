@@ -474,13 +474,31 @@ class TLSHandshakeTest(nettest.NetTestCase):
                 return connection
 
             else:
-                log.msg("State: %s" % connection.state_string())
-                log.msg("Transmitted %d bytes" % connection.send("o\r\n"))
+                sent = connection.send("o\r\n")
+                log.debug("State: %s" % connection.state_string())
+                log.debug("Transmitted %d bytes" % sent)
+
+                _read_buffer = connection.pending()
+                log.debug("Max bytes in receive buffer: %d" % _read_buffer)
+
                 try:
-                    recvstr = connection.recv(1024)
-                except SSL.WantReadError:
-                    log.msg("Timeout exceeded")
-                    connection.shutdown()
+                    received = connection.recv(int(_read_buffer))
+                except SSL.WantReadError, wre:
+                    if connection.want_read():
+                        connection = handleWantRead(connection)
+                    else:
+                        ## if we still have an SSL_ERROR_WANT_READ, then try
+                        ## to renegotiate
+                        connection = connectionRenegotiate(connection,
+                                                           connection.getpeername(),
+                                                           wre.message)
+                except SSL.WantWriteError, wwe:
+                    log.debug("State: %s" % connection.state_string())
+                    if connection.want_write():
+                        connection = handleWantWrite(connection)
+                    else:
+                        log.msg("Connection to %s:%s timed out."
+                                % (peername, str(peerport)))
                 else:
                     log.msg("Received: %s" % recvstr)
             return connection
