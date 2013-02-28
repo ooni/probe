@@ -3,31 +3,42 @@
 """
   tls_handshake.py
   ----------------
+
   This file contains test cases for determining if a TLS handshake completes
   successfully, including ways to test if a TLS handshake which uses Mozilla
-  Firefox's current ciphersuite list completes.
+  Firefox's current ciphersuite list completes. Rather than using Twisted and
+  OpenSSL's methods for automatically completing a handshake, which includes
+  setting all the parameters, such as the ciphersuite list, these tests use
+  non-blocking sockets and implement asychronous error-handling transversal of
+  OpenSSL's memory BIO state machine, allowing us to determine where and why a
+  handshake fails.
 
-  These NetTestCases are a rewrite of a script contributed by Hackerberry
-  Finn, in order to fit into OONI's core network tests.
+  This network test is a complete rewrite of a pseudonymously contributed
+  script by Hackerberry Finn, in order to fit into OONI's core network tests.
 
-  @authors: Isis Agora Lovecruft <isis@torproject.org>,
-            Hackerberry Finn <anon@localhost>
+  @authors: Isis Agora Lovecruft <isis@torproject.org>
   @license: see included LICENSE file
+  @copyright: © 2013 Isis Lovecruft, The Tor Project Inc.
 """
+
+from socket import error as socket_error
+from time   import sleep
 
 import os
 import socket
-from socket import error as serror
 import struct
 import sys
+import types
 
-from ipaddr import IPAddress
-from OpenSSL import SSL
-from twisted.internet import defer
-from twisted.python import usage
+from ipaddr                 import IPAddress
+from OpenSSL                import SSL
+from OpenSSL.crypto         import dump_certificate, FILETYPE_PEM
+from twisted.internet       import defer
+from twisted.python         import usage
+from twisted.python.failure import Failure
 
-from ooni import nettest, config
-from ooni.utils import log
+from ooni       import nettest, config
+from ooni.utils import log, NotRootError
 
 ## For a way to obtain the current version of Firefox's default ciphersuite
 ## list, see https://trac.torproject.org/projects/tor/attachment/ticket/4744/
@@ -90,7 +101,7 @@ class TLSHandshakeTest(nettest.NetTestCase):
     name         = 'tls-handshake'
     author       = 'Isis Lovecruft <isis@torproject.org>'
     description  = 'A test to determing if we can complete a TLS hankshake.'
-    version      = '0.0.1'
+    version      = '0.0.2'
 
     requiresRoot = False
     usageOptions = UsageOptions
