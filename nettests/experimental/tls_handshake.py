@@ -141,9 +141,13 @@ class TLSHandshakeTest(nettest.NetTestCase):
         if getattr(config.advanced, 'default_timeout', None) is not None:
             self.timeout = config.advanced.default_timeout
         else:
-            timeout = 10   ## default the timeout to 10 seconds
-        socket.setdefaulttimeout(timeout)
-        self.timeout = struct.pack('ll', int(timeout), 0)
+            self.timeout = 30   ## default the timeout to 30 seconds
+
+        ## xxx For debugging, set the socket timeout higher anyway:
+        self.timeout = 30
+
+        ## We have to set the default timeout on our sockets before creation:
+        socket.setdefaulttimeout(self.timeout)
 
     def splitInput(self, input):
         addr, port = input.strip().rsplit(':', 1)
