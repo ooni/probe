@@ -599,24 +599,19 @@ class TLSHandshakeTest(nettest.NetTestCase):
             else:
                 defer.returnValue(connection)
 
-        addr, port = self.input
-        connection = defer.maybeDeferred(makeConnection, addr, port)
-        connection.addCallback(doHandshake)
-        connection.addErrback(log.err)
-        connection.addCallback(handshakeSucceeded)
-        connection.addErrback(handshakeFailed)
+        connection = deferMakeConnection(self.input)
+        connection.addCallbacks(connectionSucceeded, connectionFailed,
+                                callbackArgs=[self.input, self.timeout],
+                                errbackArgs=[self.input])
+
+        handshake = defer.Deferred()
+        handshake.addCallback(doHandshake)
+        handshake.addCallbacks(handshakeSucceeded, handshakeFailed,
+                               errbackArgs=[self.input])
+
+        connection.chainDeferred(handshake)
+        connection.addCallbacks(connectionShutdown, defer.passthru,
+                                callbackArgs=[self.input])
+        connection.addBoth(log.exception)
 
         return connection
-
-## XXX clean me up
-## old function from anonymous contribution: (saved mostly for reference of the
-## success string)
-##
-#def checkBridgeConnection(host, port)
-#  cipher_arg = ":".join(ciphers)
-#  cmd  = ["openssl", "s_client", "-connect", "%s:%s" % (host,port)]
-#  cmd += ["-cipher", cipher_arg]
-#  proc = subprocess.Popen(cmd, stdout=PIPE, stderr=PIPE,stdin=PIPE)
-#  out, error = proc.communicate()
-#  success = "Cipher is DHE-RSA-AES256-SHA" in out
-#  return success
