@@ -101,7 +101,6 @@ class TLSHandshakeTest(nettest.NetTestCase):
         if self.localOptions:
             options = self.localOptions
             self.ciphers = []
-            self.methods = []
 
             ## check that we're testing an IP:PORT, else exit gracefully:
             if not ((options['host'] and options['port']) or options['file']):
@@ -111,9 +110,22 @@ class TLSHandshakeTest(nettest.NetTestCase):
             ##     one of the TLS/SSL methods at a time.
 
             ## set the SSL/TLS method to use:
-            for method in ['ssl2', 'ssl3', 'tls1']:
-                if options[method]:
-                    self.methods.append(method)
+            if options['ssl2']:
+                if not options['ssl3']:
+                    self.context = SSL.Context(SSL.SSLv2_METHOD)
+                else:
+                    self.context = SSL.Context(SSL.SSLv23_METHOD)
+            elif options['ssl3']:
+                self.context = SSL.Context(SSL.SSLv3_METHOD)
+            elif options['tls1']:
+                self.context = SSL.Context(SSL.TLSv1_METHOD)
+            else:
+                try:
+                    raise NoSSLContextError(
+                        "No SSL/TLS context chosen! Defaulting to TLSv1...")
+                except NoSSLContextError, ncse:
+                    log.err(ncse.message)
+                    self.context = SSL.Context(SSL.TLSv1_METHOD)
 
             if not options['ciphersuite']:
                 self.ciphers = firefox_ciphers
