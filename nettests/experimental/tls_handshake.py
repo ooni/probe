@@ -209,20 +209,66 @@ class TLSHandshakeTest(nettest.NetTestCase):
             connection.connect(host)
             return connection
 
-            connection = SSL.Connection(context, socket)
+        def connectionFailed(connection, host):
+            """
+            Handle errors raised while attempting to create the socket, TLS/SSL
+            context, and :class:`OpenSSL.SSL.Connection` object.
 
-            try:
-                connection.connect((addr, port))
-            except serror, se:
-                if se.message.find("[Errno 101]"):
-                    connection.shutdown()
-                log.err(se)
+            @param connection: The Exception that was raised in
+                               :func:`makeConnection`.
+            @param host: A tuple of the host IP address as a string, and an int
+                         specifying the host port, i.e. ('1.1.1.1', 443)
+            """
+            addr, port = host
+            if isinstance(connection, IOError):
+                ## On some *nix distros, /dev/random is 0600 root:root and we get
+                ## a permissions error when trying to read
+                if connection.message.find("[Errno 13]"):
+                    raise NotRootError(
+                        "%s" % connection.message.split("[Errno 13]", 1)[1])
+
+            if isinstance(connection, socket_error):
+                if connection.message.find("[Errno 101]"):
+                    raise HostUnreachableError(
+                        "Host unreachable: %s:%s" % (addr, port))
+
+            log.err(connection)
+            self.report['host'] = addr
+            self.report['port'] = port
+            self.report['state'] = 'CONNECTION_FAILED'
+            return connection
+
+        def connectionSucceeded(connection, host, timeout):
+            """
+            If we have created a connection, set the socket options, and log the
+            connection state and peer name.
+
+            @param connection: A :class:`OpenSSL.SSL.Connection` object.
+            @param host: A tuple of the host IP and port, i.e. ('1.1.1.1', 443).
+            """
+            connection.setblocking(1)
+            ## Set the timeout on the connection:
+            ##
+            ## We want to set SO_RCVTIMEO and SO_SNDTIMEO, which both are
+            ## defined in the socket option definitions in <sys/socket.h>, and
+            ## which both take as their value, according to socket(7), a
+            ## struct timeval, which is defined in the libc manual:
+            ## https://www.gnu.org/software/libc/manual/html_node/Elapsed-Time.html
+            timeval = struct.pack('ll', int(timeout), 0)
+            connection.setsockopt(socket.SOL_SOCKET, socket.SO_RCVTIMEO, timeval)
+            connection.setsockopt(socket.SOL_SOCKET, socket.SO_SNDTIMEO, timeval)
+
+            ## Set the connection state to client mode:
+            connection.set_connect_state()
+
+            peer_name, peer_port = connection.getpeername()
+            if peer_name:
+                log.msg("Connected to %s" % peer_name)
             else:
-                connection.setblocking(1)
-                connection.setsockopt(socket.SOL_SOCKET, socket.SO_RCVTIMEO,
-                                      self.timeout)
-                log.msg("Connected to %s" % connection.getpeername())
-                log.msg("Connection state: %s " % connection.state_string())
+                log.debug("Couldn't get peer name from connection: %s" % host)
+                log.msg("Connected to: %s" % host)
+            log.msg("Connection state: %s " % connection.state_string())
+
             return connection
 
         def doHandshake(connection):
