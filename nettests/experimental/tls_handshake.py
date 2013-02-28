@@ -500,7 +500,9 @@ class TLSHandshakeTest(nettest.NetTestCase):
                         log.msg("Connection to %s:%s timed out."
                                 % (peername, str(peerport)))
                 else:
-                    log.msg("Received: %s" % recvstr)
+                    log.msg("Received: %s" % received)
+                    log.debug("State: %s" % connection.state_string())
+
             return connection
 
         def handshakeSucceeded(connection):
