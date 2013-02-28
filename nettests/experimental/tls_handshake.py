@@ -625,45 +625,61 @@ class TLSHandshakeTest(nettest.NetTestCase):
             @returns: None.
             """
             host, port = connection.getpeername()
+            log.msg("Handshake with %s:%d successful!" % (host, port))
+
             server_cert = self.getPeerCert(connection)
             server_cert_chain = self.getPeerCert(connection, get_chain=True)
 
-            s_cert          = connection.get_peer_certificate()
-            cert_subject    = self.getX509Name(s_cert.get_subject(),
-                                               get_components=True)
-            cert_subj_hash  = s_cert.subject_name_hash()
-            cert_issuer     = self.getX509Name(s_cert.get_issuer(),
-                                               get_components=True)
-            cert_public_key = self.getPublicKey(s_cert.get_pubkey())
-            cert_serial_no  = s_cert.get_serial_number()
-            cert_sig_algo   = s_cert.get_signature_algorithm()
+            renegotiations = connection.total_renegotiations()
+            cipher_list    = connection.get_cipher_list()
+            session_key    = connection.master_key()
+            rawcert        = connection.get_peer_certificate()
+            ## xxx TODO this hash needs to be formatted as SHA1, not long
+            cert_subj_hash = rawcert.subject_name_hash()
+            cert_serial    = rawcert.get_serial_number()
+            cert_sig_algo  = rawcert.get_signature_algorithm()
+            cert_subject   = self.getX509Name(rawcert.get_subject(),
+                                              get_components=True)
+            cert_issuer    = self.getX509Name(rawcert.get_issuer(),
+                                              get_components=True)
+            cert_pubkey    = self.getPublicKey(rawcert.get_pubkey())
 
             self.report['host'] = host
             self.report['port'] = port
-            self.report['state'] = connection.state_string()
-            self.report['renegotiations'] = connection.total_renegotiations()
+            self.report['state'] = self.state
+            self.report['renegotiations'] = renegotiations
             self.report['server_cert'] = server_cert
             self.report['server_cert_chain'] = \
                 ''.join([cert for cert in server_cert_chain])
-            self.report['server_ciphersuite'] = connection.get_cipher_list()
-            self.report['cert_subject'] = str(cert_subject)
-            self.report['cert_subj_hash'] = str(cert_subj_hash)
-            self.report['cert_issuer'] = str(cert_issuer)
-            ## xxx this needs to be parsed into PEM also
-            self.report['cert_public_key'] = str(cert_public_key)
-            self.report['cert_serial_no'] = str(cert_serial_no)
-            self.report['cert_sig_algo'] = str(cert_sig_algo)
-
+            self.report['server_ciphersuite'] = cipher_list
+            self.report['cert_subject'] = cert_subject
+            self.report['cert_subj_hash'] = cert_subj_hash
+            self.report['cert_issuer'] = cert_issuer
+            self.report['cert_public_key'] = cert_pubkey
+            self.report['cert_serial_no'] = cert_serial
+            self.report['cert_sig_algo'] = cert_sig_algo
             ## The session's master key is only valid for that session, and
             ## will allow us to decrypt any packet captures (if they were
             ## collected). Because we are not requesting URLs, only host:port
             ## (which would be visible in pcaps anyway, since the FQDN is
             ## never encrypted) I do not see a way for this to log any user or
             ## identifying information. Correct me if I'm wrong.
-            self.report['session_key'] = connection.master_key()
+            self.report['session_key'] = session_key
 
-            ## xxx do we need this?
-            #return connection
+            log.msg("Server certificate:\n\n%s" % server_cert)
+            log.msg("Server certificate chain:\n\n%s"
+                    % ''.join([cert for cert in server_cert_chain]))
+            log.msg("Negotiated ciphersuite:\n%s"
+                    % '\n\t'.join([cipher for cipher in cipher_list]))
+            log.msg("Certificate subject: %s" % cert_subject)
+            log.msg("Certificate subject hash: %d" % cert_subj_hash)
+            log.msg("Certificate issuer: %s" % cert_issuer)
+            log.msg("Certificate public key:\n\n%s" % cert_pubkey)
+            log.msg("Certificate signature algorithm: %s" % cert_sig_algo)
+            log.msg("Certificate serial number: %s" % cert_serial)
+            log.msg("Total renegotiations: %d" % renegotiations)
+
+            return connection
 
         def handshakeFailed(connection, host):
             """
