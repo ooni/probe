@@ -295,6 +295,56 @@ class TLSHandshakeTest(nettest.NetTestCase):
                     log.debug("State: %s" % connection.state_string())
             return connection
 
+        def connectionShutdown(connection, host):
+            """
+            Handle shutting down a :class:`OpenSSL.SSL.Connection`, including
+            correct handling of halfway shutdown connections.
+
+            Calls to :meth:`OpenSSL.SSL.Connection.shutdown` return a boolean
+            value: if the connection is already shutdown, it returns True,
+            else it returns false. Thus we loop through a block which detects
+            if the connection is an a partial shutdown state and corrects that
+            if that is the case, else it waits for one second, then attempts
+            shutting down the connection again.
+
+            Detection of a partial shutdown state is done through
+            :meth:`OpenSSL.SSL.Connection.get_shutdown` which queries OpenSSL
+            for a bitvector of the server and client shutdown states. For
+            example, the binary string '0b00' is an open connection, and
+            '0b10' is a partially closed connection that has been shutdown on
+            the serverside.
+
+            @param connection: A :class:`OpenSSL.SSL.Connection`.
+
+            @param host: A tuple of: a string representation of the remote
+                         host's IP address, and an integer specifying the
+                         port.
+            """
+            peername, peerport = host
+
+            if isinstance(connection, SSL.Connection):
+                log.msg("Closing connection to %s:%d..."
+                        % (peername, peerport))
+                while not connection.shutdown():
+                    ## if the connection is halfway shutdown, we have to
+                    ## wait for a ZeroReturnError on connection.recv():
+                    if (bin(connection.get_shutdown()) == '0b01') \
+                            or (bin(connection.get_shutdown()) == '0b10'):
+                        try:
+                            _read_buffer = connection.pending()
+                            connection.recv(_read_buffer)
+                        except SSL.ZeroReturnError, zre: continue
+                    else:
+                        sleep(1)
+                else:
+                    log.msg("Closed connection to %s:%d"
+                            % (peername, peerport))
+            elif isinstance(connection, types.NoneType):
+                log.debug("connectionShutdown: got NoneType for connection")
+            else:
+                log.debug("connectionShutdown: expected connection, got %s"
+                          % connection.__repr__())
+            return connection
 
         def handleWantRead(connection):
             """
