@@ -482,6 +482,7 @@ class TLSHandshakeTest(nettest.NetTestCase):
             """
             try:
                 while connection.want_read():
+                    self.state = connection.state_string()
                     log.debug("Connection to %s HAS want_read" % host)
                     _read_buffer = connection.pending()
                     log.debug("Rereading %d bytes..." % _read_buffer)
@@ -490,11 +491,13 @@ class TLSHandshakeTest(nettest.NetTestCase):
                     log.debug("Received %d bytes" % rereceived)
                     log.debug("State: %s" % connection.state_string())
                 else:
+                    self.state = connection.state_string()
                     peername, peerport = connection.getpeername()
                     log.debug("Connection to %s:%s DOES NOT HAVE want_read"
                               % (peername, peerport))
                     log.debug("State: %s" % connection.state_string())
             except SSL.WantWriteError, wwe:
+                self.state = connection.state_string()
                 log.debug("Got WantWriteError while handling want_read")
                 log.debug("WantWriteError: %s" % wwe.message)
                 log.debug("Switching to handleWantWrite()...")
@@ -507,12 +510,14 @@ class TLSHandshakeTest(nettest.NetTestCase):
             """
             try:
                 while connection.want_write():
+                    self.state = connection.state_string()
                     log.debug("Connection to %s HAS want_write" % host)
                     sleep(1)
                     resent = connection.send("o\r\n")
                     log.debug("Sent: %d" % resent)
                     log.debug("State: %s" % connection.state_string())
             except SSL.WantReadError, wre:
+                self.state = connection.state_string()
                 log.debug("Got WantReadError while handling want_write")
                 log.debug("WantReadError: %s" % wre.message)
                 log.debug("Switching to handleWantRead()...")
@@ -565,23 +570,27 @@ class TLSHandshakeTest(nettest.NetTestCase):
                     received = connection.recv(int(_read_buffer))
                 except SSL.WantReadError, wre:
                     if connection.want_read():
+                        self.state = connection.state_string()
                         connection = handleWantRead(connection)
                     else:
                         ## if we still have an SSL_ERROR_WANT_READ, then try
                         ## to renegotiate
+                        self.state = connection.state_string()
                         connection = connectionRenegotiate(connection,
                                                            connection.getpeername(),
                                                            wre.message)
                 except SSL.WantWriteError, wwe:
-                    log.debug("State: %s" % connection.state_string())
+                    self.state = connection.state_string()
+                    log.debug("Handshake state: %s" % self.state)
                     if connection.want_write():
                         connection = handleWantWrite(connection)
                     else:
-                        log.msg("Connection to %s:%s timed out."
-                                % (peername, str(peerport)))
+                        raise ConnectionTimeout("Connection to %s:%d timed out."
+                                                % (peername, peerport))
                 else:
                     log.msg("Received: %s" % received)
-                    log.debug("State: %s" % connection.state_string())
+                    self.state = connection.state_string()
+                    log.debug("Handshake state: %s" % self.state)
 
             return connection
 
