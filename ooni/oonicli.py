@@ -106,8 +106,8 @@ def runWithDirector():
     if global_options['testdeck']:
         test_deck = yaml.safe_load(open(global_options['testdeck']))
         for test in test_deck:
-            test_list.append(NetTestLoader(test['options'],
-                                           test_file=global_options['test_file']))
+            test_list.append(NetTestLoader(test['options']['subargs'],
+                                           test_file=test['options']['test_file']))
     else:
         log.debug("No test deck detected")
         test_list.append(NetTestLoader(global_options['subargs'],
