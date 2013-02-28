@@ -54,6 +54,22 @@ firefox_ciphers = ["ECDHE-ECDSA-AES256-SHA",
                    "DHE-DSS-CAMELLIA128-SHA",]
 
 
+class NoSSLContextError(Exception):
+    """
+    Raised when we're missing the SSL context method, which should be one of
+    the following:
+
+        * :attr:`OpenSSL.SSL.SSLv2_METHOD`
+        * :attr:`OpenSSL.SSL.SSLv23_METHOD`
+        * :attr:`OpenSSL.SSL.SSLv3_METHOD`
+        * :attr:`OpenSSL.SSL.TLSv1_METHOD`
+    """
+    pass
+
+class HostUnreachableError(Exception):
+    """Raised when there the host IP address appears to be unreachable."""
+    pass
+
 class UsageOptions(usage.Options):
     optParameters = [
         ['host', 'h', None, 'Remote host IP address (v4/v6)'],
