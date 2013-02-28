@@ -292,22 +292,29 @@ class TLSHandshakeTest(nettest.NetTestCase):
                          specifying the host port, i.e. ('1.1.1.1', 443)
             """
             addr, port = host
-            if isinstance(connection, IOError):
-                ## On some *nix distros, /dev/random is 0600 root:root and we get
-                ## a permissions error when trying to read
-                if connection.message.find("[Errno 13]"):
-                    raise NotRootError(
-                        "%s" % connection.message.split("[Errno 13]", 1)[1])
 
-            if isinstance(connection, socket_error):
-                if connection.message.find("[Errno 101]"):
-                    raise HostUnreachableError(
-                        "Host unreachable: %s:%s" % (addr, port))
+            if not isinstance(connection, SSL.Connection):
+                if isinstance(connection, IOError):
+                    ## On some *nix distros, /dev/random is 0600 root:root and
+                    ## we get a permissions error when trying to read
+                    if connection.message.find("[Errno 13]"):
+                        raise NotRootError(
+                            "%s" % connection.message.split("[Errno 13]", 1)[1])
+                elif isinstance(connection, socket_error):
+                    if connection.message.find("[Errno 101]"):
+                        raise HostUnreachableError(
+                            "Host unreachable: %s:%s" % (addr, port))
+                elif isinstance(connection, Exception):
+                    log.debug("connectionFailed: got Exception:")
+                    log.err("Connection failed with reason: %s"
+                            % connection.message)
+                else:
+                    log.err("Connection failed with reason: %s" % str(connection))
 
-            log.err(connection)
             self.report['host'] = addr
             self.report['port'] = port
             self.report['state'] = 'CONNECTION_FAILED'
+
             return connection
 
         def connectionSucceeded(connection, host, timeout):
