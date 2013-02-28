@@ -107,16 +107,19 @@ class TLSHandshakeTest(nettest.NetTestCase):
             if not ((options['host'] and options['port']) or options['file']):
                  sys.exit("Need --host and --port, or --file!")
 
+            ## xxx TODO there's nothing that tells the user they can only have
+            ##     one of the TLS/SSL methods at a time.
+
             ## set the SSL/TLS method to use:
             for method in ['ssl2', 'ssl3', 'tls1']:
                 if options[method]:
                     self.methods.append(method)
 
-            ## if we weren't given a file with a list of ciphersuites to use,
-            ## then use the firefox default list:
             if not options['ciphersuite']:
                 self.ciphers = firefox_ciphers
             else:
+                ## if we weren't given a file with a list of ciphersuites to
+                ## use, then use the firefox default list:
                 if os.path.isfile(options['ciphersuite']):
                     with open(options['ciphersuite']) as cipherfile:
                         for line in cipherfile.readlines():
