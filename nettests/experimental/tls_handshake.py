@@ -138,8 +138,8 @@ class TLSHandshakeTest(nettest.NetTestCase):
                             self.ciphers.append(line.strip())
             self.ciphersuite = ":".join(self.ciphers)
 
-        if hasattr(config.advanced, 'default_timeout'):
-            timeout = config.advanced.default_timeout
+        if getattr(config.advanced, 'default_timeout', None) is not None:
+            self.timeout = config.advanced.default_timeout
         else:
             timeout = 10   ## default the timeout to 10 seconds
         socket.setdefaulttimeout(timeout)
