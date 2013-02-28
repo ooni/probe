@@ -29,8 +29,7 @@ class Options(usage.Options):
                 " files listed on the command line")
 
     optFlags = [["help", "h"],
-                ["resume", "r"],
-                ["no-default-reporter", "n"]]
+                ["resume", "r"]]
 
     optParameters = [["reportfile", "o", None, "report file name"],
                      ["testdeck", "i", None,
@@ -153,14 +152,6 @@ def runWithDirector():
                     log.msg("Should be in the format http://<collector_address>:<port>")
                     log.msg("for example: ooniprobe -c httpo://nkvphnp3p6agi5qq.onion")
                     sys.exit(1)
-
-            # Select one of the baked-in reporters unless the user has requested otherwise
-            if not global_options['no-default-reporter']:
-                with open('collector') as f:
-                    reporter_url = random.choice(f.readlines())
-                    reporter_url = reporter_url.split('#')[0].strip()
-                    oonib_reporter = OONIBReporter(test_details, reporter_url)
-                    reporters.append(oonib_reporter)
 
             log.debug("adding callback for startNetTest")
             d.addCallback(director.startNetTest, net_test_loader, reporters)
