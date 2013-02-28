@@ -589,8 +589,15 @@ class TLSHandshakeTest(nettest.NetTestCase):
             ## xxx do we need this?
             #return connection
 
+        @defer.inlineCallbacks
+        def deferMakeConnection(host):
+            connection = yield makeConnection(host)
+            if isinstance(connection, Failure) \
+                    or isinstance(connection, Exception):
+                failed = connectionFailed(connection, host)
+                defer.returnValue(failed)
             else:
-                return handshakeSucceeded(connection)
+                defer.returnValue(connection)
 
         addr, port = self.input
         connection = defer.maybeDeferred(makeConnection, addr, port)
