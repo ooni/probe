@@ -190,10 +190,24 @@ class TLSHandshakeTest(nettest.NetTestCase):
             return cert_chain
 
     def test_tlsv1_handshake(self):
+        """xxx fill me in"""
 
-        def makeConnection(addr, port):
-            socket = self.buildSocket(addr)
+        def makeConnection(host):
+            """
+            Create a socket to the host's IP address, then get the TLS/SSL context
+            method and ciphersuite list. Lastly, initiate a connection to the
+            host.
+
+            @param host: A tuple of the host IP and port, i.e. (addr, port).
+            @returns: A :class:`OpenSSL.SSL.Connection` object (or any Exception
+                      that was raised), and the :param:`host`.
+            """
+            addr, port = host
+            sckt = self.buildSocket(addr)
             context = self.getContext()
+            connection = SSL.Connection(context, sckt)
+            connection.connect(host)
+            return connection
 
             connection = SSL.Connection(context, socket)
 
