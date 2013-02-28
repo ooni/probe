@@ -172,15 +172,15 @@ class TLSHandshakeTest(nettest.NetTestCase):
         return s
 
     def getContext(self):
-        if 'ssl2' in self.methods:
-            if not 'ssl3' in self.methods:
-                context = SSL.Context(SSL.SSLv2_METHOD)
-            else:
-                context = SSL.Context(SSL.SSLv23_METHOD)
-        elif 'ssl3' in self.methods:
-            context = SSL.Context(SSL.SSLv3_METHOD)
-        elif 'tls1' in self.methods:
-            context = SSL.Context(SSL.TLSv1_METHOD)
+        self.context.set_cipher_list(self.ciphersuite)
+        return self.context
+
+    @staticmethod
+    def getPeerCert(connection, get_chain=False):
+        if not get_chain:
+            x509_cert = connection.get_peer_certificate()
+            pem_cert = dump_certificate(FILETYPE_PEM, x509_cert)
+            return pem_cert
         else:
             raise Exception("No SSL/TLS method chosen!")
         context.set_cipher_list(self.ciphersuite)
