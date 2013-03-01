@@ -20,7 +20,7 @@
     logfile: reports/before_i_commit.log
     pcapfile: null
     reportfile: reports/http_host.yamloo
-    subargs: [-b, 'http://93.95.227.200', -c, 'http://nkvphnp3p6agi5qq.onion', -f, example_inputs/http_host_file.txt]
+    subargs: [-b, 'http://93.95.227.200', -f, example_inputs/http_host_file.txt]
     test_file: nettests/manipulation/http_host.py
 - options:
     collector: null
