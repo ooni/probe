@@ -263,7 +263,7 @@ def runTestCasesWithInputUnit(test_cases, input_unit, yaml_reporter,
     log.debug("Running test cases with input unit")
     dl = []
     for test_input in input_unit:
-        log.debug("Running test with this input %s" % test_input)
+        log.debug("Running test with this input %s" % str(test_input))
         d = runTestCasesWithInput(test_cases,
                 test_input, yaml_reporter, oonib_reporter)
         dl.append(d)
