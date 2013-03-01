@@ -1,133 +1,355 @@
-import itertools
-import traceback
-import sys
 import os
+import re
 
-from twisted.trial import unittest, itrial, util
-from twisted.internet import defer, utils
-from twisted.python import usage
+from twisted.internet import defer, reactor
+from twisted.trial.runner import filenameToModule
+from twisted.python import usage, reflect
 
-from twisted.internet.error import ConnectionRefusedError, TCPTimedOutError
-from twisted.internet.error import DNSLookupError
-from twisted.internet.error import TimeoutError as GenericTimeoutError
+from ooni.tasks import Measurement
+from ooni.utils import log, checkForRoot, NotRootError, geodata
+from ooni import config
+from ooni import otime
 
-from twisted.internet.defer import TimeoutError as DeferTimeoutError
-from twisted.web._newclient import ResponseNeverReceived
+from ooni.errors import AllReportersFailed
 
-from ooni.utils import log
+from inspect import getmembers
+from StringIO import StringIO
 
-from txsocksx.errors import SOCKSError
-from txsocksx.errors import MethodsNotAcceptedError, AddressNotSupported
-from txsocksx.errors import ConnectionError, NetworkUnreachable
-from txsocksx.errors import ConnectionLostEarly, ConnectionNotAllowed
-from txsocksx.errors import NoAcceptableMethods, ServerFailure
-from txsocksx.errors import HostUnreachable, ConnectionRefused
-from txsocksx.errors import TTLExpired, CommandNotSupported
-
-
-from socket import gaierror
-
-def handleAllFailures(failure):
-    """
-    Here we make sure to trap all the failures that are supported by the
-    failureToString function and we return the the string that represents the
-    failure.
-    """
-    failure.trap(ConnectionRefusedError, gaierror, DNSLookupError,
-            TCPTimedOutError, ResponseNeverReceived, DeferTimeoutError,
-            GenericTimeoutError,
-            SOCKSError, MethodsNotAcceptedError, AddressNotSupported,
-            ConnectionError, NetworkUnreachable, ConnectionLostEarly,
-            ConnectionNotAllowed, NoAcceptableMethods, ServerFailure,
-            HostUnreachable, ConnectionRefused, TTLExpired, CommandNotSupported)
-
-    return failureToString(failure)
-
-def failureToString(failure):
-    """
-    Given a failure instance return a string representing the kind of error
-    that occurred.
-
-    Args:
-
-        failure: a :class:twisted.internet.error instance
-
-    Returns:
-
-        A string representing the HTTP response error message.
-    """
-    string = None
-    if isinstance(failure.value, ConnectionRefusedError):
-        log.err("Connection refused. The backend may be down")
-        string = 'connection_refused_error'
-
-    elif isinstance(failure.value, gaierror):
-        log.err("Address family for hostname not supported")
-        string = 'address_family_not_supported_error'
-
-    elif isinstance(failure.value, DNSLookupError):
-        log.err("DNS lookup failure")
-        string = 'dns_lookup_error'
-
-    elif isinstance(failure.value, TCPTimedOutError):
-        log.err("TCP Timed Out Error")
-        string = 'tcp_timed_out_error'
-
-    elif isinstance(failure.value, ResponseNeverReceived):
-        log.err("Response Never Received")
-        string = 'response_never_received'
-
-    elif isinstance(failure.value, DeferTimeoutError):
-        log.err("Deferred Timeout Error")
-        string = 'deferred_timeout_error'
-
-    elif isinstance(failure.value, GenericTimeoutError):
-        log.err("Time Out Error")
-        string = 'generic_timeout_error'
-
-    elif isinstance(failure.value, ServerFailure):
-        log.err("SOCKS error: ServerFailure")
-        string = 'socks_server_failure'
-
-    elif isinstance(failure.value, ConnectionNotAllowed):
-        log.err("SOCKS error: ConnectionNotAllowed")
-        string = 'socks_connection_not_allowed'
-
-    elif isinstance(failure.value, NetworkUnreachable):
-        log.err("SOCKS error: NetworkUnreachable")
-        string = 'socks_network_unreachable'
-
-    elif isinstance(failure.value, HostUnreachable):
-        log.err("SOCKS error: HostUnreachable")
-        string = 'socks_host_unreachable'
-
-    elif isinstance(failure.value, ConnectionRefused):
-        log.err("SOCKS error: ConnectionRefused")
-        string = 'socks_connection_refused'
-
-    elif isinstance(failure.value, TTLExpired):
-        log.err("SOCKS error: TTLExpired")
-        string = 'socks_ttl_expired'
-
-    elif isinstance(failure.value, CommandNotSupported):
-        log.err("SOCKS error: CommandNotSupported")
-        string = 'socks_command_not_supported'
-
-    elif isinstance(failure.value, AddressNotSupported):
-        log.err("SOCKS error: AddressNotSupported")
-        string = 'socks_address_not_supported'
-    elif isinstance(failure.value, SOCKSError):
-        log.err("Generic SOCKS error")
-        string = 'socks_error'
-
-    else:
-        log.err("Unknown failure type: %s" % type(failure))
-        string = 'unknown_failure %s' % str(failure.value)
-
-    return string
-
-class NoPostProcessor(Exception):
+class NoTestCasesFound(Exception):
     pass
+
+class NetTestLoader(object):
+    method_prefix = 'test'
+
+    def __init__(self, options):
+        self.options = options
+        self.testCases = self.loadNetTest(options['test'])
+
+    @property
+    def testDetails(self):
+        from ooni import __version__ as software_version
+
+        client_geodata = {}
+        if config.probe_ip and (config.privacy.includeip or \
+                config.privacy.includeasn or \
+                config.privacy.includecountry or \
+                config.privacy.includecity):
+            log.msg("We will include some geo data in the report")
+            client_geodata = geodata.IPToLocation(config.probe_ip)
+
+        if config.privacy.includeip:
+            client_geodata['ip'] = config.probe_ip
+        else:
+            client_geodata['ip'] = "127.0.0.1"
+
+        # Here we unset all the client geodata if the option to not include then
+        # has been specified
+        if client_geodata and not config.privacy.includeasn:
+            client_geodata['asn'] = 'AS0'
+        elif 'asn' in client_geodata:
+            # XXX this regexp should probably go inside of geodata
+            client_geodata['asn'] = \
+                    re.search('AS\d+', client_geodata['asn']).group(0)
+            log.msg("Your AS number is: %s" % client_geodata['asn'])
+        else:
+            client_geodata['asn'] = None
+
+        if (client_geodata and not config.privacy.includecity) \
+                or ('city' not in client_geodata):
+            client_geodata['city'] = None
+
+        if (client_geodata and not config.privacy.includecountry) \
+                or ('countrycode' not in client_geodata):
+            client_geodata['countrycode'] = None
+
+        test_details = {'start_time': otime.utcTimeNow(),
+            'probe_asn': client_geodata['asn'],
+            'probe_cc': client_geodata['countrycode'],
+            'probe_ip': client_geodata['ip'],
+            'test_name': self.testName,
+            'test_version': self.testVersion,
+            'software_name': 'ooniprobe',
+            'software_version': software_version,
+            'options': self.options
+        }
+        return test_details
+
+
+    def _parseNetTestOptions(self, klass):
+        """
+        Helper method to assemble the options into a single UsageOptions object
+        """
+        usage_options = klass.usageOptions
+
+        if not hasattr(usage_options, 'optParameters'):
+            usage_options.optParameters = []
+
+        if klass.inputFile:
+            usage_options.optParameters.append(klass.inputFile)
+
+        if klass.baseParameters:
+            for parameter in klass.baseParameters:
+                usage_options.optParameters.append(parameter)
+
+        if klass.baseFlags:
+            if not hasattr(usage_options, 'optFlags'):
+                usage_options.optFlags = []
+            for flag in klass.baseFlags:
+                usage_options.optFlags.append(flag)
+
+        return usage_options
+
+    @property
+    def usageOptions(self):
+        usage_options = None
+        for test_class, test_method in self.testCases:
+            if not usage_options:
+                usage_options = self._parseNetTestOptions(test_class)
+            else:
+                assert usage_options == test_class.usageOptions
+        return usage_options
+
+    def loadNetTest(self, net_test_file):
+        """
+        Creates all the necessary test_cases (a list of tuples containing the
+        NetTestCase (test_class, test_method))
+
+        example:
+            [(test_classA, test_method1),
+            (test_classA, test_method2),
+            (test_classA, test_method3),
+            (test_classA, test_method4),
+            (test_classA, test_method5),
+
+            (test_classB, test_method1),
+            (test_classB, test_method2)]
+
+        Note: the inputs must be valid for test_classA and test_classB.
+
+        net_test_file:
+            is either a file path or a file like object that will be used to
+            generate the test_cases.
+        """
+        test_cases = None
+        try:
+            if os.path.isfile(net_test_file):
+                test_cases = self._loadNetTestFile(net_test_file)
+            else:
+                net_test_file = StringIO(net_test_file)
+                raise TypeError("not a file path")
+
+        except TypeError:
+            if hasattr(net_test_file, 'read'):
+                test_cases = self._loadNetTestFromFileObject(net_test_file)
+
+        if not test_cases:
+            raise NoTestCasesFound
+
+        test_class, _ = test_cases[0]
+        self.testVersion = test_class.version
+        self.testName = test_class.name.lower().replace(' ','_')
+        return test_cases
+
+    def checkOptions(self):
+        """
+        Call processTest and processOptions methods of each NetTestCase
+        """
+        test_classes = set([])
+        for test_class, test_method in self.testCases:
+            test_classes.add(test_class)
+
+        for klass in test_classes:
+            options = self.usageOptions()
+            options.parseOptions(self.options['subargs'])
+            if options:
+                klass.localOptions = options
+
+            test_instance = klass()
+            if test_instance.requiresRoot:
+                checkForRoot()
+            test_instance._checkRequiredOptions()
+            test_instance._checkValidOptions()
+
+            inputs = test_instance.getInputProcessor()
+            if not inputs:
+                inputs = [None]
+            klass.inputs = inputs
+
+    def _loadNetTestFromFileObject(self, net_test_string):
+        """
+        Load NetTest from a string
+        """
+        ns = {}
+        test_cases = []
+        exec net_test_string.read() in ns
+        for item in ns.itervalues():
+            test_cases.extend(self._get_test_methods(item))
+        return test_cases
+
+    def _loadNetTestFile(self, net_test_file):
+        """
+        Load NetTest from a file
+        """
+        test_cases = []
+        module = filenameToModule(net_test_file)
+        for __, item in getmembers(module):
+            test_cases.extend(self._get_test_methods(item))
+        return test_cases
+
+    def _get_test_methods(self, item):
+        """
+        Look for test_ methods in subclasses of NetTestCase
+        """
+        test_cases = []
+        try:
+            assert issubclass(item, NetTestCase)
+            methods = reflect.prefixedMethodNames(item, self.method_prefix)
+            test_methods = []
+            for method in methods:
+                test_methods.append(self.method_prefix + method)
+            if test_methods:
+                test_cases.append((item, test_methods))
+        except (TypeError, AssertionError):
+            pass
+        return test_cases
+
+class NetTestState(object):
+    def __init__(self, allTasksDone):
+        """
+        This keeps track of the state of a running NetTests case.
+
+        Args:
+            allTasksDone is a deferred that will get fired once all the NetTest
+            cases have reached a final done state.
+        """
+        self.doneTasks = 0
+        self.tasks = 0
+
+        self.completedScheduling = False
+        self.allTasksDone = allTasksDone
+
+    def taskCreated(self):
+        self.tasks += 1
+
+    def checkAllTasksDone(self):
+        if self.completedScheduling and \
+                self.doneTasks == self.tasks:
+            self.allTasksDone.callback(self.doneTasks)
+
+    def taskDone(self):
+        """
+        This is called every time a task has finished running.
+        """
+        self.doneTasks += 1
+        self.checkAllTasksDone()
+
+    def allTasksScheduled(self):
+        """
+        This should be called once all the tasks that need to run have been
+        scheduled.
+
+        XXX this is ghetto.
+        The reason for which we are calling allTasksDone inside of the
+        allTasksScheduled method is called after all tasks are done, then we
+        will run into a race condition. The race is that we don't end up
+        checking that all the tasks are complete because no task is to be
+        scheduled.
+        """
+        self.completedScheduling = True
+        self.checkAllTasksDone()
+
+class NetTest(object):
+    director = None
+
+    def __init__(self, net_test_loader, report):
+        """
+        net_test_loader:
+             an instance of :class:ooni.nettest.NetTestLoader containing
+             the test to be run.
+        """
+        self.report = report
+        self.testCases = net_test_loader.testCases
+
+        # This will fire when all the measurements have been completed and
+        # all the reports are done. Done means that they have either completed
+        # successfully or all the possible retries have been reached.
+        self.done = defer.Deferred()
+
+        self.state = NetTestState(self.done)
+
+    def doneReport(self, report_results):
+        """
+        This will get called every time a report is done and therefore a
+        measurement is done.
+
+        The state for the NetTest is informed of the fact that another task has
+        reached the done state.
+
+        Args:
+            report_results:
+                is the list of tuples returned by the self.report.write
+                :class:twisted.internet.defer.DeferredList
+
+        Returns:
+            the same deferred list results
+        """
+        for report_status, report_result in report_results:
+            if report_status == False:
+                self.director.reporterFailed(report_result, self)
+
+        self.state.taskDone()
+
+        if len(self.report.reporters) == 0:
+            raise AllReportersFailed
+
+        return report_results
+
+    def makeMeasurement(self, test_class, test_method, test_input=None):
+        """
+        Creates a new instance of :class:ooni.tasks.Measurement and add's it's
+        callbacks and errbacks.
+
+        Args:
+            test_class:
+                a subclass of :class:ooni.nettest.NetTestCase
+
+            test_method:
+                a string that represents the method to be called on test_class
+
+            test_input:
+                optional argument that represents the input to be passed to the
+                NetTestCase
+
+        """
+        measurement = Measurement(test_class, test_method, test_input)
+        measurement.netTest = self
+
+        if self.director:
+            measurement.done.addCallback(self.director.measurementSucceeded)
+            measurement.done.addErrback(self.director.measurementFailed, measurement)
+
+        if self.report:
+            measurement.done.addBoth(self.report.write)
+
+        if self.report and self.director:
+            measurement.done.addBoth(self.doneReport)
+
+        return measurement
+
+    def generateMeasurements(self):
+        """
+        This is a generator that yields measurements and registers the
+        callbacks for when a measurement is successful or has failed.
+        """
+        for test_class, test_methods in self.testCases:
+            for input in test_class.inputs:
+                for method in test_methods:
+                    log.debug("Running %s %s" % (test_class, method))
+                    measurement = self.makeMeasurement(test_class, method, input)
+                    self.state.taskCreated()
+                    yield measurement
+
+        self.state.allTasksScheduled()
 
 class NetTestCase(object):
     """
@@ -221,10 +443,13 @@ class NetTestCase(object):
         """
         raise NoPostProcessor
 
-    def inputProcessor(self, filename=None):
+    def inputProcessor(self, filename):
         """
         You may replace this with your own custom input processor. It takes as
         input a file name.
+
+        An inputProcessor is an iterator that will yield one item from the file
+        and takes as argument a filename.
 
         This can be useful when you have some input data that is in a certain
         format and you want to set the input attribute of the test to something
@@ -243,37 +468,68 @@ class NetTestCase(object):
         Other fun stuff is also possible.
         """
         log.debug("Running default input processor")
-        if filename:
-            fp = open(filename)
-            for x in fp.xreadlines():
-                yield x.strip()
-            fp.close()
+        with open(filename) as f:
+            for line in f:
+                yield line.strip()
+
+    @property
+    def inputFileSpecified(self):
+        """
+        Returns:
+            True
+                when inputFile is supported and is specified
+            False
+                when input is either not support or not specified
+        """
+        if not self.inputFile:
+            return False
+
+        k = self.inputFile[0]
+        if self.localOptions.get(k):
+            return True
         else:
-            pass
+            return False
+
+    def getInputProcessor(self):
+        """
+        This method must be called after all options are validated by
+        _checkValidOptions and _checkRequiredOptions, which ensure that
+        if the inputFile is a required option it will be present.
+
+        We check to see if it's possible to have an input file and if the user
+        has specified such file.
+
+        Returns:
+            a generator that will yield one item from the file based on the
+            inputProcessor.
+        """
+        if self.inputFileSpecified:
+            self.inputFilename = self.localOptions[self.inputFile[0]]
+            return self.inputProcessor(self.inputFilename)
+
+        return None
+
+    def _checkValidOptions(self):
+        for option in self.localOptions:
+            if option not in self.usageOptions():
+                if not self.inputFile or option not in self.inputFile:
+                    raise InvalidOption
 
     def _checkRequiredOptions(self):
         for required_option in self.requiredOptions:
             log.debug("Checking if %s is present" % required_option)
-            if not self.localOptions[required_option]:
-                raise usage.UsageError("%s not specified!" % required_option)
-
-    def _processOptions(self):
-        if self.inputFilename:
-            inputProcessor = self.inputProcessor
-            inputFilename = self.inputFilename
-            class inputProcessorIterator(object):
-                """
-                Here we convert the input processor generator into an iterator
-                so that we can run it twice.
-                """
-                def __iter__(self):
-                    return inputProcessor(inputFilename)
-            self.inputs = inputProcessorIterator()
-
-        return {'inputs': self.inputs,
-                'name': self.name, 'version': self.version
-               }
+            if required_option not in self.localOptions or \
+                self.localOptions[required_option] == None:
+                raise MissingRequiredOption(required_option)
 
     def __repr__(self):
         return "<%s inputs=%s>" % (self.__class__, self.inputs)
 
+class FailureToLoadNetTest(Exception):
+    pass
+class NoPostProcessor(Exception):
+    pass
+class InvalidOption(Exception):
+    pass
+class MissingRequiredOption(Exception):
+    pass

@@ -10,7 +10,7 @@ from twisted.python import usage
 from ooni.utils import log
 from ooni.utils.net import userAgents
 from ooni.templates import httpt
-from ooni.nettest import failureToString, handleAllFailures
+from ooni.errors import failureToString, handleAllFailures
 
 class UsageOptions(usage.Options):
     optParameters = [

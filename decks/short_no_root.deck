@@ -1,0 +1,60 @@
+- options:
+    collector: null
+    help: 0
+    logfile: null
+    no-default-reporter: 0
+    parallelism: '10'
+    pcapfile: null
+    reportfile: null
+    resume: 0
+    subargs: []
+    test: nettests/manipulation/captiveportal.py
+    testdeck: null
+- options:
+    collector: null
+    help: 0
+    logfile: null
+    no-default-reporter: 0
+    parallelism: '10'
+    pcapfile: null
+    reportfile: null
+    resume: 0
+    subargs: [-f, example_inputs/url_lists_file.txt]
+    test: nettests/blocking/http_requests.py
+    testdeck: null
+- options:
+    collector: null
+    help: 0
+    logfile: null
+    no-default-reporter: 0
+    parallelism: '10'
+    pcapfile: null
+    reportfile: null
+    resume: 0
+    subargs: [-f, example_inputs/tcpconnect_host_file.txt]
+    test: nettests/blocking/tcpconnect.py
+    testdeck: null
+- options:
+    collector: null
+    help: 0
+    logfile: null
+    no-default-reporter: 0
+    parallelism: '10'
+    pcapfile: null
+    reportfile: null
+    resume: 0
+    subargs: [-f, example_inputs/http_host_file.txt, -T, example_inputs/dns_tamper_test_resolvers.txt]
+    test: nettests/blocking/dnsconsistency.py
+    testdeck: null
+- options:
+    collector: null
+    help: 0
+    logfile: null
+    no-default-reporter: 0
+    parallelism: '10'
+    pcapfile: null
+    reportfile: null
+    resume: 0
+    subargs: [-b, 'http://93.95.227.200']
+    test: nettests/manipulation/http_header_field_manipulation.py
+    testdeck: null
