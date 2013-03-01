@@ -136,7 +136,6 @@ class BaseScapyTest(NetTestCase):
 
         config.scapyFactory.registerProtocol(scapySender)
         scapySender.startSending(packets)
-        #scapySender.sendPackets(packets)
 
         scapySender.stopSending()
         for sent_packet in packets:
