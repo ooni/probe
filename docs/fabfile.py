@@ -1,7 +1,9 @@
 import os
-from fabric.api import run
+from fabric.api import run, env
 from fabric.context_managers import settings
 from fabric.operations import sudo, local, put
+
+env.use_ssh_config = True
 
 def update_docs():
     local('make html')
