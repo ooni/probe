@@ -41,7 +41,7 @@ class DNSInjectionTest(dnst.DNSTest):
             if line.startswith('http://'):
                 yield line.replace('http://', '').replace('/', '').strip()
             else:
-                yield x.strip()
+                yield line.strip()
         fp.close()
 
     def test_injection(self):
