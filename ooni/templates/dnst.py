@@ -11,7 +11,9 @@ from twisted.names.client import Resolver
 from twisted.names.error import DNSQueryRefusedError
 
 from ooni.utils import log
-from ooni.nettest import NetTestCase, failureToString
+from ooni.nettest import NetTestCase
+from ooni.errors import failureToString
+
 from socket import gaierror
 
 
