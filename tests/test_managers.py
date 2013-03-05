@@ -194,7 +194,7 @@ class TestMeasurementManager(unittest.TestCase):
         @mock_task.done.addCallback
         def done(res):
             self.assertEqual(self.mockNetTest.successes,
-                    [mock_task])
+                    [42])
 
             self.assertEqual(len(self.mockNetTest.successes), 1)
         return mock_task.done

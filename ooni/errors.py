@@ -130,3 +130,9 @@ class GeoIPDataFilesNotFound(Exception):
     pass
 
 
+class ReportNotCreated(Exception):
+    pass
+
+class ReportAlreadyClosed(Exception):
+    pass
+
