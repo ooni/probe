@@ -10,9 +10,9 @@ privacy:
     includeip: false
     # Should we include the ASN of the probe in the report?
     includeasn: false
-    # Should we include the ASN of the probe in the report?
+    # Should we include the country as reported by GeoIP in the report?
     includecountry: false
-    # Should we include the ASN of the probe in the report?
+    # Should we include the city as reported by GeoIP in the report?
     includecity: false
     # Should we collect a full packet capture on the client?
     includepcap: false
