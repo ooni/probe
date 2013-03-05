@@ -14,24 +14,52 @@ from scapy.config import conf
 from ooni.utils import log
 from ooni import config
 
-try:
-    conf.use_pcap = True
-    conf.use_dnet = True
+class LibraryNotInstalledError(Exception):
+    pass
 
+def pcapdnet_installed():
+    """
+    Checks to see if libdnet or libpcap are installed and set the according
+    variables.
+
+    Returns:
+
+        True
+            if pypcap and libdnet are installed
+
+        False
+            if one of the two is absent
+    """
+    try:
+        conf.use_pcap = True
+        conf.use_dnet = True
+        from scapy.arch import pcapdnet
+
+        config.pcap_dnet = True
+
+    except ImportError:
+        log.err("pypcap or dnet not installed. "
+                "Certain tests may not work.")
+
+        config.pcap_dnet = False
+        conf.use_pcap = False
+        conf.use_dnet = False
+
+    # This is required for unix systems that are different than linux (OSX for
+    # example) since scapy explicitly wants pcap and libdnet installed for it
+    # to work.
+    try:
+        from scapy.arch import pcapdnet
+    except ImportError:
+        log.err("Your platform requires to having libdnet and libpcap installed.")
+        raise LibraryNotInstalledError
+
+    return config.pcap_dnet
+
+if pcapdnet_installed():
     from scapy.all import PcapWriter
-    from scapy.arch import pcapdnet
 
-    config.pcap_dnet = True
-    from scapy.all import Gen, SetGen, MTU
-
-except ImportError, e:
-    log.err("pypcap or dnet not installed. "
-            "Certain tests may not work.")
-
-    config.pcap_dnet = False
-    conf.use_pcap = False
-    conf.use_dnet = False
-
+else:
     class DummyPcapWriter:
         def __init__(self, pcap_filename, *arg, **kw):
             log.err("Initializing DummyPcapWriter. We will not actually write to a pcapfile")
@@ -41,7 +69,7 @@ except ImportError, e:
 
     PcapWriter = DummyPcapWriter
 
-    from scapy.all import Gen, SetGen, MTU
+from scapy.all import Gen, SetGen, MTU
 
 def getNetworksFromRoutes():
     """ Return a list of networks from the routing table """

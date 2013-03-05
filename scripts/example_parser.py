@@ -1,5 +1,6 @@
 # This is an example of how to parse ooniprobe reports
 
+from pprint import pprint
 import yaml
 import sys
 print "Opening %s" % sys.argv[1]
@@ -15,8 +16,6 @@ print "Test name: %s" % report_header['test_name']
 print "Test version: %s" % report_header['test_version']
 
 for report_entry in yamloo:
-    print "Test: %s" % report_entry['test_name']
-    print "Input: %s" % report_entry['input']
-    print "Report: %s" % report_entry['report']
+    pprint(report_entry)
 
 f.close()

@@ -147,15 +147,12 @@ class OReporter(object):
         else:
             test_input = test.input
 
-        test_started = test._start_time
-        test_runtime = time.time() - test_started
+        test_report['input'] = test_input
+        test_report['test_name'] = test_name
+        test_report['test_started'] = test._start_time
+        test_report['test_runtime'] = time.time() - test._start_time
 
-        report = {'input': test_input,
-                'test_name': test_name,
-                'test_started': test_started,
-                'test_runtime': test_runtime,
-                'report': test_report}
-        return defer.maybeDeferred(self.writeReportEntry, report)
+        return defer.maybeDeferred(self.writeReportEntry, test_report)
 
 class InvalidDestination(ReporterException):
     pass
