@@ -415,8 +415,7 @@ class Report(object):
         # Don't forward the exception unless there are no more reporters
         if len(self.reporters) == 0:
             log.err("Removed last reporter %s" % reporter)
-            failure.reporter = reporter
-            return failure
+            raise NoMoreReporters
 
     def write(self, measurement):
         """

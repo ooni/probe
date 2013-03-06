@@ -135,6 +135,8 @@ class ReportAlreadyClosed(Exception):
 
 class TorStateNotFound(Exception):
     pass
+class ReportNotCreated(Exception):
+    pass
 
 class InsufficientPrivileges(Exception):
     pass
@@ -142,4 +144,6 @@ class InsufficientPrivileges(Exception):
 class ProbeIPUnknown(Exception):
     pass
 class GeoIPDataFilesNotFound(Exception):
+    pass
+class NoMoreReporters(Exception):
     pass
