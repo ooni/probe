@@ -26,7 +26,7 @@ except ImportError:
     log.err("Scapy is not installed.")
 
 
-from ooni.errors import InvalidOONIBCollectorAddress
+from ooni.errors import InvalidOONIBCollectorAddress, NoMoreReporters
 from ooni.errors import ReportNotCreated, ReportAlreadyClosed
 
 from ooni import otime

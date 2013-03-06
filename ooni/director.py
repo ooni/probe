@@ -6,7 +6,7 @@ from ooni.managers import ReportEntryManager, MeasurementManager
 from ooni.reporter import Report
 from ooni.utils import log, checkForRoot, NotRootError
 from ooni.utils.net import randomFreePort
-from ooni.nettest import NetTest
+from ooni.nettest import NetTest, getNetTestInformation
 from ooni.errors import UnableToStartTor
 
 from txtorcon import TorConfig
@@ -57,10 +57,12 @@ class Director(object):
 
     """
     _scheduledTests = 0
+    # Only list NetTests belonging to these categories
+    categories = ['blocking', 'manipulation']
 
     def __init__(self):
-        self.netTests = []
         self.activeNetTests = []
+        self.netTests = self.getNetTests()
 
         self.measurementManager = MeasurementManager()
         self.measurementManager.director = self
@@ -79,6 +81,29 @@ class Director(object):
         self.failures = []
 
         self.torControlProtocol = None
+
+    def getNetTests(self):
+        nettests = {}
+        def is_nettest(filename):
+            return not filename == '__init__.py' \
+                    and filename.endswith('.py')
+
+        for category in self.categories:
+            dirname = os.path.join(config.nettest_directory, category)
+            # print path to all filenames.
+            for filename in os.listdir(dirname):
+                if is_nettest(filename):
+                    net_test_file = os.path.join(dirname, filename)
+                    nettest = getNetTestInformation(net_test_file)
+
+                    if nettest['id'] in nettests:
+                        log.err("Found a two tests with the same name %s, %s" %
+                                (nettest_path, nettests[nettest['id']]['path']))
+                    else:
+                        category = dirname.replace(config.nettest_directory, '')
+                        nettests[nettest['id']] = nettest
+
+        return nettests
 
     def start(self):
         if config.privacy.includepcap:

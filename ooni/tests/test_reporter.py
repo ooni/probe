@@ -7,11 +7,11 @@ from ooni.nettest import NetTest, NetTestState
 from ooni.errors import ReportNotCreated, ReportAlreadyClosed
 
 from ooni.tasks import TaskWithTimeout
-from tests.mocks import MockOReporter, MockTaskManager
-from tests.mocks import MockMeasurement, MockNetTest
-from tests.mocks import MockOReporterThatFailsWrite
-from tests.mocks import MockOReporterThatFailsWriteOnce
-from tests.mocks import MockOReporterThatFailsOpen
+from ooni.tests.mocks import MockOReporter, MockTaskManager
+from ooni.tests.mocks import MockMeasurement, MockNetTest
+from ooni.tests.mocks import MockOReporterThatFailsWrite
+from ooni.tests.mocks import MockOReporterThatFailsWriteOnce
+from ooni.tests.mocks import MockOReporterThatFailsOpen
 
 from twisted.python import failure
 import yaml

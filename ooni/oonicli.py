@@ -10,12 +10,11 @@ from twisted.internet import reactor
 from twisted.python import usage
 from twisted.python.util import spewer
 
-from ooni.errors import InvalidOONIBCollectorAddress
-
+from ooni import errors
 from ooni import config
+
 from ooni.director import Director
 from ooni.reporter import YAMLReporter, OONIBReporter
-
 from ooni.nettest import NetTestLoader, MissingRequiredOption
 
 from ooni.utils import log
@@ -147,7 +146,7 @@ def runWithDirector():
                     oonib_reporter = OONIBReporter(test_details,
                             global_options['collector'])
                     reporters.append(oonib_reporter)
-                except InvalidOONIBCollectorAddress:
+                except errors.InvalidOONIBCollectorAddress:
                     log.err("Invalid format for oonib collector address.")
                     log.msg("Should be in the format http://<collector_address>:<port>")
                     log.msg("for example: ooniprobe -c httpo://nkvphnp3p6agi5qq.onion")

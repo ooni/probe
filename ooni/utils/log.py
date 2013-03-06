@@ -45,14 +45,16 @@ def stop():
     print "Stopping OONI"
 
 def msg(msg, *arg, **kw):
-    print "%s" % msg
+    if config.logging:
+        print "%s" % msg
 
 def debug(msg, *arg, **kw):
-    if config.advanced.debug:
+    if config.advanced.debug and config.logging:
         print "[D] %s" % msg
 
 def err(msg, *arg, **kw):
-    print "[!] %s" % msg
+    if config.logging:
+        print "[!] %s" % msg
 
 def exception(error):
     """

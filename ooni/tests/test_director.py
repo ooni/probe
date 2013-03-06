@@ -3,7 +3,7 @@ from twisted.trial import unittest
 
 from ooni.director import Director
 from ooni.nettest import NetTestLoader
-from tests.mocks import MockReporter
+from ooni.tests.mocks import MockReporter
 base.DelayedCall.debug = True
 
 net_test_string = """
@@ -42,8 +42,7 @@ class TestDirector(unittest.TestCase):
         pass
 
     def test_start_net_test(self):
-        ntl = NetTestLoader(dummyArgs)
-        ntl.loadNetTestString(net_test_string)
+        ntl = NetTestLoader(dummyArgs, test_string=net_test_string)
 
         ntl.checkOptions()
         d = self.director.startNetTest('', ntl, self.reporters)

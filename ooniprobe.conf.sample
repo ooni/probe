@@ -30,6 +30,8 @@ advanced:
     # If you do not specify start_tor, you will have to have Tor running and
     # explicitly set the control port and SOCKS port
     start_tor: true
+    # On which port the oonid API should be listening on
+    oonid_api_port: 50666
 tor:
     #socks_port: 9050
     #control_port: 9051

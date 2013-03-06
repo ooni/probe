@@ -18,15 +18,162 @@ from StringIO import StringIO
 class NoTestCasesFound(Exception):
     pass
 
+def get_test_methods(item, method_prefix="test_"):
+    """
+    Look for test_ methods in subclasses of NetTestCase
+    """
+    test_cases = []
+    try:
+        assert issubclass(item, NetTestCase)
+        methods = reflect.prefixedMethodNames(item, method_prefix)
+        test_methods = []
+        for method in methods:
+            test_methods.append(method_prefix + method)
+        if test_methods:
+            test_cases.append((item, test_methods))
+    except (TypeError, AssertionError):
+        pass
+    return test_cases
+
+def loadNetTestString(net_test_string):
+    """
+    Load NetTest from a string.
+    WARNING input to this function *MUST* be sanitized and *NEVER* be
+    untrusted.
+    Failure to do so will result in code exec.
+
+    net_test_string:
+
+        a string that contains the net test to be run.
+    """
+    net_test_file_object = StringIO(net_test_string)
+
+    ns = {}
+    test_cases = []
+    exec net_test_file_object.read() in ns
+    for item in ns.itervalues():
+        test_cases.extend(get_test_methods(item))
+
+    if not test_cases:
+        raise NoTestCasesFound
+
+    return test_cases
+
+def loadNetTestFile(net_test_file):
+    """
+    Load NetTest from a file.
+    """
+    test_cases = []
+    module = filenameToModule(net_test_file)
+    for __, item in getmembers(module):
+        test_cases.extend(get_test_methods(item))
+
+    if not test_cases:
+        raise NoTestCasesFound
+
+    return test_cases
+
+def getTestClassFromFile(net_test_file):
+    """
+    Will return the first class that is an instance of NetTestCase.
+
+    XXX this means that if inside of a test there are more than 1 test case
+        then we will only run the first one.
+    """
+    module = filenameToModule(net_test_file)
+    for __, item in getmembers(module):
+        try:
+            assert issubclass(item, NetTestCase)
+            return item
+        except (TypeError, AssertionError):
+            pass
+
+def getOption(opt_parameter, required_options, type='text'):
+    """
+    Arguments:
+        usage_options: a list as should be the optParameters of an UsageOptions class.
+
+        required_options: a list containing the strings of the options that are
+            required.
+
+        type: a string containing the type of the option.
+
+    Returns:
+        a dict containing
+            {
+                'description': the description of the option,
+                'default': the default value of the option,
+                'required': True|False if the option is required or not,
+                'type': the type of the option ('text' or 'file')
+            }
+    """
+    option_name, _, default, description = opt_parameter
+    if option_name in required_options:
+        required = True
+    else:
+        required = False
+
+    return {'description': description,
+        'default': default, 'required': required,
+        'type': type
+    }
+
+def getArguments(test_class):
+    arguments = {}
+    if test_class.inputFile:
+        option_name = test_class.inputFile[0]
+        arguments[option_name] = getOption(test_class.inputFile,
+                test_class.requiredOptions, type='file')
+    try:
+        list(test_class.usageOptions.optParameters)
+    except AttributeError:
+        return arguments
+
+    for opt_parameter in test_class.usageOptions.optParameters:
+        option_name = opt_parameter[0]
+        arguments[option_name] = getOption(opt_parameter,
+                test_class.requiredOptions)
+
+    return arguments
+
+def getNetTestInformation(net_test_file):
+    """
+    Returns a dict containing:
+
+    {
+        'id': the test filename excluding the .py extension,
+        'name': the full name of the test,
+        'description': the description of the test,
+        'version': version number of this test,
+        'arguments': a dict containing as keys the supported arguments and as
+            values the argument description.
+    }
+    """
+    test_class = getTestClassFromFile(net_test_file)
+
+    test_id = os.path.basename(net_test_file).replace('.py', '')
+    information = {'id': test_id,
+        'name': test_class.name,
+        'description': test_class.description,
+        'version': test_class.version,
+        'arguments': getArguments(test_class)
+    }
+    return information
+
 class NetTestLoader(object):
     method_prefix = 'test'
 
     def __init__(self, options, test_file=None, test_string=None):
         self.options = options
+        test_cases = None
+
         if test_file:
-            self.loadNetTestFile(test_file)
+            test_cases = loadNetTestFile(test_file)
         elif test_string:
-            self.loadNetTestString(test_string)
+            test_cases = loadNetTestString(test_string)
+
+        if test_cases:
+            self.setupTestCases(test_cases)
 
     @property
     def testDetails(self):
@@ -115,44 +262,6 @@ class NetTestLoader(object):
                 assert usage_options == test_class.usageOptions
         return usage_options
 
-    def loadNetTestString(self, net_test_string):
-        """
-        Load NetTest from a string.
-        WARNING input to this function *MUST* be sanitized and *NEVER* be
-        untrusted.
-        Failure to do so will result in code exec.
-
-        net_test_string:
-
-            a string that contains the net test to be run.
-        """
-        net_test_file_object = StringIO(net_test_string)
-
-        ns = {}
-        test_cases = []
-        exec net_test_file_object.read() in ns
-        for item in ns.itervalues():
-            test_cases.extend(self._get_test_methods(item))
-
-        if not test_cases:
-            raise NoTestCasesFound
-
-        self.setupTestCases(test_cases)
-
-    def loadNetTestFile(self, net_test_file):
-        """
-        Load NetTest from a file.
-        """
-        test_cases = []
-        module = filenameToModule(net_test_file)
-        for __, item in getmembers(module):
-            test_cases.extend(self._get_test_methods(item))
-
-        if not test_cases:
-            raise NoTestCasesFound
-
-        self.setupTestCases(test_cases)
-
     def setupTestCases(self, test_cases):
         """
         Creates all the necessary test_cases (a list of tuples containing the
@@ -205,22 +314,6 @@ class NetTestLoader(object):
                 inputs = [None]
             klass.inputs = inputs
 
-    def _get_test_methods(self, item):
-        """
-        Look for test_ methods in subclasses of NetTestCase
-        """
-        test_cases = []
-        try:
-            assert issubclass(item, NetTestCase)
-            methods = reflect.prefixedMethodNames(item, self.method_prefix)
-            test_methods = []
-            for method in methods:
-                test_methods.append(self.method_prefix + method)
-            if test_methods:
-                test_cases.append((item, test_methods))
-        except (TypeError, AssertionError):
-            pass
-        return test_cases
 
 class NetTestState(object):
     def __init__(self, allTasksDone):
@@ -409,9 +502,10 @@ class NetTestCase(object):
     Quirks:
     Every class that is prefixed with test *must* return a twisted.internet.defer.Deferred.
     """
-    name = "I Did Not Change The Name"
+    name = "This test is nameless"
     author = "Jane Doe <foo@example.com>"
     version = "0.0.0"
+    description = "Sorry, this test has no description :("
 
     inputs = [None]
     inputFile = None
