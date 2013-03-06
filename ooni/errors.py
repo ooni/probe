@@ -129,10 +129,12 @@ class AllReportersFailed(Exception):
 class GeoIPDataFilesNotFound(Exception):
     pass
 
-
 class ReportNotCreated(Exception):
     pass
 
 class ReportAlreadyClosed(Exception):
+    pass
+
+class NoMoreReporters(Exception):
     pass
 
