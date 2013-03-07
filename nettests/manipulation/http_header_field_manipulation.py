@@ -38,8 +38,8 @@ class UsageOptions(usage.Options):
 class HTTPHeaderFieldManipulation(httpt.HTTPTest):
     """
     It performes HTTP requests with request headers that vary capitalization
-    towards a backend. If we detect that the headers the backend received
-    matches the ones we have sent then we have detected tampering.
+    towards a backend. If the headers reported by the server differ from
+    the ones we sent, then we have detected tampering.
     """
     name = "HTTP Header Field Manipulation"
     author = "Arturo Filastò"
