@@ -147,3 +147,5 @@ class GeoIPDataFilesNotFound(Exception):
     pass
 class NoMoreReporters(Exception):
     pass
+class TorNotRunning(Exception):
+    pass
