@@ -4,7 +4,7 @@ from twisted.trial import unittest
 from ooni.reporter import Report, YAMLReporter, OONIBReporter, safe_dump
 from ooni.managers import ReportEntryManager, TaskManager
 from ooni.nettest import NetTest, NetTestState
-from ooni.errors import ReportNotCreated, ReportAlreadyClosed
+from ooni.errors import ReportNotCreated, ReportAlreadyClosed, NoMoreReporters
 
 from ooni.tasks import TaskWithTimeout
 from ooni.tests.mocks import MockOReporter, MockTaskManager
@@ -119,7 +119,7 @@ class TestReport(unittest.TestCase):
         d = report.write(MockMeasurement(MockNetTest()))
         def f(err):
             self.assertEquals(len(report.reporters),0)
-        d.addErrback(f)
+        d.addCallback(f)
         return d
 
 class TestYAMLReporter(unittest.TestCase):
@@ -138,7 +138,7 @@ class TestYAMLReporter(unittest.TestCase):
     def test_create_yaml_reporter(self):
         self.assertIsInstance(YAMLReporter(self.testDetails),
                 YAMLReporter)
-        
+
     def test_open_yaml_report_and_succeed(self):
         r = YAMLReporter(self.testDetails)
         r.createReport()
@@ -149,10 +149,6 @@ class TestYAMLReporter(unittest.TestCase):
             self.assertEqual(details, self.testDetails)
         r.created.addCallback(f)
         return r.created
-
-    #def test_open_yaml_report_and_fail(self):
-    #    #XXX: YAMLReporter does not handle failures of this type
-    #    pass
 
     def test_write_yaml_report_entry(self):
         r = YAMLReporter(self.testDetails)

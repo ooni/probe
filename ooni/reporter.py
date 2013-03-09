@@ -398,6 +398,7 @@ class Report(object):
         log.debug("Reporters created: %s" % l)
         # Should we consume errors silently?
         dl = defer.DeferredList(l)
+        dl.addErrback(self.checkRemainingReporters)
         return dl
 
     def failedOpeningReport(self, failure, reporter):
@@ -410,7 +411,9 @@ class Report(object):
         log.err("Failed to open %s reporter, giving up..." % reporter)
         log.err("Reporter %s failed, removing from report..." % reporter)
         self.reporters.remove(reporter)
-        # Don't forward the exception unless there are no more reporters
+        return
+
+    def checkRemainingReporters(self, failure):
         if len(self.reporters) == 0:
             log.err("Removed last reporter %s" % reporter)
             raise NoMoreReporters
@@ -463,6 +466,7 @@ class Report(object):
         # to the deferredlist that checks to see if any reporters are left
         # and raise an exception if there are no remaining reporters
         dl = defer.DeferredList(l,fireOnOneErrback=True, consumeErrors=True)
+        dl.addErrback(self.checkRemainingReporters)
         return dl
 
     def close(self, _):

@@ -135,4 +135,3 @@ class ReportEntry(TaskWithTimeout):
 
     def run(self):
         return self.reporter.writeReportEntry(self.measurement)
-

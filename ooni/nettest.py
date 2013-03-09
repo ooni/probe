@@ -10,7 +10,7 @@ from ooni.utils import log, checkForRoot, NotRootError, geodata
 from ooni import config
 from ooni import otime
 
-from ooni import errors as e
+from ooni import errors
 
 from inspect import getmembers
 from StringIO import StringIO
@@ -187,7 +187,7 @@ class NetTestLoader(object):
             log.msg("We will include some geo data in the report")
             try:
                 client_geodata = geodata.IPToLocation(config.probe_ip)
-            except e.GeoIPDataFilesNotFound:
+            except errors.GeoIPDataFilesNotFound:
                 log.err("Unable to find the geoip data files")
                 client_geodata = {'city': None, 'countrycode': None, 'asn': None}
 
@@ -402,7 +402,7 @@ class NetTest(object):
         self.state.taskDone()
 
         if len(self.report.reporters) == 0:
-            raise e.AllReportersFailed
+            raise errors.AllReportersFailed
 
         return report_results
 
