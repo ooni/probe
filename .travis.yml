@@ -5,11 +5,13 @@ python:
   - "3.3"
   - "2.7"
   - "2.6"
-# command to install dependencies, e.g. pip install -r requirements.txt --use-mirrors
-install: pip install -r requirements.txt --use-mirrors && cp ooniprobe.conf.sample ooniprobe.conf
+# command to install dependencies
+# the first is for testing pip and the second for setuptools
+install:
+  #- pip install -r requirements.txt --use-mirrors
+  - python setup.py install
 # command to run tests, e.g. python setup.py test
 script:
-  - python setup.py install
   # To be activated after merge of PR#64
   #  - trial ooni
   - cp ooniprobe.conf.sample ooniprobe.conf
