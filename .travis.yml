@@ -6,4 +6,4 @@ python:
 # command to install dependencies, e.g. pip install -r requirements.txt --use-mirrors
 install: pip install -r requirements.txt --use-mirrors && cp ooniprobe.conf.sample ooniprobe.conf
 # command to run tests, e.g. python setup.py test
-script:  bin/ooniprobe nettest/blocking/tcpconnect.py -f inputs/ooni-inputs/processed/alexa-top-1k.txt
+script:  bin/ooniprobe nettest/blocking/tcpconnect.py -f example_inputs/alexa-top-1k.txt
