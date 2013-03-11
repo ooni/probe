@@ -6,7 +6,6 @@ from twisted.internet import reactor, threads, defer
 from ooni import otime
 from ooni.utils import Storage
 
-reports = Storage()
 scapyFactory = None
 stateDict = None
 state = Storage()
@@ -37,6 +36,10 @@ probe_ip = None
 # This is used to keep track of the state of the sniffer
 sniffer_running = None
 
+class TestFilenameNotSet(Exception):
+    pass
+
+
 def get_root_path():
     this_directory = os.path.dirname(__file__)
     root = os.path.join(this_directory, '..')
@@ -64,7 +67,12 @@ def loadConfigFile():
 
     config_file_contents = '\n'.join(f.readlines())
     configuration = yaml.safe_load(config_file_contents)
+    return configuration
 
+def processConfigFile(configuration):
+    """
+    Process the loaded YAML config file from :func:loadConfigFile.
+    """
     # Process the basic configuration options
     basic = Storage()
     for k, v in configuration['basic'].items():
@@ -88,10 +96,14 @@ def loadConfigFile():
     except AttributeError:
         pass
 
-    return basic, privacy, advanced, tor
+    reports = Storage()
+    try:
+        for k, v in configuration['reports'].items():
+            reports[k] = v
+    except AttributeError:
+        pass
 
-class TestFilenameNotSet(Exception):
-    pass
+    return basic, privacy, advanced, tor, reports
 
 
 ## This is the raw yaml configuration, and should not be publicly accessible,
@@ -100,7 +112,7 @@ _configuration = loadConfigFile()
 
 if not basic:
     # Here we make sure that we instance the config file attributes only once
-    basic, privacy, advanced, tor = loadConfigFile()
+    basic, privacy, advanced, tor, reports = processConfigFile(_configuration)
 
 if not resume_filename:
     resume_filename = os.path.join(get_root_path(), 'ooniprobe.resume')
