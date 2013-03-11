@@ -34,6 +34,9 @@ sample_config_file = None
 # This is used to store the probes IP address obtained via Tor
 probe_ip = None
 
+# This is used to keep track of the state of the sniffer
+sniffer_running = None
+
 def get_root_path():
     this_directory = os.path.dirname(__file__)
     root = os.path.join(this_directory, '..')
@@ -90,18 +93,10 @@ def loadConfigFile():
 class TestFilenameNotSet(Exception):
     pass
 
-def generatePcapFilename():
-    if cmd_line_options['pcapfile']:
-        reports.pcap = cmd_line_options['pcapfile']
-    else:
-        if cmd_line_options['test']:
-            test_filename = os.path.basename(cmd_line_options['test'])
-        else:
-            test_filename = os.path.basename(cmd_line_options['testdeck'])
 
-        test_name = '.'.join(test_filename.split(".")[:-1])
-        frm_str = "report_%s_"+otime.timestamp()+".%s"
-        reports.pcap = frm_str % (test_name, "pcap")
+## This is the raw yaml configuration, and should not be publicly accessible,
+## i.e., you shouldn't need to touch it:
+_configuration = loadConfigFile()
 
 if not basic:
     # Here we make sure that we instance the config file attributes only once
@@ -114,5 +109,23 @@ if not resume_filename:
     except IOError as e:
         with open(resume_filename, 'w+') as f: pass
 
-# This is used to keep track of the state of the sniffer
-sniffer_running = None
+
+def generatePcapFilename(cmd_line_options=None):
+    if not cmd_line_options:
+        cmd_line_options = {}
+
+    if 'pcapfile' in cmd_line_options:
+        pcap_filename = cmd_line_options['pcapfile']
+    else:
+        if 'test' in cmd_line_options:
+            test_filename = os.path.basename(cmd_line_options['test'])
+        elif 'testdeck' in cmd_line_options:
+            test_filename = os.path.basename(cmd_line_options['testdeck'])
+        else:
+            test_filename = ''
+
+        test_name = '.'.join(test_filename.split(".")[:-1])
+        frm_str = "report_%s_" + otime.timestamp() + ".%s"
+        pcap_filename = frm_str % (test_name, "pcap")
+
+    return pcap_filename
