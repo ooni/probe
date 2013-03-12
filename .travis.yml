@@ -1,0 +1,11 @@
+before_install:
+  - sudo apt-get install tor
+python:
+  - "2.7"
+  - "2.6"
+script:
+  - python setup.py install
+  # To be activated after merge of PR#64
+  #  - trial ooni
+  - cp ooniprobe.conf.sample ooniprobe.conf
+  - sh scripts/before_i_commit.sh
