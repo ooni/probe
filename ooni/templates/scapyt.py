@@ -11,6 +11,7 @@ from ooni.utils import log
 from ooni import config
 
 from ooni.utils.txscapy import ScapySender, getDefaultIface, ScapyFactory
+from ooni.utils.txscapy import hasRawSocketPermission
 
 class BaseScapyTest(NetTestCase):
     """
@@ -26,7 +27,7 @@ class BaseScapyTest(NetTestCase):
     name = "Base Scapy Test"
     version = 0.1
 
-    requiresRoot = True
+    requiresRoot = not hasRawSocketPermission()
     baseFlags = [
             ['ipsrc', 's',
                 'Does *not* check if IP src and ICMP IP citation matches when processing answers'],
