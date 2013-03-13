@@ -132,3 +132,8 @@ class ReportNotCreated(Exception):
 class ReportAlreadyClosed(Exception):
     pass
 
+class TorStateNotFound(Exception):
+    pass
+
+class InsufficientPrivileges(Exception):
+    pass

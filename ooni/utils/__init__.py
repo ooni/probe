@@ -48,12 +48,9 @@ class Storage(dict):
         for (k, v) in value.items():
             self[k] = v
 
-class NotRootError(Exception):
-    pass
-
 def checkForRoot():
     if os.getuid() != 0:
-        raise NotRootError("This test requires root")
+        raise errors.InsufficientPrivileges
 
 def randomSTR(length, num=True):
     """

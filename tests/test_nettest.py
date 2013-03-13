@@ -9,7 +9,6 @@ from twisted.python.usage import UsageError
 from ooni.nettest import NetTest, InvalidOption, MissingRequiredOption
 from ooni.nettest import NetTestLoader, FailureToLoadNetTest
 from ooni.tasks import BaseTask
-from ooni.utils import NotRootError
 
 from ooni.director import Director
 
