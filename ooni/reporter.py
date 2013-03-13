@@ -226,6 +226,7 @@ class YAMLReporter(OReporter):
 
         self.writeReportEntry(self.testDetails)
         self.created.callback(self)
+        return defer.succeed(None)
 
     def finish(self):
         self._stream.close()
@@ -305,7 +306,7 @@ class OONIBReporter(OReporter):
             self.agent = Agent(reactor, sockshost="127.0.0.1",
                 socksport=int(config.tor.socks_port))
         except Exception, e:
-            log.exception(e)
+            yield defer.fail(e)
 
         url = self.collectorAddress + '/report'
 
@@ -338,11 +339,11 @@ class OONIBReporter(OReporter):
                                 bodyProducer=bodyProducer)
         except ConnectionRefusedError:
             log.err("Connection to reporting backend failed (ConnectionRefusedError)")
-            raise OONIBReportCreationError
+            self.created.errback(defer.fail(OONIBReportCreationError))
 
         except Exception, e:
             log.exception(e)
-            raise OONIBReportCreationError
+            yield defer.fail(OONIBReportCreationError)
 
         # This is a little trix to allow us to unspool the response. We create
         # a deferred and call yield on it.
@@ -355,7 +356,7 @@ class OONIBReporter(OReporter):
             parsed_response = json.loads(backend_response)
         except Exception, e:
             log.exception(e)
-            raise OONIBReportCreationError
+            yield defer.fail(e)
 
         self.reportID = parsed_response['report_id']
         self.backendVersion = parsed_response['backend_version']
@@ -392,7 +393,8 @@ class Report(object):
         """
         l = []
         for reporter in self.reporters[:]:
-            reporter.createReport()
+            d = reporter.createReport()
+            d.addErrback(self.failedOpeningReport, reporter)
             reporter.created.addErrback(self.failedOpeningReport, reporter)
             l.append(reporter.created)
         log.debug("Reporters created: %s" % l)
