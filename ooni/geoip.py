@@ -1,5 +1,7 @@
+import xml.etree.ElementTree as ET
 import re
 import os
+import random
 
 from twisted.web import client, http_headers
 from ooni.utils.net import userAgents, BodyReceiver
@@ -42,6 +44,11 @@ def IPToLocation(ipaddr):
 class HTTPGeoIPLookupper(object):
     url = None
 
+    _agent = client.Agent
+
+    def __init__(self):
+        self.agent = self._agent(reactor)
+
     def _response(self, response):
         content_length = response.headers.getRawHeaders('content-length')
 
@@ -59,16 +66,15 @@ class HTTPGeoIPLookupper(object):
         pass
 
     def failed(self, failure):
-        log.err("Failed to lookup via %s" % url)
+        log.err("Failed to lookup via %s" % self.url)
         log.exception(failure)
         return failure
 
     def lookup(self):
-        agent = client.Agent(reactor)
         headers = {}
         headers['User-Agent'] = [random.choice(userAgents)]
 
-        d = agent.request("GET", self.url, http_headers.Headers(headers))
+        d = self.agent.request("GET", self.url, http_headers.Headers(headers))
         d.addCallback(self._response)
         d.addErrback(self.failed)
         return d
@@ -101,7 +107,7 @@ class ProbeIP(object):
     strategy = None
     geoIPServices = {'ubuntu': UbuntuGeoIP,
         'torproject': TorProjectGeoIP,
-        'maximind': MaxMindGeoIP
+        'maxmind': MaxMindGeoIP
     }
     address = None
 
@@ -126,20 +132,22 @@ class ProbeIP(object):
         try:
             yield self.askGeoIPService()
             defer.returnValue(self.address)
-        except Exception, e:
-            print e
+        except:
             log.msg("Unable to lookup the probe IP via GeoIPService")
 
     @defer.inlineCallbacks
     def askGeoIPService(self):
-        for service_name, service in self.geoIPServices.items():
-            s = TorProjectGeoIP()
+        # Shuffle the order in which we test the geoip services.
+        services = self.geoIPServices.items()
+        random.shuffle(services)
+        for service_name, service in services:
+            s = service()
             log.msg("Looking up your IP address via %s" % service_name)
             try:
                 self.address = yield s.lookup()
                 self.strategy = 'geo_ip_service-' + service_name
                 break
-            except:
+            except Exception, e:
                 log.msg("Failed to lookup your IP via %s" % service_name)
 
     def askTraceroute(self):
