@@ -4,6 +4,7 @@ from twisted.trial import unittest
 from twisted.python.filepath import FilePath
 from twisted.protocols.policies import WrappingFactory
 
+from ooni import errors
 from ooni.geoip import ProbeIP, MaxMindGeoIP, TorProjectGeoIP
 from ooni.geoip import UbuntuGeoIP, HTTPGeoIPLookupper, IPToLocation
 
@@ -24,7 +25,6 @@ class MaxMindGeoIPResource(resource.Resource):
 
 class TorProjectGeoIPResource(resource.Resource):
     def render(self, request):
-
         return """
         Your IP address appears to be: <b>127.0.0.1</b>
         """
@@ -98,8 +98,8 @@ class TestProbeIP(GeoIPBaseTest):
             self.assertEqual(self.probe_ip.address, '127.0.0.1')
         return d
 
-    def test_ask_traceroute_service(self):
-        pass
+    def test_fail_traceroute_service(self):
+        self.assertRaises(errors.InsufficientPrivileges, self.probe_ip.askTraceroute)
 
     def test_ask_tor(self):
         pass

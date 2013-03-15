@@ -6,6 +6,8 @@ import yaml
 import imp
 import os
 
+from ooni import errors
+
 class Storage(dict):
     """
     A Storage object is like a dictionary except `obj.foo` can be used
