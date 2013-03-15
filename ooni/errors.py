@@ -138,3 +138,6 @@ class TorStateNotFound(Exception):
 
 class InsufficientPrivileges(Exception):
     pass
+
+class ProbeIPUnknown(Exception):
+    pass

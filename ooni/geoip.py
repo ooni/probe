@@ -110,19 +110,22 @@ class ProbeIP(object):
         'maxmind': MaxMindGeoIP
     }
     address = None
+    tor_state = config.tor_state
 
     @defer.inlineCallbacks
     def lookup(self):
         try:
             yield self.askTor()
+            log.msg("Found your IP via Tor %s" % self.address)
             defer.returnValue(self.address)
         except errors.TorStateNotFound:
             log.debug("Tor is not running. Skipping IP lookup via Tor.")
-        except:
+        except Exception:
             log.msg("Unable to lookup the probe IP via Tor.")
 
         try:
             yield self.askTraceroute()
+            log.msg("Found your IP via Traceroute %s" % self.address)
             defer.returnValue(self.address)
         except errors.InsufficientPrivileges:
             log.debug("Cannot determine the probe IP address with a traceroute, becase of insufficient priviledges")
@@ -131,9 +134,11 @@ class ProbeIP(object):
 
         try:
             yield self.askGeoIPService()
+            log.msg("Found your IP via a GeoIP service: %s" % self.address)
             defer.returnValue(self.address)
-        except:
+        except Exception, e:
             log.msg("Unable to lookup the probe IP via GeoIPService")
+            raise e
 
     @defer.inlineCallbacks
     def askGeoIPService(self):
@@ -150,6 +155,9 @@ class ProbeIP(object):
             except Exception, e:
                 log.msg("Failed to lookup your IP via %s" % service_name)
 
+        if not self.address:
+            raise errors.ProbeIPUnknown
+
     def askTraceroute(self):
         """
         Perform a UDP traceroute to determine the probes IP address.
@@ -165,8 +173,8 @@ class ProbeIP(object):
         XXX this lookup method is currently broken when there are cached descriptors or consensus documents
         see: https://trac.torproject.org/projects/tor/ticket/8214
         """
-        if config.tor_state:
-            d = config.tor_state.protocol.get_info("address")
+        if self.tor_state:
+            d = self.tor_state.protocol.get_info("address")
             @d.addCallback
             def cb(result):
                 self.strategy = 'tor_get_info_address'

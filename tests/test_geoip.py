@@ -1,5 +1,7 @@
+from collections import namedtuple
+
 from twisted.web import server, static, resource
-from twisted.internet import reactor
+from twisted.internet import reactor, defer
 from twisted.trial import unittest
 from twisted.python.filepath import FilePath
 from twisted.protocols.policies import WrappingFactory
@@ -58,7 +60,7 @@ class TestGeoIPServices(GeoIPBaseTest):
         gip = TorProjectGeoIP()
         gip.url = self.getUrl('torproject')
         d = gip.lookup()
-        @d.addCallback
+        @d.addBoth
         def cb(res):
             self.assertEqual(res, '127.0.0.1')
         return d
@@ -67,7 +69,7 @@ class TestGeoIPServices(GeoIPBaseTest):
         gip = UbuntuGeoIP()
         gip.url = self.getUrl('ubuntu')
         d = gip.lookup()
-        @d.addCallback
+        @d.addBoth
         def cb(res):
             self.assertEqual(res, '127.0.0.1')
         return d
@@ -76,7 +78,7 @@ class TestGeoIPServices(GeoIPBaseTest):
         gip = MaxMindGeoIP()
         gip.url = self.getUrl('maxmind')
         d = gip.lookup()
-        @d.addCallback
+        @d.addBoth
         def cb(res):
             self.assertEqual(res, '127.0.0.1')
         return d
@@ -93,7 +95,7 @@ class TestProbeIP(GeoIPBaseTest):
 
     def test_ask_geoip_service(self):
         d = self.probe_ip.askGeoIPService()
-        @d.addCallback
+        @d.addBoth
         def cb(res):
             self.assertEqual(self.probe_ip.address, '127.0.0.1')
         return d
@@ -102,7 +104,38 @@ class TestProbeIP(GeoIPBaseTest):
         self.assertRaises(errors.InsufficientPrivileges, self.probe_ip.askTraceroute)
 
     def test_ask_tor(self):
-        pass
+        class MockTorState(object):
+            """
+            This is a Mock Tor state object. It will just pretend to answer to
+            the get_info("address") method call.
+            """
+            protocol = namedtuple('Protocol', 'get_info')
+            def __init__(self):
+                def get_info(key):
+                    return defer.succeed({'XXX': '127.0.0.2'})
+                self.protocol = self.protocol(get_info=get_info)
+
+        self.probe_ip.tor_state = MockTorState()
+        d = self.probe_ip.lookup()
+        @d.addBoth
+        def cb(res):
+            self.assertEqual(self.probe_ip.address, '127.0.0.2')
+        return d
+
+    def test_probe_ip(self):
+        d = self.probe_ip.lookup()
+        @d.addBoth
+        def cb(res):
+            self.assertEqual(self.probe_ip.address, '127.0.0.1')
+            self.assertTrue(self.probe_ip.strategy.startswith('geo_ip_service-'))
+        return d
+
+    def test_failing_probe_ip(self):
+        self.probe_ip.geoIPServices = {}
+
+        d = self.probe_ip.lookup()
+        self.assertFailure(d, errors.ProbeIPUnknown)
+        return d
 
 class TestIPToLocation(unittest.TestCase):
     pass
