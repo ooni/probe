@@ -241,7 +241,7 @@ class TestNetTest(unittest.TestCase):
     #    try:
     #        net_test = NetTestLoader(StringIO(net_test_root_required),
     #                dummyArgs)
-    #    except NotRootError:
+    #    except errors.InsufficientPrivileges:
     #        pass
 
     #def test_create_report_succeed(self):

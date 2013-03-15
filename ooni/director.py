@@ -5,6 +5,7 @@ import os
 import re
 
 from ooni import config
+from ooni import geoip
 from ooni.managers import ReportEntryManager, MeasurementManager
 from ooni.reporter import Report
 from ooni.utils import log, checkForRoot
@@ -16,136 +17,6 @@ from txtorcon import TorConfig
 from txtorcon import TorState, launch_tor
 
 from twisted.internet import defer, reactor
-from twisted.web import client, http_headers
-from ooni.utils.net import userAgents, BodyReceiver
-
-class HTTPGeoIPLookupper(object):
-    url = None
-
-    def _response(self, response):
-        content_length = response.headers.getRawHeaders('content-length')
-
-        finished = defer.Deferred()
-        response.deliverBody(BodyReceiver(finished, content_length))
-        finished.addCallback(self.parseResponse)
-        return finished
-
-    def parseResponse(self, response_body):
-        """
-        Override this with the logic for parsing the response.
-
-        Should return the IP address of the probe.
-        """
-        pass
-
-    def failed(self, failure):
-        log.err("Failed to lookup via %s" % url)
-        log.exception(failure)
-        return failure
-
-    def lookup(self):
-        agent = client.Agent(reactor)
-        headers = {}
-        headers['User-Agent'] = [random.choice(userAgents)]
-
-        d = agent.request("GET", self.url, http_headers.Headers(headers))
-        d.addCallback(self._response)
-        d.addErrback(self.failed)
-        return d
-
-class UbuntuGeoIP(HTTPGeoIPLookupper):
-    url = "http://geoip.ubuntu.com/lookup"
-
-    def parseResponse(self, response_body):
-        response = ET.fromstring(response_body)
-        probe_ip = response.find('Ip').text
-        return probe_ip
-
-class TorProjectGeoIP(HTTPGeoIPLookupper):
-    url = "https://check.torproject.org/"
-
-    def parseResponse(self, response_body):
-        regexp = "Your IP address appears to be: <b>((\d+\.)+(\d+))"
-        probe_ip = re.search(regexp, response_body).group(1)
-        return probe_ip
-
-class MaxMindGeoIP(HTTPGeoIPLookupper):
-    url = "https://www.maxmind.com/en/locate_my_ip"
-
-    def parseResponse(self, response_body):
-        regexp = '<span id="my-ip-address">((\d+\.)+(\d+))</span>'
-        probe_ip = re.search(regexp, response_body).group(1)
-        return probe_ip
-
-class ProbeIP(object):
-    strategy = None
-    geoIPServices = {'ubuntu': UbuntuGeoIP,
-        'torproject': TorProjectGeoIP,
-        'maximind': MaxMindGeoIP
-    }
-    address = None
-
-    @defer.inlineCallbacks
-    def lookup(self):
-        try:
-            yield self.askTor()
-            defer.returnValue(self.address)
-        except errors.TorStateNotFound:
-            log.debug("Tor is not running. Skipping IP lookup via Tor.")
-        except:
-            log.msg("Unable to lookup the probe IP via Tor.")
-
-        try:
-            yield self.askTraceroute()
-            defer.returnValue(self.address)
-        except errors.InsufficientPrivileges:
-            log.debug("Cannot determine the probe IP address with a traceroute, becase of insufficient priviledges")
-        except:
-            log.msg("Unable to lookup the probe IP via traceroute")
-
-        try:
-            yield self.askGeoIPService()
-            defer.returnValue(self.address)
-        except Exception, e:
-            print e
-            log.msg("Unable to lookup the probe IP via GeoIPService")
-
-    @defer.inlineCallbacks
-    def askGeoIPService(self):
-        for service_name, service in self.geoIPServices.items():
-            s = TorProjectGeoIP()
-            log.msg("Looking up your IP address via %s" % service_name)
-            try:
-                self.address = yield s.lookup()
-                self.strategy = 'geo_ip_service-' + service_name
-                break
-            except:
-                log.msg("Failed to lookup your IP via %s" % service_name)
-
-    def askTraceroute(self):
-        """
-        Perform a UDP traceroute to determine the probes IP address.
-        """
-        checkForRoot()
-        raise NotImplemented
-
-    def askTor(self):
-        """
-        Obtain the probes IP address by asking the Tor Control port via GET INFO
-        address.
-
-        XXX this lookup method is currently broken when there are cached descriptors or consensus documents
-        see: https://trac.torproject.org/projects/tor/ticket/8214
-        """
-        if config.tor_state:
-            d = config.tor_state.protocol.get_info("address")
-            @d.addCallback
-            def cb(result):
-                self.strategy = 'tor_get_info_address'
-                self.address = result.values()[0]
-            return d
-        else:
-            raise errors.TorStateNotFound
 
 class Director(object):
     """
@@ -225,7 +96,7 @@ class Director(object):
             log.msg("Starting Tor...")
             yield self.startTor()
 
-        config.probe_ip = ProbeIP()
+        config.probe_ip = geoip.ProbeIP()
         yield config.probe_ip.lookup()
 
     @property

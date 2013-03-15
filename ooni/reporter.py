@@ -30,7 +30,7 @@ from ooni.errors import InvalidOONIBCollectorAddress
 from ooni.errors import ReportNotCreated, ReportAlreadyClosed
 
 from ooni import otime
-from ooni.utils import geodata, pushFilenameStack
+from ooni.utils import pushFilenameStack
 from ooni.utils.net import BodyReceiver, StringProducer, userAgents
 
 from ooni import config
