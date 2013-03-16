@@ -24,7 +24,8 @@ try:
     from scapy.packet import Packet
 except ImportError:
     log.err("Scapy is not installed.")
-
+    class Packet(object):
+        pass
 
 from ooni.errors import InvalidOONIBCollectorAddress
 from ooni.errors import ReportNotCreated, ReportAlreadyClosed
