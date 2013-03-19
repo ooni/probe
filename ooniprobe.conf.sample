@@ -18,7 +18,7 @@ privacy:
     includepcap: false
 reports:
     # This is a packet capture file (.pcap) to load as a test:
-    pcap: None
+    pcap: Null
 advanced:
     # XXX change this to point to the directory where you have stored the GeoIP
     # database file. This should be the directory in which OONI is installed
