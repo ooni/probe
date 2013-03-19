@@ -8,9 +8,14 @@ from ooni.utils import log, net
 from ooni import config
 
 try:
-    import pygeoip
+    from pygeoip import GeoIP
 except ImportError:
-    log.err("Unable to import pygeoip. We will not be able to run geo IP related measurements")
+    try:
+        import GeoIP as CGeoIP
+        def GeoIP(database_path, *args, **kwargs):
+            return CGeoIP.open(database_path)
+    except ImportError:
+        log.err("Unable to import pygeoip or GeoIP. We will not be able to run geo IP related measurements")
 
 class GeoIPDataFilesNotFound(Exception):
     pass
@@ -22,13 +27,13 @@ def IPToLocation(ipaddr):
 
     location = {'city': None, 'countrycode': None, 'asn': None}
     try:
-        city_dat = pygeoip.GeoIP(city_file)
+        city_dat = GeoIP(city_file)
         location['city'] = city_dat.record_by_addr(ipaddr)['city']
 
-        country_dat = pygeoip.GeoIP(country_file)
+        country_dat = GeoIP(country_file)
         location['countrycode'] = country_dat.country_code_by_addr(ipaddr)
 
-        asn_dat = pygeoip.GeoIP(asn_file)
+        asn_dat = GeoIP(asn_file)
         location['asn'] = asn_dat.org_by_addr(ipaddr)
 
     except IOError:
