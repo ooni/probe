@@ -1,4 +1,3 @@
-import xml.etree.ElementTree as ET
 import random
 import sys
 import os

@@ -1,4 +1,3 @@
-import xml.etree.ElementTree as ET
 import re
 import os
 import random
@@ -83,8 +82,8 @@ class UbuntuGeoIP(HTTPGeoIPLookupper):
     url = "http://geoip.ubuntu.com/lookup"
 
     def parseResponse(self, response_body):
-        response = ET.fromstring(response_body)
-        probe_ip = response.find('Ip').text
+        m = re.match(".*<Ip>(.*)</Ip>.*", response_body)
+        probe_ip = m.group(1)
         return probe_ip
 
 class TorProjectGeoIP(HTTPGeoIPLookupper):

@@ -12,12 +12,7 @@ from ooni.geoip import UbuntuGeoIP, HTTPGeoIPLookupper, IPToLocation
 
 class UbuntuGeoIPResource(resource.Resource):
     def render(self, request):
-        return """
-        <Response>
-        <Ip>127.0.0.1</Ip>
-        <Spam>Ham</Spam>
-        </Response>
-        """
+        return """<?xml version="1.0" encoding="UTF-8"?><Response><Ip>127.0.0.1</Ip><Status>OK</Status></Response>"""
 
 class MaxMindGeoIPResource(resource.Resource):
     def render(self, request):
