@@ -88,7 +88,7 @@ class Director(object):
         if config.privacy.includepcap:
             log.msg("Starting")
             if not config.reports.pcap:
-                config.generatePcapFilename()
+                config.reports.pcap = config.generatePcapFilename()
             self.startSniffing()
 
         if config.advanced.start_tor:
