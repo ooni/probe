@@ -1,13 +1,16 @@
+import random
 import sys
 import os
+import re
 
 from ooni import config
+from ooni import geoip
 from ooni.managers import ReportEntryManager, MeasurementManager
 from ooni.reporter import Report
-from ooni.utils import log, checkForRoot, NotRootError
+from ooni.utils import log, checkForRoot
 from ooni.utils.net import randomFreePort
 from ooni.nettest import NetTest
-from ooni.errors import UnableToStartTor
+from ooni import errors
 
 from txtorcon import TorConfig
 from txtorcon import TorState, launch_tor
@@ -80,6 +83,7 @@ class Director(object):
 
         self.torControlProtocol = None
 
+    @defer.inlineCallbacks
     def start(self):
         if config.privacy.includepcap:
             log.msg("Starting")
@@ -89,10 +93,10 @@ class Director(object):
 
         if config.advanced.start_tor:
             log.msg("Starting Tor...")
-            d = self.startTor()
-        else:
-            d = defer.succeed(None)
-        return d
+            yield self.startTor()
+
+        config.probe_ip = geoip.ProbeIP()
+        yield config.probe_ip.lookup()
 
     @property
     def measurementSuccessRatio(self):
@@ -200,7 +204,7 @@ class Director(object):
         from ooni.utils.txscapy import ScapyFactory, ScapySniffer
         try:
             checkForRoot()
-        except NotRootError:
+        except errors.InsufficientPrivileges:
             print "[!] Includepcap options requires root priviledges to run"
             print "    you should run ooniprobe as root or disable the options in ooniprobe.conf"
             sys.exit(1)
@@ -232,18 +236,15 @@ class Director(object):
 
             socks_port = yield state.protocol.get_conf("SocksPort")
             control_port = yield state.protocol.get_conf("ControlPort")
-            client_ip = yield state.protocol.get_info("address")
 
             config.tor.socks_port = int(socks_port.values()[0])
             config.tor.control_port = int(control_port.values()[0])
-
-            config.probe_ip = client_ip.values()[0]
 
             log.debug("Obtained our IP address from a Tor Relay %s" % config.probe_ip)
 
         def setup_failed(failure):
             log.exception(failure)
-            raise UnableToStartTor
+            raise errors.UnableToStartTor
 
         def setup_complete(proto):
             """
