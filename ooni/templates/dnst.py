@@ -30,6 +30,8 @@ class DNSTest(NetTestCase):
     queryTimeout = [1]
 
     def _setUp(self):
+        super(DNSTest, self)._setUp()
+
         self.report['queries'] = []
 
     def performPTRLookup(self, address, dns_server):
@@ -53,7 +55,7 @@ class DNSTest(NetTestCase):
                     name = str(answer.payload.name)
                 answers.append(representAnswer(answer))
 
-            self.addToReport(query, resolver=dns_server,
+            DNSTest.addToReport(self, query, resolver=dns_server,
                     query_type = 'PTR', answers=answers, name=name)
             return name
 
@@ -61,7 +63,7 @@ class DNSTest(NetTestCase):
             log.err("Failed to perform lookup")
             log.exception(failure)
             failure.trap(gaierror, TimeoutError)
-            self.addToReport(query, resolver=dns_server,
+            DNSTest.addToReport(self, query, resolver=dns_server,
                     query_type = 'PTR', failure=failure)
             return None
 
@@ -91,13 +93,13 @@ class DNSTest(NetTestCase):
                     addrs.append(addr)
                 answers.append(representAnswer(answer))
 
-            self.addToReport(query, resolver=dns_server, query_type='A',
+            DNSTest.addToReport(self, query, resolver=dns_server, query_type='A',
                     answers=answers, addrs=addrs)
             return addrs
 
         def gotError(failure):
             failure.trap(gaierror, TimeoutError)
-            self.addToReport(query, resolver=dns_server, query_type='A',
+            DNSTest.addToReport(self, query, resolver=dns_server, query_type='A',
                     failure=failure)
             return failure
 

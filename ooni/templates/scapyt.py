@@ -38,6 +38,8 @@ class BaseScapyTest(NetTestCase):
             ]
 
     def _setUp(self):
+        super(BaseScapyTest, self)._setUp()
+
         if not config.scapyFactory:
             log.debug("Scapy factoring not set, registering it.")
             config.scapyFactory = ScapyFactory(config.advanced.interface)
