@@ -20,11 +20,8 @@ class HTTPInvalidRequestLine(tcpt.TCPTest):
     ascii letters or numbers ('XxXx' will be 4).
     """
     name = "HTTP Invalid Request Line"
-    version = "0.1.3"
+    version = "0.1.4"
     authors = "Arturo Filastò"
-
-    inputFile = ['file', 'f', None,
-                 'Input file of list of hostnames to attempt to resolve']
 
     usageOptions = UsageOptions
     requiredOptions = ['backend']
