@@ -87,7 +87,7 @@ Code Structure
 - ooni/utils/
   In here go internal utilities that are useful to ooniprobe
 
-- ooni/utils/geodata.py
+- ooni/geoip.py
   In here go functions related to the understanding of
   geographical information of the probe
 

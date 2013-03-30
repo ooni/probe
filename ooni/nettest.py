@@ -5,8 +5,9 @@ from twisted.internet import defer, reactor
 from twisted.trial.runner import filenameToModule
 from twisted.python import usage, reflect
 
+from ooni import geoip
 from ooni.tasks import Measurement
-from ooni.utils import log, checkForRoot, NotRootError, geodata
+from ooni.utils import log, checkForRoot
 from ooni import config
 from ooni import otime
 
@@ -30,15 +31,15 @@ class NetTestLoader(object):
         from ooni import __version__ as software_version
 
         client_geodata = {}
-        if config.probe_ip and (config.privacy.includeip or \
+        if config.probe_ip.address and (config.privacy.includeip or \
                 config.privacy.includeasn or \
                 config.privacy.includecountry or \
                 config.privacy.includecity):
             log.msg("We will include some geo data in the report")
-            client_geodata = geodata.IPToLocation(config.probe_ip)
+            client_geodata = geoip.IPToLocation(config.probe_ip.address)
 
         if config.privacy.includeip:
-            client_geodata['ip'] = config.probe_ip
+            client_geodata['ip'] = config.probe_ip.address
         else:
             client_geodata['ip'] = "127.0.0.1"
 

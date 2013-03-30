@@ -15,7 +15,7 @@ from ooni.reporter import OONIBReporter, YAMLReporter, OONIBReportError
 from ooni.inputunit import InputUnitFactory
 from ooni.nettest import NetTestCase, NoPostProcessor
 from ooni.utils import log, checkForRoot, pushFilenameStack
-from ooni.utils import NotRootError, Storage
+from ooni.utils import Storage
 from ooni.utils.net import randomFreePort
 
 class InvalidResumeFile(Exception):
