@@ -157,7 +157,7 @@ class Director(object):
 
         self.failedMeasurements += 1
         self.failures.append((failure, measurement))
-        return failure
+        return None
 
     def reporterFailed(self, failure, net_test):
         """
@@ -174,6 +174,7 @@ class Director(object):
     def netTestDone(self, result, net_test):
         self.activeNetTests.remove(net_test)
 
+    @defer.inlineCallbacks
     def startNetTest(self, _, net_test_loader, reporters):
         """
         Create the Report for the NetTest and start the report NetTest.

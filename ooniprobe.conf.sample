@@ -33,6 +33,18 @@ advanced:
     # If you do not specify start_tor, you will have to have Tor running and
     # explicitly set the control port and SOCKS port
     start_tor: true
+    # After how many seconds we should give up on a particular measurement
+    measurement_timeout: 30
+    # After how many retries we should give up on a measurement
+    measurement_retry: 2
+    # How many measurments to perform concurrently
+    measurement_concurrency = 100
+    # After how may seconds we should give up reporting
+    reporting_timeout: 30
+    # After how many retries to give up on reporting
+    reporting_retry: 3
+    # How many reports to perform concurrently
+    reporting_concurrency: 20
 tor:
     #socks_port: 9050
     #control_port: 9051

@@ -1,6 +1,8 @@
 import itertools
+
 from twisted.internet import defer
 from ooni.utils import log
+from ooni import config
 
 def makeIterable(item):
     """
@@ -139,9 +141,8 @@ class MeasurementManager(TaskManager):
     NetTest on the contrary is aware of the typology of measurements that it is
     dispatching as they are logically grouped by test file.
     """
-    # XXX tweak these values
-    retries = 2
-    concurrency = 10
+    retries = config.advanced.measuement_retries
+    concurrency = config.advanced.measurement_concurrency
 
     def succeeded(self, result, measurement):
         log.debug("Successfully performed measurement %s" % measurement)
@@ -151,9 +152,8 @@ class MeasurementManager(TaskManager):
         pass
 
 class ReportEntryManager(TaskManager):
-    # XXX tweak these values
-    retries = 3
-    concurrency = 20
+    retries = config.advanced.reporting_retries
+    concurrency = config.advanced.reporting_concurrency
 
     def succeeded(self, result, task):
         log.debug("Successfully performed report %s" % task)
