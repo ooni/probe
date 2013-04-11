@@ -81,6 +81,7 @@ def parseOptions():
     try:
         cmd_line_options.parseOptions()
     except usage.UsageError, ue:
+        print cmd_line_options.getUsage()
         raise SystemExit, "%s: %s" % (sys.argv[0], ue)
 
     return dict(cmd_line_options)
@@ -106,7 +107,7 @@ def runWithDirector():
     test_list = []
     if global_options['no-collector']:
         log.msg("Not reporting using a collector")
-        global_options.pop('collector')
+        global_options['collector'] = None
 
     if global_options['testdeck']:
         test_deck = yaml.safe_load(open(global_options['testdeck']))
@@ -136,6 +137,17 @@ def runWithDirector():
 
     def director_startup_failed(failure):
         log.err("Failed to start the director")
+        r = failure.trap(errors.TorNotRunning,
+                errors.InvalidOONIBCollectorAddress)
+        if r == errors.TorNotRunning:
+            log.err("Tor does not appear to be running")
+            log.err("Reporting with the collector %s is not possible" %
+                    global_options['collector'])
+            log.msg("Try with a different collector or disable collector reporting with -n")
+        elif r == errors.InvalidOONIBCollectorAddress:
+            log.err("Invalid format for oonib collector address.")
+            log.msg("Should be in the format http://<collector_address>:<port>")
+            log.msg("for example: ooniprobe -c httpo://nkvphnp3p6agi5qq.onion")
         reactor.stop()
 
     # Wait until director has started up (including bootstrapping Tor) before adding tess
@@ -147,23 +159,16 @@ def runWithDirector():
             yaml_reporter = YAMLReporter(test_details)
             reporters = [yaml_reporter]
 
-            if collector.startswith('httpo') \
+            if collector and collector.startswith('httpo') \
                     and not config.tor_state:
-                log.err("Tor does not appear to be running")
-                log.err("Reporting with the collector %s is not possible")
-                log.msg("Try with a different collector or disable collector reporting with -n")
                 raise errors.TorNotRunning
             elif collector:
-                log.msg("Reporting using collector: %s" %
-                        collector)
+                log.msg("Reporting using collector: %s" % collector)
                 try:
                     oonib_reporter = OONIBReporter(test_details,
                             collector)
                     reporters.append(oonib_reporter)
                 except errors.InvalidOONIBCollectorAddress, e:
-                    log.err("Invalid format for oonib collector address.")
-                    log.msg("Should be in the format http://<collector_address>:<port>")
-                    log.msg("for example: ooniprobe -c httpo://nkvphnp3p6agi5qq.onion")
                     raise e
 
             log.debug("adding callback for startNetTest")
