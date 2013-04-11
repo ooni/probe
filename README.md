@@ -64,7 +64,7 @@ Basic system requirements:
 
 On Debian or Ubuntu GNU/Linux based systems these can be installed with:
 
-  sudo apt-get install git-core python python-pip python-dev build-essential tor tor-geoipdb
+  sudo apt-get install git-core python python-pip python-dev build-essential tor tor-geoipdb tcpdump
 
 Other packages that may be of interest:
 
