@@ -394,6 +394,7 @@ class Report(object):
         for reporter in self.reporters[:]:
 
             def report_created(result):
+                print "CREATED REPORT %s" % reporter
                 log.debug("Created report with %s" % reporter)
                 self._reporters_openned += 1
                 are_all_openned()
@@ -405,10 +406,11 @@ class Report(object):
                     all_openned.errback(defer.fail(e))
                 else:
                     are_all_openned()
+                return failure
 
             d = defer.maybeDeferred(reporter.createReport)
-            d.addErrback(report_failed)
             d.addCallback(report_created)
+            d.addErrback(report_failed)
 
         return all_openned
 
@@ -454,7 +456,6 @@ class Report(object):
         Once a report has failed to be created with a reporter we give up and
         remove the reporter from the list of reporters to write to.
         """
-        failure.trap(errors.OONIBReportError)
         log.err("Failed to open %s reporter, giving up..." % reporter)
         log.err("Reporter %s failed, removing from report..." % reporter)
         #log.exception(failure)

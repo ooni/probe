@@ -176,12 +176,15 @@ def runTestCases(test_cases, options, cmd_line_options):
 
     if cmd_line_options['collector']:
         log.msg("Using remote collector, please be patient while we create the report.")
-        try:
-            yield oonib_reporter.createReport(options)
-        except OONIBReportError:
+        d = oonib_reporter.createReport(options)
+        @d.addErrback
+        def errback(failure):
+            print "ERRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR"
+            failure.trap(errors.OONIBReportError)
             log.err("Error in creating new report")
             log.msg("We will only create reports to a file")
             oonib_reporter = None
+        yield d
     else:
         oonib_reporter = None
 

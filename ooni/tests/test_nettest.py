@@ -14,9 +14,9 @@ from ooni.director import Director
 
 from ooni.managers import TaskManager
 
-from tests.mocks import MockMeasurement, MockMeasurementFailOnce
-from tests.mocks import MockNetTest, MockDirector, MockReporter
-from tests.mocks import MockMeasurementManager
+from ooni.tests.mocks import MockMeasurement, MockMeasurementFailOnce
+from ooni.tests.mocks import MockNetTest, MockDirector, MockReporter
+from ooni.tests.mocks import MockMeasurementManager
 defer.setDebugging(True)
 
 net_test_string = """
@@ -226,8 +226,8 @@ class TestNetTest(unittest.TestCase):
 
         @d.addCallback
         def complete(result):
-            #XXX: why is the return type (True, None) ?
-            self.assertEqual(result, [(True,None)])
+            print "IN here y0"
+            self.assertEqual(result, None)
             self.assertEqual(director.successfulMeasurements, 20)
 
         return d
