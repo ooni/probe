@@ -7,7 +7,7 @@ from twisted.python import usage, reflect
 
 from ooni import geoip
 from ooni.tasks import Measurement
-from ooni.utils import log, checkForRoot
+from ooni.utils import log, checkForRoot, geodata
 from ooni import config
 from ooni import otime
 
@@ -40,7 +40,7 @@ class NetTestLoader(object):
                 config.privacy.includecity):
             log.msg("We will include some geo data in the report")
             try:
-                client_geodata = geodata.IPToLocation(config.probe_ip)
+                client_geodata = geodata.IPToLocation(config.probe_ip.address)
             except e.GeoIPDataFilesNotFound:
                 log.err("Unable to find the geoip data files")
                 client_geodata = {'city': None, 'countrycode': None, 'asn': None}
