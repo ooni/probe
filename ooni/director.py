@@ -189,14 +189,16 @@ class Director(object):
 
         net_test = NetTest(net_test_loader, report)
         net_test.director = self
-        net_test.report.open()
+
+        yield net_test.report.open()
 
         self.measurementManager.schedule(net_test.generateMeasurements())
 
         self.activeNetTests.append(net_test)
         net_test.done.addBoth(self.netTestDone, net_test)
         net_test.done.addBoth(report.close)
-        return net_test.done
+
+        yield net_test.done
 
     def startSniffing(self):
         """ Start sniffing with Scapy. Exits if required privileges (root) are not
