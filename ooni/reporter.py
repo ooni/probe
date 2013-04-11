@@ -227,18 +227,6 @@ class YAMLReporter(OReporter):
     def finish(self):
         self._stream.close()
 
-class OONIBReportError(Exception):
-    pass
-
-class OONIBReportUpdateError(OONIBReportError):
-    pass
-
-class OONIBReportCreationError(OONIBReportError):
-    pass
-
-class OONIBTestDetailsLookupError(OONIBReportError):
-    pass
-
 class OONIBReporter(OReporter):
     def __init__(self, test_details, collector_address):
         self.collectorAddress = collector_address
@@ -283,7 +271,7 @@ class OONIBReporter(OReporter):
             # XXX we must trap this in the runner and make sure to report the
             # data later.
             log.err("Error in writing report entry")
-            raise OONIBReportUpdateError
+            raise errors.OONIBReportUpdateError
 
     @defer.inlineCallbacks
     def createReport(self):
@@ -335,16 +323,17 @@ class OONIBReporter(OReporter):
                                 bodyProducer=bodyProducer)
         except ConnectionRefusedError:
             log.err("Connection to reporting backend failed (ConnectionRefusedError)")
-            raise OONIBReportCreationError
+            #yield defer.fail(OONIBReportCreationError())
+            raise errors.OONIBReportCreationError
 
         except errors.HostUnreachable:
             log.err("Host is not reachable (HostUnreachable error")
-            raise OONIBReportCreationError
+            raise errors.OONIBReportCreationError
 
         except Exception, e:
             log.err("Failed to connect to reporter backend")
             log.exception(e)
-            raise OONIBReportCreationError
+            raise errors.OONIBReportCreationError
 
         # This is a little trix to allow us to unspool the response. We create
         # a deferred and call yield on it.
@@ -358,7 +347,7 @@ class OONIBReporter(OReporter):
         except Exception, e:
             log.err("Failed to parse collector response")
             log.exception(e)
-            raise OONIBReportCreationError
+            raise errors.OONIBReportCreationError
 
         self.reportID = parsed_response['report_id']
         self.backendVersion = parsed_response['backend_version']
@@ -398,19 +387,24 @@ class Report(object):
         """
         all_openned = defer.Deferred()
 
+        def are_all_openned():
+            if len(self.reporters) == self._reporters_openned:
+                all_openned.callback(self._reporters_openned)
+
         for reporter in self.reporters[:]:
 
             def report_created(result):
+                log.debug("Created report with %s" % reporter)
                 self._reporters_openned += 1
-                if len(self.reporters) == self._reporters_openned:
-                    all_openned.callback(self._reporters_openned)
+                are_all_openned()
 
             def report_failed(failure):
-                print "WE HAVE FAILED!"
                 try:
                     self.failedOpeningReport(failure, reporter)
                 except errors.NoMoreReporters, e:
                     all_openned.errback(defer.fail(e))
+                else:
+                    are_all_openned()
 
             d = defer.maybeDeferred(reporter.createReport)
             d.addErrback(report_failed)
@@ -433,6 +427,7 @@ class Report(object):
             been written or errbacks when no more reporters
         """
         all_written = defer.Deferred()
+        self._reporters_written = 0
 
         for reporter in self.reporters[:]:
             def report_written(result):
@@ -459,9 +454,10 @@ class Report(object):
         Once a report has failed to be created with a reporter we give up and
         remove the reporter from the list of reporters to write to.
         """
+        failure.trap(errors.OONIBReportError)
         log.err("Failed to open %s reporter, giving up..." % reporter)
         log.err("Reporter %s failed, removing from report..." % reporter)
-        log.exception(failure)
+        #log.exception(failure)
         self.reporters.remove(reporter)
         # Don't forward the exception unless there are no more reporters
         if len(self.reporters) == 0:

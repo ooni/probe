@@ -294,19 +294,7 @@ class NetTest(object):
 
         The state for the NetTest is informed of the fact that another task has
         reached the done state.
-
-        Args:
-            report_results:
-                is the list of tuples returned by the self.report.write
-                :class:twisted.internet.defer.DeferredList
-
-        Returns:
-            the same deferred list results
         """
-        for report_status, report_result in report_results:
-            if report_status == False:
-                self.director.reporterFailed(report_result, self)
-
         self.state.taskDone()
 
         if len(self.report.reporters) == 0:

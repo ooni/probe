@@ -11,7 +11,7 @@ from txtorcon import TorConfig
 from txtorcon import TorState, launch_tor
 
 from ooni import config
-from ooni.reporter import OONIBReporter, YAMLReporter, OONIBReportError
+from ooni.reporter import OONIBReporter, YAMLReporter
 from ooni.inputunit import InputUnitFactory
 from ooni.nettest import NetTestCase, NoPostProcessor
 from ooni.utils import log, checkForRoot, pushFilenameStack
