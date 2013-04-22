@@ -202,6 +202,8 @@ class HandshakeTest(nettest.NetTestCase):
         return (str(addr), int(port))
 
     def inputProcessor(self, file=None):
+        if self.host:
+            yield self.splitInput(self.host)
         if os.path.isfile(file):
             with open(file) as fh:
                 for line in fh.readlines():
