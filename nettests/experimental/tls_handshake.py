@@ -31,9 +31,9 @@ import struct
 import sys
 import types
 
+import ipaddr
 import OpenSSL
 
-from ipaddr                 import IPAddress
 from OpenSSL                import SSL, crypto
 from twisted.internet       import defer, threads
 from twisted.python         import usage, failure
