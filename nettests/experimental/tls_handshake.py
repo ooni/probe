@@ -152,13 +152,23 @@ class HandshakeTest(nettest.NetTestCase):
             if options['host']:
                 self.host = options['host']
 
+            ## If no context was chosen, explain our default to the user:
+            if not (options['ssl2'] or options['ssl3'] or options['tls1']):
+                try: raise SSLContextError('NO_CONTEXT')
+                except SSLContextError as sce: log.err(sce.message)
             else:
-                try:
-                    raise NoSSLContextError(
-                        "No SSL/TLS context chosen! Defaulting to TLSv1...")
-                except NoSSLContextError, ncse:
-                    log.err(ncse.message)
-                    self.context = SSL.Context(SSL.TLSv1_METHOD)
+                ## If incompatible contexts were chosen, inform the user:
+                if options['tls1'] and (options['ssl2'] or options['ssl3']):
+                    try: raise SSLContextError('INCOMPATIBLE')
+                    except SSLContextError as sce: log.err(sce.message)
+                    finally: log.msg('Defaulting to testing only TLSv1.')
+                elif options['ssl2']:
+                    if not options['ssl3']:
+                        self.context = SSL.Context(SSL.SSLv2_METHOD)
+                    else:
+                        self.context = SSL.Context(SSL.SSLv23_METHOD)
+                elif options['ssl3']:
+                    self.context = SSL.Context(SSL.SSLv3_METHOD)
 
             if not options['ciphersuite']:
                 self.ciphers = firefox_ciphers
