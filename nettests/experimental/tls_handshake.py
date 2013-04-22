@@ -127,10 +127,10 @@ class HandshakeTest(nettest.NetTestCase):
     name         = 'tls-handshake'
     author       = 'Isis Lovecruft <isis@torproject.org>'
     description  = 'A test to determing if we can complete a TLS hankshake.'
-    version      = '0.0.2'
+    version      = '0.0.3'
 
     requiresRoot = False
-    usageOptions = UsageOptions
+    usageOptions = HandshakeOptions
 
     inputFile = ['file', 'f', None, 'List of <IP>:<PORT>s to test']
 
