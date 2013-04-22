@@ -82,10 +82,20 @@ class SSLContextError(usage.UsageError):
 
         ``SSLContextError('NO_CONTEXT')``
     """
-    pass
 
-class HostUnreachableError(Exception):
-    """Raised when there the host IP address appears to be unreachable."""
+    #: Pre-defined error messages.
+    errors = {
+        'NO_CONTEXT': 'No SSL/TLS context chosen! Defaulting to TLSv1.',
+        'INCOMPATIBLE': str("Testing TLSv1 (option '--tls1') is incompatible "
+                            + "with testing SSL ('--ssl2' and '--ssl3').") }
+
+    def __init__(self, message):
+        if message in self.errors.keys():
+            message = self.errors[message]
+        super(usage.UsageError, self).__init__(message)
+
+class HostUnreachable(Exception):
+    """Raised when the host IP address appears to be unreachable."""
     pass
 
 class ConnectionTimeout(Exception):
