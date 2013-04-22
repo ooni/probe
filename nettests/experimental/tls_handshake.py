@@ -226,6 +226,15 @@ class HandshakeTest(nettest.NetTestCase):
 
     @staticmethod
     def getPeerCert(connection, get_chain=False):
+        """Get the PEM-encoded certificate or cert chain of the remote host.
+
+        :param connection: A :class:`OpenSSL.SSL.Connection <Connection>`.
+        :param bool get_chain: If True, get the all certificates in the
+            chain. Otherwise, only get the remote host's certificate.
+        :returns: A PEM-encoded x509 certificate. If
+            :param:`getPeerCert.get_chain <get_chain>` is True, returns a list
+            of PEM-encoded x509 certificates.
+        """
         if not get_chain:
             x509_cert = connection.get_peer_certificate()
             pem_cert = crypto.dump_certificate(crypto.FILETYPE_PEM, x509_cert)
