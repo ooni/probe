@@ -242,6 +242,8 @@ class NetTestState(object):
         self.tasks += 1
 
     def checkAllTasksDone(self):
+        log.debug("Checking all tasks for completion %s == %s" %
+                  (self.doneTasks, self.tasks))
         if self.completedScheduling and \
                 self.doneTasks == self.tasks:
             self.allTasksDone.callback(self.doneTasks)
@@ -324,7 +326,8 @@ class NetTest(object):
 
         if self.director:
             measurement.done.addCallback(self.director.measurementSucceeded)
-            measurement.done.addErrback(self.director.measurementFailed, measurement)
+            measurement.done.addErrback(self.director.measurementFailed,
+                                        measurement)
 
         if self.report:
             measurement.done.addBoth(self.report.write)

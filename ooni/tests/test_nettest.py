@@ -239,29 +239,3 @@ class TestNetTest(unittest.TestCase):
 
         for test_class, method in ntl.testCases:
             self.assertTrue(test_class.requiresRoot)
-
-    #def test_require_root_failed(self):
-    #    #XXX: will fail if you run as root
-    #    try:
-    #        net_test = NetTestLoader(StringIO(net_test_root_required),
-    #                dummyArgs)
-    #    except errors.InsufficientPrivileges:
-    #        pass
-
-    #def test_create_report_succeed(self):
-    #    pass
-
-    #def test_create_report_failed(self):
-    #    pass
-
-    #def test_run_all_test(self):
-    #    raise NotImplementedError
-
-    #def test_resume_test(self):
-    #    pass
-
-    #def test_progress(self):
-    #    pass
-
-    #def test_time_out(self):
-    #    raise NotImplementedError

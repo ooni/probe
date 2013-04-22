@@ -429,23 +429,18 @@ class Report(object):
             been written or errbacks when no more reporters
         """
         all_written = defer.Deferred()
-        self._reporters_written = 0
+        self._report_write_completed = []
 
         for reporter in self.reporters[:]:
-            def report_written(result):
-                self._reporters_written += 1
-                if len(self.reporters) == self._reporters_written:
-                    all_written.callback(self._reporters_written)
-
-            def report_failed(failure):
-                log.err("Failed writing report entry")
-                log.exception(failure)
+            def report_completed(result):
+                self._report_write_completed.append(result)
+                if len(self.reporters) == len(self._report_write_completed):
+                    all_written.callback(self._report_write_completed)
 
             report_entry_task = ReportEntry(reporter, measurement)
             self.reportEntryManager.schedule(report_entry_task)
 
-            report_entry_task.done.addCallback(report_written)
-            report_entry_task.done.addErrback(report_failed)
+            report_entry_task.done.addBoth(report_completed)
 
         return all_written
 

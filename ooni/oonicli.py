@@ -160,7 +160,7 @@ def runWithDirector():
             reporters = [yaml_reporter]
 
             if collector and collector.startswith('httpo') \
-                    and not config.tor_state:
+                    and (not (config.tor_state or config.tor.socks_port)):
                 raise errors.TorNotRunning
             elif collector:
                 log.msg("Reporting using collector: %s" % collector)
@@ -173,7 +173,7 @@ def runWithDirector():
 
             log.debug("adding callback for startNetTest")
             d.addCallback(director.startNetTest, net_test_loader, reporters)
-        d.addBoth(shutdown)
+        director.allTestsDone.addBoth(shutdown)
 
     def start():
         d.addCallback(post_director_start)

@@ -83,6 +83,10 @@ class Director(object):
 
         self.torControlProtocol = None
 
+        # This deferred is fired once all the measurements and their reporting
+        # tasks are completed.
+        self.allTestsDone = defer.Deferred()
+
     @defer.inlineCallbacks
     def start(self):
         if config.privacy.includepcap:
@@ -173,6 +177,9 @@ class Director(object):
 
     def netTestDone(self, result, net_test):
         self.activeNetTests.remove(net_test)
+        if len(self.activeNetTests) == 0:
+            self.allTestsDone.callback(None)
+            self.allTestsDone = defer.Deferred()
 
     @defer.inlineCallbacks
     def startNetTest(self, _, net_test_loader, reporters):
@@ -195,8 +202,9 @@ class Director(object):
         self.measurementManager.schedule(net_test.generateMeasurements())
 
         self.activeNetTests.append(net_test)
-        net_test.done.addBoth(self.netTestDone, net_test)
+
         net_test.done.addBoth(report.close)
+        net_test.done.addBoth(self.netTestDone, net_test)
 
         yield net_test.done
 
