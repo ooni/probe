@@ -99,9 +99,10 @@ class HostUnreachable(Exception):
     pass
 
 class ConnectionTimeout(Exception):
-    """
-    Raised when we receive a :class:`socket.timeout`, in order to pass the
-    Exception along to :func:`connectionFailed`.
+    """Raised when we receive a :class:`socket.timeout <timeout>`, in order to
+    pass the Exception along to
+    :func:`TLSHandshakeTest.test_handshake.connectionFailed
+    <connectionFailed>`.
     """
     pass
 
