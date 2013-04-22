@@ -293,7 +293,7 @@ class HandshakeTest(nettest.NetTestCase):
             pubkey = crypto.dump_privatekey(crypto.FILETYPE_PEM, key)
             return pubkey
 
-    def test_tlsv1_handshake(self):
+    def test_handshake(self):
         """xxx fill me in"""
 
         def makeConnection(host):
