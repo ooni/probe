@@ -106,11 +106,13 @@ class ConnectionTimeout(Exception):
     """
     pass
 
-class UsageOptions(usage.Options):
+class HandshakeOptions(usage.Options):
+    """ :class:`usage.Options <Options>` parser for the tls-handshake test."""
     optParameters = [
-        ['host', 'h', None, 'Remote host IP address (v4/v6)'],
+        ['host', 'h', None,
+         'Remote host IP address (v4/v6) and port, i.e. "1.2.3.4:443"'],
         ['port', 'p', None,
-         "Use this port for all hosts, regardless of port specified in file"],
+         'Use this port for all hosts, regardless of port specified in file'],
         ['ciphersuite', 'c', None ,
          'File containing ciphersuite list, one per line'],]
     optFlags = [
