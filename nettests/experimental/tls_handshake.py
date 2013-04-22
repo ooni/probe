@@ -213,7 +213,7 @@ class HandshakeTest(nettest.NetTestCase):
 
     def buildSocket(self, addr):
         global s
-        ip = IPAddress(addr) ## learn if we're IPv4 or IPv6
+        ip = ipaddr.IPAddress(addr) ## learn if we're IPv4 or IPv6
         if ip.version == 4:
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         elif ip.version == 6:
