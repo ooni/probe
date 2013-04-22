@@ -14,7 +14,6 @@ from txsocksx.errors import HostUnreachable, ConnectionRefused
 from txsocksx.errors import TTLExpired, CommandNotSupported
 
 from socket import gaierror
-from ooni.utils import log
 def handleAllFailures(failure):
     """
     Here we make sure to trap all the failures that are supported by the
@@ -44,6 +43,8 @@ def failureToString(failure):
 
         A string representing the HTTP response error message.
     """
+    from ooni.utils import log
+
     string = None
     if isinstance(failure.value, ConnectionRefusedError):
         log.err("Connection refused. The backend may be down")
@@ -135,6 +136,36 @@ class ReportNotCreated(Exception):
 class ReportAlreadyClosed(Exception):
     pass
 
+class TorStateNotFound(Exception):
+    pass
+class ReportNotCreated(Exception):
+    pass
+
+class InsufficientPrivileges(Exception):
+    pass
+
+class ProbeIPUnknown(Exception):
+    pass
+
+class GeoIPDataFilesNotFound(Exception):
+    pass
+
 class NoMoreReporters(Exception):
     pass
+
+class TorNotRunning(Exception):
+    pass
+
+class OONIBReportError(Exception):
+    pass
+
+class OONIBReportUpdateError(OONIBReportError):
+    pass
+
+class OONIBReportCreationError(OONIBReportError):
+    pass
+
+class OONIBTestDetailsLookupError(OONIBReportError):
+    pass
+
 

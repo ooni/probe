@@ -14,6 +14,7 @@ except ImportError:
     log.err("Unable to import pygeoip. We will not be able to run geo IP related measurements")
 
 def IPToLocation(ipaddr):
+    log.debug("looking up %s" % ipaddr)
     city_file = os.path.join(config.advanced.geoip_data_dir, 'GeoLiteCity.dat')
     country_file = os.path.join(config.advanced.geoip_data_dir, 'GeoIP.dat')
     asn_file = os.path.join(config.advanced.geoip_data_dir, 'GeoIPASNum.dat')

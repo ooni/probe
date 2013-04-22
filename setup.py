@@ -1,37 +1,36 @@
-from __future__ import with_statement
-from setuptools import setup, find_packages
+#!/usr/bin/env python
+#-*- coding: utf-8 -*-
 
-def get_requirements():
-    with open('requirements.txt', 'r') as f:
-        requirements = f.read().splitlines()
+from setuptools import setup
 
-    with open('oonib/requirements.txt', 'r') as f:
-        requirements += f.read().splitlines()
+install_requires = [
+    'txsocksx>=0.0.2',
+    'scapy>=2.2.0',
+    'dnspython>=1.10.0',
+    'parsley>1.0',
+    'pypcap>=1.1.1'
+]
 
-    # For urls such as https://hg.secdev.org/scapy/archive/tip.zip#egg=scapy in
-    # requirements.txt we need to add the package name to install_requires and
-    # the entire url to dependency_links. That way setuptools will be able to
-    # satisfy the dependency using that url (as long as it is in standard sdist
-    # format, a single .py file or an egg).
-    pypi_packages = []
-    dependency_links = []
-    for package_desc in requirements:
-        if '#egg=' in package_desc:
-            dependency_links.append(package_desc)
-            pypi_packages.append(package_desc.split('#egg=')[-1])
-        else:
-            pypi_packages.append(package_desc)
+dependency_links = [
+    'https://people.torproject.org/~ioerror/src/mirrors/ooniprobe',
+    'https://github.com/hellais/pypcap/archive/v1.1.1.tar.gz#egg=pypcap-1.1.1'
+]
 
-    return pypi_packages, dependency_links
-
-install_requires, dependency_links = get_requirements()
+with open('requirements.txt') as f:
+    for line in f:
+        if line.startswith("#") or line.startswith('http'):
+            continue
+        install_requires.append(line)
 
 setup(
     name="ooni-probe",
-    version="0.6",
-    url="http://ooni.nu/",
-    packages=find_packages(),
-    scripts=["bin/canary", "bin/oonib", "bin/ooniprobe"],
-    install_requires=install_requires,
+    version="0.0.11",
+    author="Arturo Filastò",
+    author_email = "art@torproject.org",
+    url="https://ooni.torproject.org/",
+    package_dir={'ooni': 'ooni'},
+    packages=['ooni', 'ooni.templates', 'ooni.utils'],
+    scripts=["bin/ooniprobe"],
     dependency_links=dependency_links,
+    install_requires=install_requires,
 )

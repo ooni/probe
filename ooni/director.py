@@ -1,13 +1,16 @@
+import random
 import sys
 import os
+import re
 
 from ooni import config
+from ooni import geoip
 from ooni.managers import ReportEntryManager, MeasurementManager
 from ooni.reporter import Report
-from ooni.utils import log, checkForRoot, NotRootError
+from ooni.utils import log, checkForRoot
 from ooni.utils.net import randomFreePort
-from ooni.nettest import NetTest, getNetTestInformation
-from ooni.errors import UnableToStartTor
+from ooni.nettest import NetTest
+from ooni import errors
 
 from txtorcon import TorConfig
 from txtorcon import TorState, launch_tor
@@ -105,19 +108,24 @@ class Director(object):
 
         return nettests
 
+        # This deferred is fired once all the measurements and their reporting
+        # tasks are completed.
+        self.allTestsDone = defer.Deferred()
+
+    @defer.inlineCallbacks
     def start(self):
         if config.privacy.includepcap:
             log.msg("Starting")
             if not config.reports.pcap:
-                config.generatePcapFilename()
+                config.reports.pcap = config.generatePcapFilename()
             self.startSniffing()
 
         if config.advanced.start_tor:
             log.msg("Starting Tor...")
-            d = self.startTor()
-        else:
-            d = defer.succeed(None)
-        return d
+            yield self.startTor()
+
+        config.probe_ip = geoip.ProbeIP()
+        yield config.probe_ip.lookup()
 
     @property
     def measurementSuccessRatio(self):
@@ -194,7 +202,11 @@ class Director(object):
 
     def netTestDone(self, result, net_test):
         self.activeNetTests.remove(net_test)
+        if len(self.activeNetTests) == 0:
+            self.allTestsDone.callback(None)
+            self.allTestsDone = defer.Deferred()
 
+    @defer.inlineCallbacks
     def startNetTest(self, _, net_test_loader, reporters):
         """
         Create the Report for the NetTest and start the report NetTest.
@@ -209,14 +221,17 @@ class Director(object):
 
         net_test = NetTest(net_test_loader, report)
         net_test.director = self
-        net_test.report.open()
+
+        yield net_test.report.open()
 
         self.measurementManager.schedule(net_test.generateMeasurements())
 
         self.activeNetTests.append(net_test)
-        net_test.done.addBoth(self.netTestDone, net_test)
+
         net_test.done.addBoth(report.close)
-        return net_test.done
+        net_test.done.addBoth(self.netTestDone, net_test)
+
+        yield net_test.done
 
     def startSniffing(self):
         """ Start sniffing with Scapy. Exits if required privileges (root) are not
@@ -225,7 +240,7 @@ class Director(object):
         from ooni.utils.txscapy import ScapyFactory, ScapySniffer
         try:
             checkForRoot()
-        except NotRootError:
+        except errors.InsufficientPrivileges:
             print "[!] Includepcap options requires root priviledges to run"
             print "    you should run ooniprobe as root or disable the options in ooniprobe.conf"
             sys.exit(1)
@@ -257,18 +272,15 @@ class Director(object):
 
             socks_port = yield state.protocol.get_conf("SocksPort")
             control_port = yield state.protocol.get_conf("ControlPort")
-            client_ip = yield state.protocol.get_info("address")
 
             config.tor.socks_port = int(socks_port.values()[0])
             config.tor.control_port = int(control_port.values()[0])
-
-            config.probe_ip = client_ip.values()[0]
 
             log.debug("Obtained our IP address from a Tor Relay %s" % config.probe_ip)
 
         def setup_failed(failure):
             log.exception(failure)
-            raise UnableToStartTor
+            raise errors.UnableToStartTor
 
         def setup_complete(proto):
             """

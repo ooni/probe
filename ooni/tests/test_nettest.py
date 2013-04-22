@@ -7,9 +7,8 @@ from twisted.internet import defer, reactor
 from twisted.python.usage import UsageError
 
 from ooni.nettest import NetTest, InvalidOption, MissingRequiredOption
-from ooni.nettest import NetTestLoader, FailureToLoadNetTest, loadNetTestString, loadNetTestFile
+from ooni.nettest import NetTestLoader, FailureToLoadNetTest
 from ooni.tasks import BaseTask
-from ooni.utils import NotRootError
 
 from ooni.director import Director
 
@@ -125,7 +124,7 @@ class TestNetTest(unittest.TestCase):
         f.close()
 
         ntl = NetTestLoader(dummyArgs)
-        ntl.setupTestCases(loadNetTestFile(net_test_file))
+        ntl.loadNetTestFile(net_test_file)
 
         self.verifyMethods(ntl.testCases)
         os.unlink(net_test_file)
@@ -136,7 +135,7 @@ class TestNetTest(unittest.TestCase):
         generated.
         """
         ntl = NetTestLoader(dummyArgs)
-        ntl.setupTestCases(loadNetTestString(net_test_string))
+        ntl.loadNetTestString(net_test_string)
 
         self.verifyMethods(ntl.testCases)
 
@@ -146,13 +145,13 @@ class TestNetTest(unittest.TestCase):
         generated.
         """
         ntl = NetTestLoader(dummyArgs)
-        ntl.setupTestCases(loadNetTestString(net_test_string))
+        ntl.loadNetTestString(net_test_string)
 
         self.verifyMethods(ntl.testCases)
 
     def test_load_with_option(self):
         ntl = NetTestLoader(dummyArgs)
-        ntl.setupTestCases(loadNetTestString(net_test_string))
+        ntl.loadNetTestString(net_test_string)
 
         self.assertIsInstance(ntl, NetTestLoader)
         for test_klass, test_meth in ntl.testCases:
@@ -162,7 +161,7 @@ class TestNetTest(unittest.TestCase):
     def test_load_with_invalid_option(self):
         try:
             ntl = NetTestLoader(dummyInvalidArgs)
-            ntl.setupTestCases(loadNetTestString(net_test_string))
+            ntl.loadNetTestString(net_test_string)
 
             ntl.checkOptions()
             raise Exception
@@ -171,21 +170,21 @@ class TestNetTest(unittest.TestCase):
 
     def test_load_with_required_option(self):
         ntl = NetTestLoader(dummyArgsWithRequiredOptions)
-        ntl.setupTestCases(loadNetTestString(net_test_string_with_required_option))
+        ntl.loadNetTestString(net_test_string_with_required_option)
 
         self.assertIsInstance(ntl, NetTestLoader)
 
     def test_load_with_missing_required_option(self):
         try:
             ntl = NetTestLoader(dummyArgs)
-            ntl.setupTestCases(loadNetTestString(net_test_string_with_required_option))
+            ntl.loadNetTestString(net_test_string_with_required_option)
 
         except MissingRequiredOption:
             pass
 
     def test_net_test_inputs(self):
         ntl = NetTestLoader(dummyArgsWithFile)
-        ntl.setupTestCases(loadNetTestString(net_test_string_with_file))
+        ntl.loadNetTestString(net_test_string_with_file)
 
         ntl.checkOptions()
 
@@ -199,7 +198,7 @@ class TestNetTest(unittest.TestCase):
 
     def test_setup_local_options_in_test_cases(self):
         ntl = NetTestLoader(dummyArgs)
-        ntl.setupTestCases(loadNetTestString(net_test_string))
+        ntl.loadNetTestString(net_test_string)
 
         ntl.checkOptions()
 
@@ -208,7 +207,7 @@ class TestNetTest(unittest.TestCase):
 
     def test_generate_measurements_size(self):
         ntl = NetTestLoader(dummyArgsWithFile)
-        ntl.setupTestCases(loadNetTestString(net_test_string_with_file))
+        ntl.loadNetTestString(net_test_string_with_file)
 
         ntl.checkOptions()
         net_test = NetTest(ntl, None)
@@ -218,7 +217,7 @@ class TestNetTest(unittest.TestCase):
 
     def test_net_test_completed_callback(self):
         ntl = NetTestLoader(dummyArgsWithFile)
-        ntl.setupTestCases(loadNetTestString(net_test_string_with_file))
+        ntl.loadNetTestString(net_test_string_with_file)
 
         ntl.checkOptions()
         director = Director()
@@ -227,8 +226,8 @@ class TestNetTest(unittest.TestCase):
 
         @d.addCallback
         def complete(result):
-            #XXX: why is the return type (True, None) ?
-            self.assertEqual(result, [(True,None)])
+            print "IN here y0"
+            self.assertEqual(result, None)
             self.assertEqual(director.successfulMeasurements, 20)
 
         return d
@@ -236,33 +235,7 @@ class TestNetTest(unittest.TestCase):
     def test_require_root_succeed(self):
         #XXX: will require root to run
         ntl = NetTestLoader(dummyArgs)
-        ntl.setupTestCases(loadNetTestString(net_test_root_required))
+        ntl.loadNetTestString(net_test_root_required)
 
         for test_class, method in ntl.testCases:
             self.assertTrue(test_class.requiresRoot)
-
-    #def test_require_root_failed(self):
-    #    #XXX: will fail if you run as root
-    #    try:
-    #        net_test = NetTestLoader(StringIO(net_test_root_required),
-    #                dummyArgs)
-    #    except NotRootError:
-    #        pass
-
-    #def test_create_report_succeed(self):
-    #    pass
-
-    #def test_create_report_failed(self):
-    #    pass
-
-    #def test_run_all_test(self):
-    #    raise NotImplementedError
-
-    #def test_resume_test(self):
-    #    pass
-
-    #def test_progress(self):
-    #    pass
-
-    #def test_time_out(self):
-    #    raise NotImplementedError

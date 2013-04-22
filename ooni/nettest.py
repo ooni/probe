@@ -5,12 +5,13 @@ from twisted.internet import defer, reactor
 from twisted.trial.runner import filenameToModule
 from twisted.python import usage, reflect
 
+from ooni import geoip
 from ooni.tasks import Measurement
-from ooni.utils import log, checkForRoot, NotRootError, geodata
+from ooni.utils import log, checkForRoot, geodata
 from ooni import config
 from ooni import otime
 
-from ooni import errors
+from ooni import errors as e
 
 from inspect import getmembers
 from StringIO import StringIO
@@ -180,19 +181,19 @@ class NetTestLoader(object):
         from ooni import __version__ as software_version
 
         client_geodata = {}
-        if config.probe_ip and (config.privacy.includeip or \
+        if config.probe_ip.address and (config.privacy.includeip or \
                 config.privacy.includeasn or \
                 config.privacy.includecountry or \
                 config.privacy.includecity):
             log.msg("We will include some geo data in the report")
             try:
-                client_geodata = geodata.IPToLocation(config.probe_ip)
-            except errors.GeoIPDataFilesNotFound:
+                client_geodata = geodata.IPToLocation(config.probe_ip.address)
+            except e.GeoIPDataFilesNotFound:
                 log.err("Unable to find the geoip data files")
                 client_geodata = {'city': None, 'countrycode': None, 'asn': None}
 
         if config.privacy.includeip:
-            client_geodata['ip'] = config.probe_ip
+            client_geodata['ip'] = config.probe_ip.address
         else:
             client_geodata['ip'] = "127.0.0.1"
 
@@ -262,6 +263,44 @@ class NetTestLoader(object):
                 assert usage_options == test_class.usageOptions
         return usage_options
 
+    def loadNetTestString(self, net_test_string):
+        """
+        Load NetTest from a string.
+        WARNING input to this function *MUST* be sanitized and *NEVER* be
+        untrusted.
+        Failure to do so will result in code exec.
+
+        net_test_string:
+
+            a string that contains the net test to be run.
+        """
+        net_test_file_object = StringIO(net_test_string)
+
+        ns = {}
+        test_cases = []
+        exec net_test_file_object.read() in ns
+        for item in ns.itervalues():
+            test_cases.extend(self._get_test_methods(item))
+
+        if not test_cases:
+            raise NoTestCasesFound
+
+        self.setupTestCases(test_cases)
+
+    def loadNetTestFile(self, net_test_file):
+        """
+        Load NetTest from a file.
+        """
+        test_cases = []
+        module = filenameToModule(net_test_file)
+        for __, item in getmembers(module):
+            test_cases.extend(self._get_test_methods(item))
+
+        if not test_cases:
+            raise NoTestCasesFound
+
+        self.setupTestCases(test_cases)
+
     def setupTestCases(self, test_cases):
         """
         Creates all the necessary test_cases (a list of tuples containing the
@@ -314,6 +353,22 @@ class NetTestLoader(object):
                 inputs = [None]
             klass.inputs = inputs
 
+    def _get_test_methods(self, item):
+        """
+        Look for test_ methods in subclasses of NetTestCase
+        """
+        test_cases = []
+        try:
+            assert issubclass(item, NetTestCase)
+            methods = reflect.prefixedMethodNames(item, self.method_prefix)
+            test_methods = []
+            for method in methods:
+                test_methods.append(self.method_prefix + method)
+            if test_methods:
+                test_cases.append((item, test_methods))
+        except (TypeError, AssertionError):
+            pass
+        return test_cases
 
 class NetTestState(object):
     def __init__(self, allTasksDone):
@@ -334,6 +389,8 @@ class NetTestState(object):
         self.tasks += 1
 
     def checkAllTasksDone(self):
+        log.debug("Checking all tasks for completion %s == %s" %
+                  (self.doneTasks, self.tasks))
         if self.completedScheduling and \
                 self.doneTasks == self.tasks:
             self.allTasksDone.callback(self.doneTasks)
@@ -386,23 +443,11 @@ class NetTest(object):
 
         The state for the NetTest is informed of the fact that another task has
         reached the done state.
-
-        Args:
-            report_results:
-                is the list of tuples returned by the self.report.write
-                :class:twisted.internet.defer.DeferredList
-
-        Returns:
-            the same deferred list results
         """
-        for report_status, report_result in report_results:
-            if report_status == False:
-                self.director.reporterFailed(report_result, self)
-
         self.state.taskDone()
 
         if len(self.report.reporters) == 0:
-            raise errors.AllReportersFailed
+            raise e.AllReportersFailed
 
         return report_results
 
@@ -428,7 +473,8 @@ class NetTest(object):
 
         if self.director:
             measurement.done.addCallback(self.director.measurementSucceeded)
-            measurement.done.addErrback(self.director.measurementFailed, measurement)
+            measurement.done.addErrback(self.director.measurementFailed,
+                                        measurement)
 
         if self.report:
             measurement.done.addBoth(self.report.write)

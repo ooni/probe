@@ -205,4 +205,8 @@ By default ooniprobe will not include personal identifying information in the
 test result, nor create a pcap file. This behavior can be personalized by
 editing your ooniprobe.conf configuration file.
 
+## Setting capabilities on your virtualenv python binary
 
+If your distributation supports capabilities you can avoid needing to run OONI as root:
+
+    setcap cap_net_admin,cap_net_raw+eip /path/to/your/virtualenv's/python

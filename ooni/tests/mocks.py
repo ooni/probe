@@ -145,7 +145,7 @@ class MockOReporterThatFailsWrite(MockOReporter):
 
 class MockOReporterThatFailsOpen(MockOReporter):
     def createReport(self):
-        self.created.errback(failure.Failure(MockFailure()))
+        raise MockFailure
 
 class MockOReporterThatFailsWriteOnce(MockOReporter):
     def __init__(self):

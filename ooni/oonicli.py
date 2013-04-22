@@ -11,8 +11,8 @@ from twisted.python import usage
 from twisted.python.util import spewer
 
 from ooni import errors
-from ooni import config
 
+from ooni import config
 from ooni.director import Director
 from ooni.reporter import YAMLReporter, OONIBReporter
 from ooni.nettest import NetTestLoader, MissingRequiredOption
@@ -28,7 +28,9 @@ class Options(usage.Options):
                 " files listed on the command line")
 
     optFlags = [["help", "h"],
-                ["resume", "r"]]
+                ["resume", "r"],
+                ["no-collector", "n"]
+                ]
 
     optParameters = [["reportfile", "o", None, "report file name"],
                      ["testdeck", "i", None,
@@ -78,6 +80,7 @@ def parseOptions():
     try:
         cmd_line_options.parseOptions()
     except usage.UsageError, ue:
+        print cmd_line_options.getUsage()
         raise SystemExit, "%s: %s" % (sys.argv[0], ue)
 
     return dict(cmd_line_options)
@@ -101,6 +104,9 @@ def runWithDirector():
 
     # contains (test_cases, options, cmd_line_options)
     test_list = []
+    if global_options['no-collector']:
+        log.msg("Not reporting using a collector")
+        global_options['collector'] = None
 
     if global_options['testdeck']:
         test_deck = yaml.safe_load(open(global_options['testdeck']))
@@ -130,32 +136,47 @@ def runWithDirector():
 
     def director_startup_failed(failure):
         log.err("Failed to start the director")
-        log.exception(failure)
+        r = failure.trap(errors.TorNotRunning,
+                errors.InvalidOONIBCollectorAddress)
+        if r == errors.TorNotRunning:
+            log.err("Tor does not appear to be running")
+            log.err("Reporting with the collector %s is not possible" %
+                    global_options['collector'])
+            log.msg("Try with a different collector or disable collector reporting with -n")
+        elif r == errors.InvalidOONIBCollectorAddress:
+            log.err("Invalid format for oonib collector address.")
+            log.msg("Should be in the format http://<collector_address>:<port>")
+            log.msg("for example: ooniprobe -c httpo://nkvphnp3p6agi5qq.onion")
         reactor.stop()
 
     # Wait until director has started up (including bootstrapping Tor) before adding tess
     def post_director_start(_):
         for net_test_loader in test_list:
+            collector = global_options['collector']
             test_details = net_test_loader.testDetails
 
             yaml_reporter = YAMLReporter(test_details)
             reporters = [yaml_reporter]
 
-            if global_options['collector']:
+            if collector and collector.startswith('httpo') \
+                    and (not (config.tor_state or config.tor.socks_port)):
+                raise errors.TorNotRunning
+            elif collector:
+                log.msg("Reporting using collector: %s" % collector)
                 try:
                     oonib_reporter = OONIBReporter(test_details,
-                            global_options['collector'])
+                            collector)
                     reporters.append(oonib_reporter)
-                except errors.InvalidOONIBCollectorAddress:
-                    log.err("Invalid format for oonib collector address.")
-                    log.msg("Should be in the format http://<collector_address>:<port>")
-                    log.msg("for example: ooniprobe -c httpo://nkvphnp3p6agi5qq.onion")
-                    sys.exit(1)
+                except errors.InvalidOONIBCollectorAddress, e:
+                    raise e
 
             log.debug("adding callback for startNetTest")
             d.addCallback(director.startNetTest, net_test_loader, reporters)
-        d.addCallback(shutdown)
+        director.allTestsDone.addBoth(shutdown)
 
-    d.addCallback(post_director_start)
-    d.addErrback(director_startup_failed)
+    def start():
+        d.addCallback(post_director_start)
+        d.addErrback(director_startup_failed)
+
+    reactor.callWhenRunning(start)
     reactor.run()

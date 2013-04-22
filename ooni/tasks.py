@@ -1,5 +1,6 @@
 import time
 
+from ooni import config
 from twisted.internet import defer, reactor
 
 class BaseTask(object):
@@ -90,6 +91,8 @@ class TaskWithTimeout(BaseTask):
         return BaseTask.start(self)
 
 class Measurement(TaskWithTimeout):
+    timeout = config.advanced.measurement_timeout
+
     def __init__(self, test_class, test_method, test_input):
         """
         test_class:
@@ -127,6 +130,8 @@ class Measurement(TaskWithTimeout):
         return d
 
 class ReportEntry(TaskWithTimeout):
+    timeout = config.advanced.reporting_timeout
+
     def __init__(self, reporter, measurement):
         self.reporter = reporter
         self.measurement = measurement
