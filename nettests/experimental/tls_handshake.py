@@ -120,10 +120,9 @@ class HandshakeOptions(usage.Options):
         ['ssl3', '3', 'Use SSLv3'],
         ['tls1', 't', 'Use TLSv1'],]
 
-class TLSHandshakeTest(nettest.NetTestCase):
-    """
-    An ooniprobe NetTestCase for determining if we can complete a TLS handshake
-    with a remote host.
+class HandshakeTest(nettest.NetTestCase):
+    """An ooniprobe NetTestCase for determining if we can complete a TLS/SSL
+    handshake with a remote host.
     """
     name         = 'tls-handshake'
     author       = 'Isis Lovecruft <isis@torproject.org>'
