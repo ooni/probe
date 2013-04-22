@@ -170,12 +170,15 @@ class HandshakeTest(nettest.NetTestCase):
                 elif options['ssl3']:
                     self.context = SSL.Context(SSL.SSLv3_METHOD)
 
+            ## if we weren't given a file with a list of ciphersuites to use,
+            ## then use the firefox default list:
             if not options['ciphersuite']:
                 self.ciphers = firefox_ciphers
+                log.msg('Using default Firefox ciphersuite list.')
             else:
-                ## if we weren't given a file with a list of ciphersuites to
-                ## use, then use the firefox default list:
                 if os.path.isfile(options['ciphersuite']):
+                    log.msg('Using ciphersuite list from "%s"'
+                            % options['ciphersuite'])
                     with open(options['ciphersuite']) as cipherfile:
                         for line in cipherfile.readlines():
                             self.ciphers.append(line.strip())
