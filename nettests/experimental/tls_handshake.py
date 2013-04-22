@@ -183,6 +183,7 @@ class TLSHandshakeTest(nettest.NetTestCase):
                     yield self.splitInput(line)
 
     def buildSocket(self, addr):
+        global s
         ip = IPAddress(addr) ## learn if we're IPv4 or IPv6
         if ip.version == 4:
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
