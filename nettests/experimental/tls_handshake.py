@@ -412,7 +412,7 @@ class HandshakeTest(nettest.NetTestCase):
 
             if connection.renegotiate():
                 log.debug("Renegotiation possible.")
-                log.message("Retrying handshake with %s..." % host)
+                log.msg("Retrying handshake with %s..." % host)
                 try:
                     connection.do_handshake()
                     while connection.renegotiate_pending():
@@ -458,8 +458,7 @@ class HandshakeTest(nettest.NetTestCase):
             peername, peerport = host
 
             if isinstance(connection, SSL.Connection):
-                log.msg("Closing connection to %s:%d..."
-                        % (peername, peerport))
+                log.msg("Closing connection to %s:%d..." % (peername, peerport))
                 while not connection.shutdown():
                     ## if the connection is halfway shutdown, we have to
                     ## wait for a ZeroReturnError on connection.recv():
@@ -642,8 +641,8 @@ class HandshakeTest(nettest.NetTestCase):
                         self.state = connection.state_string()
                         connection = handleWantRead(connection)
                     else:
-                        ## if we still have an SSL_ERROR_WANT_READ, then try
-                        ## to renegotiate
+                        ## if we still have an SSL_ERROR_WANT_READ, then try to
+                        ## renegotiate
                         self.state = connection.state_string()
                         connection = connectionRenegotiate(connection,
                                                            connection.getpeername(),
@@ -771,6 +770,12 @@ class HandshakeTest(nettest.NetTestCase):
 
         def deferMakeConnection(host):
             return threads.deferToThread(makeConnection, self.input)
+
+
+        log.msg("Beginning handshake test for %s" % (self.input or self.host))
+
+        if self.host and not self.input:
+            self.input = self.splitInput(self.host)
 
         connection = deferMakeConnection(self.input)
         connection.addCallbacks(connectionSucceeded, connectionFailed,
