@@ -297,14 +297,15 @@ class HandshakeTest(nettest.NetTestCase):
         """xxx fill me in"""
 
         def makeConnection(host):
-            """
-            Create a socket to the host's IP address, then get the TLS/SSL context
-            method and ciphersuite list. Lastly, initiate a connection to the
-            host.
+            """Create a socket to the remote host's IP address, then get the
+            TLS/SSL context method and ciphersuite list. Lastly, initiate a
+            connection to the host.
 
-            @param host: A tuple of the host IP and port, i.e. (addr, port).
-            @returns: A :class:`OpenSSL.SSL.Connection` object (or any Exception
-                      that was raised), and the :param:`host`.
+            :param tuple host: A tuple of the remote host's IP address as a
+                string, and an integer specifying the remote host port, i.e.
+                ('1.1.1.1',443)
+            :raises: :exc:`ConnectionTimeout` if the socket timed out.
+            :returns: A :class:`OpenSSL.SSL.Connection <Connection>`.
             """
             addr, port = host
             sckt = self.buildSocket(addr)
@@ -319,14 +320,18 @@ class HandshakeTest(nettest.NetTestCase):
                return connection
 
         def connectionFailed(connection, host):
-            """
-            Handle errors raised while attempting to create the socket, TLS/SSL
-            context, and :class:`OpenSSL.SSL.Connection` object.
+            """Handle errors raised while attempting to create the socket and
+            :class:`OpenSSL.SSL.Connection <Connection>`, and setting the
+            TLS/SSL context.
 
-            @param connection: The Exception that was raised in
-                               :func:`makeConnection`.
-            @param host: A tuple of the host IP address as a string, and an int
-                         specifying the host port, i.e. ('1.1.1.1', 443)
+            :type connection: :exc:Exception
+            :param connection: The exception that was raised in
+                :func:`HandshakeTest.test_handshake.makeConnection
+                <makeConnection>`.
+            :param tuple host: A tuple of the host IP address as a string, and
+                an int specifying the host port, i.e. ('1.1.1.1', 443)
+            :rtype: :exc:Exception
+            :returns: The original exception.
             """
             addr, port = host
 
@@ -355,13 +360,15 @@ class HandshakeTest(nettest.NetTestCase):
             return connection
 
         def connectionSucceeded(connection, host, timeout):
-            """
-            If we have created a connection, set the socket options, and log the
-            connection state and peer name.
+            """If we have created a connection, set the socket options, and log
+            the connection state and peer name.
 
-            @param connection: A :class:`OpenSSL.SSL.Connection` object.
-            @param host: A tuple of the host IP and port, i.e. ('1.1.1.1', 443).
+            :param connection: A :class:`OpenSSL.SSL.Connection <Connection>`.
+            :param tuple host: A tuple of the remote host's IP address as a
+                string, and an integer specifying the remote host port, i.e.
+                ('1.1.1.1',443)
             """
+
             ## xxx TODO to get this to work with a non-blocking socket, see how
             ##     twisted.internet.tcp.Client handles socket objects.
             connection.setblocking(1)
@@ -391,6 +398,14 @@ class HandshakeTest(nettest.NetTestCase):
             return connection
 
         def connectionRenegotiate(connection, host, error_message):
+            """Handle a server-initiated SSL/TLS handshake renegotiation.
+
+            :param connection: A :class:`OpenSSL.SSL.Connection <Connection>`.
+            :param tuple host: A tuple of the remote host's IP address as a
+                string, and an integer specifying the remote host port, i.e.
+                ('1.1.1.1',443)
+            """
+
             log.msg("Server requested renegotiation from: %s" % host)
             log.debug("Renegotiation reason: %s" % error_message)
             log.debug("State: %s" % connection.state_string())
@@ -415,30 +430,31 @@ class HandshakeTest(nettest.NetTestCase):
             return connection
 
         def connectionShutdown(connection, host):
-            """
-            Handle shutting down a :class:`OpenSSL.SSL.Connection`, including
-            correct handling of halfway shutdown connections.
+            """Handle shutting down a :class:`OpenSSL.SSL.Connection
+            <Connection>`, including correct handling of halfway shutdown
+            connections.
 
-            Calls to :meth:`OpenSSL.SSL.Connection.shutdown` return a boolean
-            value: if the connection is already shutdown, it returns True,
-            else it returns false. Thus we loop through a block which detects
-            if the connection is an a partial shutdown state and corrects that
-            if that is the case, else it waits for one second, then attempts
-            shutting down the connection again.
+            Calls to :meth:`OpenSSL.SSL.Connection.shutdown
+            <Connection.shutdown()>` return a boolean value -- if the
+            connection is already shutdown, it returns True, else it returns
+            false. Thus we loop through a block which detects if the connection
+            is an a partial shutdown state and corrects that if that is the
+            case, else it waits for one second, then attempts shutting down the
+            connection again.
 
             Detection of a partial shutdown state is done through
-            :meth:`OpenSSL.SSL.Connection.get_shutdown` which queries OpenSSL
-            for a bitvector of the server and client shutdown states. For
-            example, the binary string '0b00' is an open connection, and
-            '0b10' is a partially closed connection that has been shutdown on
-            the serverside.
+            :meth:`OpenSSL.SSL.Connection.get_shutdown
+            <Connection.get_shutdown()>` which queries OpenSSL for a bitvector
+            of the server and client shutdown states. For example, the binary
+            string '0b00' is an open connection, and '0b10' is a partially
+            closed connection that has been shutdown on the serverside.
 
-            @param connection: A :class:`OpenSSL.SSL.Connection`.
-
-            @param host: A tuple of: a string representation of the remote
-                         host's IP address, and an integer specifying the
-                         port.
+            :param connection: A :class:`OpenSSL.SSL.Connection <Connection>`.
+            :param tuple host: A tuple of the remote host's IP address as a
+                string, and an integer specifying the remote host port, i.e.
+                ('1.1.1.1',443)
             """
+
             peername, peerport = host
 
             if isinstance(connection, SSL.Connection):
@@ -460,15 +476,15 @@ class HandshakeTest(nettest.NetTestCase):
                             % (peername, peerport))
             elif isinstance(connection, types.NoneType):
                 log.debug("connectionShutdown: got NoneType for connection")
+                return
             else:
-                log.debug("connectionShutdown: expected connection, got %s"
+                log.debug("connectionShutdown: expected connection, got %r"
                           % connection.__repr__())
 
             return connection
 
         def handleWantRead(connection):
-            """
-            From OpenSSL memory BIO documentation on ssl_read():
+            """From OpenSSL memory BIO documentation on ssl_read():
 
                 If the underlying BIO is blocking, SSL_read() will only
                 return, once the read operation has been finished or an error
@@ -545,9 +561,7 @@ class HandshakeTest(nettest.NetTestCase):
             return connection
 
         def handleWantWrite(connection):
-            """
-            See :func:`handleWantRead`.
-            """
+            """See :func:HandshakeTest.test_hanshake.handleWantRead """
             try:
                 while connection.want_write():
                     self.state = connection.state_string()
@@ -565,8 +579,7 @@ class HandshakeTest(nettest.NetTestCase):
             return connection
 
         def doHandshake(connection):
-            """
-            Attemp a TLS/SSL handshake with the host.
+            """Attempt a TLS/SSL handshake with the host.
 
             If, after the first attempt at handshaking, OpenSSL's memory BIO
             state machine does not report success, then try reading and
@@ -578,15 +591,19 @@ class HandshakeTest(nettest.NetTestCase):
             possible that the connection has timed out, and move on to the
             connectionShutdown step.
 
-            @param connection: A :class:`OpenSSL.SSL.Connection`.
-            @ivar peername: The host IP address, as reported by getpeername().
-            @ivar peerport: The host port, reported by getpeername().
-            @ivar sent: The number of bytes sent to to the remote host.
-            @ivar received: The number of bytes received from the remote host.
-            @ivar _read_buffer: An integer for the max bytes that can be read
-                                from the connection.
-            @returns: The :param:connection with handshake completed, else
-                      the unhandled error that was raised.
+            :param connection: A :class:`OpenSSL.SSL.Connection <Connection>`.
+            :ivar peername: The host IP address, as reported by
+                :meth:`Connection.getpeername <connection.getpeername()>`.
+            :ivar peerport: The host port, reported by
+                :meth:`Connection.getpeername <connection.getpeername()>`.
+            :ivar int sent: The number of bytes sent to to the remote host.
+            :ivar int received: The number of bytes received from the remote
+                                host.
+            :ivar int _read_buffer: The max bytes that can be read from the
+                                    connection.
+            :returns: The :param:`doHandshake.connection <connection>` with
+                      handshake completed, else the unhandled error that was
+                      raised.
             """
             peername, peerport = connection.getpeername()
 
@@ -647,19 +664,18 @@ class HandshakeTest(nettest.NetTestCase):
             return connection
 
         def handshakeSucceeded(connection):
-            """
-            Get the details from the server certificate, cert chain, and
+            """Get the details from the server certificate, cert chain, and
             server ciphersuite list, and put them in our report.
 
             WARNING: do *not* do this:
-                >>> server_cert.get_pubkey()
-                    <OpenSSL.crypto.PKey at 0x4985d28>
-                >>> pk = server_cert.get_pubkey()
-                >>> pk.check()
-                    Segmentation fault
+            >>> server_cert.get_pubkey()
+                <OpenSSL.crypto.PKey at 0x4985d28>
+            >>> pk = server_cert.get_pubkey()
+            >>> pk.check()
+                Segmentation fault
 
-            @param connection: A :class:`OpenSSL.SSL.Connection`.
-            @returns: None.
+            :param connection: A :class:`OpenSSL.SSL.Connection <Connection>`.
+            :returns: :param:`handshakeSucceeded.connection <connection>`.
             """
             host, port = connection.getpeername()
             log.msg("Handshake with %s:%d successful!" % (host, port))
@@ -719,13 +735,15 @@ class HandshakeTest(nettest.NetTestCase):
             return connection
 
         def handshakeFailed(connection, host):
-            """
-            xxx fill me in
+            """Handle a failed handshake attempt and report the failure reason.
 
-            @param connection: A :class:`twisted.python.failure.Failure` or
-                               :class:`exceptions.Exception`.
-            @param host: A tuple of the host IP and port, i.e. ('1.1.1.1', 443).
-            @returns: None.
+            :type connection: :class:`twisted.python.failure.Failure <Failure>`
+                or :exc:Exception
+            :param connection: The failed connection.
+            :param tuple host: A tuple of the remote host's IP address as a
+                string, and an integer specifying the remote host port, i.e.
+                ('1.1.1.1',443)
+            :returns: None
             """
             addr, port = host
             log.msg("Handshake with %s:%d failed!" % host)
