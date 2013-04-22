@@ -147,22 +147,11 @@ class HandshakeTest(nettest.NetTestCase):
             options = self.localOptions
 
             ## check that we're testing an IP:PORT, else exit gracefully:
-            if not ((options['host'] and options['port']) or options['file']):
-                 sys.exit("Need --host and --port, or --file!")
+            if not (options['host']  or options['file']):
+                raise SystemExit("Need --host or --file!")
+            if options['host']:
+                self.host = options['host']
 
-            ## xxx TODO there's nothing that tells the user they can only have
-            ##     one of the TLS/SSL methods at a time.
-
-            ## set the SSL/TLS method to use:
-            if options['ssl2']:
-                if not options['ssl3']:
-                    self.context = SSL.Context(SSL.SSLv2_METHOD)
-                else:
-                    self.context = SSL.Context(SSL.SSLv23_METHOD)
-            elif options['ssl3']:
-                self.context = SSL.Context(SSL.SSLv3_METHOD)
-            elif options['tls1']:
-                self.context = SSL.Context(SSL.TLSv1_METHOD)
             else:
                 try:
                     raise NoSSLContextError(
