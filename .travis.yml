@@ -12,7 +12,7 @@ install:
 # command to run tests, e.g. python setup.py test
 script:
   # To be activated after merge of PR#64
-  #  - trial ooni
   - cp ooniprobe.conf.sample ooniprobe.conf
+  - trial ooni
   - sh scripts/before_i_commit.sh
   - bin/ooniprobe nettest/blocking/tcpconnect.py -f example_inputs/alexa-top-1k.txt
