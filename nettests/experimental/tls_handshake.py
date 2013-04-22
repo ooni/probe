@@ -66,15 +66,21 @@ firefox_ciphers = ["ECDHE-ECDSA-AES256-SHA",
                    "DHE-DSS-CAMELLIA128-SHA",]
 
 
-class NoSSLContextError(Exception):
-    """
-    Raised when we're missing the SSL context method, which should be one of
-    the following:
+class SSLContextError(usage.UsageError):
+    """Raised when we're missing the SSL context method, or incompatible
+    contexts were provided. The SSL context method should be one of the
+    following:
 
-        * :attr:`OpenSSL.SSL.SSLv2_METHOD`
-        * :attr:`OpenSSL.SSL.SSLv23_METHOD`
-        * :attr:`OpenSSL.SSL.SSLv3_METHOD`
-        * :attr:`OpenSSL.SSL.TLSv1_METHOD`
+        :attr:`OpenSSL.SSL.SSLv2_METHOD <OpenSSL.SSL.SSLv2_METHOD>`
+        :attr:`OpenSSL.SSL.SSLv23_METHOD <OpenSSL.SSL.SSLv23_METHOD>`
+        :attr:`OpenSSL.SSL.SSLv3_METHOD <OpenSSL.SSL.SSLv3_METHOD>`
+        :attr:`OpenSSL.SSL.TLSv1_METHOD <OpenSSL.SSL.TLSv1_METHOD>`
+
+    To use the pre-defined error messages, construct with one of the
+    :meth:`SSLContextError.errors.keys <keys>` as the ``message`` string, like
+    so:
+
+        ``SSLContextError('NO_CONTEXT')``
     """
     pass
 
