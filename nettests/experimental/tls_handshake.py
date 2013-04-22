@@ -250,8 +250,7 @@ class HandshakeTest(nettest.NetTestCase):
 
     @staticmethod
     def getX509Name(certificate, get_components=False):
-        """
-        Get the DER encoded form of the Name portions of and X509 certificate.
+        """Get the DER-encoded form of the Name fields of an X509 certificate.
 
         @param certificate: A :class:`OpenSSL.crypto.X509Name` object.
         @param get_components: A boolean. If True, returns a list of tuples of
@@ -281,10 +280,9 @@ class HandshakeTest(nettest.NetTestCase):
 
     @staticmethod
     def getPublicKey(key):
-        """
-        Get the PEM-encoded format of a host certificate's public key.
+        """Get the PEM-encoded format of a host certificate's public key.
 
-        @param key: A :class:`OpenSSL.crypto.PKey` object.
+        :param key: A :class:`OpenSSL.crypto.PKey <crypto.PKey>` object.
         """
         try:
             assert isinstance(key, crypto.PKey), \
