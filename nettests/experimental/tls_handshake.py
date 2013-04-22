@@ -138,9 +138,13 @@ class HandshakeTest(nettest.NetTestCase):
     context = SSL.Context(SSL.TLSv1_METHOD)
 
     def setUp(self, *args, **kwargs):
+        """Set defaults for a :class:`HandshakeTest <HandshakeTest>`."""
+
+        self.host = None
+        self.ciphers = list()
+
         if self.localOptions:
             options = self.localOptions
-            self.ciphers = []
 
             ## check that we're testing an IP:PORT, else exit gracefully:
             if not ((options['host'] and options['port']) or options['file']):
