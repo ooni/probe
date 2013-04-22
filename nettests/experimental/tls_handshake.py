@@ -134,6 +134,9 @@ class HandshakeTest(nettest.NetTestCase):
 
     inputFile = ['file', 'f', None, 'List of <IP>:<PORT>s to test']
 
+    #: Default SSL/TLS context method.
+    context = SSL.Context(SSL.TLSv1_METHOD)
+
     def setUp(self, *args, **kwargs):
         if self.localOptions:
             options = self.localOptions
