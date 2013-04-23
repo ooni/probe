@@ -8,7 +8,7 @@ from scapy.all import send, sr, IP, TCP, config
 from ooni.reporter import createPacketReport
 from ooni.nettest import NetTestCase
 from ooni.utils import log
-from ooni import config
+from ooni.settings import config
 
 from ooni.utils.txscapy import ScapySender, getDefaultIface, ScapyFactory
 from ooni.utils.txscapy import hasRawSocketPermission

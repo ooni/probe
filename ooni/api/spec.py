@@ -5,7 +5,7 @@ import types
 
 from cyclone import web, escape
 
-from ooni import config
+from ooni.settings import config
 
 class InvalidInputFilename(Exception):
     pass

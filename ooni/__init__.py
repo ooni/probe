@@ -1,7 +1,5 @@
 # -*- encoding: utf-8 -*-
 
-from . import config
-from . import kit
 from . import nettest
 from . import oonicli
 from . import reporter

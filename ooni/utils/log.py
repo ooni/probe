@@ -9,7 +9,7 @@ from twisted.python.failure import Failure
 from twisted.python.logfile import DailyLogFile
 
 from ooni import otime
-from ooni import config
+from ooni.settings import config
 
 ## Get rid of the annoying "No route found for
 ## IPv6 destination warnings":

@@ -5,8 +5,8 @@ from twisted.web.client import Agent
 from twisted.internet import reactor, defer, protocol
 
 from ooni.utils import log, net
-from ooni import config
 from ooni.errors import GeoIPDataFilesNotFound
+from ooni.settings import config
 
 try:
     import pygeoip

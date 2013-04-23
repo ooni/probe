@@ -3,13 +3,13 @@ import sys
 import os
 import re
 
-from ooni import config
 from ooni import geoip
 from ooni.managers import ReportEntryManager, MeasurementManager
 from ooni.reporter import Report
 from ooni.utils import log, checkForRoot
 from ooni.utils.net import randomFreePort
-from ooni.nettest import NetTest
+from ooni.nettest import NetTest, getNetTestInformation
+from ooni.settings import config
 from ooni import errors
 
 from txtorcon import TorConfig
@@ -85,6 +85,10 @@ class Director(object):
 
         self.torControlProtocol = None
 
+        # This deferred is fired once all the measurements and their reporting
+        # tasks are completed.
+        self.allTestsDone = defer.Deferred()
+
     def getNetTests(self):
         nettests = {}
         def is_nettest(filename):
@@ -108,16 +112,12 @@ class Director(object):
 
         return nettests
 
-        # This deferred is fired once all the measurements and their reporting
-        # tasks are completed.
-        self.allTestsDone = defer.Deferred()
-
     @defer.inlineCallbacks
     def start(self):
         if config.privacy.includepcap:
             log.msg("Starting")
             if not config.reports.pcap:
-                config.reports.pcap = config.generatePcapFilename()
+                config.generate_pcap_filename()
             self.startSniffing()
 
         if config.advanced.start_tor:
@@ -324,7 +324,6 @@ class Director(object):
         log.debug("Setting SOCKS port as %s" % tor_config.SocksPort)
 
         d = launch_tor(tor_config, reactor,
-                tor_binary=config.advanced.tor_binary,
                 progress_updates=updates)
         d.addCallback(setup_complete)
         d.addErrback(setup_failed)

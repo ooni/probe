@@ -32,7 +32,7 @@ from ooni import otime
 from ooni.utils import geodata, pushFilenameStack
 from ooni.utils.net import BodyReceiver, StringProducer, userAgents
 
-from ooni import config
+from ooni.settings import config
 
 from ooni.tasks import ReportEntry, TaskTimedOut
 

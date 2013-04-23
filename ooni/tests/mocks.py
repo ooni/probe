@@ -1,7 +1,7 @@
 from twisted.python import failure
 from twisted.internet import defer
 
-from ooni import config
+from ooni.settings import config
 from ooni.tasks import BaseTask, TaskWithTimeout
 from ooni.nettest import NetTest
 from ooni.managers import TaskManager

@@ -4,7 +4,7 @@ import random
 from twisted.application import service, internet
 from twisted.web import static, server
 
-from ooni import config
+from ooni.settings import config
 from ooni.api.spec import oonidApplication
 from ooni.director import Director
 from ooni.reporter import YAMLReporter, OONIBReporter
