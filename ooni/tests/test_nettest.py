@@ -224,7 +224,7 @@ class TestNetTest(unittest.TestCase):
         ntl.checkOptions()
         director = Director()
 
-        d = director.startNetTest('', ntl, [MockReporter()])
+        d = director.startNetTest(ntl, [MockReporter()])
 
         @d.addCallback
         def complete(result):

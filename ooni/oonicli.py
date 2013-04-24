@@ -178,7 +178,9 @@ def runWithDirector():
                     raise e
 
             log.debug("adding callback for startNetTest")
-            d.addCallback(director.startNetTest, net_test_loader, reporters)
+            @d.addCallback
+            def cb(res):
+                director.startNetTest(net_test_loader, reporters)
         director.allTestsDone.addBoth(shutdown)
 
     def start():

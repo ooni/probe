@@ -115,7 +115,7 @@ def getOption(opt_parameter, required_options, type='text'):
         required = False
 
     return {'description': description,
-        'default': default, 'required': required,
+        'value': default, 'required': required,
         'type': type
     }
 
@@ -157,7 +157,8 @@ def getNetTestInformation(net_test_file):
         'name': test_class.name,
         'description': test_class.description,
         'version': test_class.version,
-        'arguments': getArguments(test_class)
+        'arguments': getArguments(test_class),
+        'path': net_test_file
     }
     return information
 

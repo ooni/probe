@@ -1,10 +1,15 @@
 import os
 import re
+import copy
 import json
 import types
 
+from twisted.python import usage
 from cyclone import web, escape
 
+from ooni.reporter import YAMLReporter, OONIBReporter
+from ooni import errors
+from ooni.nettest import NetTestLoader, MissingRequiredOption
 from ooni.settings import config
 
 class InvalidInputFilename(Exception):
@@ -39,6 +44,7 @@ def list_inputs():
 
 class Inputs(ORequestHandler):
     def get(self):
+        input_list = list_inputs()
         self.write(input_list)
 
     def post(self):
@@ -59,23 +65,75 @@ class Inputs(ORequestHandler):
 
 class ListTests(ORequestHandler):
     def get(self):
-        self.write(oonidApplication.director.netTests)
+        test_list = copy.deepcopy(oonidApplication.director.netTests)
+        for test_id in test_list.keys():
+            test_list[test_id].pop('path')
+        self.write(test_list)
+
+def get_net_test_loader(test_options, test_file):
+    options = []
+    for k, v in test_options.items():
+        options.append('--'+k)
+        options.append(v)
+
+    net_test_loader = NetTestLoader(options,
+            test_file=test_file)
+    return net_test_loader
+
+def get_reporters(net_test_loader):
+    test_details = net_test_loader.testDetails
+    yaml_reporter = YAMLReporter(test_details, config.reports_directory)
+    #oonib_reporter = OONIBReporter(test_details, collector)
+    return [yaml_reporter]
 
 class StartTest(ORequestHandler):
     def post(self, test_name):
         """
         Starts a test with the specified options.
         """
-        json.decode(self.request.body)
+        test_file = oonidApplication.director.netTests[test_name]['path']
+        test_options = json.loads(self.request.body)
+        net_test_loader = get_net_test_loader(test_options, test_file)
+        try:
+            net_test_loader.checkOptions()
+            oonidApplication.director.startNetTest(net_test_loader,
+                                                   get_reporters(net_test_loader))
+        except MissingRequiredOption, option_name:
+            self.write({'error':
+                        'Missing required option: "%s"' % option_name})
+        except usage.UsageError, e:
+            self.write({'error':
+                        'Error in parsing options'})
+        except errors.InsufficientPrivileges:
+            self.write({'error':
+                        'Insufficient priviledges'})
 
 class StopTest(ORequestHandler):
     def delete(self, test_name):
         pass
 
+def get_test_results(test_id):
+    test_results = []
+    for test_result in os.listdir(config.reports_directory):
+        if test_result.startswith('report-'+test_id):
+            with open(os.path.join(config.reports_directory, test_result)) as f:
+                test_content = ''.join(f.readlines())
+            test_results.append({'name': test_result,
+                                 'content': test_content})
+    return test_results
+
 class TestStatus(ORequestHandler):
     def get(self, test_id):
-        pass
+        try:
+            test = copy.deepcopy(oonidApplication.director.netTests[test_id])
+            test.pop('path')
+            test['results'] = get_test_results(test_id)
+            self.write(test)
+        except KeyError:
+            self.write({'error':
+                        'Test with such ID not found!'})
 
+config.read_config_file()
 oonidAPI = [
     (r"/status", Status),
     (r"/inputs", Inputs),

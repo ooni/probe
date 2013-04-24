@@ -29,12 +29,15 @@ class OConfig(object):
     def set_paths(self):
         if self.global_options.get('datadir'):
             self.data_directory = abspath(expanduser(self.global_options['datadir']))
+        elif self.advanced.get('data_dir'):
+            self.data_directory = self.advanced['data_dir']
         else:
             self.data_directory = '/usr/share/ooni/'
         self.nettest_directory = os.path.join(self.data_directory, 'nettests')
 
         self.ooni_home = os.path.join(expanduser('~'), '.ooni')
         self.inputs_directory = os.path.join(self.ooni_home, 'inputs')
+        self.reports_directory = os.path.join(self.ooni_home, 'reports')
 
         if self.global_options.get('configfile'):
             config_file = global_options['configfile']
@@ -48,6 +51,8 @@ class OConfig(object):
             print "Creating it in '%s'." % self.ooni_home
             os.mkdir(self.ooni_home)
             os.mkdir(self.inputs_directory)
+        if not os.path.isdir(self.reports_directory):
+            os.mkdir(self.reports_directory)
 
     def _create_config_file(self):
         sample_config_file = os.path.join(self.data_directory,
@@ -75,6 +80,7 @@ class OConfig(object):
                         getattr(self, setting)[k] = v
                 except AttributeError:
                     pass
+        self.set_paths()
 
     def generate_pcap_filename():
         if self.global_options.get('pcapfile'):

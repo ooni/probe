@@ -65,7 +65,6 @@ class Director(object):
 
     def __init__(self):
         self.activeNetTests = []
-        self.netTests = self.getNetTests()
 
         self.measurementManager = MeasurementManager()
         self.measurementManager.director = self
@@ -114,6 +113,8 @@ class Director(object):
 
     @defer.inlineCallbacks
     def start(self):
+        self.netTests = self.getNetTests()
+
         if config.privacy.includepcap:
             log.msg("Starting")
             if not config.reports.pcap:
@@ -207,15 +208,13 @@ class Director(object):
             self.allTestsDone = defer.Deferred()
 
     @defer.inlineCallbacks
-    def startNetTest(self, _, net_test_loader, reporters):
+    def startNetTest(self, net_test_loader, reporters):
         """
         Create the Report for the NetTest and start the report NetTest.
 
         Args:
             net_test_loader:
                 an instance of :class:ooni.nettest.NetTestLoader
-
-            _: #XXX very dirty hack
         """
         report = Report(reporters, self.reportEntryManager)
 
