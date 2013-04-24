@@ -1,0 +1,38 @@
+<div class="row">
+  <div class="span8">
+    <h2>{{testDetails.name}}</h2>
+    <div class="netTest" ng-controller="TestBoxCtrl">
+      version: <span class="badge badge-success">{{testDetails.version}}</span>
+      <p>{{testDetails.description}}</p>
+      <form name="testOptions">
+        <div ng-repeat="(name, options) in testDetails.arguments">
+          <div ng-switch on="options.type">
+
+            <div ng-switch-when="file">
+              <label>{{name}}</label>
+              <input type="file" name="{{name}}">
+            </div>
+
+            <div ng-switch-default>
+              <label>{{name}}</label>
+              <input ng-model="testDetails.arguments[name].value" type="{{options.type}}"
+                   value="{{options.default}}">
+            </div>
+
+          </div>
+        </div>
+      </form>
+      <button class="btn btn-primary" ng-click="startTest()">Start Test</button>
+    </div>
+  </div>
+</div>
+
+<div class="row">
+  <div class="span8">
+    <h3>Test results</h3>
+    <div class="testResult" ng-repeat="result in testDetails.results">
+      <h4>{{result.name}}</h4>
+      <pre>{{result.content}}</pre>
+    </div>
+  </div>
+</div>
