@@ -3,16 +3,16 @@
 ooniprobe.controller('PageCtrl', ['$scope', function($scope) {
 }]);
 
-ooniprobe.controller('TestListCtrl', ['$scope', '$routeParams', 'testStatus',
-                     function($scope, $routeParams, testStatus) {
+ooniprobe.controller('SettingsCtrl', ['$scope',
+                     function($scope) {
+}]);
 
-  var testID = $routeParams['testID'];
-  $scope.updateTestStatus = function() {
-    testStatus(testID).success(function(testDetails){
-      $scope.testDetails = testDetails;
-    });
+ooniprobe.controller('InputsCtrl', ['$scope', 'Inputs',
+                     function($scope, Inputs) {
+  $scope.inputs = Inputs.query();
+  $scope.uploadComplete = function(contents, completed) {
+    return;
   }
-  $scope.updateTestStatus();
 
 }]);
 
@@ -30,13 +30,31 @@ ooniprobe.controller('SideBarCtrl', ['$scope', 'listTests', '$location',
 
 }]);
 
+ooniprobe.controller('TestCtrl', ['$scope', '$routeParams', 'testStatus', 'Inputs',
+                     function($scope, $routeParams, testStatus, Inputs) {
+
+  var testID = $routeParams['testID'];
+
+  $scope.inputs = Inputs.query();
+
+  $scope.updateTestStatus = function() {
+    testStatus(testID).success(function(testDetails){
+      $scope.testDetails = testDetails;
+    });
+  }
+  $scope.updateTestStatus();
+
+
+}]);
+
 ooniprobe.controller('TestBoxCtrl', ['$scope', 'startTest',
                      function($scope, startTest) {
 
   $scope.startTest = function() {
     var options = {};
 
-    angular.forEach($scope.testDetails.arguments, function(option, key){
+    angular.forEach($scope.testDetails.arguments,
+                    function(option, key) {
       options[key] = option.value;
     });
 

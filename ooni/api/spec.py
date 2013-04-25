@@ -48,14 +48,15 @@ class Inputs(ORequestHandler):
         self.write(input_list)
 
     def post(self):
-        filename = self.get_argument("fullname", None)
+        input_file = self.request.files.get("file")[0]
+        filename = input_file['filename']
+
         if not filename or not re.match('(\w.*\.\w.*).*', filename):
             raise InvalidInputFilename
 
         if os.path.exists(filename):
             raise FilenameExists
 
-        input_file = self.request.files.get("input_file")
         content_type = input_file["content_type"]
         body = input_file["body"]
 
@@ -120,6 +121,7 @@ def get_test_results(test_id):
                 test_content = ''.join(f.readlines())
             test_results.append({'name': test_result,
                                  'content': test_content})
+    test_results.reverse()
     return test_results
 
 class TestStatus(ORequestHandler):

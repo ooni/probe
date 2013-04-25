@@ -2,28 +2,29 @@
 
 
 // Declare app level module which depends on filters, and services
-var ooniprobe = angular.module('ooniprobe', ['ooniprobe.services']).
+var ooniprobe = angular.module('ooniprobe', ['ngUpload', 'ooniprobe.services']).
   config(['$routeProvider', function($routeProvider) {
-    $routeProvider.when('/test-status',
+
+    $routeProvider.when('/inputs',
       {
-        templateUrl: 'views/test-status.html',
-        controller: 'PageCtrl'
+        templateUrl: 'views/inputs.html',
+        controller: 'InputsCtrl'
       }
     );
 
-    $routeProvider.when('/test-list',
+    $routeProvider.when('/settings',
       {
-        templateUrl: 'views/test-list.html',
-        controller: 'TestListCtrl'
+        templateUrl: 'views/settings.html',
+        controller: 'SettingsCtrl'
       }
     );
 
     $routeProvider.when('/test/:testID',
       {
-        templateUrl: 'views/test-list.html',
-        controller: 'TestListCtrl'
+        templateUrl: 'views/test.html',
+        controller: 'TestCtrl'
       }
     );
 
-    $routeProvider.otherwise({redirectTo: '/test-status'});
+    $routeProvider.otherwise({redirectTo: '/settings'});
   }]);
