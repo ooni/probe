@@ -83,6 +83,10 @@ class Director(object):
 
         self.torControlProtocol = None
 
+        # This deferred is fired once all the measurements and their reporting
+        # tasks are completed.
+        self.allTestsDone = defer.Deferred()
+
     @defer.inlineCallbacks
     def start(self):
         if config.privacy.includepcap:
@@ -157,7 +161,7 @@ class Director(object):
 
         self.failedMeasurements += 1
         self.failures.append((failure, measurement))
-        return failure
+        return None
 
     def reporterFailed(self, failure, net_test):
         """
@@ -173,7 +177,11 @@ class Director(object):
 
     def netTestDone(self, result, net_test):
         self.activeNetTests.remove(net_test)
+        if len(self.activeNetTests) == 0:
+            self.allTestsDone.callback(None)
+            self.allTestsDone = defer.Deferred()
 
+    @defer.inlineCallbacks
     def startNetTest(self, _, net_test_loader, reporters):
         """
         Create the Report for the NetTest and start the report NetTest.
@@ -188,14 +196,17 @@ class Director(object):
 
         net_test = NetTest(net_test_loader, report)
         net_test.director = self
-        net_test.report.open()
+
+        yield net_test.report.open()
 
         self.measurementManager.schedule(net_test.generateMeasurements())
 
         self.activeNetTests.append(net_test)
-        net_test.done.addBoth(self.netTestDone, net_test)
+
         net_test.done.addBoth(report.close)
-        return net_test.done
+        net_test.done.addBoth(self.netTestDone, net_test)
+
+        yield net_test.done
 
     def startSniffing(self):
         """ Start sniffing with Scapy. Exits if required privileges (root) are not

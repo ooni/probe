@@ -109,12 +109,14 @@ class MaxMindGeoIP(HTTPGeoIPLookupper):
 
 class ProbeIP(object):
     strategy = None
-    geoIPServices = {'ubuntu': UbuntuGeoIP,
-        'torproject': TorProjectGeoIP,
-        'maxmind': MaxMindGeoIP
-    }
     address = None
-    tor_state = config.tor_state
+
+    def __init__(self):
+        self.tor_state = config.tor_state
+        self.geoIPServices = {'ubuntu': UbuntuGeoIP,
+            'torproject': TorProjectGeoIP,
+            'maxmind': MaxMindGeoIP
+        }
 
     @defer.inlineCallbacks
     def lookup(self):
