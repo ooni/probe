@@ -8,11 +8,17 @@
         <div ng-repeat="(name, options) in testDetails.arguments">
           <div ng-switch on="options.type">
 
-            <div ng-switch-when="file">
-              <label>{{name}}</label>
-              <select ng-model="testDetails.arguments[name].value">
+            <div ng-switch-when="file" ng-controller="FileInput">
+              <label>{{name}}
+              <button class="btn btn-small" ng-click="toggleManualInput()">Toggle manual input</button>
+              </label>
+              <select ng-model="testDetails.arguments[name].value" ng-hide="manualShow">
                 <option ng-repeat="input in inputs" value="input.filename">{{input.filename}}</option>
               </select>
+              <br/>
+              <div class="manualFileInput" ng-show="manualShow">
+                <textarea ng-model="manualFileInput[name]"></textarea>
+              </div>
             </div>
 
             <div ng-switch-default>

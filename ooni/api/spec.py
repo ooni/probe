@@ -3,6 +3,7 @@ import re
 import copy
 import json
 import types
+import tempfile
 
 from twisted.python import usage
 from cyclone import web, escape
@@ -122,6 +123,20 @@ def get_reporters(net_test_loader):
         reporters.append(oonib_reporter)
     return reporters
 
+def write_temporary_input(content):
+    """
+    Creates a temporary file for the given content.
+
+    Returns:
+        the path to the temporary file.
+    """
+    fd, path = tempfile.mkstemp()
+    with open(path, 'w') as f:
+        f.write(content)
+        f.close()
+    print "This is the path %s" % path
+    return fd, path
+
 class StartTest(ORequestHandler):
     def post(self, test_name):
         """
@@ -129,11 +144,25 @@ class StartTest(ORequestHandler):
         """
         test_file = oonidApplication.director.netTests[test_name]['path']
         test_options = json.loads(self.request.body)
+        tmp_files = []
+        if (test_options['manual_input']):
+            for option, content in test_options['manual_input'].items():
+                fd, path = write_temporary_input(content)
+                test_options[option] = path
+                tmp_files.append((fd, path))
+            test_options.pop('manual_input')
+
         net_test_loader = get_net_test_loader(test_options, test_file)
         try:
             net_test_loader.checkOptions()
-            oonidApplication.director.startNetTest(net_test_loader,
-                                                   get_reporters(net_test_loader))
+            d = oonidApplication.director.startNetTest(net_test_loader,
+                                                       get_reporters(net_test_loader))
+            @d.addBoth
+            def cleanup(result):
+                for fd, path in tmp_files:
+                    os.close(fd)
+                    os.remove(path)
+
         except MissingRequiredOption, option_name:
             self.write({'error':
                         'Missing required option: "%s"' % option_name})

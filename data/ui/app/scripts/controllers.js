@@ -49,7 +49,17 @@ ooniprobe.controller('TestCtrl', ['$scope', '$routeParams', 'testStatus', 'Input
 
 ooniprobe.controller('TestBoxCtrl', ['$scope', 'startTest',
                      function($scope, startTest) {
+  function hasAttributes(obj) {
+    var count = 0;
+    for (var i in obj)
+      count +=1;
+    if ( count == 0 ) {
+      return false;
+    }
+    return true;
+  }
 
+  $scope.manualFileInput = {};
   $scope.startTest = function() {
     var options = {};
 
@@ -58,6 +68,13 @@ ooniprobe.controller('TestBoxCtrl', ['$scope', 'startTest',
       options[key] = option.value;
     });
 
+    if (hasAttributes($scope.manualFileInput)) {
+      options['manual_input'] = {};
+      angular.forEach($scope.manualFileInput, function(value, key) {
+        options['manual_input'][key] = value;
+      });
+    }
+
     startTest($scope.testDetails.id, options).success(function(){
       $scope.updateTestStatus();
     });
@@ -65,4 +82,15 @@ ooniprobe.controller('TestBoxCtrl', ['$scope', 'startTest',
 
 }]);
 
+ooniprobe.controller('FileInput', ['$scope',
+                     function($scope) {
 
+  $scope.manualShow = false;
+  $scope.toggleManualInput = function() {
+    if ($scope.manualShow)
+      $scope.manualShow = false;
+    else
+      $scope.manualShow = true;
+  }
+
+}]);

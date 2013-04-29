@@ -132,8 +132,11 @@ def getArguments(test_class):
 
     for opt_parameter in test_class.usageOptions.optParameters:
         option_name = opt_parameter[0]
+        opt_type="text"
+        if opt_parameter[3].lower().startswith("file"):
+            opt_type="file"
         arguments[option_name] = getOption(opt_parameter,
-                test_class.requiredOptions)
+                test_class.requiredOptions, type=opt_type)
 
     return arguments
 
