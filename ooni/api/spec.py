@@ -7,7 +7,7 @@ import types
 from twisted.python import usage
 from cyclone import web, escape
 
-from ooni.reporter import YAMLReporter, OONIBReporter
+from ooni.reporter import YAMLReporter, OONIBReporter, collector_supported
 from ooni import errors
 from ooni.nettest import NetTestLoader, MissingRequiredOption
 from ooni.settings import config
@@ -43,11 +43,21 @@ def list_inputs():
     return input_list
 
 class Inputs(ORequestHandler):
+    """
+    This handler is responsible for listing and adding new inputs.
+    """
     def get(self):
+        """
+        Obtain the list of currently installed inputs. Inputs are stored inside
+        of $OONI_HOME/inputs/.
+        """
         input_list = list_inputs()
         self.write(input_list)
 
     def post(self):
+        """
+        Add a new input to the currently installed inputs.
+        """
         input_file = self.request.files.get("file")[0]
         filename = input_file['filename']
 
@@ -72,6 +82,15 @@ class ListTests(ORequestHandler):
         self.write(test_list)
 
 def get_net_test_loader(test_options, test_file):
+    """
+    Args:
+        test_options: (dict) containing as keys the option names.
+
+        test_file: (string) the path to the test_file to be run.
+    Returns:
+        an instance of :class:`ooni.nettest.NetTestLoader` with the specified
+        test_file and the specified options.
+        """
     options = []
     for k, v in test_options.items():
         options.append('--'+k)
@@ -82,10 +101,26 @@ def get_net_test_loader(test_options, test_file):
     return net_test_loader
 
 def get_reporters(net_test_loader):
+    """
+    Determines which reports are able to run and returns an instance of them.
+
+    We always report to flat file via the :class:`ooni.reporters.YAMLReporter`
+    and the :class:`ooni.reporters.OONIBReporter`.
+
+    The later will be used only if we determine that Tor is running.
+
+    Returns:
+        a list of reporter instances
+    """
     test_details = net_test_loader.testDetails
+    reporters = []
     yaml_reporter = YAMLReporter(test_details, config.reports_directory)
-    #oonib_reporter = OONIBReporter(test_details, collector)
-    return [yaml_reporter]
+    reporters.append(yaml_reporter)
+
+    if config.reports.collector and collector_supported(config.reports.collector):
+        oonib_reporter = OONIBReporter(test_details, collector)
+        reporters.append(oonib_reporter)
+    return reporters
 
 class StartTest(ORequestHandler):
     def post(self, test_name):
@@ -114,6 +149,16 @@ class StopTest(ORequestHandler):
         pass
 
 def get_test_results(test_id):
+    """
+    Returns:
+        a list of test dicts that correspond to the test results for the given
+        test_id.
+        The dict is made like so:
+        {
+            'name': The name of the report,
+            'content': The content of the report
+        }
+    """
     test_results = []
     for test_result in os.listdir(config.reports_directory):
         if test_result.startswith('report-'+test_id):
@@ -126,6 +171,10 @@ def get_test_results(test_id):
 
 class TestStatus(ORequestHandler):
     def get(self, test_id):
+        """
+        Returns the requested test_id details and the stored results for such
+        test.
+        """
         try:
             test = copy.deepcopy(oonidApplication.director.netTests[test_id])
             test.pop('path')

@@ -238,6 +238,10 @@ class NetTestLoader(object):
 
         if not hasattr(usage_options, 'optParameters'):
             usage_options.optParameters = []
+        else:
+            for parameter in usage_options.optParameters:
+                if len(parameter) == 5:
+                    parameter.pop()
 
         if klass.inputFile:
             usage_options.optParameters.append(klass.inputFile)
@@ -267,8 +271,8 @@ class NetTestLoader(object):
     def loadNetTestString(self, net_test_string):
         """
         Load NetTest from a string.
-        WARNING input to this function *MUST* be sanitized and *NEVER* be
-        untrusted.
+        WARNING input to this function *MUST* be sanitized and *NEVER* take
+        untrusted input.
         Failure to do so will result in code exec.
 
         net_test_string:
