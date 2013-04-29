@@ -34,7 +34,7 @@ from ooni.utils.net import BodyReceiver, StringProducer, userAgents
 
 from ooni import config
 
-from ooni.tasks import ReportEntry, TaskTimedOut
+from ooni.tasks import ReportEntry, TaskTimedOut, ReportTracker
 
 class ReporterException(Exception):
     pass
@@ -429,13 +429,13 @@ class Report(object):
             been written or errbacks when no more reporters
         """
         all_written = defer.Deferred()
-        self._report_write_completed = []
+        report_tracker = ReportTracker(self.reporters)
 
         for reporter in self.reporters[:]:
-            def report_completed(result):
-                self._report_write_completed.append(result)
-                if len(self.reporters) == len(self._report_write_completed):
-                    all_written.callback(self._report_write_completed)
+            def report_completed(task):
+                report_tracker.completed()
+                if report_tracker.finished():
+                    all_written.callback(report_tracker)
 
             report_entry_task = ReportEntry(reporter, measurement)
             self.reportEntryManager.schedule(report_entry_task)
