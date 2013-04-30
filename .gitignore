@@ -23,3 +23,5 @@ ooniprobe.conf
 ooniprobe.resume
 *.log
 !before_i_commit.log
+## ignore pycharm ide files:
+.idea/
