@@ -39,7 +39,8 @@ from twisted.internet       import defer, threads
 from twisted.python         import usage, failure
 
 from ooni       import nettest, config
-from ooni.utils import log, NotRootError
+from ooni.utils import log
+from ooni.errors import InsufficientPrivileges
 
 ## For a way to obtain the current version of Firefox's default ciphersuite
 ## list, see https://trac.torproject.org/projects/tor/attachment/ticket/4744/
@@ -340,7 +341,7 @@ class HandshakeTest(nettest.NetTestCase):
                     ## On some *nix distros, /dev/random is 0600 root:root and
                     ## we get a permissions error when trying to read
                     if connection.message.find("[Errno 13]"):
-                        raise NotRootError(
+                        raise InsufficientPrivileges(
                             "%s" % connection.message.split("[Errno 13]", 1)[1])
                 elif isinstance(connection, socket_error):
                     if connection.message.find("[Errno 101]"):
