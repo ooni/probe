@@ -394,7 +394,6 @@ class Report(object):
         for reporter in self.reporters[:]:
 
             def report_created(result):
-                print "CREATED REPORT %s" % reporter
                 log.debug("Created report with %s" % reporter)
                 self._reporters_openned += 1
                 are_all_openned()
@@ -406,7 +405,7 @@ class Report(object):
                     all_openned.errback(defer.fail(e))
                 else:
                     are_all_openned()
-                return failure
+                return
 
             d = defer.maybeDeferred(reporter.createReport)
             d.addCallback(report_created)
