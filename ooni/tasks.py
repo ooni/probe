@@ -1,5 +1,6 @@
 import time
 
+from ooni import config
 from twisted.internet import defer, reactor
 
 class BaseTask(object):
@@ -90,6 +91,8 @@ class TaskWithTimeout(BaseTask):
         return BaseTask.start(self)
 
 class Measurement(TaskWithTimeout):
+    timeout = config.advanced.measurement_timeout
+
     def __init__(self, test_class, test_method, test_input):
         """
         test_class:
@@ -126,7 +129,28 @@ class Measurement(TaskWithTimeout):
         d = self.netTestMethod()
         return d
 
+class ReportTracker(object):
+    def __init__(self, reporters):
+        self.report_completed = 0
+        self.reporters = reporters
+
+    def finished(self):
+        """
+        Returns true if all the tasks are done. False if not.
+        """
+        if self.report_completed == len(self.reporters):
+            return True
+        return False
+
+    def completed(self):
+        """
+        Called when a new report is completed.
+        """
+        self.report_completed += 1
+
 class ReportEntry(TaskWithTimeout):
+    timeout = config.advanced.reporting_timeout
+
     def __init__(self, reporter, measurement):
         self.reporter = reporter
         self.measurement = measurement

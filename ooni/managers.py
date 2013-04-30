@@ -1,5 +1,8 @@
 import itertools
+
 from twisted.internet import defer
+from ooni.utils import log
+from ooni import config
 
 def makeIterable(item):
     """
@@ -14,7 +17,6 @@ def makeIterable(item):
 
 class TaskManager(object):
     retries = 2
-
     concurrency = 10
 
     def __init__(self):
@@ -23,19 +25,23 @@ class TaskManager(object):
         self.failures = []
 
     def _failed(self, failure, task):
-        # XXX INFINITE RECURSION LOOP INSIDE OF THIS THING
         """
         The has failed to complete, we append it to the end of the task chain
         to be re-run once all the currently scheduled tasks have run.
         """
+        log.err("Task %s has failed %s times" % (task, task.failures))
+        log.exception(failure)
+
         self._active_tasks.remove(task)
         self.failures.append((failure, task))
 
         if task.failures <= self.retries:
+            log.debug("Rescheduling...")
             self._tasks = itertools.chain(self._tasks,
                     makeIterable(task))
         else:
             # This fires the errback when the task is done but has failed.
+            log.err('Permanent failure for %s' % task)
             task.done.errback(failure)
 
         self._fillSlots()
@@ -93,6 +99,8 @@ class TaskManager(object):
         Takes as argument a single task or a task iterable and appends it to the task
         generator queue.
         """
+        log.debug("Starting this task %s" % repr(task_or_task_iterator))
+
         iterable = makeIterable(task_or_task_iterator)
 
         self._tasks = itertools.chain(self._tasks, iterable)
@@ -133,23 +141,23 @@ class MeasurementManager(TaskManager):
     NetTest on the contrary is aware of the typology of measurements that it is
     dispatching as they are logically grouped by test file.
     """
-    # XXX tweak these values
-    retries = 2
-    concurrency = 10
+    retries = config.advanced.measurement_retries
+    concurrency = config.advanced.measurement_concurrency
 
     def succeeded(self, result, measurement):
-        pass
+        log.debug("Successfully performed measurement %s" % measurement)
+        log.debug(result)
 
     def failed(self, failure, measurement):
         pass
 
 class ReportEntryManager(TaskManager):
-    # XXX tweak these values
-    retries = 3
-    concurrency = 20
+    retries = config.advanced.reporting_retries
+    concurrency = config.advanced.reporting_concurrency
 
     def succeeded(self, result, task):
-        pass
+        log.debug("Successfully performed report %s" % task)
+        log.debug(result)
 
     def failed(self, failure, task):
         pass

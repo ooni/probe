@@ -24,7 +24,7 @@ with open('requirements.txt') as f:
 
 setup(
     name="ooni-probe",
-    version="0.0.10",
+    version="0.0.11",
     author="Arturo Filastò",
     author_email = "art@torproject.org",
     url="https://ooni.torproject.org/",
