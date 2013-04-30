@@ -133,6 +133,7 @@ class HandshakeTest(nettest.NetTestCase):
     requiresRoot = False
     usageOptions = HandshakeOptions
 
+    host = None
     inputFile = ['file', 'f', None, 'List of <IP>:<PORT>s to test']
 
     #: Default SSL/TLS context method.
@@ -141,7 +142,6 @@ class HandshakeTest(nettest.NetTestCase):
     def setUp(self, *args, **kwargs):
         """Set defaults for a :class:`HandshakeTest <HandshakeTest>`."""
 
-        self.host = None
         self.ciphers = list()
 
         if self.localOptions:
@@ -772,11 +772,9 @@ class HandshakeTest(nettest.NetTestCase):
         def deferMakeConnection(host):
             return threads.deferToThread(makeConnection, self.input)
 
-
-        log.msg("Beginning handshake test for %s" % (self.input or self.host))
-
         if self.host and not self.input:
             self.input = self.splitInput(self.host)
+        log.msg("Beginning handshake test for %s:%s" % self.input)
 
         connection = deferMakeConnection(self.input)
         connection.addCallbacks(connectionSucceeded, connectionFailed,
