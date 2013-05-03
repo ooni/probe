@@ -139,3 +139,13 @@ class HTTPHost(httpt.HTTPTest):
             self.report['transparent_http_proxy'] = True
             self.check_for_censorship(body)
 
+    def inputProcessor(self, filename=None):
+        """
+        This inputProcessor extracts domain names from urls
+        """
+        if filename:
+            fp = open(filename)
+            for x in fp.readlines():
+                yield x.strip().split('//')[-1].split('/')[0]
+            fp.close()
+        else: pass
