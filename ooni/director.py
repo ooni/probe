@@ -86,14 +86,10 @@ class Director(object):
         # This deferred is fired once all the measurements and their reporting
         # tasks are completed.
         self.allTestsDone = defer.Deferred()
+        self.sniffer = None
 
     @defer.inlineCallbacks
     def start(self):
-        if config.privacy.includepcap:
-            log.msg("Starting")
-            if not config.reports.pcap:
-                config.reports.pcap = config.generatePcapFilename()
-            self.startSniffing()
 
         if config.advanced.start_tor:
             log.msg("Starting Tor...")
@@ -192,6 +188,13 @@ class Director(object):
 
             _: #XXX very dirty hack
         """
+
+        if config.privacy.includepcap:
+            log.msg("Starting")
+            if not config.reports.pcap:
+                config.reports.pcap = config.generatePcapFilename(net_test_loader.testDetails)
+            self.startSniffing()
+
         report = Report(reporters, self.reportEntryManager)
 
         net_test = NetTest(net_test_loader, report)
@@ -228,9 +231,10 @@ class Director(object):
             print "Renaming files with such name..."
             pushFilenameStack(config.reports.pcap)
 
-        sniffer = ScapySniffer(config.reports.pcap)
-        config.scapyFactory.registerProtocol(sniffer)
-
+        if self.sniffer:
+            config.scapyFactory.unRegisterProtocol(self.sniffer)
+        self.sniffer = ScapySniffer(config.reports.pcap)
+        config.scapyFactory.registerProtocol(self.sniffer)
 
     def startTor(self):
         """ Starts Tor

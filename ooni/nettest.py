@@ -9,8 +9,7 @@ from ooni import geoip
 from ooni.tasks import Measurement
 from ooni.utils import log, checkForRoot, geodata
 from ooni import config
-from ooni import otime
-
+import time
 from ooni import errors as e
 
 from inspect import getmembers
@@ -69,7 +68,7 @@ class NetTestLoader(object):
                 or ('countrycode' not in client_geodata):
             client_geodata['countrycode'] = None
 
-        test_details = {'start_time': otime.utcTimeNow(),
+        test_details = {'start_time': time.time(),
             'probe_asn': client_geodata['asn'],
             'probe_cc': client_geodata['countrycode'],
             'probe_ip': client_geodata['ip'],
