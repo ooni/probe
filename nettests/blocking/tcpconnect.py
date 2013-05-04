@@ -43,3 +43,21 @@ class TCPConnectTest(nettest.NetTestCase):
         d.addErrback(connectionFailed)
         return d
 
+    def inputProcessor(self, filename=None):
+        """
+        This inputProcessor extracts name:port pairs from urls
+        XXX: Does not support unusual port numbers
+        """
+        if filename:
+            fp = open(filename)
+            for x in fp.readlines():
+                proto, path = x.strip().split('://')
+                proto = proto.lower()
+                host = path.split('/')[0]
+                if proto == 'http':
+                    yield "%s:80" % host
+                if proto == 'https':
+                    yield "%s:443" % host
+            fp.close()
+        else:
+            pass
