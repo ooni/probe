@@ -2,7 +2,8 @@
 all: whatheaders lists
 
 lists:
-	git clone https://github.com/hellais/ooni-inputs.git ooni-inputs
+	curl -O https://ooni.torproject.org/inputs/input-pack.tar.gz
+	tar xzf input-pack.tar.gz
 
 whatheaders:
 	wget http://s3.amazonaws.com/data.whatheaders.com/whatheaders-latest.xml.zip

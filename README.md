@@ -16,15 +16,30 @@ with others, so that you and others may better understand your network? If so,
 please read this document and we hope ooniprobe will help you to gather
 network data that will assist you with your endeavors!
 
-## Getting started with ooniprobe is easy
+## Getting started with ooniprobe is easy (with Vagrant)
 
-  0) Open your favorite terminal
-  
-  1) Grab the source and install the dependencies
-  
-  2) Run ooniprobe!
-  
-  3) ... There is no step three ...
+0) [Install Vagrant](http://downloads.vagrantup.com/)
+
+1) Open a Terminal and run:
+
+```
+vagrant up
+```
+
+2) Login to the box with:
+
+```
+vagrant ssh
+```
+
+ooniprobe will be installed in `/data/ooniprobe`.
+
+3) You can run tests with:
+
+```
+cd /data/ooniprobe/
+./bin/ooniprobe nettests/blocking/http_requests.py -f /data/ooniprobe/inputs/input-pack/alexa-top-1k.txt
+```
 
 ## The easy way to prep your system for running ooniprobe
 
