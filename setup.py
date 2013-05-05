@@ -10,12 +10,10 @@ install_requires = [
     'scapy>=2.2.0',
     'dnspython>=1.10.0',
     'parsley>1.0',
-    'pypcap>=1.1.1'
 ]
 
 dependency_links = [
-    'https://people.torproject.org/~ioerror/src/mirrors/ooniprobe',
-    'https://github.com/hellais/pypcap/archive/v1.1.1.tar.gz#egg=pypcap-1.1.1'
+    'https://people.torproject.org/~ioerror/src/mirrors/ooniprobe'
 ]
 
 files = []
