@@ -77,8 +77,10 @@ sudo apt-get install git-core python python-pip python-dev build-essential tor t
 
 Other packages that may be of interest:
 
-  libdumbnet1 python-dumbnet python-libpcap python-pypcap python-pcapy python-dnspython
-  python-virtualenv virtualenvwrapper tor tor-geoipdb
+```
+libdumbnet1 python-dumbnet python-libpcap python-pypcap python-pcapy python-dnspython
+python-virtualenv virtualenvwrapper tor tor-geoipdb
+```
 
 The Python dependencies required for running ooniprobe are:
 
@@ -95,7 +97,7 @@ The Python dependencies required for running ooniprobe are:
 
 Install the latest version of Tor for your platform:
 
-  https://www.torproject.org/download/download.html
+[Download Tor](https://www.torproject.org/download/download.html)
 
 ## Configurating a virtual environment
 
@@ -105,46 +107,62 @@ to install it system wide.
 
 This will require you to have installed virtualenv.
 
-    sudo apt-get install python-virtualenv virtualenvwrapper
+```
+sudo apt-get install python-virtualenv virtualenvwrapper
+```
 
 To create a new virtual environment do
 
-    mkdir $HOME/.virtualenvs
-    mkvirtualenv ooni-probe
+```
+mkdir $HOME/.virtualenvs
+mkvirtualenv ooni-probe
+```
 
 You will automatically enter the environment. To re-enter this environment in the future, type:
 
-    workon ooni-probe
+```
+workon ooni-probe
+```
 
 For convenience, you may want to add the following to your .bashrc:
 
-    if [ -e ~/ooni-probe/bin ]; then
-        export PATH=~/ooni-probe/bin:$PATH
-    fi
-    if [ -e ~/ooni-probe ]; then
-        export PYTHONPATH=$PYTHONPATH:~/ooni-probe
-    fi
+```
+if [ -e ~/ooni-probe/bin ]; then
+    export PATH=~/ooni-probe/bin:$PATH
+fi
+if [ -e ~/ooni-probe ]; then
+    export PYTHONPATH=$PYTHONPATH:~/ooni-probe
+fi
+```
 
 Add the following to $HOME/.virtualenvs/ooni-probe/bin/postactivate to automatically cd into the working directory upon activation.
 
-    if [ -e ~/ooni-probe ] ; then
-        cd ~/ooni-probe
-    fi
+```
+if [ -e ~/ooni-probe ] ; then
+    cd ~/ooni-probe
+fi
+```
 
 ## Installing ooni-probe
 
 Clone the ooniprobe repository:
 
-    git clone https://git.torproject.org/ooni-probe.git
-    cd ooni-probe
+```
+git clone https://git.torproject.org/ooni-probe.git
+cd ooni-probe
+```
 
 Then install OONI with:
 
-    pip install -r requirements.txt
+```
+pip install -r requirements.txt
+```
 
 If you are not in a virtualenv you will have to run the above command as root:
 
-    sudo pip install -r requirements.txt
+```
+sudo pip install -r requirements.txt
+```
 
 ## Install libdnet and pypcap python bindings
 
@@ -156,25 +174,31 @@ libdnet-1.12 and pypcap 1.1, any other version should be considered untested.
 
 If you don't already have Subversion installed:
 
-    sudo apt-get install subversion
+```
+sudo apt-get install subversion
+```
 
 For libdnet:
 
-    wget https://libdnet.googlecode.com/files/libdnet-1.12.tgz
-    tar xzf libdnet-1.12.tgz
-    cd libdnet-1.12
-    ./configure  && make
-    cd python/
-    python setup.py install
-    cd ../../ && rm -rf libdnet-1.12*
+```
+wget https://libdnet.googlecode.com/files/libdnet-1.12.tgz
+tar xzf libdnet-1.12.tgz
+cd libdnet-1.12
+./configure  && make
+cd python/
+python setup.py install
+cd ../../ && rm -rf libdnet-1.12*
+```
 
 For pypcap:
 
-    git clone https://github.com/hellais/pypcap
-    cd pypcap/
-    pip install pyrex
-    make && make install
-    cd ../ && rm -rf pypcap-read-only
+```
+git clone https://github.com/hellais/pypcap
+cd pypcap/
+pip install pyrex
+make && make install
+cd ../ && rm -rf pypcap-read-only
+```
 
 ## Including your geo data in the test report
 
@@ -185,28 +209,38 @@ inside of ooniprobe.conf
 If you wish to include geografical data in the test report, you will have to go
 to the data/ directory and run:
 
-    make geoip
+```
+make geoip
+```
 
 Then edit your ooniprobe.conf to point to the absolute path of where the data/
 directory is located for example:
 
-    geoip_data_dir: /home/your_user/ooni-probe/data/
+```
+geoip_data_dir: /home/your_user/ooni-probe/data/
+```
 
 ## Running some tests
 
 To see the possible command line options run:
 
-    ./bin/ooniprobe --help 
+```
+./bin/ooniprobe --help 
+```
 
 For interesting tests to run look in the nettests/core/ directory.
 
 To run a test you can do so with:
 
-    ./bin/ooniprobe -o report_file_name path/to/test.py
+```
+./bin/ooniprobe -o report_file_name path/to/test.py
+```
 
 Normally tests take options, you can see them with:
 
-    ./bin/ooniprobe -o report_file_name path/to/test.py --help
+```
+./bin/ooniprobe -o report_file_name path/to/test.py --help
+```
 
 ## Configuration
 
@@ -218,4 +252,7 @@ editing your ooniprobe.conf configuration file.
 
 If your distributation supports capabilities you can avoid needing to run OONI as root:
 
-    setcap cap_net_admin,cap_net_raw+eip /path/to/your/virtualenv's/python
+```
+setcap cap_net_admin,cap_net_raw+eip /path/to/your/virtualenv's/python
+```
+
