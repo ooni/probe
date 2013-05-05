@@ -19,8 +19,11 @@ network data that will assist you with your endeavors!
 ## Getting started with ooniprobe is easy
 
   0) Open your favorite terminal
+  
   1) Grab the source and install the dependencies
+  
   2) Run ooniprobe!
+  
   3) ... There is no step three ...
 
 ## The easy way to prep your system for running ooniprobe
@@ -29,17 +32,21 @@ We believe that ooniprobe runs reasonably well on Debian GNU/Linux wheezy as
 well as versions of Ubuntu such as natty and later releases. Running ooniprobe
 without installing it is supported with the following commands:
 
-  git clone https://git.torproject.org/ooni-probe.git
-  cd ooni-probe
-  ./setup-dependencies.sh
-  ./bin/ooniprobe --asciilulz
+```
+git clone https://git.torproject.org/ooni-probe.git
+cd ooni-probe
+./setup-dependencies.sh
+./bin/ooniprobe --asciilulz
+```
 
 ## Your first network test
 
 We run ooniprobe with a test deck - this is a collection of tests in a single
 file that tells ooniprobe how to run and what data to check or process:
 
-  ./bin/ooniprobe -i decks/before_i_commit.testdeck
+```
+./bin/ooniprobe -i decks/before_i_commit.testdeck
+```
 
 The report output files from the above command will be located in the reports/
 directory of the source code checkout. The report output ends with the .yamloo
@@ -64,7 +71,9 @@ Basic system requirements:
 
 On Debian or Ubuntu GNU/Linux based systems these can be installed with:
 
-  sudo apt-get install git-core python python-pip python-dev build-essential tor tor-geoipdb tcpdump
+```
+sudo apt-get install git-core python python-pip python-dev build-essential tor tor-geoipdb tcpdump
+```
 
 Other packages that may be of interest:
 
