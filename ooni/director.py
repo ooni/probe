@@ -298,9 +298,14 @@ class Director(object):
         log.debug("Setting control port as %s" % tor_config.ControlPort)
         log.debug("Setting SOCKS port as %s" % tor_config.SocksPort)
 
-        d = launch_tor(tor_config, reactor,
-                tor_binary=config.advanced.tor_binary,
-                progress_updates=updates)
+        if config.advanced.tor_binary:
+            d = launch_tor(tor_config, reactor,
+                           tor_binary=config.advanced.tor_binary,
+                           progress_updates=updates)
+        else:
+            d = launch_tor(tor_config, reactor,
+                           progress_updates=updates)
+
         d.addCallback(setup_complete)
         d.addErrback(setup_failed)
         return d
