@@ -13,6 +13,7 @@ zope.component>=4.0.0
 zope.event>=4.0.0
 zope.interface>=4.0.1
 Pyrex
+cyclone>=1.1
 #
 # This is a Tor Project mirror with valid SSL/TLS certs that is stable and fast
 #
