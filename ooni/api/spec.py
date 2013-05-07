@@ -4,6 +4,7 @@ import copy
 import json
 import types
 import tempfile
+import functools
 
 from twisted.python import usage
 from cyclone import web, escape
@@ -19,8 +20,18 @@ class InvalidInputFilename(Exception):
 class FilenameExists(Exception):
     pass
 
+def check_xsrf(method):
+    @functools.wraps(method)
+    def wrapper(self, *args, **kw):
+        xsrf_header = self.request.headers.get("X-XSRF-TOKEN")
+        if self.xsrf_token != xsrf_header:
+            raise web.HTTPError(403, "Invalid XSRF token.")
+        return method(self, *args, **kw)
+    return wrapper
+
 class ORequestHandler(web.RequestHandler):
     serialize_lists = True
+    xsrf_cookie_name = "XSRF-TOKEN"
 
     def write(self, chunk):
         """
@@ -33,6 +44,7 @@ class ORequestHandler(web.RequestHandler):
         web.RequestHandler.write(self, chunk)
 
 class Status(ORequestHandler):
+    @check_xsrf
     def get(self):
         result = {'active_tests': oonidApplication.director.activeNetTests}
         self.write(result)
@@ -47,6 +59,8 @@ class Inputs(ORequestHandler):
     """
     This handler is responsible for listing and adding new inputs.
     """
+
+    @check_xsrf
     def get(self):
         """
         Obtain the list of currently installed inputs. Inputs are stored inside
@@ -55,6 +69,7 @@ class Inputs(ORequestHandler):
         input_list = list_inputs()
         self.write(input_list)
 
+    @check_xsrf
     def post(self):
         """
         Add a new input to the currently installed inputs.
@@ -76,6 +91,8 @@ class Inputs(ORequestHandler):
             fp.write(body)
 
 class ListTests(ORequestHandler):
+
+    @check_xsrf
     def get(self):
         test_list = copy.deepcopy(oonidApplication.director.netTests)
         for test_id in test_list.keys():
@@ -138,6 +155,8 @@ def write_temporary_input(content):
     return fd, path
 
 class StartTest(ORequestHandler):
+
+    @check_xsrf
     def post(self, test_name):
         """
         Starts a test with the specified options.
@@ -174,6 +193,8 @@ class StartTest(ORequestHandler):
                         'Insufficient priviledges'})
 
 class StopTest(ORequestHandler):
+
+    @check_xsrf
     def delete(self, test_name):
         pass
 
@@ -199,6 +220,8 @@ def get_test_results(test_id):
     return test_results
 
 class TestStatus(ORequestHandler):
+
+    @check_xsrf
     def get(self, test_id):
         """
         Returns the requested test_id details and the stored results for such
