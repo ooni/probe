@@ -7,13 +7,13 @@ basic:
     logfile: ooniprobe.log
 privacy:
     # Should we include the IP address of the probe in the report?
-    includeip: false
+    includeip: true
     # Should we include the ASN of the probe in the report?
-    includeasn: false
+    includeasn: true
     # Should we include the country as reported by GeoIP in the report?
-    includecountry: false
+    includecountry: true
     # Should we include the city as reported by GeoIP in the report?
-    includecity: false
+    includecity: true
     # Should we collect a full packet capture on the client?
     includepcap: false
 reports:
