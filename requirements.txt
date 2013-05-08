@@ -9,6 +9,7 @@ pygeoip>=0.2.5
 txtorcon>=0.7
 txsocksx>=0.0.2
 Pyrex
+parsley>=1.1
 
 # Taken from the versions required by twisted 13.0.0 (latest)
 transaction>=1.1.1
@@ -16,23 +17,16 @@ zope.component>=3.5
 zope.event>=3.5
 zope.interface>=3.6
 
-#
 # This is a Tor Project mirror with valid SSL/TLS certs that is stable and fast
-#
-# Originally fetched from LaunchPad:
-#   https://launchpad.net/parsley/trunk/1.1pre1/+download/Parsley-1.1pre1.tar.gz
-# Mirrored on Tor's webserver:
-https://people.torproject.org/~ioerror/src/mirrors/ooniprobe/Parsley-1.1pre1.tar.gz
-parsley>=1.1
-#
 # Originally fetched from the hg repo on secdev.org:
 #   https://hg.secdev.org/scapy/archive/tip.zip#egg=scapy
 # Mirrored on Tor's webserver:
+# This should be scapy>=2.2.0, but pip does not like it
 https://people.torproject.org/~ioerror/src/mirrors/ooniprobe/scapy-02-25-2013-tip.zip
-scapy>=2.2.0
 # This was 'dnspython>=1.10.0' above until it failed to download many times.
 # Originally fetched from dnspython but it timed out often:
 #   http://www.dnspython.org/kits/1.10.0/dnspython-1.10.0.zip
 # Mirrored on Tor's webserver:
-https://people.torproject.org/~ioerror/src/mirrors/ooniprobe/dnspython-1.10.0.zip
+# This should be the below, but pip does not like it.
 dnspython>=1.10.0
+https://people.torproject.org/~ioerror/src/mirrors/ooniprobe/dnspython-1.10.0.zip
