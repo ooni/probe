@@ -23,6 +23,8 @@ network data that will assist you with your endeavors!
 1) Open a Terminal and run:
 
 ```
+git clone https://git.torproject.org/ooni-probe.git
+cd ooni-probe/
 vagrant up
 ```
 
