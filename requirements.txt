@@ -23,13 +23,16 @@ zope.interface>=3.6
 #   https://launchpad.net/parsley/trunk/1.1pre1/+download/Parsley-1.1pre1.tar.gz
 # Mirrored on Tor's webserver:
 https://people.torproject.org/~ioerror/src/mirrors/ooniprobe/Parsley-1.1pre1.tar.gz
+parsley>=1.1
 #
 # Originally fetched from the hg repo on secdev.org:
 #   https://hg.secdev.org/scapy/archive/tip.zip#egg=scapy
 # Mirrored on Tor's webserver:
 https://people.torproject.org/~ioerror/src/mirrors/ooniprobe/scapy-02-25-2013-tip.zip
+scapy>=2.2.0
 # This was 'dnspython>=1.10.0' above until it failed to download many times.
 # Originally fetched from dnspython but it timed out often:
 #   http://www.dnspython.org/kits/1.10.0/dnspython-1.10.0.zip
 # Mirrored on Tor's webserver:
 https://people.torproject.org/~ioerror/src/mirrors/ooniprobe/dnspython-1.10.0.zip
+dnspython>=1.10.0
