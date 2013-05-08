@@ -29,7 +29,7 @@ except ImportError:
 from ooni import errors
 
 from ooni import otime
-from ooni.utils import geodata, pushFilenameStack
+from ooni.utils import pushFilenameStack
 from ooni.utils.net import BodyReceiver, StringProducer, userAgents
 
 from ooni import config
