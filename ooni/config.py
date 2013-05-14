@@ -122,22 +122,7 @@ if not resume_filename:
         with open(resume_filename, 'w+') as f: pass
 
 
-def generatePcapFilename(cmd_line_options=None):
-    if not cmd_line_options:
-        cmd_line_options = {}
-
-    if 'pcapfile' in cmd_line_options:
-        pcap_filename = cmd_line_options['pcapfile']
-    else:
-        if 'test' in cmd_line_options:
-            test_filename = os.path.basename(cmd_line_options['test'])
-        elif 'testdeck' in cmd_line_options:
-            test_filename = os.path.basename(cmd_line_options['testdeck'])
-        else:
-            test_filename = ''
-
-        test_name = '.'.join(test_filename.split(".")[:-1])
-        frm_str = "report_%s_" + otime.timestamp() + ".%s"
-        pcap_filename = frm_str % (test_name, "pcap")
-
-    return pcap_filename
+def generatePcapFilename(testDetails):
+    test_name, start_time = testDetails['test_name'], testDetails['start_time']
+    start_time = otime.epochToTimestamp(start_time)
+    return "report-%s-%s.%s" % (test_name, start_time, "pcap")
