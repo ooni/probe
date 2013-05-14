@@ -7,7 +7,7 @@ from ooni import config
 from ooni import geoip
 from ooni.managers import ReportEntryManager, MeasurementManager
 from ooni.reporter import Report
-from ooni.utils import log, checkForRoot
+from ooni.utils import log, checkForRoot, pushFilenameStack
 from ooni.utils.net import randomFreePort
 from ooni.nettest import NetTest
 from ooni import errors
