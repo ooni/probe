@@ -221,6 +221,7 @@ class Director(object):
         except errors.InsufficientPrivileges:
             print "[!] Includepcap options requires root priviledges to run"
             print "    you should run ooniprobe as root or disable the options in ooniprobe.conf"
+            reactor.stop()
             sys.exit(1)
 
         print "Starting sniffer"
