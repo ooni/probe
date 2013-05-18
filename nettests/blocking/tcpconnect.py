@@ -48,16 +48,22 @@ class TCPConnectTest(nettest.NetTestCase):
         This inputProcessor extracts name:port pairs from urls
         XXX: Does not support unusual port numbers
         """
+        def strip_url(address):
+            proto, path = x.strip().split('://')
+            proto = proto.lower()
+            host = path.split('/')[0]
+            if proto == 'http':
+                return "%s:80" % host
+            if proto == 'https':
+                return "%s:443" % host
+
         if filename:
             fp = open(filename)
             for x in fp.readlines():
-                proto, path = x.strip().split('://')
-                proto = proto.lower()
-                host = path.split('/')[0]
-                if proto == 'http':
-                    yield "%s:80" % host
-                if proto == 'https':
-                    yield "%s:443" % host
+                if x.startswith("http"):
+                    yield strip_url(x)
+                else:
+                    yield x.strip()
             fp.close()
         else:
             pass
