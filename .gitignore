@@ -12,7 +12,6 @@ ooni/assets/bridge*.txt
 ooni/lib/txtorcon
 ooni/plugins/dropin.cache
 ooni/report*.yaml
-oonib/oonibackend.conf
 fluff/
 pcaps/
 report*.yaml
