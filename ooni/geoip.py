@@ -36,7 +36,7 @@ def IPToLocation(ipaddr):
         location['countrycode'] = country_dat.country_code_by_addr(ipaddr)
 
         asn_dat = GeoIP(asn_file)
-        location['asn'] = asn_dat.org_by_addr(ipaddr)
+        location['asn'] = asn_dat.org_by_addr(ipaddr).split(' ')[0]
 
     except IOError:
         log.err("Could not find GeoIP data files. Go into data/ "

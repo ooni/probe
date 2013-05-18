@@ -7,7 +7,7 @@ from ooni import config
 from ooni import geoip
 from ooni.managers import ReportEntryManager, MeasurementManager
 from ooni.reporter import Report
-from ooni.utils import log, checkForRoot
+from ooni.utils import log, checkForRoot, pushFilenameStack
 from ooni.utils.net import randomFreePort
 from ooni.nettest import NetTest
 from ooni import errors
@@ -86,14 +86,10 @@ class Director(object):
         # This deferred is fired once all the measurements and their reporting
         # tasks are completed.
         self.allTestsDone = defer.Deferred()
+        self.sniffer = None
 
     @defer.inlineCallbacks
     def start(self):
-        if config.privacy.includepcap:
-            log.msg("Starting")
-            if not config.reports.pcap:
-                config.reports.pcap = config.generatePcapFilename()
-            self.startSniffing()
 
         if config.advanced.start_tor:
             log.msg("Starting Tor...")
@@ -192,6 +188,13 @@ class Director(object):
 
             _: #XXX very dirty hack
         """
+
+        if config.privacy.includepcap:
+            log.msg("Starting")
+            if not config.reports.pcap:
+                config.reports.pcap = config.generatePcapFilename(net_test_loader.testDetails)
+            self.startSniffing()
+
         report = Report(reporters, self.reportEntryManager)
 
         net_test = NetTest(net_test_loader, report)
@@ -218,6 +221,7 @@ class Director(object):
         except errors.InsufficientPrivileges:
             print "[!] Includepcap options requires root priviledges to run"
             print "    you should run ooniprobe as root or disable the options in ooniprobe.conf"
+            reactor.stop()
             sys.exit(1)
 
         print "Starting sniffer"
@@ -228,9 +232,10 @@ class Director(object):
             print "Renaming files with such name..."
             pushFilenameStack(config.reports.pcap)
 
-        sniffer = ScapySniffer(config.reports.pcap)
-        config.scapyFactory.registerProtocol(sniffer)
-
+        if self.sniffer:
+            config.scapyFactory.unRegisterProtocol(self.sniffer)
+        self.sniffer = ScapySniffer(config.reports.pcap)
+        config.scapyFactory.registerProtocol(self.sniffer)
 
     def startTor(self):
         """ Starts Tor
