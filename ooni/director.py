@@ -298,6 +298,22 @@ class Director(object):
                 os.makedirs(data_dir)
             tor_config.DataDirectory = data_dir
 
+        if config.tor.bridges:
+            tor_config.UseBridges = 1
+            if config.advanced.obfsproxy_binary:
+                tor_config.ClientTransportPlugin = \
+                        'obfs2,obfs3 exec %s managed' % \
+                        config.advanced.obfsproxy_binary
+            bridges = []
+            with open(config.tor.bridges) as f:
+                for bridge in f:
+                    if 'obfs' in bridge:
+                        if config.advanced.obfsproxy_binary:
+                            bridges.append(bridge.strip())
+                    else:
+                        bridges.append(bridge.strip())
+            tor_config.Bridge = bridges
+
         tor_config.save()
 
         log.debug("Setting control port as %s" % tor_config.ControlPort)
