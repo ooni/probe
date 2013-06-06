@@ -7,10 +7,14 @@ from . import oonicli
 from . import reporter
 from . import templates
 from . import utils
+from ._version import get_versions
 
-__author__ = "Arturo Filastò"
-__version__ = "0.0.11"
+
+__author__ = "The Tor Project, Inc."
+__version__ = get_versions()['version']
+del get_versions
 
 __all__ = ['config', 'inputunit', 'kit',
            'lib', 'nettest', 'oonicli', 'reporter',
            'templates', 'utils']
+
