@@ -164,7 +164,7 @@ class StartTest(ORequestHandler):
         test_file = oonidApplication.director.netTests[test_name]['path']
         test_options = json.loads(self.request.body)
         tmp_files = []
-        if (test_options['manual_input']):
+        if ('manual_input' in test_options):
             for option, content in test_options['manual_input'].items():
                 fd, path = write_temporary_input(content)
                 test_options[option] = path
