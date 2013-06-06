@@ -6,8 +6,8 @@ from setuptools import setup
 import versioneer
 versioneer.versionfile_source = 'ooni/_version.py'
 versioneer.versionfile_build = 'ooni/_version.py'
-versioneer.tag_prefix = 'ooni-probe-'
-versioneer.parentdir_prefix = 'ooni-probe-'
+versioneer.tag_prefix = 'v'
+versioneer.parentdir_prefix = 'ooni'
 
 install_requires = [
     'txsocksx>=0.0.2',
