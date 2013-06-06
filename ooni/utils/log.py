@@ -66,18 +66,3 @@ def exception(error):
     else:
         exc_type, exc_value, exc_traceback = sys.exc_info()
         traceback.print_exception(exc_type, exc_value, exc_traceback)
-
-class LoggerFactory(object):
-    """
-    This is a logger factory to be used by oonib
-    """
-    def __init__(self, options):
-        pass
-
-    def start(self, application):
-        # XXX parametrize this
-        start('oonib.log', "OONIB")
-
-    def stop(self):
-        txlog.msg("Stopping OONIB")
-

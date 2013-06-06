@@ -191,7 +191,7 @@ class NetTestLoader(object):
                 config.privacy.includecity):
             log.msg("We will include some geo data in the report")
             try:
-                client_geodata = geodata.IPToLocation(config.probe_ip.address)
+                client_geodata = geoip.IPToLocation(config.probe_ip.address)
             except e.GeoIPDataFilesNotFound:
                 log.err("Unable to find the geoip data files")
                 client_geodata = {'city': None, 'countrycode': None, 'asn': None}
@@ -220,7 +220,7 @@ class NetTestLoader(object):
                 or ('countrycode' not in client_geodata):
             client_geodata['countrycode'] = None
 
-        test_details = {'start_time': otime.utcTimeNow(),
+        test_details = {'start_time': time.time(),
             'probe_asn': client_geodata['asn'],
             'probe_cc': client_geodata['countrycode'],
             'probe_ip': client_geodata['ip'],

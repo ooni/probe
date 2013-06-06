@@ -6,7 +6,7 @@ import re
 from ooni import geoip
 from ooni.managers import ReportEntryManager, MeasurementManager
 from ooni.reporter import Report
-from ooni.utils import log, checkForRoot
+from ooni.utils import log, checkForRoot, pushFilenameStack
 from ooni.utils.net import randomFreePort
 from ooni.nettest import NetTest, getNetTestInformation
 from ooni.settings import config
@@ -87,6 +87,7 @@ class Director(object):
         # This deferred is fired once all the measurements and their reporting
         # tasks are completed.
         self.allTestsDone = defer.Deferred()
+        self.sniffer = None
 
     def getNetTests(self):
         nettests = {}
@@ -242,6 +243,7 @@ class Director(object):
         except errors.InsufficientPrivileges:
             print "[!] Includepcap options requires root priviledges to run"
             print "    you should run ooniprobe as root or disable the options in ooniprobe.conf"
+            reactor.stop()
             sys.exit(1)
 
         print "Starting sniffer"
@@ -252,9 +254,10 @@ class Director(object):
             print "Renaming files with such name..."
             pushFilenameStack(config.reports.pcap)
 
-        sniffer = ScapySniffer(config.reports.pcap)
-        config.scapyFactory.registerProtocol(sniffer)
-
+        if self.sniffer:
+            config.scapyFactory.unRegisterProtocol(self.sniffer)
+        self.sniffer = ScapySniffer(config.reports.pcap)
+        config.scapyFactory.registerProtocol(self.sniffer)
 
     def startTor(self):
         """ Starts Tor
@@ -322,8 +325,14 @@ class Director(object):
         log.debug("Setting control port as %s" % tor_config.ControlPort)
         log.debug("Setting SOCKS port as %s" % tor_config.SocksPort)
 
-        d = launch_tor(tor_config, reactor,
-                progress_updates=updates)
+        if config.advanced.tor_binary:
+            d = launch_tor(tor_config, reactor,
+                           tor_binary=config.advanced.tor_binary,
+                           progress_updates=updates)
+        else:
+            d = launch_tor(tor_config, reactor,
+                           progress_updates=updates)
+
         d.addCallback(setup_complete)
         d.addErrback(setup_failed)
         return d
