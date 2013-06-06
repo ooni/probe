@@ -353,6 +353,10 @@ class OONIBReporter(OReporter):
         self.backendVersion = parsed_response['backend_version']
         log.debug("Created report with id %s" % parsed_response['report_id'])
 
+    def finish(self):
+        url = self.collectorAddress + '/report/' + self.reportID + '/close'
+        response = yield self.agent.request("POST", url)
+
 class ReportClosed(Exception):
     pass
 
