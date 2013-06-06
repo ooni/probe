@@ -2,6 +2,7 @@
 #-*- coding: utf-8 -*-
 
 import os
+from os.path import join as pj
 import sys
 from distutils.core import setup
 
@@ -16,13 +17,13 @@ dependency_links = [
     'https://people.torproject.org/~ioerror/src/mirrors/ooniprobe'
 ]
 
-files = []
+data_files = []
 for root, dirs, file_names in os.walk('data/'):
+    files = []
     for file_name in file_names:
         if not file_name.endswith('.pyc'):
-            files.append(os.path.join(root, file_name))
-
-data_files = [('/usr/share/ooni/', files)]
+            files.append(pj(root, file_name))
+    data_files.append([pj('/usr/share/ooni', root), files])
 
 with open('requirements.txt') as f:
     for line in f:
