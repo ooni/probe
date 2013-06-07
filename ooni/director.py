@@ -171,7 +171,7 @@ class Director(object):
         """
         pass
 
-    def netTestDone(self, result, net_test):
+    def netTestDone(self, net_test):
         self.activeNetTests.remove(net_test)
         if len(self.activeNetTests) == 0:
             self.allTestsDone.callback(None)
@@ -206,10 +206,11 @@ class Director(object):
 
         self.activeNetTests.append(net_test)
 
-        net_test.done.addBoth(report.close)
-        net_test.done.addBoth(self.netTestDone, net_test)
-
         yield net_test.done
+        yield report.close()
+
+        self.netTestDone(net_test)
+
 
     def startSniffing(self):
         """ Start sniffing with Scapy. Exits if required privileges (root) are not

@@ -242,8 +242,7 @@ class OONIBReporter(OReporter):
         if the oonib reporter is not valid.
         """
         regexp = '^(http|httpo):\/\/[a-zA-Z0-9\-\.]+(:\d+)?$'
-        if not re.match(regexp, self.collectorAddress) or \
-            len(self.collectorAddress) < 30:
+        if not re.match(regexp, self.collectorAddress):
             raise errors.InvalidOONIBCollectorAddress
 
     @defer.inlineCallbacks
@@ -353,6 +352,12 @@ class OONIBReporter(OReporter):
         self.backendVersion = parsed_response['backend_version']
         log.debug("Created report with id %s" % parsed_response['report_id'])
 
+    @defer.inlineCallbacks
+    def finish(self):
+        url = self.collectorAddress + '/report/' + self.reportID + '/close'
+        log.debug("Closing the report %s" % url)
+        response = yield self.agent.request("POST", str(url))
+
 class ReportClosed(Exception):
     pass
 
@@ -460,7 +465,7 @@ class Report(object):
             raise errors.NoMoreReporters
         return
 
-    def close(self, _):
+    def close(self):
         """
         Close the report by calling it's finish method.
 
