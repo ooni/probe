@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 #-*- coding: utf-8 -*-
 
+from ooni import __version__
 from setuptools import setup
 
 install_requires = [
@@ -22,7 +23,7 @@ with open('requirements.txt') as f:
 
 setup(
     name="ooni-probe",
-    version="0.0.11",
+    version=__version__,
     author="Arturo Filastò",
     author_email = "art@torproject.org",
     url="https://ooni.torproject.org/",
