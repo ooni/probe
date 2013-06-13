@@ -26,6 +26,7 @@ advanced:
     geoip_data_dir: /usr/share/GeoIP/
     debug: true
     # tor_binary: '/usr/sbin/tor'
+    # obfsproxy_binary: '/usr/bin/obfsproxy'
     # For auto detection
     interface: auto
     # Of specify a specific interface
