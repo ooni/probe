@@ -8,7 +8,7 @@ from twisted.python import usage, reflect
 
 from ooni import geoip
 from ooni.tasks import Measurement
-from ooni.utils import log, checkForRoot, geodata
+from ooni.utils import log, checkForRoot
 from ooni import otime
 from ooni.settings import config
 
