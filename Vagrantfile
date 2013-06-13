@@ -131,7 +131,7 @@ cd /tmp/
 curl -O https://raw.github.com/pypa/pip/master/contrib/get-pip.py
 python ./get-pip.py  ## pip (>=1.3.0) is recommended for security reasons
 
-sudo update-alternatives --install /usr/bin/pip pip /usr/local/bin/pip 0
+update-alternatives --install /usr/bin/pip pip /usr/local/bin/pip 0
 
 cd /data/ooniprobe
 
@@ -140,7 +140,7 @@ pip install pyrex
 pip install -r requirements.txt
 
 echo "Installing ooniprobe"
-sudo python setup.py install
+python setup.py install
 
 echo "Fetching all inputs"
 cd /data/ooniprobe/inputs
