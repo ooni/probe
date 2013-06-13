@@ -44,6 +44,8 @@ advanced:
     reporting_retries: 3
     # How many reports to perform concurrently
     reporting_concurrency: 20
+    # Specify here a custom data_dir path
+    data_dir: /usr/share/ooni/
 tor:
     socks_port: 9050
     #control_port: 9051
