@@ -69,7 +69,7 @@ class TaskWithTimeout(BaseTask):
 
     def _timedOut(self):
         """Internal method for handling timeout failure"""
-        if not self._running.called:
+        if self._running and not self._running.called:
             self._running.cancel()
             self._failed(TaskTimedOut)
 
@@ -92,6 +92,7 @@ class TaskWithTimeout(BaseTask):
 
 class Measurement(TaskWithTimeout):
     timeout = config.advanced.measurement_timeout
+    netTest = None
 
     def __init__(self, test_class, test_method, test_input):
         """

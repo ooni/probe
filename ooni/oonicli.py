@@ -159,7 +159,7 @@ def runWithDirector():
             yaml_reporter = YAMLReporter(test_details)
             reporters = [yaml_reporter]
 
-            if collector and collector.startswith('httpo') \
+            if collector and collector.startswith('httpo:') \
                     and (not (config.tor_state or config.tor.socks_port)):
                 raise errors.TorNotRunning
             elif collector:
