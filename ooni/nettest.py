@@ -141,6 +141,9 @@ def getArguments(test_class):
 
     return arguments
 
+def test_class_name_to_name(test_class_name):
+    return test_class_name.lower().replace(' ','_')
+
 def getNetTestInformation(net_test_file):
     """
     Returns a dict containing:
@@ -156,7 +159,7 @@ def getNetTestInformation(net_test_file):
     """
     test_class = getTestClassFromFile(net_test_file)
 
-    test_id = os.path.basename(net_test_file).replace('.py', '')
+    test_id = test_class_name_to_name(test_class.name)
     information = {'id': test_id,
         'name': test_class.name,
         'description': test_class.description,
@@ -333,7 +336,7 @@ class NetTestLoader(object):
         """
         test_class, _ = test_cases[0]
         self.testVersion = test_class.version
-        self.testName = test_class.name.lower().replace(' ','_')
+        self.testName = test_class_name_to_name(test_class.name)
         self.testCases = test_cases
 
     def checkOptions(self):
