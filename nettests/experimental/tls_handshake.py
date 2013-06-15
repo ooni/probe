@@ -88,7 +88,12 @@ class SSLContextError(usage.UsageError):
     errors = {
         'NO_CONTEXT': 'No SSL/TLS context chosen! Defaulting to TLSv1.',
         'INCOMPATIBLE': str("Testing TLSv1 (option '--tls1') is incompatible "
-                            + "with testing SSL ('--ssl2' and '--ssl3').") }
+                            + "with testing SSL ('--ssl2' and '--ssl3')."),
+        'MISSING_SSLV2': str("Your version of OpenSSL was compiled without "
+                             + "support for SSLv2. This is normal on newer "
+                             + "versions of OpenSSL, but it means that you "
+                             + "will be unable to test SSLv2 handshakes "
+                             + "without recompiling OpenSSL."), }
 
     def __init__(self, message):
         if message in self.errors.keys():
@@ -164,12 +169,22 @@ class HandshakeTest(nettest.NetTestCase):
                     except SSLContextError as sce: log.err(sce.message)
                     finally: log.msg('Defaulting to testing only TLSv1.')
                 elif options['ssl2']:
-                    if not options['ssl3']:
-                        self.context = SSL.Context(SSL.SSLv2_METHOD)
-                    else:
-                        self.context = SSL.Context(SSL.SSLv23_METHOD)
+                    try:
+                        if not options['ssl3']:
+                            context = SSL.Context(SSL.SSLv2_METHOD)
+                        else:
+                            context = SSL.Context(SSL.SSLv23_METHOD)
+                    except ValueError as ve:
+                        log.err(ve.message)
+                        try: raise SSLContextError('MISSING_SSLV2')
+                        except SSLContextError as sce:
+                            log.err(sce.message)
+                            log.msg("Falling back to testing only TLSv1.")
+                            context = SSL.Context(SSL.TLSv1_METHOD)
                 elif options['ssl3']:
-                    self.context = SSL.Context(SSL.SSLv3_METHOD)
+                    context = SSL.Context(SSL.SSLv3_METHOD)
+            ## finally, reset the context if the user's choice was okay:
+            if context: self.context = context
 
             ## if we weren't given a file with a list of ciphersuites to use,
             ## then use the firefox default list:
