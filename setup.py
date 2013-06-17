@@ -18,13 +18,18 @@ dependency_links = [
     'https://people.torproject.org/~ioerror/src/mirrors/ooniprobe'
 ]
 
+usr_share_path = '/usr/share/ooni'
+# If this is true then it means we are in a virtualenv
+if hasattr(sys, 'real_prefix'):
+    usr_share_path = pj(sys.prefix, 'share', 'ooni')
+
 data_files = []
 for root, dirs, file_names in os.walk('data/'):
     files = []
     for file_name in file_names:
         if not file_name.endswith('.pyc'):
             files.append(pj(root, file_name))
-    data_files.append([pj('/usr/share/ooni', root), files])
+    data_files.append([pj(usr_share_path, root), files])
 
 with open('requirements.txt') as f:
     for line in f:
