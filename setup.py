@@ -22,6 +22,15 @@ usr_share_path = '/usr/share/ooni'
 # If this is true then it means we are in a virtualenv
 if hasattr(sys, 'real_prefix'):
     usr_share_path = pj(sys.prefix, 'share', 'ooni')
+    with open(pj('data', 'ooniprobe.conf.sample.new'), 'w+') as w:
+        with open(pj('data', 'ooniprobe.conf.sample')) as f:
+            for line in f:
+                if line.startswith('    data_dir: /usr/share/ooni'):
+                    w.write('    data_dir: %s\n' % usr_share_path)
+                else:
+                    w.write(line)
+    os.rename(pj('data', 'ooniprobe.conf.sample.new'),
+              pj('data', 'ooniprobe.conf.sample'))
 
 data_files = []
 for root, dirs, file_names in os.walk('data/'):
