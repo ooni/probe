@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en" ng-app="ooniprobe">
+<head>
+  <meta charset="utf-8">
+  <title>ooniprobe</title>
+  <link rel="stylesheet" href="styles/app.css"/>
+</head>
+<body>
+  <div class="container">
+    <div class="row">
+      <div class="page-header">
+        <h1>ooniprobe <small>Open Observatory of Network Interference</small></h1>
+      </div>
+    </div>
+    <div class="row">
+
+      <div class="span3">
+        <div class="well" ng-include="'views/sidebar.html'"></div>
+      </div>
+
+      <div class="span9">
+        <div ng-view></div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <script src="libs/angular/angular.js"></script>
+  <script src="libs/angular-resource/angular-resource.js"></script>
+  <script src="libs/jquery/jquery.js"></script>
+  <script src="libs/ng-upload/ng-upload.js"></script>
+  <script src="scripts/app.js"></script>
+  <script src="scripts/services.js"></script>
+  <script src="scripts/controllers.js"></script>
+  <script src="scripts/filters.js"></script>
+  <script src="scripts/directives.js"></script>
+</body>
+</html>

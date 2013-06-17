@@ -1,0 +1,48 @@
+<div class="row">
+  <div class="span8">
+    <h2>{{testDetails.name}}</h2>
+    <div class="netTest" ng-controller="TestBoxCtrl">
+      version: <span class="badge badge-success">{{testDetails.version}}</span>
+      <p>{{testDetails.description}}</p>
+      <form name="testOptions">
+        <div ng-repeat="(name, options) in testDetails.arguments">
+          <div ng-switch on="options.type">
+
+            <div ng-switch-when="file" ng-controller="FileInput">
+              <label>{{name}}
+              <button class="btn btn-small" ng-click="toggleManualInput()">Toggle manual input</button>
+              </label>
+              <select ng-model="testDetails.arguments[name].value" ng-hide="manualShow">
+                <option ng-repeat="input in inputs" value="input.filename">{{input.filename}}</option>
+              </select>
+              <br/>
+              <div class="manualFileInput" ng-show="manualShow">
+                <textarea ng-model="manualFileInput[name]"></textarea>
+              </div>
+            </div>
+
+            <div ng-switch-default>
+              <label>{{name}}</label>
+              <input ng-model="testDetails.arguments[name].value" type="{{options.type}}"
+                   value="{{options.default}}">
+            </div>
+
+          </div>
+        </div>
+      </form>
+      <button class="btn btn-primary" ng-click="startTest()">Start Test</button>
+    </div>
+  </div>
+</div>
+
+<div class="row">
+  <div class="span8">
+    <h3>Test results</h3>
+    <button class="btn" ng-click="updateTestStatus()">
+      <i class="icon-refresh"></i>Reload</button>
+    <div ng-repeat="result in testDetails.results">
+      <h4>{{result.name}}</h4>
+      <pre class="testResult">{{result.content}}</pre>
+    </div>
+  </div>
+</div>

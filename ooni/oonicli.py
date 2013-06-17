@@ -12,10 +12,9 @@ from twisted.python.util import spewer
 
 from ooni import errors
 
-from ooni import config
+from ooni.settings import config
 from ooni.director import Director
 from ooni.reporter import YAMLReporter, OONIBReporter
-
 from ooni.nettest import NetTestLoader, MissingRequiredOption
 
 from ooni.utils import log
@@ -41,6 +40,10 @@ class Options(usage.Options):
                      ["logfile", "l", None, "log file name"],
                      ["pcapfile", "O", None, "pcap file name"],
                      ["parallelism", "p", "10", "input parallelism"],
+                     ["configfile", "f", None,
+                         "Specify a path to the ooniprobe configuration file"],
+                     ["datadir", "d", None,
+                         "Specify a path to the ooniprobe data directory"]
                      ]
 
     compData = usage.Completions(
@@ -101,8 +104,11 @@ def runWithDirector():
     test!
     """
     global_options = parseOptions()
-    log.start(global_options['logfile'])
+    config.global_options = global_options
+    config.set_paths()
+    config.read_config_file()
 
+    log.start(global_options['logfile'])
     # contains (test_cases, options, cmd_line_options)
     test_list = []
     if global_options['no-collector']:
@@ -159,7 +165,7 @@ def runWithDirector():
             yaml_reporter = YAMLReporter(test_details)
             reporters = [yaml_reporter]
 
-            if collector and collector.startswith('httpo') \
+            if collector and collector.startswith('httpo:') \
                     and (not (config.tor_state or config.tor.socks_port)):
                 raise errors.TorNotRunning
             elif collector:
@@ -172,7 +178,9 @@ def runWithDirector():
                     raise e
 
             log.debug("adding callback for startNetTest")
-            d.addCallback(director.startNetTest, net_test_loader, reporters)
+            @d.addCallback
+            def cb(res):
+                director.startNetTest(net_test_loader, reporters)
         director.allTestsDone.addBoth(shutdown)
 
     def start():

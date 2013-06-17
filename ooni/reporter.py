@@ -32,7 +32,7 @@ from ooni import otime
 from ooni.utils import pushFilenameStack
 from ooni.utils.net import BodyReceiver, StringProducer, userAgents
 
-from ooni import config
+from ooni.settings import config
 
 from ooni.tasks import ReportEntry, TaskTimedOut, ReportTracker
 
@@ -226,6 +226,12 @@ class YAMLReporter(OReporter):
 
     def finish(self):
         self._stream.close()
+
+def collector_supported(collector_address):
+    if collector_address.startswith('httpo') \
+            and (not (config.tor_state or config.tor.socks_port)):
+        return False
+    return True
 
 class OONIBReporter(OReporter):
     def __init__(self, test_details, collector_address):

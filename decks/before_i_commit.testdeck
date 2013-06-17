@@ -1,36 +1,32 @@
 - options:
-    no-default-reporter: false
     collector: null
     help: 0
     logfile: reports/before_i_commit.log
     pcapfile: null
     reportfile: reports/captive_portal_test.yamloo
     subargs: []
-    test_file: nettests/manipulation/captiveportal.py
+    test_file: data/nettests/manipulation/captiveportal.py
 - options:
-    no-default-reporter: false
     collector: null
     help: 0
     logfile: reports/before_i_commit.log
     pcapfile: null
     reportfile: reports/dns_tamper_test.yamloo
     subargs: [-T, example_inputs/dns_tamper_test_resolvers.txt, -f, example_inputs/dns_tamper_file.txt]
-    test_file: nettests/blocking/dnsconsistency.py
+    test_file: data/nettests/blocking/dnsconsistency.py
 - options:
-    no-default-reporter: false
     collector: null
     help: 0
     logfile: reports/before_i_commit.log
     pcapfile: null
     reportfile: reports/http_host.yamloo
     subargs: [-b, 'http://93.95.227.200', -f, example_inputs/http_host_file.txt]
-    test_file: nettests/manipulation/http_host.py
+    test_file: data/nettests/manipulation/http_host.py
 - options:
-    no-default-reporter: false
     collector: null
     help: 0
     logfile: reports/before_i_commit.log
     pcapfile: null
     reportfile: reports/header_field_manipulation.yamloo
     subargs: [-b, 'http://93.95.227.200']
-    test_file: nettests/manipulation/http_header_field_manipulation.py
+    test_file: data/nettests/manipulation/http_header_field_manipulation.py

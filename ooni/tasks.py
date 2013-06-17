@@ -1,6 +1,6 @@
 import time
 
-from ooni import config
+from ooni.settings import config
 from twisted.internet import defer, reactor
 
 class BaseTask(object):
@@ -69,7 +69,7 @@ class TaskWithTimeout(BaseTask):
 
     def _timedOut(self):
         """Internal method for handling timeout failure"""
-        if not self._running.called:
+        if self._running and not self._running.called:
             self._running.cancel()
             self._failed(TaskTimedOut)
 
@@ -91,8 +91,6 @@ class TaskWithTimeout(BaseTask):
         return BaseTask.start(self)
 
 class Measurement(TaskWithTimeout):
-    timeout = config.advanced.measurement_timeout
-
     def __init__(self, test_class, test_method, test_input):
         """
         test_class:
@@ -117,6 +115,8 @@ class Measurement(TaskWithTimeout):
 
         self.netTestMethod = getattr(self.testInstance, test_method)
 
+        if config.advanced.measurement_timeout:
+            self.timeout = config.advanced.measurement_timeout
         TaskWithTimeout.__init__(self)
 
     def succeeded(self, result):
@@ -149,14 +149,13 @@ class ReportTracker(object):
         self.report_completed += 1
 
 class ReportEntry(TaskWithTimeout):
-    timeout = config.advanced.reporting_timeout
-
     def __init__(self, reporter, measurement):
         self.reporter = reporter
         self.measurement = measurement
 
+        if config.advanced.reporting_timeout:
+            self.timeout = config.advanced.reporting_timeout
         TaskWithTimeout.__init__(self)
 
     def run(self):
         return self.reporter.writeReportEntry(self.measurement)
-

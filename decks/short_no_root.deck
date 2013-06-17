@@ -8,7 +8,7 @@
     reportfile: null
     resume: 0
     subargs: []
-    test_file: nettests/manipulation/captiveportal.py
+    test_file: data/nettests/manipulation/captiveportal.py
     testdeck: null
 - options:
     collector: null
@@ -20,7 +20,7 @@
     reportfile: null
     resume: 0
     subargs: [-f, example_inputs/url_lists_file.txt]
-    test_file: nettests/blocking/http_requests.py
+    test_file: data/nettests/blocking/http_requests.py
     testdeck: null
 - options:
     collector: null
@@ -32,7 +32,7 @@
     reportfile: null
     resume: 0
     subargs: [-f, example_inputs/tcpconnect_host_file.txt]
-    test_file: nettests/blocking/tcpconnect.py
+    test_file: data/nettests/blocking/tcpconnect.py
     testdeck: null
 - options:
     collector: null
@@ -44,7 +44,7 @@
     reportfile: null
     resume: 0
     subargs: [-f, example_inputs/http_host_file.txt, -T, example_inputs/dns_tamper_test_resolvers.txt]
-    test_file: nettests/blocking/dnsconsistency.py
+    test_file: data/nettests/blocking/dnsconsistency.py
     testdeck: null
 - options:
     collector: null
@@ -56,5 +56,5 @@
     reportfile: null
     resume: 0
     subargs: [-b, 'http://93.95.227.200']
-    test_file: nettests/manipulation/http_header_field_manipulation.py
+    test_file: data/nettests/manipulation/http_header_field_manipulation.py
     testdeck: null
