@@ -13,7 +13,7 @@ from twisted.web._newclient import Request, Response, ResponseNeverReceived
 
 from ooni.nettest import NetTestCase
 from ooni.utils import log
-from ooni import config
+from ooni.settings import config
 
 from ooni.utils.net import BodyReceiver, StringProducer, userAgents
 
