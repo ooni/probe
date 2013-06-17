@@ -46,6 +46,7 @@ advanced:
     reporting_concurrency: 20
     # Specify here a custom data_dir path
     data_dir: /usr/share/ooni/
+    oonid_api_port: 8042
 tor:
     socks_port: 9050
     #control_port: 9051
