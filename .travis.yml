@@ -13,5 +13,4 @@ install:
 # command to run tests, e.g. python setup.py test
 script:
   # To be activated after merge of PR#64
-  - cp ooniprobe.conf.sample ooniprobe.conf
   - trial ooni

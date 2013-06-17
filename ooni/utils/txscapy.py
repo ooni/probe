@@ -12,7 +12,7 @@ from zope.interface import implements
 from scapy.config import conf
 
 from ooni.utils import log
-from ooni import config
+from ooni.settings import config
 
 class LibraryNotInstalledError(Exception):
     pass

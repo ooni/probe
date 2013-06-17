@@ -1,0 +1,7 @@
+#!/bin/bash
+# XXX This is very Ghetto. The proper way to do this is to make a twisted
+# plugin. The plugin will then be installed and can then be run directly with
+# `twistd oonid`
+
+OONID_PATH=`python -c 'import ooni;import os;print os.path.join(os.path.dirname(os.path.abspath(ooni.__file__)), "oonid.py")'`
+twistd -y $OONID_PATH

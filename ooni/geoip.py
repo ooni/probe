@@ -7,7 +7,8 @@ from ooni.utils.net import userAgents, BodyReceiver
 from twisted.internet import reactor, defer, protocol
 
 from ooni.utils import log, net, checkForRoot
-from ooni import config, errors
+from ooni.settings import config
+from ooni import errors
 
 try:
     from pygeoip import GeoIP

@@ -4,7 +4,7 @@
 
 basic:
     # Where OONIProbe should be writing it's log file
-    logfile: ooniprobe.log
+    logfile: /var/log/ooniprobe.log
 privacy:
     # Should we include the IP address of the probe in the report?
     includeip: true
@@ -18,15 +18,13 @@ privacy:
     includepcap: false
 reports:
     # This is a packet capture file (.pcap) to load as a test:
-    pcap: Null
+    pcap: null
+    collector: 'httpo://nkvphnp3p6agi5qq.onion'
 advanced:
-    # XXX change this to point to the directory where you have stored the GeoIP
-    # database file. This should be the directory in which OONI is installed
-    # /path/to/ooni-probe/data/
-    geoip_data_dir: /usr/share/GeoIP/
+    geoip_data_dir: /usr/share/ooni/
     debug: true
-    # tor_binary: '/usr/sbin/tor'
-    # obfsproxy_binary: '/usr/bin/obfsproxy'
+    # enable if auto detection fails
+    #tor_binary: /usr/sbin/tor
     # For auto detection
     interface: auto
     # Of specify a specific interface
@@ -46,12 +44,15 @@ advanced:
     reporting_retries: 3
     # How many reports to perform concurrently
     reporting_concurrency: 20
+    # Specify here a custom data_dir path
+    data_dir: /usr/share/ooni/
+    oonid_api_port: 8042
 tor:
     socks_port: 9050
     #control_port: 9051
     # Specify the absolute path to the Tor bridges to use for testing
-    bridges: bridges.list
+    #bridges: bridges.list
     # Specify path of the tor datadirectory.
     # This should be set to something to avoid having Tor download each time
     # the descriptors and consensus data.
-    data_dir: ~/.tor/
+    #data_dir: ~/.tor/
