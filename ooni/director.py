@@ -3,13 +3,13 @@ import sys
 import os
 import re
 
-from ooni import config
 from ooni import geoip
 from ooni.managers import ReportEntryManager, MeasurementManager
 from ooni.reporter import Report
 from ooni.utils import log, checkForRoot, pushFilenameStack
 from ooni.utils.net import randomFreePort
-from ooni.nettest import NetTest
+from ooni.nettest import NetTest, getNetTestInformation
+from ooni.settings import config
 from ooni import errors
 
 from txtorcon import TorConfig
@@ -60,9 +60,10 @@ class Director(object):
 
     """
     _scheduledTests = 0
+    # Only list NetTests belonging to these categories
+    categories = ['blocking', 'manipulation']
 
     def __init__(self):
-        self.netTests = []
         self.activeNetTests = []
 
         self.measurementManager = MeasurementManager()
@@ -88,8 +89,38 @@ class Director(object):
         self.allTestsDone = defer.Deferred()
         self.sniffer = None
 
+    def getNetTests(self):
+        nettests = {}
+        def is_nettest(filename):
+            return not filename == '__init__.py' \
+                    and filename.endswith('.py')
+
+        for category in self.categories:
+            dirname = os.path.join(config.nettest_directory, category)
+            # print path to all filenames.
+            for filename in os.listdir(dirname):
+                if is_nettest(filename):
+                    net_test_file = os.path.join(dirname, filename)
+                    nettest = getNetTestInformation(net_test_file)
+
+                    if nettest['id'] in nettests:
+                        log.err("Found a two tests with the same name %s, %s" %
+                                (nettest_path, nettests[nettest['id']]['path']))
+                    else:
+                        category = dirname.replace(config.nettest_directory, '')
+                        nettests[nettest['id']] = nettest
+
+        return nettests
+
     @defer.inlineCallbacks
     def start(self):
+        self.netTests = self.getNetTests()
+
+        if config.privacy.includepcap:
+            log.msg("Starting")
+            if not config.reports.pcap:
+                config.generate_pcap_filename()
+            self.startSniffing()
 
         if config.advanced.start_tor:
             log.msg("Starting Tor...")
@@ -157,7 +188,7 @@ class Director(object):
 
         self.failedMeasurements += 1
         self.failures.append((failure, measurement))
-        return None
+        return failure
 
     def reporterFailed(self, failure, net_test):
         """
@@ -178,23 +209,14 @@ class Director(object):
             self.allTestsDone = defer.Deferred()
 
     @defer.inlineCallbacks
-    def startNetTest(self, _, net_test_loader, reporters):
+    def startNetTest(self, net_test_loader, reporters):
         """
         Create the Report for the NetTest and start the report NetTest.
 
         Args:
             net_test_loader:
                 an instance of :class:ooni.nettest.NetTestLoader
-
-            _: #XXX very dirty hack
         """
-
-        if config.privacy.includepcap:
-            log.msg("Starting")
-            if not config.reports.pcap:
-                config.reports.pcap = config.generatePcapFilename(net_test_loader.testDetails)
-            self.startSniffing()
-
         report = Report(reporters, self.reportEntryManager)
 
         net_test = NetTest(net_test_loader, report)

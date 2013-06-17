@@ -1,3 +1,5 @@
+import os
+
 from twisted.trial import unittest
 from twisted.python import failure
 from twisted.internet import defer, task
@@ -11,6 +13,8 @@ from ooni.tests.mocks import MockTimeoutOnceTask, MockFailTaskWithTimeout
 from ooni.tests.mocks import MockTaskManager, mockFailure, MockDirector
 from ooni.tests.mocks import MockNetTest, MockMeasurement, MockSuccessMeasurement
 from ooni.tests.mocks import MockFailMeasurement, MockFailOnceMeasurement
+from ooni.settings import config
+
 
 class TestTaskManager(unittest.TestCase):
     timeout = 1
@@ -22,6 +26,10 @@ class TestTaskManager(unittest.TestCase):
         self.measurementManager.start()
 
         self.clock = task.Clock()
+        data_dir = os.path.dirname(os.path.abspath(__file__))
+        data_dir = os.path.join(data_dir, '..', '..', 'data')
+        config.global_options['datadir'] = data_dir
+        config.set_paths()
 
     def schedule_successful_tasks(self, task_type, number=1):
         all_done = []

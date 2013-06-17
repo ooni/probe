@@ -11,7 +11,6 @@ from ooni.nettest import NetTestLoader, FailureToLoadNetTest
 from ooni.tasks import BaseTask
 
 from ooni.director import Director
-
 from ooni.managers import TaskManager
 
 from ooni.tests.mocks import MockMeasurement, MockMeasurementFailOnce
@@ -99,6 +98,9 @@ class TestNetTest(unittest.TestCase):
         with open('dummyInputFile.txt', 'w') as f:
             for i in range(10):
                 f.write("%s\n" % i)
+
+        from ooni.settings import config
+        config.read_config_file()
 
     def assertCallable(self, thing):
         self.assertIn('__call__', dir(thing))
@@ -222,11 +224,10 @@ class TestNetTest(unittest.TestCase):
         ntl.checkOptions()
         director = Director()
 
-        d = director.startNetTest('', ntl, [MockReporter()])
+        d = director.startNetTest(ntl, [MockReporter()])
 
         @d.addCallback
         def complete(result):
-            print "IN here y0"
             self.assertEqual(result, None)
             self.assertEqual(director.successfulMeasurements, 20)
 

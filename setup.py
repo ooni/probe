@@ -2,7 +2,10 @@
 #-*- coding: utf-8 -*-
 
 from ooni import __version__
-from setuptools import setup
+import os
+from os.path import join as pj
+import sys
+from distutils.core import setup
 
 install_requires = [
     'txsocksx>=0.0.2',
@@ -14,6 +17,14 @@ install_requires = [
 dependency_links = [
     'https://people.torproject.org/~ioerror/src/mirrors/ooniprobe'
 ]
+
+data_files = []
+for root, dirs, file_names in os.walk('data/'):
+    files = []
+    for file_name in file_names:
+        if not file_name.endswith('.pyc'):
+            files.append(pj(root, file_name))
+    data_files.append([pj('/usr/share/ooni', root), files])
 
 with open('requirements.txt') as f:
     for line in f:
@@ -28,7 +39,8 @@ setup(
     author_email = "art@torproject.org",
     url="https://ooni.torproject.org/",
     package_dir={'ooni': 'ooni'},
-    packages=['ooni', 'ooni.templates', 'ooni.utils'],
+    data_files=data_files,
+    packages=['ooni', 'ooni.api', 'ooni.templates', 'ooni.tests', 'ooni.utils'],
     scripts=["bin/ooniprobe"],
     dependency_links=dependency_links,
     install_requires=install_requires,
