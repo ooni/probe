@@ -1,3 +1,33 @@
+## v0.1.0
+
+Improvements to HTML/JS based user interface:
+
+  * XSRF protection
+
+  * user supplied input specification
+
+Bugfixing and improvements to scheduler.
+
+## v0.0.12
+
+Implement JS/HTML based user interface.
+
+Supports:
+
+  * Starting and stopping of tests
+
+  * Monitoring of test progress
+
+## v0.0.11
+
+* Parametrize task timeout and retry count
+
+* Set the default collector via the command line option
+
+* Add option to disable the default collector
+
+* Add continuous integration with travis
+
 ## v0.0.10
 
 ### ooniprobe
