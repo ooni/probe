@@ -38,7 +38,7 @@ for root, dirs, file_names in os.walk('data/'):
     for file_name in file_names:
         if not file_name.endswith('.pyc'):
             files.append(pj(root, file_name))
-    data_files.append([pj(usr_share_path, root), files])
+    data_files.append([pj(usr_share_path, root.replace('data/', '')), files])
 
 with open('requirements.txt') as f:
     for line in f:

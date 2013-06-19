@@ -10,6 +10,7 @@ txtorcon>=0.7
 txsocksx>=0.0.2
 Pyrex>=0.9.8.6
 parsley>=1.1
+cyclone
 
 # Taken from the versions required by twisted 13.0.0 (latest)
 transaction>=1.1.1

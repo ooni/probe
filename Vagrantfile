@@ -142,9 +142,8 @@ pip install -r requirements.txt
 echo "Installing ooniprobe"
 python setup.py install
 
-echo "Fetching all inputs"
-cd /data/ooniprobe/inputs
-make lists
+cd /usr/share/ooni/
+make geoip
 
 SCRIPT
 
