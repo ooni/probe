@@ -18,7 +18,7 @@ network data that will assist you with your endeavors!
 
 ## Getting started with ooniprobe is easy (with Vagrant)
 
-0) [Install Vagrant](http://downloads.vagrantup.com/)
+0) [Install Vagrant](http://downloads.vagrantup.com/) and [Install Virtualbox](https://www.virtualbox.org/wiki/Downloads)
 
 0.1)
 
