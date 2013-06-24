@@ -39,9 +39,9 @@ Core ooniprobe Tests
 --------------------
 
 The source for `Content blocking tests
-<https://gitweb.torproject.org/ooni-probe.git/tree/HEAD:/nettests/blocking>`_
+<https://gitweb.torproject.org/ooni-probe.git/tree/HEAD:/data/nettests/blocking>`_
 and `Traffic Manipulation tests
-<https://gitweb.torproject.org/ooni-probe.git/tree/HEAD:/nettests/blocking>`_
+<https://gitweb.torproject.org/ooni-probe.git/tree/HEAD:/data/nettests/blocking>`_
 can be found in the nettests/blocking and nettests/manipulation directories
 respectively.
 
@@ -76,18 +76,18 @@ being experimented with.
 
 You can find these in:
 
-  * `nettests/experimental
-    <https://gitweb.torproject.org/ooni-probe.git/tree/HEAD:/nettests/experimental>`_
+  * `data/nettests/experimental
+    <https://gitweb.torproject.org/ooni-probe.git/tree/HEAD:/data/nettests/experimental>`_
 
 Tests that don't do a measurement but are useful for scanning can be found in:
 
-  * `nettests/scanning
-    <https://gitweb.torproject.org/ooni-probe.git/tree/HEAD:/nettests/scanning>`_
+  * `data/nettests/scanning
+    <https://gitweb.torproject.org/ooni-probe.git/tree/HEAD:/data/nettests/scanning>`_
 
 Tests that involve running third party tools may be found in:
 
-  * `nettests/third_party
-    <https://gitweb.torproject.org/ooni-probe.git/tree/HEAD:/nettests/third_party>`_
+  * `data/nettests/third_party
+    <https://gitweb.torproject.org/ooni-probe.git/tree/HEAD:/data/nettests/third_party>`_
 
 oonib
 *****
