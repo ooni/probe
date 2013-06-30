@@ -82,7 +82,7 @@ class OConfig(object):
                     pass
         self.set_paths()
 
-    def generatePcapFilename(testDetails):
+    def generatePcapFilename(self, testDetails):
         test_name, start_time = testDetails['test_name'], testDetails['start_time']
         start_time = otime.epochToTimestamp(start_time)
         return "report-%s-%s.%s" % (test_name, start_time, "pcap")
