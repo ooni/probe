@@ -40,7 +40,7 @@ class OConfig(object):
         self.reports_directory = os.path.join(self.ooni_home, 'reports')
 
         if self.global_options.get('configfile'):
-            config_file = global_options['configfile']
+            config_file = self.global_options['configfile']
         else:
             config_file = os.path.join('~', '.ooni', 'ooniprobe.conf')
         self.config_file = expanduser(config_file)
