@@ -116,12 +116,6 @@ class Director(object):
     def start(self):
         self.netTests = self.getNetTests()
 
-        if config.privacy.includepcap:
-            log.msg("Starting")
-            if not config.reports.pcap:
-                config.generate_pcap_filename()
-            self.startSniffing()
-
         if config.advanced.start_tor:
             log.msg("Starting Tor...")
             yield self.startTor()
@@ -217,6 +211,12 @@ class Director(object):
             net_test_loader:
                 an instance of :class:ooni.nettest.NetTestLoader
         """
+
+        if config.privacy.includepcap:
+            if not config.reports.pcap:
+                config.reports.pcap = config.generatePcapFilename(net_test_loader.testDetails)
+            self.startSniffing()
+
         report = Report(reporters, self.reportEntryManager)
 
         net_test = NetTest(net_test_loader, report)
@@ -233,7 +233,6 @@ class Director(object):
 
         self.netTestDone(net_test)
 
-
     def startSniffing(self):
         """ Start sniffing with Scapy. Exits if required privileges (root) are not
         available.
@@ -242,23 +241,23 @@ class Director(object):
         try:
             checkForRoot()
         except errors.InsufficientPrivileges:
-            print "[!] Includepcap options requires root priviledges to run"
-            print "    you should run ooniprobe as root or disable the options in ooniprobe.conf"
+            log.err("Includepcap options requires root priviledges to run")
+            log.err("you should run ooniprobe as root or disable the options in ooniprobe.conf")
             reactor.stop()
             sys.exit(1)
 
-        print "Starting sniffer"
         config.scapyFactory = ScapyFactory(config.advanced.interface)
 
         if os.path.exists(config.reports.pcap):
-            print "Report PCAP already exists with filename %s" % config.reports.pcap
-            print "Renaming files with such name..."
+            log.msg("Report PCAP already exists with filename %s" % config.reports.pcap)
+            log.msg("Renaming files with such name...")
             pushFilenameStack(config.reports.pcap)
 
         if self.sniffer:
             config.scapyFactory.unRegisterProtocol(self.sniffer)
         self.sniffer = ScapySniffer(config.reports.pcap)
         config.scapyFactory.registerProtocol(self.sniffer)
+        log.msg("Starting packet capture to: %s" % config.reports.pcap)
 
     def startTor(self):
         """ Starts Tor
