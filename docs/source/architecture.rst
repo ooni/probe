@@ -83,6 +83,46 @@ Currently the level of concurrency for tests is implemented inside of
 this. Such feature will be something that will be controllable via the
 ooniprobe API.
 
+Why Tor Hidden Services?
+........................
+
+We chose to use Tor Hidden Services as the means of exposing a backend
+reporting system for the following reasons:
+
+Easy addressing
+_______________
+
+Using Tor Hidden Service allows us to have a globally unique identifier to be
+passed to the ooni-probe clients. This identifier does not need to change even
+if we decide to migrate the collector backend to a different machine (all we
+have to do is copy the private key to the new box).
+
+It also allows people to run a collector backend if they do not have a public
+IP address (if they are behing NAT for example).
+
+Security
+________
+
+Tor Hidden Services give us for free and with little thought end to end
+encryption and authentication. Once the address for the collector has been
+transmitted to the probe you do not need to do any extra authenticatication, because
+the address is self authenticating.
+
+Possible drawbacks
+__________________
+
+Supporting Tor Hidden Services as the only system for reporting means a
+ooni-probe user is required to have Tor working to be able to submit reports to
+a collector. In some cases this is not possible, because the user is in a
+country where Tor is censored and they do not have any Tor bridges available.
+
+Latency is also a big issue in Tor Hidden Services and this can make the
+reporting process very long especially if the users network is not very good.
+
+For these reasons we plan to support in the future also non Tor HS based
+reporting to oonib. 
+Currently this can easily be achieved by simply using tor2web.org.
+
 Standardization
 ...............
 
