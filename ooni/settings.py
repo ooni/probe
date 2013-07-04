@@ -40,7 +40,7 @@ class OConfig(object):
         self.reports_directory = os.path.join(self.ooni_home, 'reports')
 
         if self.global_options.get('configfile'):
-            config_file = global_options['configfile']
+            config_file = self.global_options['configfile']
         else:
             config_file = os.path.join('~', '.ooni', 'ooniprobe.conf')
         self.config_file = expanduser(config_file)
@@ -82,7 +82,7 @@ class OConfig(object):
                     pass
         self.set_paths()
 
-    def generatePcapFilename(testDetails):
+    def generatePcapFilename(self, testDetails):
         test_name, start_time = testDetails['test_name'], testDetails['start_time']
         start_time = otime.epochToTimestamp(start_time)
         return "report-%s-%s.%s" % (test_name, start_time, "pcap")

@@ -6,7 +6,7 @@ import re
 from ooni import geoip
 from ooni.managers import ReportEntryManager, MeasurementManager
 from ooni.reporter import Report
-from ooni.utils import log, checkForRoot, pushFilenameStack
+from ooni.utils import log, pushFilenameStack
 from ooni.utils.net import randomFreePort
 from ooni.nettest import NetTest, getNetTestInformation
 from ooni.settings import config
@@ -238,14 +238,6 @@ class Director(object):
         available.
         """
         from ooni.utils.txscapy import ScapyFactory, ScapySniffer
-        try:
-            checkForRoot()
-        except errors.InsufficientPrivileges:
-            log.err("Includepcap options requires root priviledges to run")
-            log.err("you should run ooniprobe as root or disable the options in ooniprobe.conf")
-            reactor.stop()
-            sys.exit(1)
-
         config.scapyFactory = ScapyFactory(config.advanced.interface)
 
         if os.path.exists(config.reports.pcap):
