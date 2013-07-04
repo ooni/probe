@@ -105,14 +105,14 @@ Basic system requirements:
 On Debian or Ubuntu GNU/Linux based systems these can be installed with:
 
 ```
-sudo apt-get install git-core python python-pip python-dev build-essential tor tor-geoipdb tcpdump
+sudo apt-get install git-core python python-pip python-dev build-essential tor tor-geoipdb obfsproxy tcpdump
 ```
 
 Other packages that may be of interest:
 
 ```
 libdumbnet1 python-dumbnet python-libpcap python-pypcap python-pcapy python-dnspython
-python-virtualenv virtualenvwrapper tor tor-geoipdb
+python-virtualenv virtualenvwrapper tor tor-geoipdb obfsproxy
 ```
 
 The Python dependencies required for running ooniprobe are:
@@ -131,6 +131,12 @@ The Python dependencies required for running ooniprobe are:
 Install the latest version of Tor for your platform:
 
 [Download Tor](https://www.torproject.org/download/download.html)
+
+## (Optional) Install obfsproxy
+
+Install the latest version of obfsproxy for your platform.
+
+[Download Obfsproxy](https://www.torproject.org/projects/obfsproxy.html.en)
 
 ## Configurating a virtual environment
 
@@ -280,6 +286,18 @@ Normally tests take options, you can see them with:
 By default ooniprobe will not include personal identifying information in the
 test result, nor create a pcap file. This behavior can be personalized by
 editing your ooniprobe.conf configuration file.
+
+## Bridges and obfsproxy bridges
+
+ooniprobe submits reports to oonib report collectors through Tor to a hidden
+service endpoint. By default, ooniprobe uses the installed system Tor, but can
+also be configured to launch Tor (see the advanced.start_tor option in
+ooniprobe.conf), and ooniprobe supports bridges (and obfsproxy bridges, if
+obfsproxy is installed). The tor.bridges option in ooniprobe.conf sets the path
+to a file that should contain a set of "bridge" lines (of the same format as
+used in torrc, and as returned by https://bridges.torproject.org). If obfsproxy
+bridges are to be used, the path to the obfsproxy binary must be configured.
+See option advanced.obfsproxy_binary, in ooniprobe.conf.
 
 ## Setting capabilities on your virtualenv python binary
 

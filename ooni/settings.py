@@ -82,17 +82,9 @@ class OConfig(object):
                     pass
         self.set_paths()
 
-    def generate_pcap_filename():
-        if self.global_options.get('pcapfile'):
-            self.reports.pcap = self.global_options['pcapfile']
-        else:
-            if self.global_options.get('test'):
-                test_filename = os.path.basename(self.global_options['test'])
-            else:
-                test_filename = os.path.basename(self.global_options['testdeck'])
-
-            test_name = '.'.join(test_filename.split(".")[:-1])
-            frm_str = "report_%s_"+otime.timestamp()+".%s"
-            self.reports.pcap = frm_str % (test_name, "pcap")
+    def generatePcapFilename(testDetails):
+        test_name, start_time = testDetails['test_name'], testDetails['start_time']
+        start_time = otime.epochToTimestamp(start_time)
+        return "report-%s-%s.%s" % (test_name, start_time, "pcap")
 
 config = OConfig()
