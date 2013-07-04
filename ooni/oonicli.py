@@ -17,7 +17,7 @@ from ooni.director import Director
 from ooni.reporter import YAMLReporter, OONIBReporter
 from ooni.nettest import NetTestLoader, MissingRequiredOption
 
-from ooni.utils import log
+from ooni.utils import log, checkForRoot
 
 class Options(usage.Options):
     synopsis = """%s [options] [path to test].py
@@ -109,6 +109,15 @@ def runWithDirector():
     config.read_config_file()
 
     log.start(global_options['logfile'])
+
+    if config.privacy.includepcap:
+        try:
+            checkForRoot()
+        except errors.InsufficientPrivileges:
+             log.err("Insufficient Privileges to capture packets."
+                     " See ooniprobe.conf privacy.includepcap") 
+             sys.exit(2)
+
     # contains (test_cases, options, cmd_line_options)
     test_list = []
     if global_options['no-collector']:
