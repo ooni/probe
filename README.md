@@ -16,6 +16,16 @@ with others, so that you and others may better understand your network? If so,
 please read this document and we hope ooniprobe will help you to gather
 network data that will assist you with your endeavors!
 
+## ooniprobe installation + run-test on Raspberry Pi (Debian 6)
+
+Run on a terminal:
+
+```
+sudo apt-get update && sudo apt-get install git && git clone https://github.com/anadahz/ooni-probe && cd ooni-probe/ && ./setup-dependencies.sh
+```
+It should also work with other debian/ubuntu versions.
+
+
 ## Getting started with ooniprobe is easy (with Vagrant)
 
 0) [Install Vagrant](http://downloads.vagrantup.com/) and [Install Virtualbox](https://www.virtualbox.org/wiki/Downloads)
@@ -24,7 +34,7 @@ network data that will assist you with your endeavors!
 
 On OSX:
 
-If youd don't have it install homebrew http://mxcl.github.io/homebrew/
+If you don't have it install homebrew http://mxcl.github.io/homebrew/
 
 ```
 brew install git
