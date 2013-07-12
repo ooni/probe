@@ -20,6 +20,7 @@ from ooni.utils.net import BodyReceiver, StringProducer, userAgents
 from ooni.utils.txagentwithsocks import Agent, TrueHeaders
 from ooni.errors import handleAllFailures
 
+from urlparse import urlparse
 
 class InvalidSocksProxyOption(Exception):
     pass
@@ -267,17 +268,24 @@ class HTTPTest(NetTestCase):
         """
 
         # We prefix the URL with 's' to make the connection go over the
-        # configured socks proxy
+        # configured socks proxy.  If the URL is HTTPS, we convert it to
+        # shttp
+        raw_url = urlparse(url)
+
         if use_tor:
             log.debug("Using Tor for the request to %s" % url)
-            url = 's'+url
+            if raw_url.scheme == 'https':
+                url=url.replace('https','shttp',1)
+            else:
+                url = 's'+url
             agent = self.control_agent
         else:
             agent = self.agent
 
         if self.localOptions['socksproxy']:
             log.debug("Using SOCKS proxy %s for request" % (self.localOptions['socksproxy']))
-            url = 's'+url
+            if raw_url.scheme == 'https':
+                url=url.replace('https','shttp',1)
 
         log.debug("Performing request %s %s %s" % (url, method, headers))
 
