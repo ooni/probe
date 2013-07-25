@@ -499,7 +499,7 @@ class NetTest(object):
 
         for test_class, test_methods in self.testCases:
             # load the input processor as late as possible
-            inputs = test_class().getInputProcessor()
+            inputs = yield defer.maybeDeferred(test_class().getInputProcessor())
             if not inputs:
                 inputs = [None]
             test_class.inputs = inputs
@@ -661,6 +661,11 @@ class NetTestCase(object):
 
         We check to see if it's possible to have an input file and if the user
         has specified such file.
+            
+
+        If the operations to be done here are network related or blocking, they
+        should be wrapped in a deferred. That is the return value of this
+        method should be a :class:`twisted.internet.defer.Deferred`.
 
         Returns:
             a generator that will yield one item from the file based on the
