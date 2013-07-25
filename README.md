@@ -56,7 +56,7 @@ ooniprobe will be installed in `/data/ooniprobe`.
 
 ```
 cd /data/ooniprobe/
-./bin/ooniprobe nettests/blocking/http_requests.py -f /data/ooniprobe/inputs/input-pack/alexa-top-1k.txt
+./bin/ooniprobe data/nettests/blocking/http_requests.py -f /data/ooniprobe/inputs/input-pack/alexa-top-1k.txt
 ```
 
 ## The easy way to prep your system for running ooniprobe
