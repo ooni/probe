@@ -224,6 +224,7 @@ class Director(object):
 
         yield net_test.report.open()
 
+        yield net_test.initializeInputProcessor()
         self.measurementManager.schedule(net_test.generateMeasurements())
 
         self.activeNetTests.append(net_test)

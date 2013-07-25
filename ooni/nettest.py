@@ -491,6 +491,13 @@ class NetTest(object):
 
         return measurement
 
+    @defer.inlineCallbacks
+    def initializeInputProcessor(self):
+        for test_class, _ in self.testCases:
+            test_class.inputs = yield defer.maybeDeferred(test_class().getInputProcessor)
+            if not test_class.inputs:
+                test_class.inputs = [None]
+
     def generateMeasurements(self):
         """
         This is a generator that yields measurements and registers the
@@ -499,11 +506,6 @@ class NetTest(object):
 
         for test_class, test_methods in self.testCases:
             # load the input processor as late as possible
-            inputs = yield defer.maybeDeferred(test_class().getInputProcessor())
-            if not inputs:
-                inputs = [None]
-            test_class.inputs = inputs
-
             for input in test_class.inputs:
                 for method in test_methods:
                     log.debug("Running %s %s" % (test_class, method))
