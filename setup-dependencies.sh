@@ -1,16 +1,19 @@
 #!/bin/bash
+trap 'sudo -k && exit 1' INT
 
 # Discover our Distro release
 RELEASE="`lsb_release -c|cut -f 2`";
-TOR_DEB_REPO="deb.torproject.org/torproject.org";
+TOR_DEB_REPO="http://deb.torproject.org/torproject.org";
 
-echo "sudo is annoying, tell us your password once and sudo won't annoy you for the rest of this process...";
-sudo echo "if you read this, we won't ask for your password again during this process unless something goes wrong";
+case $RELEASE in
+  natty|wheezy|squeeze|precise)
 
-# This is for Ubuntu's natty
-if [ $RELEASE = "natty" ] || [ $RELEASE = "wheezy" ]; then
+  echo "sudo is annoying, tell us your password once and sudo won't annoy you for the rest of this process...";
+  sudo echo "if you read this, we won't ask for your password again during this process unless something goes wrong";
+
   # Add Tor repo
   HAVE_GPG_KEY="`sudo apt-key finger|grep 'A3C4 F0F9 79CA A22C DBA8  F512 EE8C BC9E 886D DD89'|head -n 1`";
+  echo "Checking for torproject.org Debian repository key..."
   if [ -z "$HAVE_GPG_KEY" ]; then
     echo "It appears that you do not have the torproject.org Debian repository key installed; installing it...";
     cat apt.key | sudo apt-key add -;
@@ -21,7 +24,11 @@ if [ $RELEASE = "natty" ] || [ $RELEASE = "wheezy" ]; then
   HAVE_TOR_REPO="`grep deb.torproject.org/torproject.org /etc/apt/sources.list /etc/apt/sources.list.d/* 2>&1|grep torproject|head -n 1`";
   if [ -z "$HAVE_TOR_REPO" ]; then
     echo "It appears that you do not have the torproject.org Debian repository installed; installing it...";
-    sudo apt-add-repository "deb $TOR_DEB_REPO $RELEASE main";
+     if [ $RELEASE = "squeeze" ]; then
+       (echo -e "deb $TOR_DEB_REPO $RELEASE main\ndeb-src $TOR_DEB_REPO $RELEASE main" | sudo tee -a /etc/apt/sources.list) > /dev/null
+     else
+       sudo apt-add-repository "deb $TOR_DEB_REPO $RELEASE main"
+     fi
   else
     echo "It appears that you have the torproject.org Debian repository installed!";
   fi
@@ -34,7 +41,7 @@ if [ $RELEASE = "natty" ] || [ $RELEASE = "wheezy" ]; then
 
   if [ ! -f ~/.virtualenvs/ooniprobe/bin/activate ]; then
     # Set up the virtual environment
-    mkdir ~/.virtualenvs/
+    mkdir -p ~/.virtualenvs
     virtualenv ~/.virtualenvs/ooniprobe
     source ~/.virtualenvs/ooniprobe/bin/activate
   else
@@ -74,10 +81,9 @@ if [ $RELEASE = "natty" ] || [ $RELEASE = "wheezy" ]; then
   echo "  fi";
   echo ;
 
-else
-
+  ;;
+*)
   echo "It appears that you are using an unsupported OS - please tell us";
   echo "by filing a bug: https://trac.torproject.org/projects/tor/newticket";
-
-fi
-
+  ;;
+esac
