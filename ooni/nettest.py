@@ -360,11 +360,6 @@ class NetTestLoader(object):
             test_instance._checkRequiredOptions()
             test_instance._checkValidOptions()
 
-            inputs = test_instance.getInputProcessor()
-            if not inputs:
-                inputs = [None]
-            klass.inputs = inputs
-
     def _get_test_methods(self, item):
         """
         Look for test_ methods in subclasses of NetTestCase
@@ -501,7 +496,14 @@ class NetTest(object):
         This is a generator that yields measurements and registers the
         callbacks for when a measurement is successful or has failed.
         """
+
         for test_class, test_methods in self.testCases:
+            # load the input processor as late as possible
+            inputs = test_class().getInputProcessor()
+            if not inputs:
+                inputs = [None]
+            test_class.inputs = inputs
+
             for input in test_class.inputs:
                 for method in test_methods:
                     log.debug("Running %s %s" % (test_class, method))
