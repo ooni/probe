@@ -50,13 +50,12 @@ vagrant up
 vagrant ssh
 ```
 
-ooniprobe will be installed in `/data/ooniprobe`.
+ooniprobe will be installed in `/ooni`.
 
 3) You can run tests with:
 
 ```
-cd /data/ooniprobe/
-./bin/ooniprobe nettests/blocking/http_requests.py -f /data/ooniprobe/inputs/input-pack/alexa-top-1k.txt
+ooniprobe /usr/share/ooni/nettests/blocking/http_requests.py -f /ooni/inputs/input-pack/alexa-top-1k.txt
 ```
 
 ## The easy way to prep your system for running ooniprobe
