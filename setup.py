@@ -54,7 +54,7 @@ setup(
     url="https://ooni.torproject.org/",
     package_dir={'ooni': 'ooni'},
     data_files=data_files,
-    packages=['ooni', 'ooni.api', 'ooni.templates', 'ooni.tests', 'ooni.utils'],
+    packages=['ooni', 'ooni.api', 'ooni.kit', 'ooni.templates', 'ooni.tests', 'ooni.utils'],
     scripts=["bin/ooniprobe"],
     dependency_links=dependency_links,
     install_requires=install_requires,
