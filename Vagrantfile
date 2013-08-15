@@ -31,8 +31,12 @@ make lists 2>&1 > /dev/null
 # https://code.google.com/p/pypcap/issues/detail?id=27
 # pip install pydnet pypcap
 
-echo Login using 'vagrant ssh', and dont forget to run ooniprobe as root.
-echo First run: 'sudo su; cd /usr/share/ooni; ./bin/ooniprobe -i decks/before_i_commit.testdeck'
+/ooni/bin/oonid
+echo "You may now visit http://localhost:8042/ to start running some ooniprobe tests"
+echo ""
+echo "Or if you are a bit more h4x0r you can ssh into the box and use the ooniprobe CLI"
+echo "Login using 'vagrant ssh', and dont forget to run ooniprobe as root."
+echo "First run: 'sudo su; cd /usr/share/ooni; ./bin/ooniprobe -i decks/before_i_commit.testdeck'"
 
 SCRIPT
 
@@ -42,4 +46,5 @@ SCRIPT
 
 Vagrant.configure("2") do |config|
     config.vm.provision :shell, :inline => $script
+    config.vm.network :forwarded_port, guest: 8042, host: 8042
 end
