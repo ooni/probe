@@ -25,6 +25,7 @@ advanced:
     debug: true
     # enable if auto detection fails
     #tor_binary: /usr/sbin/tor
+    #obfsproxy_binary: /usr/bin/obfsproxy 
     # For auto detection
     interface: auto
     # Of specify a specific interface

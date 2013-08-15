@@ -16,6 +16,13 @@ with others, so that you and others may better understand your network? If so,
 please read this document and we hope ooniprobe will help you to gather
 network data that will assist you with your endeavors!
 
+## Disclaimer
+
+Note: ooni-probe takes no precautions to protect the install target machine
+from forensics analysis.  If the fact that you have installed or used ooni
+probe is a liability for you, please be aware of this risk.
+
+
 ## Getting started with ooniprobe is easy (with Vagrant)
 
 0) [Install Vagrant](http://downloads.vagrantup.com/) and [Install Virtualbox](https://www.virtualbox.org/wiki/Downloads)
@@ -56,7 +63,7 @@ ooniprobe will be installed in `/data/ooniprobe`.
 
 ```
 cd /data/ooniprobe/
-./bin/ooniprobe nettests/blocking/http_requests.py -f /data/ooniprobe/inputs/input-pack/alexa-top-1k.txt
+./bin/ooniprobe data/nettests/blocking/http_requests.py -f /data/ooniprobe/inputs/input-pack/alexa-top-1k.txt
 ```
 
 ## The easy way to prep your system for running ooniprobe
