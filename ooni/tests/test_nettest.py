@@ -189,6 +189,8 @@ class TestNetTest(unittest.TestCase):
         ntl.loadNetTestString(net_test_string_with_file)
 
         ntl.checkOptions()
+        nt = NetTest(ntl,None)
+        nt.initializeInputProcessor()
 
         # XXX: if you use the same test_class twice you will have consumed all
         # of its inputs!
@@ -214,6 +216,7 @@ class TestNetTest(unittest.TestCase):
         ntl.checkOptions()
         net_test = NetTest(ntl, None)
 
+        net_test.initializeInputProcessor()
         measurements = list(net_test.generateMeasurements())
         self.assertEqual(len(measurements), 20)
 
