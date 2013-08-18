@@ -69,8 +69,8 @@ class HTTPRequestsTest(httpt.HTTPTest):
             rel = 1/rel
 
         self.report['body_proportion'] = rel
-        self.report['factor'] = self.factor
-        if rel > self.factor:
+        self.report['factor'] = float(self.factor)
+        if rel > float(self.factor):
             log.msg("The two body lengths appear to match")
             log.msg("censorship is probably not happening")
             self.report['body_length_match'] = True
