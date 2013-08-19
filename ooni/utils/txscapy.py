@@ -109,7 +109,7 @@ def hasRawSocketPermission():
     try:
         send(IP(src="1.2.3.4", dst="127.0.0.1"))
         return True
-    except (socket.error, OSError):
+    except Exception:
         return False
 
 class ProtocolNotRegistered(Exception):

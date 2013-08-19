@@ -67,13 +67,13 @@ class BodyReceiver(protocol.Protocol):
         self.data = ""
         self.bytes_remaining = content_length
 
-    def dataReceived(self, bytes):
+    def dataReceived(self, b):
+        self.data += b
         if self.bytes_remaining:
             if self.bytes_remaining == 0:
                 self.connectionLost(None)
             else:
-                self.bytes_remaining -= len(bytes)
-        self.data += bytes
+                self.bytes_remaining -= len(b)
 
     def connectionLost(self, reason):
         self.finished.callback(self.data)

@@ -565,7 +565,7 @@ class NetTestCase(object):
     version = "0.0.0"
     description = "Sorry, this test has no description :("
 
-    inputs = [None]
+    inputs = None
     inputFile = None
     inputFilename = None
 
@@ -664,6 +664,9 @@ class NetTestCase(object):
             a generator that will yield one item from the file based on the
             inputProcessor.
         """
+        if self.inputs:
+            return self.inputs
+
         if self.inputFileSpecified:
             self.inputFilename = self.localOptions[self.inputFile[0]]
             return self.inputProcessor(self.inputFilename)
