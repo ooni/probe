@@ -62,10 +62,11 @@ class StringProducer(object):
         pass
 
 class BodyReceiver(protocol.Protocol):
-    def __init__(self, finished, content_length=None):
+    def __init__(self, finished, content_length=None, body_processor=None):
         self.finished = finished
         self.data = ""
         self.bytes_remaining = content_length
+        self.body_processor = body_processor
 
     def dataReceived(self, b):
         self.data += b
@@ -76,6 +77,8 @@ class BodyReceiver(protocol.Protocol):
                 self.bytes_remaining -= len(b)
 
     def connectionLost(self, reason):
+        if self.body_processor:
+            self.data = self.body_processor(self.data)
         self.finished.callback(self.data)
 
 def getSystemResolver():
