@@ -1,6 +1,11 @@
 from twisted.trial import unittest
 from twisted.internet import defer
 
+try:
+    import oonib
+except ImportError:
+    oonib = None
+
 from ooni.oonibclient import OONIBClient
 
 input_id = 'e0611ecd28bead38a7afeb4dda8ae3449d0fc2e1ba53fa7355f2799dce9af290'
@@ -8,6 +13,8 @@ input_id = 'e0611ecd28bead38a7afeb4dda8ae3449d0fc2e1ba53fa7355f2799dce9af290'
 class TestOONIBClient(unittest.TestCase):
     def setUp(self):
         self.oonibclient = OONIBClient('http://127.0.0.1:8888')
+        if not oonib:
+            self.skipTest("OONIB is not running")
     
     @defer.inlineCallbacks
     def test_query(self):
