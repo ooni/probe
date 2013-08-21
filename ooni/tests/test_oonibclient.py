@@ -1,42 +1,39 @@
 from twisted.trial import unittest
 from twisted.internet import defer
 
-try:
-    import oonib
-except ImportError:
-    oonib = None
-
 from ooni.oonibclient import OONIBClient
 
-input_id = 'e0611ecd28bead38a7afeb4dda8ae3449d0fc2e1ba53fa7355f2799dce9af290'
+input_id = '37e60e13536f6afe47a830bfb6b371b5cf65da66d7ad65137344679b24fdccd1'
 
 class TestOONIBClient(unittest.TestCase):
     def setUp(self):
         self.oonibclient = OONIBClient('http://127.0.0.1:8888')
-        if not oonib:
-            self.skipTest("OONIB is not running")
     
     @defer.inlineCallbacks
     def test_query(self):
         res = yield self.oonibclient.queryBackend('GET', '/policy/input')
         self.assertTrue(isinstance(res, list))
     
+    @defer.inlineCallbacks
     def test_get_input_list(self):
         input_list = yield self.oonibclient.getInputList()
-        self.assertTrue(isinstance(inputList, list))
+        self.assertTrue(isinstance(input_list, list))
 
+    @defer.inlineCallbacks
     def test_get_input_descriptor(self):
         input_descriptor = yield self.oonibclient.getInput(input_id)
         for key in ['name', 'description', 
                     'version', 'author', 'date']:
             self.assertTrue(key in input_descriptor.keys())
 
+    @defer.inlineCallbacks
     def test_download_input(self):
-        pass
+        yield self.oonibclient.downloadInput(input_id, input_id)
 
+    @defer.inlineCallbacks
     def test_get_deck_list(self):
         input_list = yield self.oonibclient.getInputList()
-        self.assertTrue(isinstance(inputList, list))
+        self.assertTrue(isinstance(input_list, list))
 
     def test_get_deck_descriptor(self):
         pass
@@ -44,9 +41,10 @@ class TestOONIBClient(unittest.TestCase):
     def test_download_deck(self):
         pass
 
+    @defer.inlineCallbacks
     def test_get_nettest_list(self):
         input_list = yield self.oonibclient.getInputList()
-        self.assertTrue(isinstance(inputList, list))
+        self.assertTrue(isinstance(input_list, list))
 
     def test_get_nettest_descriptor(self):
         pass

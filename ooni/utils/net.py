@@ -98,7 +98,7 @@ class Downloader(protocol.Protocol):
 
     def connectionLost(self, reason):
         self.fp.close()
-        self.finished.callback(self.download_path)
+        self.finished.callback(None)
 
 def getSystemResolver():
     """
