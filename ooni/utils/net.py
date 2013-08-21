@@ -81,6 +81,25 @@ class BodyReceiver(protocol.Protocol):
             self.data = self.body_processor(self.data)
         self.finished.callback(self.data)
 
+class Downloader(protocol.Protocol):
+    def __init__(self,  download_path,
+                 finished, content_length=None):
+        self.finished = finished
+        self.bytes_remaining = content_length
+        self.fp = open(download_path, 'w+')
+
+    def dataReceived(self, b):
+        self.fp.write(b)
+        if self.bytes_remaining:
+            if self.bytes_remaining == 0:
+                self.connectionLost(None)
+            else:
+                self.bytes_remaining -= len(b)
+
+    def connectionLost(self, reason):
+        self.fp.close()
+        self.finished.callback(self.download_path)
+
 def getSystemResolver():
     """
     XXX implement a function that returns the resolver that is currently

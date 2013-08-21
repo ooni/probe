@@ -173,8 +173,9 @@ class NetTestLoader(object):
     method_prefix = 'test'
 
     def __init__(self, options, test_file=None, test_string=None):
+        self.onionInputRegex =  re.compile("(httpo://[a-z0-9]{16}\.onion)/input/([a-z0-9]){40}$")
         self.options = options
-        test_cases = None
+        self.testCases, test_cases = None, None
 
         if test_file:
             test_cases = loadNetTestFile(test_file)
@@ -183,6 +184,30 @@ class NetTestLoader(object):
 
         if test_cases:
             self.setupTestCases(test_cases)
+    
+    @property
+    def inputFiles(self):
+        input_files = []
+        if not self.testCases:
+            return input_files
+
+        for test_class, test_methods in self.testCases:
+            if test_class.inputFile:
+                key = test_class.inputFile[0]
+                filename = test_class.localOptions[key]
+                input_file = {
+                    'id': key
+                }
+                m = self.onionInputRegex.match(filename)
+                if m:
+                    input_file['url'] = filename
+                    input_file['address'] = m.group(1)
+                    input_file['hash'] = m.group(2)
+                else:
+                    input_file['filename'] = filename
+                input_files.append(input_file)
+
+        return input_files
 
     @property
     def testDetails(self):

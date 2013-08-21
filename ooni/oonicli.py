@@ -14,7 +14,7 @@ from ooni import errors
 
 from ooni.settings import config
 from ooni.director import Director
-from ooni.deck import TestDeck
+from ooni.deck import Deck
 from ooni.reporter import YAMLReporter, OONIBReporter
 from ooni.nettest import NetTestLoader, MissingRequiredOption
 
@@ -125,19 +125,19 @@ def runWithDirector():
     director = Director()
     d = director.start()
 
-    test_deck = TestDeck()
+    deck = Deck()
     if global_options['no-collector']:
         log.msg("Not reporting using a collector")
         collector = global_options['collector'] = None
 
     try:
         if global_options['testdeck']:
-            test_deck.loadDeck(global_options['testdeck'])
+            deck.loadDeck(global_options['testdeck'])
         else:
             log.debug("No test deck detected")
             net_test_loader = NetTestLoader(global_options['subargs'],
                     test_file=global_options['test_file'])
-            test_deck.insert(net_test_loader)
+            deck.insert(net_test_loader)
     except MissingRequiredOption, option_name:
         log.err('Missing required option: "%s"' % option_name)
         print net_test_loader.usageOptions().getUsage()
@@ -149,7 +149,7 @@ def runWithDirector():
 
     def fetch_nettest_inputs(result):
         try: 
-            test_deck.fetchAndVerifyDeckInputs()
+            deck.fetchAndVerifyDeckInputs()
         except errors.UnableToLoadDeckInput, e:
             return defer.failure.Failure(result)
 
@@ -174,8 +174,8 @@ def runWithDirector():
     # Wait until director has started up (including bootstrapping Tor)
     # before adding tests
     def post_director_start(_):
-        for net_test_loader in test_deck.netTestLoaders:
-            # TestDecks can specify different collectors
+        for net_test_loader in deck.netTestLoaders:
+            # Decks can specify different collectors
             # for each net test, so that each NetTest
             # may be paired with a test_helper and its collector
             # However, a user can override this behavior by

@@ -17,33 +17,47 @@ class InputFile(object):
 
         self._file = None
 
-class Deck(object):
-    pass
-
 class OONIBClient(object):
     def __init__(self, address):
         self.address = address
         self.agent = Agent(reactor)
 
-    def queryBackend(self, method, urn, query=None):
+    def _request(self, method, urn, genReceiver, bodyProducer=None):
         finished = defer.Deferred()
-
-        bodyProducer = None
-        if query:
-            bodyProducer = StringProducer(json.dumps(query))
 
         uri = self.address + urn
         d = self.agent.request(method, uri, bodyProducer)
+
         @d.addCallback
-        def cb(response):
+        def callback(response):
             content_length = response.headers.getRawHeaders('content-length')
-            response.deliverBody(BodyReceiver(finished, content_length, json.loads))
+            response.deliverBody(genReceiver(finished, content_length))
 
         @d.addErrback
         def eb(err):
             finished.errback(err)
 
         return finished
+
+    def queryBackend(self, method, urn, query=None):
+        bodyProducer = None
+        if query:
+            bodyProducer = StringProducer(json.dumps(query), bodyProducer)
+    
+        def genReceiver(finished, content_length):
+            return BodyReceiver(finished, content_length, json.loads)
+
+        return self._request(method, urn, genReceiver, bodyProducer)
+
+    def download(self, urn, download_path):
+
+        def genReceiver(finished, content_length):
+            return Downloader(download_path, finished, content_length)
+
+        return self._request('GET', urn, genReceiver)
+    
+    def downloadInput(self, input_hash, download_path):
+        return self.download('/input/'+input_hash, download_path)
 
     def getNettestPolicy(self):
         pass
@@ -53,5 +67,3 @@ class OONIBClient(object):
 
     def getInputPolicy(self):
         pass
-
-

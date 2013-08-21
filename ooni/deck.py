@@ -10,23 +10,6 @@ import os
 import re
 import yaml
 
-onionInputRegex =  re.compile("httpo://[a-z0-9]{16}\.onion/input/([a-z0-9]){40}$")
-
-@defer.inlineCallbacks
-def downloadFile(fileURL, filePath):
-
-    def writeFile(response_body, filePath): 
-        f = open(filePath, 'w+')
-        f.write(response_body)
-
-    finished = defer.Deferred()
-    finished.addCallback(writeFile, filePath)
-
-    agent = Agent(reactor, sockshost="127.0.0.1",
-            socksport=int(config.tor.socks_port))
-    response = yield agent.request("GET", fileURL)
-    response.deliverBody(BodyReceiver(finished))
-
 def verifyFile(filePath):
     # get the filename component of the file path
     digest = os.path.basename(filePath)
@@ -35,10 +18,11 @@ def verifyFile(filePath):
         return sha1digest.hexdigest() == digest
     return False
 
-class TestDeck(object):
-    def __init__(self, deckFile=None):
+class Deck(object):
+    def __init__(self, oonibclient, deckFile=None):
         self.netTestLoaders = []
         self.inputs = []
+
         if deckFile: self.loadDeck(deckFile)
 
     def loadDeck(self, deckFile):
@@ -63,54 +47,21 @@ class TestDeck(object):
     @defer.inlineCallbacks
     def fetchAndVerifyNetTestInput(self, net_test_loader):
         """ fetch and verify a single NetTest's inputs """
-        for test_class, test_methods in net_test_loader.testCases:
-            if test_class.inputFile:
-                inputArg = test_class.inputFile[0]
-                inputFileURL = test_class.localOptions[inputArg]
-    
-                m = onionInputRegex.match(inputFileURL)
-                if m:
-                    fileDigest = m.group(1)
-                else:
-                    fileDigest = os.path.basename(inputFileURL)
+        for input_file in net_test_loader.inputFiles:
+            if 'url' in input_file:
+                oonib = OONIBClient(input_file['address'])
 
-                cachedInputDir = os.path.join(config.advanced.data_dir,
+                cached_input_dir = os.path.join(config.advanced.data_dir,
                         'inputs')
-                cachedPath = os.path.join(cachedInputDir, fileDigest)
-                self.inputs.append(cachedPath)
+                cached_path = os.path.join(cached_input_dir, input_file['hash'])
+                self.inputs.append(cached_path)
 
-                if os.path.exists(cachedPath) and verifyFile(cachedPath):
-                        test_class.localOptions[inputArg] = cachedPath
+                if os.path.exists(cached_path) and verifyFile(cached_path):
+                        test_class.localOptions[inputArg] = cached_path
                         continue
-                if m:
-                    yield downloadFile(inputFileURL, cachedPath)
-                    if verifyFile(cachedPath):
-                        test_class.localOptions[inputArg] = cachedPath
-                        continue
-
-                raise UnableToLoadDeckInput, cachedPath
-
-def test_verify_file_success(): 
-    f = open('/dev/urandom')
-    r = f.read(1024*1024)
-    z = sha1(f).hexdigest()
-    f.close()
-    fn = '/tmp/%s' % z
-    f = open(fn)
-    f.write(r)
-    f.close()
-    verifyFile(fn)
-    os.unlink(fn)
-
-def test_verify_file_failure():
-    pass
-def test_load_deck_with_no_inputs(deck):
-    pass
-def test_load_deck_with_cached_input(deckFile):
-    pass
-def test_load_deck_with_evil_path(deckFile):
-    pass
-def test_load_deck_with_download_success(deckFile):
-    pass
-def test_load_deck_with_download_failure(deckFile):
-    pass
+                yield oonib.downloadInput(input_file['hash'], cached_path)
+                if verifyFile(cached_path):
+                    test_class.localOptions[input_file['key']] = cached_path
+                    continue
+                
+                raise UnableToLoadDeckInput, cached_path
