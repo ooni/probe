@@ -1,6 +1,5 @@
 #-*- coding: utf-8 -*-
 
-from hashlib import sha1
 from ooni.nettest import NetTestLoader
 from ooni.settings import config
 from ooni.utils.txagentwithsocks import Agent
@@ -9,14 +8,6 @@ from twisted.internet import reactor, defer
 import os
 import re
 import yaml
-
-def verifyFile(filePath):
-    # get the filename component of the file path
-    digest = os.path.basename(filePath)
-    with open(filePath) as f:
-        sha1digest = sha1(f.read())
-        return sha1digest.hexdigest() == digest
-    return False
 
 class Deck(object):
     def __init__(self, oonibclient, deckFile=None):
@@ -51,17 +42,10 @@ class Deck(object):
             if 'url' in input_file:
                 oonib = OONIBClient(input_file['address'])
 
-                cached_input_dir = os.path.join(config.advanced.data_dir,
-                        'inputs')
-                cached_path = os.path.join(cached_input_dir, input_file['hash'])
-                self.inputs.append(cached_path)
-
-                if os.path.exists(cached_path) and verifyFile(cached_path):
-                        test_class.localOptions[inputArg] = cached_path
-                        continue
-                yield oonib.downloadInput(input_file['hash'], cached_path)
-                if verifyFile(cached_path):
-                    test_class.localOptions[input_file['key']] = cached_path
-                    continue
+                input_file = yield oonib.downloadInput(input_file['hash'])
+                try:
+                    input_file.verify()
+                except AssertionError:
+                    raise UnableToLoadDeckInput, cached_path
                 
-                raise UnableToLoadDeckInput, cached_path
+                test_class.localOptions[input_file['key']] = input_file.cached_file

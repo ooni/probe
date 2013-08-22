@@ -28,7 +28,7 @@ class TestOONIBClient(unittest.TestCase):
 
     @defer.inlineCallbacks
     def test_download_input(self):
-        yield self.oonibclient.downloadInput(input_id, input_id)
+        yield self.oonibclient.downloadInput(input_id)
 
     @defer.inlineCallbacks
     def test_get_deck_list(self):
