@@ -286,6 +286,9 @@ class HTTPTest(NetTestCase):
         request['url'] = url
         request['headers'] = headers
         request['body'] = body
+        request['tor'] = False
+        if use_tor:
+            request['tor'] = True
 
         if self.randomizeUA:
             log.debug("Randomizing user agent")
@@ -304,9 +307,9 @@ class HTTPTest(NetTestCase):
         headers = TrueHeaders(request['headers'])
 
         def errback(failure, request):
-            failure_string = handleAllFailures(failure)
             log.err("Error performing %s" % request)
-            HTTPTest.addToReport(self, request, failure_string=failure_string)
+            failure_string = handleAllFailures(failure)
+            self.addToReport(request, failure_string=failure_string)
             return failure
 
         d = agent.request(request['method'], request['url'], headers,
