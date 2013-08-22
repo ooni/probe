@@ -1,6 +1,7 @@
 import os
 import re
 import time
+from hashlib import sha256
 
 from twisted.internet import defer, reactor
 from twisted.trial.runner import filenameToModule
@@ -206,6 +207,11 @@ class NetTestLoader(object):
                     input_file['hash'] = m.group(2)
                 else:
                     input_file['filename'] = filename
+                    with open(filename) as f:
+                        h = sha256()
+                        for l in f:
+                            h.update(l)
+                    input_file['hash'] = h.hexdigest()
                 input_files.append(input_file)
 
         return input_files

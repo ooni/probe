@@ -50,7 +50,7 @@ class InputFile(object):
                 'date': self.date,
                 'description': self.description
             }, f)
-
+    
     def load(self, descriptor):
         self.name = descriptor['name']
         self.version = descriptor['version']
@@ -63,6 +63,23 @@ class InputFile(object):
         with open(self.cached_file) as f:
             file_hash = sha256(f.read())
             assert file_hash.hexdigest() == digest
+
+    def validate(self, policy):
+        """
+        Validate this input file against the specified input policy.
+        """
+        for input_file
+
+class Collector(object):
+    def __init__(self):
+        self.nettest_policy = None
+        self.input_policy = None
+
+    def validateInput(self, input_hash):
+        pass
+
+    def validateNettest(self, nettest):
+        pass
 
 class OONIBClient(object):
     def __init__(self, address):
@@ -155,4 +172,7 @@ class OONIBClient(object):
             return d
 
     def getInputPolicy(self):
-        pass
+        return self.queryBackend('GET', '/policy/input')
+
+    def getNettestPolicy(self):
+        return self.queryBackend('GET', '/policy/nettest')
