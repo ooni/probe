@@ -97,6 +97,7 @@ class Downloader(protocol.Protocol):
                 self.bytes_remaining -= len(b)
 
     def connectionLost(self, reason):
+        self.fp.flush()
         self.fp.close()
         self.finished.callback(None)
 

@@ -4,7 +4,8 @@ import json
 from hashlib import sha256
 
 from twisted.internet import defer, reactor
-from twisted.web.client import Agent
+
+from ooni.utils.txagentwithsocks import Agent
 
 from ooni.settings import config
 from ooni.utils import log
@@ -66,7 +67,8 @@ class InputFile(object):
 class OONIBClient(object):
     def __init__(self, address):
         self.address = address
-        self.agent = Agent(reactor)
+        self.agent = Agent(reactor, sockshost="127.0.0.1", 
+                           socksport=config.tor.socks_port)
         self.input_files = {}
 
     def _request(self, method, urn, genReceiver, bodyProducer=None):
@@ -77,7 +79,7 @@ class OONIBClient(object):
 
         @d.addCallback
         def callback(response):
-            content_length = response.headers.getRawHeaders('content-length')
+            content_length = int(response.headers.getRawHeaders('content-length')[0])
             response.deliverBody(genReceiver(finished, content_length))
 
         @d.addErrback

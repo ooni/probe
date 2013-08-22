@@ -149,7 +149,7 @@ def runWithDirector():
 
     def fetch_nettest_inputs(result):
         try: 
-            deck.fetchAndVerifyDeckInputs()
+            return deck.fetchAndVerifyDeckInputs()
         except errors.UnableToLoadDeckInput, e:
             return defer.failure.Failure(result)
 

@@ -173,7 +173,7 @@ class NetTestLoader(object):
     method_prefix = 'test'
 
     def __init__(self, options, test_file=None, test_string=None):
-        self.onionInputRegex =  re.compile("(httpo://[a-z0-9]{16}\.onion)/input/([a-z0-9]){40}$")
+        self.onionInputRegex =  re.compile("(httpo://[a-z0-9]{16}\.onion)/input/([a-z0-9]{64})$")
         self.options = options
         self.testCases, test_cases = None, None
 
@@ -196,7 +196,8 @@ class NetTestLoader(object):
                 key = test_class.inputFile[0]
                 filename = test_class.localOptions[key]
                 input_file = {
-                    'id': key
+                    'key': key,
+                    'test_class': test_class
                 }
                 m = self.onionInputRegex.match(filename)
                 if m:
