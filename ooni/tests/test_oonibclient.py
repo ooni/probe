@@ -23,8 +23,8 @@ class TestOONIBClient(unittest.TestCase):
     def test_get_input_descriptor(self):
         input_descriptor = yield self.oonibclient.getInput(input_id)
         for key in ['name', 'description', 
-                    'version', 'author', 'date']:
-            self.assertTrue(key in input_descriptor.keys())
+                    'version', 'author', 'date', 'id']:
+            self.assertTrue(hasattr(input_descriptor, key))
 
     @defer.inlineCallbacks
     def test_download_input(self):

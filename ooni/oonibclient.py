@@ -5,6 +5,7 @@ import json
 from twisted.internet import defer, reactor
 from twisted.web.client import Agent
 
+from ooni.utils import log
 from ooni.utils.net import BodyReceiver, StringProducer, Downloader
 
 class InputFile(object):
@@ -14,6 +15,7 @@ class InputFile(object):
         self.version = descriptor['version']
         self.author = descriptor['author']
         self.date = descriptor['date']
+        self.description = descriptor['description']
 
         self.file_path = None
 
