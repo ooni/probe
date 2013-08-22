@@ -8,14 +8,12 @@ from twisted.web.client import Agent
 from ooni.utils.net import BodyReceiver, StringProducer, Downloader
 
 class InputFile(object):
-    def __init__(self, id, name=None, description=None, 
-                 version=None, author=None, date=None):
-        self.id = id
-        self.name = name
-        self.description = description
-        self.version = version
-        self.author = author
-        self.date = date
+    def __init__(self, descriptor):
+        self.id = descriptor['id']
+        self.name = descriptor['name']
+        self.version = descriptor['version']
+        self.author = descriptor['author']
+        self.date = descriptor['date']
 
         self.file_path = None
 
@@ -73,7 +71,19 @@ class OONIBClient(object):
         pass
 
     def getInput(self, input_hash):
-        return self.queryBackend('GET', '/input/' + input_hash)
+        try:
+            return defer.succeed(self.input_files[input_hash])
+        except KeyError:
+            d = self.queryBackend('GET', '/input/' + input_hash)
+            @d.addCallback
+            def cb(descriptor):
+                self.input_files[input_hash] = InputFile(descriptor)
+                return self.input_files[input_hash]
+            @d.addErrback
+            def err(err):
+                log.err("Failed to get descriptor for input %s" % input_hash)
+                log.exception(err)
+            return d
 
     def getInputList(self):
         return self.queryBackend('GET', '/input')
