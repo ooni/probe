@@ -173,8 +173,9 @@ class NetTestLoader(object):
     method_prefix = 'test'
 
     def __init__(self, options, test_file=None, test_string=None):
+        self.onionInputRegex =  re.compile("(httpo://[a-z0-9]{16}\.onion)/input/([a-z0-9]{64})$")
         self.options = options
-        test_cases = None
+        self.testCases, test_cases = None, None
 
         if test_file:
             test_cases = loadNetTestFile(test_file)
@@ -183,6 +184,31 @@ class NetTestLoader(object):
 
         if test_cases:
             self.setupTestCases(test_cases)
+    
+    @property
+    def inputFiles(self):
+        input_files = []
+        if not self.testCases:
+            return input_files
+
+        for test_class, test_methods in self.testCases:
+            if test_class.inputFile:
+                key = test_class.inputFile[0]
+                filename = test_class.localOptions[key]
+                input_file = {
+                    'key': key,
+                    'test_class': test_class
+                }
+                m = self.onionInputRegex.match(filename)
+                if m:
+                    input_file['url'] = filename
+                    input_file['address'] = m.group(1)
+                    input_file['hash'] = m.group(2)
+                else:
+                    input_file['filename'] = filename
+                input_files.append(input_file)
+
+        return input_files
 
     @property
     def testDetails(self):
@@ -360,11 +386,6 @@ class NetTestLoader(object):
             test_instance._checkRequiredOptions()
             test_instance._checkValidOptions()
 
-            inputs = test_instance.getInputProcessor()
-            if not inputs:
-                inputs = [None]
-            klass.inputs = inputs
-
     def _get_test_methods(self, item):
         """
         Look for test_ methods in subclasses of NetTestCase
@@ -496,12 +517,21 @@ class NetTest(object):
 
         return measurement
 
+    @defer.inlineCallbacks
+    def initializeInputProcessor(self):
+        for test_class, _ in self.testCases:
+            test_class.inputs = yield defer.maybeDeferred(test_class().getInputProcessor)
+            if not test_class.inputs:
+                test_class.inputs = [None]
+
     def generateMeasurements(self):
         """
         This is a generator that yields measurements and registers the
         callbacks for when a measurement is successful or has failed.
         """
+
         for test_class, test_methods in self.testCases:
+            # load the input processor as late as possible
             for input in test_class.inputs:
                 for method in test_methods:
                     log.debug("Running %s %s" % (test_class, method))
@@ -659,6 +689,11 @@ class NetTestCase(object):
 
         We check to see if it's possible to have an input file and if the user
         has specified such file.
+            
+
+        If the operations to be done here are network related or blocking, they
+        should be wrapped in a deferred. That is the return value of this
+        method should be a :class:`twisted.internet.defer.Deferred`.
 
         Returns:
             a generator that will yield one item from the file based on the

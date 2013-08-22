@@ -62,10 +62,11 @@ class StringProducer(object):
         pass
 
 class BodyReceiver(protocol.Protocol):
-    def __init__(self, finished, content_length=None):
+    def __init__(self, finished, content_length=None, body_processor=None):
         self.finished = finished
         self.data = ""
         self.bytes_remaining = content_length
+        self.body_processor = body_processor
 
     def dataReceived(self, b):
         self.data += b
@@ -76,7 +77,29 @@ class BodyReceiver(protocol.Protocol):
                 self.bytes_remaining -= len(b)
 
     def connectionLost(self, reason):
+        if self.body_processor:
+            self.data = self.body_processor(self.data)
         self.finished.callback(self.data)
+
+class Downloader(protocol.Protocol):
+    def __init__(self,  download_path,
+                 finished, content_length=None):
+        self.finished = finished
+        self.bytes_remaining = content_length
+        self.fp = open(download_path, 'w+')
+
+    def dataReceived(self, b):
+        self.fp.write(b)
+        if self.bytes_remaining:
+            if self.bytes_remaining == 0:
+                self.connectionLost(None)
+            else:
+                self.bytes_remaining -= len(b)
+
+    def connectionLost(self, reason):
+        self.fp.flush()
+        self.fp.close()
+        self.finished.callback(None)
 
 def getSystemResolver():
     """
