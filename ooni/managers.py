@@ -129,7 +129,31 @@ class TaskManager(object):
         """
         raise NotImplemented
 
-class MeasurementManager(TaskManager):
+class LinkedTaskManager(TaskManager):
+    def __init__(self):
+        super(LinkedTaskManager, self).__init__()
+        self.child = None
+        self.parent = None
+
+    @property
+    def availableSlots(self):
+        mySlots = self.concurrency - len(self._active_tasks)
+        if self.child:
+            s = self.child.availableSlots
+            return min(s, mySlots)
+        return mySlots
+
+    def _succeeded(self, result, task):
+        super(LinkedTaskManager, self)._succeeded(result, task)
+        if self.parent:
+            self.parent._fillSlots()
+
+    def _failed(self, result, task):
+        super(LinkedTaskManager, self)._failed(result, task)
+        if self.parent:
+            self.parent._fillSlots()
+
+class MeasurementManager(LinkedTaskManager):
     """
     This is the Measurement Tracker. In here we keep track of active measurements
     and issue new measurements once the active ones have been completed.
@@ -155,7 +179,7 @@ class MeasurementManager(TaskManager):
     def failed(self, failure, measurement):
         pass
 
-class ReportEntryManager(TaskManager):
+class ReportEntryManager(LinkedTaskManager):
     def __init__(self):
         if config.advanced.reporting_retries:
             self.retries = config.advanced.reporting_retries
