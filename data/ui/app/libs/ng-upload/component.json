@@ -1,0 +1,23 @@
+{
+  "name": "ngUpload",
+  "version": "0.3.2",
+  "main": "ng-upload.js",
+  "ignore": [
+    "node_modules",
+    "components",
+    "examples",
+    "libs",
+    "nuget",
+    "test",
+    ".bower.json",
+    ".gitignore",
+    "bower.json",
+    "Gruntfile.js",
+    "package.json",
+    "testacular.conf.js"
+  ],
+  "dependencies": {
+    "jquery": "~1.9.1",
+    "angular": "~1.0.4"
+  }
+}
