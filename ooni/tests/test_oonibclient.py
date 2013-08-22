@@ -1,3 +1,5 @@
+import socket
+
 from twisted.trial import unittest
 from twisted.internet import defer
 
@@ -7,7 +9,15 @@ input_id = '37e60e13536f6afe47a830bfb6b371b5cf65da66d7ad65137344679b24fdccd1'
 
 class TestOONIBClient(unittest.TestCase):
     def setUp(self):
-        self.oonibclient = OONIBClient('http://127.0.0.1:8888')
+        host = '127.0.0.1'
+        port = 8888
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        try:
+            s.connect((host, port))
+            s.shutdown(2)
+        except Exception as ex:
+            self.skipTest("OONIB must be listening on port 8888 to run this test (tor_hidden_service: false)")
+        self.oonibclient = OONIBClient('http://'+host+':'+str(port))
     
     @defer.inlineCallbacks
     def test_query(self):
