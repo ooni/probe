@@ -360,11 +360,6 @@ class NetTestLoader(object):
             test_instance._checkRequiredOptions()
             test_instance._checkValidOptions()
 
-            inputs = test_instance.getInputProcessor()
-            if not inputs:
-                inputs = [None]
-            klass.inputs = inputs
-
     def _get_test_methods(self, item):
         """
         Look for test_ methods in subclasses of NetTestCase
@@ -496,12 +491,21 @@ class NetTest(object):
 
         return measurement
 
+    @defer.inlineCallbacks
+    def initializeInputProcessor(self):
+        for test_class, _ in self.testCases:
+            test_class.inputs = yield defer.maybeDeferred(test_class().getInputProcessor)
+            if not test_class.inputs:
+                test_class.inputs = [None]
+
     def generateMeasurements(self):
         """
         This is a generator that yields measurements and registers the
         callbacks for when a measurement is successful or has failed.
         """
+
         for test_class, test_methods in self.testCases:
+            # load the input processor as late as possible
             for input in test_class.inputs:
                 for method in test_methods:
                     log.debug("Running %s %s" % (test_class, method))
@@ -659,6 +663,11 @@ class NetTestCase(object):
 
         We check to see if it's possible to have an input file and if the user
         has specified such file.
+            
+
+        If the operations to be done here are network related or blocking, they
+        should be wrapped in a deferred. That is the return value of this
+        method should be a :class:`twisted.internet.defer.Deferred`.
 
         Returns:
             a generator that will yield one item from the file based on the
