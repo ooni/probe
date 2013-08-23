@@ -38,12 +38,14 @@ class DNSConsistencyTest(dnst.DNSTest):
 
     name = "DNS Consistency"
     description = "DNS censorship detection test"
-    version = "0.5"
+    version = "0.6"
     authors = "Arturo Filastò, Isis Lovecruft"
     requirements = None
 
     inputFile = ['file', 'f', None,
                  'Input file of list of hostnames to attempt to resolve']
+    
+    requiredTestHelpers = {'backend': 'dns'}
 
     usageOptions = UsageOptions
     requiredOptions = ['backend', 'file']

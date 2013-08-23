@@ -23,8 +23,9 @@ class UsageOptions(usage.Options):
 class TracerouteTest(scapyt.BaseScapyTest):
     name = "Multi Protocol Traceroute Test"
     author = "Arturo Filastò"
-    version = "0.1.1"
+    version = "0.2"
 
+    requiredTestHelpers = {'backend': 'traceroute'}
     usageOptions = UsageOptions
     dst_ports = [0, 22, 23, 53, 80, 123, 443, 8080, 65535]
 

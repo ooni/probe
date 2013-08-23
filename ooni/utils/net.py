@@ -77,9 +77,12 @@ class BodyReceiver(protocol.Protocol):
                 self.bytes_remaining -= len(b)
 
     def connectionLost(self, reason):
-        if self.body_processor:
-            self.data = self.body_processor(self.data)
-        self.finished.callback(self.data)
+        try:
+            if self.body_processor:
+                self.data = self.body_processor(self.data)
+            self.finished.callback(self.data)
+        except Exception as exc:
+            self.finished.errback(exc)
 
 class Downloader(protocol.Protocol):
     def __init__(self,  download_path,

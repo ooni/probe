@@ -7,7 +7,7 @@
     pcapfile: null
     reportfile: null
     resume: 0
-    subargs: [-f, 'httpo://3mr5phzltfzqgh6y.onion/input/37e60e13536f6afe47a830bfb6b371b5cf65da66d7ad65137344679b24fdccd1']
+    subargs: [-f, 'httpo://amcq5ldf3vwg22ze.onion/input/37e60e13536f6afe47a830bfb6b371b5cf65da66d7ad65137344679b24fdccd1']
     test_file: data/nettests/blocking/http_requests.py
     testdeck: null
 - options:

@@ -7,6 +7,7 @@ from twisted.internet import defer, reactor
 
 from ooni.utils.txagentwithsocks import Agent
 
+from ooni import errors as e
 from ooni.settings import config
 from ooni.utils import log
 from ooni.utils.net import BodyReceiver, StringProducer, Downloader
@@ -64,35 +65,46 @@ class InputFile(object):
             file_hash = sha256(f.read())
             assert file_hash.hexdigest() == digest
 
-    def validate(self, policy):
-        """
-        Validate this input file against the specified input policy.
-        """
-        for input_file
-
 class Collector(object):
-    def __init__(self):
+    def __init__(self, address):
+        self.address = address
+
         self.nettest_policy = None
         self.input_policy = None
+    
+    @defer.inlineCallbacks
+    def loadPolicy(self):
+        # XXX implement caching of policies
+        oonibclient = OONIBClient(self.address)
+        log.msg("Looking up nettest policy for %s" % self.address)
+        self.nettest_policy = yield oonibclient.getNettestPolicy()
+        log.msg("Looking up input policy for %s" % self.address)
+        self.input_policy = yield oonibclient.getInputPolicy()
 
     def validateInput(self, input_hash):
-        pass
+        for i in self.input_policy:
+            if i['id'] == input_hash:
+                return True
+        return False
 
-    def validateNettest(self, nettest):
-        pass
+    def validateNettest(self, nettest_name):
+        for i in self.nettest_policy:
+            if nettest_name == i['name']:
+                return True
+        return False
 
 class OONIBClient(object):
     def __init__(self, address):
         self.address = address
         self.agent = Agent(reactor, sockshost="127.0.0.1", 
                            socksport=config.tor.socks_port)
-        self.input_files = {}
 
     def _request(self, method, urn, genReceiver, bodyProducer=None):
         finished = defer.Deferred()
 
         uri = self.address + urn
-        d = self.agent.request(method, uri, bodyProducer)
+        headers = {}
+        d = self.agent.request(method, uri, bodyProducer=bodyProducer)
 
         @d.addCallback
         def callback(response):
@@ -108,7 +120,7 @@ class OONIBClient(object):
     def queryBackend(self, method, urn, query=None):
         bodyProducer = None
         if query:
-            bodyProducer = StringProducer(json.dumps(query), bodyProducer)
+            bodyProducer = StringProducer(json.dumps(query))
     
         def genReceiver(finished, content_length):
             return BodyReceiver(finished, content_length, json.loads)
@@ -123,9 +135,6 @@ class OONIBClient(object):
         return self._request('GET', urn, genReceiver)
     
     def getNettestPolicy(self):
-        pass
-
-    def queryBouncer(self, requested_helpers):
         pass
 
     def getInput(self, input_hash):
@@ -176,3 +185,17 @@ class OONIBClient(object):
 
     def getNettestPolicy(self):
         return self.queryBackend('GET', '/policy/nettest')
+
+    @defer.inlineCallbacks
+    def lookupTestHelpers(self, test_helper_names):
+        try:
+            test_helpers = yield self.queryBackend('POST', '/bouncer', 
+                            query={'test-helpers': test_helper_names})
+        except Exception:
+            raise e.CouldNotFindTestHelper
+
+        if not test_helpers:
+            raise e.CouldNotFindTestHelper
+
+        defer.returnValue(test_helpers)
+

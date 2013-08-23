@@ -36,8 +36,10 @@ class Options(usage.Options):
     optParameters = [["reportfile", "o", None, "report file name"],
                      ["testdeck", "i", None,
                          "Specify as input a test deck: a yaml file containig the tests to run an their arguments"],
-                     ["collector", "c", 'httpo://nkvphnp3p6agi5qq.onion',
-                         "Address of the collector of test results. default: httpo://nkvphnp3p6agi5qq.onion"],
+                     ["collector", "c", None,
+                         "Address of the collector of test results. This option should not be used, but you should always use a bouncer."],
+                     ["bouncer", "b", 'httpo://nkvphnp3p6agi5qq.onion',
+                         "Address of the bouncer for test helpers. default: httpo://nkvphnp3p6agi5qq.onion"],
                      ["logfile", "l", None, "log file name"],
                      ["pcapfile", "O", None, "pcap file name"],
                      ["parallelism", "p", "10", "input parallelism"],
@@ -125,7 +127,7 @@ def runWithDirector():
     director = Director()
     d = director.start()
 
-    deck = Deck()
+    deck = Deck(global_options['bouncer'])
     if global_options['no-collector']:
         log.msg("Not reporting using a collector")
         collector = global_options['collector'] = None
@@ -146,10 +148,10 @@ def runWithDirector():
         log.err(e)
         print net_test_loader.usageOptions().getUsage()
         sys.exit(2)
-
-    def fetch_nettest_inputs(result):
+    
+    def setup_nettest(_):
         try: 
-            return deck.fetchAndVerifyDeckInputs()
+            return deck.setup()
         except errors.UnableToLoadDeckInput, e:
             return defer.failure.Failure(result)
 
@@ -157,18 +159,30 @@ def runWithDirector():
         log.err("Failed to start the director")
         r = failure.trap(errors.TorNotRunning,
                 errors.InvalidOONIBCollectorAddress,
-                errors.UnableToLoadDeckInput)
-        if r == errors.TorNotRunning:
+                errors.UnableToLoadDeckInput, errors.CouldNotFindTestHelper)
+
+        if isinstance(failure.value, errors.TorNotRunning):
             log.err("Tor does not appear to be running")
             log.err("Reporting with the collector %s is not possible" %
                     global_options['collector'])
             log.msg("Try with a different collector or disable collector reporting with -n")
-        elif r == errors.InvalidOONIBCollectorAddress:
+
+        elif isinstance(failure.value, errors.InvalidOONIBCollectorAddress):
             log.err("Invalid format for oonib collector address.")
             log.msg("Should be in the format http://<collector_address>:<port>")
             log.msg("for example: ooniprobe -c httpo://nkvphnp3p6agi5qq.onion")
-        elif r == errors.UnableToLoadDeckInput:
-            log.err('Missing required input files: %s' % failure)
+
+        elif isinstance(failure.value, errors.UnableToLoadDeckInput):
+            log.err("Unable to fetch the required inputs for the test deck.")
+            log.msg("Please file a ticket on our issue tracker: https://github.com/thetorproject/ooni-probe/issues")
+
+        elif isinstance(failure.value, errors.CouldNotFindTestHelper):
+            log.err("Unable to obtain the required test helpers.")
+            log.msg("Try with a different bouncer or check that Tor is running properly.")
+
+        if config.advanced.debug:
+            log.exception(failure)
+
         reactor.stop()
 
     # Wait until director has started up (including bootstrapping Tor)
@@ -188,8 +202,8 @@ def runWithDirector():
             if not global_options['no-collector']:
                 if global_options['collector']:
                     collector = global_options['collector']
-                elif net_test_loader.options['collector']:
-                    collector = net_test_loader.options['collector']
+                elif net_test_loader.collector:
+                    collector = net_test_loader.collector
 
             if collector and collector.startswith('httpo:') \
                     and (not (config.tor_state or config.tor.socks_port)):
@@ -213,7 +227,7 @@ def runWithDirector():
         director.allTestsDone.addBoth(shutdown)
 
     def start():
-        d.addCallback(fetch_nettest_inputs)
+        d.addCallback(setup_nettest)
         d.addCallback(post_director_start)
         d.addErrback(director_startup_failed)
 

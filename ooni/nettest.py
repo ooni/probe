@@ -172,6 +172,7 @@ def getNetTestInformation(net_test_file):
 
 class NetTestLoader(object):
     method_prefix = 'test'
+    collector = None
 
     def __init__(self, options, test_file=None, test_string=None):
         self.onionInputRegex =  re.compile("(httpo://[a-z0-9]{16}\.onion)/input/([a-z0-9]{64})$")
@@ -185,7 +186,22 @@ class NetTestLoader(object):
 
         if test_cases:
             self.setupTestCases(test_cases)
-    
+   
+    @property
+    def requiredTestHelpers(self):
+        required_test_helpers = []
+        if not self.testCases:
+            return required_test_helpers
+
+        for test_class, test_methods in self.testCases:
+            for option, name in test_class.requiredTestHelpers.items():
+                required_test_helpers.append({
+                    'name': name,
+                    'option': option,
+                    'test_class': test_class
+                })
+        return required_test_helpers
+
     @property
     def inputFiles(self):
         input_files = []
@@ -255,6 +271,10 @@ class NetTestLoader(object):
         if (client_geodata and not config.privacy.includecountry) \
                 or ('countrycode' not in client_geodata):
             client_geodata['countrycode'] = None
+        
+        input_file_hashes = []
+        for input_file in self.inputFiles:
+            input_file_hashes.append(input_file['hash'])
 
         test_details = {'start_time': time.time(),
             'probe_asn': client_geodata['asn'],
@@ -264,7 +284,8 @@ class NetTestLoader(object):
             'test_version': self.testVersion,
             'software_name': 'ooniprobe',
             'software_version': software_version,
-            'options': self.options
+            'options': self.options,
+            'input_hashes': input_file_hashes
         }
         return test_details
 
@@ -613,7 +634,8 @@ class NetTestCase(object):
     optParameters = None
     baseParameters = None
     baseFlags = None
-
+    
+    requiredTestHelpers = {}
     requiredOptions = []
     requiresRoot = False
 

@@ -308,6 +308,7 @@ class OONIBReporter(OReporter):
             'probe_asn': self.testDetails['probe_asn'],
             'test_name': self.testDetails['test_name'],
             'test_version': self.testDetails['test_version'],
+            'input_hashes': self.testDetails['input_hashes'],
             # XXX there is a bunch of redundancy in the arguments getting sent
             # to the backend. This may need to get changed in the client and the
             # backend.
@@ -328,7 +329,6 @@ class OONIBReporter(OReporter):
                                 bodyProducer=bodyProducer)
         except ConnectionRefusedError:
             log.err("Connection to reporting backend failed (ConnectionRefusedError)")
-            #yield defer.fail(OONIBReportCreationError())
             raise errors.OONIBReportCreationError
 
         except errors.HostUnreachable:
@@ -352,6 +352,12 @@ class OONIBReporter(OReporter):
         except Exception, e:
             log.err("Failed to parse collector response")
             log.exception(e)
+            raise errors.OONIBReportCreationError
+        
+        if response.code == 400:
+            # XXX make this more strict
+            log.err("The specified input or nettests cannot be submitted to this collector.")
+            log.msg("Try running a different test or try reporting to a different collector.")
             raise errors.OONIBReportCreationError
 
         self.reportID = parsed_response['report_id']
