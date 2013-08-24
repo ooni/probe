@@ -354,7 +354,7 @@ class OONIBReporter(OReporter):
             log.exception(e)
             raise errors.OONIBReportCreationError
         
-        if response.code == 400:
+        if response.code == 406:
             # XXX make this more strict
             log.err("The specified input or nettests cannot be submitted to this collector.")
             log.msg("Try running a different test or try reporting to a different collector.")
