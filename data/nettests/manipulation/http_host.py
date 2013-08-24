@@ -43,6 +43,7 @@ class HTTPHost(httpt.HTTPTest):
     inputFile = ['file', 'f', None,
             'List of hostnames to test for censorship']
 
+    requiredTestHelpers = {'backend': 'http-return-json-headers'}
     requiredOptions = ['backend']
 
     def test_filtering_prepend_newline_to_method(self):

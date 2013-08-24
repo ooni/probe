@@ -168,4 +168,7 @@ class OONIBReportCreationError(OONIBReportError):
 class OONIBTestDetailsLookupError(OONIBReportError):
     pass
 
-
+class UnableToLoadDeckInput(Exception):
+    pass
+class CouldNotFindTestHelper(Exception):
+    pass

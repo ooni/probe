@@ -1,6 +1,7 @@
 import os
 import re
 import time
+from hashlib import sha256
 
 from twisted.internet import defer, reactor
 from twisted.trial.runner import filenameToModule
@@ -171,10 +172,12 @@ def getNetTestInformation(net_test_file):
 
 class NetTestLoader(object):
     method_prefix = 'test'
+    collector = None
 
     def __init__(self, options, test_file=None, test_string=None):
+        self.onionInputRegex =  re.compile("(httpo://[a-z0-9]{16}\.onion)/input/([a-z0-9]{64})$")
         self.options = options
-        test_cases = None
+        self.testCases, test_cases = None, None
 
         if test_file:
             test_cases = loadNetTestFile(test_file)
@@ -183,6 +186,51 @@ class NetTestLoader(object):
 
         if test_cases:
             self.setupTestCases(test_cases)
+   
+    @property
+    def requiredTestHelpers(self):
+        required_test_helpers = []
+        if not self.testCases:
+            return required_test_helpers
+
+        for test_class, test_methods in self.testCases:
+            for option, name in test_class.requiredTestHelpers.items():
+                required_test_helpers.append({
+                    'name': name,
+                    'option': option,
+                    'test_class': test_class
+                })
+        return required_test_helpers
+
+    @property
+    def inputFiles(self):
+        input_files = []
+        if not self.testCases:
+            return input_files
+
+        for test_class, test_methods in self.testCases:
+            if test_class.inputFile:
+                key = test_class.inputFile[0]
+                filename = test_class.localOptions[key]
+                input_file = {
+                    'key': key,
+                    'test_class': test_class
+                }
+                m = self.onionInputRegex.match(filename)
+                if m:
+                    input_file['url'] = filename
+                    input_file['address'] = m.group(1)
+                    input_file['hash'] = m.group(2)
+                else:
+                    input_file['filename'] = filename
+                    with open(filename) as f:
+                        h = sha256()
+                        for l in f:
+                            h.update(l)
+                    input_file['hash'] = h.hexdigest()
+                input_files.append(input_file)
+
+        return input_files
 
     @property
     def testDetails(self):
@@ -223,6 +271,10 @@ class NetTestLoader(object):
         if (client_geodata and not config.privacy.includecountry) \
                 or ('countrycode' not in client_geodata):
             client_geodata['countrycode'] = None
+        
+        input_file_hashes = []
+        for input_file in self.inputFiles:
+            input_file_hashes.append(input_file['hash'])
 
         test_details = {'start_time': time.time(),
             'probe_asn': client_geodata['asn'],
@@ -232,7 +284,8 @@ class NetTestLoader(object):
             'test_version': self.testVersion,
             'software_name': 'ooniprobe',
             'software_version': software_version,
-            'options': self.options
+            'options': self.options,
+            'input_hashes': input_file_hashes
         }
         return test_details
 
@@ -359,11 +412,6 @@ class NetTestLoader(object):
                 checkForRoot()
             test_instance._checkRequiredOptions()
             test_instance._checkValidOptions()
-
-            inputs = test_instance.getInputProcessor()
-            if not inputs:
-                inputs = [None]
-            klass.inputs = inputs
 
     def _get_test_methods(self, item):
         """
@@ -496,12 +544,21 @@ class NetTest(object):
 
         return measurement
 
+    @defer.inlineCallbacks
+    def initializeInputProcessor(self):
+        for test_class, _ in self.testCases:
+            test_class.inputs = yield defer.maybeDeferred(test_class().getInputProcessor)
+            if not test_class.inputs:
+                test_class.inputs = [None]
+
     def generateMeasurements(self):
         """
         This is a generator that yields measurements and registers the
         callbacks for when a measurement is successful or has failed.
         """
+
         for test_class, test_methods in self.testCases:
+            # load the input processor as late as possible
             for input in test_class.inputs:
                 for method in test_methods:
                     log.debug("Running %s %s" % (test_class, method))
@@ -577,7 +634,8 @@ class NetTestCase(object):
     optParameters = None
     baseParameters = None
     baseFlags = None
-
+    
+    requiredTestHelpers = {}
     requiredOptions = []
     requiresRoot = False
 
@@ -659,6 +717,11 @@ class NetTestCase(object):
 
         We check to see if it's possible to have an input file and if the user
         has specified such file.
+            
+
+        If the operations to be done here are network related or blocking, they
+        should be wrapped in a deferred. That is the return value of this
+        method should be a :class:`twisted.internet.defer.Deferred`.
 
         Returns:
             a generator that will yield one item from the file based on the

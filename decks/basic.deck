@@ -1,0 +1,24 @@
+- options:
+    collector: null
+    help: 0
+    logfile: null
+    no-default-reporter: 0
+    parallelism: '10'
+    pcapfile: null
+    reportfile: null
+    resume: 0
+    subargs: [-f, 'httpo://amcq5ldf3vwg22ze.onion/input/37e60e13536f6afe47a830bfb6b371b5cf65da66d7ad65137344679b24fdccd1']
+    test_file: data/nettests/blocking/http_requests.py
+    testdeck: null
+- options:
+    collector: null
+    help: 0
+    logfile: null
+    no-default-reporter: 0
+    parallelism: '10'
+    pcapfile: null
+    reportfile: null
+    resume: 0
+    subargs: [-b, 'http://93.95.227.200']
+    test_file: data/nettests/manipulation/http_header_field_manipulation.py
+    testdeck: null
