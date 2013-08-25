@@ -14,8 +14,8 @@ import re
 import yaml
 
 class Deck(object):
-    def __init__(self, bouncer, deckFile=None):
-        self.bouncer = bouncer
+    def __init__(self, deckFile=None):
+        self.bouncer = None
         self.netTestLoaders = []
         self.inputs = []
         self.testHelpers = {}
@@ -40,27 +40,30 @@ class Deck(object):
     @defer.inlineCallbacks
     def setup(self):
         """ fetch and verify inputs for all NetTests in the deck """
-        for net_test_loader in self.netTestLoaders:
-            yield self.fetchAndVerifyNetTestInput(net_test_loader)
-            yield self.lookupTestHelper(net_test_loader)
-            yield self.lookupTestCollector(net_test_loader)
+        if self.bouncer:
+            for net_test_loader in self.netTestLoaders:
+                yield self.fetchAndVerifyNetTestInput(net_test_loader)
+                yield self.lookupTestHelper(net_test_loader)
+                yield self.lookupTestCollector(net_test_loader)
 
     @defer.inlineCallbacks
     def lookupTestHelper(self, net_test_loader):
         oonibclient = OONIBClient(self.bouncer)
         for th in net_test_loader.requiredTestHelpers:
             # {'name':'', 'option':'', 'test_class':''}
-            helper = yield oonibclient.lookupTestHelper(th['name'])
-            th['test_class'].localOptions[th['option']] = helper['test-helper']
+            response = yield oonibclient.lookupTestHelper(th['name'])
+            th['test_class'].localOptions[th['option']] = response['test-helper']
             #XXX: collector is only set once!
-            net_test_loader.collector = helper['collector']
-
+            if 'collector' in response.keys():
+                net_test_loader.collector = response['collector'].encode('utf-8')
 
     @defer.inlineCallbacks
     def lookupTestCollector(self, net_test_loader):
         oonibclient = OONIBClient(self.bouncer)
         if net_test_loader.collector is None:
-            net_test_loader.collector = oonibclient.lookupTestCollector(th['test_class'].testName)
+            response = yield oonibclient.lookupTestCollector(net_test_loader.testName)
+            if 'collector' in response.keys():
+                net_test_loader.collector = response['collector'].encode('utf-8')
 
     @defer.inlineCallbacks
     def fetchAndVerifyNetTestInput(self, net_test_loader):

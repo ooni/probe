@@ -127,10 +127,14 @@ def runWithDirector():
     director = Director()
     d = director.start()
 
-    deck = Deck(global_options['bouncer'])
+    #XXX: This should mean no bouncer either!
     if global_options['no-collector']:
         log.msg("Not reporting using a collector")
         collector = global_options['collector'] = None
+        global_options['bouncer'] = None
+
+    deck = Deck()
+    deck.bouncer = global_options['bouncer']
 
     try:
         if global_options['testdeck']:
