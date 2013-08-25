@@ -22,7 +22,7 @@ class TaskManager(object):
     def __init__(self):
         self._tasks = iter(())
         self._active_tasks = []
-        self.failures = []
+        self.failures = 0
 
     def _failed(self, failure, task):
         """
@@ -33,7 +33,7 @@ class TaskManager(object):
         log.exception(failure)
 
         self._active_tasks.remove(task)
-        self.failures.append((failure, task))
+        self.failures = self.failures + 1
 
         if task.failures <= self.retries:
             log.debug("Rescheduling...")
@@ -85,7 +85,7 @@ class TaskManager(object):
 
     @property
     def failedMeasurements(self):
-        return len(self.failures)
+        return self.failures
 
     @property
     def availableSlots(self):
@@ -110,7 +110,7 @@ class TaskManager(object):
         """
         This is called to start the task manager.
         """
-        self.failures = []
+        self.failures = 0
 
         self._fillSlots()
 
