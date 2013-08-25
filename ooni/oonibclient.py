@@ -187,15 +187,26 @@ class OONIBClient(object):
         return self.queryBackend('GET', '/policy/nettest')
 
     @defer.inlineCallbacks
-    def lookupTestHelpers(self, test_helper_names):
+    def lookupTestCollector(self, test_name):
         try:
-            test_helpers = yield self.queryBackend('POST', '/bouncer', 
-                            query={'test-helpers': test_helper_names})
+            test_collector = yield self.queryBackend('POST', '/bouncer',
+                    query={'test-collector': test_name})
+        except Exception:
+            raise e.CouldNotFindTestCollector
+
+        defer.returnValue(test_collector)
+
+    @defer.inlineCallbacks
+    def lookupTestHelper(self, test_helper_name):
+        try:
+
+            test_helper = yield self.queryBackend('POST', '/bouncer', 
+                            query={'test-helper': test_helper_name})
         except Exception:
             raise e.CouldNotFindTestHelper
 
         if not test_helpers:
             raise e.CouldNotFindTestHelper
 
-        defer.returnValue(test_helpers)
+        defer.returnValue(test_helper)
 
