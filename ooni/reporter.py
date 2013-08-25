@@ -456,6 +456,7 @@ class Report(object):
             def report_failed(failure):
                 log.debug("Report Write Failure")
                 try:
+                    report_tracker.failedReporters.append(reporter)
                     self.failedWritingReport(failure, reporter)
                 except errors.NoMoreReporters, e:
                     log.err("No More Reporters!")

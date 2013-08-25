@@ -133,6 +133,7 @@ class ReportTracker(object):
     def __init__(self, reporters):
         self.report_completed = 0
         self.reporters = reporters
+        self.failedReporters = []
 
     def finished(self):
         """
@@ -142,10 +143,7 @@ class ReportTracker(object):
         # is considered completed but failed, but the number
         # of reporters is now decreased by the number of failed
         # reporters.
-        # XXX: should we track to see if, for example:
-        # self.report_completed == len(self.reporters) + \
-        #        len(self.failed_reporters)
-        if self.report_completed >= len(self.reporters):
+        if self.report_completed == (len(self.reporters) + len(self.failedReporters)):
             return True
         return False
 
