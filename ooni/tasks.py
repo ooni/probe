@@ -138,7 +138,14 @@ class ReportTracker(object):
         """
         Returns true if all the tasks are done. False if not.
         """
-        if self.report_completed == len(self.reporters):
+        # If a reporter fails and is removed, the report
+        # is considered completed but failed, but the number
+        # of reporters is now decreased by the number of failed
+        # reporters.
+        # XXX: should we track to see if, for example:
+        # self.report_completed == len(self.reporters) + \
+        #        len(self.failed_reporters)
+        if self.report_completed >= len(self.reporters):
             return True
         return False
 

@@ -3,7 +3,6 @@ before_install:
   - sudo apt-get install tor libpcap-dev
 python:
   - "2.7"
-  - "2.6"
 # command to install dependencies
 # the first is for testing pip and the second for setuptools
 install:

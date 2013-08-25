@@ -71,6 +71,10 @@ class Director(object):
 
         self.reportEntryManager = ReportEntryManager()
         self.reportEntryManager.director = self
+        # Link the TaskManager's by least available slots.
+        self.measurementManager.child = self.reportEntryManager
+        # Notify the parent when tasks complete # XXX deadlock!?
+        self.reportEntryManager.parent = self.measurementManager
 
         self.successfulMeasurements = 0
         self.failedMeasurements = 0
@@ -224,6 +228,7 @@ class Director(object):
 
         yield net_test.report.open()
 
+        yield net_test.initializeInputProcessor()
         self.measurementManager.schedule(net_test.generateMeasurements())
 
         self.activeNetTests.append(net_test)

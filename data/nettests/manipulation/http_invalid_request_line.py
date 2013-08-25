@@ -20,10 +20,12 @@ class HTTPInvalidRequestLine(tcpt.TCPTest):
     ascii letters or numbers ('XxXx' will be 4).
     """
     name = "HTTP Invalid Request Line"
-    version = "0.1.4"
+    version = "0.2"
     authors = "Arturo Filastò"
 
     usageOptions = UsageOptions
+
+    requiredTestHelpers = {'backend': 'tcp-echo'}
     requiredOptions = ['backend']
 
     def setUp(self):

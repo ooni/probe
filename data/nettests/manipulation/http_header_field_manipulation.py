@@ -48,6 +48,7 @@ class HTTPHeaderFieldManipulation(httpt.HTTPTest):
     randomizeUA = False
     usageOptions = UsageOptions
 
+    requiredTestHelpers = {'backend': 'http-return-json-headers'}
     requiredOptions = ['backend']
 
     def get_headers(self):
