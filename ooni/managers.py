@@ -37,8 +37,8 @@ class TaskManager(object):
 
         if task.failures <= self.retries:
             log.debug("Rescheduling...")
-            self._tasks = itertools.chain(self._tasks,
-                    makeIterable(task))
+            self._tasks = itertools.chain(makeIterable(task), self._tasks)
+
         else:
             # This fires the errback when the task is done but has failed.
             log.err('Permanent failure for %s' % task)
