@@ -307,7 +307,10 @@ class HTTPTest(NetTestCase):
         headers = TrueHeaders(request['headers'])
 
         def errback(failure, request):
-            log.err("Error performing %s" % request)
+            if request['tor']:
+                log.err("Error performing torified request: %s" % request['url'])
+            else:
+                log.err("Error performing request: %s" % request['url'])
             failure_string = handleAllFailures(failure)
             self.addToReport(request, failure_string=failure_string)
             return failure
@@ -315,8 +318,7 @@ class HTTPTest(NetTestCase):
         d = agent.request(request['method'], request['url'], headers,
                 body_producer)
 
+        d.addErrback(errback, request)
         d.addCallback(self._cbResponse, request, headers_processor,
                 body_processor)
-        d.addErrback(errback, request)
         return d
-

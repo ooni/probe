@@ -22,6 +22,7 @@ class DNSSpoof(scapyt.ScapyTest):
 
     usageOptions = UsageOptions
 
+    requiredTestHelpers = {'backend': 'dns'}
     requiredOptions = ['hostname', 'resolver']
 
     def setUp(self):

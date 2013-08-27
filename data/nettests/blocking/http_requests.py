@@ -116,7 +116,6 @@ class HTTPRequestsTest(httpt.HTTPTest):
         experiment_request = self.doRequest(self.url, method="GET",
                 headers=headers)
 
-        log.msg("Performing GET request to %s via Tor" % self.url)
         control_request = self.doRequest(self.url, method="GET",
                 use_tor=True, headers=headers)
 

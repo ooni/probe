@@ -133,12 +133,17 @@ class ReportTracker(object):
     def __init__(self, reporters):
         self.report_completed = 0
         self.reporters = reporters
+        self.failedReporters = []
 
     def finished(self):
         """
         Returns true if all the tasks are done. False if not.
         """
-        if self.report_completed == len(self.reporters):
+        # If a reporter fails and is removed, the report
+        # is considered completed but failed, but the number
+        # of reporters is now decreased by the number of failed
+        # reporters.
+        if self.report_completed == (len(self.reporters) + len(self.failedReporters)):
             return True
         return False
 
