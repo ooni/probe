@@ -156,14 +156,15 @@ def runWithDirector():
     def setup_nettest(_):
         try: 
             return deck.setup()
-        except errors.UnableToLoadDeckInput, e:
-            return defer.failure.Failure(result)
+        except errors.UnableToLoadDeckInput as error:
+            return defer.failure.Failure(error)
 
     def director_startup_failed(failure):
         log.err("Failed to start the director")
         r = failure.trap(errors.TorNotRunning,
                 errors.InvalidOONIBCollectorAddress,
-                errors.UnableToLoadDeckInput, errors.CouldNotFindTestHelper)
+                errors.UnableToLoadDeckInput, errors.CouldNotFindTestHelper,
+                errors.CouldNotFindTestCollector)
 
         if isinstance(failure.value, errors.TorNotRunning):
             log.err("Tor does not appear to be running")
@@ -183,6 +184,11 @@ def runWithDirector():
         elif isinstance(failure.value, errors.CouldNotFindTestHelper):
             log.err("Unable to obtain the required test helpers.")
             log.msg("Try with a different bouncer or check that Tor is running properly.")
+
+        elif isinstance(failure.value, errors.CouldNotFindTestCollector):
+            log.err("Could not find a valid collector.")
+            log.msg("Try with a different bouncer, specify a collector with -c or disable reporting to a collector with -n.")
+
 
         if config.advanced.debug:
             log.exception(failure)
