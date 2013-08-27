@@ -5,20 +5,82 @@ from ooni.settings import config
 from ooni.utils import log
 from ooni.utils.txagentwithsocks import Agent
 from ooni import errors as e
-from ooni.oonibclient import OONIBClient
 
 from twisted.internet import reactor, defer
 
 import os
 import re
 import yaml
+import json
+from hashlib import sha256
 
-class Deck(object):
-    def __init__(self, deckFile=None):
+class InputFile(object):
+    def __init__(self, input_hash):
+        self.id = input_hash
+        cached_input_dir = os.path.join(config.advanced.data_dir,
+                'inputs')
+        cache_path = os.path.join(cached_input_dir, input_hash)
+        self.cached_file = cache_path
+        self.cached_descriptor = cache_path + '.desc'
+    
+    @property
+    def descriptorCached(self):
+        if os.path.exists(self.cached_descriptor):
+            with open(self.cached_descriptor) as f:
+                descriptor = json.load(f)
+                self.load(descriptor)
+            return True
+        return False
+    
+    @property
+    def fileCached(self):
+        if os.path.exists(self.cached_file):
+            try:
+                self.verify()
+            except AssertionError:
+                log.err("The input %s failed validation. Going to consider it not cached." % self.id)
+                return False
+            return True
+        return False
+
+    def save(self):
+        with open(self.cached_descriptor, 'w+') as f:
+            json.dump({
+                'name': self.name,
+                'id': self.id,
+                'version': self.version,
+                'author': self.author,
+                'date': self.date,
+                'description': self.description
+            }, f)
+    
+    def load(self, descriptor):
+        self.name = descriptor['name']
+        self.version = descriptor['version']
+        self.author = descriptor['author']
+        self.date = descriptor['date']
+        self.description = descriptor['description']
+
+    def verify(self):
+        digest = os.path.basename(self.cached_file)
+        with open(self.cached_file) as f:
+            file_hash = sha256(f.read())
+            assert file_hash.hexdigest() == digest
+
+class Deck(InputFile):
+    def __init__(self, deck_hash=None, deckFile=None):
+        self.id = deck_hash
         self.bouncer = None
         self.netTestLoaders = []
         self.inputs = []
         self.testHelpers = {}
+
+        cached_deck_dir = os.path.join(config.advanced.data_dir,
+                'decks')
+        cache_path = os.path.join(cached_deck_dir, deck_hash)
+        self.cached_file = cache_path
+        self.cached_descriptor = cache_path + '.desc'
+ 
         if deckFile: self.loadDeck(deckFile)
 
     def loadDeck(self, deckFile):
@@ -49,6 +111,7 @@ class Deck(object):
 
     @defer.inlineCallbacks
     def lookupTestHelpers(self):
+        from ooni.oonibclient import OONIBClient
         oonibclient = OONIBClient(self.bouncer)
         required_test_helpers = []
         for net_test_loader in self.netTestLoaders:
@@ -73,6 +136,7 @@ class Deck(object):
     @defer.inlineCallbacks
     def fetchAndVerifyNetTestInput(self, net_test_loader):
         """ fetch and verify a single NetTest's inputs """
+        from ooni.oonibclient import OONIBClient
         log.debug("Fetching and verifying inputs")
         for i in net_test_loader.inputFiles:
             if 'url' in i:

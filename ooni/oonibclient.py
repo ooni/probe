@@ -7,63 +7,11 @@ from twisted.internet import defer, reactor
 
 from ooni.utils.txagentwithsocks import Agent
 
+from ooni.deck import Deck, InputFile
 from ooni import errors as e
 from ooni.settings import config
 from ooni.utils import log
 from ooni.utils.net import BodyReceiver, StringProducer, Downloader
-
-class InputFile(object):
-    def __init__(self, input_hash):
-        self.id = input_hash
-        cached_input_dir = os.path.join(config.advanced.data_dir,
-                'inputs')
-        cache_path = os.path.join(cached_input_dir, input_hash)
-        self.cached_file = cache_path
-        self.cached_descriptor = cache_path + '.desc'
-    
-    @property
-    def descriptorCached(self):
-        if os.path.exists(self.cached_descriptor):
-            with open(self.cached_descriptor) as f:
-                descriptor = json.load(f)
-                self.load(descriptor)
-            return True
-        return False
-    
-    @property
-    def fileCached(self):
-        if os.path.exists(self.cached_file):
-            try:
-                self.verify()
-            except AssertionError:
-                log.err("The input %s failed validation. Going to consider it not cached." % self.id)
-                return False
-            return True
-        return False
-
-    def save(self):
-        with open(self.cached_descriptor, 'w+') as f:
-            json.dump({
-                'name': self.name,
-                'id': self.id,
-                'version': self.version,
-                'author': self.author,
-                'date': self.date,
-                'description': self.description
-            }, f)
-    
-    def load(self, descriptor):
-        self.name = descriptor['name']
-        self.version = descriptor['version']
-        self.author = descriptor['author']
-        self.date = descriptor['date']
-        self.description = descriptor['description']
-
-    def verify(self):
-        digest = os.path.basename(self.cached_file)
-        with open(self.cached_file) as f:
-            file_hash = sha256(f.read())
-            assert file_hash.hexdigest() == digest
 
 class Collector(object):
     def __init__(self, address):
@@ -193,6 +141,50 @@ class OONIBClient(object):
     def getNettestPolicy(self):
         return self.queryBackend('GET', '/policy/nettest')
 
+    def getDeckList(self):
+        return self.queryBackend('GET', '/deck')
+
+    def getDeck(self, deck_hash):
+        deck = Deck(deck_hash)
+        if deck.descriptorCached:
+            return defer.succeed(deck)
+        else:
+            d = self.queryBackend('GET', '/deck/' + deck_hash)
+
+            @d.addCallback
+            def cb(descriptor):
+                deck.load(descriptor)
+                deck.save()
+                return deck
+
+            @d.addErrback
+            def err(err):
+                log.err("Failed to get descriptor for deck %s" % deck_hash)
+                print err
+                log.exception(err)
+
+            return d
+
+    def downloadDeck(self, deck_hash):
+        deck = Deck(deck_hash)
+        if deck.fileCached:
+            return defer.succeed(deck)
+        else:
+            d = self.download('/deck/'+deck_hash+'/file', deck.cached_file)
+
+            @d.addCallback
+            def cb(res):
+                deck.verify()
+                return deck
+
+            @d.addErrback
+            def err(err):
+                log.err("Failed to download the deck %s" % deck_hash)
+                print err
+                log.exception(err)
+
+            return d
+
     @defer.inlineCallbacks
     def lookupTestCollector(self, test_name):
         try:
@@ -216,4 +208,3 @@ class OONIBClient(object):
             raise e.CouldNotFindTestHelper
 
         defer.returnValue(test_helper)
-
