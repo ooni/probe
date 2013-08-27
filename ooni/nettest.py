@@ -212,6 +212,8 @@ class NetTestLoader(object):
             if test_class.inputFile:
                 key = test_class.inputFile[0]
                 filename = test_class.localOptions[key]
+                if not filename:
+                    continue
                 input_file = {
                     'key': key,
                     'test_class': test_class
