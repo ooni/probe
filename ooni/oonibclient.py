@@ -121,9 +121,16 @@ class OONIBClient(object):
         bodyProducer = None
         if query:
             bodyProducer = StringProducer(json.dumps(query))
-    
+        
         def genReceiver(finished, content_length):
-            return BodyReceiver(finished, content_length, json.loads)
+            def process_response(s):
+                response = json.loads(s)
+                if 'error' in response:
+                    print "Got this backend error message %s" % response
+                    log.err("Got this backend error message %s" % response)
+                    raise e.get_error(response['error'])
+                return response
+            return BodyReceiver(finished, content_length, process_response)
 
         return self._request(method, urn, genReceiver, bodyProducer)
 
@@ -197,15 +204,15 @@ class OONIBClient(object):
         defer.returnValue(test_collector)
 
     @defer.inlineCallbacks
-    def lookupTestHelper(self, test_helper_name):
+    def lookupTestHelpers(self, test_helper_names):
         try:
 
             test_helper = yield self.queryBackend('POST', '/bouncer', 
-                            query={'test-helper': test_helper_name})
+                            query={'test-helpers': test_helper_names})
         except Exception:
             raise e.CouldNotFindTestHelper
 
-        if not test_helpers:
+        if not test_helper:
             raise e.CouldNotFindTestHelper
 
         defer.returnValue(test_helper)

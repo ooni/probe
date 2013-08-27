@@ -64,14 +64,15 @@ class TestOONIBClient(unittest.TestCase):
 
     def test_lookup_invalid_helpers(self):
         return self.failUnlessFailure(
-                self.oonibclient.lookupTestHelpers(
-                    ['dns', 'http-return-json-headers', 'sdadsadsa']
-                ), e.CouldNotFindTestHelper)
+                self.oonibclient.lookupTestHelpers([
+                    'sdadsadsa', 'dns'
+                ]), e.CouldNotFindTestHelper)
 
     @defer.inlineCallbacks
     def test_lookup_test_helpers(self):
-        helpers = yield self.oonibclient.lookupTestHelpers(['dns', 'http-return-json-headers'])
-        self.assertTrue(len(helpers) == 1)
+        required_helpers = [u'http-return-json-headers', u'dns']
+        helpers = yield self.oonibclient.lookupTestHelpers(required_helpers)
+        self.assertEqual(set(helpers.keys()), set(required_helpers + [u'default']))
 
     @defer.inlineCallbacks
     def test_get_nettest_list(self):

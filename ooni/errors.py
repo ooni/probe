@@ -165,7 +165,10 @@ class NoMoreReporters(Exception):
 class TorNotRunning(Exception):
     pass
 
-class OONIBReportError(Exception):
+class OONIBError(Exception):
+    pass
+
+class OONIBReportError(OONIBError):
     pass
 
 class OONIBReportUpdateError(OONIBReportError):
@@ -185,3 +188,9 @@ class CouldNotFindTestHelper(Exception):
 
 class CouldNotFindTestCollector(Exception):
     pass
+
+def get_error(error_key):
+    if error_key == 'test-helpers-key-missing':
+        return CouldNotFindTestHelper
+    else:
+        return OONIBError
