@@ -421,8 +421,8 @@ if which pip >/dev/null 2>&1; then
 fi
 
 install_pip_securely() {
-  DO "wget -O ${BUILD_DIR}/${PIP_PKG} ${PIP_URL}" "0"
-  DO "wget -O ${BUILD_DIR}/${PIP_PKG}.asc ${PIP_SIG_URL}" "0"
+  DO "curl -o ${BUILD_DIR}/${PIP_PKG} ${PIP_URL}" "0"
+  DO "curl -o ${BUILD_DIR}/${PIP_PKG}.asc ${PIP_SIG_URL}" "0"
 
   echo "[+] Verifying PGP signature of pip"
   echo "${PIP_PUB_KEY}" > ${PIP_KEY_FILE}
