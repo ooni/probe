@@ -490,7 +490,7 @@ case $DISTRO_VERSION in
 
   if [ "$USE_VIRTUALENV" -eq "1" ]; then
     echo "[+] Using virtualenvironment..."
-    DO "apt-get -y install python-virtualenv virtualenvwrapper"
+    DO "apt-get -y install python-virtualenv virtualenvwrapper" "0"
     if [ ! -f ~/.virtualenvs/ooniprobe/bin/activate ]; then
       # Set up the virtual environment
       DO "mkdir -p ~/.virtualenvs" "0"
