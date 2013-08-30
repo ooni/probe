@@ -522,7 +522,7 @@ case $DISTRO_VERSION in
   echo ""
   echo "You should also be sure to edit your configuration appropriately by doing:"
   echo ""
-  echo "cp /usr/share/ooni/ooniprobe.conf.sample ~/.ooni/ooniprobe.conf"
+  echo "cp ${DIR}/data/ooniprobe.conf.sample ~/.ooni/ooniprobe.conf"
   echo ""
   
 
