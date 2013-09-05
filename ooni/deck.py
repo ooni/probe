@@ -77,9 +77,10 @@ class Deck(InputFile):
 
         cached_deck_dir = os.path.join(config.advanced.data_dir,
                 'decks')
-        cache_path = os.path.join(cached_deck_dir, deck_hash)
-        self.cached_file = cache_path
-        self.cached_descriptor = cache_path + '.desc'
+        if deck_hash:
+            cache_path = os.path.join(cached_deck_dir, deck_hash)
+            self.cached_file = cache_path
+            self.cached_descriptor = cache_path + '.desc'
  
         if deckFile: self.loadDeck(deckFile)
 
