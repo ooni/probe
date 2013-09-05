@@ -34,17 +34,17 @@ advanced:
     # explicitly set the control port and SOCKS port
     start_tor: true
     # After how many seconds we should give up on a particular measurement
-    measurement_timeout: 30
+    measurement_timeout: 60
     # After how many retries we should give up on a measurement
     measurement_retries: 2
     # How many measurments to perform concurrently
-    measurement_concurrency: 100
+    measurement_concurrency: 10
     # After how may seconds we should give up reporting
-    reporting_timeout: 30
+    reporting_timeout: 80
     # After how many retries to give up on reporting
     reporting_retries: 3
     # How many reports to perform concurrently
-    reporting_concurrency: 20
+    reporting_concurrency: 15
     # Specify here a custom data_dir path
     data_dir: /usr/share/ooni/
     oonid_api_port: 8042
