@@ -453,10 +453,6 @@ class NetTestState(object):
     def checkAllTasksDone(self):
         log.debug("Checking all tasks for completion %s == %s" %
                   (self.doneTasks, self.tasks))
-        with open('task_count_log.txt', 'a+') as f:
-            diff = int(self.tasks) - int(self.doneTasks)
-            f.write("%s, %s, %s, %s\n" % (otime.timestamp(), self.doneTasks, self.tasks, diff))
-
         if self.completedScheduling and \
                 self.doneTasks == self.tasks:
             self.allTasksDone.callback(self.doneTasks)
