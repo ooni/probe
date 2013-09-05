@@ -75,17 +75,25 @@ class Deck(InputFile):
         self.inputs = []
         self.testHelpers = {}
 
-        cached_deck_dir = os.path.join(config.advanced.data_dir,
-                'decks')
-        if deck_hash:
-            cache_path = os.path.join(cached_deck_dir, deck_hash)
-            self.cached_file = cache_path
-            self.cached_descriptor = cache_path + '.desc'
+        self.deckHash = deck_hash
  
         if deckFile: self.loadDeck(deckFile)
 
+    @property
+    def cached_file(self):
+        cached_deck_dir = os.path.join(config.advanced.data_dir, 'decks')
+        return os.path.join(cached_deck_dir, self.deckHash)
+   
+    @property
+    def cached_descriptor(self):
+        return self.cached_file + '.desc'
+
     def loadDeck(self, deckFile):
-        test_deck = yaml.safe_load(open(deckFile))
+        with open(deckFile) as f:
+            self.deckHash = sha256(f.read())
+            f.seek(0)
+            test_deck = yaml.safe_load(f)
+
         for test in test_deck:
             net_test_loader = NetTestLoader(test['options']['subargs'],
                     test_file=test['options']['test_file'])
@@ -103,12 +111,13 @@ class Deck(InputFile):
     @defer.inlineCallbacks
     def setup(self):
         """ fetch and verify inputs for all NetTests in the deck """
+        for net_test_loader in self.netTestLoaders:
+            log.msg("Fetching required net test inputs...")
+            yield self.fetchAndVerifyNetTestInput(net_test_loader)
+
         if self.bouncer:
             log.msg("Looking up test helpers...")
             yield self.lookupTestHelpers()
-            for net_test_loader in self.netTestLoaders:
-                log.msg("Fetching required net test inputs...")
-                yield self.fetchAndVerifyNetTestInput(net_test_loader)
 
     @defer.inlineCallbacks
     def lookupTestHelpers(self):
