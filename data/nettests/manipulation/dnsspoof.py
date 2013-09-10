@@ -1,3 +1,8 @@
+# -*- encoding: utf-8 -*-
+#
+# :authors: Arturo Filastò
+# :licence: see LICENSE
+
 from twisted.internet import defer
 from twisted.python import usage
 
