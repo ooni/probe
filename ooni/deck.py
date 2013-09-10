@@ -135,7 +135,7 @@ class Deck(InputFile):
             log.msg("Setting collector and test helpers for %s" % net_test_loader.testDetails['test_name'])
             if not net_test_loader.requiredTestHelpers:
                 log.msg("Using the default collector: %s" % response['default']['collector'])
-                net_test_loader.collector = response['default']['collector']
+                net_test_loader.collector = response['default']['collector'].encode('utf-8')
 
             for th in net_test_loader.requiredTestHelpers:
                 test_helper = response[th['name']]
