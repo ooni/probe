@@ -78,11 +78,20 @@ class TestOONIBClient(unittest.TestCase):
                 ]), e.CouldNotFindTestHelper)
 
     @defer.inlineCallbacks
+    def test_lookup_no_test_helpers(self):
+        self.oonibclient.address = 'http://127.0.0.1:8888'
+        required_helpers = []
+        helpers = yield self.oonibclient.lookupTestHelpers(required_helpers)
+        self.assertTrue('default' in helpers.keys())
+
+    @defer.inlineCallbacks
     def test_lookup_test_helpers(self):
         self.oonibclient.address = 'http://127.0.0.1:8888'
         required_helpers = [u'http-return-json-headers', u'dns']
         helpers = yield self.oonibclient.lookupTestHelpers(required_helpers)
         self.assertEqual(set(helpers.keys()), set(required_helpers + [u'default']))
+        self.assertTrue(helpers['http-return-json-headers']['address'].startswith('http'))
+        self.assertTrue(int(helpers['dns']['address'].split('.')[0]))
 
     @defer.inlineCallbacks
     def test_invalid_requests(self):
