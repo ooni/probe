@@ -148,8 +148,13 @@ class Deck(InputFile):
         required_test_helpers = []
         for net_test_loader in self.netTestLoaders:
             for th in net_test_loader.requiredTestHelpers:
+                if th['test_class'].localOptions[th['option']]:
+                    continue
                 # {'name':'', 'option':'', 'test_class':''}
                 required_test_helpers.append(th['name'])
+
+        if not required_test_helpers:
+            defer.returnValue(None)
 
         response = yield oonibclient.lookupTestHelpers(required_test_helpers)
 
