@@ -62,7 +62,7 @@ ooniprobe will be installed in `/ooni`.
 3) You can run tests with:
 
 ```
-ooniprobe /usr/share/ooni/nettests/blocking/http_requests.py -f /ooni/inputs/input-pack/alexa-top-1k.txt
+ooniprobe blocking/http_requests -f /ooni/inputs/input-pack/alexa-top-1k.txt
 ```
 
 ## The easy way to prep your system for running ooniprobe

@@ -32,17 +32,17 @@ How to run the test
 
 To test a single site run:
 
-`./bin/ooniprobe nettests/blocking/http_requests.py -u http://<test_site>/`
+`ooniprobe blocking/http_requests -u http://<test_site>/`
 
 To test a set of sites from a list containing sites to test run:
 
-`./bin/ooniprobe nettests/blocking/http_requests.py -f <input_file>`
+`ooniprobe blocking/http_requests -f <input_file>`
 
 
 Sample report
 =============
 
-`./bin/ooniprobe nettests/blocking/http_requests.py -f example_inputs/url_lists_file.txt`
+`ooniprobe blocking/http_requests -f example_inputs/url_lists_file.txt`
 
 ::
 
