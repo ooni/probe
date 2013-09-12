@@ -7,10 +7,9 @@ https://ooni.torproject.org/reports/ ``CC`` /
 Where ``CC`` is the two letter country code as specified by `ISO 31666-2
 <http://en.wikipedia.org/wiki/ISO_3166-2>`_.
 
-For example the reports for Italy (``CC`` is ``it``) of the ``reportVersion`` 0.1 may
-be found in:
+For example the reports for Italy (``CC`` is ``it``) of the  may be found in:
 
-https://ooni.torproject.org/reports/0.1/IT/
+https://ooni.torproject.org/reports/IT/
 
 
 This directory shall contain the various reports for the test using the
@@ -38,8 +37,8 @@ For example if two report that are created on the first of January 2012 at Noon
 
 ::
 
-  https://ooni.torproject.org/reports/0.1/US/2012-01-01T120000Z_AS3.yamloo
-  https://ooni.torproject.org/reports/0.1/US/2012-01-01T120000Z_AS3.1.yamloo
+  https://ooni.torproject.org/reports/US/2012-01-01T120000Z_AS3.yamloo
+  https://ooni.torproject.org/reports/US/2012-01-01T120000Z_AS3.1.yamloo
 
 
 Note: it is highly unlikely that reports get created with the same exact
