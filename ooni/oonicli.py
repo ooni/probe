@@ -14,7 +14,7 @@ from ooni import errors
 
 from ooni.settings import config
 from ooni.director import Director
-from ooni.deck import Deck
+from ooni.deck import Deck, nettest_to_path
 from ooni.reporter import YAMLReporter, OONIBReporter
 from ooni.nettest import NetTestLoader, MissingRequiredOption
 
@@ -141,13 +141,17 @@ def runWithDirector():
             deck.loadDeck(global_options['testdeck'])
         else:
             log.debug("No test deck detected")
+            test_file = nettest_to_path(global_options['test_file'])
             net_test_loader = NetTestLoader(global_options['subargs'],
-                    test_file=global_options['test_file'])
+                    test_file=test_file)
             deck.insert(net_test_loader)
-    except MissingRequiredOption, option_name:
+    except errors.MissingRequiredOption, option_name:
         log.err('Missing required option: "%s"' % option_name)
         print net_test_loader.usageOptions().getUsage()
         sys.exit(2)
+    except errors.NetTestNotFound, path:
+        log.err('Requested NetTest file not found (%s)' % path)
+        sys.exit(3)
     except usage.UsageError, e:
         log.err(e)
         print net_test_loader.usageOptions().getUsage()
