@@ -75,7 +75,7 @@ class DNSConsistencyTest(dnst.DNSTest):
             log.debug("No test resolver file configured")
 
         dns_ip, dns_port = self.localOptions['backend'].split(':')
-        self.control_dns_server = (dns_ip, int(dns_port))
+        self.control_dns_server = (str(dns_ip), int(dns_port))
 
         self.report['control_resolver'] = self.control_dns_server
 
