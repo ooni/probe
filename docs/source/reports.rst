@@ -2,7 +2,7 @@ Reports
 =======
 
 The reports collected by ooniprobe are stored on
-https://ooni.torproject.org/reports/ ``reportFormatVersion`` / ``CC`` /
+https://ooni.torproject.org/reports/ ``CC`` /
 
 Where ``CC`` is the two letter country code as specified by `ISO 31666-2
 <http://en.wikipedia.org/wiki/ISO_3166-2>`_.
@@ -50,11 +50,9 @@ some malicious report poisoning attack in progress.
 Report format version changelog
 ===============================
 
-In here shall go details about he major changes to the reporting format.
+In here shall go details about the major changes to the reporting format.
 
 version 0.1
 -----------
 
 Initial format version.
-
-
