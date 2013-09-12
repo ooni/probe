@@ -49,8 +49,8 @@ advanced:
     data_dir: /usr/share/ooni/
     oonid_api_port: 8042
 tor:
-    socks_port: 8801
-    control_port: 8802
+    #socks_port: 8801
+    #control_port: 8802
     # Specify the absolute path to the Tor bridges to use for testing
     #bridges: bridges.list
     # Specify path of the tor datadirectory.
