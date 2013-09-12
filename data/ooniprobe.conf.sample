@@ -7,7 +7,7 @@ basic:
     logfile: /var/log/ooniprobe.log
 privacy:
     # Should we include the IP address of the probe in the report?
-    includeip: true
+    includeip: false
     # Should we include the ASN of the probe in the report?
     includeasn: true
     # Should we include the country as reported by GeoIP in the report?
