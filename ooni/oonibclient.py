@@ -87,7 +87,10 @@ class OONIBClient(object):
         
         def genReceiver(finished, content_length):
             def process_response(s):
-                response = json.loads(s)
+                try:
+                    response = json.loads(s)
+                except ValueError:
+                    raise e.get_error(None)
                 if 'error' in response:
                     print "Got this backend error message %s" % response
                     log.err("Got this backend error message %s" % response)
@@ -216,7 +219,8 @@ class OONIBClient(object):
 
             test_helper = yield self.queryBackend('POST', '/bouncer', 
                             query={'test-helpers': test_helper_names})
-        except Exception:
+        except Exception, e:
+            log.exception(e)
             raise e.CouldNotFindTestHelper
 
         if not test_helper:
