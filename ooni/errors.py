@@ -189,6 +189,12 @@ class CouldNotFindTestHelper(Exception):
 class CouldNotFindTestCollector(Exception):
     pass
 
+class NetTestNotFound(Exception):
+    pass
+
+class MissingRequiredOption(Exception):
+    pass
+
 def get_error(error_key):
     if error_key == 'test-helpers-key-missing':
         return CouldNotFindTestHelper

@@ -67,6 +67,22 @@ class InputFile(object):
             file_hash = sha256(f.read())
             assert file_hash.hexdigest() == digest
 
+def nettest_to_path(path):
+    """
+    Takes as input either a path or a nettest name.
+    
+    Returns:
+
+        full path to the nettest file.
+    """
+    path_via_name = os.path.join(config.nettest_directory, path + '.py')
+    if os.path.exists(path):
+        return path
+    elif os.path.exists(path_via_name):
+        return path_via_name
+    else:
+        raise e.NetTestNotFound(path)
+
 class Deck(InputFile):
     def __init__(self, deck_hash=None, deckFile=None):
         self.id = deck_hash
@@ -95,8 +111,14 @@ class Deck(InputFile):
             test_deck = yaml.safe_load(f)
 
         for test in test_deck:
+            try:
+                nettest_path = nettest_to_path(test['options']['test_file'])
+            except e.NetTestNotFound:
+                log.err("Could not find %s" % test['options']['test_file'])
+                log.msg("Skipping...")
+                continue
             net_test_loader = NetTestLoader(test['options']['subargs'],
-                    test_file=test['options']['test_file'])
+                    test_file=nettest_path)
             #XXX: If the deck specifies the collector, we use the specified collector
             # And it should also specify the test helper address to use
             # net_test_loader.collector = test['options']['collector']
