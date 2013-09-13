@@ -14,8 +14,6 @@ class BaseTask(object):
         instances of it.
         """
         self.failures = 0
-
-        self.startTime = time.time()
         self.runtime = 0
 
         # This is a deferred that gets called when a test has reached it's
@@ -35,9 +33,10 @@ class BaseTask(object):
         return result
 
     def start(self):
+        self.startTime = time.time()
         self._running = defer.maybeDeferred(self.run)
-        self._running.addErrback(self._failed)
         self._running.addCallback(self._succeeded)
+        self._running.addErrback(self._failed)
         return self._running
 
     def succeeded(self, result):
@@ -74,7 +73,6 @@ class TaskWithTimeout(BaseTask):
             self._failed(TaskTimedOut)
 
     def _cancelTimer(self):
-        #import pdb; pdb.set_trace()
         if self._timer.active():
             self._timer.cancel()
 
