@@ -140,22 +140,34 @@ class Deck(InputFile):
         if self.bouncer:
             log.msg("Looking up test helpers...")
             yield self.lookupTestHelpers()
-
+    
     @defer.inlineCallbacks
     def lookupTestHelpers(self):
         from ooni.oonibclient import OONIBClient
         oonibclient = OONIBClient(self.bouncer)
         required_test_helpers = []
+        requires_collector = []
         for net_test_loader in self.netTestLoaders:
+            if not net_test_loader.collector:
+                requires_collector.append(net_test_loader)
+
             for th in net_test_loader.requiredTestHelpers:
                 # {'name':'', 'option':'', 'test_class':''}
+                if th['test_class'].localOptions[th['option']]:
+                    continue
                 required_test_helpers.append(th['name'])
+        
+        if not required_test_helpers and not requires_collector:
+            defer.returnValue(None)
 
         response = yield oonibclient.lookupTestHelpers(required_test_helpers)
 
         for net_test_loader in self.netTestLoaders:
             log.msg("Setting collector and test helpers for %s" % net_test_loader.testDetails['test_name'])
-            if not net_test_loader.requiredTestHelpers:
+
+            # Only set the collector if the no collector has been specified
+            # from the command line or via the test deck.
+            if not net_test_loader.requiredTestHelpers and net_test_loader in requires_collector:
                 log.msg("Using the default collector: %s" % response['default']['collector'])
                 net_test_loader.collector = response['default']['collector'].encode('utf-8')
 
@@ -163,7 +175,8 @@ class Deck(InputFile):
                 test_helper = response[th['name']]
                 log.msg("Using this helper: %s" % test_helper)
                 th['test_class'].localOptions[th['option']] = test_helper['address']
-                net_test_loader.collector = test_helper['collector'].encode('utf-8')
+                if net_test_loader in requires_collector:
+                    net_test_loader.collector = test_helper['collector'].encode('utf-8')
 
     @defer.inlineCallbacks
     def fetchAndVerifyNetTestInput(self, net_test_loader):

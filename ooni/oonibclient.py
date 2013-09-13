@@ -42,26 +42,41 @@ class Collector(object):
         return False
 
 class OONIBClient(object):
+    retries = 3
+
     def __init__(self, address):
         self.address = address
         self.agent = Agent(reactor, sockshost="127.0.0.1", 
                            socksport=config.tor.socks_port)
 
     def _request(self, method, urn, genReceiver, bodyProducer=None):
+        attempts = 0
+
         finished = defer.Deferred()
 
-        uri = self.address + urn
-        headers = {}
-        d = self.agent.request(method, uri, bodyProducer=bodyProducer)
+        def perform_request():
+            uri = self.address + urn
+            headers = {}
+            d = self.agent.request(method, uri, bodyProducer=bodyProducer)
 
-        @d.addCallback
-        def callback(response):
-            content_length = int(response.headers.getRawHeaders('content-length')[0])
-            response.deliverBody(genReceiver(finished, content_length))
+            @d.addCallback
+            def callback(response):
+                content_length = int(response.headers.getRawHeaders('content-length')[0])
+                response.deliverBody(genReceiver(finished, content_length))
 
-        @d.addErrback
-        def eb(err):
-            finished.errback(err)
+            def errback(err, attempts):
+                # We we will recursively keep trying to perform a request until
+                # we have reached the retry count.
+                if attempts < self.retries:
+                    log.err("Lookup failed. Retrying.")
+                    attempts += 1
+                    perform_request()
+                else:
+                    log.err("Failed. Giving up.")
+                    finished.errback(err)
+            d.addErrback(errback, attempts)
+
+        perform_request()
 
         return finished
 
@@ -72,7 +87,10 @@ class OONIBClient(object):
         
         def genReceiver(finished, content_length):
             def process_response(s):
-                response = json.loads(s)
+                try:
+                    response = json.loads(s)
+                except ValueError:
+                    raise e.get_error(None)
                 if 'error' in response:
                     print "Got this backend error message %s" % response
                     log.err("Got this backend error message %s" % response)
@@ -201,7 +219,8 @@ class OONIBClient(object):
 
             test_helper = yield self.queryBackend('POST', '/bouncer', 
                             query={'test-helpers': test_helper_names})
-        except Exception:
+        except Exception, e:
+            log.exception(e)
             raise e.CouldNotFindTestHelper
 
         if not test_helper:
