@@ -1,5 +1,6 @@
 - options:
     collector: null
+    no-collector: true
     help: 0
     logfile: reports/before_i_commit.log
     pcapfile: null
@@ -8,6 +9,7 @@
     test_file: manipulation/captiveportal
 - options:
     collector: null
+    no-collector: true
     help: 0
     logfile: reports/before_i_commit.log
     pcapfile: null
@@ -16,6 +18,7 @@
     test_file: blocking/dnsconsistency
 - options:
     collector: null
+    no-collector: true
     help: 0
     logfile: reports/before_i_commit.log
     pcapfile: null
@@ -23,6 +26,7 @@
     subargs: [-b, 'http://93.95.227.200', -f, example_inputs/http_host_file.txt]
     test_file: manipulation/http_host
 - options:
+    no-collector: true
     collector: null
     help: 0
     logfile: reports/before_i_commit.log
