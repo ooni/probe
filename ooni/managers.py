@@ -30,23 +30,18 @@ class TaskManager(object):
         to be re-run once all the currently scheduled tasks have run.
         """
         log.err("Task %s has failed %s times" % (task, task.failures))
-        log.exception(failure)
-
         self._active_tasks.remove(task)
         self.failures = self.failures + 1
+        self.failed(failure, task)
 
         if task.failures <= self.retries:
             log.debug("Rescheduling...")
-            self._tasks = itertools.chain(makeIterable(task), self._tasks)
-
+            self.schedule(task)
         else:
             # This fires the errback when the task is done but has failed.
             log.err('Permanent failure for %s' % task)
             task.done.errback(failure)
-
-        self._fillSlots()
-
-        self.failed(failure, task)
+            self._fillSlots()
 
     def _fillSlots(self):
         """
@@ -116,7 +111,7 @@ class TaskManager(object):
 
     def failed(self, failure, task):
         """
-        This hoook is called every time a task has failed.
+        This hook is called every time a task has failed.
 
         The default failure handling logic is to reschedule the task up until
         we reach the maximum number of retries.
