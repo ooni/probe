@@ -4,8 +4,9 @@ import json
 from hashlib import sha256
 
 from twisted.internet import defer, reactor
+from twisted.internet.endpoints import TCP4ClientEndpoint
 
-from ooni.utils.txagentwithsocks import Agent
+from txsocksx.http import SOCKS5Agent
 
 from ooni.deck import Deck, InputFile
 from ooni import errors as e
@@ -46,8 +47,9 @@ class OONIBClient(object):
 
     def __init__(self, address):
         self.address = address
-        self.agent = Agent(reactor, sockshost="127.0.0.1", 
-                           socksport=config.tor.socks_port)
+        self.agent = SOCKS5Agent(reactor,
+                proxyEndpoint=TCP4ClientEndpoint(reactor, '127.0.0.1',
+                    config.tor.socks_port))
 
     def _request(self, method, urn, genReceiver, bodyProducer=None):
         attempts = 0

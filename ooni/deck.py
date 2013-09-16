@@ -3,7 +3,6 @@
 from ooni.nettest import NetTestLoader
 from ooni.settings import config
 from ooni.utils import log
-from ooni.utils.txagentwithsocks import Agent
 from ooni import errors as e
 
 from twisted.internet import reactor, defer
