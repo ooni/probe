@@ -19,7 +19,7 @@ from ooni.settings import config
 
 from ooni.utils.net import BodyReceiver, StringProducer, userAgents
 
-from ooni.utils.txagentwithsocks import TrueHeaders
+from ooni.utils.trueheaders import TrueHeaders
 from ooni.errors import handleAllFailures
 
 

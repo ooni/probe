@@ -46,10 +46,15 @@ class OONIBClient(object):
     retries = 3
 
     def __init__(self, address):
-        self.address = address
-        self.agent = SOCKS5Agent(reactor,
+        if address.startswith('httpo://'):
+            self.address = address.replace('httpo://', 'http://')
+            self.agent = SOCKS5Agent(reactor,
                 proxyEndpoint=TCP4ClientEndpoint(reactor, '127.0.0.1',
                     config.tor.socks_port))
+
+        elif address.startswith('https://'):
+            log.err("HTTPS based bouncers are currently not supported.")
+
 
     def _request(self, method, urn, genReceiver, bodyProducer=None):
         attempts = 0
@@ -71,6 +76,7 @@ class OONIBClient(object):
                 # we have reached the retry count.
                 if attempts < self.retries:
                     log.err("Lookup failed. Retrying.")
+                    log.exception(err)
                     attempts += 1
                     perform_request()
                 else:
