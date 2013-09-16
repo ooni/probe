@@ -11,7 +11,7 @@ from twisted.internet.error import ConnectionRefusedError, DNSLookupError, TCPTi
 from twisted.internet.endpoints import TCP4ClientEndpoint
 from twisted.web._newclient import Request, Response, ResponseNeverReceived
 from twisted.web.client import Agent
-from txsocksx.http import SOCKS5Agent
+from ooni.utils.trueheaders import TrueHeadersAgent, TrueHeadersSOCKS5Agent
 
 from ooni.nettest import NetTestCase
 from ooni.utils import log
@@ -64,7 +64,7 @@ class HTTPTest(NetTestCase):
             log.err("Warning! pyOpenSSL is not installed. https websites will "
                      "not work")
 
-        self.control_agent = SOCKS5Agent(reactor,
+        self.control_agent = TrueHeadersSOCKS5Agent(reactor,
                 proxyEndpoint=TCP4ClientEndpoint(reactor, '127.0.0.1',
                     config.tor.socks_port))
 
@@ -77,12 +77,11 @@ class HTTPTest(NetTestCase):
             except ValueError:
                 raise InvalidSocksProxyOption
             socksport = int(socksport)
-            self.agent = SOCKS5Agent(reactor,
+            self.agent = TrueHeadersSOCKS5Agent(reactor,
                 proxyEndpoint=TCP4ClientEndpoint(reactor, sockshost,
                     socksport))
         else:
-            #XXX: pool?
-            self.agent = Agent(reactor)
+            self.agent = TrueHeadersAgent(reactor)
 
         self.report['agent'] = 'agent'
 

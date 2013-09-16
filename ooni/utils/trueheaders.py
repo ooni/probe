@@ -1,7 +1,8 @@
-# -*- encoding: utf-8 -*-
-#
 # :authors: Giovanni Pellerano
 # :licence: see LICENSE
+#
+# Here we make sure that the HTTP Headers sent and received are True. By this
+# we mean that they are not normalized and that the ordering is maintained.
 
 import struct
 import itertools
@@ -10,13 +11,13 @@ from copy import copy
 from zope.interface import implements
 from twisted.web import client, _newclient, http_headers
 from twisted.web._newclient import Request, RequestNotSent, RequestGenerationFailed, TransportProxyProducer, STATUS
-from twisted.internet import protocol
+from twisted.internet import protocol, reactor
 from twisted.internet.protocol import ClientFactory, Protocol
 from twisted.internet.endpoints import TCP4ClientEndpoint, SSL4ClientEndpoint
 from twisted.internet import interfaces, defer
 from twisted.internet.defer import Deferred, succeed, fail, maybeDeferred
 
-from txsocksx.client import SOCKS5ClientEndpoint
+from txsocksx.http import SOCKS5Agent
 from txsocksx.client import SOCKS5ClientFactory
 SOCKS5ClientFactory.noisy = False
 
@@ -144,72 +145,15 @@ class _HTTP11ClientFactory(client._HTTP11ClientFactory):
     def buildProtocol(self, addr):
         return HTTP11ClientProtocol(self._quiescentCallback)
 
-try:
-    class HTTPConnectionPool(client.HTTPConnectionPool):
-        _factory = _HTTP11ClientFactory
-except AttributeError:
-    log.err("Your version of Twisted is outdated and we will not support HTTPConnectionPool")
-    HTTPConnectionPool = None
+class HTTPConnectionPool(client.HTTPConnectionPool):
+    _factory = _HTTP11ClientFactory
 
-class UnsupportedTwistedVersion(Exception):
-    pass
+class TrueHeadersAgent(client.Agent):
+    def __init__(self, *args, **kw):
+        super(TrueHeadersAgent, self).__init__(*args, **kw)
+        self._pool = HTTPConnectionPool(reactor, False)
 
-class Agent(client.Agent):
-    def __init__(self, reactor,
-                 contextFactory=client.WebClientContextFactory(),
-                 connectTimeout=None, bindAddress=None,
-                 pool=None, sockshost=None, socksport=None):
-        if pool is None and HTTPConnectionPool:
-            pool = HTTPConnectionPool(reactor, False)
-        self._reactor = reactor
-        self._pool = pool
-        self._contextFactory = contextFactory
-        self._connectTimeout = connectTimeout
-        self._bindAddress = bindAddress
-        self._sockshost = sockshost
-        self._socksport = socksport
-
-    def logPrefix(self):
-        return 'SOCKSAgent'
-
-    def request(self, method, uri, headers=None, bodyProducer=None):
-        if (uri.startswith('shttp') or uri.startswith('httpo')) and not HTTPConnectionPool:
-            log.err("Requests over SOCKS are supported only with versions of Twisted >= 12.1.0")
-            raise UnsupportedTwistedVersion
-        return client.Agent.request(self, method, uri, headers, bodyProducer)
-
-    def _getEndpoint(self, scheme, host, port):
-        kwargs = {}
-        if self._connectTimeout is not None:
-            kwargs['timeout'] = self._connectTimeout
-        kwargs['bindAddress'] = self._bindAddress
-        if scheme == 'http':
-            return TCP4ClientEndpoint(self._reactor, host, port, **kwargs)
-        elif scheme == 'shttp' or scheme == 'httpo':
-            socksProxy = TCP4ClientEndpoint(self._reactor, self._sockshost,
-                    self._socksport)
-            return SOCKS5ClientEndpoint(host, port, socksProxy)
-        elif scheme == 'https':
-            return SSL4ClientEndpoint(self._reactor, host, port,
-                    self._wrapContextFactory(host, port), **kwargs)
-        else:
-            raise SchemeNotSupported("Unsupported scheme: %r" % (scheme,))
-
-    def _requestWithEndpoint(self, key, endpoint, method, parsedURI,
-                             headers, bodyProducer, requestPath):
-        if headers is None:
-            headers = TrueHeaders()
-        if not headers.hasHeader('host'):
-            headers = headers.copy()
-            headers.addRawHeader(
-                'host', self._computeHostValue(parsedURI.scheme,
-                    parsedURI.host, parsedURI.port))
-
-        d = self._pool.getConnection(key, endpoint)
-        def cbConnected(proto):
-            return proto.request(
-                Request(method, requestPath, headers, bodyProducer,
-                        persistent=self._pool.persistent))
-        d.addCallback(cbConnected)
-        return d
-
+class TrueHeadersSOCKS5Agent(SOCKS5Agent):
+    def __init__(self, *args, **kw):
+        super(TrueHeadersSOCKS5Agent, self).__init__(*args, **kw)
+        self._pool = HTTPConnectionPool(reactor, False)
