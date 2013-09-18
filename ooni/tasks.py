@@ -106,9 +106,10 @@ class Measurement(TaskWithTimeout):
         net_test:
             a reference to the net_test object such measurement belongs to.
         """
-        self.testInstance = test_class()
+        self.testInstance = test_class
         self.testInstance.input = test_input
-        self.testInstance.report = {'input': test_input}
+        if not self.testInstance.report:
+            self.testInstance.report = {'input': test_input}
         self.testInstance._start_time = time.time()
         self.testInstance._setUp()
         self.testInstance.setUp()
