@@ -110,9 +110,9 @@ class Measurement(TaskWithTimeout):
         self.testInstance.input = test_input
         if not self.testInstance.report:
             self.testInstance.report = {'input': test_input}
-        self.testInstance._start_time = time.time()
-        self.testInstance._setUp()
-        self.testInstance.setUp()
+            self.testInstance._setUp()
+            self.testInstance._start_time = time.time()
+            self.testInstance.setUp()
 
         self.netTestMethod = getattr(self.testInstance, test_method)
 

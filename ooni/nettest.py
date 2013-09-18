@@ -537,13 +537,6 @@ class NetTest(object):
             measurement.done.addCallback(self.director.measurementSucceeded)
             measurement.done.addErrback(self.director.measurementFailed,
                                         measurement)
-
-        if self.report:
-            measurement.done.addBoth(self.report.write)
-
-        if self.report and self.director:
-            measurement.done.addBoth(self.doneReport)
-
         return measurement
 
     @defer.inlineCallbacks
@@ -562,11 +555,32 @@ class NetTest(object):
         for test_class, test_methods in self.testCases:
             # load the input processor as late as possible
             for input in test_class.inputs:
+                klass = test_class()
+                measurements = []
                 for method in test_methods:
                     log.debug("Running %s %s" % (test_class, method))
-                    measurement = self.makeMeasurement(test_class, method, input)
+                    measurement = self.makeMeasurement(klass, method, input)
+                    measurements.append(measurement.done)
                     self.state.taskCreated()
                     yield measurement
+
+                # When the measurement.done callbacks have all fired
+                # call the postProcessor before writing the report
+                if self.report:
+                    post = defer.DeferredList(measurements)
+
+                    # Call the postProcessor, which must return a single report
+                    # or a deferred
+                    post.addCallback(klass.postProcessor)
+                    def noPostProcessor(failure, report):
+                        failure.trap(NoPostProcessor)
+                        return report
+                    post.addErrback(noPostProcessor, klass.report)
+                    post.addCallback(self.report.write)
+
+                if self.report and self.director:
+                    #ghetto hax to keep NetTestState counts are accurate
+                    [post.addBoth(self.doneReport) for _ in measurements]
 
         self.state.allTasksScheduled()
 
@@ -654,10 +668,10 @@ class NetTestCase(object):
         """
         pass
 
-    def postProcessor(self, report):
+    def postProcessor(self, measurements):
         """
         Subclass this to do post processing tasks that are to occur once all
-        the test methods have been called. Once per input.
+        the test methods have been called once per input.
         postProcessing works exactly like test methods, in the sense that
         anything that gets written to the object self.report[] will be added to
         the final test report.
