@@ -91,27 +91,27 @@ class HTTPRequestsTest(httpt.HTTPTest):
             self.report['headers_diff'] = diff
             self.report['headers_match'] = True
 
+    @defer.inlineCallbacks
     def test_get_experiment(self):
         log.msg("Performing GET request to %s" % self.url)
-        self.experiment = self.doRequest(self.url, method="GET",
+        self.experiment = yield self.doRequest(self.url, method="GET",
                 use_tor=False, headers=self.headers)
-        return self.experiment
 
+    @defer.inlineCallbacks
     def test_get_control(self):
         log.msg("Performing GET request to %s over Tor" % self.url)
-        self.control = self.doRequest(self.url, method="GET",
+        self.control = yield self.doRequest(self.url, method="GET",
                 use_tor=True, headers=self.headers)
-        return self.control
 
     def postProcessor(self, measurements):
-        if self.experiment.result and self.control.result:
-            self.compare_body_lengths(len(self.control.result.body),
-                    len(self.experiment.result.body))
-            self.compare_headers(self.control.result.headers,
-                    self.experiment.result.headers)
+        if self.experiment and self.control:
+            self.compare_body_lengths(len(self.control.body),
+                    len(self.experiment.body))
+            self.compare_headers(self.control.headers,
+                    self.experiment.headers)
 
-        if not self.control.result:
-            self.report['control_failure'] = failureToString(self.control.result)
-        if not self.experiment.result:
-            self.report['experiment_failure'] = failureToString(self.experiment.result)
+        if not self.control:
+            self.report['control_failure'] = failureToString(self.control)
+        if not self.experiment:
+            self.report['experiment_failure'] = failureToString(self.experiment)
         return self.report
