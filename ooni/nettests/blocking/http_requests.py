@@ -55,6 +55,7 @@ class HTTPRequestsTest(httpt.HTTPTest):
         self.factor = self.localOptions['factor']
         self.report['control_failure'] = None
         self.report['experiment_failure'] = None
+        self.headers = {'User-Agent': [random.choice(userAgents)]}
 
     def compare_body_lengths(self, body_length_a, body_length_b):
 
@@ -90,47 +91,27 @@ class HTTPRequestsTest(httpt.HTTPTest):
             self.report['headers_diff'] = diff
             self.report['headers_match'] = True
 
-    def test_get(self):
-        def callback(res):
-            experiment, control = res
-            experiment_succeeded, experiment_result = experiment
-            control_succeeded, control_result = control
-
-            if control_succeeded and experiment_succeeded:
-                self.compare_body_lengths(len(experiment_result.body),
-                        len(control_result.body))
-
-                self.compare_headers(control_result.headers,
-                        experiment_result.headers)
-            else:
-                if not control_succeeded:
-                    self.report['control_failure'] = failureToString(control_result)
-    
-                if not experiment_succeeded:
-                    self.report['experiment_failure'] = failureToString(experiment_result)
-                # Now return some kind of failure so we can retry
-                # However, it would be ideal to split this test into two methods
-                # and compare the results in the postProcessor
-                # Sadly the postProcessor API is currently not implemented
-                if control_succeeded:
-                    return experiment_result
-                return control_result
-
-        headers = {'User-Agent': [random.choice(userAgents)]}
-
-        l = []
+    def test_get_experiment(self):
         log.msg("Performing GET request to %s" % self.url)
-        experiment_request = self.doRequest(self.url, method="GET",
-                headers=headers)
+        self.experiment = self.doRequest(self.url, method="GET",
+                use_tor=False, headers=self.headers)
+        return self.experiment
 
-        control_request = self.doRequest(self.url, method="GET",
-                use_tor=True, headers=headers)
+    def test_get_control(self):
+        log.msg("Performing GET request to %s over Tor" % self.url)
+        self.control = self.doRequest(self.url, method="GET",
+                use_tor=True, headers=self.headers)
+        return self.control
 
-        l.append(experiment_request)
-        l.append(control_request)
+    def postProcessor(self, measurements):
+        if self.experiment.result and self.control.result:
+            self.compare_body_lengths(len(self.control.result.body),
+                    len(self.experiment.result.body))
+            self.compare_headers(self.control.result.headers,
+                    self.experiment.result.headers)
 
-        dl = defer.DeferredList(l, consumeErrors=True)
-        dl.addCallback(callback)
-
-        return dl
-
+        if not self.control.result:
+            self.report['control_failure'] = failureToString(self.control.result)
+        if not self.experiment.result:
+            self.report['experiment_failure'] = failureToString(self.experiment.result)
+        return self.report
