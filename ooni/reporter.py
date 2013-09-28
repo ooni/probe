@@ -19,7 +19,7 @@ from twisted.internet.error import ConnectionRefusedError
 from twisted.python.failure import Failure
 
 from ooni.utils import log
-
+from ooni.tasks import Measurement
 try:
     from scapy.packet import Packet
 except ImportError:
@@ -202,9 +202,11 @@ class YAMLReporter(OReporter):
     def writeReportEntry(self, entry):
         log.debug("Writing report with YAML reporter")
         self._write('---\n')
-        if isinstance(entry, Failure):
+        if isinstance(entry, Measurement):
+            self._write(safe_dump(entry.testInstance.report))
+        elif isinstance(entry, Failure):
             self._write(entry.value)
-        else:
+        elif isinstance(entry, dict):
             self._write(safe_dump(entry))
         self._write('...\n')
 
@@ -255,7 +257,12 @@ class OONIBReporter(OReporter):
     def writeReportEntry(self, entry):
         log.debug("Writing report with OONIB reporter")
         content = '---\n'
-        content += safe_dump(entry)
+        if isinstance(entry, Measurement):
+            content += safe_dump(entry.testInstance.report)
+        elif isinstance(entry, Failure):
+            content += entry.value
+        elif isinstance(entry, dict):
+            content += safe_dump(entry)
         content += '...\n'
 
         url = self.collectorAddress + '/report'
@@ -444,6 +451,7 @@ class Report(object):
             a deferred that will fire once all the report entries have
             been written or errbacks when no more reporters
         """
+
         all_written = defer.Deferred()
         report_tracker = ReportTracker(self.reporters)
 
