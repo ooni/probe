@@ -5,7 +5,7 @@ from ooni import __version__
 import os
 from os.path import join as pj
 import sys
-from distutils.core import setup
+from setuptools import setup
 
 install_requires = [
     'txsocksx>=0.0.2',
@@ -47,10 +47,10 @@ with open('requirements.txt') as f:
         install_requires.append(line)
 
 setup(
-    name="ooni-probe",
+    name="ooniprobe",
     version=__version__,
-    author="Arturo Filastò",
-    author_email = "art@torproject.org",
+    author="Open Observatory of Network Interference",
+    author_email = "ooni-dev@torproject.org",
     url="https://ooni.torproject.org/",
     package_dir={'ooni': 'ooni'},
     data_files=data_files,
@@ -62,5 +62,5 @@ setup(
 
     scripts=["bin/ooniprobe"],
     dependency_links=dependency_links,
-    install_requires=install_requires,
+    install_requires=install_requires
 )
