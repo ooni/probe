@@ -102,12 +102,19 @@ class HTTPRequestsTest(httpt.HTTPTest):
 
                 self.compare_headers(control_result.headers,
                         experiment_result.headers)
-
-            if not control_succeeded:
-                self.report['control_failure'] = failureToString(control_result)
-
-            if not experiment_succeeded:
-                self.report['experiment_failure'] = failureToString(experiment_result)
+            else:
+                if not control_succeeded:
+                    self.report['control_failure'] = failureToString(control_result)
+    
+                if not experiment_succeeded:
+                    self.report['experiment_failure'] = failureToString(experiment_result)
+                # Now return some kind of failure so we can retry
+                # However, it would be ideal to split this test into two methods
+                # and compare the results in the postProcessor
+                # Sadly the postProcessor API is currently not implemented
+                if control_succeeded:
+                    return experiment_result
+                return control_result
 
         headers = {'User-Agent': [random.choice(userAgents)]}
 
