@@ -154,13 +154,13 @@ class ReportTracker(object):
         self.report_completed += 1
 
 class ReportEntry(TaskWithTimeout):
-    def __init__(self, reporter, measurement):
+    def __init__(self, reporter, entry):
         self.reporter = reporter
-        self.measurement = measurement
+        self.entry = entry 
 
         if config.advanced.reporting_timeout:
             self.timeout = config.advanced.reporting_timeout
         TaskWithTimeout.__init__(self)
 
     def run(self):
-        return self.reporter.writeReportEntry(self.measurement)
+        return self.reporter.writeReportEntry(self.entry)
