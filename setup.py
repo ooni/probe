@@ -7,13 +7,6 @@ from os.path import join as pj
 import sys
 from setuptools import setup
 
-install_requires = [
-    'txsocksx>=0.0.2',
-    'scapy>=2.2.0',
-    'dnspython>=1.10.0',
-    'parsley>1.0',
-]
-
 dependency_links = [
     'https://people.torproject.org/~ioerror/src/mirrors/ooniprobe'
 ]
@@ -40,6 +33,7 @@ for root, dirs, file_names in os.walk('data/'):
             files.append(pj(root, file_name))
     data_files.append([pj(usr_share_path, root.replace('data/', '')), files])
 
+install_requires = []
 with open('requirements.txt') as f:
     for line in f:
         if line.startswith("#") or line.startswith('http'):
