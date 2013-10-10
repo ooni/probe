@@ -6,13 +6,12 @@ from hashlib import sha256
 from twisted.internet import defer, reactor
 from twisted.internet.endpoints import TCP4ClientEndpoint
 
-from txsocksx.http import SOCKS5Agent
-
 from ooni.deck import Deck, InputFile
 from ooni import errors as e
 from ooni.settings import config
 from ooni.utils import log
 from ooni.utils.net import BodyReceiver, StringProducer, Downloader
+from ooni.utils.trueheaders import TrueHeadersSOCKS5Agent
 
 class Collector(object):
     def __init__(self, address):
@@ -48,7 +47,7 @@ class OONIBClient(object):
     def __init__(self, address):
         if address.startswith('httpo://'):
             self.address = address.replace('httpo://', 'http://')
-            self.agent = SOCKS5Agent(reactor,
+            self.agent = TrueHeadersSOCKS5Agent(reactor,
                 proxyEndpoint=TCP4ClientEndpoint(reactor, '127.0.0.1',
                     config.tor.socks_port))
 
