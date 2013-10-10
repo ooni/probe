@@ -290,11 +290,12 @@ class OONIBReporter(OReporter):
         # do this with some deferred kung foo or instantiate the reporter after
         # tor is started.
 
-        from ooni.utils.trueheaders import SOCKS5Agent
+        from txsocksx.http import SOCKS5Agent
         from twisted.internet import reactor
         
         if self.collectorAddress.startswith('httpo://'):
-            self.collectorAddress.replace('httpo://', 'http://')
+            self.collectorAddress = \
+                    self.collectorAddress.replace('httpo://', 'http://')
             self.agent = SOCKS5Agent(reactor,
                     proxyEndpoint=TCP4ClientEndpoint(reactor, '127.0.0.1',
                         config.tor.socks_port))
