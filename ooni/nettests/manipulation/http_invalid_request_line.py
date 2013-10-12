@@ -6,7 +6,7 @@ from ooni.utils import randomStr, randomSTR
 from ooni.templates import tcpt
 
 class UsageOptions(usage.Options):
-    optParameters = [['backend', 'b', '127.0.0.1',
+    optParameters = [['backend', 'b', None,
                         'The OONI backend that runs a TCP echo server'],
                     ['backendport', 'p', 80, 'Specify the port that the TCP echo server is running (should only be set for debugging)']]
 

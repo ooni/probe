@@ -16,7 +16,7 @@ class UsageOptions(usage.Options):
                     'Specify the resolver that should be used for DNS queries (ip:port)'],
                     ['hostname', 'h', None,
                         'Specify the hostname of a censored site'],
-                    ['backend', 'b', '8.8.8.8:53',
+                    ['backend', 'b', None,
                         'Specify the IP address of a good DNS resolver (ip:port)']
                     ]
 

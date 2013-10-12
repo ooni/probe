@@ -26,7 +26,7 @@ from ooni import nettest
 from ooni.utils import log
 
 class UsageOptions(usage.Options):
-    optParameters = [['backend', 'b', '8.8.8.8:53',
+    optParameters = [['backend', 'b', None,
                         'The OONI backend that runs the DNS resolver'],
                      ['testresolvers', 'T', None,
                         'File containing list of DNS resolvers to test against'],

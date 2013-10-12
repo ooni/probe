@@ -29,7 +29,7 @@ def random_capitalization(string):
 
 class UsageOptions(usage.Options):
     optParameters = [
-            ['backend', 'b', 'http://127.0.0.1:57001', 
+            ['backend', 'b', None,
                 'URL of the backend to use for sending the requests'],
             ['headers', 'h', None,
                 'Specify a yaml formatted file from which to read the request headers to send']

@@ -15,7 +15,7 @@ from ooni.utils import log
 from ooni.templates import httpt
 
 class UsageOptions(usage.Options):
-    optParameters = [['backend', 'b', 'http://127.0.0.1:57001',
+    optParameters = [['backend', 'b', None,
                       'URL of the test backend to use. Should be \
                               listening on port 80 and be a \
                               HTTPReturnJSONHeadersHelper'],

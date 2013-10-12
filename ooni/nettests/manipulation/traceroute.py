@@ -14,7 +14,7 @@ from ooni.utils import log
 
 class UsageOptions(usage.Options):
     optParameters = [
-                    ['backend', 'b', '8.8.8.8', 'Test backend to use'],
+                    ['backend', 'b', None, 'Test backend to use'],
                     ['timeout', 't', 5, 'The timeout for the traceroute test'],
                     ['maxttl', 'm', 30, 'The maximum value of ttl to set on packets'],
                     ['srcport', 'p', None, 'Set the source port to a specific value (only applies to TCP and UDP)']
