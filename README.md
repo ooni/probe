@@ -111,7 +111,7 @@ Basic system requirements:
 On Debian or Ubuntu GNU/Linux based systems these can be installed with:
 
 ```
-sudo apt-get install git-core python python-pip python-dev build-essential tor tor-geoipdb obfsproxy tcpdump
+sudo apt-get install git-core python python-pip python-dev build-essential tor tor-geoipdb obfsproxy tcpdump python-geoip python-docutils python-ipaddr python-scapy python-pyrex
 ```
 
 Other packages that may be of interest:
@@ -130,7 +130,12 @@ The Python dependencies required for running ooniprobe are:
       * pypcap: https://code.google.com/p/pypcap/
       * libdnet: https://code.google.com/p/libdnet/
   * txtorcon: https://github.com/meejah/txtorcon
-  * txsocksx: https://github.com/hellais/txsocksx
+  * txsocksx: https://github.com/habnabit/txsocksx
+  * pygeoip: https://github.com/appliedsec/pygeoip 
+  * parsley: http://launchpad.net/parsley
+  * docutils: http://docutils.sourceforge.net
+  * ipaddr: http://code.google.com/p/ipaddr-py/
+  * Pyrex: http://www.cosc.canterbury.ac.nz/~greg/python/Pyrex
 
 ## Install Tor
 
