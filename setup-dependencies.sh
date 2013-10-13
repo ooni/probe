@@ -421,8 +421,8 @@ if which pip >/dev/null 2>&1; then
 fi
 
 install_pip_securely() {
-  DO "wget -O ${BUILD_DIR}/${PIP_PKG} ${PIP_URL}" "0"
-  DO "wget -O ${BUILD_DIR}/${PIP_PKG}.asc ${PIP_SIG_URL}" "0"
+  DO "curl -o ${BUILD_DIR}/${PIP_PKG} ${PIP_URL}" "0"
+  DO "curl -o ${BUILD_DIR}/${PIP_PKG}.asc ${PIP_SIG_URL}" "0"
 
   echo "[+] Verifying PGP signature of pip"
   echo "${PIP_PUB_KEY}" > ${PIP_KEY_FILE}
@@ -481,7 +481,7 @@ case $DISTRO_VERSION in
   echo "[+] Updating OS package list...";
   apt-get update 2>&1 > /dev/null;
   echo "[+] Installing packages for your system...";
-  DO "apt-get -y install curl git-core python python-pip python-dev python-setuptools build-essential libdumbnet1 python-dumbnet python-libpcap python-pypcap python-dnspython tor tor-geoipdb" "0"
+  DO "apt-get -y install curl git-core python python-dev python-setuptools build-essential libdumbnet1 python-dumbnet python-libpcap python-pypcap python-dnspython tor tor-geoipdb" "0"
 
   if [ "${INSTALL_PIP}" -eq "1" ] ; then
     echo "[+] Installing pip securely"
@@ -490,7 +490,7 @@ case $DISTRO_VERSION in
 
   if [ "$USE_VIRTUALENV" -eq "1" ]; then
     echo "[+] Using virtualenvironment..."
-    DO "apt-get -y install python-virtualenv virtualenvwrapper"
+    DO "apt-get -y install python-virtualenv virtualenvwrapper" "0"
     if [ ! -f ~/.virtualenvs/ooniprobe/bin/activate ]; then
       # Set up the virtual environment
       DO "mkdir -p ~/.virtualenvs" "0"
@@ -522,7 +522,7 @@ case $DISTRO_VERSION in
   echo ""
   echo "You should also be sure to edit your configuration appropriately by doing:"
   echo ""
-  echo "cp /usr/share/ooni/ooniprobe.conf.sample ~/.ooni/ooniprobe.conf"
+  echo "cp ${DIR}/data/ooniprobe.conf.sample ~/.ooni/ooniprobe.conf"
   echo ""
   
 
