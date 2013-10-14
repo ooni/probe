@@ -1,4 +1,4 @@
 include README.md ChangeLog.md requirements.txt
-recursive-include data/ui *
+recursive-include data/ui/app *
 include data/Makefile
 include data/ooniprobe.conf.sample
