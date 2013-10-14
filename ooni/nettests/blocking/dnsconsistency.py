@@ -77,7 +77,7 @@ class DNSConsistencyTest(dnst.DNSTest):
         dns_ip, dns_port = self.localOptions['backend'].split(':')
         self.control_dns_server = (str(dns_ip), int(dns_port))
 
-        self.report['control_resolver'] = self.control_dns_server
+        self.report['control_resolver'] = "%s:%d" % self.control_dns_server
 
     @defer.inlineCallbacks
     def test_a_lookup(self):
@@ -107,9 +107,9 @@ class DNSConsistencyTest(dnst.DNSTest):
 
         control_answers = yield self.performALookup(hostname, self.control_dns_server)
         if not control_answers:
-                log.err("Got no response from control DNS server %s," \
+                log.err("Got no response from control DNS server %s:%d," \
                         " perhaps the DNS resolver is down?" % self.control_dns_server[0])
-                self.report['tampering'][self.control_dns_server] = 'no_answer'
+                self.report['tampering']["%s:%d" % self.control_dns_server] = 'no_answer'
                 return
 
         for test_resolver in self.test_resolvers:
