@@ -282,6 +282,7 @@ class NetTestLoader(object):
             'probe_asn': client_geodata['asn'],
             'probe_cc': client_geodata['countrycode'],
             'probe_ip': client_geodata['ip'],
+            'probe_city': client_geodata['city'],
             'test_name': self.testName,
             'test_version': self.testVersion,
             'software_name': 'ooniprobe',
