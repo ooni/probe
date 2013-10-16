@@ -62,16 +62,10 @@ class TracerouteTest(scapyt.BaseScapyTest):
             answered, unanswered = packets
             self.report['hops_'+str(port)] = []
             for snd, rcv in answered:
-                try:
-                    sport = snd[UDP].sport
-                except IndexError:
-                    log.err("Source port for this traceroute was not found. This is probably a bug")
-                    sport = -1
-
                 report = {'ttl': snd.ttl,
                         'address': rcv.src,
                         'rtt': rcv.time - snd.time,
-                        'sport': sport
+                        'sport': snd[TCP].sport
                 }
                 log.debug("%s: %s" % (port, report))
                 self.report['hops_'+str(port)].append(report)
