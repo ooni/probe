@@ -12,10 +12,10 @@ from ooni.nettest import NetTest, getNetTestInformation
 from ooni.settings import config
 from ooni import errors
 
-from txtorcon import TorConfig
-from txtorcon import TorState, launch_tor
+from txtorcon import TorConfig, TorState, launch_tor, build_tor_connection
 
 from twisted.internet import defer, reactor
+from twisted.internet.endpoints import TCP4ClientEndpoint
 
 class Director(object):
     """
@@ -123,6 +123,9 @@ class Director(object):
 
         if config.advanced.start_tor:
             yield self.startTor()
+        elif config.tor.control_port:
+            log.msg("Connecting to Tor Control Port...")
+            yield self.getTorState()
 
         config.probe_ip = geoip.ProbeIP()
         yield config.probe_ip.lookup()
@@ -257,6 +260,13 @@ class Director(object):
         self.sniffer = ScapySniffer(config.reports.pcap)
         config.scapyFactory.registerProtocol(self.sniffer)
         log.msg("Starting packet capture to: %s" % config.reports.pcap)
+
+    @defer.inlineCallbacks
+    def getTorState(self):
+        connection = TCP4ClientEndpoint(reactor, '127.0.0.1',
+                config.tor.control_port)
+        config.tor_state = yield build_tor_connection(connection)
+
 
     def startTor(self):
         """ Starts Tor
