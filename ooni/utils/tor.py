@@ -116,16 +116,12 @@ class SingleExitStreamAttacher(MetaAttacher):
     def request_circuit_build(self, exit, deferred_to_callback):
         # see if we already have a circuit
         for circ in self.state.circuits.values():
-            try:
-                if (len(circ.path) >= 3) \
-                    and (circ.path[-1].id_hex == exit.id_hex) \
-                    and (circ.status == 'SUCCEEDED'):
-                    return circ
-            except AttributeError:
-                #XXX: Find out why circ.status is not set
-                log.debug("Circuit status not known %s" % circ)
+            if (len(circ.path) >= 3) and (circ.path[-1].id_hex == exit.id_hex)  and (circ.state == 'BUILT'):
+                log.debug("Re-Using circ %s" % circ)
+                deferred_to_callback.callback(circ)
+                return
 
-        path = [ random.choice(self.state.entry_guards.values()),
+        path = [ random.choice(self.state.routers.values()),
                  random.choice(self.state.routers.values()),
                  self.exit ]
         
