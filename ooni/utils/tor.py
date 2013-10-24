@@ -83,6 +83,7 @@ class SingleExitStreamAttacher(MetaAttacher):
         self.exit = exit
         self.waiting_circuits = []
         self.expected_streams = {}
+        self.built_circuits = []
         # Needs to listen to both stream and circuit events
         self.state.add_stream_listener(self)
         self.state.add_circuit_listener(self)
@@ -111,6 +112,7 @@ class SingleExitStreamAttacher(MetaAttacher):
         for (circid, d, exit) in self.waiting_circuits:
             if circid == circuit.id:
                 self.waiting_circuits.remove((circid, d, exit))
+                self.built_circuits.append(circuit)
                 d.callback(circuit)
 
     def request_circuit_build(self, exit, deferred_to_callback):
@@ -129,3 +131,12 @@ class SingleExitStreamAttacher(MetaAttacher):
             self.waiting_circuits.append((circ.id, deferred_to_callback, exit))
 
         self.state.build_circuit(path).addCallback(addToWaitingCircs)
+
+    def __del__(self):
+        # Clean up all of the circuits we created
+        #XXX: requires txtorcon 0.9.0 (git master)
+        try:
+            [ circ.close() for circ in self.built_circuits ]
+        except AttributeError:
+            pass
+        super(self).__del__(self)
