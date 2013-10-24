@@ -14,6 +14,22 @@ from zope.interface import implementer
 
 from OpenSSL import crypto
 
+firefox_ciphers = ["ECDHE-ECDSA-AES256-SHA",
+                   "ECDHE-RSA-AES256-SHA",
+                   "DHE-RSA-CAMELLIA256-SHA",
+                   "DHE-DSS-CAMELLIA256-SHA",
+                   "DHE-RSA-AES256-SHA",
+                   "DHE-DSS-AES256-SHA",
+                   "ECDH-ECDSA-AES256-CBC-SHA",
+                   "ECDH-RSA-AES256-CBC-SHA",
+                   "CAMELLIA256-SHA",
+                   "AES256-SHA",
+                   "ECDHE-ECDSA-RC4-SHA",
+                   "ECDHE-ECDSA-AES128-SHA",
+                   "ECDHE-RSA-RC4-SHA",
+                   "ECDHE-RSA-AES128-SHA",
+                   "DHE-RSA-CAMELLIA128-SHA",
+                   "DHE-DSS-CAMELLIA128-SHA",]
 
 @implementer(interfaces.IStreamClientEndpoint)
 class haxendpoint(TLSWrapClientEndpoint):
@@ -58,6 +74,9 @@ class TorSSLObservatory(TorTest):
         
         _endpoint = self.getExitSpecificEndpoint(addr, exit)
         ctx = ClientContextFactory()
+        ciphersuite = ":".join(firefox_ciphers)
+        ctx.getContext().set_cipher_list(ciphersuite)
+
         endpoint = haxendpoint(ctx, _endpoint)
 
         gotCertChain = defer.Deferred()
