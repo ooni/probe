@@ -104,6 +104,7 @@ Connection: keep-alive
             protocol = DropCertChainProto
 
         d = endpoint.connect(DropCertChain())
+        d.addErrback(gotCertChain.errback)
 
         def addCertChainToReport(cert_chain, report):
             pem_chain = []
@@ -113,7 +114,7 @@ Connection: keep-alive
 
         gotCertChain.addCallback(addCertChainToReport, self.report)
         def errback(err): 
-            self.report['failure'] = errors.handleAllFailures(y)
+            self.report['failure'] = errors.handleAllFailures(err)
         gotCertChain.addErrback(errback)
         return gotCertChain
 
