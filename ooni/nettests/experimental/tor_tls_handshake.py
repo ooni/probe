@@ -63,7 +63,7 @@ class TorSSLObservatory(TorTest):
             exit = self.state.routers[exit_hex]
         except KeyError:
             # Router not in consensus, sorry
-            self.report['failure'] = "Router %s not in consensus." % self.input
+            self.report['failure'] = "Router %s not in consensus." % exit_hex
             return
 
         if "https" in url.split(":")[0]: port = 443
