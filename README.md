@@ -246,8 +246,8 @@ For pypcap:
 git clone https://github.com/hellais/pypcap
 cd pypcap/
 pip install pyrex
-make && make install
-cd ../ && rm -rf pypcap-read-only
+python setup.py install
+cd ../ && rm -rf pypcap
 ```
 
 ## Including your geo data in the test report
