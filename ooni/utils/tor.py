@@ -5,7 +5,7 @@ from txtorcon import CircuitListenerMixin, IStreamAttacher, StreamListenerMixin
 from zope.interface import implementer
 
 from ooni.utils import log
-
+from ooni.settings import config
 import random
 
 @implementer(interfaces.IStreamClientEndpoint)

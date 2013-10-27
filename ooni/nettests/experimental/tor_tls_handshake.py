@@ -51,7 +51,7 @@ class TorSSLObservatory(TorTest):
     def setUp(self): 
         # XXX review these values
         d = yield self.state.protocol.set_conf(
-                "UseEntryGuards", "0",
+                #"UseEntryGuards", "0",
                 "MaxClientCircuitsPending", "128",
                 "SocksTimeout", "30",
                 "CircuitIdleTimeout", "30")
@@ -119,15 +119,10 @@ Connection: keep-alive
         return gotCertChain
 
     def getInputProcessor(self):
-        #XXX: doesn't seem that we have any of the exitpolicy available :\
-        #XXX: so the circuit might fail if port 80 isn't allowed
         if self.inputFileSpecified:
             self.inputFilename = self.localOptions[self.inputFile[0]]
             urls = open(self.inputFilename)
-            exits = filter(lambda router: 'exit' in router.flags,
-                            config.tor_state.routers.values())
-            hexes = [exit.id_hex for exit in exits]
-            for curse in hexes:
-                for url in urls:
-                    yield (curse, url.strip())      
-                urls.seek(0)
+
+            for url in urls:
+                for r in self.exits:
+                    yield (r.id_hex, url.strip())
