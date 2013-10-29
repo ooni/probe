@@ -3,7 +3,6 @@
 from ooni.nettest import NetTestLoader
 from ooni.settings import config
 from ooni.utils import log
-from ooni.utils.txagentwithsocks import Agent
 from ooni import errors as e
 
 from twisted.internet import reactor, defer
@@ -167,11 +166,15 @@ class Deck(InputFile):
 
             # Only set the collector if the no collector has been specified
             # from the command line or via the test deck.
-            if not net_test_loader.requiredTestHelpers and net_test_loader in requires_collector:
+            if not required_test_helpers and net_test_loader in requires_collector:
                 log.msg("Using the default collector: %s" % response['default']['collector'])
                 net_test_loader.collector = response['default']['collector'].encode('utf-8')
+                continue
 
             for th in net_test_loader.requiredTestHelpers:
+                # Only set helpers which are not already specified
+                if th['name'] not in required_test_helpers:
+                    continue
                 test_helper = response[th['name']]
                 log.msg("Using this helper: %s" % test_helper)
                 th['test_class'].localOptions[th['option']] = test_helper['address']
