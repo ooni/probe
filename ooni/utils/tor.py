@@ -106,6 +106,18 @@ class SingleExitStreamAttacher(MetaAttacher):
             # We didn't expect this stream, so let Tor handle it
             return None
 
+    def stream_closed(self, stream, **kw):
+        key = (str(stream.source_addr), int(stream.source_port))
+        try:
+            d = self.expected_streams.pop(key)
+            MetaAttacher._streamToAttacherMap.pop(key)
+            if not d.called:
+                log.debug("Stream:%d Closed before circuit attached!")
+            if stream.circuit and stream.circuit.id in self.state.circuits:
+                stream.circuit.close(ifUnused=True)
+        except KeyError:
+            pass
+
     def circuit_failed(self, circuit, kw):
         if circuit.id in self.waiting_circuits:
             (circ, d, exit) = self.waiting_circuits.pop(circuit.id)
