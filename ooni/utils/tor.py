@@ -106,6 +106,17 @@ class SingleExitStreamAttacher(MetaAttacher):
             # We didn't expect this stream, so let Tor handle it
             return None
 
+    def stream_failed(self, stream, reason='', remote_reason='', **kw):
+        key = (str(stream.source_addr), int(stream.source_port))
+        try:
+            d = self.expected_streams.pop(key)
+            MetaAttacher._streamToAttacherMap.pop(key)
+            log.debug("Stream %d failed, removing from attacher", stream.id)
+            if stream.circuit:
+                stream.circuit.close(ifUnused=True)
+        except KeyError:
+            pass
+
     def stream_closed(self, stream, **kw):
         key = (str(stream.source_addr), int(stream.source_port))
         try:
