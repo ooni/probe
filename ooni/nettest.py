@@ -667,7 +667,7 @@ class NetTestCase(object):
         anything that gets written to the object self.report[] will be added to
         the final test report.
         """
-        raise NoPostProcessor
+        pass
 
     def inputProcessor(self, filename):
         """
