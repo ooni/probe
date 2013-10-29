@@ -124,6 +124,13 @@ class SingleExitStreamAttacher(MetaAttacher):
             log.debug("Circuit: %d FAILED. Building new circuit for %s" % (circ.id, exit.id_hex)))
             self.request_circuit_build(self.exit, d)
 
+    def circuit_closed(self, 
+        if circuit.id in self.waiting_circuits:
+            (circ, d, exit) = self.waiting_circuits.pop(circuit.id)
+            log.debug("Circuit: %d closed while in waiting_circuits." % circ.id)
+        if circuit.id in self.built_circuits:
+            self.built_circuits.pop(circuit.id)
+
     def circuit_built(self, circuit):
         if circuit.purpose != "GENERAL":
             return
