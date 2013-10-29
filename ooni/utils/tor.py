@@ -81,9 +81,9 @@ class SingleExitStreamAttacher(MetaAttacher):
     def __init__(self, state, exit):
         self.state = state
         self.exit = exit
-        self.waiting_circuits = []
+        self.waiting_circuits = {}
         self.expected_streams = {}
-        self.built_circuits = []
+        self.built_circuits = {}
         # Needs to listen to both stream and circuit events
         self.state.add_stream_listener(self)
         self.state.add_circuit_listener(self)
@@ -109,11 +109,11 @@ class SingleExitStreamAttacher(MetaAttacher):
     def circuit_built(self, circuit):
         if circuit.purpose != "GENERAL":
             return
-        for (circid, d, exit) in self.waiting_circuits:
-            if circid == circuit.id:
-                self.waiting_circuits.remove((circid, d, exit))
-                self.built_circuits.append(circuit)
-                d.callback(circuit)
+
+        if circuit.id in self.waiting_circuits:
+            circuit, d, exit = self.waiting_circuits.pop(circuit.id)
+            self.built_circuits[circuit.id] = (circuit, d, exit)
+            d.callback(circuit)
 
     def request_circuit_build(self, exit, deferred_to_callback):
         # see if we already have a circuit
@@ -123,12 +123,12 @@ class SingleExitStreamAttacher(MetaAttacher):
                 deferred_to_callback.callback(circ)
                 return
 
-        path = [ random.choice(self.state.routers.values()),
+        path = [ random.choice(self.state.entry_guards.values()),
                  random.choice(self.state.routers.values()),
                  self.exit ]
         
         def addToWaitingCircs(circ):
-            self.waiting_circuits.append((circ.id, deferred_to_callback, exit))
+            self.waiting_circuits[circ.id] = (circ, deferred_to_callback, exit)
 
         self.state.build_circuit(path).addCallback(addToWaitingCircs)
 
@@ -136,7 +136,8 @@ class SingleExitStreamAttacher(MetaAttacher):
         # Clean up all of the circuits we created
         #XXX: requires txtorcon 0.9.0 (git master)
         try:
-            [ circ.close() for circ in self.built_circuits ]
+            for circ, d, exit in self.built_circuits.values():
+                circ.close()
         except AttributeError:
             pass
         super(self).__del__(self)
