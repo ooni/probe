@@ -40,15 +40,17 @@ class DNSSpoof(scapyt.ScapyTest):
         self.controlResolverPort = int(self.controlResolverPort)
 
         self.hostname = self.localOptions['hostname']
+        self.report['test_a_lookup'] = {}
+        self.report['test_control_a_lookup'] = {}
 
-    def postProcessor(self, report):
+    def postProcessor(self, measurements):
         """
         This is not tested, but the concept is that if the two responses
         match up then spoofing is occuring.
         """
         try:
-            test_answer = report['test_a_lookup']['answered_packets'][0][1]
-            control_answer = report['test_control_a_lookup']['answered_packets'][0][1]
+            test_answer = self.report['test_a_lookup']['answered_packets'][0][1]
+            control_answer = self.report['test_control_a_lookup']['answered_packets'][0][1]
         except IndexError:
             self.report['spoofing'] = 'no_answer'
             return
@@ -57,14 +59,14 @@ class DNSSpoof(scapyt.ScapyTest):
                 self.report['spoofing'] = True
         else:
             self.report['spoofing'] = False
-        return
+        return self.report
 
     @defer.inlineCallbacks
     def test_a_lookup(self):
         question = IP(dst=self.resolverAddr)/UDP()/DNS(rd=1,
                 qd=DNSQR(qtype="A", qclass="IN", qname=self.hostname))
         log.msg("Performing query to %s with %s:%s" % (self.hostname, self.resolverAddr, self.resolverPort))
-        yield self.sr1(question)
+        self.report['test_a_lookup']['answered_packets'] = yield self.sr1(question)
 
     @defer.inlineCallbacks
     def test_control_a_lookup(self):
@@ -72,4 +74,4 @@ class DNSSpoof(scapyt.ScapyTest):
                 qd=DNSQR(qtype="A", qclass="IN", qname=self.hostname))
         log.msg("Performing query to %s with %s:%s" % (self.hostname,
             self.controlResolverAddr, self.controlResolverPort))
-        yield self.sr1(question)
+        self.report['test_control_a_lookup']['answered_packets'] = yield self.sr1(question)
