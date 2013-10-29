@@ -106,12 +106,19 @@ class SingleExitStreamAttacher(MetaAttacher):
             # We didn't expect this stream, so let Tor handle it
             return None
 
+    def circuit_failed(self, circuit, kw):
+        if circuit.id in self.waiting_circuits:
+            (circ, d, exit) = self.waiting_circuits.pop(circuit.id)
+            log.debug("Circuit: %d FAILED. Building new circuit for %s" % (circ.id, exit.id_hex)))
+            self.request_circuit_build(self.exit, d)
+
     def circuit_built(self, circuit):
         if circuit.purpose != "GENERAL":
             return
 
         if circuit.id in self.waiting_circuits:
             circuit, d, exit = self.waiting_circuits.pop(circuit.id)
+            assert circuit.path[-1] is exit
             self.built_circuits[circuit.id] = (circuit, d, exit)
             d.callback(circuit)
 
