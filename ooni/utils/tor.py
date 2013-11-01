@@ -1,5 +1,6 @@
 from twisted.internet import protocol, defer, reactor, interfaces
 from twisted.internet.endpoints import TCP4ClientEndpoint, _WrappingFactory
+from twisted.python.failure import Failure
 from txsocksx.client import SOCKS5ClientFactory
 from txtorcon import CircuitListenerMixin, IStreamAttacher, StreamListenerMixin
 from zope.interface import implementer
@@ -106,13 +107,20 @@ class SingleExitStreamAttacher(MetaAttacher):
             # We didn't expect this stream, so let Tor handle it
             return None
 
+    def stream_detach(self, stream, **kw):
+        # Should we reattach the stream? Log error?
+        # close the stream and circuit?
+        key = (str(stream.source_addr), int(stream.source_port))
+        if stream.circuit and stream.circuit.id in self.state.circuits:
+            stream.circuit.close(ifUnused=True)
+
     def stream_failed(self, stream, reason='', remote_reason='', **kw):
         key = (str(stream.source_addr), int(stream.source_port))
         try:
             d = self.expected_streams.pop(key)
             MetaAttacher._streamToAttacherMap.pop(key)
-            log.debug("Stream %d failed, removing from attacher", stream.id)
-            if stream.circuit:
+            log.debug("Stream %d failed REASON: %s REMOTE_REASON: %s" % (stream.id, reason, remote_reason))
+            if stream.circuit and stream.circuit.id in self.state.circuits:
                 stream.circuit.close(ifUnused=True)
         except KeyError:
             pass
@@ -129,18 +137,21 @@ class SingleExitStreamAttacher(MetaAttacher):
         except KeyError:
             pass
 
-    def circuit_failed(self, circuit, kw):
+    def circuit_failed(self, circuit, **kw):
         if circuit.id in self.waiting_circuits:
             (circ, d, exit) = self.waiting_circuits.pop(circuit.id)
-            log.debug("Circuit: %d FAILED. Building new circuit for %s" % (circ.id, exit.id_hex)))
-            self.request_circuit_build(self.exit, d)
+            if not d.called:
+                log.debug("Circuit: %d FAILED before attach"%circuit.id)
+            else:
+                log.debug("Circuit: %d FAILED after attach"%circuit.id)
 
-    def circuit_closed(self, 
+    def circuit_closed(self, circuit, **kw):
         if circuit.id in self.waiting_circuits:
             (circ, d, exit) = self.waiting_circuits.pop(circuit.id)
             log.debug("Circuit: %d closed while in waiting_circuits." % circ.id)
         if circuit.id in self.built_circuits:
-            self.built_circuits.pop(circuit.id)
+            (circ, d, exit) = self.built_circuits.pop(circuit.id)
+            log.debug("Circuit: %d closed." % circ.id)
 
     def circuit_built(self, circuit):
         if circuit.purpose != "GENERAL":
@@ -174,7 +185,7 @@ class SingleExitStreamAttacher(MetaAttacher):
         #XXX: requires txtorcon 0.9.0 (git master)
         try:
             for circ, d, exit in self.built_circuits.values():
-                circ.close()
+                circ.close(ifUnused=True)
         except AttributeError:
             pass
         super(self).__del__(self)
