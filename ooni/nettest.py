@@ -564,16 +564,25 @@ class NetTest(object):
                     measurement = self.makeMeasurement(klass, method, input)
                     measurements.append(measurement.done)
                     self.state.taskCreated()
-                    measurement.done.addCallback(klass.postProcessor)
-                    if self.report:
-                        @measurement.done.addCallback
-                        def cb(*a):
-                            self.report.write(measurement)
-                    measurement.done.addBoth(self.doneReport)
                     yield measurement
 
                 # When the measurement.done callbacks have all fired
                 # call the postProcessor before writing the report
+                if self.report:
+                    post = defer.DeferredList(measurements)
+
+                    # Call the postProcessor, which must return a single report
+                    # or a deferred
+                    post.addCallback(klass.postProcessor)
+                    def noPostProcessor(failure, report):
+                        failure.trap(NoPostProcessor)
+                        return report
+                    post.addErrback(noPostProcessor, klass.report)
+                    post.addCallback(self.report.write)
+
+                if self.report and self.director:
+                    #ghetto hax to keep NetTestState counts are accurate
+                    [post.addBoth(self.doneReport) for _ in measurements]
 
         self.state.allTasksScheduled()
 
