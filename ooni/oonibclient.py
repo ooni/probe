@@ -219,8 +219,8 @@ class OONIBClient(object):
 
             test_helper = yield self.queryBackend('POST', '/bouncer', 
                             query={'test-helpers': test_helper_names})
-        except Exception, e:
-            log.exception(e)
+        except Exception, exc:
+            log.exception(exc)
             raise e.CouldNotFindTestHelper
 
         if not test_helper:
