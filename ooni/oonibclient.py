@@ -4,14 +4,14 @@ import json
 from hashlib import sha256
 
 from twisted.internet import defer, reactor
-
-from ooni.utils.txagentwithsocks import Agent
+from twisted.internet.endpoints import TCP4ClientEndpoint
 
 from ooni.deck import Deck, InputFile
 from ooni import errors as e
 from ooni.settings import config
 from ooni.utils import log
 from ooni.utils.net import BodyReceiver, StringProducer, Downloader
+from ooni.utils.trueheaders import TrueHeadersSOCKS5Agent
 
 class Collector(object):
     def __init__(self, address):
@@ -45,9 +45,15 @@ class OONIBClient(object):
     retries = 3
 
     def __init__(self, address):
-        self.address = address
-        self.agent = Agent(reactor, sockshost="127.0.0.1", 
-                           socksport=config.tor.socks_port)
+        if address.startswith('httpo://'):
+            self.address = address.replace('httpo://', 'http://')
+            self.agent = TrueHeadersSOCKS5Agent(reactor,
+                proxyEndpoint=TCP4ClientEndpoint(reactor, '127.0.0.1',
+                    config.tor.socks_port))
+
+        elif address.startswith('https://'):
+            log.err("HTTPS based bouncers are currently not supported.")
+
 
     def _request(self, method, urn, genReceiver, bodyProducer=None):
         attempts = 0
@@ -69,6 +75,7 @@ class OONIBClient(object):
                 # we have reached the retry count.
                 if attempts < self.retries:
                     log.err("Lookup failed. Retrying.")
+                    log.exception(err)
                     attempts += 1
                     perform_request(attempts)
                 else:

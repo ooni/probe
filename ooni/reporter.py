@@ -17,6 +17,8 @@ from twisted.trial import reporter
 from twisted.internet import defer, reactor
 from twisted.internet.error import ConnectionRefusedError
 from twisted.python.failure import Failure
+from twisted.internet.endpoints import TCP4ClientEndpoint
+from twisted.web.client import Agent
 
 from ooni.utils import log
 from ooni.tasks import Measurement
@@ -35,7 +37,6 @@ from ooni.utils.net import BodyReceiver, StringProducer, userAgents
 from ooni.settings import config
 
 from ooni.tasks import ReportEntry, TaskTimedOut, ReportTracker
-
 class ReporterException(Exception):
     pass
 
@@ -296,13 +297,19 @@ class OONIBReporter(OReporter):
         # do this with some deferred kung foo or instantiate the reporter after
         # tor is started.
 
-        from ooni.utils.txagentwithsocks import Agent
+        from txsocksx.http import SOCKS5Agent
         from twisted.internet import reactor
-        try:
-            self.agent = Agent(reactor, sockshost="127.0.0.1",
-                socksport=int(config.tor.socks_port))
-        except Exception, e:
-            log.exception(e)
+        
+        if self.collectorAddress.startswith('httpo://'):
+            self.collectorAddress = \
+                    self.collectorAddress.replace('httpo://', 'http://')
+            self.agent = SOCKS5Agent(reactor,
+                    proxyEndpoint=TCP4ClientEndpoint(reactor, '127.0.0.1',
+                        config.tor.socks_port))
+
+        elif self.collectorAddress.startswith('https://'):
+            # XXX add support for securely reporting to HTTPS collectors.
+            log.err("HTTPS based collectors are currently not supported.")
 
         url = self.collectorAddress + '/report'
 
