@@ -54,7 +54,7 @@ class OONIBClient(object):
 
         finished = defer.Deferred()
 
-        def perform_request():
+        def perform_request(attempts):
             uri = self.address + urn
             headers = {}
             d = self.agent.request(method, uri, bodyProducer=bodyProducer)
@@ -70,13 +70,13 @@ class OONIBClient(object):
                 if attempts < self.retries:
                     log.err("Lookup failed. Retrying.")
                     attempts += 1
-                    perform_request()
+                    perform_request(attempts)
                 else:
                     log.err("Failed. Giving up.")
                     finished.errback(err)
             d.addErrback(errback, attempts)
 
-        perform_request()
+        perform_request(attempts)
 
         return finished
 
@@ -219,8 +219,8 @@ class OONIBClient(object):
 
             test_helper = yield self.queryBackend('POST', '/bouncer', 
                             query={'test-helpers': test_helper_names})
-        except Exception, e:
-            log.exception(e)
+        except Exception, exc:
+            log.exception(exc)
             raise e.CouldNotFindTestHelper
 
         if not test_helper:
