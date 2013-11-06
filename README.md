@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/TheTorProject/ooni-probe.png?branch=feature/ci)](https://travis-ci.org/TheTorProject/ooni-probe)
+[![Build Status](https://travis-ci.org/TheTorProject/ooni-probe.png?branch=master)](https://travis-ci.org/TheTorProject/ooni-probe)
 [![Coverage Status](https://coveralls.io/repos/TheTorProject/ooni-probe/badge.png)](https://coveralls.io/r/TheTorProject/ooni-probe)
 
 # ooniprobe - Open Observatory of Network Interference
