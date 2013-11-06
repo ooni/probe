@@ -51,6 +51,7 @@ setup(
     packages=['ooni', 'ooni.api', 'ooni.kit', 
         'ooni.nettests', 'ooni.nettests.manipulation', 
         'ooni.nettests.experimental', 'ooni.nettests.scanning',
+        'ooni.nettests.blocking',
         'ooni.nettests.third_party',
         'ooni.templates', 'ooni.tests', 'ooni.utils'],
 
