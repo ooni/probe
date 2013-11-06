@@ -143,7 +143,7 @@ def runWithDirector():
             log.debug("No test deck detected")
             test_file = nettest_to_path(global_options['test_file'])
             net_test_loader = NetTestLoader(global_options['subargs'],
-                    test_file=test_file)
+                    test_file=test_file, global_options=global_options)
             deck.insert(net_test_loader)
     except errors.MissingRequiredOption, option_name:
         log.err('Missing required option: "%s"' % option_name)

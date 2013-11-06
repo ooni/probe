@@ -108,6 +108,9 @@ class Deck(InputFile):
             self.deckHash = sha256(f.read())
             f.seek(0)
             test_deck = yaml.safe_load(f)
+        
+        if isinstance(test_deck, dict):
+            test_deck = [test_deck]
 
         for test in test_deck:
             try:
@@ -117,7 +120,7 @@ class Deck(InputFile):
                 log.msg("Skipping...")
                 continue
             net_test_loader = NetTestLoader(test['options']['subargs'],
-                    test_file=nettest_path)
+                    test_file=nettest_path, global_options=test['options'])
             #XXX: If the deck specifies the collector, we use the specified collector
             # And it should also specify the test helper address to use
             # net_test_loader.collector = test['options']['collector']
