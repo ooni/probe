@@ -51,7 +51,6 @@ class TorSSLObservatory(TorTest):
     def setUp(self): 
         # XXX review these values
         d = yield self.state.protocol.set_conf(
-                #"UseEntryGuards", "0",
                 "MaxClientCircuitsPending", "128",
                 "SocksTimeout", "30",
                 "CircuitIdleTimeout", "30")
@@ -96,9 +95,11 @@ Connection: keep-alive
 """ % host)
             def dataReceived(self, data):
                 if gotCertChain.called: return
-                cert_chain = self.getHandle().get_peer_cert_chain()
+                ssl_data={}
+                ssl_data['cert_chain'] = self.getHandle().get_peer_cert_chain()
+                ssl_data['cipher_list'] = self.getHandle().get_cipher_list()
                 self.transport.loseConnection()
-                gotCertChain.callback(cert_chain)
+                gotCertChain.callback(ssl_data)
             
         class DropCertChain(ClientFactory):
             protocol = DropCertChainProto
@@ -106,11 +107,13 @@ Connection: keep-alive
         d = endpoint.connect(DropCertChain())
         d.addErrback(gotCertChain.errback)
 
-        def addCertChainToReport(cert_chain, report):
+        def addCertChainToReport(ssl_data, report):
+            cert_chain = ssl_data['cert_chain']
             pem_chain = []
             for cert in cert_chain:
                 pem_chain.append(crypto.dump_certificate(crypto.FILETYPE_PEM, cert))
             report['cert_chain'] = pem_chain
+            report['cipher_list'] = ssl_data['cipher_list']
 
         gotCertChain.addCallback(addCertChainToReport, self.report)
         def errback(err): 
