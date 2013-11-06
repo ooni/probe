@@ -1,3 +1,5 @@
+[![Coverage Status](https://coveralls.io/repos/TheTorProject/ooni/badge.png)](https://coveralls.io/r/TheTorProject/ooni)
+
 # ooniprobe - Open Observatory of Network Interference
 
 "The Net interprets censorship as damage and routes around it."
