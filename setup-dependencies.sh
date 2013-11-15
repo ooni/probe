@@ -455,7 +455,7 @@ if [[ "$EUID" -ne "0" ]]; then
 fi
 
 case $DISTRO_VERSION in
-  natty|wheezy|squeeze|precise)
+  natty|wheezy|squeeze|precise|n/a)
 
   # Create the build directories
   DO "mkdir -p ${BUILD_DIR}" "0"
