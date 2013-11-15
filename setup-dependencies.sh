@@ -481,7 +481,7 @@ case $DISTRO_VERSION in
   echo "[+] Updating OS package list...";
   apt-get update 2>&1 > /dev/null;
   echo "[+] Installing packages for your system...";
-  DO "apt-get -y install curl git-core python python-dev python-setuptools build-essential libdumbnet1 python-dumbnet python-libpcap python-pypcap python-dnspython tor tor-geoipdb" "0"
+  DO "apt-get -y install curl git-core python python-dev python-setuptools build-essential libdumbnet1 python-dumbnet python-libpcap python-dnspython tor tor-geoipdb" "0"
 
   if [ "${INSTALL_PIP}" -eq "1" ] ; then
     echo "[+] Installing pip securely"
