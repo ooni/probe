@@ -1,3 +1,6 @@
+[![Build Status](https://travis-ci.org/TheTorProject/ooni-probe.png?branch=master)](https://travis-ci.org/TheTorProject/ooni-probe)
+[![Coverage Status](https://coveralls.io/repos/TheTorProject/ooni-probe/badge.png)](https://coveralls.io/r/TheTorProject/ooni-probe)
+
 # ooniprobe - Open Observatory of Network Interference
 
 "The Net interprets censorship as damage and routes around it."
@@ -16,6 +19,7 @@ with others, so that you and others may better understand your network? If so,
 please read this document and we hope ooniprobe will help you to gather
 network data that will assist you with your endeavors!
 
+<<<<<<< HEAD
 ## ooniprobe installation + run-test on Raspberry Pi (Debian 6)
 
 Run on a terminal:
@@ -24,6 +28,13 @@ Run on a terminal:
 sudo apt-get update && sudo apt-get install git && git clone https://github.com/anadahz/ooni-probe && cd ooni-probe/ && ./setup-dependencies.sh
 ```
 It should also work with other debian/ubuntu versions.
+=======
+## Disclaimer
+
+Note: ooni-probe takes no precautions to protect the install target machine
+from forensics analysis.  If the fact that you have installed or used ooni
+probe is a liability for you, please be aware of this risk.
+>>>>>>> a3d404a56a42f6bcbc02e99a54008a32bd1c6611
 
 
 ## Getting started with ooniprobe is easy (with Vagrant)
@@ -60,13 +71,12 @@ vagrant up
 vagrant ssh
 ```
 
-ooniprobe will be installed in `/data/ooniprobe`.
+ooniprobe will be installed in `/ooni`.
 
 3) You can run tests with:
 
 ```
-cd /data/ooniprobe/
-./bin/ooniprobe nettests/blocking/http_requests.py -f /data/ooniprobe/inputs/input-pack/alexa-top-1k.txt
+ooniprobe blocking/http_requests -f /ooni/inputs/input-pack/alexa-top-1k.txt
 ```
 
 ## The easy way to prep your system for running ooniprobe
@@ -115,7 +125,7 @@ Basic system requirements:
 On Debian or Ubuntu GNU/Linux based systems these can be installed with:
 
 ```
-sudo apt-get install git-core python python-pip python-dev build-essential tor tor-geoipdb obfsproxy tcpdump
+sudo apt-get install git-core python python-pip python-dev build-essential tor tor-geoipdb obfsproxy tcpdump python-geoip python-docutils python-ipaddr python-scapy python-pyrex
 ```
 
 Other packages that may be of interest:
@@ -134,7 +144,12 @@ The Python dependencies required for running ooniprobe are:
       * pypcap: https://code.google.com/p/pypcap/
       * libdnet: https://code.google.com/p/libdnet/
   * txtorcon: https://github.com/meejah/txtorcon
-  * txsocksx: https://github.com/hellais/txsocksx
+  * txsocksx: https://github.com/habnabit/txsocksx
+  * pygeoip: https://github.com/appliedsec/pygeoip 
+  * parsley: http://launchpad.net/parsley
+  * docutils: http://docutils.sourceforge.net
+  * ipaddr: http://code.google.com/p/ipaddr-py/
+  * Pyrex: http://www.cosc.canterbury.ac.nz/~greg/python/Pyrex
 
 ## Install Tor
 
@@ -239,8 +254,8 @@ For pypcap:
 git clone https://github.com/hellais/pypcap
 cd pypcap/
 pip install pyrex
-make && make install
-cd ../ && rm -rf pypcap-read-only
+python setup.py install
+cd ../ && rm -rf pypcap
 ```
 
 ## Including your geo data in the test report

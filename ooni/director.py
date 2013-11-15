@@ -71,6 +71,10 @@ class Director(object):
 
         self.reportEntryManager = ReportEntryManager()
         self.reportEntryManager.director = self
+        # Link the TaskManager's by least available slots.
+        self.measurementManager.child = self.reportEntryManager
+        # Notify the parent when tasks complete # XXX deadlock!?
+        self.reportEntryManager.parent = self.measurementManager
 
         self.successfulMeasurements = 0
         self.failedMeasurements = 0
@@ -174,7 +178,7 @@ class Director(object):
         log.msg("Successfully completed measurement: %s" % measurement)
         self.totalMeasurementRuntime += measurement.runtime
         self.successfulMeasurements += 1
-        return measurement.testInstance.report
+        return measurement
 
     def measurementFailed(self, failure, measurement):
         log.msg("Failed doing measurement: %s" % measurement)
@@ -182,7 +186,7 @@ class Director(object):
 
         self.failedMeasurements += 1
         self.failures.append((failure, measurement))
-        return failure
+        return measurement
 
     def reporterFailed(self, failure, net_test):
         """
@@ -224,6 +228,7 @@ class Director(object):
 
         yield net_test.report.open()
 
+        yield net_test.initializeInputProcessor()
         self.measurementManager.schedule(net_test.generateMeasurements())
 
         self.activeNetTests.append(net_test)

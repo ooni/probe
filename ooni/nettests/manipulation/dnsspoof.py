@@ -1,3 +1,8 @@
+# -*- encoding: utf-8 -*-
+#
+# :authors: Arturo Filastò
+# :licence: see LICENSE
+
 from twisted.internet import defer
 from twisted.python import usage
 
@@ -11,17 +16,20 @@ class UsageOptions(usage.Options):
                     'Specify the resolver that should be used for DNS queries (ip:port)'],
                     ['hostname', 'h', None,
                         'Specify the hostname of a censored site'],
-                    ['backend', 'b', '8.8.8.8:53',
+                    ['backend', 'b', None,
                         'Specify the IP address of a good DNS resolver (ip:port)']
                     ]
 
 
 class DNSSpoof(scapyt.ScapyTest):
     name = "DNS Spoof"
+    author = "Arturo Filastò"
+    version = "0.0.1"
     timeout = 2
 
     usageOptions = UsageOptions
 
+    requiredTestHelpers = {'backend': 'dns'}
     requiredOptions = ['hostname', 'resolver']
 
     def setUp(self):
@@ -65,5 +73,3 @@ class DNSSpoof(scapyt.ScapyTest):
         log.msg("Performing query to %s with %s:%s" % (self.hostname,
             self.controlResolverAddr, self.controlResolverPort))
         yield self.sr1(question)
-
-

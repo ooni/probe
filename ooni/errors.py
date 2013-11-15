@@ -2,7 +2,7 @@ from twisted.internet.defer import TimeoutError as DeferTimeoutError
 from twisted.web._newclient import ResponseNeverReceived
 
 from twisted.internet.error import ConnectionRefusedError, TCPTimedOutError
-from twisted.internet.error import DNSLookupError
+from twisted.internet.error import DNSLookupError, ConnectError, ConnectionLost
 from twisted.internet.error import TimeoutError as GenericTimeoutError
 
 from txsocksx.errors import SOCKSError
@@ -26,7 +26,8 @@ def handleAllFailures(failure):
             SOCKSError, MethodsNotAcceptedError, AddressNotSupported,
             ConnectionError, NetworkUnreachable, ConnectionLostEarly,
             ConnectionNotAllowed, NoAcceptableMethods, ServerFailure,
-            HostUnreachable, ConnectionRefused, TTLExpired, CommandNotSupported)
+            HostUnreachable, ConnectionRefused, TTLExpired, CommandNotSupported,
+            ConnectError, ConnectionLost)
 
     return failureToString(failure)
 
@@ -47,8 +48,16 @@ def failureToString(failure):
 
     string = None
     if isinstance(failure.value, ConnectionRefusedError):
-        log.err("Connection refused. The backend may be down")
+        log.err("Connection refused.")
         string = 'connection_refused_error'
+
+    elif isinstance(failure.value, ConnectionLost):
+        log.err("Connection lost.")
+        string = 'connection_lost_error'
+
+    elif isinstance(failure.value, ConnectError):
+        log.err("Connect error.")
+        string = 'connect_error'
 
     elif isinstance(failure.value, gaierror):
         log.err("Address family for hostname not supported")
@@ -110,7 +119,7 @@ def failureToString(failure):
         string = 'socks_error'
 
     else:
-        log.err("Unknown failure type: %s" % type(failure))
+        log.err("Unknown failure type: %s" % type(failure.value))
         string = 'unknown_failure %s' % str(failure.value)
 
     return string
@@ -156,7 +165,10 @@ class NoMoreReporters(Exception):
 class TorNotRunning(Exception):
     pass
 
-class OONIBReportError(Exception):
+class OONIBError(Exception):
+    pass
+
+class OONIBReportError(OONIBError):
     pass
 
 class OONIBReportUpdateError(OONIBReportError):
@@ -168,4 +180,23 @@ class OONIBReportCreationError(OONIBReportError):
 class OONIBTestDetailsLookupError(OONIBReportError):
     pass
 
+class UnableToLoadDeckInput(Exception):
+    pass
 
+class CouldNotFindTestHelper(Exception):
+    pass
+
+class CouldNotFindTestCollector(Exception):
+    pass
+
+class NetTestNotFound(Exception):
+    pass
+
+class MissingRequiredOption(Exception):
+    pass
+
+def get_error(error_key):
+    if error_key == 'test-helpers-key-missing':
+        return CouldNotFindTestHelper
+    else:
+        return OONIBError

@@ -17,9 +17,11 @@ from twisted.trial import reporter
 from twisted.internet import defer, reactor
 from twisted.internet.error import ConnectionRefusedError
 from twisted.python.failure import Failure
+from twisted.internet.endpoints import TCP4ClientEndpoint
+from twisted.web.client import Agent
 
 from ooni.utils import log
-
+from ooni.tasks import Measurement
 try:
     from scapy.packet import Packet
 except ImportError:
@@ -35,7 +37,6 @@ from ooni.utils.net import BodyReceiver, StringProducer, userAgents
 from ooni.settings import config
 
 from ooni.tasks import ReportEntry, TaskTimedOut, ReportTracker
-
 class ReporterException(Exception):
     pass
 
@@ -202,9 +203,11 @@ class YAMLReporter(OReporter):
     def writeReportEntry(self, entry):
         log.debug("Writing report with YAML reporter")
         self._write('---\n')
-        if isinstance(entry, Failure):
+        if isinstance(entry, Measurement):
+            self._write(safe_dump(entry.testInstance.report))
+        elif isinstance(entry, Failure):
             self._write(entry.value)
-        else:
+        elif isinstance(entry, dict):
             self._write(safe_dump(entry))
         self._write('...\n')
 
@@ -255,7 +258,12 @@ class OONIBReporter(OReporter):
     def writeReportEntry(self, entry):
         log.debug("Writing report with OONIB reporter")
         content = '---\n'
-        content += safe_dump(entry)
+        if isinstance(entry, Measurement):
+            content += safe_dump(entry.testInstance.report)
+        elif isinstance(entry, Failure):
+            content += entry.value
+        elif isinstance(entry, dict):
+            content += safe_dump(entry)
         content += '...\n'
 
         url = self.collectorAddress + '/report'
@@ -289,13 +297,19 @@ class OONIBReporter(OReporter):
         # do this with some deferred kung foo or instantiate the reporter after
         # tor is started.
 
-        from ooni.utils.txagentwithsocks import Agent
+        from txsocksx.http import SOCKS5Agent
         from twisted.internet import reactor
-        try:
-            self.agent = Agent(reactor, sockshost="127.0.0.1",
-                socksport=int(config.tor.socks_port))
-        except Exception, e:
-            log.exception(e)
+        
+        if self.collectorAddress.startswith('httpo://'):
+            self.collectorAddress = \
+                    self.collectorAddress.replace('httpo://', 'http://')
+            self.agent = SOCKS5Agent(reactor,
+                    proxyEndpoint=TCP4ClientEndpoint(reactor, '127.0.0.1',
+                        config.tor.socks_port))
+
+        elif self.collectorAddress.startswith('https://'):
+            # XXX add support for securely reporting to HTTPS collectors.
+            log.err("HTTPS based collectors are currently not supported.")
 
         url = self.collectorAddress + '/report'
 
@@ -308,6 +322,7 @@ class OONIBReporter(OReporter):
             'probe_asn': self.testDetails['probe_asn'],
             'test_name': self.testDetails['test_name'],
             'test_version': self.testDetails['test_version'],
+            'input_hashes': self.testDetails['input_hashes'],
             # XXX there is a bunch of redundancy in the arguments getting sent
             # to the backend. This may need to get changed in the client and the
             # backend.
@@ -328,7 +343,6 @@ class OONIBReporter(OReporter):
                                 bodyProducer=bodyProducer)
         except ConnectionRefusedError:
             log.err("Connection to reporting backend failed (ConnectionRefusedError)")
-            #yield defer.fail(OONIBReportCreationError())
             raise errors.OONIBReportCreationError
 
         except errors.HostUnreachable:
@@ -352,6 +366,12 @@ class OONIBReporter(OReporter):
         except Exception, e:
             log.err("Failed to parse collector response")
             log.exception(e)
+            raise errors.OONIBReportCreationError
+        
+        if response.code == 406:
+            # XXX make this more strict
+            log.err("The specified input or nettests cannot be submitted to this collector.")
+            log.msg("Try running a different test or try reporting to a different collector.")
             raise errors.OONIBReportCreationError
 
         self.reportID = parsed_response['report_id']
@@ -438,6 +458,7 @@ class Report(object):
             a deferred that will fire once all the report entries have
             been written or errbacks when no more reporters
         """
+
         all_written = defer.Deferred()
         report_tracker = ReportTracker(self.reporters)
 
@@ -447,12 +468,48 @@ class Report(object):
                 if report_tracker.finished():
                     all_written.callback(report_tracker)
 
+            def report_failed(failure):
+                log.debug("Report Write Failure")
+                try:
+                    report_tracker.failedReporters.append(reporter)
+                    self.failedWritingReport(failure, reporter)
+                except errors.NoMoreReporters, e:
+                    log.err("No More Reporters!")
+                    all_written.errback(defer.fail(e))
+                else:
+                    report_tracker.completed()
+                    if report_tracker.finished():
+                        all_written.callback(report_tracker)
+                return
+
             report_entry_task = ReportEntry(reporter, measurement)
             self.reportEntryManager.schedule(report_entry_task)
 
-            report_entry_task.done.addBoth(report_completed)
+            report_entry_task.done.addCallback(report_completed)
+            report_entry_task.done.addErrback(report_failed)
 
         return all_written
+
+    def failedWritingReport(self, failure, reporter):
+        """
+        This errback gets called every time we fail to write a report.
+        By fail we mean that the number of retries has exceeded.
+        Once a report has failed to be written with a reporter we give up and
+        remove the reporter from the list of reporters to write to.
+        """
+
+        # XXX: may have been removed already by another failure.
+        if reporter in self.reporters:
+            log.err("Failed to write to %s reporter, giving up..." % reporter)
+            self.reporters.remove(reporter)
+        else:
+            log.err("Failed to write to (already) removed reporter %s" % reporter)
+
+        # Don't forward the exception unless there are no more reporters
+        if len(self.reporters) == 0:
+            log.err("Removed last reporter %s" % reporter)
+            raise errors.NoMoreReporters
+        return
 
     def failedOpeningReport(self, failure, reporter):
         """
@@ -464,7 +521,8 @@ class Report(object):
         log.err("Failed to open %s reporter, giving up..." % reporter)
         log.err("Reporter %s failed, removing from report..." % reporter)
         #log.exception(failure)
-        self.reporters.remove(reporter)
+        if reporter in self.reporters:
+            self.reporters.remove(reporter)
         # Don't forward the exception unless there are no more reporters
         if len(self.reporters) == 0:
             log.err("Removed last reporter %s" % reporter)

@@ -69,8 +69,8 @@ class HTTPRequestsTest(httpt.HTTPTest):
             rel = 1/rel
 
         self.report['body_proportion'] = rel
-        self.report['factor'] = self.factor
-        if rel > self.factor:
+        self.report['factor'] = float(self.factor)
+        if rel > float(self.factor):
             log.msg("The two body lengths appear to match")
             log.msg("censorship is probably not happening")
             self.report['body_length_match'] = True
@@ -102,12 +102,19 @@ class HTTPRequestsTest(httpt.HTTPTest):
 
                 self.compare_headers(control_result.headers,
                         experiment_result.headers)
-
-            if not control_succeeded:
-                self.report['control_failure'] = failureToString(control_result)
-
-            if not experiment_succeeded:
-                self.report['experiment_failure'] = failureToString(experiment_result)
+            else:
+                if not control_succeeded:
+                    self.report['control_failure'] = failureToString(control_result)
+    
+                if not experiment_succeeded:
+                    self.report['experiment_failure'] = failureToString(experiment_result)
+                # Now return some kind of failure so we can retry
+                # However, it would be ideal to split this test into two methods
+                # and compare the results in the postProcessor
+                # Sadly the postProcessor API is currently not implemented
+                if control_succeeded:
+                    return experiment_result
+                return control_result
 
         headers = {'User-Agent': [random.choice(userAgents)]}
 
@@ -116,7 +123,6 @@ class HTTPRequestsTest(httpt.HTTPTest):
         experiment_request = self.doRequest(self.url, method="GET",
                 headers=headers)
 
-        log.msg("Performing GET request to %s via Tor" % self.url)
         control_request = self.doRequest(self.url, method="GET",
                 use_tor=True, headers=headers)
 

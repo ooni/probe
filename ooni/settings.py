@@ -33,7 +33,7 @@ class OConfig(object):
             self.data_directory = self.advanced['data_dir']
         else:
             self.data_directory = '/usr/share/ooni/'
-        self.nettest_directory = os.path.join(self.data_directory, 'nettests')
+        self.nettest_directory = abspath(os.path.join(__file__, '..', 'nettests'))
 
         self.ooni_home = os.path.join(expanduser('~'), '.ooni')
         self.inputs_directory = os.path.join(self.ooni_home, 'inputs')
