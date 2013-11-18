@@ -5,7 +5,7 @@
 
 import random
 from twisted.internet import defer
-from twisted.python import usage
+from twisted.python import usage, failure
 
 from ooni.utils import log
 from ooni.utils.net import userAgents
@@ -91,27 +91,33 @@ class HTTPRequestsTest(httpt.HTTPTest):
             self.report['headers_diff'] = diff
             self.report['headers_match'] = True
 
-    @defer.inlineCallbacks
     def test_get_experiment(self):
         log.msg("Performing GET request to %s" % self.url)
-        self.experiment = yield self.doRequest(self.url, method="GET",
+        return  self.doRequest(self.url, method="GET",
                 use_tor=False, headers=self.headers)
 
-    @defer.inlineCallbacks
     def test_get_control(self):
         log.msg("Performing GET request to %s over Tor" % self.url)
-        self.control = yield self.doRequest(self.url, method="GET",
+        return self.doRequest(self.url, method="GET",
                 use_tor=True, headers=self.headers)
 
     def postProcessor(self, measurements):
-        if self.experiment and self.control:
-            self.compare_body_lengths(len(self.control.body),
-                    len(self.experiment.body))
-            self.compare_headers(self.control.headers,
-                    self.experiment.headers)
+        experiment = control = None
+        for status, measurement in measurements:
+            if 'experiment' in str(measurement.netTestMethod):
+                if isinstance(measurement.result, failure.Failure):
+                    self.report['experiment_failure'] = failureToString(measurement.result)
+                else:
+                    experiment = measurement.result
+            elif 'control' in str(measurement.netTestMethod):
+                if isinstance(measurement.result, failure.Failure):
+                    self.report['control_failure'] = failureToString(measurement.result)
+                else:
+                    control = measurement.result
 
-        if not self.control:
-            self.report['control_failure'] = failureToString(self.control)
-        if not self.experiment:
-            self.report['experiment_failure'] = failureToString(self.experiment)
+        if experiment and control:
+            self.compare_body_lengths(len(control.body),
+                    len(experiment.body))
+            self.compare_headers(control.headers,
+                    experiment.headers)
         return self.report
