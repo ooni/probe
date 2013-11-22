@@ -575,7 +575,7 @@ class NetTest(object):
                     # or a deferred
                     post.addCallback(klass.postProcessor)
                     def noPostProcessor(failure, report):
-                        failure.trap(NoPostProcessor)
+                        failure.trap(e.NoPostProcessor)
                         return report
                     post.addErrback(noPostProcessor, klass.report)
                     post.addCallback(self.report.write)
