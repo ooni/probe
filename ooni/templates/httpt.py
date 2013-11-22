@@ -126,7 +126,8 @@ class HTTPTest(NetTestCase):
                 'headers': list(request_headers.getAllRawHeaders()),
                 'body': request['body'],
                 'url': request['url'],
-                'method': request['method']
+                'method': request['method'],
+                'tor': request['tor']
             }
         }
         if response:

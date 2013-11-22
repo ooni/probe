@@ -174,10 +174,11 @@ class Director(object):
     def measurementStarted(self, measurement):
         self.totalMeasurements += 1
 
-    def measurementSucceeded(self, measurement):
+    def measurementSucceeded(self, result, measurement):
         log.msg("Successfully completed measurement: %s" % measurement)
         self.totalMeasurementRuntime += measurement.runtime
         self.successfulMeasurements += 1
+        measurement.result = result
         return measurement
 
     def measurementFailed(self, failure, measurement):
@@ -186,6 +187,7 @@ class Director(object):
 
         self.failedMeasurements += 1
         self.failures.append((failure, measurement))
+        measurement.result = failure
         return measurement
 
     def reporterFailed(self, failure, net_test):
