@@ -96,7 +96,7 @@ class TorProjectGeoIP(HTTPGeoIPLookupper):
     url = "https://check.torproject.org/"
 
     def parseResponse(self, response_body):
-        regexp = "Your IP address appears to be: <b>((\d+\.)+(\d+))"
+        regexp = "Your IP address appears to be:  <strong>((\d+\.)+(\d+))"
         probe_ip = re.search(regexp, response_body).group(1)
         return probe_ip
 
