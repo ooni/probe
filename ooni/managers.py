@@ -80,7 +80,7 @@ class TaskManager(object):
         self._fillSlots()
 
         # Fires the done deferred when the task has completed
-        task.done.callback(task)
+        task.done.callback(result)
         self.succeeded(result, task)
 
     @property

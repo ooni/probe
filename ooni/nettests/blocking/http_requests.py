@@ -5,7 +5,7 @@
 
 import random
 from twisted.internet import defer
-from twisted.python import usage
+from twisted.python import usage, failure
 
 from ooni.utils import log
 from ooni.utils.net import userAgents
@@ -55,6 +55,7 @@ class HTTPRequestsTest(httpt.HTTPTest):
         self.factor = self.localOptions['factor']
         self.report['control_failure'] = None
         self.report['experiment_failure'] = None
+        self.headers = {'User-Agent': [random.choice(userAgents)]}
 
     def compare_body_lengths(self, body_length_a, body_length_b):
 
@@ -90,47 +91,33 @@ class HTTPRequestsTest(httpt.HTTPTest):
             self.report['headers_diff'] = diff
             self.report['headers_match'] = True
 
-    def test_get(self):
-        def callback(res):
-            experiment, control = res
-            experiment_succeeded, experiment_result = experiment
-            control_succeeded, control_result = control
-
-            if control_succeeded and experiment_succeeded:
-                self.compare_body_lengths(len(experiment_result.body),
-                        len(control_result.body))
-
-                self.compare_headers(control_result.headers,
-                        experiment_result.headers)
-            else:
-                if not control_succeeded:
-                    self.report['control_failure'] = failureToString(control_result)
-    
-                if not experiment_succeeded:
-                    self.report['experiment_failure'] = failureToString(experiment_result)
-                # Now return some kind of failure so we can retry
-                # However, it would be ideal to split this test into two methods
-                # and compare the results in the postProcessor
-                # Sadly the postProcessor API is currently not implemented
-                if control_succeeded:
-                    return experiment_result
-                return control_result
-
-        headers = {'User-Agent': [random.choice(userAgents)]}
-
-        l = []
+    def test_get_experiment(self):
         log.msg("Performing GET request to %s" % self.url)
-        experiment_request = self.doRequest(self.url, method="GET",
-                headers=headers)
+        return  self.doRequest(self.url, method="GET",
+                use_tor=False, headers=self.headers)
 
-        control_request = self.doRequest(self.url, method="GET",
-                use_tor=True, headers=headers)
+    def test_get_control(self):
+        log.msg("Performing GET request to %s over Tor" % self.url)
+        return self.doRequest(self.url, method="GET",
+                use_tor=True, headers=self.headers)
 
-        l.append(experiment_request)
-        l.append(control_request)
+    def postProcessor(self, measurements):
+        experiment = control = None
+        for status, measurement in measurements:
+            if 'experiment' in str(measurement.netTestMethod):
+                if isinstance(measurement.result, failure.Failure):
+                    self.report['experiment_failure'] = failureToString(measurement.result)
+                else:
+                    experiment = measurement.result
+            elif 'control' in str(measurement.netTestMethod):
+                if isinstance(measurement.result, failure.Failure):
+                    self.report['control_failure'] = failureToString(measurement.result)
+                else:
+                    control = measurement.result
 
-        dl = defer.DeferredList(l, consumeErrors=True)
-        dl.addCallback(callback)
-
-        return dl
-
+        if experiment and control:
+            self.compare_body_lengths(len(control.body),
+                    len(experiment.body))
+            self.compare_headers(control.headers,
+                    experiment.headers)
+        return self.report

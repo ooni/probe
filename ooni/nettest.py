@@ -535,9 +535,10 @@ class NetTest(object):
         measurement.netTest = self
 
         if self.director:
-            measurement.done.addCallback(self.director.measurementSucceeded)
+            measurement.done.addCallback(self.director.measurementSucceeded,
+                    measurement)
             measurement.done.addErrback(self.director.measurementFailed,
-                                        measurement)
+                    measurement)
         return measurement
 
     @defer.inlineCallbacks
