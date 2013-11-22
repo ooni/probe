@@ -16,7 +16,7 @@ from ooni.settings import config
 from ooni.director import Director
 from ooni.deck import Deck, nettest_to_path
 from ooni.reporter import YAMLReporter, OONIBReporter
-from ooni.nettest import NetTestLoader, MissingRequiredOption
+from ooni.nettest import NetTestLoader
 
 from ooni.utils import log, checkForRoot
 

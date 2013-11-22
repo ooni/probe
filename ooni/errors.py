@@ -195,6 +195,15 @@ class NetTestNotFound(Exception):
 class MissingRequiredOption(Exception):
     pass
 
+class FailureToLoadNetTest(Exception):
+    pass
+
+class NoPostProcessor(Exception):
+    pass
+
+class InvalidOption(Exception):
+    pass
+
 def get_error(error_key):
     if error_key == 'test-helpers-key-missing':
         return CouldNotFindTestHelper
