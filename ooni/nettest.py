@@ -174,10 +174,9 @@ class NetTestLoader(object):
     method_prefix = 'test'
     collector = None
 
-    def __init__(self, options, test_file=None, test_string=None, global_options={}):
+    def __init__(self, options, test_file=None, test_string=None):
         self.onionInputRegex =  re.compile("(httpo://[a-z0-9]{16}\.onion)/input/([a-z0-9]{64})$")
         self.options = options
-        self.globalOptions = global_options
         self.testCases, test_cases = None, None
 
         if test_file:
@@ -288,7 +287,7 @@ class NetTestLoader(object):
             'test_version': self.testVersion,
             'software_name': 'ooniprobe',
             'software_version': software_version,
-            'options': self.globalOptions,
+            'options': self.options,
             'input_hashes': input_file_hashes
         }
         return test_details
