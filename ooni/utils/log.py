@@ -30,9 +30,6 @@ def start(logfile=None, application_name="ooniprobe"):
     if not logfile:
         logfile = config.basic.logfile
 
-    if not (os.access(logfile, os.W_OK)):
-        logfile = "ooniprobe.log"
-
     log_folder = os.path.dirname(logfile)
     log_filename = os.path.basename(logfile)
 
