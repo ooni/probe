@@ -177,7 +177,7 @@ class Deck(InputFile):
                     continue
                 test_helper = response[th['name']]
                 log.msg("Using this helper: %s" % test_helper)
-                th['test_class'].localOptions[th['option']] = test_helper['address']
+                th['test_class'].localOptions[th['option']] = test_helper['address'].encode('utf-8')
                 if net_test_loader in requires_collector:
                     net_test_loader.collector = test_helper['collector'].encode('utf-8')
 
