@@ -100,14 +100,6 @@ class TorProjectGeoIP(HTTPGeoIPLookupper):
         probe_ip = re.search(regexp, response_body).group(1)
         return probe_ip
 
-class MaxMindGeoIP(HTTPGeoIPLookupper):
-    url = "https://www.maxmind.com/en/locate_my_ip"
-
-    def parseResponse(self, response_body):
-        regexp = '<span id="my-ip-address">((\d+\.)+(\d+))</span>'
-        probe_ip = re.search(regexp, response_body).group(1)
-        return probe_ip
-
 class ProbeIP(object):
     strategy = None
     address = None
@@ -115,8 +107,7 @@ class ProbeIP(object):
     def __init__(self):
         self.tor_state = config.tor_state
         self.geoIPServices = {'ubuntu': UbuntuGeoIP,
-            'torproject': TorProjectGeoIP,
-            'maxmind': MaxMindGeoIP
+            'torproject': TorProjectGeoIP
         }
 
     @defer.inlineCallbacks
