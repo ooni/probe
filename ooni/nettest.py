@@ -58,7 +58,7 @@ def loadNetTestString(net_test_string):
         test_cases.extend(get_test_methods(item))
 
     if not test_cases:
-        raise NoTestCasesFound
+        raise e.NoTestCasesFound
 
     return test_cases
 
@@ -72,7 +72,7 @@ def loadNetTestFile(net_test_file):
         test_cases.extend(get_test_methods(item))
 
     if not test_cases:
-        raise NoTestCasesFound
+        raise e.NoTestCasesFound
 
     return test_cases
 
@@ -351,7 +351,7 @@ class NetTestLoader(object):
             test_cases.extend(self._get_test_methods(item))
 
         if not test_cases:
-            raise NoTestCasesFound
+            raise e.NoTestCasesFound
 
         self.setupTestCases(test_cases)
 
@@ -365,7 +365,7 @@ class NetTestLoader(object):
             test_cases.extend(self._get_test_methods(item))
 
         if not test_cases:
-            raise NoTestCasesFound
+            raise e.NoTestCasesFound
 
         self.setupTestCases(test_cases)
 
@@ -575,7 +575,7 @@ class NetTest(object):
                     # or a deferred
                     post.addCallback(klass.postProcessor)
                     def noPostProcessor(failure, report):
-                        failure.trap(NoPostProcessor)
+                        failure.trap(e.NoPostProcessor)
                         return report
                     post.addErrback(noPostProcessor, klass.report)
                     post.addCallback(self.report.write)
@@ -678,7 +678,7 @@ class NetTestCase(object):
         anything that gets written to the object self.report[] will be added to
         the final test report.
         """
-        raise NoPostProcessor
+        raise e.NoPostProcessor
 
     def inputProcessor(self, filename):
         """
@@ -758,23 +758,14 @@ class NetTestCase(object):
         for option in self.localOptions:
             if option not in self.usageOptions():
                 if not self.inputFile or option not in self.inputFile:
-                    raise InvalidOption
+                    raise e.InvalidOption
 
     def _checkRequiredOptions(self):
         for required_option in self.requiredOptions:
             log.debug("Checking if %s is present" % required_option)
             if required_option not in self.localOptions or \
                 self.localOptions[required_option] == None:
-                raise MissingRequiredOption(required_option)
+                raise e.MissingRequiredOption(required_option)
 
     def __repr__(self):
         return "<%s inputs=%s>" % (self.__class__, self.inputs)
-
-class FailureToLoadNetTest(Exception):
-    pass
-class NoPostProcessor(Exception):
-    pass
-class InvalidOption(Exception):
-    pass
-class MissingRequiredOption(Exception):
-    pass
