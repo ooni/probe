@@ -166,7 +166,7 @@ def getNetTestInformation(net_test_file):
         'description': test_class.description,
         'version': test_class.version,
         'arguments': getArguments(test_class),
-        'path': net_test_file
+        'path': net_test_file,
     }
     return information
 

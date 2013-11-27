@@ -106,6 +106,7 @@ class Director(object):
                 if is_nettest(filename):
                     net_test_file = os.path.join(dirname, filename)
                     nettest = getNetTestInformation(net_test_file)
+                    nettest['category'] = category.replace('/', '')
 
                     if nettest['id'] in nettests:
                         log.err("Found a two tests with the same name %s, %s" %

@@ -30,7 +30,8 @@ class Options(usage.Options):
 
     optFlags = [["help", "h"],
                 ["resume", "r"],
-                ["no-collector", "n"]
+                ["no-collector", "n"],
+                ["list", "s"],
                 ]
 
     optParameters = [["reportfile", "o", None, "report file name"],
@@ -72,7 +73,7 @@ class Options(usage.Options):
         sys.settrace(spewer)
 
     def parseArgs(self, *args):
-        if self['testdeck']:
+        if self['testdeck'] or self['list']:
             return
         try:
             self['test_file'] = args[0]
@@ -112,7 +113,7 @@ def runWithDirector():
     config.read_config_file()
 
     log.start(global_options['logfile'])
-
+    
     if config.privacy.includepcap:
         try:
             checkForRoot()
@@ -126,6 +127,16 @@ def runWithDirector():
 
     director = Director()
     d = director.start()
+
+    if global_options['list']:
+        print "# Installed nettests"
+        for net_test_id, net_test in director.netTests.items():
+            print "* %s (%s/%s)" % (net_test['name'],
+                                    net_test['category'], 
+                                    net_test['id'])
+            print "  %s" % net_test['description']
+
+        sys.exit(0)
 
     #XXX: This should mean no bouncer either!
     if global_options['no-collector']:
