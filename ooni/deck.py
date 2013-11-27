@@ -133,8 +133,8 @@ class Deck(InputFile):
             for rth in net_test_loader.requiredTestHelpers:
                 if option_name.message == rth['option']:
                     break
-                else:
-                    raise
+            else:
+                raise
         self.netTestLoaders.append(net_test_loader)
 
     @defer.inlineCallbacks
