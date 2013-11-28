@@ -67,7 +67,7 @@ class CaptivePortal(nettest.NetTestCase):
     to determine if content has been altered.
     """
 
-    name = "captivep"
+    name = "captiveportal"
     description = "Captive Portal Test"
     version = '0.2'
     author = "Isis Lovecruft"
