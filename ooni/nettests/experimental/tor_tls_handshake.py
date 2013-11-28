@@ -97,7 +97,8 @@ Connection: keep-alive
                 if gotCertChain.called: return
                 ssl_data={}
                 ssl_data['cert_chain'] = self.getHandle().get_peer_cert_chain()
-                ssl_data['cipher_list'] = self.getHandle().get_cipher_list()
+                #XXX: get_cipher_list() does not return the expected set of ciphers :'(
+                #ssl_data['cipher_list'] = self.getHandle().get_cipher_list()
                 self.transport.loseConnection()
                 gotCertChain.callback(ssl_data)
             
@@ -113,7 +114,7 @@ Connection: keep-alive
             for cert in cert_chain:
                 pem_chain.append(crypto.dump_certificate(crypto.FILETYPE_PEM, cert))
             report['cert_chain'] = pem_chain
-            report['cipher_list'] = ssl_data['cipher_list']
+            #report['cipher_list'] = ssl_data['cipher_list']
 
         gotCertChain.addCallback(addCertChainToReport, self.report)
         def errback(err): 
