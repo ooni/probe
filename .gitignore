@@ -24,3 +24,5 @@ ooniprobe.resume
 !before_i_commit.log
 ## ignore pycharm ide files:
 .idea/
+*~
+.c9revisions

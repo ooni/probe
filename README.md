@@ -114,14 +114,14 @@ Basic system requirements:
 On Debian or Ubuntu GNU/Linux based systems these can be installed with:
 
 ```
-sudo apt-get install git-core python python-pip python-dev build-essential tor tor-geoipdb obfsproxy tcpdump python-geoip python-docutils python-ipaddr python-scapy python-pyrex
+sudo apt-get install git-core python python-pip python-dev build-essential tor tor-geoipdb tcpdump python-geoip python-docutils python-ipaddr python-scapy python-pyrex
 ```
 
 Other packages that may be of interest:
 
 ```
-libdumbnet1 python-dumbnet python-libpcap python-pypcap python-pcapy python-dnspython
-python-virtualenv virtualenvwrapper tor tor-geoipdb obfsproxy
+libdumbnet python-dumbnet python-libpcap python-pypcap pcapy dnspython
+python-virtualenv virtualenvwrapper
 ```
 
 The Python dependencies required for running ooniprobe are:
