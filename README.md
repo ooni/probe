@@ -19,11 +19,22 @@ with others, so that you and others may better understand your network? If so,
 please read this document and we hope ooniprobe will help you to gather
 network data that will assist you with your endeavors!
 
+<<<<<<< HEAD
+## ooniprobe installation + run-test on Raspberry Pi (Debian 6)
+
+Run on a terminal:
+
+```
+sudo apt-get update && sudo apt-get install git && git clone https://github.com/anadahz/ooni-probe && cd ooni-probe/ && ./setup-dependencies.sh
+```
+It should also work with other debian/ubuntu versions.
+=======
 ## Disclaimer
 
 Note: ooni-probe takes no precautions to protect the install target machine
 from forensics analysis.  If the fact that you have installed or used ooni
 probe is a liability for you, please be aware of this risk.
+>>>>>>> a3d404a56a42f6bcbc02e99a54008a32bd1c6611
 
 
 ## Getting started with ooniprobe is easy (with Vagrant)
@@ -34,7 +45,7 @@ probe is a liability for you, please be aware of this risk.
 
 On OSX:
 
-If youd don't have it install homebrew http://mxcl.github.io/homebrew/
+If you don't have it install homebrew http://mxcl.github.io/homebrew/
 
 ```
 brew install git
@@ -224,12 +235,6 @@ up to date.
 
 The version of pypcap and libdnet ooniprobe is current tested with are
 libdnet-1.12 and pypcap 1.1, any other version should be considered untested.
-
-If you don't already have Subversion installed:
-
-```
-sudo apt-get install subversion
-```
 
 For libdnet:
 
