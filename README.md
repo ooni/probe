@@ -225,12 +225,6 @@ up to date.
 The version of pypcap and libdnet ooniprobe is current tested with are
 libdnet-1.12 and pypcap 1.1, any other version should be considered untested.
 
-If you don't already have Subversion installed:
-
-```
-sudo apt-get install subversion
-```
-
 For libdnet:
 
 ```
