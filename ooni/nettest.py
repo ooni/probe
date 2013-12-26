@@ -160,7 +160,7 @@ def getNetTestInformation(net_test_file):
     """
     test_class = getTestClassFromFile(net_test_file)
 
-    test_id = test_class_name_to_name(test_class.name)
+    test_id = os.path.basename(net_test_file).replace('.py', '')
     information = {'id': test_id,
         'name': test_class.name,
         'description': test_class.description,
