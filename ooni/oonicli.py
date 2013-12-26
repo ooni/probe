@@ -122,21 +122,18 @@ def runWithDirector():
                      " See ooniprobe.conf privacy.includepcap") 
              sys.exit(2)
 
-    # contains (test_cases, options, cmd_line_options)
-    test_list = []
-
     director = Director()
-    d = director.start()
-
     if global_options['list']:
         print "# Installed nettests"
-        for net_test_id, net_test in director.netTests.items():
+        for net_test_id, net_test in director.getNetTests().items():
             print "* %s (%s/%s)" % (net_test['name'],
                                     net_test['category'], 
                                     net_test['id'])
             print "  %s" % net_test['description']
 
         sys.exit(0)
+
+    d = director.start()
 
     #XXX: This should mean no bouncer either!
     if global_options['no-collector']:

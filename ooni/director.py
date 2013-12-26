@@ -122,7 +122,6 @@ class Director(object):
         self.netTests = self.getNetTests()
 
         if config.advanced.start_tor:
-            log.msg("Starting Tor...")
             yield self.startTor()
 
         config.probe_ip = geoip.ProbeIP()
@@ -264,6 +263,8 @@ class Director(object):
         Launches a Tor with :param: socks_port :param: control_port
         :param: tor_binary set in ooniprobe.conf
         """
+        log.msg("Starting Tor...")
+
         @defer.inlineCallbacks
         def state_complete(state):
             config.tor_state = state
