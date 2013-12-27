@@ -40,6 +40,8 @@ def IPToLocation(ipaddr):
     
         country_dat = GeoIP(country_file)
         location['countrycode'] = country_dat.country_code_by_addr(ipaddr)
+        if not location['countrycode']:
+            location['countrycode'] = 'ZZ'
 
         asn_dat = GeoIP(asn_file)
         try:
