@@ -6,8 +6,8 @@ from twisted.trial import unittest
 from twisted.internet import defer, reactor
 from twisted.python.usage import UsageError
 
-from ooni.nettest import NetTest, InvalidOption, MissingRequiredOption
-from ooni.nettest import NetTestLoader, FailureToLoadNetTest
+from ooni.errors import MissingRequiredOption, InvalidOption, FailureToLoadNetTest
+from ooni.nettest import NetTest, NetTestLoader
 from ooni.tasks import BaseTask
 
 from ooni.director import Director
