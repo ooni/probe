@@ -30,7 +30,6 @@ class TaskManager(object):
         to be re-run once all the currently scheduled tasks have run.
         """
         log.err("Task %s has failed %s times" % (task, task.failures))
-        log.exception(failure)
 
         self._active_tasks.remove(task)
         self.failures = self.failures + 1

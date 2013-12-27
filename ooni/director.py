@@ -175,7 +175,7 @@ class Director(object):
         self.totalMeasurements += 1
 
     def measurementSucceeded(self, result, measurement):
-        log.msg("Successfully completed measurement: %s" % measurement)
+        log.debug("Successfully completed measurement: %s" % measurement)
         self.totalMeasurementRuntime += measurement.runtime
         self.successfulMeasurements += 1
         measurement.result = result
