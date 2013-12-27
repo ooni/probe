@@ -3,6 +3,8 @@ import os
 import random
 
 from twisted.web import client, http_headers
+client._HTTP11ClientFactory.noisy = False
+
 from ooni.utils.net import userAgents, BodyReceiver
 from twisted.internet import reactor, defer, protocol
 
