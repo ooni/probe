@@ -25,7 +25,7 @@ make geoip 2>&1 > /dev/null
 mkdir -p ~/.ooni
 cp /usr/share/ooni/ooniprobe.conf.sample ~/.ooni/ooniprobe.conf
 
-cd /ooni/inputs/
+cd /usr/share/ooni/inputs
 make lists 2>&1 > /dev/null
 
 # https://code.google.com/p/pypcap/issues/detail?id=27
