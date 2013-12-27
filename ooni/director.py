@@ -279,7 +279,7 @@ class Director(object):
             config.tor.socks_port = int(socks_port.values()[0])
             config.tor.control_port = int(control_port.values()[0])
 
-            log.debug("Obtained our IP address from a Tor Relay %s" % config.probe_ip)
+            log.msg("Obtained our IP address from a Tor Relay %s" % config.probe_ip)
 
         def setup_failed(failure):
             log.exception(failure)
@@ -296,7 +296,7 @@ class Director(object):
             return state.post_bootstrap
 
         def updates(prog, tag, summary):
-            log.debug("%d%%: %s" % (prog, summary))
+            log.msg("%d%%: %s" % (prog, summary))
 
         tor_config = TorConfig()
         if config.tor.control_port:
