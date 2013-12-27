@@ -176,7 +176,7 @@ def runWithDirector():
         r = failure.trap(errors.TorNotRunning,
                 errors.InvalidOONIBCollectorAddress,
                 errors.UnableToLoadDeckInput, errors.CouldNotFindTestHelper,
-                errors.CouldNotFindTestCollector)
+                errors.CouldNotFindTestCollector, errors.ProbeIPUnknown)
 
         if isinstance(failure.value, errors.TorNotRunning):
             log.err("Tor does not appear to be running")
@@ -201,6 +201,9 @@ def runWithDirector():
             log.err("Could not find a valid collector.")
             log.msg("Try with a different bouncer, specify a collector with -c or disable reporting to a collector with -n.")
 
+        elif isinstance(failure.value, errors.ProbeIPUnknown):
+            log.err("Failed to lookup probe IP address.")
+            log.msg("Check your internet connection.")
 
         if config.advanced.debug:
             log.exception(failure)
