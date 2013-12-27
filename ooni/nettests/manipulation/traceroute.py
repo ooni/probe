@@ -54,7 +54,7 @@ class TracerouteTest(scapyt.BaseScapyTest):
         with TTLs from 1 until max_ttl.
         """
         def finished(packets, port):
-            log.debug("Finished running TCP traceroute test on port %s" % port)
+            log.msg("Finished running TCP traceroute test on port %s" % port)
             answered, unanswered = packets
             self.report['test_tcp_traceroute']['hops_'+str(port)] = []
             for snd, rcv in answered:
@@ -63,7 +63,7 @@ class TracerouteTest(scapyt.BaseScapyTest):
                         'rtt': rcv.time - snd.time,
                         'sport': snd[TCP].sport
                 }
-                log.debug("%s: %s" % (port, report))
+                log.msg("%s: %s" % (port, report))
                 self.report['test_tcp_traceroute']['hops_'+str(port)].append(report)
 
         dl = []
@@ -84,7 +84,7 @@ class TracerouteTest(scapyt.BaseScapyTest):
         payloads with TTLs from 1 until max_ttl.
         """
         def finished(packets, port):
-            log.debug("Finished running UDP traceroute test on port %s" % port)
+            log.msg("Finished running UDP traceroute test on port %s" % port)
             answered, unanswered = packets
             self.report['test_udp_traceroute']['hops_'+str(port)] = []
             for snd, rcv in answered:
@@ -93,7 +93,7 @@ class TracerouteTest(scapyt.BaseScapyTest):
                         'rtt': rcv.time - snd.time,
                         'sport': snd[UDP].sport
                 }
-                log.debug("%s: %s" % (port, report))
+                log.msg("%s: %s" % (port, report))
                 self.report['test_udp_traceroute']['hops_'+str(port)].append(report)
         dl = []
         max_ttl, timeout = self.max_ttl_and_timeout()
@@ -113,7 +113,7 @@ class TracerouteTest(scapyt.BaseScapyTest):
         packets with TTLs from 1 until max_ttl.
         """
         def finished(packets):
-            log.debug("Finished running ICMP traceroute test")
+            log.msg("Finished running ICMP traceroute test")
             answered, unanswered = packets
             self.report['test_icmp_traceroute']['hops'] = []
             for snd, rcv in answered:
@@ -121,7 +121,7 @@ class TracerouteTest(scapyt.BaseScapyTest):
                         'address': rcv.src,
                         'rtt': rcv.time - snd.time
                 }
-                log.debug("%s" % (report))
+                log.msg("%s" % (report))
                 self.report['test_icmp_traceroute']['hops'].append(report)
         dl = []
         max_ttl, timeout = self.max_ttl_and_timeout()

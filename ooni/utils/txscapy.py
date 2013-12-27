@@ -127,7 +127,11 @@ class ScapyFactory(abstract.FileDescriptor):
 
         abstract.FileDescriptor.__init__(self, reactor)
         if interface == 'auto':
-            interface = getDefaultIface()
+            try:
+                interface = getDefaultIface()
+            except IfaceError:
+                log.err("Could not detect the default interface.")
+                log.msg("Try editing your config file to set it manually.")
         if not super_socket:
             super_socket = conf.L3socket(iface=interface,
                     promisc=True, filter='')
