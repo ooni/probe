@@ -20,4 +20,4 @@ zope.interface>=3.6
 
 # Get scapy 2.2 from pypi
 # https://pypi.python.org/pypi/scapy-real/2.2.0-dev
-scapy-real
+scapy-real==2.2.0-dev
