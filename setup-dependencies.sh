@@ -426,8 +426,8 @@ install_pip_securely() {
 
   echo "[+] Verifying PGP signature of pip"
   echo "${PIP_PUB_KEY}" > ${PIP_KEY_FILE}
-  DO "gpg --no-default-keyring --keyring $TMP_KEYRING --import $PIP_KEY_FILE" "0"
-  DO "gpg --no-default-keyring --keyring $TMP_KEYRING --verify $PKG_VERIFY" "0"
+  DO "gpg --homedir /root --no-default-keyring --keyring $TMP_KEYRING --import $PIP_KEY_FILE" "0"
+  DO "gpg --homedir /root --no-default-keyring --keyring $TMP_KEYRING --verify $PKG_VERIFY" "0"
 
   DO "tar xzf ${BUILD_DIR}/${PIP_PKG}" "0"
   DO "cd pip-*" "0"
@@ -462,8 +462,8 @@ case $DISTRO_VERSION in
   DO "chmod 700 ${BUILD_DIR}" "0"
 
   # Import the Tor public key
-  DO "gpg --no-default-keyring --keyring $TMP_KEYRING --keyserver x-hkp://pool.sks-keyservers.net --recv-keys 0x886DDD89" "0"
-  gpg --no-default-keyring --keyring $TMP_KEYRING --export A3C4F0F979CAA22CDBA8F512EE8CBC9E886DDD89 | apt-key add -
+  DO "gpg --homedir /root --no-default-keyring --keyring $TMP_KEYRING --keyserver x-hkp://pool.sks-keyservers.net --recv-keys 0x886DDD89" "0"
+  gpg --homedir /root --no-default-keyring --keyring $TMP_KEYRING --export A3C4F0F979CAA22CDBA8F512EE8CBC9E886DDD89 | apt-key add -
     
   HAVE_TOR_REPO="`grep deb.torproject.org/torproject.org /etc/apt/sources.list /etc/apt/sources.list.d/* 2>&1|grep torproject|head -n 1`";
   if [ -z "$HAVE_TOR_REPO" ]; then
@@ -481,7 +481,7 @@ case $DISTRO_VERSION in
   echo "[+] Updating OS package list...";
   apt-get update 2>&1 > /dev/null;
   echo "[+] Installing packages for your system...";
-  DO "apt-get -y install curl git-core python python-dev python-setuptools build-essential libdumbnet1 python-dumbnet python-libpcap python-pypcap python-dnspython tor tor-geoipdb" "0"
+  DO "apt-get -y install curl git-core python python-dev python-setuptools build-essential libdumbnet1 python-dumbnet python-libpcap python-dnspython tor tor-geoipdb" "0"
 
   if [ "${INSTALL_PIP}" -eq "1" ] ; then
     echo "[+] Installing pip securely"
