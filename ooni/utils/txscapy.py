@@ -129,7 +129,9 @@ class ScapyFactory(abstract.FileDescriptor):
         abstract.FileDescriptor.__init__(self, reactor)
         if interface == 'auto':
             interface = getDefaultIface()
-        if not super_socket:
+        if not super_socket and sys.platform == 'darwin':
+            super_socket = conf.L3socket(iface=interface, promisc=True, filter='')
+        elif not super_socket:
             super_socket = L3RawSocket(iface=interface, promisc=True)
 
         self.protocols = []
