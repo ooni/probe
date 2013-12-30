@@ -10,6 +10,7 @@ from twisted.internet import defer, abstract
 from zope.interface import implements
 
 from scapy.config import conf
+from scapy.supersocket import L3RawSocket
 
 from ooni.utils import log
 from ooni.settings import config
@@ -128,10 +129,10 @@ class ScapyFactory(abstract.FileDescriptor):
         abstract.FileDescriptor.__init__(self, reactor)
         if interface == 'auto':
             interface = getDefaultIface()
-        if not super_socket:
-            super_socket = conf.L3socket(iface=interface,
-                    promisc=True, filter='')
-            #super_socket = conf.L2socket(iface=interface)
+        if not super_socket and sys.platform == 'darwin':
+            super_socket = conf.L3socket(iface=interface, promisc=True, filter='')
+        elif not super_socket:
+            super_socket = L3RawSocket(iface=interface, promisc=True)
 
         self.protocols = []
         fdesc._setCloseOnExec(super_socket.ins.fileno())
