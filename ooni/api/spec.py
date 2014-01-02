@@ -11,7 +11,7 @@ from cyclone import web, escape
 
 from ooni.reporter import YAMLReporter, OONIBReporter, collector_supported
 from ooni import errors
-from ooni.nettest import NetTestLoader, MissingRequiredOption
+from ooni.nettest import NetTestLoader
 from ooni.settings import config
 
 class InvalidInputFilename(Exception):
@@ -182,7 +182,7 @@ class StartTest(ORequestHandler):
                     os.close(fd)
                     os.remove(path)
 
-        except MissingRequiredOption, option_name:
+        except errors.MissingRequiredOption, option_name:
             self.write({'error':
                         'Missing required option: "%s"' % option_name})
         except usage.UsageError, e:

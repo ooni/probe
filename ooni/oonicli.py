@@ -122,21 +122,18 @@ def runWithDirector():
                      " See ooniprobe.conf privacy.includepcap") 
              sys.exit(2)
 
-    # contains (test_cases, options, cmd_line_options)
-    test_list = []
-
     director = Director()
-    d = director.start()
-
     if global_options['list']:
         print "# Installed nettests"
-        for net_test_id, net_test in director.netTests.items():
+        for net_test_id, net_test in director.getNetTests().items():
             print "* %s (%s/%s)" % (net_test['name'],
                                     net_test['category'], 
                                     net_test['id'])
             print "  %s" % net_test['description']
 
         sys.exit(0)
+
+    d = director.start()
 
     #XXX: This should mean no bouncer either!
     if global_options['no-collector']:
@@ -179,7 +176,7 @@ def runWithDirector():
         r = failure.trap(errors.TorNotRunning,
                 errors.InvalidOONIBCollectorAddress,
                 errors.UnableToLoadDeckInput, errors.CouldNotFindTestHelper,
-                errors.CouldNotFindTestCollector)
+                errors.CouldNotFindTestCollector, errors.ProbeIPUnknown)
 
         if isinstance(failure.value, errors.TorNotRunning):
             log.err("Tor does not appear to be running")
@@ -204,6 +201,9 @@ def runWithDirector():
             log.err("Could not find a valid collector.")
             log.msg("Try with a different bouncer, specify a collector with -c or disable reporting to a collector with -n.")
 
+        elif isinstance(failure.value, errors.ProbeIPUnknown):
+            log.err("Failed to lookup probe IP address.")
+            log.msg("Check your internet connection.")
 
         if config.advanced.debug:
             log.exception(failure)

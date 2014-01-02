@@ -364,7 +364,7 @@ class OONIBReporter(OReporter):
         try:
             parsed_response = json.loads(backend_response)
         except Exception, e:
-            log.err("Failed to parse collector response")
+            log.err("Failed to parse collector response %s" % backend_response)
             log.exception(e)
             raise errors.OONIBReportCreationError
         

@@ -122,7 +122,6 @@ class Director(object):
         self.netTests = self.getNetTests()
 
         if config.advanced.start_tor:
-            log.msg("Starting Tor...")
             yield self.startTor()
 
         config.probe_ip = geoip.ProbeIP()
@@ -176,7 +175,7 @@ class Director(object):
         self.totalMeasurements += 1
 
     def measurementSucceeded(self, result, measurement):
-        log.msg("Successfully completed measurement: %s" % measurement)
+        log.debug("Successfully completed measurement: %s" % measurement)
         self.totalMeasurementRuntime += measurement.runtime
         self.successfulMeasurements += 1
         measurement.result = result
@@ -264,6 +263,8 @@ class Director(object):
         Launches a Tor with :param: socks_port :param: control_port
         :param: tor_binary set in ooniprobe.conf
         """
+        log.msg("Starting Tor...")
+
         @defer.inlineCallbacks
         def state_complete(state):
             config.tor_state = state
@@ -278,7 +279,7 @@ class Director(object):
             config.tor.socks_port = int(socks_port.values()[0])
             config.tor.control_port = int(control_port.values()[0])
 
-            log.debug("Obtained our IP address from a Tor Relay %s" % config.probe_ip)
+            log.msg("Obtained our IP address from a Tor Relay %s" % config.probe_ip)
 
         def setup_failed(failure):
             log.exception(failure)
@@ -295,7 +296,7 @@ class Director(object):
             return state.post_bootstrap
 
         def updates(prog, tag, summary):
-            log.debug("%d%%: %s" % (prog, summary))
+            log.msg("%d%%: %s" % (prog, summary))
 
         tor_config = TorConfig()
         if config.tor.control_port:

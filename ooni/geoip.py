@@ -3,6 +3,8 @@ import os
 import random
 
 from twisted.web import client, http_headers
+client._HTTP11ClientFactory.noisy = False
+
 from ooni.utils.net import userAgents, BodyReceiver
 from twisted.internet import reactor, defer, protocol
 
@@ -31,19 +33,28 @@ def IPToLocation(ipaddr):
     location = {'city': None, 'countrycode': None, 'asn': None}
     try:
         city_dat = GeoIP(city_file)
-        location['city'] = city_dat.record_by_addr(ipaddr)['city']
-
+        try:
+            location['city'] = city_dat.record_by_addr(ipaddr)['city']
+        except TypeError:
+            location['city'] = None
+    
         country_dat = GeoIP(country_file)
         location['countrycode'] = country_dat.country_code_by_addr(ipaddr)
+        if not location['countrycode']:
+            location['countrycode'] = 'ZZ'
 
         asn_dat = GeoIP(asn_file)
-        location['asn'] = asn_dat.org_by_addr(ipaddr).split(' ')[0]
+        try:
+            location['asn'] = asn_dat.org_by_addr(ipaddr).split(' ')[0]
+        except AttributeError:
+            location['asn'] = 'AS0'
 
     except IOError:
-        log.err("Could not find GeoIP data files. Go into data/ "
-                "and run make geoip")
+        log.err("Could not find GeoIP data files. Go into %s "
+                "and run make geoip or change the geoip_data_dir "
+                "in the config file" % config.advanced.geoip_data_dir)
         raise GeoIPDataFilesNotFound
-
+    
     return location
 
 class HTTPGeoIPLookupper(object):

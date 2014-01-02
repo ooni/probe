@@ -22,7 +22,7 @@ reports:
     collector: 'httpo://nkvphnp3p6agi5qq.onion'
 advanced:
     geoip_data_dir: /usr/share/ooni/
-    debug: true
+    debug: false
     # enable if auto detection fails
     #tor_binary: /usr/sbin/tor
     #obfsproxy_binary: /usr/bin/obfsproxy 
