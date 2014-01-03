@@ -32,6 +32,7 @@ class Options(usage.Options):
                 ["resume", "r"],
                 ["no-collector", "n"],
                 ["list", "s"],
+                ["printdeck", "p"]
                 ]
 
     optParameters = [["reportfile", "o", None, "report file name"],
@@ -43,7 +44,6 @@ class Options(usage.Options):
                          "Address of the bouncer for test helpers. default: httpo://nkvphnp3p6agi5qq.onion"],
                      ["logfile", "l", None, "log file name"],
                      ["pcapfile", "O", None, "pcap file name"],
-                     ["parallelism", "p", "10", "input parallelism"],
                      ["configfile", "f", None,
                          "Specify a path to the ooniprobe configuration file"],
                      ["datadir", "d", None,
@@ -111,7 +111,7 @@ def runWithDirector():
     config.global_options = global_options
     config.set_paths()
     config.read_config_file()
-
+    
     log.start(global_options['logfile'])
     
     if config.privacy.includepcap:
@@ -130,6 +130,13 @@ def runWithDirector():
                                     net_test['category'], 
                                     net_test['id'])
             print "  %s" % net_test['description']
+
+        sys.exit(0)
+    
+    elif global_options['printdeck']:
+        del global_options['printdeck']
+        print "# Copy and paste the lines below into a test deck to run the specified test with the specified arguments"
+        print yaml.safe_dump([{'options': global_options}]).strip()
 
         sys.exit(0)
 
