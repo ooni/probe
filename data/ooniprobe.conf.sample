@@ -21,7 +21,7 @@ reports:
     pcap: null
     collector: 'httpo://nkvphnp3p6agi5qq.onion'
 advanced:
-    geoip_data_dir: /usr/share/ooni/
+    geoip_data_dir: /usr/share/geoip
     debug: false
     # enable if auto detection fails
     #tor_binary: /usr/sbin/tor
@@ -46,7 +46,7 @@ advanced:
     # How many reports to perform concurrently
     reporting_concurrency: 15
     # Specify here a custom data_dir path
-    data_dir: /usr/share/ooni/
+    data_dir: /usr/share/ooni
     oonid_api_port: 8042
 tor:
     #socks_port: 8801
