@@ -234,6 +234,10 @@ class HTTPTest(NetTestCase):
             content_length = response.headers.getRawHeaders('content-length')
         except IndexError:
             content_length = None
+        
+        if not content_length:
+            self._processResponseBody(None, request, response, None)
+            return defer.succeed(None)
 
         finished = defer.Deferred()
         response.deliverBody(BodyReceiver(finished, content_length))
@@ -322,7 +326,6 @@ class HTTPTest(NetTestCase):
 
         d = agent.request(request['method'], request['url'], headers,
                 body_producer)
-
         d.addErrback(errback, request)
         d.addCallback(self._cbResponse, request, headers_processor,
                 body_processor)
