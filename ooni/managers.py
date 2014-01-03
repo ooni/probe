@@ -58,6 +58,11 @@ class TaskManager(object):
                 self._run(task)
             except StopIteration:
                 break
+            except ValueError as exc:
+                # XXX this is a workaround the race condition that leads the
+                # _tasks generator to throw the exception
+                # ValueError: generator already called.
+                continue
 
     def _run(self, task):
         """
