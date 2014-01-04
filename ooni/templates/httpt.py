@@ -231,7 +231,7 @@ class HTTPTest(NetTestCase):
             self.processResponseHeaders(response_headers_dict)
 
         try:
-            content_length = response.headers.getRawHeaders('content-length')
+            content_length = int(response.headers.getRawHeaders('content-length')[0])
         except IndexError:
             content_length = None
         

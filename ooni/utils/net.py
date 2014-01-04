@@ -65,8 +65,6 @@ class BodyReceiver(protocol.Protocol):
     def __init__(self, finished, content_length=None, body_processor=None):
         self.finished = finished
         self.data = ""
-        if content_length:
-            content_length = int(content_length[0])
         self.bytes_remaining = content_length
         self.body_processor = body_processor
 
