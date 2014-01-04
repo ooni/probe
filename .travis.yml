@@ -8,7 +8,6 @@ python:
 install:
   - pip install pyrex
   - pip install coveralls
-  - pip install -r requirements.txt --use-mirrors
   - python setup.py install
 # command to run tests, e.g. python setup.py test
 script:
