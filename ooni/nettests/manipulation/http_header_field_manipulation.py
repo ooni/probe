@@ -42,6 +42,7 @@ class HTTPHeaderFieldManipulation(httpt.HTTPTest):
     the ones we sent, then we have detected tampering.
     """
     name = "HTTP Header Field Manipulation"
+    description = "Checks if the HTTP request the server sees is the same as the one that the client has created."
     author = "Arturo Filastò"
     version = "0.1.3"
 

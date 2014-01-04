@@ -23,6 +23,7 @@ class UsageOptions(usage.Options):
 
 class DNSSpoof(scapyt.ScapyTest):
     name = "DNS Spoof"
+    description = "Used to validate if the type of censorship happening is DNS spoofing or not."
     author = "Arturo Filastò"
     version = "0.0.1"
     timeout = 2

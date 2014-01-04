@@ -22,6 +22,7 @@ class UsageOptions(usage.Options):
 
 class TracerouteTest(scapyt.BaseScapyTest):
     name = "Multi Protocol Traceroute Test"
+    description = "Performs a UDP, TCP, ICMP traceroute with destination port number set to 0, 22, 23, 53, 80, 123, 443, 8080 and 65535"
     author = "Arturo Filastò"
     version = "0.2"
 

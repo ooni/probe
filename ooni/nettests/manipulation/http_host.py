@@ -34,6 +34,7 @@ class HTTPHost(httpt.HTTPTest):
     got back matches the input block page.
     """
     name = "HTTP Host"
+    description = "Tests a variety of different filter bypassing techniques based on the HTTP Host header field."
     author = "Arturo Filastò"
     version = "0.2.3"
 
@@ -111,7 +112,7 @@ class HTTPHost(httpt.HTTPTest):
         with a rule that will allow to detect that the body of the result is
         that of a censored site.
         """
-        # If we don't see a json array we know that something is wrong for
+        # If we don't see a json dict we know that something is wrong for
         # sure
         if not body.startswith("{"):
             log.msg("This does not appear to be JSON")

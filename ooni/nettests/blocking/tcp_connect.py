@@ -15,6 +15,7 @@ class TCPFactory(Factory):
 
 class TCPConnectTest(nettest.NetTestCase):
     name = "TCP Connect"
+    description = "Performs a TCP connect scan of all the host port combinations given as input."
     author = "Arturo Filastò"
     version = "0.1"
     inputFile = ['file', 'f', None,

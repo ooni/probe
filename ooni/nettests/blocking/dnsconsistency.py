@@ -37,7 +37,7 @@ class UsageOptions(usage.Options):
 class DNSConsistencyTest(dnst.DNSTest):
 
     name = "DNS Consistency"
-    description = "DNS censorship detection test"
+    description = "Checks to see if the DNS responses from a set of DNS resolvers are consistent."
     version = "0.6"
     authors = "Arturo Filastò, Isis Lovecruft"
     requirements = None

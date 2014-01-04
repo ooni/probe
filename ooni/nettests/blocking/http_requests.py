@@ -28,6 +28,7 @@ class HTTPRequestsTest(httpt.HTTPTest):
     lengths match.
     """
     name = "HTTP Requests Test"
+    description = "Performs a HTTP GET request over Tor and one over the local network and compares the two results."
     author = "Arturo Filastò"
     version = "0.2.3"
 

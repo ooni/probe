@@ -63,6 +63,7 @@ class daphn3Args(usage.Options):
 class daphn3Test(nettest.NetTestCase):
 
     name = "Daphn3"
+    description = "Bisects the censors fingerprint by mutating the given input packets."
     usageOptions = daphn3Args
     inputFile = ['file', 'f', None, 
             'Specify the pcap or YAML file to be used as input to the test']
