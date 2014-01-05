@@ -100,9 +100,6 @@ class HTTPHeaderFieldManipulation(httpt.HTTPTest):
         *  **total** when the response is not a json object and therefore we were not
         able to reach the ooniprobe test backend
 
-        *  **request_line_capitalization** when the HTTP Request line (e.x. GET /
-        HTTP/1.1) does not match the capitalization we set.
-
         *  **header_field_number** when the number of headers we sent does not match
         with the ones the backend received
 
@@ -116,7 +113,6 @@ class HTTPHeaderFieldManipulation(httpt.HTTPTest):
 
         self.report['tampering'] = {
             'total': False,
-            'request_line_capitalization': False,
             'header_name_capitalization': False,
             'header_field_value': False,
             'header_field_number': False
@@ -136,9 +132,6 @@ class HTTPHeaderFieldManipulation(httpt.HTTPTest):
             self.report['tampering']['total'] = True
             return
 
-        if request_request_line != response_request_line:
-            self.report['tampering']['request_line_capitalization'] = True
-
         request_headers = TrueHeaders(self.request_headers)
         diff = request_headers.getDiff(TrueHeaders(response_headers_dict),
                 ignore=['Connection'])
@@ -148,7 +141,6 @@ class HTTPHeaderFieldManipulation(httpt.HTTPTest):
             self.report['tampering']['header_field_name'] = False
         self.report['tampering']['header_name_diff'] = list(diff)
         log.msg("    total: %(total)s" % self.report['tampering'])
-        log.msg("    request_line_capitalization: %(request_line_capitalization)s" % self.report['tampering'])
         log.msg("    header_name_capitalization: %(header_name_capitalization)s" % self.report['tampering'])
         log.msg("    header_field_value: %(header_field_value)s" % self.report['tampering'])
         log.msg("    header_field_number: %(header_field_number)s" % self.report['tampering'])
@@ -188,4 +180,3 @@ class HTTPHeaderFieldManipulation(httpt.HTTPTest):
         self.request_headers = self.get_random_caps_headers()
         return self.doRequest(self.url, self.request_method,
                 headers=self.request_headers)
-
