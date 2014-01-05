@@ -557,9 +557,9 @@ class NetTest(object):
         for test_class, test_methods in self.testCases:
             # load the input processor as late as possible
             for input in test_class.inputs:
-                klass = test_class()
                 measurements = []
                 for method in test_methods:
+                    klass = test_class()
                     log.debug("Running %s %s" % (test_class, method))
                     measurement = self.makeMeasurement(klass, method, input)
                     measurements.append(measurement.done)
