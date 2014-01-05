@@ -232,13 +232,9 @@ class HTTPTest(NetTestCase):
 
         try:
             content_length = int(response.headers.getRawHeaders('content-length')[0])
-        except IndexError:
+        except Exception:
             content_length = None
         
-        if not content_length:
-            self._processResponseBody(None, request, response, None)
-            return defer.succeed(None)
-
         finished = defer.Deferred()
         response.deliverBody(BodyReceiver(finished, content_length))
         finished.addCallback(self._processResponseBody, request,
