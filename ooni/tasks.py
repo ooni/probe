@@ -91,7 +91,7 @@ class TaskWithTimeout(BaseTask):
         return BaseTask.start(self)
 
 class Measurement(TaskWithTimeout):
-    def __init__(self, test_class, test_method, test_input):
+    def __init__(self, test_instance, test_method, test_input):
         """
         test_class:
             is the class, subclass of NetTestCase, of the test to be run
@@ -106,7 +106,7 @@ class Measurement(TaskWithTimeout):
         net_test:
             a reference to the net_test object such measurement belongs to.
         """
-        self.testInstance = test_class
+        self.testInstance = test_instance
         self.testInstance.input = test_input
         if 'input' not in self.testInstance.report.keys():
             self.testInstance.report = {'input': test_input}

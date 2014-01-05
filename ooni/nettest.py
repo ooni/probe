@@ -514,7 +514,7 @@ class NetTest(object):
 
         return report_results
 
-    def makeMeasurement(self, test_class, test_method, test_input=None):
+    def makeMeasurement(self, test_instance, test_method, test_input=None):
         """
         Creates a new instance of :class:ooni.tasks.Measurement and add's it's
         callbacks and errbacks.
@@ -531,7 +531,7 @@ class NetTest(object):
                 NetTestCase
 
         """
-        measurement = Measurement(test_class, test_method, test_input)
+        measurement = Measurement(test_instance, test_method, test_input)
         measurement.netTest = self
 
         if self.director:
@@ -558,10 +558,10 @@ class NetTest(object):
             # load the input processor as late as possible
             for input in test_class.inputs:
                 measurements = []
+                test_instance = test_class()
                 for method in test_methods:
-                    klass = test_class()
                     log.debug("Running %s %s" % (test_class, method))
-                    measurement = self.makeMeasurement(klass, method, input)
+                    measurement = self.makeMeasurement(test_instance, method, input)
                     measurements.append(measurement.done)
                     self.state.taskCreated()
                     yield measurement
@@ -573,11 +573,11 @@ class NetTest(object):
 
                     # Call the postProcessor, which must return a single report
                     # or a deferred
-                    post.addCallback(klass.postProcessor)
+                    post.addCallback(test_instance.postProcessor)
                     def noPostProcessor(failure, report):
                         failure.trap(e.NoPostProcessor)
                         return report
-                    post.addErrback(noPostProcessor, klass.report)
+                    post.addErrback(noPostProcessor, test_instance.report)
                     post.addCallback(self.report.write)
 
                 if self.report and self.director:
