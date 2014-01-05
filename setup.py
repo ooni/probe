@@ -68,7 +68,7 @@ if hasattr(sys, 'real_prefix'):
     )]
 else:
     data_files = [(
-        '/usr/share/geoip/', 
+        '/usr/share/GeoIP/', 
         [
             'data/GeoIP.dat',
             'data/GeoIPASNum.dat',
