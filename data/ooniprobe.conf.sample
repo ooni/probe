@@ -13,7 +13,7 @@ privacy:
     # Should we include the country as reported by GeoIP in the report?
     includecountry: true
     # Should we include the city as reported by GeoIP in the report?
-    includecity: true
+    includecity: false
     # Should we collect a full packet capture on the client?
     includepcap: false
 reports:
