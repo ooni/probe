@@ -4,9 +4,12 @@
 # :license: see included LICENSE file
 import os
 import sys
+import yaml
 import xmlrpclib
+from StringIO import StringIO
 
-from fabric.api import run, cd, sudo
+from fabric.operations import get
+from fabric.api import run, cd, sudo, env
 
 api_auth = {}
 # Set these values 
@@ -16,6 +19,12 @@ slice_name = "your_slice_name"
 
 ### Do not change this
 api_auth['AuthMethod'] = "password"
+
+env.user = 'root'
+def set_hosts(host_file):
+    with open(host_file) as f:
+        for host in f:
+            env.hosts.append(host)
 
 def search_node(nfilter="*.cert.org.cn"):
     api_server = xmlrpclib.ServerProxy('https://www.planet-lab.org/PLCAPI/')
@@ -53,3 +62,39 @@ def deployooniprobe(distro="debian"):
     run("pip install https://hg.secdev.org/scapy/archive/tip.zip")
     run("pip install -r requirements.txt")
 
+def generate_bouncer_file(install_directory='/data/oonib/', bouncer_file="bouncer.yaml"):
+    output = StringIO()
+    get(os.path.join(install_directory, 'oonib.conf'), output)
+    output.seek(0)
+    oonib_configuration = yaml.safe_load(output)
+    
+    output.truncate(0)
+    get(os.path.join(oonib_configuration['main']['tor_datadir'], 'collector', 'hostname'),
+        output)
+    output.seek(0)
+    collector_hidden_service = output.readlines()[0].strip()
+
+    address = env.host
+    test_helpers = {
+            'dns': address + ':' + str(oonib_configuration['helpers']['dns']['tcp_port']),
+            'ssl': 'https://' + address,
+            'traceroute': address,
+    }
+    if oonib_configuration['helpers']['tcp-echo']['port'] == 80:
+        test_helpers['tcp-echo'] = address
+    else:
+        test_helpers['http-return-json-headers'] = 'http://' + address
+
+    bouncer_data = {
+            'collector': 
+                {
+                    'httpo://'+collector_hidden_service: {'test-helper': test_helpers}
+                }
+    }
+    with open(bouncer_file) as f:
+        old_bouncer_data = yaml.safe_load(f)
+
+    with open(bouncer_file, 'w+') as f:
+        old_bouncer_data['collector']['httpo://'+collector_hidden_service] = {}
+        old_bouncer_data['collector']['httpo://'+collector_hidden_service]['test-helper'] = test_helpers
+        yaml.dump(old_bouncer_data, f)
