@@ -488,6 +488,9 @@ class NetTest(object):
         net_test_loader:
              an instance of :class:ooni.nettest.NetTestLoader containing
              the test to be run.
+
+        report:
+            an instance of :class:ooni.reporter.Reporter
         """
         self.report = report
         self.testCases = net_test_loader.testCases
