@@ -23,6 +23,12 @@ License: permissive
  provided the copyright notice and this notice are
  preserved.
 
+Files: data/Geo*.dat
+Copyright: 2013 MaxMind
+License: CC BY-SA
+ This product includes GeoLite data created by MaxMind, available from
+ <a href="http://www.maxmind.com">http://www.maxmind.com</a>.
+
 License: BSD-2-clause
  Redistribution and use in source and binary forms, with or without
  modification, are permitted provided that the following conditions
@@ -43,6 +49,3 @@ License: BSD-2-clause
  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-This product includes GeoLite data created by MaxMind, available from
-<a href="http://www.maxmind.com">http://www.maxmind.com</a>.
