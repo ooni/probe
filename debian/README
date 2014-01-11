@@ -1,0 +1,5 @@
+Debian package for ooni-probe
+=============================
+
+The Debian package is currently missing the graphical user interface as it
+needs several JavaScript libraries that are currently not available in Debian.
