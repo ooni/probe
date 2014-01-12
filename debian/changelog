@@ -2,4 +2,4 @@ ooniprobe (1.0.0-rc5-1) UNRELEASED; urgency=low
 
   * Initial release. (Closes: #XXXXXX)
 
- -- Jérémy Bobbio <lunar@debian.org>  Fri, 3 Jan 2014 11:14:46 +0200
+ -- Open Observatory of Network Interference <ooni-dev@torproject.org> Fri, 3 Jan 2014 11:14:46 +0200
