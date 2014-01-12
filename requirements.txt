@@ -4,9 +4,7 @@ argparse>=1.2.1
 docutils>=0.9.1
 ipaddr>=2.1.10
 pyOpenSSL>=0.13
-# XXX fix this once the following issue is resolved: https://github.com/appliedsec/pygeoip/issues/56
-https://github.com/appliedsec/pygeoip/archive/master.zip#egg=pygeoip-0.3.1
-pygeoip>=0.3.1
+geoip
 txtorcon>=0.7
 txsocksx>=0.0.2
 Pyrex>=0.9.8.6

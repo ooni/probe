@@ -4,11 +4,10 @@ Section: net
 Priority: extra
 Build-Depends: debhelper (>= 8),
                python-all (>= 2.6.6-3~),
-               python-dnspython (>= 1.10.0),
+               python-dnspython,
                python-docutils (>= 0.9.1),
-               python-geoip (>= 0.2.5),
                python-ipaddr (>= 2.1.10),
-               python-openssl (>= 0.13),
+               python-openssl,
                python-pyrex,
                python-scapy (>= 2.2),
                python-setuptools,
@@ -27,7 +26,20 @@ Package: ooniprobe
 Architecture: all
 Depends: ${misc:Depends}, ${python:Depends},
                tcpdump,
-               tor
+               tor,
+               python-all (>= 2.6.6-3~),
+               python-dnspython,
+               python-geoip (>= 0.2.5),
+               python-ipaddr (>= 2.1.10),
+               python-openssl,
+               python-pyrex,
+               python-scapy (>= 2.2),
+               python-setuptools,
+               python-twisted (>= 12.2.0),
+               python-txsocksx,
+               python-txtorcon (>= 0.7),
+               python-yaml (>= 3.10),
+               python-zope.interface (>= 3.6),
 Suggests: obfsproxy
 Description: probe for the Open Observatory of Network Interference (OONI)
  OONI, the Open Observatory of Network Interference, is a global observation
