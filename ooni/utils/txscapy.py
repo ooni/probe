@@ -31,6 +31,12 @@ def pcapdnet_installed():
         False
             if one of the two is absent
     """
+    # In debian libdnet is called dumbnet instead of dnet, but scapy is
+    # expecting "dnet" so we try and import it under such name.
+    try:
+        import dumbnet as dnet
+    except ImportError: pass
+
     try:
         conf.use_pcap = True
         conf.use_dnet = True
