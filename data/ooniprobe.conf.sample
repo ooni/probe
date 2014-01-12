@@ -21,7 +21,7 @@ reports:
     pcap: null
     collector: 'httpo://nkvphnp3p6agi5qq.onion'
 advanced:
-    geoip_data_dir: /usr/share/GeoIP
+    geoip_data_dir: /usr/share/ooni/geoip
     debug: false
     # enable if auto detection fails
     #tor_binary: /usr/sbin/tor
