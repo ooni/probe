@@ -34,7 +34,8 @@ def pcapdnet_installed():
     # In debian libdnet is called dumbnet instead of dnet, but scapy is
     # expecting "dnet" so we try and import it under such name.
     try:
-        import dumbnet as dnet
+        import dumbnet
+        sys.modules['dnet'] = dumbnet
     except ImportError: pass
 
     try:
