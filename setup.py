@@ -70,11 +70,12 @@ else:
     data_files = [(
         '/usr/share/GeoIP/', 
         [
-            'data/GeoIP.dat',
             'data/GeoIPASNum.dat',
             'data/GeoLiteCity.dat'
         ]
     )]
+    if not os.path.exists('/usr/share/GeoIP/GeoIP.dat'):
+        data_files[0][1].append('data/GeoIP.dat')
 
 for root, dirs, file_names in os.walk('data/'):
     files = []
