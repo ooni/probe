@@ -28,7 +28,7 @@ def start(logfile=None, application_name="ooniprobe"):
     daily_logfile = None
 
     if not logfile:
-        logfile = config.basic.logfile
+        logfile = os.path.expanduser(config.basic.logfile)
 
     log_folder = os.path.dirname(logfile)
     log_filename = os.path.basename(logfile)

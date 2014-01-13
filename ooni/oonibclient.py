@@ -75,7 +75,6 @@ class OONIBClient(object):
                 # we have reached the retry count.
                 if attempts < self.retries:
                     log.err("Lookup failed. Retrying.")
-                    log.exception(err)
                     attempts += 1
                     perform_request(attempts)
                 else:

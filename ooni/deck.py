@@ -16,9 +16,7 @@ from hashlib import sha256
 class InputFile(object):
     def __init__(self, input_hash):
         self.id = input_hash
-        cached_input_dir = os.path.join(config.advanced.data_dir,
-                'inputs')
-        cache_path = os.path.join(cached_input_dir, input_hash)
+        cache_path = os.path.join(config.inputs_directory, input_hash)
         self.cached_file = cache_path
         self.cached_descriptor = cache_path + '.desc'
     
@@ -96,8 +94,7 @@ class Deck(InputFile):
 
     @property
     def cached_file(self):
-        cached_deck_dir = os.path.join(config.advanced.data_dir, 'decks')
-        return os.path.join(cached_deck_dir, self.deckHash)
+        return os.path.join(config.decks_directory, self.deckHash)
    
     @property
     def cached_descriptor(self):

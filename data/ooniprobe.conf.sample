@@ -4,7 +4,7 @@
 
 basic:
     # Where OONIProbe should be writing it's log file
-    logfile: /var/log/ooniprobe.log
+    logfile: ~/.ooni/ooniprobe.log
 privacy:
     # Should we include the IP address of the probe in the report?
     includeip: false
