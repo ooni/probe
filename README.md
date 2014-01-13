@@ -117,8 +117,39 @@ You will find all the installed decks inside of `/usr/share/ooni/decks`.
 
 You may then run a deck by using the command line option `-i`:
 
+As root:
 ```
-ooniprobe -i /usr/share/decks/basic.deck
+ooniprobe -i /usr/share/decks/mlab.deck
+```
+
+Or as a user:
+```
+ooniprobe -i /usr/share/decks/mlab_no_root.deck
+```
+
+Or:
+
+As root:
+```
+ooniprobe -i /usr/share/decks/complete.deck
+```
+
+Or as a user:
+```
+ooniprobe -i /usr/share/decks/complete_no_root.deck
+```
+
+The above tests will require around 20-30 minutes to complete depending on your network speed.
+
+If you would prefer to run some faster tests you should run:
+As root:
+```
+ooniprobe -i /usr/share/decks/fast.deck
+```
+
+Or as a user:
+```
+ooniprobe -i /usr/share/decks/fast_no_root.deck
 ```
 
 ### Running net tests
