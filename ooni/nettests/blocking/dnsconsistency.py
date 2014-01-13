@@ -53,7 +53,12 @@ class DNSConsistencyTest(dnst.DNSTest):
     def setUp(self):
         if (not self.localOptions['testresolvers'] and \
                 not self.localOptions['testresolver']):
-            raise usage.UsageError("You did not specify a testresolver")
+            self.test_resolvers = []
+            with open('/etc/resolv.conf') as f:
+                for line in f:
+                    if line.startswith('nameserver'):
+                        self.test_resolvers.append(line.split(' ')[1].strip())
+            self.report['test_resolvers'] = self.test_resolvers
 
         elif self.localOptions['testresolvers']:
             test_resolvers_file = self.localOptions['testresolvers']
