@@ -1,0 +1,36 @@
+- options:
+    collector: null
+    help: 0
+    logfile: null
+    no-default-reporter: 0
+    parallelism: null
+    pcapfile: null
+    reportfile: null
+    resume: 0
+    subargs: []
+    test_file: manipulation/traceroute
+    testdeck: null
+- options:
+    collector: null
+    help: 0
+    logfile: null
+    no-default-reporter: 0
+    parallelism: null
+    pcapfile: null
+    reportfile: null
+    resume: 0
+    subargs: []
+    test_file: manipulation/http_invalid_request_line
+    testdeck: null
+- options:
+    collector: null
+    help: 0
+    logfile: null
+    no-default-reporter: 0
+    parallelism: null
+    pcapfile: null
+    reportfile: null
+    resume: 0
+    subargs: []
+    test_file: manipulation/http_header_field_manipulation
+    testdeck: null
