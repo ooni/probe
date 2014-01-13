@@ -1,15 +1,13 @@
 PyYAML>=3.10
 Twisted>=12.2.0
 argparse>=1.2.1
-docutils>=0.9.1
-ipaddr
+ipaddr-real>=2.1.10
 pyOpenSSL>=0.13
 geoip
 txtorcon>=0.7
 txsocksx>=0.0.2
-Pyrex>=0.9.8.6
+Pyrex-real>=0.9.8.6
 parsley>=1.1
-cyclone
 dnspython>=1.10.0
 
 # Taken from the versions required by twisted 13.0.0 (latest)
