@@ -2,7 +2,7 @@ PyYAML>=3.10
 Twisted>=12.2.0
 argparse>=1.2.1
 docutils>=0.9.1
-ipaddr>=2.1.10
+ipaddr
 pyOpenSSL>=0.13
 geoip
 txtorcon>=0.7
