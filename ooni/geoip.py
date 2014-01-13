@@ -18,7 +18,7 @@ except ImportError:
     try:
         import GeoIP as CGeoIP
         def GeoIP(database_path, *args, **kwargs):
-            return CGeoIP.open(database_path)
+            return CGeoIP.open(database_path, CGeoIP.GEOIP_STANDARD)
     except ImportError:
         log.err("Unable to import pygeoip. We will not be able to run geo IP related measurements")
 
