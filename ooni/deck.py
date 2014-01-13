@@ -137,8 +137,8 @@ class Deck(InputFile):
     @defer.inlineCallbacks
     def setup(self):
         """ fetch and verify inputs for all NetTests in the deck """
+        log.msg("Fetching required net test inputs...")
         for net_test_loader in self.netTestLoaders:
-            log.msg("Fetching required net test inputs...")
             yield self.fetchAndVerifyNetTestInput(net_test_loader)
 
         if self.bouncer:
