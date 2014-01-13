@@ -1,5 +1,5 @@
-ooniprobe (1.0.0-rc5-1) UNRELEASED; urgency=low
+ooniprobe (1.0.0-rc6-1); urgency=low
 
-  * Initial release. (Closes: #XXXXXX)
+  * ooniprobe 1.0.0-rc6
 
- -- OONI Developers (signing key) <ooni-dev@lists.torproject.org>  Fri, 3 Jan 2014 11:14:46 +0200
+ -- OONI Developers (signing key) <ooni-dev@lists.torproject.org>  Mon, 13 Jan 2014 14:14:46 +0200
