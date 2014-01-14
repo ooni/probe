@@ -327,9 +327,10 @@ class Director(object):
                     else:
                         bridges.append(bridge.strip())
             tor_config.Bridge = bridges
-
-        for i in config.tor.torrc.keys():
-            setattr(tor_config, i, config.tor.torrc[i])
+        
+        if config.tor.torrc:
+            for i in config.tor.torrc.keys():
+                setattr(tor_config, i, config.tor.torrc[i])
 
         tor_config.save()
 
