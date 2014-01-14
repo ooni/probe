@@ -264,7 +264,6 @@ class Director(object):
         :param: tor_binary set in ooniprobe.conf
         """
         log.msg("Starting Tor...")
-
         @defer.inlineCallbacks
         def state_complete(state):
             config.tor_state = state
@@ -301,17 +300,9 @@ class Director(object):
         tor_config = TorConfig()
         if config.tor.control_port:
             tor_config.ControlPort = config.tor.control_port
-        else:
-            control_port = int(randomFreePort())
-            tor_config.ControlPort = control_port
-            config.tor.control_port = control_port
 
         if config.tor.socks_port:
             tor_config.SocksPort = config.tor.socks_port
-        else:
-            socks_port = int(randomFreePort())
-            tor_config.SocksPort = socks_port
-            config.tor.socks_port = socks_port
 
         if config.tor.data_dir:
             data_dir = os.path.expanduser(config.tor.data_dir)
@@ -337,8 +328,22 @@ class Director(object):
                         bridges.append(bridge.strip())
             tor_config.Bridge = bridges
 
+        for i in config.tor.torrc.keys():
+            setattr(tor_config, i, config.tor.torrc[i])
+
         tor_config.save()
 
+        if not hasattr(tor_config,'ControlPort'):
+            control_port = int(randomFreePort())
+            tor_config.ControlPort = control_port
+            config.tor.control_port = control_port
+
+        if not hasattr(tor_config,'SocksPort'):
+            socks_port = int(randomFreePort())
+            tor_config.SocksPort = socks_port
+            config.tor.socks_port = socks_port
+
+        tor_config.save()
         log.debug("Setting control port as %s" % tor_config.ControlPort)
         log.debug("Setting SOCKS port as %s" % tor_config.SocksPort)
 
@@ -349,7 +354,6 @@ class Director(object):
         else:
             d = launch_tor(tor_config, reactor,
                            progress_updates=updates)
-
         d.addCallback(setup_complete)
         d.addErrback(setup_failed)
         return d
