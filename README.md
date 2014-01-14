@@ -31,7 +31,7 @@ probe is a liability for you, please be aware of this risk.
 
 ```
 sudo sh -c 'echo "deb http://deb.ooni.nu/ooni wheezy main" >> /etc/apt/sources.list'
-gpg --recv-key 0x49B8CDF4 --keyserver pgp.mit.edu
+gpg --keyserver pgp.mit.edu --recv-key 0x49B8CDF4
 gpg --export 89AB86D4788F3785FE9EDA31F9E2D9B049B8CDF4 | sudo apt-key add -
 sudo apt-get update && sudo apt-get install ooniprobe
 ```
