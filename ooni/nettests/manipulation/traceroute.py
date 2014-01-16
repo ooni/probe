@@ -62,22 +62,21 @@ class TracerouteTest(scapyt.BaseScapyTest):
                 report = {'ttl': snd.ttl,
                         'address': rcv.src,
                         'rtt': rcv.time - snd.time,
-                        'sport': snd[TCP].sport
+                        'sport': snd[TCP].sport,
                 }
                 log.msg("%s: %s" % (port, report))
                 self.report['test_tcp_traceroute']['hops_'+str(port)].append(report)
 
-        dl = []
         max_ttl, timeout = self.max_ttl_and_timeout()
+        d = defer.Deferred()
         for port in self.dst_ports:
-            packets = IP(dst=self.localOptions['backend'],
-                    ttl=(1,max_ttl),id=RandShort())/TCP(flags=0x2, dport=port,
-                            sport=self.get_sport('tcp'))
-
-            d = self.sr(packets, timeout=timeout)
+            d.addCallback(lambda x, port=port: IP(dst=self.localOptions['backend'],
+                        ttl=(1,max_ttl),id=RandShort())/TCP(flags=0x2, dport=port,
+                        sport=self.get_sport('tcp')))
+            d.addCallback(self.sr, timeout)
             d.addCallback(finished, port)
-            dl.append(d)
-        return defer.DeferredList(dl)
+        d.callback(True)
+        return d
 
     def test_udp_traceroute(self):
         """
@@ -92,21 +91,21 @@ class TracerouteTest(scapyt.BaseScapyTest):
                 report = {'ttl': snd.ttl,
                         'address': rcv.src,
                         'rtt': rcv.time - snd.time,
-                        'sport': snd[UDP].sport
+                        'sport': snd[UDP].sport,
                 }
                 log.msg("%s: %s" % (port, report))
                 self.report['test_udp_traceroute']['hops_'+str(port)].append(report)
         dl = []
         max_ttl, timeout = self.max_ttl_and_timeout()
+        d = defer.Deferred()
         for port in self.dst_ports:
-            packets = IP(dst=self.localOptions['backend'],
-                    ttl=(1,max_ttl),id=RandShort())/UDP(dport=port,
-                            sport=self.get_sport('udp'))
-
-            d = self.sr(packets, timeout=timeout)
+            d.addCallback(lambda x, port=port: IP(dst=self.localOptions['backend'],
+                        ttl=(1,max_ttl),id=RandShort())/UDP(dport=port,
+                        sport=self.get_sport('udp')))
+            d.addCallback(self.sr, timeout)
             d.addCallback(finished, port)
-            dl.append(d)
-        return defer.DeferredList(dl)
+        d.callback(True)
+        return d
 
     def test_icmp_traceroute(self):
         """
