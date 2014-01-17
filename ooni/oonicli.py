@@ -37,7 +37,7 @@ class Options(usage.Options):
 
     optParameters = [["reportfile", "o", None, "report file name"],
                      ["testdeck", "i", None,
-                         "Specify as input a test deck: a yaml file containig the tests to run an their arguments"],
+                         "Specify as input a test deck: a yaml file containing the tests to run and their arguments"],
                      ["collector", "c", None,
                          "Address of the collector of test results. This option should not be used, but you should always use a bouncer."],
                      ["bouncer", "b", 'httpo://nkvphnp3p6agi5qq.onion',
