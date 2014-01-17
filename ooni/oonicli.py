@@ -61,10 +61,6 @@ class Options(usage.Options):
         self['test'] = None
         usage.Options.__init__(self)
 
-    def opt_asciilulz(self):
-        from ooni.utils import logo
-        print logo.getlogo()
-
     def opt_spew(self):
         """
         Print an insanely verbose log of everything that happens.  Useful
