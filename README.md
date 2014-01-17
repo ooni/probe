@@ -95,11 +95,11 @@ ooniprobe blocking/http_requests -f /ooni/inputs/input-pack/alexa-top-1k.txt
 
 **Net test** is a set of measurements to assess what kind of internet censorship is occurring.
 
-**Decks** are collections of ooniprobe nettests with precabled inputs.
+**Decks** are collections of ooniprobe nettests with some associated inputs.
 
 **Collector** is a service used to report the results of measurements.
 
-**Test helper** is a service used by a probe for successfully performing it's measurements.
+**Test helper** is a service used by a probe for successfully performing its measurements.
 
 **Bouncer** is a service used to discover the addresses of test helpers and collectors.
 
@@ -160,7 +160,7 @@ You may list all the installed stable net tests with:
 ooniprobe -s
 ```
 
-You may then run a nettest by specifying it's name for example:
+You may then run a nettest by specifying its name for example:
 
 ```
 ooniprobe manipulation/http_header_field_manipulation
