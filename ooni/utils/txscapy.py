@@ -3,6 +3,7 @@ import socket
 import os
 import sys
 import time
+import random
 
 from twisted.internet import protocol, base, fdesc
 from twisted.internet import reactor, threads, error
@@ -11,6 +12,8 @@ from zope.interface import implements
 
 from scapy.config import conf
 from scapy.supersocket import L3RawSocket
+from scapy.all import RandShort, IP, IPerror, ICMP, ICMPerror
+from scapy.all import TCP, TCPerror, UDP, UDPerror
 
 from ooni.utils import log
 from ooni.settings import config
@@ -285,3 +288,94 @@ class ScapySniffer(ScapyProtocol):
     def packetReceived(self, packet):
         self.pcapwriter.write(packet)
 
+class ScapyTraceroute(ScapyProtocol):
+    dst_ports = [0, 22, 23, 53, 80, 123, 443, 8080, 65535]
+    ttl_min = 1
+    ttl_max = 30
+
+    def __init__(self):
+        self.sent_packets = []
+        self.received_packets = {}
+        self.matched_packets = {}
+        self.hosts = []
+
+    def ICMPTraceroute(self, host):
+        if host not in self.hosts: self.hosts.append(host)
+        self.sendPackets(IP(dst=host,ttl=(self.ttl_min,self.ttl_max), id=RandShort())/ICMP(id=RandShort()))
+
+    def UDPTraceroute(self, host):
+        if host not in self.hosts: self.hosts.append(host)
+        for dst_port in self.dst_ports:
+            self.sendPackets(IP(dst=host,ttl=(self.ttl_min,self.ttl_max), id=RandShort())/UDP(dport=dst_port, sport=RandShort()))
+
+    def TCPTraceroute(self, host):
+        if host not in self.hosts: self.hosts.append(host)
+        for dst_port in self.dst_ports:
+            self.sendPackets(IP(dst=host,ttl=(self.ttl_min,self.ttl_max), id=RandShort())/TCP(flags=2L, dport=dst_port, sport=RandShort(), seq=RandShort()))
+
+    def sendPackets(self, packets):
+        #if random.randint(0,1):
+        #    random.shuffle(packets)
+        for packet in packets:
+            self.sent_packets.append(packet)
+            self.factory.super_socket.send(packet)
+
+    def matchResponses(self):
+        def _pe(k, p):
+            if k in self.received_packets:
+                if p in self.matched_packets:
+                    log.debug("Matched sent packet to more than one response!")
+                    self.matched_packets[p].extend(self.received_packets[k])
+                else:
+                    self.matched_packets[p] = self.received_packets[k]
+                log.debug("Packet %s matched %s" % ([p], self.received_packets[k]))
+                return 1
+            return 0
+
+        for p in self.sent_packets:
+            # for each sent packet, find corresponding
+            # received packets
+            l = p.getlayer(1)
+            i = 0
+            if isinstance(l, ICMP):
+                i += _pe((ICMP, p.id), p) # match by ipid
+                i += _pe((ICMP, l.id), p) # match by icmpid
+            if isinstance(l, TCP):
+                i += _pe((TCP, p.id), p) # match by ipid
+                i += _pe((TCP, p.id, l.seq, l.ack, l.sport, l.dport), p)
+            if isinstance(l, UDP):
+                i += _pe((UDP, p.id), p)
+            if i == 0:
+                log.debug("No response for packet %s" % [p])
+
+    def packetReceived(self, packet):
+        def _ae(k, p):
+            if k in self.received_packets:
+                self.received_packets[k].append(p)
+            else:
+                self.received_packets[k] = [p]
+
+        l = packet.getlayer(2)
+        try:
+            if isinstance(l, IPerror):
+                pid = l.id
+                l = packet.getlayer(3)
+                if isinstance(l, ICMPerror):
+                    _ae((ICMP, pid), packet)
+                elif isinstance(l, TCPerror):
+                    _ae((TCP, pid, l.seq, l.ack, l.sport, l.dport), packet)
+                elif isinstance(l, UDPerror):
+                    _ae((UDP, pid), packet)
+            elif packet.src in self.hosts:
+                l = packet.getlayer(1)
+                if isinstance(l, ICMP):
+                    _ae((ICMP, l.id), packet)
+                elif isinstance(l, TCP):
+                    _ae((TCP, l.seq, l.ack, l.sport, l.dport), packet)
+                elif isinstance(l, UDP):
+                    _ae((UDP, l.sport, l.dport), packet)
+        except Exception, e:
+            import pdb;pdb.set_trace()
+
+    def stopListening(self):
+        self.factory.unRegisterProtocol(self)
