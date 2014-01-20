@@ -113,11 +113,10 @@ def getDefaultIface():
     raise IfaceError
 
 def hasRawSocketPermission():
-    from scapy.all import IP, send
     try:
-        send(IP(src="1.2.3.4", dst="127.0.0.1"))
+        socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.IPPROTO_RAW)
         return True
-    except Exception:
+    except socket.error:
         return False
 
 class ProtocolNotRegistered(Exception):
