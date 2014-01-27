@@ -857,12 +857,12 @@ p50Ey4/FI/T4zjAVeqdBysR08T3mZv3SHOy0qOq/kDiK2Q==
 "
   
 install_pip_securely() {
-  NEEDED_VERSION_PIP=1.5
+  NEEDED_VERSION_PIP=1.5.2
   install_pkg_from_pypi "pip" ${NEEDED_VERSION_PIP} ${DSTUFFT_KEY_FILE}
 }
 
 install_virtualenv_securely() {
-  NEEDED_VERSION_VIRTUALENV=1.11
+  NEEDED_VERSION_VIRTUALENV=1.11.2
   install_pkg_from_pypi "virtualenv" ${NEEDED_VERSION_VIRTUALENV} ${DSTUFFT_KEY_FILE}
 }
 
