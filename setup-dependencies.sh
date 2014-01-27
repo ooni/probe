@@ -143,15 +143,55 @@ vercomp () {
     return 0
 }
 
-## BEGIN PIP SECURE INSTALL
-NEEDED_VERSION_PIP=1.5
+install_pkg_from_pypi() {
+    local PKG_NAME=$1
+    local NEEDED_VERSION=$2
+    local KEY_FILE=$3
 
-PIP_PKG="pip-${NEEDED_VERSION_PIP}.tar.gz"
-PKG_VERIFY=${BUILD_DIR}/${PIP_PKG}.asc
-PIP_URL="https://pypi.python.org/packages/source/p/pip/${PIP_PKG}"
-PIP_SIG_URL="https://pypi.python.org/packages/source/p/pip/${PIP_PKG}.asc"
-PIP_KEY_FILE=${BUILD_DIR}/pip-pub-key.gpg
-PIP_PUB_KEY="
+    echo "install_pkg_from_pypi $1 $2 $3"
+
+    if which $PKG_NAME >/dev/null 2>&1; then
+	INSTALLED_PKG=$($PKG_NAME --version | cut -d" " -f2)
+	vercomp ${INSTALLED_PKG} ${NEEDED_VERSION}
+	if [ "$?" -ne "2" ]; then
+            echo "$PKG_NAME already installed"
+	    return
+	fi
+    fi
+
+    local PKG="${PKG_NAME}-${NEEDED_VERSION}.tar.gz"
+    local PKG_VERIFY=${BUILD_DIR}/${PKG}.asc
+    initial="$(echo $PKG_NAME | head -c 1)"
+    local PKG_URL="https://pypi.python.org/packages/source/${initial}/${PKG_NAME}/${PKG}"
+    local SIG_URL="${PKG_URL}.asc"
+
+    DO "curl -o ${BUILD_DIR}/${PKG} ${PKG_URL}" "0"
+    DO "curl -o ${BUILD_DIR}/${PKG}.asc ${SIG_URL}" "0"
+
+    echo "[+] Verifying PGP signature of $PKG_NAME"
+    DO "sudo gpg --homedir /root --no-default-keyring --keyring $TMP_KEYRING --import $KEY_FILE" "0"
+    DO "sudo gpg --homedir /root --no-default-keyring --keyring $TMP_KEYRING --verify $PKG_VERIFY" "0"
+
+    DO "tar xz --directory ${BUILD_DIR}/ -f ${BUILD_DIR}/${PKG}" "0"
+    DO "cd ${BUILD_DIR}/${PKG_NAME}-*" "0"
+
+    echo "[+] Installing the latest ${PKG_NAME}"
+    if [ "${ASSUME_YES}" -eq "0" ]; then
+	echo "WARNING this will overwrite the ${PKG_NAME} that you currently have installed."
+	ANSWER=''
+	until [[ $ANSWER = [yn] ]]; do
+	    read -r -p "Do you wish to continue? [y/n]" ANSWER
+	    echo
+	done
+	if [[ $ANSWER != 'y' ]]; then
+	    echo "Cannot proceed"
+	    exit
+	fi
+    fi
+    DO "sudo python setup.py install" "0"
+}
+
+DSTUFFT_PUB_KEY="
 -----BEGIN PGP PUBLIC KEY BLOCK-----
 
 mQINBE6FJH4BEAC4NH79x57Idv6AIyTqcqK0DcKS0VLJSLtDVrA7UC25V0pJzy1t
@@ -815,42 +855,15 @@ p50Ey4/FI/T4zjAVeqdBysR08T3mZv3SHOy0qOq/kDiK2Q==
 =1NFB
 -----END PGP PUBLIC KEY BLOCK-----
 "
-INSTALL_PIP=1
-if which pip >/dev/null 2>&1; then
-    INSTALLED_PIP=`pip --version | cut -d" " -f2`
-    vercomp ${INSTALLED_PIP} ${NEEDED_VERSION_PIP}
-    if [ "$?" -ne "2" ]; then
-        INSTALL_PIP=0
-    fi
-fi
-
+  
 install_pip_securely() {
-  DO "curl -o ${BUILD_DIR}/${PIP_PKG} ${PIP_URL}" "0"
-  DO "curl -o ${BUILD_DIR}/${PIP_PKG}.asc ${PIP_SIG_URL}" "0"
+  NEEDED_VERSION_PIP=1.5.2
+  install_pkg_from_pypi "pip" ${NEEDED_VERSION_PIP} ${DSTUFFT_KEY_FILE}
+}
 
-  echo "[+] Verifying PGP signature of pip"
-  echo "${PIP_PUB_KEY}" > ${PIP_KEY_FILE}
-  DO "sudo gpg --homedir /root --no-default-keyring --keyring $TMP_KEYRING --import $PIP_KEY_FILE" "0"
-  DO "sudo gpg --homedir /root --no-default-keyring --keyring $TMP_KEYRING --verify $PKG_VERIFY" "0"
-
-  DO "tar xzf ${BUILD_DIR}/${PIP_PKG}" "0"
-  DO "cd pip-*" "0"
-
-  echo "[+] Installing the latest pip"
-  if [ "${ASSUME_YES}" -eq "0" ]; then
-    echo "WARNING this will overwrite the pip that you currently have installed and all python dependencies will be installed via pip."
-    ANSWER=''
-    until [[ $ANSWER = [yn] ]]; do
-      read -r -p "Do you wish to continue? [y/n]" ANSWER
-      echo
-    done
-    if [[ $ANSWER != 'y' ]]; then
-      echo "Cannot proceed"
-      exit
-    fi
-  fi
-  DO "sudo python setup.py install" "0"
-
+install_virtualenv_securely() {
+  NEEDED_VERSION_VIRTUALENV=1.11.2
+  install_pkg_from_pypi "virtualenv" ${NEEDED_VERSION_VIRTUALENV} ${DSTUFFT_KEY_FILE}
 }
 
 case $DISTRO_VERSION in
@@ -859,6 +872,9 @@ case $DISTRO_VERSION in
   # Create the build directories
   DO "mkdir -p ${BUILD_DIR}" "0"
   DO "chmod 700 ${BUILD_DIR}" "0"
+
+  DSTUFFT_KEY_FILE=${BUILD_DIR}/dstufft-pub-key.gpg
+  echo "${DSTUFFT_PUB_KEY}" > ${DSTUFFT_KEY_FILE}
 
   # Import the Tor public key
   DO "sudo gpg --homedir /root --no-default-keyring --keyring $TMP_KEYRING --keyserver x-hkp://pool.sks-keyservers.net --recv-keys 0x886DDD89" "0"
@@ -882,14 +898,12 @@ case $DISTRO_VERSION in
   echo "[+] Installing packages for your system...";
   DO "sudo apt-get -y install curl git-core python python-dev python-setuptools build-essential libdumbnet1 python-dumbnet python-libpcap python-dnspython tor tor-geoipdb libgeoip-dev" "0"
 
-  if [ "${INSTALL_PIP}" -eq "1" ] ; then
-    echo "[+] Installing pip securely"
-    install_pip_securely
-  fi
-
   if [ "$PRIV_MODE" -eq "0" ]; then
     echo "[+] Using virtualenvironment..."
-    DO "sudo apt-get -y install python-virtualenv virtualenvwrapper" "0"
+
+    install_virtualenv_securely
+
+    DO "sudo apt-get -y install virtualenvwrapper" "0"
     if [ ! -f $HOME/.virtualenvs/ooniprobe/bin/activate ]; then
       # Set up the virtual environment
       DO "mkdir -p $HOME/.virtualenvs" "0"
@@ -902,6 +916,9 @@ case $DISTRO_VERSION in
   fi
 
   if [[ $PRIV_MODE -eq 1 ]]; then
+      echo "[+] Installing pip securely"
+      install_pip_securely
+
       echo "[+] Installing all of the Python dependency requirements with pip system wide!";
       # pip 1.5 needs this
       DO "sudo pip install setuptools --no-use-wheel --upgrade"
