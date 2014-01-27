@@ -172,8 +172,8 @@ install_pkg_from_pypi() {
     DO "sudo gpg --homedir /root --no-default-keyring --keyring $TMP_KEYRING --import $KEY_FILE" "0"
     DO "sudo gpg --homedir /root --no-default-keyring --keyring $TMP_KEYRING --verify $PKG_VERIFY" "0"
 
-    DO "tar xzf ${BUILD_DIR}/${PKG}" "0"
-    DO "cd ${PKG_NAME}-*" "0"
+    DO "tar xz --directory ${BUILD_DIR}/ -f ${BUILD_DIR}/${PKG}" "0"
+    DO "cd ${BUILD_DIR}/${PKG_NAME}-*" "0"
 
     echo "[+] Installing the latest ${PKG_NAME}"
     if [ "${ASSUME_YES}" -eq "0" ]; then
