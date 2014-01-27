@@ -58,26 +58,38 @@ class TracerouteTest(scapyt.BaseScapyTest):
             log.msg("Finished running TCP traceroute test on port %s" % port)
             answered, unanswered = packets
             self.report['test_tcp_traceroute']['hops_'+str(port)] = []
-            for snd, rcv in answered:
-                report = {'ttl': snd.ttl,
-                        'address': rcv.src,
-                        'rtt': rcv.time - snd.time,
-                        'sport': snd[TCP].sport
-                }
-                log.msg("%s: %s" % (port, report))
-                self.report['test_tcp_traceroute']['hops_'+str(port)].append(report)
 
-        dl = []
+            sent = []
+            sent.extend(unanswered)
+            received_by_id = dict()
+            for snd,rcv in answered:
+                if snd not in sent:
+                    sent.append(snd)
+                if rcv.src == snd.dst:
+                    received_by_id[snd.id] = rcv
+                else:
+	            received_by_id[rcv.payload[1].id] = rcv
+
+            for snd in sorted(sent, key=lambda x: x.ttl):
+                if snd.id in received_by_id:
+                    rcv = received_by_id[snd.id]
+                    report = {'ttl': snd.ttl,
+                            'address': rcv.src,
+                            'rtt': rcv.time - snd.time,
+                            'sport': snd[TCP].sport,
+                    }
+                    self.report['test_tcp_traceroute']['hops_'+str(port)].append(report)
+
         max_ttl, timeout = self.max_ttl_and_timeout()
+        d = defer.Deferred()
         for port in self.dst_ports:
-            packets = IP(dst=self.localOptions['backend'],
-                    ttl=(1,max_ttl),id=RandShort())/TCP(flags=0x2, dport=port,
-                            sport=self.get_sport('tcp'))
-
-            d = self.sr(packets, timeout=timeout)
+            d.addCallback(lambda x, port=port: IP(dst=self.localOptions['backend'],
+                        ttl=(1,max_ttl),id=RandShort())/TCP(flags=0x2, dport=port,
+                        sport=self.get_sport('tcp')))
+            d.addCallback(self.sr, timeout)
             d.addCallback(finished, port)
-            dl.append(d)
-        return defer.DeferredList(dl)
+        d.callback(True)
+        return d
 
     def test_udp_traceroute(self):
         """
@@ -88,25 +100,38 @@ class TracerouteTest(scapyt.BaseScapyTest):
             log.msg("Finished running UDP traceroute test on port %s" % port)
             answered, unanswered = packets
             self.report['test_udp_traceroute']['hops_'+str(port)] = []
-            for snd, rcv in answered:
-                report = {'ttl': snd.ttl,
-                        'address': rcv.src,
-                        'rtt': rcv.time - snd.time,
-                        'sport': snd[UDP].sport
-                }
-                log.msg("%s: %s" % (port, report))
-                self.report['test_udp_traceroute']['hops_'+str(port)].append(report)
-        dl = []
-        max_ttl, timeout = self.max_ttl_and_timeout()
-        for port in self.dst_ports:
-            packets = IP(dst=self.localOptions['backend'],
-                    ttl=(1,max_ttl),id=RandShort())/UDP(dport=port,
-                            sport=self.get_sport('udp'))
 
-            d = self.sr(packets, timeout=timeout)
+            sent = []
+            sent.extend(unanswered)
+            received_by_id = dict()
+            for snd,rcv in answered:
+                if snd not in sent:
+                    sent.append(snd)
+                if rcv.src == snd.dst:
+                    received_by_id[snd.id] = rcv
+                else:
+                    received_by_id[rcv.payload[1].id] = rcv
+
+            for snd in sorted(sent, key=lambda x: x.ttl):
+                if snd.id in received_by_id:
+                    rcv = received_by_id[snd.id]
+                    report = {'ttl': snd.ttl,
+                            'address': rcv.src,
+                            'rtt': rcv.time - snd.time,
+                            'sport': snd[UDP].sport,
+                    }
+                    self.report['test_udp_traceroute']['hops_'+str(port)].append(report)
+
+        max_ttl, timeout = self.max_ttl_and_timeout()
+        d = defer.Deferred()
+        for port in self.dst_ports:
+            d.addCallback(lambda x, port=port: IP(dst=self.localOptions['backend'],
+                        ttl=(1,max_ttl),id=RandShort())/UDP(dport=port,
+                        sport=self.get_sport('udp')))
+            d.addCallback(self.sr, timeout)
             d.addCallback(finished, port)
-            dl.append(d)
-        return defer.DeferredList(dl)
+        d.callback(True)
+        return d
 
     def test_icmp_traceroute(self):
         """
@@ -117,14 +142,26 @@ class TracerouteTest(scapyt.BaseScapyTest):
             log.msg("Finished running ICMP traceroute test")
             answered, unanswered = packets
             self.report['test_icmp_traceroute']['hops'] = []
-            for snd, rcv in answered:
-                report = {'ttl': snd.ttl,
-                        'address': rcv.src,
-                        'rtt': rcv.time - snd.time
-                }
-                log.msg("%s" % (report))
-                self.report['test_icmp_traceroute']['hops'].append(report)
-        dl = []
+
+            sent = []
+            sent.extend(unanswered)
+            received_by_id = dict()
+            for snd,rcv in answered:
+                if snd not in sent:
+                    sent.append(snd)
+                if rcv.src == snd.dst:
+                    received_by_id[snd.id] = rcv
+                else:
+	            received_by_id[rcv.payload[1].id] = rcv
+
+            for snd in sorted(sent, key=lambda x: x.ttl):
+                if snd.id in received_by_id:
+                    rcv = received_by_id[snd.id]
+                    report = {'ttl': snd.ttl,
+                            'address': rcv.src,
+                            'rtt': rcv.time - snd.time
+                    }
+                    self.report['test_icmp_traceroute']['hops'].append(report)
         max_ttl, timeout = self.max_ttl_and_timeout()
         packets = IP(dst=self.localOptions['backend'],
                     ttl=(1,max_ttl), id=RandShort())/ICMP()
