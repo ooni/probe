@@ -14,9 +14,9 @@ import json
 from hashlib import sha256
 
 class InputFile(object):
-    def __init__(self, input_hash):
+    def __init__(self, input_hash, base_path=config.inputs_directory):
         self.id = input_hash
-        cache_path = os.path.join(config.inputs_directory, input_hash)
+        cache_path = os.path.join(base_path, input_hash)
         self.cached_file = cache_path
         self.cached_descriptor = cache_path + '.desc'
     
@@ -81,12 +81,16 @@ def nettest_to_path(path):
         raise e.NetTestNotFound(path)
 
 class Deck(InputFile):
-    def __init__(self, deck_hash=None, deckFile=None):
+    def __init__(self, deck_hash=None, 
+                 deckFile=None,
+                 decks_directory=config.decks_directory):
         self.id = deck_hash
         self.bouncer = None
         self.netTestLoaders = []
         self.inputs = []
         self.testHelpers = {}
+
+        self.decksDirectory = decks_directory
 
         self.deckHash = deck_hash
  
@@ -94,7 +98,7 @@ class Deck(InputFile):
 
     @property
     def cached_file(self):
-        return os.path.join(config.decks_directory, self.deckHash)
+        return os.path.join(self.decksDirectory, self.deckHash)
    
     @property
     def cached_descriptor(self):
