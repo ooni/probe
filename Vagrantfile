@@ -13,22 +13,25 @@ Vagrant.configure("2") do |config|
 end
 
 $script = <<SCRIPT
-cd /ooni/
-export USE_VIRTUALENV=0
-./setup-dependencies.sh -y
-python setup.py install
 
-mkdir -p ~/.ooni
-cp /usr/share/ooni/ooniprobe.conf.sample ~/.ooni/ooniprobe.conf
+echo "deb http://deb.ooni.nu/ooni wheezy main" >> /etc/apt/sources.list
+echo "deb http://deb.torproject.org/torproject.org precise main" >> /etc/apt/sources.list
 
-cd /usr/share/ooni/inputs
-make lists 2>&1 > /dev/null
+# Install deb.ooni.nu key
+gpg --keyserver pgp.mit.edu --recv-key 0x49B8CDF4
+gpg --export 89AB86D4788F3785FE9EDA31F9E2D9B049B8CDF4 | apt-key add -
 
-# https://code.google.com/p/pypcap/issues/detail?id=27
-# pip install pydnet pypcap
+# Install deb.torproject.org key
+gpg --keyserver keys.gnupg.net --recv 886DDD89
+gpg --export A3C4F0F979CAA22CDBA8F512EE8CBC9E886DDD89 | apt-key add -
+
+apt-get update
+
+apt-get install -y tor deb.torproject.org-keyring
+apt-get install -y ooniprobe
 
 echo "Login using 'vagrant ssh', and dont forget to run ooniprobe as root."
-echo "First run: 'sudo su; cd /usr/share/ooni; ooniprobe -i decks/basic.testdeck'"
+echo "First run: 'sudo ooniprobe -i /usr/share/ooni/decks/fast.deck'"
 
 SCRIPT
 
@@ -38,5 +41,4 @@ SCRIPT
 
 Vagrant.configure("2") do |config|
     config.vm.provision :shell, :inline => $script
-    config.vm.network :forwarded_port, guest: 8042, host: 8042
 end
