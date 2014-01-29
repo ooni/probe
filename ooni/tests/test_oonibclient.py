@@ -111,3 +111,39 @@ class TestOONIBClient(unittest.TestCase):
         for path in ['/bouncer']:
             self.oonibclient.address = 'http://127.0.0.1:8888'
             yield all_requests(path)
+
+    @defer.inlineCallbacks
+    def test_create_report(self):
+        res = yield self.oonibclient.queryBackend('POST', '/report', {
+                'software_name': 'spam',
+                'software_version': '2.0',
+                'probe_asn': 'AS0',
+                'probe_cc': 'ZZ',
+                'test_name': 'foobar',
+                'test_version': '1.0',
+                'input_hashes': []
+        })
+        assert isinstance(res['report_id'], unicode)
+
+    @defer.inlineCallbacks
+    def test_report_lifecycle(self):
+        res = yield self.oonibclient.queryBackend('POST', '/report', {
+                'software_name': 'spam',
+                'software_version': '2.0',
+                'probe_asn': 'AS0',
+                'probe_cc': 'ZZ',
+                'test_name': 'foobar',
+                'test_version': '1.0',
+                'input_hashes': []
+        })
+        report_id = str(res['report_id'])
+
+        res = yield self.oonibclient.queryBackend('POST', '/report/'+report_id, {
+            'content': '---\nspam: ham\n...\n'
+        })
+
+        res = yield self.oonibclient.queryBackend('POST', '/report/'+report_id, {
+            'content': '---\nspam: ham\n...\n'
+        })
+        
+        res = yield self.oonibclient.queryBackend('POST', '/report/'+report_id+'/close')
