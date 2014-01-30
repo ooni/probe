@@ -1,4 +1,4 @@
 [run]
 source = ooni
 [report]
-omit = ooni/nettests/*
+omit = ooni/nettests/*, ooni/api/*
