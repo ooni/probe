@@ -1,5 +1,6 @@
 import os
-import unittest
+from twisted.trial import unittest
+
 from ooni.utils import pushFilenameStack
 class TestUtils(unittest.TestCase):
     def test_pushFilenameStack(self):
