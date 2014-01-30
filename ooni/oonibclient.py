@@ -44,17 +44,20 @@ class OONIBClient(object):
     retries = 3
 
     def __init__(self, address):
-        if address.startswith('httpo://'):
-            self.address = address.replace('httpo://', 'http://')
-            self.agent = TrueHeadersSOCKS5Agent(reactor,
-                proxyEndpoint=TCP4ClientEndpoint(reactor, '127.0.0.1',
-                    config.tor.socks_port))
-
-        elif address.startswith('https://'):
-            log.err("HTTPS based bouncers are currently not supported.")
+        self.address = address
 
 
     def _request(self, method, urn, genReceiver, bodyProducer=None):
+        if self.address.startswith('httpo://'):
+            self.address = self.address.replace('httpo://', 'http://')
+            agent = TrueHeadersSOCKS5Agent(reactor,
+                proxyEndpoint=TCP4ClientEndpoint(reactor, '127.0.0.1',
+                    config.tor.socks_port))
+
+        elif self.address.startswith('https://'):
+            log.err("HTTPS based bouncers are currently not supported.")
+            raise e.InvalidOONIBBouncerAddress
+
         attempts = 0
 
         finished = defer.Deferred()
@@ -62,7 +65,7 @@ class OONIBClient(object):
         def perform_request(attempts):
             uri = self.address + urn
             headers = {}
-            d = self.agent.request(method, uri, bodyProducer=bodyProducer)
+            d = agent.request(method, uri, bodyProducer=bodyProducer)
 
             @d.addCallback
             def callback(response):

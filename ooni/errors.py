@@ -133,6 +133,9 @@ class UnableToStartTor(DirectorException):
 class InvalidOONIBCollectorAddress(Exception):
     pass
 
+class InvalidOONIBBouncerAddress(Exception):
+    pass
+
 class AllReportersFailed(Exception):
     pass
 
