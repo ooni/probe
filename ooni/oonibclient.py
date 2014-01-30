@@ -3,6 +3,7 @@ import json
 
 from hashlib import sha256
 
+from twisted.web.client import Agent
 from twisted.internet import defer, reactor
 from twisted.internet.endpoints import TCP4ClientEndpoint
 
@@ -58,6 +59,12 @@ class OONIBClient(object):
             log.err("HTTPS based bouncers are currently not supported.")
             raise e.InvalidOONIBBouncerAddress
 
+        elif address.startswith('http://'):
+            log.msg("Warning using unencrypted collector")
+            self.address = address
+            self.agent = Agent(reactor)
+
+    def _request(self, method, urn, genReceiver, bodyProducer=None):
         attempts = 0
 
         finished = defer.Deferred()
@@ -69,7 +76,10 @@ class OONIBClient(object):
 
             @d.addCallback
             def callback(response):
-                content_length = int(response.headers.getRawHeaders('content-length')[0])
+                try:
+                    content_length = int(response.headers.getRawHeaders('content-length')[0])
+                except:
+                    content_length = None
                 response.deliverBody(genReceiver(finished, content_length))
 
             def errback(err, attempts):
