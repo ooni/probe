@@ -6,7 +6,6 @@ from hashlib import sha256
 from twisted.internet import defer, reactor
 from twisted.internet.endpoints import TCP4ClientEndpoint
 
-from ooni.deck import Deck, InputFile
 from ooni import errors as e
 from ooni.settings import config
 from ooni.utils import log
@@ -117,6 +116,7 @@ class OONIBClient(object):
         pass
 
     def getInput(self, input_hash):
+        from ooni.deck import InputFile
         input_file = InputFile(input_hash)
         if input_file.descriptorCached:
             return defer.succeed(input_file)
@@ -140,6 +140,7 @@ class OONIBClient(object):
         return self.queryBackend('GET', '/input')
 
     def downloadInput(self, input_hash):
+        from ooni.deck import InputFile
         input_file = InputFile(input_hash)
 
         if input_file.fileCached:
@@ -169,6 +170,7 @@ class OONIBClient(object):
         return self.queryBackend('GET', '/deck')
 
     def getDeck(self, deck_hash):
+        from ooni.deck import Deck
         deck = Deck(deck_hash)
         if deck.descriptorCached:
             return defer.succeed(deck)
@@ -190,6 +192,7 @@ class OONIBClient(object):
             return d
 
     def downloadDeck(self, deck_hash):
+        from ooni.deck import Deck
         deck = Deck(deck_hash)
         if deck.fileCached:
             return defer.succeed(deck)
