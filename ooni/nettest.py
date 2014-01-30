@@ -665,7 +665,7 @@ class NetTestCase(object):
         """
         This is the internal setup method to be overwritten by templates.
         """
-        pass
+        self.report = {}
 
     def setUp(self):
         """
