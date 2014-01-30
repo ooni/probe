@@ -1,30 +1,54 @@
 import os
 
+from twisted.internet import defer
 from twisted.trial import unittest
 
 from hashlib import sha256
-from ooni.deck import InputFile
+from ooni.deck import InputFile, Deck
 
-dummy_deck_content = """- options:
-    collector: null
-    help: 0
-    logfile: null
-    no-default-reporter: 0
-    parallelism: null
-    pcapfile: null
-    reportfile: null
-    resume: 0
-    subargs: []
-    test_file: some_dummy_test
-    testdeck: null
+net_test_string = """
+from twisted.python import usage
+from ooni.nettest import NetTestCase
+
+class UsageOptions(usage.Options):
+    optParameters = [['spam', 's', None, 'ham']]
+
+class DummyTestCase(NetTestCase):
+
+    usageOptions = UsageOptions
+    requiredTestHelpers = {'spam': 'test-helper-typeA'}
+
+    def test_a(self):
+        self.report['bar'] = 'bar'
+
+    def test_b(self):
+        self.report['foo'] = 'foo'
 """
 
-class TestInputFile(unittest.TestCase):
+
+class BaseTestCase(unittest.TestCase):
+    def setUp(self):
+        self.cwd = os.getcwd()
+        self.dummy_deck_content = """- options:
+            collector: null
+            help: 0
+            logfile: null
+            no-default-reporter: 0
+            parallelism: null
+            pcapfile: null
+            reportfile: null
+            resume: 0
+            subargs: []
+            test_file: %s/dummy_test.py
+            testdeck: null
+        """ % self.cwd
+
+class TestInputFile(BaseTestCase):
     def test_file_cached(self):
-        file_hash = sha256(dummy_deck_content).hexdigest()
+        file_hash = sha256(self.dummy_deck_content).hexdigest()
         input_file = InputFile(file_hash, base_path='.')
         with open(file_hash, 'w+') as f:
-            f.write(dummy_deck_content)
+            f.write(self.dummy_deck_content)
         assert input_file.fileCached
 
     def test_file_invalid_hash(self):
@@ -50,3 +74,57 @@ class TestInputFile(unittest.TestCase):
         assert os.path.isfile(file_id)
 
         assert input_file.descriptorCached
+
+class MockOONIBClient(object):
+    def lookupTestHelpers(self, required_test_helpers):
+        ret = {
+            'default': {
+                'address': '127.0.0.1',
+                'collector': 'httpo://thirteenchars1234.onion'
+            }
+        }
+        for required_test_helper in required_test_helpers:
+            ret[required_test_helper] = {
+                    'address': '127.0.0.1',
+                    'collector': 'httpo://thirteenchars1234.onion'
+        }
+        return defer.succeed(ret)
+
+class TestDeck(BaseTestCase):
+    def setUp(self):
+        super(TestDeck, self).setUp()
+        self.deck_file = os.path.join(self.cwd,
+            '4145fd06158ce16e45469fc6b41c3d79a93b958925484ffa93c205d9f3b2e30a')
+        with open(self.deck_file, 'w+') as f:
+            f.write(self.dummy_deck_content)
+        with open(os.path.join(self.cwd, 'dummy_test.py'), 'w+') as f:
+            f.write(net_test_string)
+
+    def test_open_deck(self):
+        deck = Deck(deckFile=self.deck_file, decks_directory=".")
+        assert len(deck.netTestLoaders) == 1
+
+    def test_save_deck_descriptor(self):
+        deck = Deck(deckFile=self.deck_file, decks_directory=".")
+        deck.load({'name': 'spam',
+            'id': 'spam',
+            'version': 'spam',
+            'author': 'spam',
+            'date': 'spam',
+            'description': 'spam'
+        })
+        deck.save()
+        deck.verify()
+    
+    @defer.inlineCallbacks
+    def test_lookuptest_helpers(self):
+        deck = Deck(deckFile=self.deck_file, decks_directory=".")
+        deck.oonibclient = MockOONIBClient()
+        yield deck.lookupTestHelpers()
+
+        assert deck.netTestLoaders[0].collector == 'httpo://thirteenchars1234.onion'
+
+        required_test_helpers = deck.netTestLoaders[0].requiredTestHelpers
+        assert len(required_test_helpers) == 1
+        assert required_test_helpers[0]['test_class'].localOptions['spam'] == '127.0.0.1'
+
