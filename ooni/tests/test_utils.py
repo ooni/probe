@@ -1,9 +1,9 @@
 import os
 import unittest
 from ooni.utils import pushFilenameStack
-basefilename = os.path.abspath('dummyfile')
 class TestUtils(unittest.TestCase):
     def test_pushFilenameStack(self):
+        basefilename = os.path.join(os.getcwd(), 'dummyfile')
         f = open(basefilename, "w+")
         f.write("0\n")
         f.close()
