@@ -41,7 +41,7 @@ class BaseTestCase(unittest.TestCase):
             subargs: []
             test_file: %s/dummy_test.py
             testdeck: null
-        """ % self.cwd
+""" % self.cwd
 
 class TestInputFile(BaseTestCase):
     def test_file_cached(self):
@@ -93,8 +93,8 @@ class MockOONIBClient(object):
 class TestDeck(BaseTestCase):
     def setUp(self):
         super(TestDeck, self).setUp()
-        self.deck_file = os.path.join(self.cwd,
-            '4145fd06158ce16e45469fc6b41c3d79a93b958925484ffa93c205d9f3b2e30a')
+        deck_hash = sha256(self.dummy_deck_content).hexdigest()
+        self.deck_file = os.path.join(self.cwd, deck_hash)
         with open(self.deck_file, 'w+') as f:
             f.write(self.dummy_deck_content)
         with open(os.path.join(self.cwd, 'dummy_test.py'), 'w+') as f:

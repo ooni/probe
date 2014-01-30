@@ -17,7 +17,7 @@ from hashlib import sha256
 class InputFile(object):
     def __init__(self, input_hash, base_path=config.inputs_directory):
         self.id = input_hash
-        cache_path = os.path.join(base_path, input_hash)
+        cache_path = os.path.join(os.path.abspath(base_path), input_hash)
         self.cached_file = cache_path
         self.cached_descriptor = cache_path + '.desc'
     
@@ -93,7 +93,7 @@ class Deck(InputFile):
 
         self.oonibclient = OONIBClient(self.bouncer)
 
-        self.decksDirectory = decks_directory
+        self.decksDirectory = os.path.abspath(decks_directory)
         self.deckHash = deck_hash
 
         if deckFile: self.loadDeck(deckFile)
