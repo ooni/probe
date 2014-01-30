@@ -239,7 +239,7 @@ class NetTestLoader(object):
         from ooni import __version__ as software_version
 
         client_geodata = {}
-        if config.probe_ip.address and (config.privacy.includeip or \
+        if config.probe_ip and config.probe_ip.address and (config.privacy.includeip or \
                 config.privacy.includeasn or \
                 config.privacy.includecountry or \
                 config.privacy.includecity):
