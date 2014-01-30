@@ -49,12 +49,6 @@ class HTTPTest(NetTestCase):
     baseParameters = [['socksproxy', 's', None,
         'Specify a socks proxy to use for requests (ip:port)']]
 
-    request = {}
-    response = {}
-
-    requests = []
-    responses = []
-
     def _setUp(self):
         super(HTTPTest, self)._setUp()
 
