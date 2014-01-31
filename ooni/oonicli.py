@@ -186,27 +186,33 @@ def runWithDirector():
             log.err("Reporting with the collector %s is not possible" %
                     global_options['collector'])
             log.msg("Try with a different collector or disable collector reporting with -n")
+            director.exitStatus = 1
 
         elif isinstance(failure.value, errors.InvalidOONIBCollectorAddress):
             log.err("Invalid format for oonib collector address.")
             log.msg("Should be in the format http://<collector_address>:<port>")
             log.msg("for example: ooniprobe -c httpo://nkvphnp3p6agi5qq.onion")
+            director.exitStatus = 2
 
         elif isinstance(failure.value, errors.UnableToLoadDeckInput):
             log.err("Unable to fetch the required inputs for the test deck.")
             log.msg("Please file a ticket on our issue tracker: https://github.com/thetorproject/ooni-probe/issues")
+            director.exitStatus = 3
 
         elif isinstance(failure.value, errors.CouldNotFindTestHelper):
             log.err("Unable to obtain the required test helpers.")
             log.msg("Try with a different bouncer or check that Tor is running properly.")
+            director.exitStatus = 4
 
         elif isinstance(failure.value, errors.CouldNotFindTestCollector):
             log.err("Could not find a valid collector.")
             log.msg("Try with a different bouncer, specify a collector with -c or disable reporting to a collector with -n.")
+            director.exitStatus = 5
 
         elif isinstance(failure.value, errors.ProbeIPUnknown):
             log.err("Failed to lookup probe IP address.")
             log.msg("Check your internet connection.")
+            director.exitStatus = 6
 
         if config.advanced.debug:
             log.exception(failure)
@@ -261,3 +267,5 @@ def runWithDirector():
 
     reactor.callWhenRunning(start)
     reactor.run()
+    sys.exit(director.exitStatus)
+

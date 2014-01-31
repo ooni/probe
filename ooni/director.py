@@ -92,6 +92,7 @@ class Director(object):
         # tasks are completed.
         self.allTestsDone = defer.Deferred()
         self.sniffer = None
+        self.exitStatus = 0
 
     def getNetTests(self):
         nettests = {}
