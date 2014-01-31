@@ -8,9 +8,9 @@ class TestTxScapy(unittest.TestCase):
     def setUp(self):
         # if not txscapy.hasRawSocketPermission():
         #     self.skipTest("No raw socket permissions...")
-        self.scapy_factory = txscapy.ScapyFactory('auto')
-        self.scapy_factory.super_socket = MagicMock()
-        self.scapy_factory.super_socket.ins.fileno.return_value = -1
+        mock_super_socket = MagicMock()
+        mock_super_socket.ins.fileno.return_value = 0
+        self.scapy_factory = txscapy.ScapyFactory('foo', mock_super_socket)
 
     def tearDown(self):
         self.scapy_factory.loseConnection()
