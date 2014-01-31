@@ -1,0 +1,4 @@
+Template: ooniprobe/run_daily
+Type: boolean
+Description: Should we run a safe set of measurements daily?
+ This will set you up for contributing daily network measurements.

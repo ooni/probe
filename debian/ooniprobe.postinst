@@ -1,0 +1,24 @@
+#!/bin/sh
+
+# Source debconf library.
+. /usr/share/debconf/confmodule
+
+setup_cron(){
+
+  CRONTAB_ENTRY="@daily ooni /usr/bin/ooniprobe -i /usr/share/ooni/decks/stable.deck"
+  if ! (crontab -l >/dev/null); then
+    echo $CRONTAB_ENTRY | crontab -
+  elif ! (crontab -l 2>/dev/null | grep -xq "$CRONTAB_ENTRY"); then
+    (crontab -l 2>/dev/null; echo $CRONTAB_ENTRY) | crontab -
+  fi
+
+}
+
+case "$1" in
+  configure)
+    db_get ooniprobe/run_daily
+    if [ "$RET" = "true" ]; then
+      setup_cron
+    fi
+  ;;
+esac
