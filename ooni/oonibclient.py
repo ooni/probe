@@ -47,10 +47,10 @@ class OONIBClient(object):
     def __init__(self, address):
         self.address = address
 
-
     def _request(self, method, urn, genReceiver, bodyProducer=None):
+        address = self.address
         if self.address.startswith('httpo://'):
-            self.address = self.address.replace('httpo://', 'http://')
+            address = self.address.replace('httpo://', 'http://')
             agent = TrueHeadersSOCKS5Agent(reactor,
                 proxyEndpoint=TCP4ClientEndpoint(reactor, '127.0.0.1',
                     config.tor.socks_port))
@@ -59,18 +59,16 @@ class OONIBClient(object):
             log.err("HTTPS based bouncers are currently not supported.")
             raise e.InvalidOONIBBouncerAddress
 
-        elif address.startswith('http://'):
+        elif self.address.startswith('http://'):
             log.msg("Warning using unencrypted collector")
-            self.address = address
-            self.agent = Agent(reactor)
+            agent = Agent(reactor)
 
-    def _request(self, method, urn, genReceiver, bodyProducer=None):
         attempts = 0
 
         finished = defer.Deferred()
 
         def perform_request(attempts):
-            uri = self.address + urn
+            uri = address + urn
             headers = {}
             d = agent.request(method, uri, bodyProducer=bodyProducer)
 
