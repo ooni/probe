@@ -103,6 +103,9 @@ class OONIBClient(object):
         
         def genReceiver(finished, content_length):
             def process_response(s):
+                # If empty string then don't parse it.
+                if not s:
+                    return
                 try:
                     response = json.loads(s)
                 except ValueError:
