@@ -271,14 +271,12 @@ class Director(object):
             log.debug("We now have the following circuits: ")
             for circuit in state.circuits.values():
                 log.debug(" * %s" % circuit)
-
+            
             socks_port = yield state.protocol.get_conf("SocksPort")
             control_port = yield state.protocol.get_conf("ControlPort")
 
             config.tor.socks_port = int(socks_port.values()[0])
             config.tor.control_port = int(control_port.values()[0])
-
-            log.msg("Obtained our IP address from a Tor Relay %s" % config.probe_ip)
 
         def setup_failed(failure):
             log.exception(failure)
