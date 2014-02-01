@@ -12,7 +12,7 @@ from itertools import chain
 from scapy.all import *
 
 from ooni.utils import log
-from ooni.utils.txscapy import ScapyTraceroute
+from ooni.utils.txscapy import MPTraceroute
 from ooni.settings import config
 
 class UsageOptions(usage.Options):
@@ -20,7 +20,9 @@ class UsageOptions(usage.Options):
                     ['backend', 'b', None, 'Test backend to use'],
                     ['timeout', 't', 5, 'The timeout for the traceroute test'],
                     ['maxttl', 'm', 30, 'The maximum value of ttl to set on packets'],
-                    ['srcport', 'p', None, 'Set the source port to a specific value (only applies to TCP and UDP)']
+                    ['dstport', 'd', None, 'Specify a single destination port. May be repeated.'],
+                    ['interval', 'i', None, 'Specify the inter-packet delay in seconds'],
+                    ['numPackets', 'n', None, 'Specify the number of packets to send per hop'],
                     ]
 
 class TracerouteTest(scapyt.BaseScapyTest):
@@ -29,33 +31,31 @@ class TracerouteTest(scapyt.BaseScapyTest):
     requiredTestHelpers = {'backend': 'traceroute'}
     usageOptions = UsageOptions
     dst_ports = [0, 22, 23, 53, 80, 123, 443, 8080, 65535]
-    timeout = 5
+    version = "0.3"
 
     def setUp(self):
-        self.st = ScapyTraceroute()
+        self.st = MPTraceroute()
         if self.localOptions['maxttl']:
             self.st.ttl_max = int(self.localOptions['maxttl'])
+        if self.localOptions['dstport']:
+            self.st.dst_ports = int(self.localOptions['dstport'])
+        if self.localOptions['interval']:
+            self.st.interval = float(self.localOptions['interval'])
+
         config.scapyFactory.registerProtocol(self.st)
-        self.done = defer.Deferred()
-        self.tcp = self.udp = self.icmp = None
+
+        self.report['test_tcp_traceroute'] = dict([('hops_%d' % d,[]) for d in self.dst_ports])
+        self.report['test_udp_traceroute'] = dict([('hops_%d' % d,[]) for d in self.dst_ports])
+        self.report['test_icmp_traceroute'] = {'hops': []}
 
     def test_icmp_traceroute(self):
-        self.st.ICMPTraceroute(self.localOptions['backend'])
-        d = defer.Deferred()
-        reactor.callLater(self.timeout, d.callback, self.st)
-        return d
+        return self.st.ICMPTraceroute(self.localOptions['backend'])
 
     def test_tcp_traceroute(self):
-        self.st.TCPTraceroute(self.localOptions['backend'])
-        d = defer.Deferred()
-        reactor.callLater(self.timeout, d.callback, self.st)
-        return d
+        return self.st.TCPTraceroute(self.localOptions['backend'])
 
     def test_udp_traceroute(self):
-        self.st.UDPTraceroute(self.localOptions['backend'])
-        d = defer.Deferred()
-        reactor.callLater(self.timeout, d.callback, self.st)
-        return d
+        return self.st.UDPTraceroute(self.localOptions['backend'])
 
     def postProcessor(self, measurements):
         # should be called after all deferreds have calledback
@@ -68,19 +68,18 @@ class TracerouteTest(scapyt.BaseScapyTest):
             self.report['answered_packets'] = self.st.matched_packets.items()
             self.report['received_packets'] = self.st.received_packets.values()
 
-            # display responses by hop:
-            self.report['hops'] = {}
-            for i in xrange(self.st.ttl_min, self.st.ttl_max):
-                self.report['hops'][i] = []
-                matchedPackets = filter(lambda x: x.ttl == i, self.st.matched_packets.keys())
-                routers = {}
+            for ttl in xrange(self.st.ttl_min, self.st.ttl_max):
+                matchedPackets = filter(lambda x: x.ttl == ttl, self.st.matched_packets.keys())
                 for packet in matchedPackets:
-                    for pkt in self.st.matched_packets[packet]:
-                        router = pkt.src
-                        if router in routers:
-                            routers[router].append(pkt)
-                        else:
-                            routers[router] = [pkt]
-                for router in routers.keys():
-                    self.report['hops'][i].append(router)
+                    for response in self.st.matched_packets[packet]:
+                        self.addToReport(packet, response)
         return self.report
+
+    def addToReport(self, packet, response):
+        p = {6: 'tcp', 17: 'udp', 1: 'icmp'}
+        if packet.proto == 1:
+            self.report['test_icmp_traceroute']['hops'].append((packet.ttl, response.src))
+        elif packet.proto == 6:
+            self.report['test_tcp_traceroute']['hops_%s' % packet.dport].append((packet.ttl, response.src))
+        else:
+            self.report['test_udp_traceroute']['hops_%s' % packet.dport].append((packet.ttl, response.src))

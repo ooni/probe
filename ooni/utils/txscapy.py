@@ -1,3 +1,4 @@
+import ipaddr
 import struct
 import socket
 import os
@@ -103,6 +104,13 @@ def getNetworksFromRoutes():
 
 class IfaceError(Exception):
     pass
+
+def getAddresses():
+    from scapy.all import get_if_addr, get_if_list
+    from ipaddr import IPAddress
+    addresses = set([get_if_addr(i) for i in get_if_list()])
+    addresses.remove('0.0.0.0')
+    return [IPAddress(addr) for addr in addresses]
 
 def getDefaultIface():
     """ Return the default interface or raise IfaceError """
@@ -288,40 +296,167 @@ class ScapySniffer(ScapyProtocol):
     def packetReceived(self, packet):
         self.pcapwriter.write(packet)
 
-class ScapyTraceroute(ScapyProtocol):
+class ParasiticTraceroute(ScapyProtocol):
+    def __init__(self):
+        self.numHosts = 7
+        self.rate = 15
+        self.hosts = {}
+        self.ttl_max = 15
+        self.ttl_min = 1
+        self.sent_packets = []
+        self.received_packets = []
+        self.matched_packets = {}
+        self.addresses = [str(x) for x in getAddresses()]
+
+    def sendPacket(self, packet):
+        self.factory.send(packet)
+
+    def packetReceived(self, packet):
+        try:
+            packet[IP]
+        except IndexError:
+            return
+
+        if isinstance(packet.getlayer(3), TCPerror):
+            self.received_packets.append(packet)
+            return
+
+        elif packet.dst in self.hosts:
+            if random.randint(1, 100) > self.rate:
+                return
+            try:
+                packet[IP].ttl = self.hosts[packet.dst]['ttl'].pop()
+                del packet.chksum #XXX Why is this incorrect?
+                log.debug("Sent packet to %s with ttl %d" % (packet.dst, packet.ttl))
+                self.sendPacket(packet)
+                k = (packet.id, packet[TCP].sport, packet[TCP].dport, packet[TCP].seq)
+                self.matched_packets[k] = {'ttl': packet.ttl}
+                return
+            except IndexError:
+                pass
+            return
+
+        def maxttl(packet=None):
+            if packet:
+                return min(self.ttl_max,
+                        min(
+                            abs( 64  - packet.ttl ),
+                            abs( 128 - packet.ttl ),
+                            abs( 256 - packet.ttl ))) - 1
+            else:
+                return self.ttl_max
+
+        def genttl(packet=None):
+            ttl = range(self.ttl_min, maxttl(packet))
+            random.shuffle(ttl)
+            return ttl
+
+        if len(self.hosts) < self.numHosts:
+            if packet.dst not in self.hosts \
+                    and packet.dst not in self.addresses \
+                    and isinstance(packet.getlayer(1), TCP):
+
+                self.hosts[packet.dst] = {'ttl' : genttl()}
+                log.debug("Tracing to %s" % packet.dst)
+
+            elif packet.src not in self.hosts \
+                    and packet.src not in self.addresses \
+                    and isinstance(packet.getlayer(1), TCP):
+
+                self.hosts[packet.src] = {'ttl' : genttl(packet),
+                        'ttl_max': maxttl(packet)}
+                log.debug("Tracing to %s" % packet.src)
+            return
+
+        elif packet.src in self.hosts and not 'ttl_max' in self.hosts[packet.src]:
+            self.hosts[packet.src]['ttl_max'] = ttl_max = maxttl(packet)
+            log.debug("set ttl_max to %d for host %s" % (ttl_max, packet.src))
+            ttl = []
+            for t in self.hosts[packet.src]['ttl']:
+                if t < ttl_max:
+                    ttl.append(t)
+            self.hosts[packet.src]['ttl'] = ttl
+            return
+
+    def stopListening(self):
+        self.factory.unRegisterProtocol(self)
+
+class MPTraceroute(ScapyProtocol):
     dst_ports = [0, 22, 23, 53, 80, 123, 443, 8080, 65535]
     ttl_min = 1
     ttl_max = 30
 
     def __init__(self):
         self.sent_packets = []
+        self._recvbuf = []
         self.received_packets = {}
         self.matched_packets = {}
         self.hosts = []
+        self.interval = 0.2
+        self.timeout = ((self.ttl_max - self.ttl_min) * len(self.dst_ports) * self.interval) + 5
+        self.numPackets = 1
 
     def ICMPTraceroute(self, host):
         if host not in self.hosts: self.hosts.append(host)
+
+        d = defer.Deferred()
+        reactor.callLater(self.timeout, d.callback, self)
+
         self.sendPackets(IP(dst=host,ttl=(self.ttl_min,self.ttl_max), id=RandShort())/ICMP(id=RandShort()))
+        return d
 
     def UDPTraceroute(self, host):
         if host not in self.hosts: self.hosts.append(host)
+
+        d = defer.Deferred()
+        reactor.callLater(self.timeout, d.callback, self)
+
         for dst_port in self.dst_ports:
             self.sendPackets(IP(dst=host,ttl=(self.ttl_min,self.ttl_max), id=RandShort())/UDP(dport=dst_port, sport=RandShort()))
+        return d
 
     def TCPTraceroute(self, host):
         if host not in self.hosts: self.hosts.append(host)
+
+        d = defer.Deferred()
+        reactor.callLater(self.timeout, d.callback, self)
+
         for dst_port in self.dst_ports:
             self.sendPackets(IP(dst=host,ttl=(self.ttl_min,self.ttl_max), id=RandShort())/TCP(flags=2L, dport=dst_port, sport=RandShort(), seq=RandShort()))
+        return d
 
+    @defer.inlineCallbacks
     def sendPackets(self, packets):
-        #if random.randint(0,1):
-        #    random.shuffle(packets)
+        def sleep(seconds):
+            d = defer.Deferred()
+            reactor.callLater(seconds, d.callback, seconds)
+            return d
+
+        if not isinstance(packets, Gen):
+            packets = SetGen(packets)
+
         for packet in packets:
-            self.sent_packets.append(packet)
-            self.factory.super_socket.send(packet)
+            for i in xrange(self.numPackets):
+                self.sent_packets.append(packet)
+                self.factory.super_socket.send(packet)
+                yield sleep(self.interval)
 
     def matchResponses(self):
-        def _pe(k, p):
+        def addToReceivedPackets(key, packet):
+            """
+            Add a packet into the received packets dictionary,
+            typically the key is a tuple of packet fields used
+            to correlate sent packets with recieved packets.
+            """
+
+            # Initialize or append to the lists of packets
+            # with the same key
+            if k in self.received_packets:
+                self.received_packets[key].append(packet)
+            else:
+                self.received_packets[key] = [pcket]
+
+        def matchResponse(k, p):
             if k in self.received_packets:
                 if p in self.matched_packets:
                     log.debug("Matched sent packet to more than one response!")
@@ -332,50 +467,47 @@ class ScapyTraceroute(ScapyProtocol):
                 return 1
             return 0
 
+        for p in self._recvbuf:
+            l = p.getlayer(2)
+            if isinstance(l, IPerror):
+                pid = l.id
+                l = p.getlayer(3)
+                if isinstance(l, ICMPerror):
+                    addToReceivedPackets(('icmp', pid), p)
+                elif isinstance(l, TCPerror):
+                    addToReceivedPackets(('tcp', pid), p)
+                elif isinstance(l, UDPerror):
+                    addToReceivedPackets(('udp', pid), p)
+            elif p.src in self.hosts:
+                l = p.getlayer(1)
+                if isinstance(l, ICMP):
+                    addToReceivedPackets(('icmp', l.id), p)
+                elif isinstance(l, TCP):
+                    addToReceivedPackets(('tcp', l.ack - 1, l.dport, l.sport), p)
+                elif isinstance(l, UDP):
+                    addToReceivedPackets(('udp', l.dport, l.sport), p)
+
         for p in self.sent_packets:
             # for each sent packet, find corresponding
             # received packets
             l = p.getlayer(1)
             i = 0
             if isinstance(l, ICMP):
-                i += _pe((ICMP, p.id), p) # match by ipid
-                i += _pe((ICMP, l.id), p) # match by icmpid
+                i += matchResponse(('icmp', p.id), p) # match by ipid
+                i += matchResponse(('icmp', l.id), p) # match by icmpid
             if isinstance(l, TCP):
-                i += _pe((TCP, p.id), p) # match by ipid
-                i += _pe((TCP, p.id, l.seq, l.ack, l.sport, l.dport), p)
+                i += matchResponse(('tcp', p.id), p) # match by ipid
+                i += matchResponse(('tcp', l.seq, l.sport, l.dport), p)
             if isinstance(l, UDP):
-                i += _pe((UDP, p.id), p)
+                i += matchResponse(('udp', p.id), p)
+                i += matchResponse(('udp', l.sport, l.dport), p)
             if i == 0:
                 log.debug("No response for packet %s" % [p])
 
-    def packetReceived(self, packet):
-        def _ae(k, p):
-            if k in self.received_packets:
-                self.received_packets[k].append(p)
-            else:
-                self.received_packets[k] = [p]
+        del self._recvbuf
 
-        l = packet.getlayer(2)
-        try:
-            if isinstance(l, IPerror):
-                pid = l.id
-                l = packet.getlayer(3)
-                if isinstance(l, ICMPerror):
-                    _ae((ICMP, pid), packet)
-                elif isinstance(l, TCPerror):
-                    _ae((TCP, pid, l.seq, l.ack, l.sport, l.dport), packet)
-                elif isinstance(l, UDPerror):
-                    _ae((UDP, pid), packet)
-            elif packet.src in self.hosts:
-                l = packet.getlayer(1)
-                if isinstance(l, ICMP):
-                    _ae((ICMP, l.id), packet)
-                elif isinstance(l, TCP):
-                    _ae((TCP, l.seq, l.ack, l.sport, l.dport), packet)
-                elif isinstance(l, UDP):
-                    _ae((UDP, l.sport, l.dport), packet)
-        except Exception, e:
-            import pdb;pdb.set_trace()
+    def packetReceived(self, packet):
+        self._recvbuf.append(packet)
 
     def stopListening(self):
         self.factory.unRegisterProtocol(self)
