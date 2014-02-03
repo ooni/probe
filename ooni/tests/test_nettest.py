@@ -275,7 +275,7 @@ class TestNettestTimeout(unittest.TestCase):
 
         class DummyProtocol(Protocol):
             def dataReceived(self, data):
-                print data
+                pass
 
         class DummyFactory(Factory):
             def __init__(self):
