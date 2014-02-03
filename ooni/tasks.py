@@ -69,12 +69,11 @@ class TaskWithTimeout(BaseTask):
 
     def _timedOut(self):
         """Internal method for handling timeout failure"""
-        if self._running and not self._running.called:
-            self._running.cancel()
+        if self._running:
             self._failed(TaskTimedOut)
+            self._running.cancel()
 
     def _cancelTimer(self):
-        #import pdb; pdb.set_trace()
         if self._timer.active():
             self._timer.cancel()
 
