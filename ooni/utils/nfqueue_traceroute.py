@@ -87,20 +87,21 @@ class NFQueueTraceroute(ScapyProtocol):
         # XXX later i need to develope more heuristics for deciding
         # when to mangle packets...
         # For now we mangle all packets that are keyed in self.mangle_streams
-
         streamID = ip_packet.src, ip_packet[TCP].sport, ip_packet.dst, ip_packet[TCP].dport        
-
-        # keep track of last mangled TTL
-        self.stream_last_mangled_ttl[stream_id] += 1
-        new_ttl = self.stream_last_mangled_ttl[stream_id]
-        ip_packet.ttl = new_ttl
-        del ip_packet.chksum
 
         # keep track of mangled TTL per TCP sequence number
         sequenceNum = ip_packet[TCP].seq
-        self.mangle_streams[streamID][sequenceNum] = new_ttl
 
-        queue_item.set_verdict_modified(nfqueue.NF_ACCEPT, str(ip_packet), len(ip_packet))
+        # do not mangle the same packet twice to reduce
+        # impact on the mangled stream.
+        if sequenceNum not in self.mangle_streams[streamID]:
+            # keep track of last mangled TTL
+            self.stream_last_mangled_ttl[stream_id] += 1
+            new_ttl = self.stream_last_mangled_ttl[stream_id]
+            ip_packet.ttl = new_ttl
+            del ip_packet.chksum
+            self.mangle_streams[streamID][sequenceNum] = new_ttl
+            queue_item.set_verdict_modified(nfqueue.NF_ACCEPT, str(ip_packet), len(ip_packet))
 
     def packetReceived(self, packet):
         try:
