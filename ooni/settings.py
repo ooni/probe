@@ -1,6 +1,8 @@
 import os
 import sys
 import yaml
+import getpass
+
 from shutil import copyfile
 from os.path import abspath, expanduser
 
@@ -11,6 +13,7 @@ from ooni.utils import Storage
 
 class OConfig(object):
     def __init__(self):
+        self.current_user = getpass.getuser()
         self.global_options = {}
         self.reports = Storage()
         self.scapyFactory = None
@@ -39,7 +42,7 @@ class OConfig(object):
 
         self.nettest_directory = abspath(os.path.join(__file__, '..', 'nettests'))
 
-        self.ooni_home = os.path.join(expanduser('~'), '.ooni')
+        self.ooni_home = os.path.join(expanduser('~'+self.current_user), '.ooni')
         self.inputs_directory = os.path.join(self.ooni_home, 'inputs')
         self.decks_directory = os.path.join(self.ooni_home, 'decks')
         self.reports_directory = os.path.join(self.ooni_home, 'reports')
