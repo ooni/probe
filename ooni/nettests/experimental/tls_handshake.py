@@ -38,9 +38,10 @@ from OpenSSL                import SSL, crypto
 from twisted.internet       import defer, threads
 from twisted.python         import usage, failure
 
-from ooni       import nettest, config
+from ooni       import nettest
 from ooni.utils import log
 from ooni.errors import InsufficientPrivileges
+from ooni.settings import config
 
 ## For a way to obtain the current version of Firefox's default ciphersuite
 ## list, see https://trac.torproject.org/projects/tor/attachment/ticket/4744/
@@ -100,7 +101,7 @@ class SSLContextError(usage.UsageError):
             message = self.errors[message]
         super(usage.UsageError, self).__init__(message)
 
-class HostUnreachable(Exception):
+class HostUnreachableError(Exception):
     """Raised when the host IP address appears to be unreachable."""
     pass
 
@@ -162,6 +163,7 @@ class HandshakeTest(nettest.NetTestCase):
             if not (options['ssl2'] or options['ssl3'] or options['tls1']):
                 try: raise SSLContextError('NO_CONTEXT')
                 except SSLContextError as sce: log.err(sce.message)
+                context = None
             else:
                 ## If incompatible contexts were chosen, inform the user:
                 if options['tls1'] and (options['ssl2'] or options['ssl3']):
