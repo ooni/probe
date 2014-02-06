@@ -6,22 +6,19 @@ from nfqueue_reader import NFQueueReader
 # External modules
 import nfqueue
 from scapy.all import IP, IPerror, TCP, TCPerror, ICMP
-from twisted.internet import reactor
+from twisted.internet import reactor, task
 
 class StreamTracker(object):
 
     max_ttl = 30
 
     def __init__(self):
-        self.last_ttl = 1
+        self.last_ttl = 0
 
-        # XXX not yet used
-        # could be keyed with TCP sequence number + IP ID?
-        self.packets  = {}
-
-        # keyed with TCP sequence number
+        # keyed with TCP sequence number + IP ID
         # value is TTL
         self.ttls     = {}
+        #self.packets  = {}
 
         self.packet_count = 0
 
@@ -38,11 +35,7 @@ class StreamTracker(object):
             # we've already seen this sequence number
             # don't mangle TCP retransmits
             queue_item.set_verdict(nfqueue.NF_ACCEPT)
-            print "%s previously seen" % sequenceNum
         else:
-            print "%s NOT previously seen" % sequenceNum
-            print "last_ttl %s" % self.last_ttl
-
             self.last_ttl += 1
 
             if self.last_ttl > self.max_ttl:
@@ -50,7 +43,8 @@ class StreamTracker(object):
 
             packet.ttl     = self.last_ttl
             del packet.chksum
-            self.ttls[sequenceNum] = self.last_ttl
+            self.ttls[sequenceNum]    = self.last_ttl
+            #self.packets[sequenceNum] = packet
             queue_item.set_verdict_modified(nfqueue.NF_ACCEPT, str(packet), len(packet))
 
 
@@ -89,21 +83,24 @@ class NFQueueTraceroute(object):
 
     def stop(self):
         reactor.removeReader(self.nfqueue_reader)
-        print self.report
-        reactor.stop()
+
+    def printReport(self):
+
+        for stream_id in self.report:
+            print "\ntraceroute for " + str(stream_id)
+            # sort by ttl
+            for hop in sorted( self.report[stream_id], key=lambda x: x[0] ):
+                print hop
 
     def handleNFQueuePacket(self, queue_item):
         packet = IP(queue_item.get_data())
 
         if IPerror in packet:
-            print "ICMP"
             self.handleICMP(queue_item, packet)
         else:
-            print "IP"
             stream_id = self.getStreamID(packet)
 
             if stream_id not in self.mangled_streams:
-                print "new stream"
                 self.mangled_streams[stream_id] = StreamTracker()
 
             self.mangled_streams[stream_id].processPacket(queue_item, packet)
@@ -122,33 +119,45 @@ class NFQueueTraceroute(object):
         value we used to produce this ICMP error...
         """
 
-        print "handleICMP"
-
         sequence_num = packet[ICMP].payload[TCPerror].seq
         stream_id    = self.getStreamID(packet[ICMP].payload)
 
-        print "%s %s" % (sequence_num, stream_id)
-
         if stream_id in self.mangled_streams:
             mangled_ttl = self.mangled_streams[stream_id].ttls[sequence_num]
-            self.report[(stream_id, sequence_num)] = mangled_ttl
+
+            if stream_id in self.report:
+                self.report[stream_id].append( (mangled_ttl, packet.src) )
+            else:
+                self.report[stream_id] = [ (mangled_ttl, packet.src) ]
+
         else:
+            # XXX what should we do with ICMP packets we weren't expecting?
             self.error_report[(stream_id, sequence_num)] = packet
 
-        # XXX does it even matter if we accept or deny here?
-        queue_item.set_verdict(nfqueue.NF_DROP)
+        # it should not matter if we drop or accept
+        #queue_item.set_verdict(nfqueue.NF_DROP)
+        queue_item.set_verdict(nfqueue.NF_ACCEPT)
 
 
-
-# iptables -A OUTPUT -p tcp -m state --state RELATED,ESTABLISHED --dport 443 -j NFQUEUE --queue-num 0
+# make sure you have a rule for the ICMP packets
 # iptables -A INPUT -p icmp -j NFQUEUE --queue-num 0
+#
+# and a rule for the TCP packets
+# something like this:
+# iptables -A OUTPUT -p tcp -m state --state RELATED,ESTABLISHED --dport 443 -m statistic --mode random --probability 0.1 -j NFQUEUE --queue-num 0
+# OR this:
+# iptables -A OUTPUT -p tcp -m state --state RELATED,ESTABLISHED --dport 443 -j NFQUEUE --queue-num 0
+
 
 def main():
 
     nfqueue_traceroute = NFQueueTraceroute()
     nfqueue_traceroute.start()
 
-    reactor.callLater(30, lambda:nfqueue_traceroute.stop())
+    d = task.deferLater(reactor, 60, lambda ignored: nfqueue_traceroute.stop(), None)
+    d.addCallback(lambda ignored: nfqueue_traceroute.printReport())
+    d.addCallback(lambda ignored: reactor.stop())
+
     reactor.run()
  
 if __name__ == "__main__":
