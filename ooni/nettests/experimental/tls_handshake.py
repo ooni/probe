@@ -23,6 +23,8 @@
 
 from socket import error   as socket_error
 from socket import timeout as socket_timeout
+from socket import inet_aton as socket_inet_aton
+from socket import gethostbyname as socket_gethostbyname
 from time   import sleep
 
 import os
@@ -102,6 +104,10 @@ class SSLContextError(usage.UsageError):
         super(usage.UsageError, self).__init__(message)
 
 class HostUnreachableError(Exception):
+    """Raised when the host IP address appears to be unreachable."""
+    pass
+
+class HostUnresolveableError(Exception):
     """Raised when the host IP address appears to be unreachable."""
     pass
 
@@ -212,9 +218,26 @@ class HandshakeTest(nettest.NetTestCase):
 
         ## We have to set the default timeout on our sockets before creation:
         socket.setdefaulttimeout(self.timeout)
+    def isIP(self,addr):
+        try:
+            socket_inet_aton(addr)
+            return True
+        except socket_error:
+            return False
+
+    def resolveHost(self,addr):
+        try:
+            return socket_gethostbyname(addr)
+        except socket_error:
+            raise HostUnresolveableError
 
     def splitInput(self, input):
         addr, port = input.strip().rsplit(':', 1)
+
+        #if addr is hostname it is resolved to ip
+        if not self.isIP(addr):
+            addr=self.resolveHost(addr)
+
         if self.localOptions['port']:
             port = self.localOptions['port']
         return (str(addr), int(port))
@@ -227,7 +250,10 @@ class HandshakeTest(nettest.NetTestCase):
                 for line in fh.readlines():
                     if line.startswith('#'):
                         continue
-                    yield self.splitInput(line)
+                    try:
+                        yield self.splitInput(line)
+                    except HostUnresolveableError:
+                        continue
 
     def buildSocket(self, addr):
         global s
