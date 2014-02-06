@@ -108,7 +108,7 @@ class HostUnreachableError(Exception):
     pass
 
 class HostUnresolveableError(Exception):
-    """Raised when the host IP address appears to be unreachable."""
+    """Raised when the host address appears to be unresolveable."""
     pass
 
 class ConnectionTimeout(Exception):
@@ -146,7 +146,7 @@ class HandshakeTest(nettest.NetTestCase):
     usageOptions = HandshakeOptions
 
     host = None
-    inputFile = ['file', 'f', None, 'List of <IP>:<PORT>s to test']
+    inputFile = ['file', 'f', None, 'List of <HOST>:<PORT>s to test']
 
     #: Default SSL/TLS context method.
     context = SSL.Context(SSL.TLSv1_METHOD)
