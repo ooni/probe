@@ -7,20 +7,48 @@ from nfqueue_reader import NFQueueReader
 import nfqueue
 from scapy.all import IP, IPerror, TCP, TCPerror, ICMP
 from twisted.internet import reactor, task
+from datetime import datetime
+
+
 
 class StreamTracker(object):
 
-    max_ttl = 30
+    max_ttl = 30 # XXX
 
     def __init__(self):
-        self.last_ttl = 0
+        self.current_ttl  = 1
+        self.max_attempts = 3   # max attempts per ttl value
+        self.attempt_num  = 0
+        self.timeout      = 150 # one attempt per timeout duration
+        self.ttls         = {}  # keyed with sequence number
+        self.time_last_mangled = 0
 
-        # keyed with TCP sequence number + IP ID
-        # value is TTL
-        self.ttls     = {}
-        #self.packets  = {}
+    def isMaxTTL(self):
+        print "current_ttl = %s" % self.current_ttl
 
-        self.packet_count = 0
+        if self.current_ttl >= self.max_ttl:
+            return True
+        else:
+            return False
+
+    def getTimeMilliSec(self):
+        dt = datetime.now()
+        return dt.microsecond / 1000
+
+    def isTimedOut(self):
+        duration = self.getTimeMilliSec() - self.time_last_mangled
+        if duration < self.timeout:
+            return False
+        else:
+            return True
+
+    def maybeIncrementTTL(self):        
+        if self.attempt_num < self.max_attempts:
+            self.attempt_num += 1
+        else:
+            self.current_ttl += 1
+            self.attempt_num = 0
+
 
     def processPacket(self, queue_item, packet):
 
@@ -35,17 +63,22 @@ class StreamTracker(object):
             # we've already seen this sequence number
             # don't mangle TCP retransmits
             queue_item.set_verdict(nfqueue.NF_ACCEPT)
-        else:
-            self.last_ttl += 1
+            return
 
-            if self.last_ttl > self.max_ttl:
-                self.last_ttl = 1
+        if not self.isTimedOut():
+            # if timeout not reached then don't mangle
+            queue_item.set_verdict(nfqueue.NF_ACCEPT)
+            return
 
-            packet.ttl     = self.last_ttl
-            del packet.chksum
-            self.ttls[sequenceNum]    = self.last_ttl
-            #self.packets[sequenceNum] = packet
-            queue_item.set_verdict_modified(nfqueue.NF_ACCEPT, str(packet), len(packet))
+        self.time_last_mangled = self.getTimeMilliSec()
+        print "time_last_mangled set to %s" % self.time_last_mangled
+
+        self.maybeIncrementTTL()
+
+        packet.ttl = self.current_ttl
+        del packet.chksum
+        self.ttls[sequenceNum] = self.current_ttl
+        queue_item.set_verdict_modified(nfqueue.NF_ACCEPT, str(packet), len(packet))
 
 
 class NFQueueTraceroute(object):
@@ -55,9 +88,6 @@ class NFQueueTraceroute(object):
     First draft will be TCP only.
     No reason it couldn't be multi-protocol.
     """
-
-    ttl_min = 1
-    ttl_max = 30 # XXX is this a good upper limit?
 
     def __init__(self, nqueue=0):
         """
@@ -104,6 +134,10 @@ class NFQueueTraceroute(object):
                 self.mangled_streams[stream_id] = StreamTracker()
 
             self.mangled_streams[stream_id].processPacket(queue_item, packet)
+            if self.mangled_streams[stream_id].isMaxTTL():
+                self.stop()
+                self.printReport()
+                reactor.stop()
 
     # given a scapy IP/TCP packet return a
     # stream ID... a TCP 4-tuple
@@ -154,9 +188,9 @@ def main():
     nfqueue_traceroute = NFQueueTraceroute()
     nfqueue_traceroute.start()
 
-    d = task.deferLater(reactor, 60, lambda ignored: nfqueue_traceroute.stop(), None)
-    d.addCallback(lambda ignored: nfqueue_traceroute.printReport())
-    d.addCallback(lambda ignored: reactor.stop())
+#    d = task.deferLater(reactor, 30, lambda ignored: nfqueue_traceroute.stop(), None)
+#    d.addCallback(lambda ignored: nfqueue_traceroute.printReport())
+#    d.addCallback(lambda ignored: reactor.stop())
 
     reactor.run()
  
