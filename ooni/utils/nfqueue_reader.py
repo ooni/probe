@@ -16,7 +16,7 @@ class NFQueueReader(object):
 
     implements(IReadDescriptor)
     
-    def __init__(self, cb, nqueue=0, family=AF_INET, maxlen=50000):
+    def __init__(self, cb, nqueue=0, family=AF_INET, maxlen=500):
         self.maxlen = maxlen
         self.queue  = nfqueue.queue()
 

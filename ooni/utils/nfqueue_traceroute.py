@@ -24,8 +24,6 @@ class StreamTracker(object):
         self.time_last_mangled = 0
 
     def isMaxTTL(self):
-        print "current_ttl = %s" % self.current_ttl
-
         if self.current_ttl >= self.max_ttl:
             return True
         else:
@@ -43,11 +41,15 @@ class StreamTracker(object):
             return True
 
     def maybeIncrementTTL(self):        
-        if self.attempt_num < self.max_attempts:
+        if self.attempt_num != self.max_attempts:
             self.attempt_num += 1
         else:
             self.current_ttl += 1
             self.attempt_num = 0
+
+        print "current_ttl %s" % self.current_ttl
+        print "attempt_num %s" % self.attempt_num
+        print "max_attempts %s" % self.max_attempts
 
 
     def processPacket(self, queue_item, packet):
@@ -96,17 +98,16 @@ class NFQueueTraceroute(object):
         where we also receive ICMP packets (e.g. TTL expired)
         """
 
-        self.nqueue = nqueue
+        self.nqueue          = nqueue
 
         # dict keyed with TCP 4-tuple
         # value is a StreamTracker
         self.mangled_streams = {}
-
-        self.nfqueue_reader = NFQueueReader(self.handleNFQueuePacket, nqueue=self.nqueue)
+        self.nfqueue_reader  = NFQueueReader(self.handleNFQueuePacket, nqueue=self.nqueue)
 
         # interesting things to report
-        self.report       = {}
-        self.error_report = {}
+        self.report          = {}
+        self.error_report    = {}
 
     def start(self):
         reactor.addReader(self.nfqueue_reader)
@@ -187,13 +188,7 @@ def main():
 
     nfqueue_traceroute = NFQueueTraceroute()
     nfqueue_traceroute.start()
-
-#    d = task.deferLater(reactor, 30, lambda ignored: nfqueue_traceroute.stop(), None)
-#    d.addCallback(lambda ignored: nfqueue_traceroute.printReport())
-#    d.addCallback(lambda ignored: reactor.stop())
-
     reactor.run()
  
 if __name__ == "__main__":
     main()
-
