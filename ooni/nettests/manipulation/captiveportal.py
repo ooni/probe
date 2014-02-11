@@ -33,11 +33,10 @@ import os
 import random
 import re
 import string
-import urllib2
 from urlparse import urlparse
 
 from twisted.python import usage
-from twisted.internet import defer, threads
+from twisted.internet import defer, threads, reactor
 
 from ooni import nettest
 from ooni.templates import httpt
@@ -61,7 +60,7 @@ class UsageOptions(usage.Options):
                   'User agent for HTTP requests']
                 ]
 
-class CaptivePortal(nettest.NetTestCase):
+class CaptivePortal(httpt.HTTPTest):
     """
     Compares content and status codes of HTTP responses, and attempts
     to determine if content has been altered.
@@ -77,19 +76,18 @@ class CaptivePortal(nettest.NetTestCase):
 
     def http_fetch(self, url, headers={}):
         """
-        Parses an HTTP url, fetches it, and returns a urllib2 response
+        Parses an HTTP url, fetches it, and returns a response
         object.
         """
         url = urlparse(url).geturl()
-        request = urllib2.Request(url, None, headers)
         #XXX: HTTP Error 302: The HTTP server returned a redirect error that
         #would lead to an infinite loop.  The last 30x error message was: Found
         try:
-            response = urllib2.urlopen(request)
-            response_headers = dict(response.headers)
+            response = threads.blockingCallFromThread(reactor,self.doRequest,url,"GET",headers)
+            response_headers = response.headers
             return response, response_headers
-        except urllib2.HTTPError, e:
-            log.err("HTTPError: %s" % e)
+        except:
+            log.err("HTTPError")
             return None, None
 
     def http_content_match_fuzzy_opt(self, experimental_url, control_result,
@@ -111,7 +109,7 @@ class CaptivePortal(nettest.NetTestCase):
 
         response, response_headers = self.http_fetch(experimental_url, headers)
 
-        response_content = response.read() if response else None
+        response_content = response.body if response else None
         response_code = response.code if response else None
         if response_content is None:
             log.err("HTTP connection appears to have failed.")
@@ -359,7 +357,7 @@ class CaptivePortal(nettest.NetTestCase):
             random_sld = self.get_random_url_safe_string(length)
 
         tld_list = ['.com', '.net', '.org', '.info', '.test', '.invalid']
-        random_tld = urllib2.random.choice(tld_list)
+        random_tld = random.choice(tld_list)
         random_hostname = random_sld + random_tld
         return random_hostname
 
@@ -523,7 +521,6 @@ class CaptivePortal(nettest.NetTestCase):
                                                                     control_result,
                                                                     headers, fuzzy)
             status_match = status_func(experiment_code, control_code)
-
             if status_match and content_match:
                 log.msg("The %s test was unable to detect" % test_name)
                 log.msg("a captive portal.")
