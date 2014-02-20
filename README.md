@@ -51,7 +51,7 @@ python setup.py install
 
 ### Other platforms (with Vagrant)
 
-0) [Install Vagrant](http://downloads.vagrantup.com/) and [Install Virtualbox](https://www.virtualbox.org/wiki/Downloads)
+0) [Install Vagrant](https://www.vagrantup.com/downloads.html) and [Install Virtualbox](https://www.virtualbox.org/wiki/Downloads)
 
 0.1)
 
