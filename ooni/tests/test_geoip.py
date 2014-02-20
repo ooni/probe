@@ -11,8 +11,8 @@ class TestGeoIP(unittest.TestCase):
  
     def test_ip_to_location(self):
         location = geoip.IPToLocation('8.8.8.8')
-        assert location['countrycode'] == 'US'
-        assert location['asn'] == 'AS15169'
+        assert 'countrycode' in location
+        assert 'asn' in location
         assert 'city' in location
 
     @defer.inlineCallbacks
