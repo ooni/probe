@@ -36,7 +36,7 @@ from ooni.utils.net import BodyReceiver, StringProducer, userAgents
 
 from ooni.settings import config
 
-from ooni.tasks import ReportEntry, TaskTimedOut, ReportTracker
+from ooni.tasks import ReportEntry, ReportTracker
 class ReporterException(Exception):
     pass
 

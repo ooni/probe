@@ -23,6 +23,8 @@
 
 from socket import error   as socket_error
 from socket import timeout as socket_timeout
+from socket import inet_aton as socket_inet_aton
+from socket import gethostbyname as socket_gethostbyname
 from time   import sleep
 
 import os
@@ -38,9 +40,10 @@ from OpenSSL                import SSL, crypto
 from twisted.internet       import defer, threads
 from twisted.python         import usage, failure
 
-from ooni       import nettest, config
+from ooni       import nettest
 from ooni.utils import log
 from ooni.errors import InsufficientPrivileges
+from ooni.settings import config
 
 ## For a way to obtain the current version of Firefox's default ciphersuite
 ## list, see https://trac.torproject.org/projects/tor/attachment/ticket/4744/
@@ -100,8 +103,12 @@ class SSLContextError(usage.UsageError):
             message = self.errors[message]
         super(usage.UsageError, self).__init__(message)
 
-class HostUnreachable(Exception):
+class HostUnreachableError(Exception):
     """Raised when the host IP address appears to be unreachable."""
+    pass
+
+class HostUnresolveableError(Exception):
+    """Raised when the host address appears to be unresolveable."""
     pass
 
 class ConnectionTimeout(Exception):
@@ -139,7 +146,7 @@ class HandshakeTest(nettest.NetTestCase):
     usageOptions = HandshakeOptions
 
     host = None
-    inputFile = ['file', 'f', None, 'List of <IP>:<PORT>s to test']
+    inputFile = ['file', 'f', None, 'List of <HOST>:<PORT>s to test']
 
     #: Default SSL/TLS context method.
     context = SSL.Context(SSL.TLSv1_METHOD)
@@ -162,6 +169,7 @@ class HandshakeTest(nettest.NetTestCase):
             if not (options['ssl2'] or options['ssl3'] or options['tls1']):
                 try: raise SSLContextError('NO_CONTEXT')
                 except SSLContextError as sce: log.err(sce.message)
+                context = None
             else:
                 ## If incompatible contexts were chosen, inform the user:
                 if options['tls1'] and (options['ssl2'] or options['ssl3']):
@@ -210,9 +218,26 @@ class HandshakeTest(nettest.NetTestCase):
 
         ## We have to set the default timeout on our sockets before creation:
         socket.setdefaulttimeout(self.timeout)
+    def isIP(self,addr):
+        try:
+            socket_inet_aton(addr)
+            return True
+        except socket_error:
+            return False
+
+    def resolveHost(self,addr):
+        try:
+            return socket_gethostbyname(addr)
+        except socket_error:
+            raise HostUnresolveableError
 
     def splitInput(self, input):
         addr, port = input.strip().rsplit(':', 1)
+
+        #if addr is hostname it is resolved to ip
+        if not self.isIP(addr):
+            addr=self.resolveHost(addr)
+
         if self.localOptions['port']:
             port = self.localOptions['port']
         return (str(addr), int(port))
@@ -225,7 +250,10 @@ class HandshakeTest(nettest.NetTestCase):
                 for line in fh.readlines():
                     if line.startswith('#'):
                         continue
-                    yield self.splitInput(line)
+                    try:
+                        yield self.splitInput(line)
+                    except HostUnresolveableError:
+                        continue
 
     def buildSocket(self, addr):
         global s

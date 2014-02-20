@@ -4,7 +4,7 @@ from twisted.trial import unittest
 from twisted.python import failure
 from twisted.internet import defer, task
 
-from ooni.tasks import BaseTask, TaskWithTimeout, TaskTimedOut
+from ooni.tasks import BaseTask, TaskWithTimeout
 from ooni.managers import TaskManager, MeasurementManager
 
 from ooni.tests.mocks import MockSuccessTask, MockFailTask, MockFailOnceTask, MockFailure

@@ -30,30 +30,31 @@ def IPToLocation(ipaddr):
     country_file = os.path.join(config.advanced.geoip_data_dir, 'GeoIP.dat')
     asn_file = os.path.join(config.advanced.geoip_data_dir, 'GeoIPASNum.dat')
 
-    location = {'city': None, 'countrycode': None, 'asn': None}
-    try:
-        city_dat = GeoIP(city_file)
-        try:
-            location['city'] = city_dat.record_by_addr(ipaddr)['city']
-        except TypeError:
-            location['city'] = None
+    location = {'city': None, 'countrycode': 'ZZ', 'asn': 'AS0'}
     
+    try:
         country_dat = GeoIP(country_file)
         location['countrycode'] = country_dat.country_code_by_addr(ipaddr)
         if not location['countrycode']:
             location['countrycode'] = 'ZZ'
-
-        asn_dat = GeoIP(asn_file)
-        try:
-            location['asn'] = asn_dat.org_by_addr(ipaddr).split(' ')[0]
-        except AttributeError:
-            location['asn'] = 'AS0'
-
     except IOError:
-        log.err("Could not find GeoIP data files. Go into %s "
-                "and run make geoip or change the geoip_data_dir "
+        log.err("Could not find GeoIP data file. Go into %s "
+                "and make sure GeoIP.dat is present or change the location "
                 "in the config file" % config.advanced.geoip_data_dir)
-        raise GeoIPDataFilesNotFound
+    try:
+        city_dat = GeoIP(city_file)
+        location['city'] = city_dat.record_by_addr(ipaddr)['city']
+    except:
+         log.err("Could not find the city your IP is from. "
+                "Download the GeoLiteCity.dat file into the geoip_data_dir"
+                " or install geoip-database-contrib.")
+    try:
+        asn_dat = GeoIP(asn_file)
+        location['asn'] = asn_dat.org_by_addr(ipaddr).split(' ')[0]
+    except:
+        log.err("Could not find the ASN for your IP. "
+                "Download the GeoIPASNum.dat file into the geoip_data_dir"
+                " or install geoip-database-contrib.")
     
     return location
 
