@@ -62,8 +62,8 @@ class TracerouteTest(scapyt.BaseScapyTest):
         if measurements[0][1].result == self.st:
             for packet in self.st.sent_packets:
                 self.report['sent_packets'].append(packet)
-            self.report['answered_packets'] = self.st.matched_packets.items()
-            self.report['received_packets'] = self.st.received_packets.values()
+            for packet in self.st.matched_packets.values():
+                self.report['answered_packets'].extend(packet)
 
             for ttl in xrange(self.st.ttl_min, self.st.ttl_max):
                 matchedPackets = filter(lambda x: x.ttl == ttl, self.st.matched_packets.keys())
@@ -75,8 +75,16 @@ class TracerouteTest(scapyt.BaseScapyTest):
     def addToReport(self, packet, response):
         p = {6: 'tcp', 17: 'udp', 1: 'icmp'}
         if packet.proto == 1:
-            self.report['test_icmp_traceroute']['hops'].append((packet.ttl, response.src))
+            self.report['test_icmp_traceroute']['hops'].append({'ttl': packet.ttl, 
+                                                                'rtt': response.time - packet.time,
+                                                                'address': response.src})
         elif packet.proto == 6:
-            self.report['test_tcp_traceroute']['hops_%s' % packet.dport].append((packet.ttl, response.src))
+            self.report['test_tcp_traceroute']['hops_%s' % packet.dport].append({'ttl': packet.ttl,
+                                                                                 'rtt': response.time - packet.time,
+                                                                                 'address': response.src,
+                                                                                 'sport': response.sport})
         else:
-            self.report['test_udp_traceroute']['hops_%s' % packet.dport].append((packet.ttl, response.src))
+            self.report['test_udp_traceroute']['hops_%s' % packet.dport].append({'ttl': packet.ttl,
+                                                                                 'rtt': response.time - packet.time,
+                                                                                 'address': response.src,
+                                                                                 'sport': response.sport})
