@@ -1,7 +1,4 @@
 # -*- encoding: utf-8 -*-
-#
-# :authors: Arturo Filastò
-# :licence: see LICENSE
 
 from twisted.python import usage
 from twisted.internet import defer, reactor
@@ -38,7 +35,7 @@ class TracerouteTest(scapyt.BaseScapyTest):
         if self.localOptions['maxttl']:
             self.st.ttl_max = int(self.localOptions['maxttl'])
         if self.localOptions['dstport']:
-            self.st.dst_ports = int(self.localOptions['dstport'])
+            self.st.dst_ports = [int(self.localOptions['dstport'])]
         if self.localOptions['interval']:
             self.st.interval = float(self.localOptions['interval'])
 

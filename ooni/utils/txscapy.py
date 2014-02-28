@@ -451,10 +451,10 @@ class MPTraceroute(ScapyProtocol):
 
             # Initialize or append to the lists of packets
             # with the same key
-            if k in self.received_packets:
+            if key in self.received_packets:
                 self.received_packets[key].append(packet)
             else:
-                self.received_packets[key] = [pcket]
+                self.received_packets[key] = [packet]
 
         def matchResponse(k, p):
             if k in self.received_packets:
@@ -473,12 +473,12 @@ class MPTraceroute(ScapyProtocol):
                 pid = l.id
                 l = p.getlayer(3)
                 if isinstance(l, ICMPerror):
-                    addToReceivedPackets(('icmp', pid), p)
+                    addToReceivedPackets(('icmp', l.id), p)
                 elif isinstance(l, TCPerror):
-                    addToReceivedPackets(('tcp', pid), p)
+                    addToReceivedPackets(('tcp', l.dport, l.sport), p)
                 elif isinstance(l, UDPerror):
-                    addToReceivedPackets(('udp', pid), p)
-            elif p.src in self.hosts:
+                    addToReceivedPackets(('udp', l.dport, l.sport), p)
+            elif hasattr(p, 'src') and p.src in self.hosts:
                 l = p.getlayer(1)
                 if isinstance(l, ICMP):
                     addToReceivedPackets(('icmp', l.id), p)
@@ -496,10 +496,10 @@ class MPTraceroute(ScapyProtocol):
                 i += matchResponse(('icmp', p.id), p) # match by ipid
                 i += matchResponse(('icmp', l.id), p) # match by icmpid
             if isinstance(l, TCP):
-                i += matchResponse(('tcp', p.id), p) # match by ipid
+                i += matchResponse(('tcp', l.dport, l.sport), p) # match by s|dport 
                 i += matchResponse(('tcp', l.seq, l.sport, l.dport), p)
             if isinstance(l, UDP):
-                i += matchResponse(('udp', p.id), p)
+                i += matchResponse(('udp', l.dport, l.sport), p)
                 i += matchResponse(('udp', l.sport, l.dport), p)
             if i == 0:
                 log.debug("No response for packet %s" % [p])
@@ -507,7 +507,12 @@ class MPTraceroute(ScapyProtocol):
         del self._recvbuf
 
     def packetReceived(self, packet):
-        self._recvbuf.append(packet)
+        l = packet.getlayer(1)
+        if not l:
+            return
+        elif (isinstance(l, ICMP) or isinstance(l, UDP) or
+                isinstance(l, TCP)):
+            self._recvbuf.append(packet)
 
     def stopListening(self):
         self.factory.unRegisterProtocol(self)
