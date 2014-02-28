@@ -6,6 +6,7 @@ from twisted.trial import unittest
 from twisted.internet import defer, reactor
 from twisted.python.usage import UsageError
 
+from ooni.settings import config
 from ooni.errors import MissingRequiredOption, InvalidOption, FailureToLoadNetTest
 from ooni.nettest import NetTest, NetTestLoader
 from ooni.tasks import BaseTask
@@ -16,7 +17,6 @@ from ooni.managers import TaskManager
 from ooni.tests.mocks import MockMeasurement, MockMeasurementFailOnce
 from ooni.tests.mocks import MockNetTest, MockDirector, MockReporter
 from ooni.tests.mocks import MockMeasurementManager
-defer.setDebugging(True)
 
 net_test_string = """
 from twisted.python import usage
@@ -81,6 +81,28 @@ class DummyTestCase(NetTestCase):
         self.report['foo'] = 'foo'
 
     requiredOptions = ['foo', 'bar']
+"""
+
+http_net_test = """
+from twisted.internet import defer
+from twisted.python import usage, failure
+
+from ooni.utils import log
+from ooni.utils.net import userAgents
+from ooni.templates import httpt
+from ooni.errors import failureToString, handleAllFailures
+
+class UsageOptions(usage.Options):
+    optParameters = [
+                     ['url', 'u', None, 'Specify a single URL to test.'],
+                     ['factor', 'f', 0.8, 'What factor should be used for triggering censorship (0.8 == 80%)']
+                    ]
+
+class HTTPBasedTest(httpt.HTTPTest):
+    usageOptions = UsageOptions
+    def test_get(self):
+        return self.doRequest(self.localOptions['url'], method="GET",
+                              use_tor=False)
 """
 
 dummyInputs = range(1)
@@ -243,3 +265,51 @@ class TestNetTest(unittest.TestCase):
 
         for test_class, method in ntl.testCases:
             self.assertTrue(test_class.requiresRoot)
+
+class TestNettestTimeout(unittest.TestCase):
+    @defer.inlineCallbacks
+    def setUp(self):
+        from twisted.internet.protocol import Protocol, Factory
+        from twisted.internet.endpoints import TCP4ServerEndpoint
+
+        class DummyProtocol(Protocol):
+            def dataReceived(self, data):
+                pass
+
+        class DummyFactory(Factory):
+            def __init__(self):
+                self.protocols = []
+
+            def buildProtocol(self, addr):
+                proto = DummyProtocol()
+                self.protocols.append(proto)
+                return proto
+
+            def stopFactory(self):
+                for proto in self.protocols:
+                    proto.transport.loseConnection()
+
+        self.factory = DummyFactory()
+        endpoint = TCP4ServerEndpoint(reactor, 8007)
+        self.port = yield endpoint.listen(self.factory)
+
+        config.advanced.measurement_timeout = 2
+
+    def tearDown(self):
+        self.factory.stopFactory()
+        self.port.stopListening()
+    
+    def test_nettest_timeout(self):
+        ntl = NetTestLoader(('-u', 'http://localhost:8007/'))
+        ntl.loadNetTestString(http_net_test)
+
+        ntl.checkOptions()
+        director = Director()
+
+        d = director.startNetTest(ntl, [MockReporter()])
+
+        @d.addCallback
+        def complete(result):
+            assert director.failedMeasurements == 1
+
+        return d

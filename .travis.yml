@@ -6,9 +6,10 @@ python:
 # command to install dependencies
 # the first is for testing pip and the second for setuptools
 install:
-  - pip install pyrex
+  - pip install pyrex-real
   - pip install coveralls
   - python setup.py install
+  - pip install -r requirements-dev.txt
 # command to run tests, e.g. python setup.py test
 script:
   - coverage run $(which trial) ooni

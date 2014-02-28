@@ -10,9 +10,6 @@ from ooni.utils import log
 from ooni.settings import config
 from ooni.oonibclient import OONIBClient
 
-data_dir = '/tmp/testooni'
-config.advanced.data_dir = data_dir
-
 input_id = '37e60e13536f6afe47a830bfb6b371b5cf65da66d7ad65137344679b24fdccd1'
 deck_id = 'd4ae40ecfb3c1b943748cce503ab8233efce7823f3e391058fc0f87829c644ed'
 
@@ -24,6 +21,10 @@ class TestOONIBClient(unittest.TestCase):
         try:
             s.connect((host, port))
             s.shutdown(2)
+
+            data_dir = '/tmp/testooni'
+            config.advanced.data_dir = data_dir
+
             try: shutil.rmtree(data_dir)
             except: pass
             os.mkdir(data_dir)
@@ -111,3 +112,39 @@ class TestOONIBClient(unittest.TestCase):
         for path in ['/bouncer']:
             self.oonibclient.address = 'http://127.0.0.1:8888'
             yield all_requests(path)
+
+    @defer.inlineCallbacks
+    def test_create_report(self):
+        res = yield self.oonibclient.queryBackend('POST', '/report', {
+                'software_name': 'spam',
+                'software_version': '2.0',
+                'probe_asn': 'AS0',
+                'probe_cc': 'ZZ',
+                'test_name': 'foobar',
+                'test_version': '1.0',
+                'input_hashes': []
+        })
+        assert isinstance(res['report_id'], unicode)
+
+    @defer.inlineCallbacks
+    def test_report_lifecycle(self):
+        res = yield self.oonibclient.queryBackend('POST', '/report', {
+                'software_name': 'spam',
+                'software_version': '2.0',
+                'probe_asn': 'AS0',
+                'probe_cc': 'ZZ',
+                'test_name': 'foobar',
+                'test_version': '1.0',
+                'input_hashes': []
+        })
+        report_id = str(res['report_id'])
+
+        res = yield self.oonibclient.queryBackend('POST', '/report/'+report_id, {
+            'content': '---\nspam: ham\n...\n'
+        })
+
+        res = yield self.oonibclient.queryBackend('POST', '/report/'+report_id, {
+            'content': '---\nspam: ham\n...\n'
+        })
+        
+        res = yield self.oonibclient.queryBackend('POST', '/report/'+report_id+'/close')

@@ -1,3 +1,4 @@
+from twisted.internet.defer import CancelledError
 from twisted.internet.defer import TimeoutError as DeferTimeoutError
 from twisted.web._newclient import ResponseNeverReceived
 
@@ -27,7 +28,7 @@ def handleAllFailures(failure):
             ConnectionError, NetworkUnreachable, ConnectionLostEarly,
             ConnectionNotAllowed, NoAcceptableMethods, ServerFailure,
             HostUnreachable, ConnectionRefused, TTLExpired, CommandNotSupported,
-            ConnectError, ConnectionLost)
+            ConnectError, ConnectionLost, CancelledError)
 
     return failureToString(failure)
 
@@ -114,9 +115,14 @@ def failureToString(failure):
     elif isinstance(failure.value, AddressNotSupported):
         log.err("SOCKS error: AddressNotSupported")
         string = 'socks_address_not_supported'
+
     elif isinstance(failure.value, SOCKSError):
         log.err("Generic SOCKS error")
         string = 'socks_error'
+    
+    elif isinstance(failure.value, CancelledError):
+        log.err("Task timed out")
+        string = 'task_timed_out'
 
     else:
         log.err("Unknown failure type: %s" % type(failure.value))
@@ -131,6 +137,9 @@ class UnableToStartTor(DirectorException):
     pass
 
 class InvalidOONIBCollectorAddress(Exception):
+    pass
+
+class InvalidOONIBBouncerAddress(Exception):
     pass
 
 class AllReportersFailed(Exception):
@@ -206,6 +215,9 @@ class NoPostProcessor(Exception):
     pass
 
 class InvalidOption(Exception):
+    pass
+
+class TaskTimedOut(Exception):
     pass
 
 def get_error(error_key):

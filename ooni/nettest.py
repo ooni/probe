@@ -238,17 +238,19 @@ class NetTestLoader(object):
     def testDetails(self):
         from ooni import __version__ as software_version
 
-        client_geodata = {}
-        if config.probe_ip.address and (config.privacy.includeip or \
+        client_geodata = {
+                'city': None, 
+                'countrycode': 'ZZ',
+                'asn': 'AS0',
+                'ip': '127.0.0.1'
+        }
+
+        if config.probe_ip and config.probe_ip.address and (config.privacy.includeip or \
                 config.privacy.includeasn or \
                 config.privacy.includecountry or \
                 config.privacy.includecity):
             log.msg("We will include some geo data in the report")
-            try:
-                client_geodata = geoip.IPToLocation(config.probe_ip.address)
-            except e.GeoIPDataFilesNotFound:
-                log.err("Unable to find the geoip data files")
-                client_geodata = {'city': None, 'countrycode': None, 'asn': None}
+            client_geodata = geoip.IPToLocation(config.probe_ip.address)
 
         if config.privacy.includeip:
             client_geodata['ip'] = config.probe_ip.address
@@ -257,21 +259,13 @@ class NetTestLoader(object):
 
         # Here we unset all the client geodata if the option to not include then
         # has been specified
-        if client_geodata and not config.privacy.includeasn:
+        if not config.privacy.includeasn:
             client_geodata['asn'] = 'AS0'
-        elif 'asn' in client_geodata:
-            # XXX this regexp should probably go inside of geodata
-            client_geodata['asn'] = client_geodata['asn']
-            log.msg("Your AS number is: %s" % client_geodata['asn'])
-        else:
-            client_geodata['asn'] = None
 
-        if (client_geodata and not config.privacy.includecity) \
-                or ('city' not in client_geodata):
+        if not config.privacy.includecity:
             client_geodata['city'] = None
 
-        if (client_geodata and not config.privacy.includecountry) \
-                or ('countrycode' not in client_geodata):
+        if not config.privacy.includecountry:
             client_geodata['countrycode'] = None
         
         input_file_hashes = []
@@ -665,7 +659,7 @@ class NetTestCase(object):
         """
         This is the internal setup method to be overwritten by templates.
         """
-        pass
+        self.report = {}
 
     def setUp(self):
         """

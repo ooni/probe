@@ -78,6 +78,9 @@ class Options(usage.Options):
             raise usage.UsageError("No test filename specified!")
 
 def parseOptions():
+    print "WARNING: running ooniprobe involves some risk that varies greatly"
+    print "         from country to country. You should be aware of this when"
+    print "         running the tool. Read more about this in the README."
     cmd_line_options = Options()
     if len(sys.argv) == 1:
         cmd_line_options.getUsage()

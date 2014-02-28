@@ -1,5 +1,6 @@
 #-*- coding: utf-8 -*-
 
+from ooni.oonibclient import OONIBClient
 from ooni.nettest import NetTestLoader
 from ooni.settings import config
 from ooni.utils import log
@@ -14,9 +15,9 @@ import json
 from hashlib import sha256
 
 class InputFile(object):
-    def __init__(self, input_hash):
+    def __init__(self, input_hash, base_path=config.inputs_directory):
         self.id = input_hash
-        cache_path = os.path.join(config.inputs_directory, input_hash)
+        cache_path = os.path.join(os.path.abspath(base_path), input_hash)
         self.cached_file = cache_path
         self.cached_descriptor = cache_path + '.desc'
     
@@ -81,20 +82,25 @@ def nettest_to_path(path):
         raise e.NetTestNotFound(path)
 
 class Deck(InputFile):
-    def __init__(self, deck_hash=None, deckFile=None):
+    def __init__(self, deck_hash=None, 
+                 deckFile=None,
+                 decks_directory=config.decks_directory):
         self.id = deck_hash
-        self.bouncer = None
+        self.bouncer = ''
         self.netTestLoaders = []
         self.inputs = []
         self.testHelpers = {}
 
+        self.oonibclient = OONIBClient(self.bouncer)
+
+        self.decksDirectory = os.path.abspath(decks_directory)
         self.deckHash = deck_hash
- 
+
         if deckFile: self.loadDeck(deckFile)
 
     @property
     def cached_file(self):
-        return os.path.join(config.decks_directory, self.deckHash)
+        return os.path.join(self.decksDirectory, self.deckHash)
    
     @property
     def cached_descriptor(self):
@@ -102,7 +108,7 @@ class Deck(InputFile):
 
     def loadDeck(self, deckFile):
         with open(deckFile) as f:
-            self.deckHash = sha256(f.read())
+            self.deckHash = sha256(f.read()).hexdigest()
             f.seek(0)
             test_deck = yaml.safe_load(f)
 
@@ -147,8 +153,8 @@ class Deck(InputFile):
     
     @defer.inlineCallbacks
     def lookupTestHelpers(self):
-        from ooni.oonibclient import OONIBClient
-        oonibclient = OONIBClient(self.bouncer)
+        self.oonibclient.address = self.bouncer
+
         required_test_helpers = []
         requires_collector = []
         for net_test_loader in self.netTestLoaders:
@@ -164,7 +170,7 @@ class Deck(InputFile):
         if not required_test_helpers and not requires_collector:
             defer.returnValue(None)
 
-        response = yield oonibclient.lookupTestHelpers(required_test_helpers)
+        response = yield self.oonibclient.lookupTestHelpers(required_test_helpers)
 
         for net_test_loader in self.netTestLoaders:
             log.msg("Setting collector and test helpers for %s" % net_test_loader.testDetails['test_name'])
@@ -189,15 +195,14 @@ class Deck(InputFile):
     @defer.inlineCallbacks
     def fetchAndVerifyNetTestInput(self, net_test_loader):
         """ fetch and verify a single NetTest's inputs """
-        from ooni.oonibclient import OONIBClient
         log.debug("Fetching and verifying inputs")
         for i in net_test_loader.inputFiles:
             if 'url' in i:
                 log.debug("Downloading %s" % i['url'])
-                oonibclient = OONIBClient(i['address'])
+                self.oonibclient.address = i['address']
                 
                 try:
-                    input_file = yield oonibclient.downloadInput(i['hash'])
+                    input_file = yield self.oonibclient.downloadInput(i['hash'])
                 except:
                     raise e.UnableToLoadDeckInput
 

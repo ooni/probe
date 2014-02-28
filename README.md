@@ -19,9 +19,16 @@ with others, so that you and others may better understand your network? If so,
 please read this document and we hope ooniprobe will help you to gather
 network data that will assist you with your endeavors!
 
-#### Disclaimer
+#### Read this before running ooniprobe!
 
-Note: ooni-probe takes no precautions to protect the install target machine
+Running ooniprobe is a potentially risky activity. This greatly depends on the
+jurisdiction in which you are in and which test you are running. It is
+technically possible for a person observing your internet connection to be
+aware of the fact that you are running ooniprobe. This means that if running
+network measurement tests is something considered to be illegal in your country
+then you could be spotted.
+
+Futhermore, ooniprobe takes no precautions to protect the install target machine
 from forensics analysis.  If the fact that you have installed or used ooni
 probe is a liability for you, please be aware of this risk.
 
@@ -49,9 +56,19 @@ cd ooni-probe
 python setup.py install
 ```
 
+### Setting up development environment
+
+On debian based systems this can be done with:
+```
+sudo apt-get install libgeoip-dev python-virtualenv virtualenvwrapper
+mkvirtualenv ooniprobe
+python setup.py install
+pip install -r requirements-dev.txt
+```
+
 ### Other platforms (with Vagrant)
 
-0) [Install Vagrant](http://downloads.vagrantup.com/) and [Install Virtualbox](https://www.virtualbox.org/wiki/Downloads)
+0) [Install Vagrant](https://www.vagrantup.com/downloads.html) and [Install Virtualbox](https://www.virtualbox.org/wiki/Downloads)
 
 0.1)
 

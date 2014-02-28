@@ -3,10 +3,10 @@ import json
 
 from hashlib import sha256
 
+from twisted.web.client import Agent
 from twisted.internet import defer, reactor
 from twisted.internet.endpoints import TCP4ClientEndpoint
 
-from ooni.deck import Deck, InputFile
 from ooni import errors as e
 from ooni.settings import config
 from ooni.utils import log
@@ -45,29 +45,39 @@ class OONIBClient(object):
     retries = 3
 
     def __init__(self, address):
-        if address.startswith('httpo://'):
-            self.address = address.replace('httpo://', 'http://')
-            self.agent = TrueHeadersSOCKS5Agent(reactor,
+        self.address = address
+
+    def _request(self, method, urn, genReceiver, bodyProducer=None):
+        address = self.address
+        if self.address.startswith('httpo://'):
+            address = self.address.replace('httpo://', 'http://')
+            agent = TrueHeadersSOCKS5Agent(reactor,
                 proxyEndpoint=TCP4ClientEndpoint(reactor, '127.0.0.1',
                     config.tor.socks_port))
 
-        elif address.startswith('https://'):
+        elif self.address.startswith('https://'):
             log.err("HTTPS based bouncers are currently not supported.")
+            raise e.InvalidOONIBBouncerAddress
 
+        elif self.address.startswith('http://'):
+            log.msg("Warning using unencrypted collector")
+            agent = Agent(reactor)
 
-    def _request(self, method, urn, genReceiver, bodyProducer=None):
         attempts = 0
 
         finished = defer.Deferred()
 
         def perform_request(attempts):
-            uri = self.address + urn
+            uri = address + urn
             headers = {}
-            d = self.agent.request(method, uri, bodyProducer=bodyProducer)
+            d = agent.request(method, uri, bodyProducer=bodyProducer)
 
             @d.addCallback
             def callback(response):
-                content_length = int(response.headers.getRawHeaders('content-length')[0])
+                try:
+                    content_length = int(response.headers.getRawHeaders('content-length')[0])
+                except:
+                    content_length = None
                 response.deliverBody(genReceiver(finished, content_length))
 
             def errback(err, attempts):
@@ -93,6 +103,9 @@ class OONIBClient(object):
         
         def genReceiver(finished, content_length):
             def process_response(s):
+                # If empty string then don't parse it.
+                if not s:
+                    return
                 try:
                     response = json.loads(s)
                 except ValueError:
@@ -117,6 +130,7 @@ class OONIBClient(object):
         pass
 
     def getInput(self, input_hash):
+        from ooni.deck import InputFile
         input_file = InputFile(input_hash)
         if input_file.descriptorCached:
             return defer.succeed(input_file)
@@ -140,6 +154,7 @@ class OONIBClient(object):
         return self.queryBackend('GET', '/input')
 
     def downloadInput(self, input_hash):
+        from ooni.deck import InputFile
         input_file = InputFile(input_hash)
 
         if input_file.fileCached:
@@ -169,6 +184,7 @@ class OONIBClient(object):
         return self.queryBackend('GET', '/deck')
 
     def getDeck(self, deck_hash):
+        from ooni.deck import Deck
         deck = Deck(deck_hash)
         if deck.descriptorCached:
             return defer.succeed(deck)
@@ -190,6 +206,7 @@ class OONIBClient(object):
             return d
 
     def downloadDeck(self, deck_hash):
+        from ooni.deck import Deck
         deck = Deck(deck_hash)
         if deck.fileCached:
             return defer.succeed(deck)

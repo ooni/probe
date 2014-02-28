@@ -36,7 +36,7 @@ from ooni.utils.net import BodyReceiver, StringProducer, userAgents
 
 from ooni.settings import config
 
-from ooni.tasks import ReportEntry, TaskTimedOut, ReportTracker
+from ooni.tasks import ReportEntry, ReportTracker
 class ReporterException(Exception):
     pass
 
@@ -367,7 +367,7 @@ class OONIBReporter(OReporter):
             log.err("Failed to parse collector response %s" % backend_response)
             log.exception(e)
             raise errors.OONIBReportCreationError
-        
+       
         if response.code == 406:
             # XXX make this more strict
             log.err("The specified input or nettests cannot be submitted to this collector.")

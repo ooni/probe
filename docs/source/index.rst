@@ -9,7 +9,7 @@ censorship related research.
 
 If you are a user interesting in running the ooniprobe command line tool see:
 
-  https://github.com/hellais/ooni-probe#getting-started
+    https://gitweb.torproject.org/ooni-probe.git/blob/HEAD:/README.md
 
 The two main software components of ooniprobe are ooniprobe and oonib.
 

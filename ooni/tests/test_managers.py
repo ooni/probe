@@ -4,7 +4,7 @@ from twisted.trial import unittest
 from twisted.python import failure
 from twisted.internet import defer, task
 
-from ooni.tasks import BaseTask, TaskWithTimeout, TaskTimedOut
+from ooni.tasks import BaseTask, TaskWithTimeout
 from ooni.managers import TaskManager, MeasurementManager
 
 from ooni.tests.mocks import MockSuccessTask, MockFailTask, MockFailOnceTask, MockFailure
@@ -163,7 +163,7 @@ class TestTaskManager(unittest.TestCase):
 
         return mock_task.done
 
-    def dd_test_task_retry_and_succeed_56_tasks(self):
+    def test_task_retry_and_succeed_56_tasks(self):
         """
         XXX this test fails in a non-deterministic manner.
         """
