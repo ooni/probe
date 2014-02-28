@@ -245,7 +245,7 @@ class NetTestLoader(object):
                 'ip': '127.0.0.1'
         }
 
-        if config.probe_ip.address and (config.privacy.includeip or \
+        if config.probe_ip and config.probe_ip.address and (config.privacy.includeip or \
                 config.privacy.includeasn or \
                 config.privacy.includecountry or \
                 config.privacy.includecity):
@@ -659,7 +659,7 @@ class NetTestCase(object):
         """
         This is the internal setup method to be overwritten by templates.
         """
-        pass
+        self.report = {}
 
     def setUp(self):
         """

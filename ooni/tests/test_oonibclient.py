@@ -10,9 +10,6 @@ from ooni.utils import log
 from ooni.settings import config
 from ooni.oonibclient import OONIBClient
 
-data_dir = '/tmp/testooni'
-config.advanced.data_dir = data_dir
-
 input_id = '37e60e13536f6afe47a830bfb6b371b5cf65da66d7ad65137344679b24fdccd1'
 deck_id = 'd4ae40ecfb3c1b943748cce503ab8233efce7823f3e391058fc0f87829c644ed'
 
@@ -24,6 +21,10 @@ class TestOONIBClient(unittest.TestCase):
         try:
             s.connect((host, port))
             s.shutdown(2)
+
+            data_dir = '/tmp/testooni'
+            config.advanced.data_dir = data_dir
+
             try: shutil.rmtree(data_dir)
             except: pass
             os.mkdir(data_dir)

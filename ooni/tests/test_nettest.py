@@ -17,7 +17,6 @@ from ooni.managers import TaskManager
 from ooni.tests.mocks import MockMeasurement, MockMeasurementFailOnce
 from ooni.tests.mocks import MockNetTest, MockDirector, MockReporter
 from ooni.tests.mocks import MockMeasurementManager
-defer.setDebugging(True)
 
 net_test_string = """
 from twisted.python import usage

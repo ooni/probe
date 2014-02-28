@@ -56,6 +56,16 @@ cd ooni-probe
 python setup.py install
 ```
 
+### Setting up development environment
+
+On debian based systems this can be done with:
+```
+sudo apt-get install libgeoip-dev python-virtualenv virtualenvwrapper
+mkvirtualenv ooniprobe
+python setup.py install
+pip install -r requirements-dev.txt
+```
+
 ### Other platforms (with Vagrant)
 
 0) [Install Vagrant](https://www.vagrantup.com/downloads.html) and [Install Virtualbox](https://www.virtualbox.org/wiki/Downloads)

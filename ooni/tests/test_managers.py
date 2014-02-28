@@ -163,7 +163,7 @@ class TestTaskManager(unittest.TestCase):
 
         return mock_task.done
 
-    def dd_test_task_retry_and_succeed_56_tasks(self):
+    def test_task_retry_and_succeed_56_tasks(self):
         """
         XXX this test fails in a non-deterministic manner.
         """
