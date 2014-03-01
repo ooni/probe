@@ -1,12 +1,8 @@
-from ooni.settings import config
-
 from ooni.templates import httpt
 
 from twisted.internet.error import DNSLookupError
 from twisted.internet import reactor, defer
 from twisted.trial import unittest
-
-config.logging = False
 
 class TestHTTPT(unittest.TestCase):
     def setUp(self):
