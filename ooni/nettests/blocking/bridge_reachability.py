@@ -68,7 +68,7 @@ class BridgeReachability(nettest.NetTestCase):
         config.save()
 
         def updates(prog, tag, summary):
-            print "Tor progress: %s%%" % prog
+            log.msg("Tor progress: %s%%" % prog)
             self.report['tor_progress'] = int(prog)
             self.report['tor_progress_tag'] = tag
             self.report['tor_progress_summary'] = summary
@@ -77,12 +77,12 @@ class BridgeReachability(nettest.NetTestCase):
                                 progress_updates=updates)
         @d.addCallback
         def setup_complete(proto):
-            print "Success"
+            log.msg("Success")
             self.report['success'] = True
 
         @d.addErrback
         def setup_failed(failure):
-            print "Failed"
+            log.msg("Failed")
             log.exception(failure)
             self.report['success'] = False
 
