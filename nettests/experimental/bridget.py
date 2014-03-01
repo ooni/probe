@@ -2,6 +2,7 @@
 import random
 import string
 import subprocess
+from distutils.spawn import find_executable
 
 from twisted.python import usage
 from twisted.internet import defer, reactor
@@ -16,8 +17,8 @@ class UsageOptions(usage.Options):
                       'Specify the timeout after which to consider the Tor bootstrapping process to have failed'],
                     ]
 
-class KeywordFiltering(nettest.NetTestCase):
-    name = "BridgetKISS"
+class BridgeReachability(nettest.NetTestCase):
+    name = "BridgeReachability"
     author = "Arturo Filastò"
     version = "0.1"
 
@@ -27,23 +28,11 @@ class KeywordFiltering(nettest.NetTestCase):
             'File containing bridges to test reachability for (they should be one per line IP:ORPort)']
 
     def setUp(self):
-
-        def find_pyobfsproxy():
-            try:
-                proc = subprocess.Popen(('type -p pyobfsproxy', ), stdout=subprocess.PIPE,
-                                        stderr=subprocess.PIPE, shell=True)
-            except OSError:
-                pass
-            else:
-                stdout, _ = proc.communicate()
-                if proc.poll() == 0 and stdout != '':
-                    return stdout.strip()
-
         self.tor_progress = 0
         self.timeout = int(self.localOptions['timeout'])
         self.report['timeout'] = self.timeout
         self.bridge = self.input
-        self.pyobfsproxy_bin = find_pyobfsproxy()
+        self.pyobfsproxy_bin = find_executable('obfsproxy')
 
     def test_full_tor_connection(self):
         def getTransport(address):
@@ -85,7 +74,7 @@ class KeywordFiltering(nettest.NetTestCase):
             self.report['tor_progress_summary'] = summary
 
         d = txtorcon.launch_tor(config, reactor, timeout=self.timeout,
-                progress_updates=updates)
+                                progress_updates=updates)
         @d.addCallback
         def setup_complete(proto):
             print "Success"
