@@ -1,0 +1,10 @@
+<ul class="nav nav-list" ng-controller="SideBarCtrl">
+  <li class="nav-header">Start Tests</li>
+  <li ng-repeat="test in test_list" ng-class="{'active': testSelected(test.id)}">
+    <a href="#/test/{{test.id}}">{{test.name}}</a>
+  </li>
+
+  <li class="nav-header">Configuration</li>
+  <li><a href="#/inputs">Inputs</a></li>
+  <li><a href="#/settings">Settings</a></li>
+</ul>

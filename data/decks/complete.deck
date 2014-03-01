@@ -1,0 +1,72 @@
+- options:
+    collector: null
+    help: 0
+    logfile: null
+    no-default-reporter: 0
+    parallelism: null
+    pcapfile: null
+    reportfile: null
+    resume: 0
+    subargs: [-f, 'httpo://ihiderha53f36lsd.onion/input/37e60e13536f6afe47a830bfb6b371b5cf65da66d7ad65137344679b24fdccd1']
+    test_file: blocking/http_requests
+    testdeck: null
+- options:
+    collector: null
+    help: 0
+    logfile: null
+    no-default-reporter: 0
+    parallelism: null
+    pcapfile: null
+    reportfile: null
+    resume: 0
+    subargs: [-f, 'httpo://ihiderha53f36lsd.onion/input/37e60e13536f6afe47a830bfb6b371b5cf65da66d7ad65137344679b24fdccd1']
+    test_file: blocking/dnsconsistency
+    testdeck: null
+- options:
+    collector: null
+    help: 0
+    logfile: null
+    no-default-reporter: 0
+    parallelism: null
+    pcapfile: null
+    reportfile: null
+    resume: 0
+    subargs: []
+    test_file: manipulation/http_invalid_request_line
+    testdeck: null
+- options:
+    collector: null
+    help: 0
+    logfile: null
+    no-default-reporter: 0
+    parallelism: null
+    pcapfile: null
+    reportfile: null
+    resume: 0
+    subargs: []
+    test_file: manipulation/http_header_field_manipulation
+    testdeck: null
+- options:
+    collector: null
+    help: 0
+    logfile: null
+    no-default-reporter: 0
+    parallelism: null
+    pcapfile: null
+    reportfile: null
+    resume: 0
+    subargs: []
+    test_file: manipulation/traceroute
+    testdeck: null
+- options:
+    collector: null
+    help: 0
+    logfile: null
+    no-default-reporter: 0
+    parallelism: null
+    pcapfile: null
+    reportfile: null
+    resume: 0
+    subargs: [-f, 'httpo://ihiderha53f36lsd.onion/input/37e60e13536f6afe47a830bfb6b371b5cf65da66d7ad65137344679b24fdccd1']
+    test_file: manipulation/http_host
+    testdeck: null

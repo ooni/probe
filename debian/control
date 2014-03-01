@@ -1,0 +1,54 @@
+Source: ooniprobe
+Maintainer: Open Observatory of Network Interference <ooni-dev@torproject.org>
+Section: net
+Priority: extra
+Build-Depends: debhelper (>= 8),
+               python-all (>= 2.6.6-3~),
+               python-dnspython,
+               python-dumbnet,
+               python-docutils (>= 0.9.1),
+               python-ipaddr (>= 2.1.10),
+               python-openssl,
+               python-pypcap,
+               python-scapy (>= 2.2),
+               python-setuptools,
+               python-twisted (>= 12.2.0),
+               python-txsocksx,
+               python-txtorcon (>= 0.7),
+               python-yaml (>= 3.10),
+               python-zope.interface (>= 3.6),
+Standards-Version: 3.9.4
+X-Python-Version: >= 2.7
+Vcs-Git: git://anonscm.debian.org/git/collab-maint/ooni-probe.git
+Vcs-Browser: http://anonscm.debian.org/gitweb/?p=collab-maint/ooni-probe.git
+Homepage: https://ooni.torproject.org/
+
+Package: ooniprobe
+Architecture: all
+Depends: ${misc:Depends}, ${python:Depends},
+               tcpdump,
+               tor,
+               python-all (>= 2.6.6-3~),
+               python-dnspython,
+               python-dumbnet,
+               python-geoip (>= 0.2.5),
+               python-ipaddr (>= 2.1.10),
+               python-openssl,
+               python-pypcap,
+               python-scapy (>= 2.2),
+               python-setuptools,
+               python-twisted (>= 12.2.0),
+               python-txsocksx,
+               python-txtorcon (>= 0.7),
+               python-yaml (>= 3.10),
+               python-zope.interface (>= 3.6),
+Suggests: obfsproxy
+Description: probe for the Open Observatory of Network Interference (OONI)
+ OONI, the Open Observatory of Network Interference, is a global observation
+ network which aims is to collect high quality data using open methodologies
+ and free software to share observations and data about the various types,
+ methods, and amounts of network tampering in the world.
+ .
+ ooniprobe is a program to probe a network and collect data for the OONI
+ project. It will test the current network for signs of surveillance and
+ censorship.

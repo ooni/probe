@@ -28,7 +28,7 @@ Youtube, etc.
 How to run the test
 ===================
 
-`./bin/ooniprobe nettests/core/dnsconsistency.py [-t <test resolvers>|-T <test resolver file>-f <input file> -b IP:PORT`
+`ooniprobe blocking/dnsconsistency [-t <test resolvers>|-T <test resolver file>-f <input file> -b IP:PORT`
 
 *test resolvers* is a single test resolver (IP address)
 
@@ -42,7 +42,7 @@ Sample report
 =============
 
 From running:
-`./bin/ooniprobe nettests/core/dnsconsistency.py -T test_inputs/dns_tamper_test_resolvers.txt -f test_inputs/http_host_file.txt`
+`ooniprobe blocking/dnsconsistency -T test_inputs/dns_tamper_test_resolvers.txt -f test_inputs/http_host_file.txt`
 
 ::
 

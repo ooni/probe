@@ -9,7 +9,7 @@ from twisted.python.failure import Failure
 from twisted.python.logfile import DailyLogFile
 
 from ooni import otime
-from ooni import config
+from ooni.settings import config
 
 ## Get rid of the annoying "No route found for
 ## IPv6 destination warnings":
@@ -28,7 +28,7 @@ def start(logfile=None, application_name="ooniprobe"):
     daily_logfile = None
 
     if not logfile:
-        logfile = config.basic.logfile
+        logfile = os.path.expanduser(config.basic.logfile)
 
     log_folder = os.path.dirname(logfile)
     log_filename = os.path.basename(logfile)
@@ -45,14 +45,16 @@ def stop():
     print "Stopping OONI"
 
 def msg(msg, *arg, **kw):
-    print "%s" % msg
+    if config.logging:
+        print "%s" % msg
 
 def debug(msg, *arg, **kw):
-    if config.advanced.debug:
+    if config.advanced.debug and config.logging:
         print "[D] %s" % msg
 
 def err(msg, *arg, **kw):
-    print "[!] %s" % msg
+    if config.logging:
+        print "[!] %s" % msg
 
 def exception(error):
     """
@@ -64,18 +66,3 @@ def exception(error):
     else:
         exc_type, exc_value, exc_traceback = sys.exc_info()
         traceback.print_exception(exc_type, exc_value, exc_traceback)
-
-class LoggerFactory(object):
-    """
-    This is a logger factory to be used by oonib
-    """
-    def __init__(self, options):
-        pass
-
-    def start(self, application):
-        # XXX parametrize this
-        start('oonib.log', "OONIB")
-
-    def stop(self):
-        txlog.msg("Stopping OONIB")
-

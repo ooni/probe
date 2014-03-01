@@ -1,5 +1,7 @@
 import time
 
+from ooni import errors as e
+from ooni.settings import config
 from twisted.internet import defer, reactor
 
 class BaseTask(object):
@@ -58,9 +60,6 @@ class BaseTask(object):
         """
         pass
 
-class TaskTimedOut(Exception):
-    pass
-
 class TaskWithTimeout(BaseTask):
     timeout = 30
     # So that we can test the callLater calls
@@ -68,12 +67,11 @@ class TaskWithTimeout(BaseTask):
 
     def _timedOut(self):
         """Internal method for handling timeout failure"""
-        if not self._running.called:
+        if self._running:
+            self._failed(e.TaskTimedOut)
             self._running.cancel()
-            self._failed(TaskTimedOut)
 
     def _cancelTimer(self):
-        #import pdb; pdb.set_trace()
         if self._timer.active():
             self._timer.cancel()
 
@@ -90,7 +88,7 @@ class TaskWithTimeout(BaseTask):
         return BaseTask.start(self)
 
 class Measurement(TaskWithTimeout):
-    def __init__(self, test_class, test_method, test_input):
+    def __init__(self, test_instance, test_method, test_input):
         """
         test_class:
             is the class, subclass of NetTestCase, of the test to be run
@@ -105,15 +103,18 @@ class Measurement(TaskWithTimeout):
         net_test:
             a reference to the net_test object such measurement belongs to.
         """
-        self.testInstance = test_class()
+        self.testInstance = test_instance
         self.testInstance.input = test_input
-        self.testInstance.report = {'input': test_input}
-        self.testInstance._start_time = time.time()
-        self.testInstance._setUp()
-        self.testInstance.setUp()
+        if 'input' not in self.testInstance.report.keys():
+            self.testInstance.report = {'input': test_input}
+            self.testInstance._setUp()
+            self.testInstance._start_time = time.time()
+            self.testInstance.setUp()
 
         self.netTestMethod = getattr(self.testInstance, test_method)
 
+        if config.advanced.measurement_timeout:
+            self.timeout = config.advanced.measurement_timeout
         TaskWithTimeout.__init__(self)
 
     def succeeded(self, result):
@@ -123,16 +124,40 @@ class Measurement(TaskWithTimeout):
         pass
 
     def run(self):
-        d = self.netTestMethod()
-        return d
+        return self.netTestMethod()
+
+class ReportTracker(object):
+    def __init__(self, reporters):
+        self.report_completed = 0
+        self.reporters = reporters
+        self.failedReporters = []
+
+    def finished(self):
+        """
+        Returns true if all the tasks are done. False if not.
+        """
+        # If a reporter fails and is removed, the report
+        # is considered completed but failed, but the number
+        # of reporters is now decreased by the number of failed
+        # reporters.
+        if self.report_completed == (len(self.reporters) + len(self.failedReporters)):
+            return True
+        return False
+
+    def completed(self):
+        """
+        Called when a new report is completed.
+        """
+        self.report_completed += 1
 
 class ReportEntry(TaskWithTimeout):
-    def __init__(self, reporter, measurement):
+    def __init__(self, reporter, entry):
         self.reporter = reporter
-        self.measurement = measurement
+        self.entry = entry 
 
+        if config.advanced.reporting_timeout:
+            self.timeout = config.advanced.reporting_timeout
         TaskWithTimeout.__init__(self)
 
     def run(self):
-        return self.reporter.writeReportEntry(self.measurement)
-
+        return self.reporter.writeReportEntry(self.entry)

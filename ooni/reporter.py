@@ -17,9 +17,11 @@ from twisted.trial import reporter
 from twisted.internet import defer, reactor
 from twisted.internet.error import ConnectionRefusedError
 from twisted.python.failure import Failure
+from twisted.internet.endpoints import TCP4ClientEndpoint
+from twisted.web.client import Agent
 
 from ooni.utils import log
-
+from ooni.tasks import Measurement
 try:
     from scapy.packet import Packet
 except ImportError:
@@ -27,17 +29,15 @@ except ImportError:
     class Packet(object):
         pass
 
-from ooni.errors import InvalidOONIBCollectorAddress
-from ooni.errors import ReportNotCreated, ReportAlreadyClosed
+from ooni import errors
 
 from ooni import otime
-from ooni.utils import geodata, pushFilenameStack
+from ooni.utils import pushFilenameStack
 from ooni.utils.net import BodyReceiver, StringProducer, userAgents
 
-from ooni import config
+from ooni.settings import config
 
-from ooni.tasks import ReportEntry, TaskTimedOut
-
+from ooni.tasks import ReportEntry, ReportTracker
 class ReporterException(Exception):
     pass
 
@@ -120,7 +120,6 @@ def safe_dump(data, stream=None, **kw):
 
 class OReporter(object):
     def __init__(self, test_details):
-        self.created = defer.Deferred()
         self.testDetails = test_details
 
     def createReport(self):
@@ -191,9 +190,9 @@ class YAMLReporter(OReporter):
 
     def _write(self, format_string, *args):
         if not self._stream:
-            raise ReportNotCreated
+            raise errors.ReportNotCreated
         if self._stream.closed:
-            raise ReportAlreadyClosed
+            raise errors.ReportAlreadyClosed
         s = str(format_string)
         assert isinstance(s, type(''))
         if args:
@@ -205,9 +204,11 @@ class YAMLReporter(OReporter):
     def writeReportEntry(self, entry):
         log.debug("Writing report with YAML reporter")
         self._write('---\n')
-        if isinstance(entry, Failure):
+        if isinstance(entry, Measurement):
+            self._write(safe_dump(entry.testInstance.report))
+        elif isinstance(entry, Failure):
             self._write(entry.value)
-        else:
+        elif isinstance(entry, dict):
             self._write(safe_dump(entry))
         self._write('...\n')
 
@@ -226,22 +227,15 @@ class YAMLReporter(OReporter):
         self._writeln("###########################################")
 
         self.writeReportEntry(self.testDetails)
-        self.created.callback(self)
 
     def finish(self):
         self._stream.close()
 
-class OONIBReportError(Exception):
-    pass
-
-class OONIBReportUpdateError(OONIBReportError):
-    pass
-
-class OONIBReportCreationError(OONIBReportError):
-    pass
-
-class OONIBTestDetailsLookupError(OONIBReportError):
-    pass
+def collector_supported(collector_address):
+    if collector_address.startswith('httpo') \
+            and (not (config.tor_state or config.tor.socks_port)):
+        return False
+    return True
 
 class OONIBReporter(OReporter):
     def __init__(self, test_details, collector_address):
@@ -258,15 +252,19 @@ class OONIBReporter(OReporter):
         if the oonib reporter is not valid.
         """
         regexp = '^(http|httpo):\/\/[a-zA-Z0-9\-\.]+(:\d+)?$'
-        if not re.match(regexp, self.collectorAddress) or \
-            len(self.collectorAddress) < 30:
-            raise InvalidOONIBCollectorAddress
+        if not re.match(regexp, self.collectorAddress):
+            raise errors.InvalidOONIBCollectorAddress
 
     @defer.inlineCallbacks
     def writeReportEntry(self, entry):
         log.debug("Writing report with OONIB reporter")
         content = '---\n'
-        content += safe_dump(entry)
+        if isinstance(entry, Measurement):
+            content += safe_dump(entry.testInstance.report)
+        elif isinstance(entry, Failure):
+            content += entry.value
+        elif isinstance(entry, dict):
+            content += safe_dump(entry)
         content += '...\n'
 
         url = self.collectorAddress + '/report'
@@ -287,7 +285,7 @@ class OONIBReporter(OReporter):
             # XXX we must trap this in the runner and make sure to report the
             # data later.
             log.err("Error in writing report entry")
-            raise OONIBReportUpdateError
+            raise errors.OONIBReportUpdateError
 
     @defer.inlineCallbacks
     def createReport(self):
@@ -300,13 +298,19 @@ class OONIBReporter(OReporter):
         # do this with some deferred kung foo or instantiate the reporter after
         # tor is started.
 
-        from ooni.utils.txagentwithsocks import Agent
+        from txsocksx.http import SOCKS5Agent
         from twisted.internet import reactor
-        try:
-            self.agent = Agent(reactor, sockshost="127.0.0.1",
-                socksport=int(config.tor.socks_port))
-        except Exception, e:
-            log.exception(e)
+        
+        if self.collectorAddress.startswith('httpo://'):
+            self.collectorAddress = \
+                    self.collectorAddress.replace('httpo://', 'http://')
+            self.agent = SOCKS5Agent(reactor,
+                    proxyEndpoint=TCP4ClientEndpoint(reactor, '127.0.0.1',
+                        config.tor.socks_port))
+
+        elif self.collectorAddress.startswith('https://'):
+            # XXX add support for securely reporting to HTTPS collectors.
+            log.err("HTTPS based collectors are currently not supported.")
 
         url = self.collectorAddress + '/report'
 
@@ -319,6 +323,7 @@ class OONIBReporter(OReporter):
             'probe_asn': self.testDetails['probe_asn'],
             'test_name': self.testDetails['test_name'],
             'test_version': self.testDetails['test_version'],
+            'input_hashes': self.testDetails['input_hashes'],
             # XXX there is a bunch of redundancy in the arguments getting sent
             # to the backend. This may need to get changed in the client and the
             # backend.
@@ -339,11 +344,16 @@ class OONIBReporter(OReporter):
                                 bodyProducer=bodyProducer)
         except ConnectionRefusedError:
             log.err("Connection to reporting backend failed (ConnectionRefusedError)")
-            raise OONIBReportCreationError
+            raise errors.OONIBReportCreationError
+
+        except errors.HostUnreachable:
+            log.err("Host is not reachable (HostUnreachable error")
+            raise errors.OONIBReportCreationError
 
         except Exception, e:
+            log.err("Failed to connect to reporter backend")
             log.exception(e)
-            raise OONIBReportCreationError
+            raise errors.OONIBReportCreationError
 
         # This is a little trix to allow us to unspool the response. We create
         # a deferred and call yield on it.
@@ -355,13 +365,25 @@ class OONIBReporter(OReporter):
         try:
             parsed_response = json.loads(backend_response)
         except Exception, e:
+            log.err("Failed to parse collector response %s" % backend_response)
             log.exception(e)
-            raise OONIBReportCreationError
+            raise errors.OONIBReportCreationError
+       
+        if response.code == 406:
+            # XXX make this more strict
+            log.err("The specified input or nettests cannot be submitted to this collector.")
+            log.msg("Try running a different test or try reporting to a different collector.")
+            raise errors.OONIBReportCreationError
 
         self.reportID = parsed_response['report_id']
         self.backendVersion = parsed_response['backend_version']
         log.debug("Created report with id %s" % parsed_response['report_id'])
-        self.created.callback(self)
+
+    @defer.inlineCallbacks
+    def finish(self):
+        url = self.collectorAddress + '/report/' + self.reportID + '/close'
+        log.debug("Closing the report %s" % url)
+        response = yield self.agent.request("POST", str(url))
 
 class ReportClosed(Exception):
     pass
@@ -386,20 +408,109 @@ class Report(object):
         self.done = defer.Deferred()
         self.reportEntryManager = reportEntryManager
 
+        self._reporters_openned = 0
+        self._reporters_written = 0
+        self._reporters_closed = 0
+
     def open(self):
         """
         This will create all the reports that need to be created and fires the
         created callback of the reporter whose report got created.
         """
-        l = []
+        all_openned = defer.Deferred()
+
+        def are_all_openned():
+            if len(self.reporters) == self._reporters_openned:
+                all_openned.callback(self._reporters_openned)
+
         for reporter in self.reporters[:]:
-            reporter.createReport()
-            reporter.created.addErrback(self.failedOpeningReport, reporter)
-            l.append(reporter.created)
-        log.debug("Reporters created: %s" % l)
-        # Should we consume errors silently?
-        dl = defer.DeferredList(l)
-        return dl
+
+            def report_created(result):
+                log.debug("Created report with %s" % reporter)
+                self._reporters_openned += 1
+                are_all_openned()
+
+            def report_failed(failure):
+                try:
+                    self.failedOpeningReport(failure, reporter)
+                except errors.NoMoreReporters, e:
+                    all_openned.errback(defer.fail(e))
+                else:
+                    are_all_openned()
+                return
+
+            d = defer.maybeDeferred(reporter.createReport)
+            d.addCallback(report_created)
+            d.addErrback(report_failed)
+
+        return all_openned
+
+    def write(self, measurement):
+        """
+        Will return a deferred that will fire once the report for the specified
+        measurement have been written to all the reporters.
+
+        Args:
+
+            measurement:
+                an instance of :class:ooni.tasks.Measurement
+
+        Returns:
+            a deferred that will fire once all the report entries have
+            been written or errbacks when no more reporters
+        """
+
+        all_written = defer.Deferred()
+        report_tracker = ReportTracker(self.reporters)
+
+        for reporter in self.reporters[:]:
+            def report_completed(task):
+                report_tracker.completed()
+                if report_tracker.finished():
+                    all_written.callback(report_tracker)
+
+            def report_failed(failure):
+                log.debug("Report Write Failure")
+                try:
+                    report_tracker.failedReporters.append(reporter)
+                    self.failedWritingReport(failure, reporter)
+                except errors.NoMoreReporters, e:
+                    log.err("No More Reporters!")
+                    all_written.errback(defer.fail(e))
+                else:
+                    report_tracker.completed()
+                    if report_tracker.finished():
+                        all_written.callback(report_tracker)
+                return
+
+            report_entry_task = ReportEntry(reporter, measurement)
+            self.reportEntryManager.schedule(report_entry_task)
+
+            report_entry_task.done.addCallback(report_completed)
+            report_entry_task.done.addErrback(report_failed)
+
+        return all_written
+
+    def failedWritingReport(self, failure, reporter):
+        """
+        This errback gets called every time we fail to write a report.
+        By fail we mean that the number of retries has exceeded.
+        Once a report has failed to be written with a reporter we give up and
+        remove the reporter from the list of reporters to write to.
+        """
+
+        # XXX: may have been removed already by another failure.
+        if reporter in self.reporters:
+            log.err("Failed to write to %s reporter, giving up..." % reporter)
+            self.reporters.remove(reporter)
+        else:
+            log.err("Failed to write to (already) removed reporter %s" % reporter)
+
+        # Don't forward the exception unless there are no more reporters
+        if len(self.reporters) == 0:
+            log.err("Removed last reporter %s" % reporter)
+            raise errors.NoMoreReporters
+        return
 
     def failedOpeningReport(self, failure, reporter):
         """
@@ -410,64 +521,16 @@ class Report(object):
         """
         log.err("Failed to open %s reporter, giving up..." % reporter)
         log.err("Reporter %s failed, removing from report..." % reporter)
-        self.reporters.remove(reporter)
+        #log.exception(failure)
+        if reporter in self.reporters:
+            self.reporters.remove(reporter)
         # Don't forward the exception unless there are no more reporters
         if len(self.reporters) == 0:
             log.err("Removed last reporter %s" % reporter)
-            failure.reporter = reporter
-            return failure
+            raise errors.NoMoreReporters
+        return
 
-    def write(self, measurement):
-        """
-        This is a lazy call that will write to all the reporters by waiting on
-        them to be created.
-
-        Will return a deferred that will fire once the report for the specified
-        measurement have been written to all the reporters.
-
-        Args:
-
-            measurement:
-                an instance of :class:ooni.tasks.Measurement
-
-        Returns:
-            a deferred list that will fire once all the report entries have
-            been written.
-        """
-        l = []
-        for reporter in self.reporters[:]:
-            report_write_task = ReportEntry(reporter, measurement)
-            def scheduleWriteReportEntry(result):
-                self.reportEntryManager.schedule(report_write_task)
-
-            # delay scheduling the task until after the report is created
-            log.debug("Adding report entry task %s" % report_write_task)
-            reporter.created.addCallback(scheduleWriteReportEntry)
-
-            # if the write task fails n times, kill the reporter
-            report_write_task.done.addErrback(self.failedOpeningReport, reporter)
-            l.append(report_write_task.done)
-
-        # XXX: This seems a bit fragile.
-        # failedOpeningReport will forward the errback if the remaining
-        # reporter has failed. If we fireOnOneErrback, this means that
-        # the caller of report.write is responsible for attaching an
-        # errback to the returned deferred and handle this case. That
-        # probably means stopping the net test.
-
-        # Here, fireOnOneErrback means to call the deferredlists errback
-        # as soon as any of the deferreds return a failure. consumeErrors
-        # is used to prevent any uncaught failures from raising an
-        # exception. Alternately we could attach a logger to the errback
-        # of each deferred and it would have the same effect
-
-        # Probably the better thing to do here would be to add a callback
-        # to the deferredlist that checks to see if any reporters are left
-        # and raise an exception if there are no remaining reporters
-        dl = defer.DeferredList(l,fireOnOneErrback=True, consumeErrors=True)
-        return dl
-
-    def close(self, _):
+    def close(self):
         """
         Close the report by calling it's finish method.
 
@@ -476,10 +539,20 @@ class Report(object):
             all the reports have been closed.
 
         """
-        l = []
-        for reporter in self.reporters[:]:
-            d = defer.maybeDeferred(reporter.finish)
-            l.append(d)
-        dl = defer.DeferredList(l)
-        return dl
+        all_closed = defer.Deferred()
 
+        for reporter in self.reporters[:]:
+            def report_closed(result):
+                self._reporters_closed += 1
+                if len(self.reporters) == self._reporters_closed:
+                    all_closed.callback(self._reporters_closed)
+
+            def report_failed(failure):
+                log.err("Failed closing report")
+                log.exception(failure)
+
+            d = defer.maybeDeferred(reporter.finish)
+            d.addCallback(report_closed)
+            d.addErrback(report_failed)
+
+        return all_closed

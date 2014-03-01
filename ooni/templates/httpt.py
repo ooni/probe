@@ -8,16 +8,18 @@ from twisted.internet.ssl import ClientContextFactory
 
 from twisted.internet import reactor
 from twisted.internet.error import ConnectionRefusedError, DNSLookupError, TCPTimedOutError
-
+from twisted.internet.endpoints import TCP4ClientEndpoint
 from twisted.web._newclient import Request, Response, ResponseNeverReceived
+from twisted.web.client import Agent
+from ooni.utils.trueheaders import TrueHeadersAgent, TrueHeadersSOCKS5Agent
 
 from ooni.nettest import NetTestCase
 from ooni.utils import log
-from ooni import config
+from ooni.settings import config
 
 from ooni.utils.net import BodyReceiver, StringProducer, userAgents
 
-from ooni.utils.txagentwithsocks import Agent, TrueHeaders
+from ooni.utils.trueheaders import TrueHeaders
 from ooni.errors import handleAllFailures
 
 
@@ -47,21 +49,18 @@ class HTTPTest(NetTestCase):
     baseParameters = [['socksproxy', 's', None,
         'Specify a socks proxy to use for requests (ip:port)']]
 
-    request = {}
-    response = {}
-
-    requests = []
-    responses = []
-
     def _setUp(self):
+        super(HTTPTest, self)._setUp()
+
         try:
             import OpenSSL
         except:
             log.err("Warning! pyOpenSSL is not installed. https websites will "
                      "not work")
 
-        self.control_agent = Agent(reactor, sockshost="127.0.0.1",
-                socksport=config.tor.socks_port)
+        self.control_agent = TrueHeadersSOCKS5Agent(reactor,
+                proxyEndpoint=TCP4ClientEndpoint(reactor, '127.0.0.1',
+                    config.tor.socks_port))
 
         self.report['socksproxy'] = None
         sockshost, socksport = (None, None)
@@ -72,8 +71,11 @@ class HTTPTest(NetTestCase):
             except ValueError:
                 raise InvalidSocksProxyOption
             socksport = int(socksport)
-
-        self.agent = Agent(reactor, sockshost=sockshost, socksport=socksport)
+            self.agent = TrueHeadersSOCKS5Agent(reactor,
+                proxyEndpoint=TCP4ClientEndpoint(reactor, sockshost,
+                    socksport))
+        else:
+            self.agent = TrueHeadersAgent(reactor)
 
         self.report['agent'] = 'agent'
 
@@ -118,7 +120,8 @@ class HTTPTest(NetTestCase):
                 'headers': list(request_headers.getAllRawHeaders()),
                 'body': request['body'],
                 'url': request['url'],
-                'method': request['method']
+                'method': request['method'],
+                'tor': request['tor']
             }
         }
         if response:
@@ -134,7 +137,7 @@ class HTTPTest(NetTestCase):
 
     def _processResponseBody(self, response_body, request, response, body_processor):
         log.debug("Processing response body")
-        self.addToReport(request, response, response_body)
+        HTTPTest.addToReport(self, request, response, response_body)
         if body_processor:
             body_processor(response_body)
         else:
@@ -205,7 +208,7 @@ class HTTPTest(NetTestCase):
         """
         if not response:
             log.err("Got no response for request %s" % request)
-            self.addToReport(request, response)
+            HTTPTest.addToReport(self, request, response)
             return
         else:
             log.debug("Got response %s" % response)
@@ -222,10 +225,10 @@ class HTTPTest(NetTestCase):
             self.processResponseHeaders(response_headers_dict)
 
         try:
-            content_length = response.headers.getRawHeaders('content-length')
-        except IndexError:
+            content_length = int(response.headers.getRawHeaders('content-length')[0])
+        except Exception:
             content_length = None
-
+        
         finished = defer.Deferred()
         response.deliverBody(BodyReceiver(finished, content_length))
         finished.addCallback(self._processResponseBody, request,
@@ -268,14 +271,12 @@ class HTTPTest(NetTestCase):
         # configured socks proxy
         if use_tor:
             log.debug("Using Tor for the request to %s" % url)
-            url = 's'+url
             agent = self.control_agent
         else:
             agent = self.agent
 
         if self.localOptions['socksproxy']:
             log.debug("Using SOCKS proxy %s for request" % (self.localOptions['socksproxy']))
-            url = 's'+url
 
         log.debug("Performing request %s %s %s" % (url, method, headers))
 
@@ -284,6 +285,9 @@ class HTTPTest(NetTestCase):
         request['url'] = url
         request['headers'] = headers
         request['body'] = body
+        request['tor'] = False
+        if use_tor:
+            request['tor'] = True
 
         if self.randomizeUA:
             log.debug("Randomizing user agent")
@@ -302,16 +306,17 @@ class HTTPTest(NetTestCase):
         headers = TrueHeaders(request['headers'])
 
         def errback(failure, request):
+            if request['tor']:
+                log.err("Error performing torified request: %s" % request['url'])
+            else:
+                log.err("Error performing request: %s" % request['url'])
             failure_string = handleAllFailures(failure)
-            log.err("Error performing %s" % request)
             self.addToReport(request, failure_string=failure_string)
             return failure
 
         d = agent.request(request['method'], request['url'], headers,
                 body_producer)
-
+        d.addErrback(errback, request)
         d.addCallback(self._cbResponse, request, headers_processor,
                 body_processor)
-        d.addErrback(errback, request)
         return d
-

@@ -8,7 +8,7 @@ from scapy.all import send, sr, IP, TCP, config
 from ooni.reporter import createPacketReport
 from ooni.nettest import NetTestCase
 from ooni.utils import log
-from ooni import config
+from ooni.settings import config
 
 from ooni.utils.txscapy import ScapySender, getDefaultIface, ScapyFactory
 from ooni.utils.txscapy import hasRawSocketPermission
@@ -38,6 +38,8 @@ class BaseScapyTest(NetTestCase):
             ]
 
     def _setUp(self):
+        super(BaseScapyTest, self)._setUp()
+
         if not config.scapyFactory:
             log.debug("Scapy factoring not set, registering it.")
             config.scapyFactory = ScapyFactory(config.advanced.interface)
@@ -81,8 +83,8 @@ class BaseScapyTest(NetTestCase):
             received_packet = rcv
 
             if not config.privacy.includeip:
-                log.msg("Detected you would not like to include your ip in the report")
-                log.msg("Stripping source and destination IPs from the reports")
+                log.debug("Detected you would not like to include your ip in the report")
+                log.debug("Stripping source and destination IPs from the reports")
                 sent_packet.src = '127.0.0.1'
                 received_packet.dst = '127.0.0.1'
 

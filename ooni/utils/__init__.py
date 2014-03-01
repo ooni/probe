@@ -6,6 +6,8 @@ import yaml
 import imp
 import os
 
+from ooni import errors
+
 class Storage(dict):
     """
     A Storage object is like a dictionary except `obj.foo` can be used
@@ -48,12 +50,9 @@ class Storage(dict):
         for (k, v) in value.items():
             self[k] = v
 
-class NotRootError(Exception):
-    pass
-
 def checkForRoot():
     if os.getuid() != 0:
-        raise NotRootError("This test requires root")
+        raise errors.InsufficientPrivileges
 
 def randomSTR(length, num=True):
     """
@@ -92,18 +91,11 @@ def pushFilenameStack(filename):
     .3, etc.
     This is similar to pushing into a LIFO stack.
 
-    XXX: This will not work with stacks bigger than 10 elements because
-    glob.glob(".*") will return them in the wrong order (a.1, a.11, a.2, a.3,
-    etc.)
-    This is probably not an issue since the only thing it causes is that files
-    will be renamed in the wrong order and you shouldn't have the same report
-    filename for more than 10 reports anyways, because you should be making
-    ooniprobe generate the filename for you.
-
     Args:
         filename (str): the path to filename that you wish to create.
     """
     stack = glob.glob(filename+".*")
+    stack.sort(key=lambda x: int(x.split('.')[-1]))
     for f in reversed(stack):
         c_idx = f.split(".")[-1]
         c_filename = '.'.join(f.split(".")[:-1])

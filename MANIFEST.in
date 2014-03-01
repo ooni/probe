@@ -1,0 +1,7 @@
+include README.md ChangeLog.md requirements.txt
+recursive-include data/decks *
+include data/inputs/
+include data/GeoIP.dat
+include data/GeoIPASNum.dat
+include data/GeoLiteCity.dat
+include data/ooniprobe.conf.sample

@@ -1,4 +1,7 @@
-# ooniprobe - Open Observatory of Network Interference
+[![Build Status](https://travis-ci.org/TheTorProject/ooni-probe.png?branch=master)](https://travis-ci.org/TheTorProject/ooni-probe)
+[![Coverage Status](https://coveralls.io/repos/TheTorProject/ooni-probe/badge.png)](https://coveralls.io/r/TheTorProject/ooni-probe)
+
+![OONI](https://ooni.torproject.org/theme/img/ooni-logo.png)
 
 "The Net interprets censorship as damage and routes around it."
                 - John Gilmore; TIME magazine (6 December 1993)
@@ -16,197 +19,206 @@ with others, so that you and others may better understand your network? If so,
 please read this document and we hope ooniprobe will help you to gather
 network data that will assist you with your endeavors!
 
-## Getting started with ooniprobe is easy
+#### Read this before running ooniprobe!
 
-  0) Open your favorite terminal
-  1) Grab the source and install the dependencies
-  2) Run ooniprobe!
-  3) ... There is no step three ...
+Running ooniprobe is a potentially risky activity. This greatly depends on the
+jurisdiction in which you are in and which test you are running. It is
+technically possible for a person observing your internet connection to be
+aware of the fact that you are running ooniprobe. This means that if running
+network measurement tests is something considered to be illegal in your country
+then you could be spotted.
 
-## The easy way to prep your system for running ooniprobe
+Futhermore, ooniprobe takes no precautions to protect the install target machine
+from forensics analysis.  If the fact that you have installed or used ooni
+probe is a liability for you, please be aware of this risk.
+
+## Installation
+
+### Debian based systems
+
+```
+sudo sh -c 'echo "deb http://deb.ooni.nu/ooni wheezy main" >> /etc/apt/sources.list'
+gpg --keyserver pgp.mit.edu --recv-key 0x49B8CDF4
+gpg --export 89AB86D4788F3785FE9EDA31F9E2D9B049B8CDF4 | sudo apt-key add -
+sudo apt-get update && sudo apt-get install ooniprobe
+```
+
+### Linux
 
 We believe that ooniprobe runs reasonably well on Debian GNU/Linux wheezy as
 well as versions of Ubuntu such as natty and later releases. Running ooniprobe
 without installing it is supported with the following commands:
 
-  git clone https://git.torproject.org/ooni-probe.git
-  cd ooni-probe
-  ./setup-dependencies.sh
-  ./bin/ooniprobe --asciilulz
+```
+git clone https://git.torproject.org/ooni-probe.git
+cd ooni-probe
+./setup-dependencies.sh
+python setup.py install
+```
 
-## Your first network test
+### Setting up development environment
 
-We run ooniprobe with a test deck - this is a collection of tests in a single
-file that tells ooniprobe how to run and what data to check or process:
+On debian based systems this can be done with:
+```
+sudo apt-get install libgeoip-dev python-virtualenv virtualenvwrapper
+mkvirtualenv ooniprobe
+python setup.py install
+pip install -r requirements-dev.txt
+```
 
-  ./bin/ooniprobe -i decks/before_i_commit.testdeck
+### Other platforms (with Vagrant)
 
-The report output files from the above command will be located in the reports/
-directory of the source code checkout. The report output ends with the .yamloo
-suffix.
+0) [Install Vagrant](https://www.vagrantup.com/downloads.html) and [Install Virtualbox](https://www.virtualbox.org/wiki/Downloads)
 
-## The details
+0.1)
 
-We haven't actually installed ooniprobe - we just added the ooniprobe python
-to your PYTHONPATH. We also installed all of the dependencies with your native
-package manager or into a local directory managed by your user.
+On OSX:
 
-## ooniprobe requirements explained
+If you don't have it install homebrew http://mxcl.github.io/homebrew/
 
-Basic system requirements:
+```
+brew install git
+```
 
-  * Git: http://git-scm.com/book/en/Getting-Started-Installing-Git
-  * Python >= 2.6: http://www.python.org/download/releases/
-  * pip: http://www.pip-installer.org/en/latest/
+On debian/ubuntu:
 
+```
+sudo apt-get install git
+```
 
-## The more detailed way follows
+1) Open a Terminal and run:
 
-On Debian or Ubuntu GNU/Linux based systems these can be installed with:
+```
+git clone https://git.torproject.org/ooni-probe.git
+cd ooni-probe/
+vagrant up
+```
 
-  sudo apt-get install git-core python python-pip python-dev build-essential tor tor-geoipdb
+2) Login to the box with:
 
-Other packages that may be of interest:
+```
+vagrant ssh
+```
 
-  libdumbnet1 python-dumbnet python-libpcap python-pypcap python-pcapy python-dnspython
-  python-virtualenv virtualenvwrapper tor tor-geoipdb
+ooniprobe will be installed in `/ooni`.
 
-The Python dependencies required for running ooniprobe are:
+3) You can run tests with:
 
-  * Tor (>2.2.x): https://torproject.org/
-  * Twisted (>12.1.0): https://twistedmatrix.com/trac/
-  * PyYAML: http://pyyaml.org/
-  * Scapy: http://www.secdev.org/projects/scapy/
-      * pypcap: https://code.google.com/p/pypcap/
-      * libdnet: https://code.google.com/p/libdnet/
-  * txtorcon: https://github.com/meejah/txtorcon
-  * txsocksx: https://github.com/hellais/txsocksx
+```
+ooniprobe blocking/http_requests -f /ooni/inputs/input-pack/alexa-top-1k.txt
+```
 
-## Install Tor
+## Using ooniprobe
 
-Install the latest version of Tor for your platform:
+**Net test** is a set of measurements to assess what kind of internet censorship is occurring.
 
-  https://www.torproject.org/download/download.html
+**Decks** are collections of ooniprobe nettests with some associated inputs.
 
-## Configurating a virtual environment
+**Collector** is a service used to report the results of measurements.
 
-You are highly recommended to install python packages from inside of a virtual
-environment, since pip does not download the packages via SSL and you will need
-to install it system wide.
+**Test helper** is a service used by a probe for successfully performing its measurements.
 
-This will require you to have installed virtualenv.
+**Bouncer** is a service used to discover the addresses of test helpers and collectors.
 
-    sudo apt-get install python-virtualenv virtualenvwrapper
+### Configuring ooniprobe
 
-To create a new virtual environment do
-
-    mkdir $HOME/.virtualenvs
-    mkvirtualenv ooni-probe
-
-You will automatically enter the environment. To re-enter this environment in the future, type:
-
-    workon ooni-probe
-
-For convenience, you may want to add the following to your .bashrc:
-
-    if [ -e ~/ooni-probe/bin ]; then
-        export PATH=~/ooni-probe/bin:$PATH
-    fi
-    if [ -e ~/ooni-probe ]; then
-        export PYTHONPATH=$PYTHONPATH:~/ooni-probe
-    fi
-
-Add the following to $HOME/.virtualenvs/ooni-probe/bin/postactivate to automatically cd into the working directory upon activation.
-
-    if [ -e ~/ooni-probe ] ; then
-        cd ~/ooni-probe
-    fi
-
-## Installing ooni-probe
-
-Clone the ooniprobe repository:
-
-    git clone https://git.torproject.org/ooni-probe.git
-    cd ooni-probe
-
-Then install OONI with:
-
-    pip install -r requirements.txt
-
-If you are not in a virtualenv you will have to run the above command as root:
-
-    sudo pip install -r requirements.txt
-
-## Install libdnet and pypcap python bindings
-
-It's ideal to install these manually since the ones in debian or ubuntu are not
-up to date.
-
-The version of pypcap and libdnet ooniprobe is current tested with are
-libdnet-1.12 and pypcap 1.1, any other version should be considered untested.
-
-If you don't already have Subversion installed:
-
-    sudo apt-get install subversion
-
-For libdnet:
-
-    wget https://libdnet.googlecode.com/files/libdnet-1.12.tgz
-    tar xzf libdnet-1.12.tgz
-    cd libdnet-1.12
-    ./configure  && make
-    cd python/
-    python setup.py install
-    cd ../../ && rm -rf libdnet-1.12*
-
-For pypcap:
-
-    git clone https://github.com/hellais/pypcap
-    cd pypcap/
-    pip install pyrex
-    make && make install
-    cd ../ && rm -rf pypcap-read-only
-
-## Including your geo data in the test report
-
-Including geografical information on where your probe is located helps us
-better assess the value of the test. You can personalize these setting from
-inside of ooniprobe.conf
-
-If you wish to include geografical data in the test report, you will have to go
-to the data/ directory and run:
-
-    make geoip
-
-Then edit your ooniprobe.conf to point to the absolute path of where the data/
-directory is located for example:
-
-    geoip_data_dir: /home/your_user/ooni-probe/data/
-
-## Running some tests
-
-To see the possible command line options run:
-
-    ./bin/ooniprobe --help 
-
-For interesting tests to run look in the nettests/core/ directory.
-
-To run a test you can do so with:
-
-    ./bin/ooniprobe -o report_file_name path/to/test.py
-
-Normally tests take options, you can see them with:
-
-    ./bin/ooniprobe -o report_file_name path/to/test.py --help
-
-## Configuration
+You may edit the configuration for ooniprobe by editing the configuration file
+found inside of `~/.ooni/ooniprobe.conf`.
 
 By default ooniprobe will not include personal identifying information in the
-test result, nor create a pcap file. This behavior can be personalized by
-editing your ooniprobe.conf configuration file.
+test result, nor create a pcap file. This behavior can be personalized.
+
+### Running decks
+
+You will find all the installed decks inside of `/usr/share/ooni/decks`.
+
+You may then run a deck by using the command line option `-i`:
+
+As root:
+```
+ooniprobe -i /usr/share/ooni/decks/mlab.deck
+```
+
+Or as a user:
+```
+ooniprobe -i /usr/share/ooni/decks/mlab_no_root.deck
+```
+
+Or:
+
+As root:
+```
+ooniprobe -i /usr/share/ooni/decks/complete.deck
+```
+
+Or as a user:
+```
+ooniprobe -i /usr/share/ooni/decks/complete_no_root.deck
+```
+
+The above tests will require around 20-30 minutes to complete depending on your network speed.
+
+If you would prefer to run some faster tests you should run:
+As root:
+```
+ooniprobe -i /usr/share/ooni/decks/fast.deck
+```
+
+Or as a user:
+```
+ooniprobe -i /usr/share/ooni/decks/fast_no_root.deck
+```
+
+### Running net tests
+
+You may list all the installed stable net tests with:
+
+```
+ooniprobe -s
+```
+
+You may then run a nettest by specifying its name for example:
+
+```
+ooniprobe manipulation/http_header_field_manipulation
+```
+
+It is also possible to specify inputs to tests as URLs:
+
+```
+ooniprobe blocking/http_requests -f httpo://ihiderha53f36lsd.onion/input/37e60e13536f6afe47a830bfb6b371b5cf65da66d7ad65137344679b24fdccd1
+```
+
+You can find the result of the test in your current working directory.
+
+By default the report result will be collected by the default ooni collector
+and the addresses of test helpers will be obtained from the default bouncer.
+
+You may also specify your own collector or bouncer with the options `-c` and
+`-b`.
+
+## (Optional) Install obfsproxy
+
+Install the latest version of obfsproxy for your platform.
+
+[Download Obfsproxy](https://www.torproject.org/projects/obfsproxy.html.en)
+
+## Bridges and obfsproxy bridges
+
+ooniprobe submits reports to oonib report collectors through Tor to a hidden
+service endpoint. By default, ooniprobe uses the installed system Tor, but can
+also be configured to launch Tor (see the advanced.start_tor option in
+ooniprobe.conf), and ooniprobe supports bridges (and obfsproxy bridges, if
+obfsproxy is installed). The tor.bridges option in ooniprobe.conf sets the path
+to a file that should contain a set of "bridge" lines (of the same format as
+used in torrc, and as returned by https://bridges.torproject.org). If obfsproxy
+bridges are to be used, the path to the obfsproxy binary must be configured.
+See option advanced.obfsproxy_binary, in ooniprobe.conf.
 
 ## Setting capabilities on your virtualenv python binary
 
 If your distributation supports capabilities you can avoid needing to run OONI as root:
 
-    setcap cap_net_admin,cap_net_raw+eip /path/to/your/virtualenv's/python
+```
+setcap cap_net_admin,cap_net_raw+eip /path/to/your/virtualenv's/python
+```

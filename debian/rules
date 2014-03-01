@@ -1,0 +1,6 @@
+#!/usr/bin/make -f
+
+%:
+	dh $@ --buildsystem=python_distutils --with=python2
+override_dh_python2:
+		dh_python2 --no-guessing-deps

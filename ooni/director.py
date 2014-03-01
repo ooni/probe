@@ -1,13 +1,16 @@
+import random
 import sys
 import os
+import re
 
-from ooni import config
+from ooni import geoip
 from ooni.managers import ReportEntryManager, MeasurementManager
 from ooni.reporter import Report
-from ooni.utils import log, checkForRoot, NotRootError
+from ooni.utils import log, pushFilenameStack
 from ooni.utils.net import randomFreePort
-from ooni.nettest import NetTest
-from ooni.errors import UnableToStartTor
+from ooni.nettest import NetTest, getNetTestInformation
+from ooni.settings import config
+from ooni import errors
 
 from txtorcon import TorConfig
 from txtorcon import TorState, launch_tor
@@ -57,9 +60,10 @@ class Director(object):
 
     """
     _scheduledTests = 0
+    # Only list NetTests belonging to these categories
+    categories = ['blocking', 'manipulation']
 
     def __init__(self):
-        self.netTests = []
         self.activeNetTests = []
 
         self.measurementManager = MeasurementManager()
@@ -67,6 +71,10 @@ class Director(object):
 
         self.reportEntryManager = ReportEntryManager()
         self.reportEntryManager.director = self
+        # Link the TaskManager's by least available slots.
+        self.measurementManager.child = self.reportEntryManager
+        # Notify the parent when tasks complete # XXX deadlock!?
+        self.reportEntryManager.parent = self.measurementManager
 
         self.successfulMeasurements = 0
         self.failedMeasurements = 0
@@ -80,19 +88,44 @@ class Director(object):
 
         self.torControlProtocol = None
 
+        # This deferred is fired once all the measurements and their reporting
+        # tasks are completed.
+        self.allTestsDone = defer.Deferred()
+        self.sniffer = None
+
+    def getNetTests(self):
+        nettests = {}
+        def is_nettest(filename):
+            return not filename == '__init__.py' \
+                    and filename.endswith('.py')
+
+        for category in self.categories:
+            dirname = os.path.join(config.nettest_directory, category)
+            # print path to all filenames.
+            for filename in os.listdir(dirname):
+                if is_nettest(filename):
+                    net_test_file = os.path.join(dirname, filename)
+                    nettest = getNetTestInformation(net_test_file)
+                    nettest['category'] = category.replace('/', '')
+
+                    if nettest['id'] in nettests:
+                        log.err("Found a two tests with the same name %s, %s" %
+                                (nettest_path, nettests[nettest['id']]['path']))
+                    else:
+                        category = dirname.replace(config.nettest_directory, '')
+                        nettests[nettest['id']] = nettest
+
+        return nettests
+
+    @defer.inlineCallbacks
     def start(self):
-        if config.privacy.includepcap:
-            log.msg("Starting")
-            if not config.reports.pcap:
-                config.generatePcapFilename()
-            self.startSniffing()
+        self.netTests = self.getNetTests()
 
         if config.advanced.start_tor:
-            log.msg("Starting Tor...")
-            d = self.startTor()
-        else:
-            d = defer.succeed(None)
-        return d
+            yield self.startTor()
+
+        config.probe_ip = geoip.ProbeIP()
+        yield config.probe_ip.lookup()
 
     @property
     def measurementSuccessRatio(self):
@@ -141,11 +174,12 @@ class Director(object):
     def measurementStarted(self, measurement):
         self.totalMeasurements += 1
 
-    def measurementSucceeded(self, measurement):
-        log.msg("Successfully completed measurement: %s" % measurement)
+    def measurementSucceeded(self, result, measurement):
+        log.debug("Successfully completed measurement: %s" % measurement)
         self.totalMeasurementRuntime += measurement.runtime
         self.successfulMeasurements += 1
-        return measurement.testInstance.report
+        measurement.result = result
+        return measurement
 
     def measurementFailed(self, failure, measurement):
         log.msg("Failed doing measurement: %s" % measurement)
@@ -153,7 +187,8 @@ class Director(object):
 
         self.failedMeasurements += 1
         self.failures.append((failure, measurement))
-        return failure
+        measurement.result = failure
+        return measurement
 
     def reporterFailed(self, failure, net_test):
         """
@@ -167,61 +202,68 @@ class Director(object):
         """
         pass
 
-    def netTestDone(self, result, net_test):
+    def netTestDone(self, net_test):
         self.activeNetTests.remove(net_test)
+        if len(self.activeNetTests) == 0:
+            self.allTestsDone.callback(None)
+            self.allTestsDone = defer.Deferred()
 
-    def startNetTest(self, _, net_test_loader, reporters):
+    @defer.inlineCallbacks
+    def startNetTest(self, net_test_loader, reporters):
         """
         Create the Report for the NetTest and start the report NetTest.
 
         Args:
             net_test_loader:
                 an instance of :class:ooni.nettest.NetTestLoader
-
-            _: #XXX very dirty hack
         """
+
+        if config.privacy.includepcap:
+            if not config.reports.pcap:
+                config.reports.pcap = config.generatePcapFilename(net_test_loader.testDetails)
+            self.startSniffing()
+
         report = Report(reporters, self.reportEntryManager)
 
         net_test = NetTest(net_test_loader, report)
         net_test.director = self
-        net_test.report.open()
 
+        yield net_test.report.open()
+
+        yield net_test.initializeInputProcessor()
         self.measurementManager.schedule(net_test.generateMeasurements())
 
         self.activeNetTests.append(net_test)
-        net_test.done.addBoth(self.netTestDone, net_test)
-        net_test.done.addBoth(report.close)
-        return net_test.done
+
+        yield net_test.done
+        yield report.close()
+
+        self.netTestDone(net_test)
 
     def startSniffing(self):
         """ Start sniffing with Scapy. Exits if required privileges (root) are not
         available.
         """
         from ooni.utils.txscapy import ScapyFactory, ScapySniffer
-        try:
-            checkForRoot()
-        except NotRootError:
-            print "[!] Includepcap options requires root priviledges to run"
-            print "    you should run ooniprobe as root or disable the options in ooniprobe.conf"
-            sys.exit(1)
-
-        print "Starting sniffer"
         config.scapyFactory = ScapyFactory(config.advanced.interface)
 
         if os.path.exists(config.reports.pcap):
-            print "Report PCAP already exists with filename %s" % config.reports.pcap
-            print "Renaming files with such name..."
+            log.msg("Report PCAP already exists with filename %s" % config.reports.pcap)
+            log.msg("Renaming files with such name...")
             pushFilenameStack(config.reports.pcap)
 
-        sniffer = ScapySniffer(config.reports.pcap)
-        config.scapyFactory.registerProtocol(sniffer)
-
+        if self.sniffer:
+            config.scapyFactory.unRegisterProtocol(self.sniffer)
+        self.sniffer = ScapySniffer(config.reports.pcap)
+        config.scapyFactory.registerProtocol(self.sniffer)
+        log.msg("Starting packet capture to: %s" % config.reports.pcap)
 
     def startTor(self):
         """ Starts Tor
         Launches a Tor with :param: socks_port :param: control_port
         :param: tor_binary set in ooniprobe.conf
         """
+        log.msg("Starting Tor...")
         @defer.inlineCallbacks
         def state_complete(state):
             config.tor_state = state
@@ -229,21 +271,16 @@ class Director(object):
             log.debug("We now have the following circuits: ")
             for circuit in state.circuits.values():
                 log.debug(" * %s" % circuit)
-
+            
             socks_port = yield state.protocol.get_conf("SocksPort")
             control_port = yield state.protocol.get_conf("ControlPort")
-            client_ip = yield state.protocol.get_info("address")
 
             config.tor.socks_port = int(socks_port.values()[0])
             config.tor.control_port = int(control_port.values()[0])
 
-            config.probe_ip = client_ip.values()[0]
-
-            log.debug("Obtained our IP address from a Tor Relay %s" % config.probe_ip)
-
         def setup_failed(failure):
             log.exception(failure)
-            raise UnableToStartTor
+            raise errors.UnableToStartTor
 
         def setup_complete(proto):
             """
@@ -256,22 +293,14 @@ class Director(object):
             return state.post_bootstrap
 
         def updates(prog, tag, summary):
-            log.debug("%d%%: %s" % (prog, summary))
+            log.msg("%d%%: %s" % (prog, summary))
 
         tor_config = TorConfig()
         if config.tor.control_port:
             tor_config.ControlPort = config.tor.control_port
-        else:
-            control_port = int(randomFreePort())
-            tor_config.ControlPort = control_port
-            config.tor.control_port = control_port
 
         if config.tor.socks_port:
             tor_config.SocksPort = config.tor.socks_port
-        else:
-            socks_port = int(randomFreePort())
-            tor_config.SocksPort = socks_port
-            config.tor.socks_port = socks_port
 
         if config.tor.data_dir:
             data_dir = os.path.expanduser(config.tor.data_dir)
@@ -281,14 +310,49 @@ class Director(object):
                 os.makedirs(data_dir)
             tor_config.DataDirectory = data_dir
 
+        if config.tor.bridges:
+            tor_config.UseBridges = 1
+            if config.advanced.obfsproxy_binary:
+                tor_config.ClientTransportPlugin = \
+                        'obfs2,obfs3 exec %s managed' % \
+                        config.advanced.obfsproxy_binary
+            bridges = []
+            with open(config.tor.bridges) as f:
+                for bridge in f:
+                    if 'obfs' in bridge:
+                        if config.advanced.obfsproxy_binary:
+                            bridges.append(bridge.strip())
+                    else:
+                        bridges.append(bridge.strip())
+            tor_config.Bridge = bridges
+        
+        if config.tor.torrc:
+            for i in config.tor.torrc.keys():
+                setattr(tor_config, i, config.tor.torrc[i])
+
         tor_config.save()
 
+        if not hasattr(tor_config,'ControlPort'):
+            control_port = int(randomFreePort())
+            tor_config.ControlPort = control_port
+            config.tor.control_port = control_port
+
+        if not hasattr(tor_config,'SocksPort'):
+            socks_port = int(randomFreePort())
+            tor_config.SocksPort = socks_port
+            config.tor.socks_port = socks_port
+
+        tor_config.save()
         log.debug("Setting control port as %s" % tor_config.ControlPort)
         log.debug("Setting SOCKS port as %s" % tor_config.SocksPort)
 
-        d = launch_tor(tor_config, reactor,
-                tor_binary=config.advanced.tor_binary,
-                progress_updates=updates)
+        if config.advanced.tor_binary:
+            d = launch_tor(tor_config, reactor,
+                           tor_binary=config.advanced.tor_binary,
+                           progress_updates=updates)
+        else:
+            d = launch_tor(tor_config, reactor,
+                           progress_updates=updates)
         d.addCallback(setup_complete)
         d.addErrback(setup_failed)
         return d

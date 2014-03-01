@@ -1,5 +1,8 @@
 import itertools
+
 from twisted.internet import defer
+from ooni.utils import log
+from ooni.settings import config
 
 def makeIterable(item):
     """
@@ -14,28 +17,30 @@ def makeIterable(item):
 
 class TaskManager(object):
     retries = 2
-
     concurrency = 10
 
     def __init__(self):
         self._tasks = iter(())
         self._active_tasks = []
-        self.failures = []
+        self.failures = 0
 
     def _failed(self, failure, task):
-        # XXX INFINITE RECURSION LOOP INSIDE OF THIS THING
         """
         The has failed to complete, we append it to the end of the task chain
         to be re-run once all the currently scheduled tasks have run.
         """
+        log.err("Task %s has failed %s times" % (task, task.failures))
+
         self._active_tasks.remove(task)
-        self.failures.append((failure, task))
+        self.failures = self.failures + 1
 
         if task.failures <= self.retries:
-            self._tasks = itertools.chain(self._tasks,
-                    makeIterable(task))
+            log.debug("Rescheduling...")
+            self._tasks = itertools.chain(makeIterable(task), self._tasks)
+
         else:
             # This fires the errback when the task is done but has failed.
+            log.err('Permanent failure for %s' % task)
             task.done.errback(failure)
 
         self._fillSlots()
@@ -53,6 +58,11 @@ class TaskManager(object):
                 self._run(task)
             except StopIteration:
                 break
+            except ValueError as exc:
+                # XXX this is a workaround the race condition that leads the
+                # _tasks generator to throw the exception
+                # ValueError: generator already called.
+                continue
 
     def _run(self, task):
         """
@@ -74,12 +84,12 @@ class TaskManager(object):
         self._fillSlots()
 
         # Fires the done deferred when the task has completed
-        task.done.callback(task)
+        task.done.callback(result)
         self.succeeded(result, task)
 
     @property
     def failedMeasurements(self):
-        return len(self.failures)
+        return self.failures
 
     @property
     def availableSlots(self):
@@ -93,6 +103,8 @@ class TaskManager(object):
         Takes as argument a single task or a task iterable and appends it to the task
         generator queue.
         """
+        log.debug("Starting this task %s" % repr(task_or_task_iterator))
+
         iterable = makeIterable(task_or_task_iterator)
 
         self._tasks = itertools.chain(self._tasks, iterable)
@@ -102,7 +114,7 @@ class TaskManager(object):
         """
         This is called to start the task manager.
         """
-        self.failures = []
+        self.failures = 0
 
         self._fillSlots()
 
@@ -121,7 +133,31 @@ class TaskManager(object):
         """
         raise NotImplemented
 
-class MeasurementManager(TaskManager):
+class LinkedTaskManager(TaskManager):
+    def __init__(self):
+        super(LinkedTaskManager, self).__init__()
+        self.child = None
+        self.parent = None
+
+    @property
+    def availableSlots(self):
+        mySlots = self.concurrency - len(self._active_tasks)
+        if self.child:
+            s = self.child.availableSlots
+            return min(s, mySlots)
+        return mySlots
+
+    def _succeeded(self, result, task):
+        super(LinkedTaskManager, self)._succeeded(result, task)
+        if self.parent:
+            self.parent._fillSlots()
+
+    def _failed(self, result, task):
+        super(LinkedTaskManager, self)._failed(result, task)
+        if self.parent:
+            self.parent._fillSlots()
+
+class MeasurementManager(LinkedTaskManager):
     """
     This is the Measurement Tracker. In here we keep track of active measurements
     and issue new measurements once the active ones have been completed.
@@ -133,23 +169,31 @@ class MeasurementManager(TaskManager):
     NetTest on the contrary is aware of the typology of measurements that it is
     dispatching as they are logically grouped by test file.
     """
-    # XXX tweak these values
-    retries = 2
-    concurrency = 10
+    def __init__(self):
+        if config.advanced.measurement_retries:
+            self.retries = config.advanced.measurement_retries
+        if config.advanced.measurement_concurrency:
+            self.concurrency = config.advanced.measurement_concurrency
+        super(MeasurementManager, self).__init__()
 
     def succeeded(self, result, measurement):
-        pass
+        log.debug("Successfully performed measurement %s" % measurement)
+        log.debug(result)
 
     def failed(self, failure, measurement):
         pass
 
-class ReportEntryManager(TaskManager):
-    # XXX tweak these values
-    retries = 3
-    concurrency = 20
+class ReportEntryManager(LinkedTaskManager):
+    def __init__(self):
+        if config.advanced.reporting_retries:
+            self.retries = config.advanced.reporting_retries
+        if config.advanced.reporting_concurrency:
+            self.concurrency = config.advanced.reporting_concurrency
+        super(ReportEntryManager, self).__init__()
 
     def succeeded(self, result, task):
-        pass
+        log.debug("Successfully performed report %s" % task)
+        log.debug(result)
 
     def failed(self, failure, task):
         pass
