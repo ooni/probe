@@ -27,6 +27,8 @@ class BridgeReachability(nettest.NetTestCase):
     inputFile = ['file', 'f', None,
             'File containing bridges to test reachability for (they should be one per line IP:ORPort)']
 
+    requiredOptions = ['file']
+
     def setUp(self):
         self.tor_progress = 0
         self.timeout = int(self.localOptions['timeout'])
