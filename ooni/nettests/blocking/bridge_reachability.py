@@ -25,7 +25,9 @@ class BridgeReachability(nettest.NetTestCase):
     usageOptions = UsageOptions
 
     inputFile = ['file', 'f', None,
-            'File containing bridges to test reachability for (they should be one per line IP:ORPort)']
+                 'File containing bridges to test reachability for. '
+                 'They should be one per line IP:ORPort or '
+                 'TransportType IP:ORPort (ex. obfs2 127.0.0.1:443)']
 
     requiredOptions = ['file']
 
@@ -79,12 +81,12 @@ class BridgeReachability(nettest.NetTestCase):
                                 progress_updates=updates)
         @d.addCallback
         def setup_complete(proto):
-            log.msg("Success")
+            log.msg("Successfully connected to %s" % self.bridge)
             self.report['success'] = True
 
         @d.addErrback
         def setup_failed(failure):
-            log.msg("Failed")
+            log.msg("Failed to connect to %s" % self.bridge)
             log.exception(failure)
             self.report['success'] = False
 
