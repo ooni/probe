@@ -36,7 +36,7 @@ import string
 from urlparse import urlparse
 
 from twisted.python import usage
-from twisted.internet import defer, threads, reactor
+from twisted.internet import defer, threads
 
 from ooni import nettest
 from ooni.templates import httpt
