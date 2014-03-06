@@ -74,6 +74,7 @@ class CaptivePortal(httpt.HTTPTest):
     requiresRoot = False
     requiresTor = False
 
+    @defer.inlineCallbacks
     def http_fetch(self, url, headers={}):
         """
         Parses an HTTP url, fetches it, and returns a response
@@ -83,13 +84,13 @@ class CaptivePortal(httpt.HTTPTest):
         #XXX: HTTP Error 302: The HTTP server returned a redirect error that
         #would lead to an infinite loop.  The last 30x error message was: Found
         try:
-            response = threads.blockingCallFromThread(reactor,self.doRequest,url,"GET",headers)
-            response_headers = response.headers
-            return response, response_headers
-        except:
+            response = yield self.doRequest(url,"GET",headers)
+            defer.returnValue(response)
+        except Exception:
             log.err("HTTPError")
-            return None, None
+            defer.returnValue(None)
 
+    @defer.inlineCallbacks
     def http_content_match_fuzzy_opt(self, experimental_url, control_result,
                                      headers=None, fuzzy=False):
         """
@@ -107,13 +108,15 @@ class CaptivePortal(httpt.HTTPTest):
             default_ua = self.local_options['user-agent']
             headers = {'User-Agent': default_ua}
 
-        response, response_headers = self.http_fetch(experimental_url, headers)
+        response = yield self.http_fetch(experimental_url, headers)
+        response_headers = response.headers
 
         response_content = response.body if response else None
         response_code = response.code if response else None
         if response_content is None:
             log.err("HTTP connection appears to have failed.")
-            return False, False, False
+            r = (False, False, False)
+            defer.returnValue(r)
 
         if fuzzy:
             pattern = re.compile(control_result)
@@ -122,18 +125,22 @@ class CaptivePortal(httpt.HTTPTest):
             log.msg("'%s'" % experimental_url)
             if not match:
                 log.msg("does not match!")
-                return False, response_code, response_headers
+                r = (False, response_code, response_headers)
+                defer.returnValue(r)
             else:
                 log.msg("and the expected control result yielded a match.")
-                return True, response_code, response_headers
+                r = (True, response_code, response_headers)
+                defer.returnValue(r)
         else:
             if str(response_content) != str(control_result):
                 log.msg("HTTP content comparison of experiment URL")
                 log.msg("'%s'" % experimental_url)
                 log.msg("and the expected control result do not match.")
-                return False, response_code, response_headers
+                r = (False, response_code, response_headers)
+                defer.returnValue(r)
             else:
-                return True, response_code, response_headers
+                r = (True, response_code, response_headers)
+                defer.returnValue(r)
 
     def http_status_code_match(self, experiment_code, control_code):
         """
@@ -480,7 +487,7 @@ class CaptivePortal(httpt.HTTPTest):
         report['ms_dns_cp'] = self.ms_dns_cp_test()
 
         return report
-
+    @defer.inlineCallbacks
     def run_vendor_tests(self, *a, **kw):
         """
         These are several vendor tests used to detect the presence of
@@ -512,23 +519,24 @@ class CaptivePortal(httpt.HTTPTest):
         sm = self.http_status_code_match
         snm = self.http_status_code_no_match
 
+        @defer.inlineCallbacks
         def compare_content(status_func, fuzzy, experiment_url, control_result,
                             control_code, headers, test_name):
             log.msg("")
             log.msg("Running the %s test..." % test_name)
 
-            content_match, experiment_code, experiment_headers = cm(experiment_url,
+            content_match, experiment_code, experiment_headers = yield cm(experiment_url,
                                                                     control_result,
                                                                     headers, fuzzy)
             status_match = status_func(experiment_code, control_code)
             if status_match and content_match:
                 log.msg("The %s test was unable to detect" % test_name)
                 log.msg("a captive portal.")
-                return True
+                defer.returnValue(True)
             else:
                 log.msg("The %s test shows that your network" % test_name)
                 log.msg("is filtered.")
-                return False
+                defer.returnValue(False)
 
         result = []
         for vt in vendor_tests:
@@ -544,19 +552,20 @@ class CaptivePortal(httpt.HTTPTest):
             args = (experiment_url, control_result, control_code, headers, test_name)
 
             if test_name == "MS HTTP Captive Portal":
-                report['result'] = compare_content(sm, False, *args)
+                report['result'] = yield compare_content(sm, False, *args)
 
             elif test_name == "Apple HTTP Captive Portal":
-                report['result'] = compare_content(sm, True, *args)
+                report['result'] = yield compare_content(sm, True, *args)
 
             elif test_name == "W3 Captive Portal":
-                report['result'] = compare_content(snm, True, *args)
+                report['result'] = yield compare_content(snm, True, *args)
 
             else:
                 log.err("Ooni is trying to run an undefined CP vendor test.")
             result.append(report)
-        return result
+        defer.returnValue(result)
 
+    @defer.inlineCallbacks
     def control(self, experiment_result, args):
         """
         Compares the content and status code of the HTTP response for
@@ -579,7 +588,7 @@ class CaptivePortal(httpt.HTTPTest):
         snm = self.http_status_code_no_match
 
         log.msg("Running test for '%s'..." % experiment_url)
-        content_match, experiment_code, experiment_headers = cm(experiment_url,
+        content_match, experiment_code, experiment_headers = yield cm(experiment_url,
                                                                 control_result)
         status_match = sm(experiment_code, control_code)
         if status_match and content_match:
@@ -591,7 +600,7 @@ class CaptivePortal(httpt.HTTPTest):
         elif status_match and not content_match:
             log.msg("Retrying '%s' with fuzzy match enabled."
                      % experiment_url)
-            fuzzy_match, experiment_code, experiment_headers = cm(experiment_url,
+            fuzzy_match, experiment_code, experiment_headers = yield cm(experiment_url,
                                                                   control_result,
                                                                   fuzzy=True)
             if fuzzy_match:
@@ -634,7 +643,7 @@ class CaptivePortal(httpt.HTTPTest):
 
         log.msg("")
         log.msg("Running vendor tests...")
-        self.report['vendor_tests'] = yield threads.deferToThread(self.run_vendor_tests)
+        self.report['vendor_tests'] = yield self.run_vendor_tests()
 
         log.msg("")
         log.msg("Running vendor DNS-based tests...")
