@@ -156,6 +156,10 @@ class ReportAlreadyClosed(Exception):
 
 class TorStateNotFound(Exception):
     pass
+
+class TorControlPortNotFound(Exception):
+    pass
+
 class ReportNotCreated(Exception):
     pass
 

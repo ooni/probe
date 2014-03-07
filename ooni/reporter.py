@@ -50,7 +50,7 @@ def createPacketReport(packet_list):
     report = []
     for packet in packet_list:
         report.append({'raw_packet': str(packet),
-            'summary': str(packet.summary())})
+            'summary': str([packet])})
     return report
 
 class OSafeRepresenter(SafeRepresenter):
