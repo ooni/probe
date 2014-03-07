@@ -20,7 +20,7 @@
     reportfile: null
     resume: 0
     subargs: [-f, 'httpo://ihiderha53f36lsd.onion/input/37e60e13536f6afe47a830bfb6b371b5cf65da66d7ad65137344679b24fdccd1']
-    test_file: blocking/dnsconsistency
+    test_file: blocking/dns_consistency
     testdeck: null
 - options:
     collector: null

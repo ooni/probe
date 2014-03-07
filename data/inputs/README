@@ -1,9 +1,9 @@
 In here you will find some very simple input lists that are useful for testing
 the correct functionality of the various OONIProbe tests.
 
-# DNS Tamper
+# DNS Consistency
 
-./bin/ooniprobe -o dns_tamper_test.yamloo data/nettests/blocking/dnsconsistency.py -t
+./bin/ooniprobe -o dns_tamper_test.yamloo data/nettests/blocking/dns_consistency.py -t
 example_inputs/dns_tamper_test_resolvers.txt -f example_inputs/dns_tamper_file.txt
 
 less dns_tamper_test.yamloo

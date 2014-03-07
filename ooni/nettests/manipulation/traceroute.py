@@ -22,9 +22,8 @@ class UsageOptions(usage.Options):
                     ['numPackets', 'n', None, 'Specify the number of packets to send per hop'],
                     ]
 
-class TracerouteTest(scapyt.BaseScapyTest):
-    name = "Multi Protocol Traceroute Test"
-    
+class Traceroute(scapyt.BaseScapyTest):
+    name = "Traceroute"
     description = "Performs a UDP, TCP, ICMP traceroute with destination port number set to 0, 22, 23, 53, 80, 123, 443, 8080 and 65535"
 
     requiredTestHelpers = {'backend': 'traceroute'}

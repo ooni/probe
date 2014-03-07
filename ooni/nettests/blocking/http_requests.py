@@ -27,7 +27,7 @@ class HTTPRequestsTest(httpt.HTTPTest):
     We check to see if the response headers match and if the response body
     lengths match.
     """
-    name = "HTTP Requests Test"
+    name = "HTTP Requests"
     description = "Performs a HTTP GET request over Tor and one over the local network and compares the two results."
     author = "Arturo Filastò"
     version = "0.2.4"
