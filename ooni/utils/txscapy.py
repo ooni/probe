@@ -108,8 +108,14 @@ class IfaceError(Exception):
 def getAddresses():
     from scapy.all import get_if_addr, get_if_list
     from ipaddr import IPAddress
-    addresses = set([get_if_addr(i) for i in get_if_list()])
-    addresses.remove('0.0.0.0')
+    addresses = set()
+    for i in get_if_list():
+        try:
+            addresses.add(get_if_addr(i))
+        except:
+            pass
+    if '0.0.0.0' in addresses:
+        addresses.remove('0.0.0.0')
     return [IPAddress(addr) for addr in addresses]
 
 def getDefaultIface():

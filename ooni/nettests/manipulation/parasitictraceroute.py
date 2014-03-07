@@ -33,7 +33,7 @@ class ParasiticTracerouteTest(scapyt.BaseScapyTest):
             if k in self.pt.matched_packets:
                 ttl = self.pt.matched_packets[k]['ttl']
             else:
-                ttl = 'Unknown'
+                ttl = 'unknown'
             hop = (ttl, packet.src)
             path = 'hops_%s' % packet[IPerror].dst
             if path in self.report['parasitic_traceroute']:
