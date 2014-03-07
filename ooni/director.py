@@ -217,7 +217,6 @@ class Director(object):
             net_test_loader:
                 an instance of :class:ooni.nettest.NetTestLoader
         """
-
         if config.privacy.includepcap:
             if not config.reports.pcap:
                 config.reports.pcap = config.generatePcapFilename(net_test_loader.testDetails)
@@ -231,14 +230,14 @@ class Director(object):
         yield net_test.report.open()
 
         yield net_test.initializeInputProcessor()
-        self.measurementManager.schedule(net_test.generateMeasurements())
+        try:
+            self.activeNetTests.append(net_test)
+            self.measurementManager.schedule(net_test.generateMeasurements())
 
-        self.activeNetTests.append(net_test)
-
-        yield net_test.done
-        yield report.close()
-
-        self.netTestDone(net_test)
+            yield net_test.done
+            yield report.close()
+        finally:
+            self.netTestDone(net_test)
 
     def startSniffing(self):
         """ Start sniffing with Scapy. Exits if required privileges (root) are not
@@ -287,6 +286,7 @@ class Director(object):
             Called when we read from stdout that Tor has reached 100%.
             """
             log.debug("Building a TorState")
+            config.tor.protocol = proto
             state = TorState(proto.tor_protocol)
             state.post_bootstrap.addCallback(state_complete)
             state.post_bootstrap.addErrback(setup_failed)

@@ -1,12 +1,9 @@
 from twisted.python import failure
 from twisted.internet import defer
 
-from ooni.settings import config
 from ooni.tasks import BaseTask, TaskWithTimeout
 from ooni.nettest import NetTest
 from ooni.managers import TaskManager
-
-config.logging = False
 
 class MockMeasurementFailOnce(BaseTask):
     def run(self):

@@ -495,6 +495,9 @@ class NetTest(object):
         self.done = defer.Deferred()
 
         self.state = NetTestState(self.done)
+    
+    def __str__(self):
+        return ' '.join(tc.name for tc, _ in self.testCases)
 
     def doneReport(self, report_results):
         """
@@ -642,7 +645,6 @@ class NetTestCase(object):
     inputFilename = None
 
     report = {}
-    report['errors'] = []
 
     usageOptions = usage.Options
 
@@ -660,6 +662,7 @@ class NetTestCase(object):
         This is the internal setup method to be overwritten by templates.
         """
         self.report = {}
+        self.inputs = None
 
     def setUp(self):
         """
@@ -742,13 +745,13 @@ class NetTestCase(object):
             a generator that will yield one item from the file based on the
             inputProcessor.
         """
-        if self.inputs:
-            return self.inputs
-
         if self.inputFileSpecified:
             self.inputFilename = self.localOptions[self.inputFile[0]]
             return self.inputProcessor(self.inputFilename)
 
+        if self.inputs:
+            return self.inputs
+ 
         return None
 
     def _checkValidOptions(self):

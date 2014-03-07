@@ -107,7 +107,7 @@ class Measurement(TaskWithTimeout):
         self.testInstance.input = test_input
         self.testInstance._setUp()
         if 'input' not in self.testInstance.report.keys():
-            self.testInstance.report = {'input': test_input}
+            self.testInstance.report['input'] = test_input
         self.testInstance._start_time = time.time()
         self.testInstance.setUp()
 

@@ -92,16 +92,7 @@ def parseOptions():
 
     return dict(cmd_line_options)
 
-def shutdown(result):
-    """
-    This will get called once all the operations that need to be done in the
-    current oonicli session have been completed.
-    """
-    log.debug("Halting reactor")
-    try: reactor.stop()
-    except: pass
-
-def runWithDirector():
+def runWithDirector(logging=True, start_tor=True):
     """
     Instance the director, parse command line options and start an ooniprobe
     test!
@@ -110,8 +101,11 @@ def runWithDirector():
     config.global_options = global_options
     config.set_paths()
     config.read_config_file()
+    if not start_tor:
+        config.advanced.start_tor = False
     
-    log.start(global_options['logfile'])
+    if logging:
+        log.start(global_options['logfile'])
     
     if config.privacy.includepcap:
         try:
@@ -172,7 +166,7 @@ def runWithDirector():
         sys.exit(2)
     
     def setup_nettest(_):
-        try: 
+        try:
             return deck.setup()
         except errors.UnableToLoadDeckInput as error:
             return defer.failure.Failure(error)
@@ -241,7 +235,8 @@ def runWithDirector():
                 raise errors.TorNotRunning
 
             test_details = net_test_loader.testDetails
-            yaml_reporter = YAMLReporter(test_details)
+            yaml_reporter = YAMLReporter(test_details,
+                                         report_filename=global_options['reportfile'])
             reporters = [yaml_reporter]
 
             if collector:
@@ -252,15 +247,13 @@ def runWithDirector():
                 except errors.InvalidOONIBCollectorAddress, e:
                     raise e
 
-            log.debug("adding callback for startNetTest")
-            director.startNetTest(net_test_loader, reporters)
-
-        director.allTestsDone.addBoth(shutdown)
+            netTestDone = director.startNetTest(net_test_loader, reporters)
+            return netTestDone
 
     def start():
         d.addCallback(setup_nettest)
         d.addCallback(post_director_start)
         d.addErrback(director_startup_failed)
+        return d
 
-    reactor.callWhenRunning(start)
-    reactor.run()
+    return start()

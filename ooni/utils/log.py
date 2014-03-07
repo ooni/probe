@@ -24,25 +24,38 @@ class LogWithNoPrefix(txlog.FileLogObserver):
         util.untilConcludes(self.write, "%s\n" % text)
         util.untilConcludes(self.flush)  # Hoorj!
 
+class OONILogger(object):
+    def start(self, logfile=None, application_name="ooniprobe"):
+        daily_logfile = None
+
+        if not logfile:
+            logfile = os.path.expanduser(config.basic.logfile)
+
+        log_folder = os.path.dirname(logfile)
+        log_filename = os.path.basename(logfile)
+
+        daily_logfile = DailyLogFile(log_filename, log_folder)
+
+        txlog.msg("Starting %s on %s (%s UTC)" %  (application_name, otime.prettyDateNow(),
+                                                     otime.utcPrettyDateNow()))
+ 
+        self.fileObserver = txlog.FileLogObserver(daily_logfile)
+        self.stdoutObserver = LogWithNoPrefix(sys.stdout)
+
+        txlog.startLoggingWithObserver(self.stdoutObserver.emit)
+        txlog.addObserver(self.fileObserver.emit)
+
+    def stop(self):
+        self.stdoutObserver.stop()
+        self.fileObserver.stop()
+
+oonilogger = OONILogger()
+
 def start(logfile=None, application_name="ooniprobe"):
-    daily_logfile = None
-
-    if not logfile:
-        logfile = os.path.expanduser(config.basic.logfile)
-
-    log_folder = os.path.dirname(logfile)
-    log_filename = os.path.basename(logfile)
-
-    daily_logfile = DailyLogFile(log_filename, log_folder)
-
-    txlog.msg("Starting %s on %s (%s UTC)" %  (application_name, otime.prettyDateNow(),
-                                                 otime.utcPrettyDateNow()))
-
-    txlog.startLoggingWithObserver(LogWithNoPrefix(sys.stdout).emit)
-    txlog.addObserver(txlog.FileLogObserver(daily_logfile).emit)
+    oonilogger.start(logfile, application_name)
 
 def stop():
-    print "Stopping OONI"
+    oonilogger.stop()
 
 def msg(msg, *arg, **kw):
     if config.logging:

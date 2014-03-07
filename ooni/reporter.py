@@ -165,15 +165,16 @@ class YAMLReporter(OReporter):
         the destination directory of the report
 
     """
-    def __init__(self, test_details, report_destination='.'):
+    def __init__(self, test_details, report_destination='.', report_filename=None):
         self.reportDestination = report_destination
 
         if not os.path.isdir(report_destination):
             raise InvalidDestination
-
-        report_filename = "report-" + \
-                test_details['test_name'] + "-" + \
-                otime.timestamp() + ".yamloo"
+        
+        if not report_filename:
+            report_filename = "report-" + \
+                              test_details['test_name'] + "-" + \
+                              otime.timestamp() + ".yamloo"
 
         report_path = os.path.join(self.reportDestination, report_filename)
 
