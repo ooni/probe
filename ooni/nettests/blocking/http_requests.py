@@ -30,7 +30,7 @@ class HTTPRequestsTest(httpt.HTTPTest):
     name = "HTTP Requests Test"
     description = "Performs a HTTP GET request over Tor and one over the local network and compares the two results."
     author = "Arturo Filastò"
-    version = "0.2.3"
+    version = "0.2.4"
 
     usageOptions = UsageOptions
 
@@ -56,6 +56,12 @@ class HTTPRequestsTest(httpt.HTTPTest):
         self.factor = self.localOptions['factor']
         self.report['control_failure'] = None
         self.report['experiment_failure'] = None
+        self.report['body_length_match'] =  None
+        self.report['body_proportion'] = None
+        self.report['factor'] = float(self.factor)
+        self.report['headers_diff'] = None
+        self.report['headers_match'] = None
+
         self.headers = {'User-Agent': [random.choice(userAgents)]}
 
     def compare_body_lengths(self, body_length_a, body_length_b):
@@ -71,7 +77,6 @@ class HTTPRequestsTest(httpt.HTTPTest):
             rel = 1/rel
 
         self.report['body_proportion'] = rel
-        self.report['factor'] = float(self.factor)
         if rel > float(self.factor):
             log.msg("The two body lengths appear to match")
             log.msg("censorship is probably not happening")
