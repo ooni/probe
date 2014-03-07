@@ -248,7 +248,7 @@ def runWithDirector(logging=True, start_tor=True):
                     raise e
 
             netTestDone = director.startNetTest(net_test_loader, reporters)
-            return netTestDone
+        return director.allTestsDone
 
     def start():
         d.addCallback(setup_nettest)
