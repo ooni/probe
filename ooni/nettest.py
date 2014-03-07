@@ -761,11 +761,14 @@ class NetTestCase(object):
                     raise e.InvalidOption
 
     def _checkRequiredOptions(self):
+        missing_options = []
         for required_option in self.requiredOptions:
             log.debug("Checking if %s is present" % required_option)
             if required_option not in self.localOptions or \
                 self.localOptions[required_option] == None:
-                raise e.MissingRequiredOption(required_option)
+                    missing_options.append(required_option)
+        if missing_options:
+            raise e.MissingRequiredOption(missing_options)
 
     def __repr__(self):
         return "<%s inputs=%s>" % (self.__class__, self.inputs)
