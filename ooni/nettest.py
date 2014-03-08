@@ -238,45 +238,15 @@ class NetTestLoader(object):
     def testDetails(self):
         from ooni import __version__ as software_version
 
-        client_geodata = {
-                'city': None, 
-                'countrycode': 'ZZ',
-                'asn': 'AS0',
-                'ip': '127.0.0.1'
-        }
-
-        if config.probe_ip and config.probe_ip.address and (config.privacy.includeip or \
-                config.privacy.includeasn or \
-                config.privacy.includecountry or \
-                config.privacy.includecity):
-            log.msg("We will include some geo data in the report")
-            client_geodata = geoip.IPToLocation(config.probe_ip.address)
-
-        if config.privacy.includeip:
-            client_geodata['ip'] = config.probe_ip.address
-        else:
-            client_geodata['ip'] = "127.0.0.1"
-
-        # Here we unset all the client geodata if the option to not include then
-        # has been specified
-        if not config.privacy.includeasn:
-            client_geodata['asn'] = 'AS0'
-
-        if not config.privacy.includecity:
-            client_geodata['city'] = None
-
-        if not config.privacy.includecountry:
-            client_geodata['countrycode'] = None
-        
         input_file_hashes = []
         for input_file in self.inputFiles:
             input_file_hashes.append(input_file['hash'])
 
         test_details = {'start_time': time.time(),
-            'probe_asn': client_geodata['asn'],
-            'probe_cc': client_geodata['countrycode'],
-            'probe_ip': client_geodata['ip'],
-            'probe_city': client_geodata['city'],
+            'probe_asn': config.probe_ip.geodata['asn'],
+            'probe_cc': config.probe_ip.geodata['countrycode'],
+            'probe_ip': config.probe_ip.geodata['ip'],
+            'probe_city': config.probe_ip.geodata['city'],
             'test_name': self.testName,
             'test_version': self.testVersion,
             'software_name': 'ooniprobe',

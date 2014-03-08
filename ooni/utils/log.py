@@ -9,7 +9,6 @@ from twisted.python.failure import Failure
 from twisted.python.logfile import DailyLogFile
 
 from ooni import otime
-from ooni.settings import config
 
 ## Get rid of the annoying "No route found for
 ## IPv6 destination warnings":
@@ -26,6 +25,8 @@ class LogWithNoPrefix(txlog.FileLogObserver):
 
 class OONILogger(object):
     def start(self, logfile=None, application_name="ooniprobe"):
+        from ooni.settings import config
+
         daily_logfile = None
 
         if not logfile:
@@ -58,14 +59,17 @@ def stop():
     oonilogger.stop()
 
 def msg(msg, *arg, **kw):
+    from ooni.settings import config
     if config.logging:
         print "%s" % msg
 
 def debug(msg, *arg, **kw):
+    from ooni.settings import config
     if config.advanced.debug and config.logging:
         print "[D] %s" % msg
 
 def err(msg, *arg, **kw):
+    from ooni.settings import config
     if config.logging:
         print "[!] %s" % msg
 
