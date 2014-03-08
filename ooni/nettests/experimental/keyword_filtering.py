@@ -26,6 +26,8 @@ class KeywordFiltering(scapyt.BaseScapyTest):
 
     inputFile = ['file', 'f', None, 
             'List of keywords to use for censorship testing']
+    requiresRoot = True
+    requiresTor = False
 
     def test_tcp_keyword_filtering(self):
         """

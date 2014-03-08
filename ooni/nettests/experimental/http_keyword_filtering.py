@@ -26,6 +26,8 @@ class HTTPKeywordFiltering(httpt.HTTPTest):
     inputFile = ['file', 'f', None, 'List of keywords to use for censorship testing']
 
     usageOptions = UsageOptions
+    requiresTor = False
+    requiresRoot = False
 
     requiredOptions = ['backend']
 

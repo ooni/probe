@@ -47,6 +47,8 @@ class HTTPHost(httpt.HTTPTest):
 
     requiredTestHelpers = {'backend': 'http-return-json-headers'}
     requiredOptions = ['backend']
+    requiresTor = False
+    requiresRoot = False
     
     def setUp(self):
         self.report['transparent_http_proxy'] = False

@@ -20,6 +20,8 @@ class DOMClassCollector(httpt.HTTPTest):
     followRedirects = True
 
     inputFile = ['file', 'f', None, 'The list of urls to build a domclass for']
+    requiresTor = False
+    requiresRoot = False
 
     def test_collect(self):
         if self.input:

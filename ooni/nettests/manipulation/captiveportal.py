@@ -72,6 +72,8 @@ class CaptivePortal(nettest.NetTestCase):
     version = '0.2'
     author = "Isis Lovecruft"
     usageOptions = UsageOptions
+    requiresRoot = False
+    requiresTor = False
 
     def http_fetch(self, url, headers={}):
         """

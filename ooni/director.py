@@ -118,10 +118,10 @@ class Director(object):
         return nettests
 
     @defer.inlineCallbacks
-    def start(self):
+    def start(self, start_tor=False):
         self.netTests = self.getNetTests()
 
-        if config.advanced.start_tor:
+        if config.advanced.start_tor and start_tor:
             yield self.startTor()
         elif config.tor.control_port:
             log.msg("Connecting to Tor Control Port...")

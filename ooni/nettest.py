@@ -38,44 +38,6 @@ def get_test_methods(item, method_prefix="test_"):
         pass
     return test_cases
 
-def loadNetTestString(net_test_string):
-    """
-    Load NetTest from a string.
-    WARNING input to this function *MUST* be sanitized and *NEVER* be
-    untrusted.
-    Failure to do so will result in code exec.
-
-    net_test_string:
-
-        a string that contains the net test to be run.
-    """
-    net_test_file_object = StringIO(net_test_string)
-
-    ns = {}
-    test_cases = []
-    exec net_test_file_object.read() in ns
-    for item in ns.itervalues():
-        test_cases.extend(get_test_methods(item))
-
-    if not test_cases:
-        raise e.NoTestCasesFound
-
-    return test_cases
-
-def loadNetTestFile(net_test_file):
-    """
-    Load NetTest from a file.
-    """
-    test_cases = []
-    module = filenameToModule(net_test_file)
-    for __, item in getmembers(module):
-        test_cases.extend(get_test_methods(item))
-
-    if not test_cases:
-        raise e.NoTestCasesFound
-
-    return test_cases
-
 def getTestClassFromFile(net_test_file):
     """
     Will return the first class that is an instance of NetTestCase.
@@ -173,20 +135,18 @@ def getNetTestInformation(net_test_file):
 class NetTestLoader(object):
     method_prefix = 'test'
     collector = None
+    requiresTor = False
 
     def __init__(self, options, test_file=None, test_string=None):
         self.onionInputRegex =  re.compile("(httpo://[a-z0-9]{16}\.onion)/input/([a-z0-9]{64})$")
         self.options = options
-        self.testCases, test_cases = None, None
+        self.testCases = []
 
         if test_file:
-            test_cases = loadNetTestFile(test_file)
+            self.loadNetTestFile(test_file)
         elif test_string:
-            test_cases = loadNetTestString(test_string)
+            self.loadNetTestString(test_string)
 
-        if test_cases:
-            self.setupTestCases(test_cases)
-   
     @property
     def requiredTestHelpers(self):
         required_test_helpers = []
@@ -410,6 +370,8 @@ class NetTestLoader(object):
             test_instance = klass()
             if test_instance.requiresRoot:
                 checkForRoot()
+            if test_instance.requiresTor:
+                self.requiresTor = True
             test_instance._checkRequiredOptions()
             test_instance._checkValidOptions()
 
@@ -671,6 +633,7 @@ class NetTestCase(object):
     requiredTestHelpers = {}
     requiredOptions = []
     requiresRoot = False
+    requiresTor = False
 
     localOptions = {}
     def _setUp(self):

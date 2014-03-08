@@ -46,6 +46,8 @@ class DNSConsistencyTest(dnst.DNSTest):
                  'Input file of list of hostnames to attempt to resolve']
     
     requiredTestHelpers = {'backend': 'dns'}
+    requiresRoot = False
+    requiresTor = False
 
     usageOptions = UsageOptions
     requiredOptions = ['backend', 'file']

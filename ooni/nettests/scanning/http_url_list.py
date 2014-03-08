@@ -29,6 +29,9 @@ class HTTPURLList(httpt.HTTPTest):
 
     usageOptions = UsageOptions
 
+    requiresRoot = False
+    requiresTor = False
+
     inputFile = ['file', 'f', None, 
             'List of URLS to perform GET and POST requests to']
 
@@ -94,5 +97,3 @@ class HTTPURLList(httpt.HTTPTest):
 
     def test_put(self):
         return self.doRequest(self.url, method="PUT")
-
-

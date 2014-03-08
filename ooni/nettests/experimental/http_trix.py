@@ -16,6 +16,8 @@ class HTTPTrix(tcpt.TCPTest):
     authors = "Arturo Filastò"
 
     usageOptions = UsageOptions
+    requiresTor = False
+    requiresRoot = False
     requiredOptions = ['backend']
 
     def setUp(self):

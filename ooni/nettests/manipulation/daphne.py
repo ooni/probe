@@ -69,7 +69,8 @@ class daphn3Test(nettest.NetTestCase):
             'Specify the pcap or YAML file to be used as input to the test']
 
     #requiredOptions = ['file']
-
+    requiresRoot = False
+    requiresTor = False
     steps = None
 
     def inputProcessor(self, filename):

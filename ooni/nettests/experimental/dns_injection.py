@@ -30,6 +30,8 @@ class DNSInjectionTest(dnst.DNSTest):
 
     usageOptions = UsageOptions
     requiredOptions = ['resolver', 'file']
+    requiresRoot = False
+    requiresTor = False
 
     def setUp(self):
         self.resolver = (self.localOptions['resolver'], 53)

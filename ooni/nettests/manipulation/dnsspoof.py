@@ -32,6 +32,8 @@ class DNSSpoof(scapyt.ScapyTest):
 
     requiredTestHelpers = {'backend': 'dns'}
     requiredOptions = ['hostname', 'resolver']
+    requiresRoot = True
+    requiresTor = False
 
     def setUp(self):
         self.resolverAddr, self.resolverPort = self.localOptions['resolver'].split(':')

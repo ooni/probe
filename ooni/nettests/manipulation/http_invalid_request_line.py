@@ -28,6 +28,8 @@ class HTTPInvalidRequestLine(tcpt.TCPTest):
 
     requiredTestHelpers = {'backend': 'tcp-echo'}
     requiredOptions = ['backend']
+    requiresRoot = False
+    requiresTor = False
 
     def setUp(self):
         self.port = int(self.localOptions['backendport'])

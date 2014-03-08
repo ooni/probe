@@ -86,6 +86,7 @@ class Deck(InputFile):
                  deckFile=None,
                  decks_directory=config.decks_directory):
         self.id = deck_hash
+        self.requiresTor = False
         self.bouncer = ''
         self.netTestLoaders = []
         self.inputs = []
@@ -135,12 +136,15 @@ class Deck(InputFile):
             return False
         try:
             net_test_loader.checkOptions()
+            if net_test_loader.requiresTor:
+                self.requiresTor = True
         except e.MissingRequiredOption, missing_options:
             if not self.bouncer:
                 raise
             for missing_option in missing_options.message:
                 if not has_test_helper(missing_option):
                     raise
+            self.requiresTor = True
         self.netTestLoaders.append(net_test_loader)
 
     @defer.inlineCallbacks

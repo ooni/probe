@@ -51,6 +51,8 @@ class HTTPHeaderFieldManipulation(httpt.HTTPTest):
 
     requiredTestHelpers = {'backend': 'http-return-json-headers'}
     requiredOptions = ['backend']
+    requiresTor = False
+    requiresRoot = False
 
     def get_headers(self):
         headers = {}

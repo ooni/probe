@@ -33,6 +33,8 @@ class HTTPUKMobileNetworksTest(httpt.HTTPTest):
 
     inputFile = ['urls', 'f', None, 'List of urls one per line to test for censorship']
     requiredOptions = ['urls']
+    requiresRoot = False
+    requiresTor = False
 
     def testPattern(self, value, pattern, type):
         if type == 'eq':
@@ -80,6 +82,3 @@ class HTTPUKMobileNetworksTest(httpt.HTTPTest):
         log.msg("Testing rules %s" % rules)
         redirect = self.testRules(rules, location)
         self.report['redirect'] = redirect
-
-
-

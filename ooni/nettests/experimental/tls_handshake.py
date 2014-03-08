@@ -143,6 +143,7 @@ class HandshakeTest(nettest.NetTestCase):
     version      = '0.0.3'
 
     requiresRoot = False
+    requiresTor  = False
     usageOptions = HandshakeOptions
 
     host = None

@@ -20,7 +20,9 @@ class TCPConnectTest(nettest.NetTestCase):
     version = "0.1"
     inputFile = ['file', 'f', None,
             'File containing the IP:PORT combinations to be tested, one per line']
-
+    
+    requiresTor = False
+    requiresRoot = False
     requiredOptions = ['file']
     def test_connect(self):
         """

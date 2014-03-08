@@ -36,6 +36,8 @@ class HTTPRequestsTest(httpt.HTTPTest):
 
     inputFile = ['file', 'f', None,
             'List of URLS to perform GET and POST requests to']
+    requiresRoot = False
+    requiresTor = False
 
     # These values are used for determining censorship based on response body
     # lengths

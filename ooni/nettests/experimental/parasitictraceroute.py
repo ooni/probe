@@ -13,6 +13,8 @@ class ParasiticTracerouteTest(scapyt.BaseScapyTest):
     version = '0.1'
 
     samplePeriod = 40
+    requiresTor = False
+    requiresRoot = False
 
     def setUp(self):
         self.report['parasitic_traceroute'] = {}

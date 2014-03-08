@@ -133,8 +133,6 @@ def runWithDirector(logging=True, start_tor=True):
 
         sys.exit(0)
 
-    d = director.start()
-
     #XXX: This should mean no bouncer either!
     if global_options['no-collector']:
         log.msg("Not reporting using a collector")
@@ -143,6 +141,11 @@ def runWithDirector(logging=True, start_tor=True):
 
     deck = Deck()
     deck.bouncer = global_options['bouncer']
+    start_tor = deck.requiresTor
+    if global_options['bouncer']:
+        start_tor = True
+    if global_options['collector']:
+        start_tor = True
 
     try:
         if global_options['testdeck']:
@@ -165,6 +168,8 @@ def runWithDirector(logging=True, start_tor=True):
         print net_test_loader.usageOptions().getUsage()
         sys.exit(2)
     
+    d = director.start(start_tor=start_tor)
+   
     def setup_nettest(_):
         try:
             return deck.setup()

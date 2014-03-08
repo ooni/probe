@@ -23,6 +23,10 @@ class SquidTest(httpt.HTTPTest):
 
     #inputFile = ['urls', 'f', None, 'Urls file']
     inputs =['http://google.com']
+
+    requiresRoot = False
+    requiresTor = False
+
     def test_cacheobject(self):
         """
         This detects the presence of a squid transparent HTTP proxy by sending

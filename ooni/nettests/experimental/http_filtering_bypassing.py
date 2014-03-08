@@ -20,10 +20,13 @@ class HTTPFilteringBypass(tcpt.TCPTest):
 
     usageOptions = UsageOptions
     requiredOptions = ['backend']
+    requiresRoot = False
+    requiresTor = False
 
     def setUp(self):
         self.port = int(self.localOptions['backendport'])
         self.address = self.localOptions['backend']
+        self.report['tampering'] = None
 
     def check_for_manipulation(self, response, payload):
         log.debug("Checking if %s == %s" % (response, payload))

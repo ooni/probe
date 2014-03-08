@@ -14,6 +14,8 @@ from twisted.internet import reactor, threads, defer
 
 class NetalyzrWrapperTest(nettest.NetTestCase):
     name = "NetalyzrWrapper"
+    requiresRoot = False
+    requiresTor = False
 
     def setUp(self):
         cwd = os.path.abspath(os.path.join(os.path.abspath(__file__), '..'))

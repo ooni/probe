@@ -66,6 +66,8 @@ class Script(nettest.NetTestCase):
 
     usageOptions = UsageOptions
     requiredOptions = ['interpreter', 'script']
+    requiresRoot = False
+    requiresTor = False
 
     def test_run_script(self):
         """
