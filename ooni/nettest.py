@@ -705,7 +705,11 @@ class NetTestCase(object):
         with open(filename) as f:
             for line in f:
                 l = line.strip()
+                # Skip empty lines
                 if not l:
+                    continue
+                # Skip comment lines
+                elif l.startswith('#'):
                     continue
                 yield l
 
