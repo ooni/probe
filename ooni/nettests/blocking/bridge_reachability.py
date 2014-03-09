@@ -18,7 +18,7 @@ class UsageOptions(usage.Options):
                     ]
 
 class BridgeReachability(nettest.NetTestCase):
-    name = "BridgeReachability"
+    name = "Bridge Reachability"
     author = "Arturo Filastò"
     version = "0.1"
 
@@ -36,6 +36,8 @@ class BridgeReachability(nettest.NetTestCase):
         self.timeout = int(self.localOptions['timeout'])
         self.report['timeout'] = self.timeout
         self.bridge = self.input
+        if self.input.startswith('Bridge'):
+            self.bridge = self.input.replace('Bridge ', '')
         self.pyobfsproxy_bin = find_executable('obfsproxy')
 
     def test_full_tor_connection(self):
