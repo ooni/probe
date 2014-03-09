@@ -704,7 +704,10 @@ class NetTestCase(object):
         log.debug("Running default input processor")
         with open(filename) as f:
             for line in f:
-                yield line.strip()
+                l = line.strip()
+                if not l:
+                    continue
+                yield l
 
     @property
     def inputFileSpecified(self):
