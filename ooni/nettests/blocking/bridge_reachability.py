@@ -39,7 +39,7 @@ class BridgeReachability(nettest.NetTestCase):
         if self.input.startswith('Bridge'):
             self.bridge = self.input.replace('Bridge ', '')
         self.pyobfsproxy_bin = find_executable('obfsproxy')
-
+    
     def test_full_tor_connection(self):
         def getTransport(address):
             """
