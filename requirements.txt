@@ -7,5 +7,5 @@ txtorcon>=0.7
 txsocksx>=0.0.2
 parsley>=1.1
 dnspython>=1.10.0
-scapy>=2.2.0-dev
+scapy-real>=2.2.0-dev
 pypcap>=1.1
