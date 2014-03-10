@@ -62,6 +62,7 @@ class BridgeReachability(nettest.NetTestCase):
             self.summary['successes'].append(details)
         else:
             self.summary['failures'].append(details)
+        return self.report
 
     def displaySummary(self, summary):
         successful_count = {}
