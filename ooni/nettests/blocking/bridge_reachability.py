@@ -74,8 +74,8 @@ class BridgeReachability(nettest.NetTestCase):
         count(summary['successes'], successful_count)
         count(summary['failures'], failure_count)
 
-        working_bridges = ', '.join([x['address'] for x in summary['successes']])
-        failing_bridges = ', '.join([x['address'] + " (at %s%%)" % x['tor_progress'] for x in summary['failures']])
+        working_bridges = ', '.join(["%s %s" % (x['transport_name'], x['address']) for x in summary['successes']])
+        failing_bridges = ', '.join(["%s %s (at %s%%)" % (x['transport_name'], x['address'], x['tor_progress']) for x in summary['failures']])
 
         print "Total successes: %d" % len(summary['successes'])
         print "Total failures: %d" % len(summary['failures'])
