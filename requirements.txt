@@ -1,6 +1,5 @@
 PyYAML>=3.10
 Twisted>=12.2.0
-argparse>=1.2.1
 ipaddr-real>=2.1.10
 pyOpenSSL>=0.13
 geoip
