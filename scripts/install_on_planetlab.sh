@@ -3,7 +3,7 @@
 ## called torrc with inside the details of the torrc to use.
 
 sudo yum -y groupinstall "Development tools"
-sudo yum -y install zlib-devel bzip2-devel openssl-devel ncurses-devel sqlite-devel readline-devel tk-devel gdbm-devel db4-devel libpcap-devel libffi-devel screen libeven-devel unzip
+sudo yum -y install zlib-devel bzip2-devel openssl-devel ncurses-devel sqlite-devel readline-devel tk-devel gdbm-devel db4-devel libpcap-devel libffi-devel screen libeven-devel unzip tor
 cd `mktemp -d`
 
 # Install Python 2.7.6
@@ -92,8 +92,7 @@ sudo pip install obfsproxy
 ooniprobe
 
 # Update the Tor running in ooniprobe
-cat ~/.ooni/ooniprobe.conf | sed s/'start_tor: true'/'start_tor: false'/ | sed s/'#socks_port: 8801'/'socks_port: 9050'/ > ~/.ooni/ooniprobe.conf.new
-mv ~/.ooni/ooniprobe.conf.new ~/.ooni/ooniprobe.conf
+cat /usr/share/ooni/ooniprobe.conf.sample | sed s/'start_tor: true'/'start_tor: false'/ | sed s/'#socks_port: 8801'/'socks_port: 9050'/ > ~/.ooni/ooniprobe.conf
 
 mkdir /home/$USER/bridge_reachability/
 
