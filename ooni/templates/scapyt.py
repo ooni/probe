@@ -41,7 +41,7 @@ class BaseScapyTest(NetTestCase):
         super(BaseScapyTest, self)._setUp()
 
         if not config.scapyFactory:
-            log.debug("Scapy factoring not set, registering it.")
+            log.debug("Scapy factory not set, registering it.")
             config.scapyFactory = ScapyFactory(config.advanced.interface)
 
         self.report['answer_flags'] = []

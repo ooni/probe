@@ -504,6 +504,9 @@ class NetTest(object):
 
         self.state = NetTestState(self.done)
     
+    def __str__(self):
+        return ' '.join(tc.name for tc, _ in self.testCases)
+    
     def doneNetTest(self, result):
         print "Summary for %s" % self.testDetails['test_name']
         print "------------" + "-"*len(self.testDetails['test_name'])
@@ -658,7 +661,6 @@ class NetTestCase(object):
     inputFilename = None
 
     report = {}
-    report['errors'] = []
 
     usageOptions = usage.Options
 
@@ -676,6 +678,7 @@ class NetTestCase(object):
         This is the internal setup method to be overwritten by templates.
         """
         self.report = {}
+        self.inputs = None
 
     def setUp(self):
         """
@@ -774,13 +777,13 @@ class NetTestCase(object):
             a generator that will yield one item from the file based on the
             inputProcessor.
         """
-        if self.inputs:
-            return self.inputs
-
         if self.inputFileSpecified:
             self.inputFilename = self.localOptions[self.inputFile[0]]
             return self.inputProcessor(self.inputFilename)
 
+        if self.inputs:
+            return self.inputs
+ 
         return None
 
     def _checkValidOptions(self):
@@ -790,11 +793,14 @@ class NetTestCase(object):
                     raise e.InvalidOption
 
     def _checkRequiredOptions(self):
+        missing_options = []
         for required_option in self.requiredOptions:
             log.debug("Checking if %s is present" % required_option)
             if required_option not in self.localOptions or \
                 self.localOptions[required_option] == None:
-                raise e.MissingRequiredOption(required_option)
+                    missing_options.append(required_option)
+        if missing_options:
+            raise e.MissingRequiredOption(missing_options)
 
     def __repr__(self):
         return "<%s inputs=%s>" % (self.__class__, self.inputs)

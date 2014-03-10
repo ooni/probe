@@ -12,10 +12,10 @@ from ooni.nettest import NetTest, getNetTestInformation
 from ooni.settings import config
 from ooni import errors
 
-from txtorcon import TorConfig
-from txtorcon import TorState, launch_tor
+from txtorcon import TorConfig, TorState, launch_tor, build_tor_connection
 
 from twisted.internet import defer, reactor
+from twisted.internet.endpoints import TCP4ClientEndpoint
 
 class Director(object):
     """
@@ -123,6 +123,9 @@ class Director(object):
 
         if config.advanced.start_tor:
             yield self.startTor()
+        elif config.tor.control_port:
+            log.msg("Connecting to Tor Control Port...")
+            yield self.getTorState()
 
         config.probe_ip = geoip.ProbeIP()
         yield config.probe_ip.lookup()
@@ -217,7 +220,6 @@ class Director(object):
             net_test_loader:
                 an instance of :class:ooni.nettest.NetTestLoader
         """
-
         if config.privacy.includepcap:
             if not config.reports.pcap:
                 config.reports.pcap = config.generatePcapFilename(net_test_loader.testDetails)
@@ -231,14 +233,14 @@ class Director(object):
         yield net_test.report.open()
 
         yield net_test.initializeInputProcessor()
-        self.measurementManager.schedule(net_test.generateMeasurements())
+        try:
+            self.activeNetTests.append(net_test)
+            self.measurementManager.schedule(net_test.generateMeasurements())
 
-        self.activeNetTests.append(net_test)
-
-        yield net_test.done
-        yield report.close()
-
-        self.netTestDone(net_test)
+            yield net_test.done
+            yield report.close()
+        finally:
+            self.netTestDone(net_test)
 
     def startSniffing(self):
         """ Start sniffing with Scapy. Exits if required privileges (root) are not
@@ -257,6 +259,13 @@ class Director(object):
         self.sniffer = ScapySniffer(config.reports.pcap)
         config.scapyFactory.registerProtocol(self.sniffer)
         log.msg("Starting packet capture to: %s" % config.reports.pcap)
+
+    @defer.inlineCallbacks
+    def getTorState(self):
+        connection = TCP4ClientEndpoint(reactor, '127.0.0.1',
+                config.tor.control_port)
+        config.tor_state = yield build_tor_connection(connection)
+
 
     def startTor(self):
         """ Starts Tor
@@ -287,6 +296,7 @@ class Director(object):
             Called when we read from stdout that Tor has reached 100%.
             """
             log.debug("Building a TorState")
+            config.tor.protocol = proto
             state = TorState(proto.tor_protocol)
             state.post_bootstrap.addCallback(state_complete)
             state.post_bootstrap.addErrback(setup_failed)

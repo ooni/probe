@@ -14,4 +14,8 @@ copy_reg._reduce_ex = patched_reduce_ex
 # from ooni.oonicli import run
 # run()
 from ooni.oonicli import runWithDirector
-runWithDirector()
+d = runWithDirector()
+@d.addBoth
+def cb(result):
+    reactor.stop()
+reactor.run()

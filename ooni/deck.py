@@ -128,16 +128,19 @@ class Deck(InputFile):
 
     def insert(self, net_test_loader):
         """ Add a NetTestLoader to this test deck """
+        def has_test_helper(missing_option):
+            for rth in net_test_loader.requiredTestHelpers:
+                if missing_option == rth['option']:
+                    return True
+            return False
         try:
             net_test_loader.checkOptions()
-        except e.MissingRequiredOption, option_name:
+        except e.MissingRequiredOption, missing_options:
             if not self.bouncer:
                 raise
-            for rth in net_test_loader.requiredTestHelpers:
-                if option_name.message == rth['option']:
-                    break
-            else:
-                raise
+            for missing_option in missing_options.message:
+                if not has_test_helper(missing_option):
+                    raise
         self.netTestLoaders.append(net_test_loader)
 
     @defer.inlineCallbacks

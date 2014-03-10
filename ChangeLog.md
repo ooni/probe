@@ -1,3 +1,15 @@
+## v1.0.0
+
+* Add bouncer support for discovering test helpers and collectors
+
+* Fix bug that lead to HTTP tests to stall
+
+* Add support for connect_error and connection_lost_error error types
+
+* Add support for additional Tor configuration keys
+
+* Add disclaimer when running ooniprobe
+
 ## v0.1.0
 
 Improvements to HTML/JS based user interface:
