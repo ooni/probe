@@ -13,7 +13,7 @@ from ooni.utils import log
 from ooni import nettest
 
 class UsageOptions(usage.Options):
-    optParameters = [['timeout', 't', 60,
+    optParameters = [['timeout', 't', 120,
                       'Specify the timeout after which to consider the Tor bootstrapping process to have failed'],
                     ]
 
@@ -89,7 +89,6 @@ class BridgeReachability(nettest.NetTestCase):
         @d.addErrback
         def setup_failed(failure):
             log.msg("Failed to connect to %s" % self.bridge)
-            log.exception(failure)
             self.report['success'] = False
 
         return d
