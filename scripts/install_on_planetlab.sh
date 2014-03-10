@@ -79,7 +79,7 @@ make
 sudo make install
 
 # Install the latest version of pip
-wget https://raw.github.com/pypa/pip/master/contrib/get-pip.py
+wget -O get-pip.py --no-check-certificate https://raw.github.com/pypa/pip/master/contrib/get-pip.py
 sudo python get-pip.py
 
 # Install the patched versions of cryptography and pyopenssl
@@ -89,6 +89,7 @@ sudo pip install https://github.com/hellais/pyopenssl/archive/fix/openssl0.9.8co
 # Install ooniprobe and obfsproxy
 sudo pip install https://github.com/TheTorProject/ooni-probe/archive/master.zip
 sudo pip install obfsproxy
+ooniprobe
 
 # Update the Tor running in ooniprobe
 cat ~/.ooni/ooniprobe.conf | sed s/'start_tor: true'/'start_tor: false'/ | sed s/'#socks_port: 8801'/'socks_port: 9050'/ > ~/.ooni/ooniprobe.conf.new
