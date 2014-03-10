@@ -93,3 +93,8 @@ sudo pip install obfsproxy
 # Update the Tor running in ooniprobe
 cat ~/.ooni/ooniprobe.conf | sed s/'start_tor: true'/'start_tor: false'/ | sed s/'#socks_port: 8801'/'socks_port: 9050'/ > ~/.ooni/ooniprobe.conf.new
 mv ~/.ooni/ooniprobe.conf.new ~/.ooni/ooniprobe.conf
+
+mkdir /home/$USER/bridge_reachability/
+
+# Add cronjob to run ooniprobe daily
+{ crontab -l; echo "0 0 * * * $USER ooniprobe -c httpo://e2nl5qgtkzp7cibx.onion blocking/bridge_reachability -f /home/$USER/bridge_reachability/bridges.txt -t 300"; } | crontab
