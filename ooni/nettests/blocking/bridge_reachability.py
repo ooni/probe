@@ -37,7 +37,7 @@ class BridgeReachability(nettest.NetTestCase):
 
         self.report['timeout'] = self.timeout
         self.report['transport_name'] = 'vanilla'
-        self.report['tor_progress'] = None
+        self.report['tor_progress'] = 0
         self.report['tor_progress_tag'] = None
         self.report['tor_progress_summary'] = None
         self.report['bridge_address'] = None
@@ -55,7 +55,8 @@ class BridgeReachability(nettest.NetTestCase):
 
         details = {
             'address': self.report['bridge_address'],
-            'transport_name': self.report['transport_name']
+            'transport_name': self.report['transport_name'],
+            'tor_progress': self.report['tor_progress']
         }
         if self.report['success']:
             self.summary['successes'].append(details)
@@ -74,7 +75,7 @@ class BridgeReachability(nettest.NetTestCase):
         count(summary['failures'], failure_count)
 
         working_bridges = ', '.join([x['address'] for x in summary['successes']])
-        failing_bridges = ', '.join([x['address'] for x in summary['failures']])
+        failing_bridges = ', '.join([x['address'] + " (at %s%%)" % x['tor_progress'] for x in summary['failures']])
 
         print "Total successes: %d" % len(summary['successes'])
         print "Total failures: %d" % len(summary['failures'])
