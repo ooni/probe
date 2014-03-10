@@ -34,12 +34,59 @@ class BridgeReachability(nettest.NetTestCase):
     def setUp(self):
         self.tor_progress = 0
         self.timeout = int(self.localOptions['timeout'])
+
         self.report['timeout'] = self.timeout
+        self.report['transport_name'] = 'vanilla'
+        self.report['tor_progress'] = None
+        self.report['tor_progress_tag'] = None
+        self.report['tor_progress_summary'] = None
+        self.report['bridge_address'] = None
+
         self.bridge = self.input
         if self.input.startswith('Bridge'):
             self.bridge = self.input.replace('Bridge ', '')
         self.pyobfsproxy_bin = find_executable('obfsproxy')
     
+    def postProcessor(self, measurements):
+        if 'successes' not in self.summary:
+            self.summary['successes'] = []
+        if 'failures' not in self.summary:
+            self.summary['failures'] = []
+
+        details = {
+            'address': self.report['bridge_address'],
+            'transport_name': self.report['transport_name']
+        }
+        if self.report['success']:
+            self.summary['successes'].append(details)
+        else:
+            self.summary['failures'].append(details)
+
+    def displaySummary(self, summary):
+        successful_count = {}
+        failure_count = {}
+        def count(results, counter):
+            for result in results:
+                if result['transport_name'] not in counter:
+                    counter[result['transport_name']] = 0
+                counter[result['transport_name']] += 1
+        count(summary['successes'], successful_count)
+        count(summary['failures'], failure_count)
+
+        working_bridges = ', '.join([x['address'] for x in summary['successes']])
+        failing_bridges = ', '.join([x['address'] for x in summary['failures']])
+
+        print "Total successes: %d" % len(summary['successes'])
+        print "Total failures: %d" % len(summary['failures'])
+
+        for transport, count in successful_count.items():
+            print "%s successes: %d" % (transport.title(), count)
+        for transport, count in failure_count.items():
+            print "%s failures: %d" % (transport.title(), count)
+
+        print "Working bridges: %s" % working_bridges
+        print "Failing bridges: %s" % failing_bridges
+
     def test_full_tor_connection(self):
         def getTransport(address):
             """
@@ -59,22 +106,25 @@ class BridgeReachability(nettest.NetTestCase):
         config = txtorcon.TorConfig()
         config.ControlPort = random.randint(2**14, 2**16)
         config.SocksPort = random.randint(2**14, 2**16)
-
+        
         transport_name = getTransport(self.bridge)
         if transport_name and self.pyobfsproxy_bin:
             config.ClientTransportPlugin = "%s exec %s managed" % (transport_name, self.pyobfsproxy_bin)
             self.report['transport_name'] = transport_name
+            self.report['bridge_address'] = self.bridge.split(' ')[1]
         elif transport_name and not self.pyobfsproxy_bin:
             log.err("Unable to test bridge because pyobfsproxy is not installed")
             self.report['success'] = None
             return
+        else:
+            self.report['bridge_address'] = self.bridge.split(' ')[0]
 
         config.Bridge = self.bridge
         config.UseBridges = 1
         config.save()
 
         def updates(prog, tag, summary):
-            log.msg("Tor progress: %s%%" % prog)
+            log.msg("%s: %s%%" % (self.bridge, prog))
             self.report['tor_progress'] = int(prog)
             self.report['tor_progress_tag'] = tag
             self.report['tor_progress_summary'] = summary
