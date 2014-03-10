@@ -1,4 +1,7 @@
 #!/bin/sh
+## You should also create a file from the directory where you run this script
+## called torrc with inside the details of the torrc to use.
+
 sudo yum -y groupinstall "Development tools"
 sudo yum -y install zlib-devel bzip2-devel openssl-devel ncurses-devel sqlite-devel readline-devel tk-devel gdbm-devel db4-devel libpcap-devel libffi-devel screen libeven-devel unzip
 cd `mktemp -d`
@@ -60,6 +63,11 @@ cd tor-fix-fedora8
 ./configure --disable-asciidoc --with-libevent-dir=/usr/local/lib/
 make
 sudo make install
+sudo mv /usr/bin/tor /usr/bin/tor.old
+sudo ln -s /usr/local/bin/tor /usr/bin/tor
+echo "SocksPort 9050" > /usr/local/etc/tor/torrc
+cat torrc >> /usr/local/etc/tor/torrc
+/etc/init.d/tor restart
 
 # Install libGeoIP
 wget -O master.zip https://github.com/maxmind/geoip-api-c/archive/master.zip
@@ -81,3 +89,7 @@ sudo pip install https://github.com/hellais/pyopenssl/archive/fix/openssl0.9.8co
 # Install ooniprobe and obfsproxy
 sudo pip install https://github.com/TheTorProject/ooni-probe/archive/master.zip
 sudo pip install obfsproxy
+
+# Update the Tor running in ooniprobe
+cat ~/.ooni/ooniprobe.conf | sed s/'start_tor: true'/'start_tor: false'/ | sed s/'#socks_port: 8801'/'socks_port: 9050'/ > ~/.ooni/ooniprobe.conf.new
+mv ~/.ooni/ooniprobe.conf.new ~/.ooni/ooniprobe.conf
