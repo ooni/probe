@@ -698,7 +698,7 @@ class NetTestCase(object):
         """
         raise e.NoPostProcessor
 
-    def displaySummary(self):
+    def displaySummary(self, summary):
         """
         This gets called after the test has run to allow printing out of a
         summary of the test run.
