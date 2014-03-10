@@ -67,7 +67,50 @@ sudo mv /usr/bin/tor /usr/bin/tor.old
 sudo ln -s /usr/local/bin/tor /usr/bin/tor
 echo "SocksPort 9050" > /usr/local/etc/tor/torrc
 cat torrc >> /usr/local/etc/tor/torrc
-/etc/init.d/tor restart
+cat <<EOF > tor.init
+RETVAL=0
+prog="tor"
+
+# Source function library.
+. /etc/init.d/functions
+
+
+start() {
+  echo -n $"Starting $prog: "
+  daemon $prog --runasdaemon 1 && success || failure
+  RETVAL=$?
+  echo
+  return $RETVAL
+}
+
+stop() {
+  echo -n $"Stopping $prog: "
+        killall $prog
+  RETVAL=$?
+  echo
+  return $RETVAL
+}
+
+case "$1" in
+  start)
+    start
+  ;;
+  stop)
+    stop
+  ;;
+  restart)
+  stop
+    start
+  ;;
+  *)
+  echo $"Usage: $0 {start|stop|restart}"
+  RETVAL=3
+esac
+exit $RETVAL
+EOF
+sudo mv tor.init /etc/init.d/tor
+sudo chmod +x /etc/init.d/tor
+sudo /etc/init.d/tor restart
 
 # Install libGeoIP
 wget -O master.zip https://github.com/maxmind/geoip-api-c/archive/master.zip
