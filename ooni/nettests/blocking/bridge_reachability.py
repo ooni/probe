@@ -5,7 +5,7 @@ import subprocess
 from distutils.spawn import find_executable
 
 from twisted.python import usage
-from twisted.internet import defer, reactor
+from twisted.internet import defer, reactor, error
 
 import txtorcon
 
@@ -135,6 +135,10 @@ class BridgeReachability(nettest.NetTestCase):
                                 progress_updates=updates)
         @d.addCallback
         def setup_complete(proto):
+            try:
+                proto.transport.signalProcess('TERM')
+            except error.ProcessExitedAlready:
+                proto.transport.loseConnection()
             log.msg("Successfully connected to %s" % self.bridge)
             self.report['success'] = True
 
