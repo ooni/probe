@@ -141,3 +141,4 @@ mkdir /home/$USER/bridge_reachability/
 
 # Add cronjob to run ooniprobe daily
 { crontab -l; echo "0 0 * * * ooniprobe -c httpo://e2nl5qgtkzp7cibx.onion blocking/bridge_reachability -f /home/$USER/bridge_reachability/bridges.txt -t 300"; } | crontab
+sudo /etc/init.d/crond start
