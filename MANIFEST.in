@@ -1,4 +1,4 @@
-include README.md ChangeLog.md requirements.txt
+include README.md ChangeLog.md requirements.txt LICENSE
 recursive-include data/decks *
 include data/inputs/
 include data/GeoIP.dat

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 #-*- coding: utf-8 -*-
 
-from ooni import __version__
+from ooni import __version__, __author__
 import urllib2
 import os
 import gzip
@@ -49,9 +49,9 @@ if hasattr(sys, 'real_prefix'):
     with open(pj('data', 'ooniprobe.conf.sample.new'), 'w+') as w:
         with open(pj('data', 'ooniprobe.conf.sample')) as f:
             for line in f:
-                if line.startswith('    data_dir: /usr/share/ooni'):
+                if line.startswith('    data_dir: '):
                     w.write('    data_dir: %s\n' % usr_share_path)
-                elif line.startswith('    geoip_data_dir: /usr/share/'):
+                elif line.startswith('    geoip_data_dir: '):
                     w.write('    geoip_data_dir: %s\n' % usr_share_path)
                 else:
                     w.write(line)
@@ -88,9 +88,7 @@ for root, dirs, file_names in os.walk('data/'):
     data_files.append([pj(usr_share_path, root.replace('data/', '')), files])
 
 install_requires = []
-dependency_links = [
-    'https://people.torproject.org/~ioerror/src/mirrors/ooniprobe'
-]
+dependency_links = []
 with open('requirements.txt') as f:
     for line in f:
         if line.startswith("#"):
@@ -103,7 +101,7 @@ with open('requirements.txt') as f:
 setup(
     name="ooniprobe",
     version=__version__,
-    author="Open Observatory of Network Interference",
+    author=__author__,
     author_email = "ooni-dev@torproject.org",
     url="https://ooni.torproject.org/",
     package_dir={'ooni': 'ooni'},

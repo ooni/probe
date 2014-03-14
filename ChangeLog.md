@@ -1,3 +1,14 @@
+## v1.0.1
+
+* Fix bugs in the traceroute test that lead to not all packets being collected.
+
+* All values inside of http_requests test are now initialized inside of setUp.
+
+* Fix a bug that lead to the input value of the report not being set in some
+  circumstances.
+
+* Add bridge_reachability test
+
 ## v1.0.0
 
 * Add bouncer support for discovering test helpers and collectors
