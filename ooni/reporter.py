@@ -26,7 +26,8 @@ try:
     from scapy.packet import Packet
 except ImportError:
     log.err("Scapy is not installed.")
-
+    class Packet(object):
+        pass
 
 from ooni import errors
 

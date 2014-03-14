@@ -388,6 +388,9 @@ class NetTestLoader(object):
         self.testVersion = test_class.version
         self.testName = test_class_name_to_name(test_class.name)
         self.testCases = test_cases
+        self.testClasses = set([])
+        for test_class, test_method in self.testCases:
+            self.testClasses.add(test_class)
 
     def checkOptions(self):
         """
@@ -397,7 +400,7 @@ class NetTestLoader(object):
         for test_class, test_method in self.testCases:
             test_classes.add(test_class)
 
-        for klass in test_classes:
+        for klass in self.testClasses:
             options = self.usageOptions()
             options.parseOptions(self.options)
 
@@ -488,16 +491,28 @@ class NetTest(object):
         """
         self.report = report
         self.testCases = net_test_loader.testCases
+        self.testClasses = net_test_loader.testClasses
+        self.testDetails = net_test_loader.testDetails
+
+        self.summary = {}
 
         # This will fire when all the measurements have been completed and
         # all the reports are done. Done means that they have either completed
         # successfully or all the possible retries have been reached.
         self.done = defer.Deferred()
+        self.done.addCallback(self.doneNetTest)
 
         self.state = NetTestState(self.done)
     
     def __str__(self):
         return ' '.join(tc.name for tc, _ in self.testCases)
+    
+    def doneNetTest(self, result):
+        print "Summary for %s" % self.testDetails['test_name']
+        print "------------" + "-"*len(self.testDetails['test_name'])
+        for test_class in self.testClasses:
+            test_instance = test_class()
+            test_instance.displaySummary(self.summary)
 
     def doneReport(self, report_results):
         """
@@ -559,6 +574,7 @@ class NetTest(object):
             for input in test_class.inputs:
                 measurements = []
                 test_instance = test_class()
+                test_instance.summary = self.summary
                 for method in test_methods:
                     log.debug("Running %s %s" % (test_class, method))
                     measurement = self.makeMeasurement(test_instance, method, input)
@@ -677,8 +693,17 @@ class NetTestCase(object):
         postProcessing works exactly like test methods, in the sense that
         anything that gets written to the object self.report[] will be added to
         the final test report.
+        You should also place in this method any logic that is required for
+        generating the summary.
         """
         raise e.NoPostProcessor
+
+    def displaySummary(self, summary):
+        """
+        This gets called after the test has run to allow printing out of a
+        summary of the test run.
+        """
+        pass
 
     def inputProcessor(self, filename):
         """
@@ -707,7 +732,14 @@ class NetTestCase(object):
         log.debug("Running default input processor")
         with open(filename) as f:
             for line in f:
-                yield line.strip()
+                l = line.strip()
+                # Skip empty lines
+                if not l:
+                    continue
+                # Skip comment lines
+                elif l.startswith('#'):
+                    continue
+                yield l
 
     @property
     def inputFileSpecified(self):

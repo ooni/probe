@@ -1,21 +1,11 @@
 PyYAML>=3.10
 Twisted>=12.2.0
-argparse>=1.2.1
-ipaddr-real>=2.1.10
+ipaddr>=2.1.10
 pyOpenSSL>=0.13
 geoip
 txtorcon>=0.7
 txsocksx>=0.0.2
-Pyrex-real>=0.9.8.6
 parsley>=1.1
 dnspython>=1.10.0
-
-# Taken from the versions required by twisted 13.0.0 (latest)
-transaction>=1.1.1
-zope.component>=3.5
-zope.event>=3.5
-zope.interface>=3.6
-
-# Get scapy 2.2 from pypi
-# https://pypi.python.org/pypi/scapy-real/2.2.0-dev
-scapy-real==2.2.0-dev
+scapy-real>=2.2.0-dev
+pypcap>=1.1
