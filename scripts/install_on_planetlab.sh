@@ -76,22 +76,22 @@ prog="tor"
 
 
 start() {
-  echo -n $"Starting $prog: "
-  daemon $prog --runasdaemon 1 && success || failure
-  RETVAL=$?
+  echo -n $"Starting \$prog: "
+  daemon \$prog --runasdaemon 1 && success || failure
+  RETVAL=\$?
   echo
-  return $RETVAL
+  return \$RETVAL
 }
 
 stop() {
-  echo -n $"Stopping $prog: "
-        killall $prog
-  RETVAL=$?
+  echo -n $"Stopping \$prog: "
+        killall \$prog
+  RETVAL=\$?
   echo
-  return $RETVAL
+  return \$RETVAL
 }
 
-case "$1" in
+case "\$1" in
   start)
     start
   ;;
@@ -103,10 +103,10 @@ case "$1" in
     start
   ;;
   *)
-  echo $"Usage: $0 {start|stop|restart}"
+  echo $"Usage: \$0 {start|stop|restart}"
   RETVAL=3
 esac
-exit $RETVAL
+exit \$RETVAL
 EOF
 sudo mv tor.init /etc/init.d/tor
 sudo chmod +x /etc/init.d/tor
@@ -132,7 +132,7 @@ sudo pip install https://github.com/hellais/pyopenssl/archive/fix/openssl0.9.8co
 # Install ooniprobe and obfsproxy
 sudo pip install https://github.com/TheTorProject/ooni-probe/archive/master.zip
 sudo pip install obfsproxy
-ooniprobe
+/usr/local/bin/ooniprobe
 
 # Update the Tor running in ooniprobe
 cat /usr/share/ooni/ooniprobe.conf.sample | sed s/'start_tor: true'/'start_tor: false'/ | sed s/'#socks_port: 8801'/'socks_port: 9050'/ > ~/.ooni/ooniprobe.conf
@@ -140,5 +140,7 @@ cat /usr/share/ooni/ooniprobe.conf.sample | sed s/'start_tor: true'/'start_tor: 
 mkdir /home/$USER/bridge_reachability/
 
 # Add cronjob to run ooniprobe daily
-{ crontab -l; echo "0 0 * * * ooniprobe -c httpo://e2nl5qgtkzp7cibx.onion blocking/bridge_reachability -f /home/$USER/bridge_reachability/bridges.txt -t 300"; } | crontab
+{ crontab -l; echo "0 0 * * * /usr/local/bin/ooniprobe -c httpo://e2nl5qgtkzp7cibx.onion blocking/bridge_reachability -f /home/$USER/bridge_reachability/bridges.txt -t 300"; } | crontab
 sudo /etc/init.d/crond start
+sudo /sbin/chkconfig crond on
+sudo chmod 777 /var/mail
