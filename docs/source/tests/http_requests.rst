@@ -5,7 +5,7 @@ Details
 
 *Current version*: 0.1
 
-*NetTest*: HTTP Requests (https://gitweb.torproject.org/ooni-probe.git/blob/HEAD:/nettests/blocking/http_requests.py)
+*NetTest*: HTTP Requests (https://gitweb.torproject.org/ooni-probe.git/blob/HEAD:/ooni/nettests/blocking/http_requests.py)
 
 *Test Helper*: None
 

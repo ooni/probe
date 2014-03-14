@@ -5,7 +5,7 @@ Details
 
 *Current version*: 0.1
 
-*NetTest*: TCP Connect Test (https://gitweb.torproject.org/ooni-probe.git/blob/HEAD:/nettests/core/tcpconnect.py)
+*NetTest*: TCP Connect Test (https://gitweb.torproject.org/ooni-probe.git/blob/HEAD:/ooni/nettests/core/tcpconnect.py)
 
 *Test Helper*: None
 

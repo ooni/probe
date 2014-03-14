@@ -5,9 +5,9 @@ Details
 
 *Current version*: 0.1.3
 
-*NetTest*: HTTP Invalid Request Line (https://gitweb.torproject.org/ooni-probe.git/blob/HEAD:/nettests/manipulation/http_invalid_request_line.py)
+*NetTest*: HTTP Invalid Request Line (https://gitweb.torproject.org/ooni-probe.git/blob/HEAD:/ooni/nettests/manipulation/http_invalid_request_line.py)
 
-*Test Helper*: TCPEchoHelper (https://gitweb.torproject.org/ooni-probe.git/blob/HEAD:/oonib/testhelpers/tcp_helpers.py)
+*Test Helper*: TCPEchoHelper (https://gitweb.torproject.org/oonib.git/blob/HEAD:/oonib/testhelpers/tcp_helpers.py)
 
 *Test Type*: Traffic Manipulation
 

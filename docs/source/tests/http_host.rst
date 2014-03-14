@@ -5,9 +5,9 @@ Details
 
 *Current version*: 0.2
 
-*NetTest*: HTTP Host (https://gitweb.torproject.org/ooni-probe.git/blob/HEAD:/nettests/core/http_host.py)
+*NetTest*: HTTP Host (https://gitweb.torproject.org/ooni-probe.git/blob/HEAD:/ooni/nettests/core/http_host.py)
 
-*Test Helper*: HTTP Return JSON Headers (https://gitweb.torproject.org/ooni-probe.git/blob/HEAD:/oonib/testhelpers/http_helpers.py)
+*Test Helper*: HTTP Return JSON Headers (https://gitweb.torproject.org/oonib.git/blob/HEAD:/oonib/testhelpers/http_helpers.py)
 
 *Test Type*: Traffic Manipulation, Content Blocking
 
