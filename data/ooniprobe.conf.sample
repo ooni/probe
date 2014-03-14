@@ -19,7 +19,7 @@ privacy:
 reports:
     # This is a packet capture file (.pcap) to load as a test:
     pcap: null
-    collector: 'httpo://nkvphnp3p6agi5qq.onion'
+    collector: null
 advanced:
     geoip_data_dir: /usr/share/ooni/geoip
     debug: false
