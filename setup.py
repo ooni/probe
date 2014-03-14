@@ -9,14 +9,16 @@ from os.path import join as pj
 import sys
 from setuptools import setup
 
-def download_geoip_files():
+def download_geoip_files(dst):
     urls = [
         'http://www.maxmind.com/download/geoip/database/asnum/GeoIPASNum.dat.gz',
         'http://geolite.maxmind.com/download/geoip/database/GeoLiteCountry/GeoIP.dat.gz',
         'http://geolite.maxmind.com/download/geoip/database/GeoLiteCity.dat.gz'
     ]
+    if not os.path.exists(dst):
+        os.makedirs(dst)
     for url in urls:
-        target_gz_file = pj('data', os.path.basename(url))
+        target_gz_file = pj(dst, os.path.basename(url))
         target_file = target_gz_file.replace('.gz', '')
 
         if os.path.isfile(target_file):
@@ -26,55 +28,35 @@ def download_geoip_files():
         print "Downloading %s" % url
         response = urllib2.urlopen(url)
 
+        CHUNK = 4 * 1024
         with open(target_gz_file, 'w+') as f:
-            f.write(response.read())
+            while True:
+                chunk = response.read(CHUNK)
+                if not chunk: break
+                f.write(chunk)
         
         with open(target_file, 'w+') as f:
             gf = gzip.open(target_gz_file, 'rb')
-            f.write(gf.read())
+            while True:
+                chunk = gf.read(CHUNK)
+                if not chunk: break
+                f.write(chunk)
             gf.close()
 
         os.unlink(target_gz_file)
 
-download_geoip_files()
-
-usr_share_path = '/usr/share/ooni'
+usr_share_path = '/usr/share'
 # If this is true then it means we are in a virtualenv
 # therefore we should not place our data files inside /usr/share/ooni, but
 # place them inside the virtual env system prefix.
 if hasattr(sys, 'real_prefix'):
-    usr_share_path = os.path.abspath(pj(sys.prefix, 'share', 'ooni'))
-    if not os.path.isdir(usr_share_path):
-        os.makedirs(usr_share_path)
-    with open(pj('data', 'ooniprobe.conf.sample.new'), 'w+') as w:
-        with open(pj('data', 'ooniprobe.conf.sample')) as f:
-            for line in f:
-                if line.startswith('    data_dir: '):
-                    w.write('    data_dir: %s\n' % usr_share_path)
-                elif line.startswith('    geoip_data_dir: '):
-                    w.write('    geoip_data_dir: %s\n' % usr_share_path)
-                else:
-                    w.write(line)
-    os.rename(pj('data', 'ooniprobe.conf.sample.new'),
-              pj('data', 'ooniprobe.conf.sample'))
+    usr_share_path = os.path.abspath(pj(sys.prefix, 'share'))
 
-    data_files = [(
-        usr_share_path + '/', 
-        [
-            'data/GeoIP.dat',
-            'data/GeoIPASNum.dat',
-            'data/GeoLiteCity.dat'
-        ]
-    )]
-else:
-    data_files = [(
-        '/usr/share/ooni/geoip/', 
-        [
-            'data/GeoIP.dat',
-            'data/GeoIPASNum.dat',
-            'data/GeoLiteCity.dat'
-        ]
-    )]
+download_geoip_files(pj(usr_share_path, 'GeoIP'))
+
+install_requires = []
+dependency_links = []
+data_files = []
 
 for root, dirs, file_names in os.walk('data/'):
     files = []
@@ -85,10 +67,8 @@ for root, dirs, file_names in os.walk('data/'):
                 file_name.startswith('Geo'):
             continue
         files.append(pj(root, file_name))
-    data_files.append([pj(usr_share_path, root.replace('data/', '')), files])
+    data_files.append([pj(usr_share_path, 'ooni', root.replace('data/', '')), files])
 
-install_requires = []
-dependency_links = []
 with open('requirements.txt') as f:
     for line in f:
         if line.startswith("#"):

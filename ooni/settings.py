@@ -69,7 +69,19 @@ class OConfig(object):
         target_config_file = os.path.join(self.ooni_home,
                                           'ooniprobe.conf')
         print "Creating it for you in '%s'." % target_config_file
-        copyfile(sample_config_file, target_config_file)
+        usr_share_path = '/usr/share'
+        if hasattr(sys, 'real_prefix'):
+            usr_share_path = os.path.abspath(os.path.join(sys.prefix, 'share'))
+        
+        with open(sample_config_file) as f:
+            with open(target_config_file, 'w+') as w:
+                for line in f:
+                    if line.startswith('    data_dir: '):
+                        w.write('    data_dir: %s\n' % os.path.join(usr_share_path, 'ooni'))
+                    elif line.startswith('    geoip_data_dir: '):
+                        w.write('    geoip_data_dir: %s\n' % os.path.join(usr_share_path, 'GeoIP'))
+                    else:
+                        w.write(line)
 
     def read_config_file(self):
         try:
