@@ -109,6 +109,67 @@ class DNSTest(NetTestCase):
         d.addErrback(gotError)
         return d
 
+    def performNSLookup(self, hostname, dns_server = None):
+        """
+        Performs a NS lookup and returns an array containg all nameservers in
+        the response.
+
+        :hostname: is the hostname to perform the NS lookup on
+
+        :dns_server: is the dns_server that should be used for the lookup as a
+                     tuple of ip port (ex. ("127.0.0.1", 53))
+        """
+        query = [dns.Query(hostname, dns.NS, dns.IN)]
+        if dns_server:
+            def gotResponse(message):
+                addrs = []
+                answers = []
+                for answer in message.answers:
+                    if answer.type is dns.NS:
+                        addr = answer.payload.name.name
+                        addrs.append(addr)
+                    answers.append(representAnswer(answer))
+
+                DNSTest.addToReport(self, query, resolver=dns_server, query_type='NS',
+                        answers=answers, addrs=addrs)
+                return addrs
+
+            def gotError(failure):
+                failure.trap(gaierror, TimeoutError)
+                DNSTest.addToReport(self, query, resolver=dns_server, query_type='NS',
+                        failure=failure)
+                return failure
+
+            resolver = Resolver(servers=[dns_server])
+            d = resolver.queryUDP(query, timeout=self.queryTimeout)
+            d.addCallback(gotResponse)
+            d.addErrback(gotError)
+        else:
+            def gotResponse(message):
+                addrs = []
+                answers = []
+                for answer in message[0]:
+                    if answer.type is dns.NS:
+                        addr = answer.payload.name.name
+                        addrs.append(addr)
+                    answers.append(representAnswer(answer))
+
+                DNSTest.addToReport(self, query, resolver=dns_server, query_type='NS',
+                        answers=answers, addrs=addrs)
+                return addrs
+
+            def gotError(failure):
+                failure.trap(gaierror, TimeoutError)
+                DNSTest.addToReport(self, query, resolver=dns_server, query_type='NS',
+                        failure=failure)
+                return failure
+
+            d = client.lookupNameservers(hostname)
+            d.addCallback(gotResponse)
+            d.addErrback(gotError)
+
+        return d
+
     def addToReport(self, query, resolver=None, query_type=None,
                     answers=None, name=None, addrs=None, failure=None):
         log.debug("Adding %s to report)" % query)
