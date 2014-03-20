@@ -39,7 +39,7 @@ from twisted.python import usage
 from twisted.internet import defer, threads
 
 from ooni import nettest
-from ooni.templates import httpt
+from ooni.templates import httpt,dnst
 from ooni.utils import net
 from ooni.utils import log
 
@@ -60,7 +60,7 @@ class UsageOptions(usage.Options):
                   'User agent for HTTP requests']
                 ]
 
-class CaptivePortal(httpt.HTTPTest):
+class CaptivePortal(httpt.HTTPTest,dnst.DNSTest):
     """
     Compares content and status codes of HTTP responses, and attempts
     to determine if content has been altered.
@@ -215,7 +215,7 @@ class CaptivePortal(httpt.HTTPTest):
             log.msg("DNS comparison of control '%s' does not" % control_address)
             log.msg("match experiment response '%s'" % experiment_address)
             return False, experiment_address
-
+    @defer.inlineCallbacks
     def get_auth_nameservers(self, hostname):
         """
         Many CPs set a nameserver to be used. Let's query that
@@ -224,17 +224,9 @@ class CaptivePortal(httpt.HTTPTest):
         The equivalent of:
         $ dig +short NS ooni.nu
         """
-        if not resolver:
-            log.msg("dnspython not installed.")
-            log.msg("Cannot perform test.")
-            return []
-
-        res = resolver.Resolver()
-        answer = res.query(hostname, 'NS')
-        auth_nameservers = []
-        for auth in answer:
-            auth_nameservers.append(auth.to_text())
-        return auth_nameservers
+        auth_nameservers = yield self.performNSLookup(hostname)
+        print auth_nameservers
+        defer.returnValue(auth_nameservers)
 
     def hostname_to_0x20(self, hostname):
         """
@@ -253,6 +245,7 @@ class CaptivePortal(httpt.HTTPTest):
                 hostname_0x20 += char.lower()
         return hostname_0x20
 
+    @defer.inlineCallbacks
     def check_0x20_to_auth_ns(self, hostname, sample_size=None):
         """
         Resolve a 0x20 DNS request for hostname over hostname's
@@ -269,7 +262,7 @@ class CaptivePortal(httpt.HTTPTest):
         log.msg("Testing random capitalization of DNS queries...")
         log.msg("Testing that Start of Authority serial numbers match...")
 
-        auth_nameservers = self.get_auth_nameservers(hostname)
+        auth_nameservers = yield self.get_auth_nameservers(hostname)
 
         if sample_size is None:
             sample_size = 5
@@ -317,13 +310,13 @@ class CaptivePortal(httpt.HTTPTest):
 
         if name_match and serial_match:
             log.msg("Your DNS queries do not appear to be tampered.")
-            return ret
+            defer.returnValue(ret)
         elif name_match or serial_match:
             log.msg("Something is tampering with your DNS queries.")
-            return ret
+            defer.returnValue(ret)
         elif not name_match and not serial_match:
             log.msg("Your DNS queries are definitely being tampered with.")
-            return ret
+            defer.returnValue(ret)
 
     def get_random_url_safe_string(self, length):
         """
@@ -651,7 +644,7 @@ class CaptivePortal(httpt.HTTPTest):
 
         log.msg("")
         log.msg("Checking that DNS requests are not being tampered...")
-        self.report['check0x20'] = yield threads.deferToThread(self.check_0x20_to_auth_ns, 'ooni.nu')
+        self.report['check0x20'] = yield self.check_0x20_to_auth_ns('ooni.nu')
 
         log.msg("")
         log.msg("Captive portal test finished!")
