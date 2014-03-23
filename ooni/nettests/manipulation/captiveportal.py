@@ -218,7 +218,6 @@ class CaptivePortal(httpt.HTTPTest,dnst.DNSTest):
         $ dig +short NS ooni.nu
         """
         auth_nameservers = yield self.performNSLookup(hostname)
-        print auth_nameservers
         defer.returnValue(auth_nameservers)
 
     def hostname_to_0x20(self, hostname):
