@@ -270,16 +270,14 @@ class CaptivePortal(httpt.HTTPTest,dnst.DNSTest):
         hostname = self.hostname_to_0x20(hostname)
 
         for auth_ns in resolved_auth_ns:
-            res = resolver.Resolver(configure=False)
-            res.nameservers = [auth_ns]
             try:
-                answer = res.query(hostname, 'SOA')
-            except resolver.Timeout:
+                answer = yield self.performSOALookup(hostname,(auth_ns,53))
+            except Exception:
                 continue
-            querynames.append(answer.qname.to_text())
-            answernames.append(answer.rrset.name.to_text())
+            querynames.append(hostname)
             for soa in answer:
-                serials.append(str(soa.serial))
+                answernames.append(soa[0])
+                serials.append(str(soa[1]))
 
         if len(set(querynames).intersection(answernames)) == 1:
             log.msg("Capitalization in DNS queries and responses match.")
