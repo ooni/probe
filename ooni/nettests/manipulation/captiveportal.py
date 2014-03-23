@@ -44,13 +44,6 @@ from ooni.templates import httpt,dnst
 from ooni.utils import net
 from ooni.utils import log
 
-try:
-    from dns import resolver
-except ImportError:
-    print "The dnspython module was not found:"
-    print "See https://crate.io/packages/dnspython/"
-    resolver = None
-
 __plugoo__ = "captiveportal"
 __desc__ = "Captive portal detection test"
 
