@@ -35,6 +35,7 @@ import re
 import string
 from urlparse import urlparse
 
+from twisted.names import error
 from twisted.python import usage
 from twisted.internet import defer, threads
 
@@ -154,6 +155,7 @@ class CaptivePortal(httpt.HTTPTest,dnst.DNSTest):
         """
         return int(experiment_code) != int(control_code)
 
+    @defer.inlineCallbacks
     def dns_resolve(self, hostname, nameserver=None):
         """
         Resolves hostname(s) though nameserver to corresponding
@@ -161,42 +163,29 @@ class CaptivePortal(httpt.HTTPTest,dnst.DNSTest):
         or a list of strings. If nameserver is not given, use local
         DNS resolver, and if that fails try using 8.8.8.8.
         """
-        if not resolver:
-            log.msg("dnspython is not installed.\
-                    Cannot perform DNS Resolve test")
-            return []
         if isinstance(hostname, str):
             hostname = [hostname]
 
-        if nameserver is not None:
-            res = resolver.Resolver(configure=False)
-            res.nameservers = [nameserver]
-        else:
-            res = resolver.Resolver()
-
         response = []
         answer = None
-
         for hn in hostname:
             try:
-                answer = res.query(hn)
-            except resolver.NoNameservers:
-                res.nameservers = ['8.8.8.8']
-                try:
-                    answer = res.query(hn)
-                except resolver.NXDOMAIN:
+                answer = yield self.performALookup(hn)
+                if not answer:
+                    answer = yield self.performALookup(hn, ('8.8.8.8',53))
+            except error.DNSNameError:
                     log.msg("DNS resolution for %s returned NXDOMAIN" % hn)
                     response.append('NXDOMAIN')
-            except resolver.NXDOMAIN:
-                log.msg("DNS resolution for %s returned NXDOMAIN" % hn)
-                response.append('NXDOMAIN')
+            except Exception:
+                log.err("DNS Resolution failed")
             finally:
                 if not answer:
-                    return response
+                    defer.returnValue(response)
                 for addr in answer:
-                    response.append(addr.address)
-        return response
+                    response.append(addr)
+        defer.returnValue(response)
 
+    @defer.inlineCallbacks
     def dns_resolve_match(self, experiment_hostname, control_address):
         """
         Resolve experiment_hostname, and check to see that it returns
@@ -204,17 +193,21 @@ class CaptivePortal(httpt.HTTPTest,dnst.DNSTest):
         they match, returns True and experiment_address; otherwise
         returns False and experiment_address.
         """
-        experiment_address = self.dns_resolve(experiment_hostname)
+        experiment_address = yield self.dns_resolve(experiment_hostname)
         if not experiment_address:
             log.debug("dns_resolve() for %s failed" % experiment_hostname)
-            return None, experiment_address
+            ret = None, experiment_address
+            defer.returnValue(ret)
 
         if len(set(experiment_address) & set([control_address])) > 0:
-            return True, experiment_address
+            ret = True, experiment_address
+            defer.returnValue(ret)
         else:
             log.msg("DNS comparison of control '%s' does not" % control_address)
             log.msg("match experiment response '%s'" % experiment_address)
-            return False, experiment_address
+            ret = False, experiment_address
+            defer.returnValue(ret)
+
     @defer.inlineCallbacks
     def get_auth_nameservers(self, hostname):
         """
@@ -266,8 +259,8 @@ class CaptivePortal(httpt.HTTPTest,dnst.DNSTest):
 
         if sample_size is None:
             sample_size = 5
-            resolved_auth_ns = random.sample(self.dns_resolve(auth_nameservers),
-                                             sample_size)
+            res = yield self.dns_resolve(auth_nameservers)
+            resolved_auth_ns = random.sample(res,sample_size)
 
         querynames = []
         answernames = []
@@ -361,6 +354,7 @@ class CaptivePortal(httpt.HTTPTest,dnst.DNSTest):
         random_hostname = random_sld + random_tld
         return random_hostname
 
+    @defer.inlineCallbacks
     def compare_random_hostnames(self, hostname_count=None, hostname_length=None):
         """
         Get hostname_count number of random hostnames with SLD length
@@ -390,7 +384,7 @@ class CaptivePortal(httpt.HTTPTest,dnst.DNSTest):
 
         for x in range(hostname_count):
             random_hostname = self.get_random_hostname(hostname_length)
-            response_match, response_address = self.dns_resolve_match(random_hostname,
+            response_match, response_address = yield self.dns_resolve_match(random_hostname,
                                                                       control[0])
             for address in response_address:
                 if response_match is False:
@@ -408,16 +402,19 @@ class CaptivePortal(httpt.HTTPTest,dnst.DNSTest):
         if len(intersection) == 1:
             log.msg("All %d random hostnames properly resolved to NXDOMAIN."
                      % hostname_count)
-            return True, relative_complement
+            ret = True, relative_complement
+            defer.returnValue(ret)
         elif (len(intersection) == 1) and (len(r) > 1):
             log.msg("Something odd happened. Some random hostnames correctly")
             log.msg("resolved to NXDOMAIN, but several others resolved to")
             log.msg("to the following addresses: %s" % relative_complement)
-            return False, relative_complement
+            ret = False, relative_complement
+            defer.returnValue(ret)
         elif (len(intersection) == 0) and (len(r) == 1):
             log.msg("All random hostnames resolved to the IP address ")
             log.msg("'%s', which is indicative of a captive portal." % r)
-            return False, relative_complement
+            ret = False, relative_complement
+            defer.returnValue(ret)
         else:
             log.debug("Apparently, pigs are flying on your network, 'cause a")
             log.debug("bunch of hostnames made from 32-byte random strings")
@@ -428,8 +425,10 @@ class CaptivePortal(httpt.HTTPTest,dnst.DNSTest):
             log.debug("it nearly twice as unlikely as an MD5 hash collision.")
             log.debug("Either someone is seriously messing with your network,")
             log.debug("or else you are witnessing the impossible. %s" % r)
-            return False, relative_complement
+            ret = False, relative_complement
+            defer.returnValue(ret)
 
+    @defer.inlineCallbacks
     def google_dns_cp_test(self):
         """
         Google Chrome resolves three 10-byte random hostnames.
@@ -437,18 +436,19 @@ class CaptivePortal(httpt.HTTPTest,dnst.DNSTest):
         subtest = "Google Chrome DNS-based"
         log.msg("Running the Google Chrome DNS-based captive portal test...")
 
-        gmatch, google_dns_result = self.compare_random_hostnames(3, 10)
+        gmatch, google_dns_result = yield self.compare_random_hostnames(3, 10)
 
         if gmatch:
             log.msg("Google Chrome DNS-based captive portal test did not")
             log.msg("detect a captive portal.")
-            return google_dns_result
+            defer.returnValue(google_dns_result)
         else:
             log.msg("Google Chrome DNS-based captive portal test believes")
             log.msg("you are in a captive portal, or else something very")
             log.msg("odd is happening with your DNS.")
-            return google_dns_result
+            defer.returnValue(google_dns_result)
 
+    @defer.inlineCallbacks
     def ms_dns_cp_test(self):
         """
         Microsoft "phones home" to a server which will always resolve
@@ -460,26 +460,27 @@ class CaptivePortal(httpt.HTTPTest,dnst.DNSTest):
         log.msg("Running the Microsoft NCSI DNS-based captive portal")
         log.msg("test...")
 
-        msmatch, ms_dns_result = self.dns_resolve_match("dns.msftncsi.com",
+        msmatch, ms_dns_result = yield self.dns_resolve_match("dns.msftncsi.com",
                                                         "131.107.255.255")
         if msmatch:
             log.msg("Microsoft NCSI DNS-based captive portal test did not")
             log.msg("detect a captive portal.")
-            return ms_dns_result
+            defer.returnValue(ms_dns_result)
         else:
             log.msg("Microsoft NCSI DNS-based captive portal test ")
             log.msg("believes you are in a captive portal.")
-            return ms_dns_result
+            defer.returnValue(ms_dns_result)
 
+    @defer.inlineCallbacks
     def run_vendor_dns_tests(self):
         """
         Run the vendor DNS tests.
         """
         report = {}
-        report['google_dns_cp'] = self.google_dns_cp_test()
-        report['ms_dns_cp'] = self.ms_dns_cp_test()
+        report['google_dns_cp'] = yield self.google_dns_cp_test()
+        report['ms_dns_cp'] = yield self.ms_dns_cp_test()
+        defer.returnValue(report)
 
-        return report
     @defer.inlineCallbacks
     def run_vendor_tests(self, *a, **kw):
         """
@@ -640,7 +641,7 @@ class CaptivePortal(httpt.HTTPTest,dnst.DNSTest):
 
         log.msg("")
         log.msg("Running vendor DNS-based tests...")
-        self.report['vendor_dns_tests'] = yield threads.deferToThread(self.run_vendor_dns_tests)
+        self.report['vendor_dns_tests'] = yield self.run_vendor_dns_tests()
 
         log.msg("")
         log.msg("Checking that DNS requests are not being tampered...")
