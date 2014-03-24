@@ -110,7 +110,7 @@ class BridgeReachability(nettest.NetTestCase):
             self.report['bridge_address'] = self.bridge.split(' ')[0]
         
         if transport_name and transport_name == 'scramblesuit' and \
-                onion.TorVersion('0.2.5') > onion.tor_details['version']:
+                onion.TorVersion('0.2.5.1') > onion.tor_details['version']:
             self.report['error'] = 'unsupported-tor-version'
             return
         elif transport_name and \
