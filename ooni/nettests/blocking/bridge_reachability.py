@@ -9,7 +9,7 @@ from twisted.internet import defer, reactor, error
 
 import txtorcon
 
-from ooni.utils import log
+from ooni.utils import log, onion
 from ooni import nettest
 
 class UsageOptions(usage.Options):
@@ -35,8 +35,11 @@ class BridgeReachability(nettest.NetTestCase):
         self.tor_progress = 0
         self.timeout = int(self.localOptions['timeout'])
 
+        self.report['error'] = None
+        self.report['success'] = None
         self.report['timeout'] = self.timeout
         self.report['transport_name'] = 'vanilla'
+        self.report['tor_version'] = str(onion.tor_details['version'])
         self.report['tor_progress'] = 0
         self.report['tor_progress_tag'] = None
         self.report['tor_progress_summary'] = None
@@ -90,36 +93,30 @@ class BridgeReachability(nettest.NetTestCase):
         print "Failing bridges: %s" % failing_bridges
 
     def test_full_tor_connection(self):
-        def getTransport(address):
-            """
-            If the address of the bridge starts with a valid c identifier then
-            we consider it to be a bridge.
-            Returns:
-                The transport_name if it's a transport.
-                None if it's not a obfsproxy bridge.
-            """
-            transport_name = address.split(' ')[0]
-            transport_name_chars = string.ascii_letters + string.digits
-            if all(c in transport_name_chars for c in transport_name):
-                return transport_name
-            else:
-                return None
-
         config = txtorcon.TorConfig()
         config.ControlPort = random.randint(2**14, 2**16)
         config.SocksPort = random.randint(2**14, 2**16)
         
-        transport_name = getTransport(self.bridge)
+        transport_name = onion.transport_name(self.bridge)
         if transport_name and self.pyobfsproxy_bin:
             config.ClientTransportPlugin = "%s exec %s managed" % (transport_name, self.pyobfsproxy_bin)
             self.report['transport_name'] = transport_name
             self.report['bridge_address'] = self.bridge.split(' ')[1]
         elif transport_name and not self.pyobfsproxy_bin:
             log.err("Unable to test bridge because pyobfsproxy is not installed")
-            self.report['success'] = None
+            self.report['error'] = 'missing-pyobfsproxy'
             return
         else:
             self.report['bridge_address'] = self.bridge.split(' ')[0]
+        
+        if transport_name and transport_name == 'scramblesuit' and \
+                onion.TorVersion('0.2.5') > onion.tor_details['version']:
+            self.report['error'] = 'unsupported-tor-version'
+            return
+        elif transport_name and \
+                onion.TorVersion('0.2.4.1') > onion.tor_details['version']:
+            self.report['error'] = 'unsupported-tor-version'
+            return
 
         config.Bridge = self.bridge
         config.UseBridges = 1

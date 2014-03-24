@@ -82,7 +82,6 @@ def randomStr(length, num=True):
         chars += string.digits
     return ''.join(random.choice(chars) for x in range(length))
 
-
 def pushFilenameStack(filename):
     """
     Takes as input a target filename and checks to see if a file by such name
@@ -103,5 +102,3 @@ def pushFilenameStack(filename):
         new_filename = "%s.%s" % (c_filename, new_idx)
         os.rename(f, new_filename)
     os.rename(filename, filename+".1")
-
-

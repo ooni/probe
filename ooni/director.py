@@ -208,7 +208,6 @@ class Director(object):
         self.activeNetTests.remove(net_test)
         if len(self.activeNetTests) == 0:
             self.allTestsDone.callback(None)
-            self.allTestsDone = defer.Deferred()
 
     @defer.inlineCallbacks
     def startNetTest(self, net_test_loader, reporters):
@@ -219,6 +218,9 @@ class Director(object):
             net_test_loader:
                 an instance of :class:ooni.nettest.NetTestLoader
         """
+        if self.allTestsDone.called:
+            self.allTestsDone = defer.Deferred()
+
         if config.privacy.includepcap:
             if not config.reports.pcap:
                 config.reports.pcap = config.generate_pcap_filename(net_test_loader.testDetails)
