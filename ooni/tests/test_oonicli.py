@@ -2,10 +2,12 @@ import os
 import sys
 import yaml
 import signal
+import socket
 
 from twisted.internet import base, defer
 from twisted.trial import unittest
 
+from ooni.tests import is_internet_connected
 from ooni.settings import config
 from ooni.oonicli import runWithDirector
 
@@ -26,6 +28,8 @@ def verify_entry(entry):
    
 class TestRunDirector(unittest.TestCase):
     def setUp(self):
+        if not is_internet_connected():
+            self.skipTest("You must be connected to the internet to run this test")
         config.tor.socks_port = 9050
         config.tor.control_port = None
         with open('example-input.txt', 'w+') as f:
