@@ -102,16 +102,16 @@ Test Helpers
 The currently implemented test helpers are the following:
 
   * `SSL Test Helpers
-    <https://gitweb.torproject.org/ooni-probe.git/blob/HEAD:/oonib/testhelpers/ssl_helpers.py>`_
+    <https://gitweb.torproject.org/oonib.git/blob/HEAD:/oonib/testhelpers/ssl_helpers.py>`_
 
   * `HTTP Test Helpers
-    <https://gitweb.torproject.org/ooni-probe.git/blob/HEAD:/oonib/testhelpers/http_helpers.py>`_
+    <https://gitweb.torproject.org/oonib.git/blob/HEAD:/oonib/testhelpers/http_helpers.py>`_
 
   * `TCP Test Helpers
-    <https://gitweb.torproject.org/ooni-probe.git/blob/HEAD:/oonib/testhelpers/tcp_helpers.py>`_
+    <https://gitweb.torproject.org/oonib.git/blob/HEAD:/oonib/testhelpers/tcp_helpers.py>`_
 
   * `DNS Test Helpers
-    <https://gitweb.torproject.org/ooni-probe.git/blob/HEAD:/oonib/testhelpers/dns_helpers.py>`_
+    <https://gitweb.torproject.org/oonib.git/blob/HEAD:/oonib/testhelpers/dns_helpers.py>`_
 
 More developer documentation
 ****************************

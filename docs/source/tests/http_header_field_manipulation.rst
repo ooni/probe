@@ -5,9 +5,9 @@ Details
 
 *Current version*: 0.1.3
 
-*NetTest*: HTTPHeaderFieldManipulation (https://gitweb.torproject.org/ooni-probe.git/blob/HEAD:/nettests/manipulation/http_header_field_manipulation.py)
+*NetTest*: HTTPHeaderFieldManipulation (https://gitweb.torproject.org/ooni-probe.git/blob/HEAD:/ooni/nettests/manipulation/http_header_field_manipulation.py)
 
-*Test Helper*: HTTP Return JSON Headers (https://gitweb.torproject.org/ooni-probe.git/blob/HEAD:/oonib/testhelpers/http_helpers.py)
+*Test Helper*: HTTP Return JSON Headers (https://gitweb.torproject.org/oonib.git/blob/HEAD:/oonib/testhelpers/http_helpers.py)
 
 *Test Type*: Traffic Manipulation
 

@@ -5,7 +5,7 @@ Details
 
 *Current version*: 0.1.1
 
-*NetTest*: Traceroute (https://gitweb.torproject.org/ooni-probe.git/blob/HEAD:/nettests/core/traceroute.py)
+*NetTest*: Traceroute (https://gitweb.torproject.org/ooni-probe.git/blob/HEAD:/ooni/nettests/core/traceroute.py)
 
 *Test Helper*: Not yet implemented
 

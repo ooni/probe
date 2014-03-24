@@ -5,9 +5,9 @@ Details
 
 *Current version*: 0.4
 
-*NetTest*: DNS Consistency Test (https://gitweb.torproject.org/ooni-probe.git/blob/HEAD:/nettests/blocking/dnsconsistency.py)
+*NetTest*: DNS Consistency Test (https://gitweb.torproject.org/ooni-probe.git/blob/HEAD:/ooni/nettests/blocking/dnsconsistency.py)
 
-*Test Helper*: DNS Test Helper (https://gitweb.torproject.org/ooni-probe.git/blob/HEAD:/oonib/testhelpers/dns_helpers.py)
+*Test Helper*: DNS Test Helper (https://gitweb.torproject.org/oonib.git/blob/HEAD:/oonib/testhelpers/dns_helpers.py)
 
 *Test Type*: Content Blocking
 
