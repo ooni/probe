@@ -181,7 +181,8 @@ def runWithDirector(logging=True, start_tor=True):
         r = failure.trap(errors.TorNotRunning,
                 errors.InvalidOONIBCollectorAddress,
                 errors.UnableToLoadDeckInput, errors.CouldNotFindTestHelper,
-                errors.CouldNotFindTestCollector, errors.ProbeIPUnknown)
+                errors.CouldNotFindTestCollector, errors.ProbeIPUnknown,
+                errors.InvalidInputFile)
 
         if isinstance(failure.value, errors.TorNotRunning):
             log.err("Tor does not appear to be running")
@@ -210,11 +211,12 @@ def runWithDirector(logging=True, start_tor=True):
             log.err("Failed to lookup probe IP address.")
             log.msg("Check your internet connection.")
 
+        elif isinstance(failure.value, errors.InvalidInputFile):
+            log.err("Invalid input file \"%s\"" % failure.value)
+
         if config.advanced.debug:
             log.exception(failure)
-
-        reactor.stop()
-
+    
     # Wait until director has started up (including bootstrapping Tor)
     # before adding tests
     def post_director_start(_):

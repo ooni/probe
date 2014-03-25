@@ -185,10 +185,13 @@ class NetTestLoader(object):
                     input_file['hash'] = m.group(2)
                 else:
                     input_file['filename'] = filename
-                    with open(filename) as f:
-                        h = sha256()
-                        for l in f:
-                            h.update(l)
+                    try:
+                        with open(filename) as f:
+                            h = sha256()
+                            for l in f:
+                                h.update(l)
+                    except:
+                        raise e.InvalidInputFile(filename)
                     input_file['hash'] = h.hexdigest()
                 input_files.append(input_file)
 
