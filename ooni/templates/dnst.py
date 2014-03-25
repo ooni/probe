@@ -85,56 +85,7 @@ class DNSTest(NetTestCase):
 
                      if None, system dns settings will be used
         """
-        query = [dns.Query(hostname, dns.A, dns.IN)]
-        if dns_server:
-            def gotResponse(message):
-                addrs = []
-                answers = []
-                for answer in message.answers:
-                    if answer.type is dns.A:
-                        addr = answer.payload.dottedQuad()
-                        addrs.append(addr)
-                    answers.append(representAnswer(answer))
-
-                DNSTest.addToReport(self, query, resolver=dns_server, query_type='A',
-                        answers=answers, addrs=addrs)
-                return addrs
-
-            def gotError(failure):
-                failure.trap(gaierror, TimeoutError)
-                DNSTest.addToReport(self, query, resolver=dns_server, query_type='A',
-                        failure=failure)
-                return failure
-
-            resolver = Resolver(servers=[dns_server])
-            d = resolver.queryUDP(query, timeout=self.queryTimeout)
-            d.addCallback(gotResponse)
-            d.addErrback(gotError)
-        else:
-            def gotResponse(message):
-                addrs = []
-                answers = []
-                for answer in message[0]:
-                    if answer.type is dns.A:
-                        addr = answer.payload.dottedQuad()
-                        addrs.append(addr)
-                    answers.append(representAnswer(answer))
-
-                DNSTest.addToReport(self, query, resolver=dns_server, query_type='A',
-                        answers=answers, addrs=addrs)
-                return addrs
-
-            def gotError(failure):
-                failure.trap(gaierror, TimeoutError)
-                DNSTest.addToReport(self, query, resolver=dns_server, query_type='A',
-                        failure=failure)
-                return failure
-
-            d = client.lookupAddress(hostname)
-            d.addCallback(gotResponse)
-            d.addErrback(gotError)
-
-        return d
+        return self.dnsLookup(hostname, 'A', dns_server)
 
     def performNSLookup(self, hostname, dns_server = None):
         """
@@ -145,117 +96,76 @@ class DNSTest(NetTestCase):
 
         :dns_server: is the dns_server that should be used for the lookup as a
                      tuple of ip port (ex. ("127.0.0.1", 53))
+
+                     if None, system dns settings will be used
         """
-        query = [dns.Query(hostname, dns.NS, dns.IN)]
-        if dns_server:
-            def gotResponse(message):
-                addrs = []
-                answers = []
-                for answer in message.answers:
-                    if answer.type is dns.NS:
-                        addr = answer.payload.name.name
-                        addrs.append(addr)
-                    answers.append(representAnswer(answer))
-
-                DNSTest.addToReport(self, query, resolver=dns_server, query_type='NS',
-                        answers=answers, addrs=addrs)
-                return addrs
-
-            def gotError(failure):
-                failure.trap(gaierror, TimeoutError)
-                DNSTest.addToReport(self, query, resolver=dns_server, query_type='NS',
-                        failure=failure)
-                return failure
-
-            resolver = Resolver(servers=[dns_server])
-            d = resolver.queryUDP(query, timeout=self.queryTimeout)
-            d.addCallback(gotResponse)
-            d.addErrback(gotError)
-        else:
-            def gotResponse(message):
-                addrs = []
-                answers = []
-                for answer in message[0]:
-                    if answer.type is dns.NS:
-                        addr = answer.payload.name.name
-                        addrs.append(addr)
-                    answers.append(representAnswer(answer))
-
-                DNSTest.addToReport(self, query, resolver=dns_server, query_type='NS',
-                        answers=answers, addrs=addrs)
-                return addrs
-
-            def gotError(failure):
-                failure.trap(gaierror, TimeoutError)
-                DNSTest.addToReport(self, query, resolver=dns_server, query_type='NS',
-                        failure=failure)
-                return failure
-
-            d = client.lookupNameservers(hostname)
-            d.addCallback(gotResponse)
-            d.addErrback(gotError)
-
-        return d
+        return self.dnsLookup(hostname, 'NS', dns_server)
 
     def performSOALookup(self, hostname, dns_server = None):
         """
         Performs a SOA lookup and returns the response (name,serial).
 
-        :hostname: is the hostname to perform the NS lookup on
+        :hostname: is the hostname to perform the SOA lookup on
+        :dns_server: is the dns_server that should be used for the lookup as a
+                     tuple of ip port (ex. ("127.0.0.1", 53))
 
+                     if None, system dns settings will be used
+        """
+        return self.dnsLookup(hostname,'SOA',dns_server)
+
+    def dnsLookup(self, hostname, dns_type, dns_server = None):
+        """
+        Performs a DNS lookup and returns the response.
+
+        :hostname: is the hostname to perform the DNS lookup on
+        :dns_type: type of lookup 'NS'/'A'/'SOA'
         :dns_server: is the dns_server that should be used for the lookup as a
                      tuple of ip port (ex. ("127.0.0.1", 53))
         """
-        query = [dns.Query(hostname, dns.SOA, dns.IN)]
-        if dns_server:
-            def gotResponse(message):
-                addrs = []
-                answers = []
-                for answer in message.answers:
-                    if answer.type is dns.SOA:
+        types={'NS':dns.NS,'A':dns.A,'SOA':dns.SOA}
+        dnsType=types[dns_type]
+        query = [dns.Query(hostname, dnsType, dns.IN)]
+        def gotResponse(message):
+            addrs = []
+            answers = []
+            if dns_server:
+                msg = message.answers
+            else:
+                msg = message[0]
+            for answer in msg:
+                if answer.type is dnsType:
+                    if dnsType is dns.SOA:
                         addr = (answer.name.name,answer.payload.serial)
-                        addrs.append(addr)
-                    answers.append(representAnswer(answer))
+                    elif dnsType is dns.NS:
+                        addr = answer.payload.name.name
+                    elif dnsType is dns.A:
+                        addr = answer.payload.dottedQuad()
+                    else:
+                        addr = None
+                    addrs.append(addr)
+                answers.append(representAnswer(answer))
 
-                DNSTest.addToReport(self, query, resolver=dns_server, query_type='SOA',
+            DNSTest.addToReport(self, query, resolver=dns_server, query_type=dns_type,
                         answers=answers, addrs=addrs)
-                return addrs
+            return addrs
 
-            def gotError(failure):
-                failure.trap(gaierror, TimeoutError)
-                DNSTest.addToReport(self, query, resolver=dns_server, query_type='SOA',
+        def gotError(failure):
+            failure.trap(gaierror, TimeoutError)
+            DNSTest.addToReport(self, query, resolver=dns_server, query_type=dns_type,
                         failure=failure)
-                return failure
+            return failure
 
+        if dns_server:
             resolver = Resolver(servers=[dns_server])
             d = resolver.queryUDP(query, timeout=self.queryTimeout)
-            d.addCallback(gotResponse)
-            d.addErrback(gotError)
         else:
-            def gotResponse(message):
-                addrs = []
-                answers = []
-                for answer in message[0]:
-                    if answer.type is dns.SOA:
-                        addr = (answer.name.name,answer.payload.serial)
-                        addrs.append(addr)
-                    answers.append(representAnswer(answer))
+            lookupFunction={'NS':client.lookupNameservers, 'SOA':client.lookupAuthority, 'A':client.lookupAddress}
+            d = lookupFunction[dns_type](hostname)
 
-                DNSTest.addToReport(self, query, resolver=dns_server, query_type='SOA',
-                        answers=answers, addrs=addrs)
-                return addrs
-
-            def gotError(failure):
-                failure.trap(gaierror, TimeoutError)
-                DNSTest.addToReport(self, query, resolver=dns_server, query_type='SOA',
-                        failure=failure)
-                return failure
-
-            d = client.lookupAuthority(hostname)
-            d.addCallback(gotResponse)
-            d.addErrback(gotError)
-
+        d.addCallback(gotResponse)
+        d.addErrback(gotError)
         return d
+
 
     def addToReport(self, query, resolver=None, query_type=None,
                     answers=None, name=None, addrs=None, failure=None):
