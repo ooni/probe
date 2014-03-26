@@ -34,7 +34,7 @@ class DNSTest(NetTestCase):
 
         self.report['queries'] = []
 
-    def performPTRLookup(self, address, dns_server):
+    def performPTRLookup(self, address, dns_server = None):
         """
         Does a reverse DNS lookup on the input ip address
 
@@ -42,36 +42,11 @@ class DNSTest(NetTestCase):
 
         :dns_server: is the dns_server that should be used for the lookup as a
                      tuple of ip port (ex. ("127.0.0.1", 53))
+
+                     if None, system dns settings will be used
         """
         ptr = '.'.join(address.split('.')[::-1]) + '.in-addr.arpa'
-        query = [dns.Query(ptr, dns.PTR, dns.IN)]
-        def gotResponse(message):
-            log.debug("Lookup successful")
-            log.debug(message)
-            answers = []
-            name = ''
-            for answer in message.answers:
-                if answer.type is 12:
-                    name = str(answer.payload.name)
-                answers.append(representAnswer(answer))
-
-            DNSTest.addToReport(self, query, resolver=dns_server,
-                    query_type = 'PTR', answers=answers, name=name)
-            return name
-
-        def gotError(failure):
-            log.err("Failed to perform lookup")
-            log.exception(failure)
-            failure.trap(gaierror, TimeoutError)
-            DNSTest.addToReport(self, query, resolver=dns_server,
-                    query_type = 'PTR', failure=failure)
-            return None
-
-        resolver = Resolver(servers=[dns_server])
-        d = resolver.queryUDP(query, timeout=self.queryTimeout)
-        d.addCallback(gotResponse)
-        d.addErrback(gotError)
-        return d
+        return self.dnsLookup(ptr, 'PTR', dns_server)
 
     def performALookup(self, hostname, dns_server = None):
         """
@@ -122,10 +97,12 @@ class DNSTest(NetTestCase):
         :dns_server: is the dns_server that should be used for the lookup as a
                      tuple of ip port (ex. ("127.0.0.1", 53))
         """
-        types={'NS':dns.NS,'A':dns.A,'SOA':dns.SOA}
+        types={'NS':dns.NS,'A':dns.A,'SOA':dns.SOA,'PTR':dns.PTR}
         dnsType=types[dns_type]
         query = [dns.Query(hostname, dnsType, dns.IN)]
         def gotResponse(message):
+            log.debug(dns_type+" Lookup successful")
+            log.debug(message)
             addrs = []
             answers = []
             if dns_server:
@@ -136,7 +113,7 @@ class DNSTest(NetTestCase):
                 if answer.type is dnsType:
                     if dnsType is dns.SOA:
                         addr = (answer.name.name,answer.payload.serial)
-                    elif dnsType is dns.NS:
+                    elif dnsType in [dns.NS,dns.PTR]:
                         addr = answer.payload.name.name
                     elif dnsType is dns.A:
                         addr = answer.payload.dottedQuad()
@@ -150,6 +127,8 @@ class DNSTest(NetTestCase):
             return addrs
 
         def gotError(failure):
+            log.err("Failed to perform "+dns_type+" lookup")
+            log.exception(failure)
             failure.trap(gaierror, TimeoutError)
             DNSTest.addToReport(self, query, resolver=dns_server, query_type=dns_type,
                         failure=failure)
@@ -159,7 +138,7 @@ class DNSTest(NetTestCase):
             resolver = Resolver(servers=[dns_server])
             d = resolver.queryUDP(query, timeout=self.queryTimeout)
         else:
-            lookupFunction={'NS':client.lookupNameservers, 'SOA':client.lookupAuthority, 'A':client.lookupAddress}
+            lookupFunction={'NS':client.lookupNameservers, 'SOA':client.lookupAuthority, 'A':client.lookupAddress, 'PTR':client.lookupPointer}
             d = lookupFunction[dns_type](hostname)
 
         d.addCallback(gotResponse)
