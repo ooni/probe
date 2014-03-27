@@ -71,6 +71,8 @@ def debug(msg, *arg, **kw):
 def err(msg, *arg, **kw):
     from ooni.settings import config
     if config.logging:
+        if isinstance(msg, Exception):
+            msg = "%s: %s" % (msg.__class__.__name__, msg)
         print "[!] %s" % msg
 
 def exception(error):

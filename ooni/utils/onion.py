@@ -2,10 +2,18 @@ import string
 import subprocess
 from distutils.version import LooseVersion
 
-from txtorcon.util import find_tor_binary
+from txtorcon.util import find_tor_binary as tx_find_tor_binary
+
+from ooni.settings import config
 
 class TorVersion(LooseVersion):
     pass
+
+
+def find_tor_binary():
+    if config.advanced.tor_binary:
+        return config.advanced.tor_binary
+    return tx_find_tor_binary()
 
 def tor_version():
     tor_binary = find_tor_binary()

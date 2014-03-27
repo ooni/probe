@@ -32,7 +32,8 @@ class Options(usage.Options):
                 ["resume", "r"],
                 ["no-collector", "n"],
                 ["list", "s"],
-                ["printdeck", "p"]
+                ["printdeck", "p"],
+                ["verbose", "v"]
                 ]
 
     optParameters = [["reportfile", "o", None, "report file name"],
@@ -101,6 +102,8 @@ def runWithDirector(logging=True, start_tor=True):
     config.global_options = global_options
     config.set_paths()
     config.read_config_file()
+    if global_options['verbose']:
+        config.advanced.debug = True
     if not start_tor:
         config.advanced.start_tor = False
     
@@ -166,7 +169,10 @@ def runWithDirector(logging=True, start_tor=True):
     except usage.UsageError, e:
         log.err(e)
         print net_test_loader.usageOptions().getUsage()
-        sys.exit(2)
+        sys.exit(4)
+    except Exception as e:
+        log.err(e)
+        sys.exit(5)
     
     d = director.start(start_tor=start_tor)
    

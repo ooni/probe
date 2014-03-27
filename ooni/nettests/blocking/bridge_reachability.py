@@ -12,6 +12,8 @@ import txtorcon
 from ooni.utils import log, onion
 from ooni import nettest
 
+class TorIsNotInstalled(Exception): pass
+
 class UsageOptions(usage.Options):
     optParameters = [['timeout', 't', 120,
                       'Specify the timeout after which to consider the Tor bootstrapping process to have failed'],
@@ -19,6 +21,7 @@ class UsageOptions(usage.Options):
 
 class BridgeReachability(nettest.NetTestCase):
     name = "Bridge Reachability"
+    description = "A test for checking if bridges are reachable from a given location."
     author = "Arturo Filastò"
     version = "0.1"
 
@@ -30,6 +33,10 @@ class BridgeReachability(nettest.NetTestCase):
                  'TransportType IP:ORPort (ex. obfs2 127.0.0.1:443)']
 
     requiredOptions = ['file']
+    
+    def requirements(self):
+        if not onion.find_tor_binary():
+            raise TorIsNotInstalled("For instructions on installing Tor see: https://www.torproject.org/download/download")
 
     def setUp(self):
         self.tor_progress = 0
