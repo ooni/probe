@@ -50,6 +50,7 @@ class BridgeReachability(nettest.NetTestCase):
         self.report['tor_progress'] = 0
         self.report['tor_progress_tag'] = None
         self.report['tor_progress_summary'] = None
+        self.report['tor_log'] = None
         self.report['bridge_address'] = None
 
         self.bridge = self.input
@@ -130,6 +131,7 @@ class BridgeReachability(nettest.NetTestCase):
 
         config.Bridge = self.bridge
         config.UseBridges = 1
+        config.log = 'notice'
         config.save()
 
         def updates(prog, tag, summary):
@@ -152,6 +154,7 @@ class BridgeReachability(nettest.NetTestCase):
         @d.addErrback
         def setup_failed(failure):
             log.msg("Failed to connect to %s" % self.bridge)
+            self.report['tor_log'] = failure.value.message
             self.report['success'] = False
 
         return d

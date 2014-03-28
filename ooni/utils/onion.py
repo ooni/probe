@@ -9,7 +9,6 @@ from ooni.settings import config
 class TorVersion(LooseVersion):
     pass
 
-
 def find_tor_binary():
     if config.advanced.tor_binary:
         return config.advanced.tor_binary
