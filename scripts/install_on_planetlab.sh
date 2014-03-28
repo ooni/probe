@@ -7,16 +7,17 @@ sudo yum -y install zlib-devel bzip2-devel openssl-devel ncurses-devel sqlite-de
 cd `mktemp -d`
 
 # Install Python 2.7.6
-wget http://legacy.python.org/ftp//python/2.7.6/Python-2.7.6.tgz
+curl -o Python-2.7.6.tgz http://legacy.python.org/ftp//python/2.7.6/Python-2.7.6.tgz
 tar xzf Python-2.7.6.tgz
 cd Python-2.7.6
 ./configure --prefix=/usr/local --enable-unicode=ucs4 --enable-shared LDFLAGS="-Wl,-rpath /usr/local/lib"
 make
 sudo make altinstall
 sudo ln -sf /usr/local/bin/python2.7 /usr/bin/python
+cd ..
 
 # Install the latest version of libtool
-wget http://ftpmirror.gnu.org/libtool/libtool-2.4.2.tar.gz
+curl -o libtool-2.4.2.tar.gz http://ftpmirror.gnu.org/libtool/libtool-2.4.2.tar.gz
 tar xzf libtool-2.4.2.tar.gz
 cd libtool-2.4.2
 ./configure
@@ -24,9 +25,10 @@ make
 sudo make install
 sudo mv /usr/bin/libtool /usr/bin/libtool.old
 sudo ln -s /usr/local/bin/libtool /usr/bin/libtool
+cd ..
 
 # Install the latest version of autoconf
-wget http://ftp.gnu.org/gnu/autoconf/autoconf-2.69.tar.gz
+curl -o autoconf-2.69.tar.gz http://ftp.gnu.org/gnu/autoconf/autoconf-2.69.tar.gz
 tar xzf autoconf-2.69.tar.gz
 cd autoconf-2.69
 ./configure
@@ -34,9 +36,10 @@ make
 sudo make install
 sudo mv /usr/bin/autoconf /usr/bin/autoconf.old
 sudo ln -s /usr/local/bin/autoconf /usr/bin/autoconf
+cd ..
 
 # Install the latest version of automake
-wget http://ftp.gnu.org/gnu/automake/automake-1.14.1.tar.gz
+curl -o automake-1.14.1.tar.gz http://ftp.gnu.org/gnu/automake/automake-1.14.1.tar.gz
 tar xzf automake-1.14.1.tar.gz
 cd automake-1.14.1
 ./configure
@@ -44,9 +47,10 @@ make
 sudo make install
 sudo mv /usr/bin/automake /usr/bin/automake.old
 sudo ln -s /usr/local/bin/automake /usr/bin/automake
+cd ..
 
 # Install latest version of libevent
-wget https://github.com/downloads/libevent/libevent/libevent-2.0.21-stable.tar.gz
+curl -o libevent-2.0.21-stable.tar.gz https://github.com/downloads/libevent/libevent/libevent-2.0.21-stable.tar.gz
 tar xvzf libevent-2.0.21-stable.tar.gz
 cd libevent-2.0.21-stable
 ./autogen.sh
@@ -54,9 +58,20 @@ cd libevent-2.0.21-stable
 cp /usr/bin/libtool libtool
 make
 sudo make install
+cd ..
+
+# Install GMP
+curl -o gmp-6.0.0a.tar.bz2 https://gmplib.org/download/gmp/gmp-6.0.0a.tar.bz2
+tar xjpf gmp-6.0.0a.tar.bz2
+cd gmp-6.0.0
+export ABI=32
+./configure --enable-cxx
+make
+sudo make install
+cd ..
 
 # Install the latest version of Tor
-wget -O tor.zip https://github.com/hellais/tor/archive/fix/fedora8.zip
+curl -o tor.zip https://github.com/hellais/tor/archive/fix/fedora8.zip
 unzip tor.zip
 cd tor-fix-fedora8
 ./autogen.sh
@@ -111,27 +126,38 @@ EOF
 sudo mv tor.init /etc/init.d/tor
 sudo chmod +x /etc/init.d/tor
 sudo /etc/init.d/tor restart
+cd ..
 
 # Install libGeoIP
-wget -O master.zip https://github.com/maxmind/geoip-api-c/archive/master.zip
+curl -o master.zip https://github.com/maxmind/geoip-api-c/archive/master.zip
 unzip master.zip
 cd geoip-api-c-master/
 ./bootstrap
 ./configure
 make
 sudo make install
+cd ..
 
 # Install the latest version of pip
-wget -O get-pip.py --no-check-certificate https://raw.github.com/pypa/pip/master/contrib/get-pip.py
+curl -o get-pip.py https://raw.github.com/pypa/pip/master/contrib/get-pip.py
 sudo python get-pip.py
 
 # Install the patched versions of cryptography and pyopenssl
-sudo pip install https://github.com/hellais/cryptography/archive/fix/openssl0.9compat.zip
-sudo pip install https://github.com/hellais/pyopenssl/archive/fix/openssl0.9.8compat.zip
+sudo pip install cryptography
+sudo pip install https://github.com/pyca/pyopenssl/archive/master.zip
+
+# Install pluggable transport related stuff
+sudo pip install obfsproxy
+curl -o 0.2.9.zip https://github.com/kpdyer/fteproxy/archive/0.2.9.zip
+unzip 0.2.9.zip
+cd fteproxy-0.2.9
+make
+sudo cp bin/fteproxy /usr/bin/fteproxy
+sudo python setup.py install
+cd ..
 
 # Install ooniprobe and obfsproxy
 sudo pip install https://github.com/TheTorProject/ooni-probe/archive/master.zip
-sudo pip install obfsproxy
 /usr/local/bin/ooniprobe
 
 # Update the Tor running in ooniprobe
