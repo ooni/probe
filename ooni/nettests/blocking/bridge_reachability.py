@@ -103,6 +103,7 @@ class BridgeReachability(nettest.NetTestCase):
         config = txtorcon.TorConfig()
         config.ControlPort = random.randint(2**14, 2**16)
         config.SocksPort = random.randint(2**14, 2**16)
+        log.msg("Connecting to %s with tor %s" % (self.bridge, onion.tor_details['version']))
         
         transport_name = onion.transport_name(self.bridge)
         if transport_name and self.pyobfsproxy_bin:
@@ -119,10 +120,12 @@ class BridgeReachability(nettest.NetTestCase):
         if transport_name and transport_name == 'scramblesuit' and \
                 onion.TorVersion('0.2.5.1') > onion.tor_details['version']:
             self.report['error'] = 'unsupported-tor-version'
+            log.err("Unsupported Tor version.")
             return
         elif transport_name and \
                 onion.TorVersion('0.2.4.1') > onion.tor_details['version']:
             self.report['error'] = 'unsupported-tor-version'
+            log.err("Unsupported Tor version.")
             return
 
         config.Bridge = self.bridge
