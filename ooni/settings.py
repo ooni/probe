@@ -95,7 +95,7 @@ class OConfig(object):
             config_file_contents = '\n'.join(f.readlines())
             configuration = yaml.safe_load(config_file_contents)
 
-            for setting in ['basic', 'advanced', 'privacy', 'tor']:
+            for setting in ['basic', 'reports', 'advanced', 'privacy', 'tor']:
                 try:
                     for k, v in configuration[setting].items():
                         getattr(self, setting)[k] = v
