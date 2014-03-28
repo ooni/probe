@@ -440,6 +440,8 @@ class NetTest(object):
         return ' '.join(tc.name for tc, _ in self.testCases)
     
     def doneNetTest(self, result):
+        if not self.summary:
+            return
         print "Summary for %s" % self.testDetails['test_name']
         print "------------" + "-"*len(self.testDetails['test_name'])
         for test_class in self.testClasses:

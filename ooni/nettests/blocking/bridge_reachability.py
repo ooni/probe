@@ -88,16 +88,16 @@ class BridgeReachability(nettest.NetTestCase):
         working_bridges = ', '.join(["%s %s" % (x['transport_name'], x['address']) for x in summary['successes']])
         failing_bridges = ', '.join(["%s %s (at %s%%)" % (x['transport_name'], x['address'], x['tor_progress']) for x in summary['failures']])
 
-        print "Total successes: %d" % len(summary['successes'])
-        print "Total failures: %d" % len(summary['failures'])
+        log.msg("Total successes: %d" % len(summary['successes']))
+        log.msg("Total failures: %d" % len(summary['failures']))
 
         for transport, count in successful_count.items():
-            print "%s successes: %d" % (transport.title(), count)
+            log.msg("%s successes: %d" % (transport.title(), count))
         for transport, count in failure_count.items():
-            print "%s failures: %d" % (transport.title(), count)
+            log.msg("%s failures: %d" % (transport.title(), count))
 
-        print "Working bridges: %s" % working_bridges
-        print "Failing bridges: %s" % failing_bridges
+        log.msg("Working bridges: %s" % working_bridges)
+        log.msg("Failing bridges: %s" % failing_bridges)
 
     def test_full_tor_connection(self):
         config = txtorcon.TorConfig()
