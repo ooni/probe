@@ -57,6 +57,7 @@ class BridgeReachability(nettest.NetTestCase):
         if self.input.startswith('Bridge'):
             self.bridge = self.input.replace('Bridge ', '')
         self.pyobfsproxy_bin = find_executable('obfsproxy')
+        self.fteproxy_bin = find_executable('fteproxy')
     
     def postProcessor(self, measurements):
         if 'successes' not in self.summary:
@@ -107,7 +108,15 @@ class BridgeReachability(nettest.NetTestCase):
         log.msg("Connecting to %s with tor %s" % (self.bridge, onion.tor_details['version']))
         
         transport_name = onion.transport_name(self.bridge)
-        if transport_name and self.pyobfsproxy_bin:
+        if transport_name and transport_name == 'fte' and self.fteproxy_bin:
+            config.ClientTransportPlugin = "%s exec %s managed" % (transport_name, self.fteproxy_bin)
+            self.report['transport_name'] = transport_name
+            self.report['bridge_address'] = self.bridge.split(' ')[1]
+        elif transport_name and transport_name == 'fte' and not self.fteproxy_bin:
+            log.err("Unable to test bridge because fteproxy is not installed")
+            self.report['error'] = 'missing-fteproxy'
+            return
+        elif transport_name and self.pyobfsproxy_bin:
             config.ClientTransportPlugin = "%s exec %s managed" % (transport_name, self.pyobfsproxy_bin)
             self.report['transport_name'] = transport_name
             self.report['bridge_address'] = self.bridge.split(' ')[1]
