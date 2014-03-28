@@ -109,7 +109,7 @@ class BridgeReachability(nettest.NetTestCase):
         
         transport_name = onion.transport_name(self.bridge)
         if transport_name and transport_name == 'fte' and self.fteproxy_bin:
-            config.ClientTransportPlugin = "%s exec %s managed" % (transport_name, self.fteproxy_bin)
+            config.ClientTransportPlugin = "%s exec %s --managed" % (transport_name, self.fteproxy_bin)
             self.report['transport_name'] = transport_name
             self.report['bridge_address'] = self.bridge.split(' ')[1]
         elif transport_name and transport_name == 'fte' and not self.fteproxy_bin:
