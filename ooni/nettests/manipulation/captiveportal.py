@@ -33,23 +33,16 @@ import os
 import random
 import re
 import string
-import urllib2
 from urlparse import urlparse
 
+from twisted.names import error
 from twisted.python import usage
 from twisted.internet import defer, threads
 
 from ooni import nettest
-from ooni.templates import httpt
+from ooni.templates import httpt,dnst
 from ooni.utils import net
 from ooni.utils import log
-
-try:
-    from dns import resolver
-except ImportError:
-    print "The dnspython module was not found:"
-    print "See https://crate.io/packages/dnspython/"
-    resolver = None
 
 __plugoo__ = "captiveportal"
 __desc__ = "Captive portal detection test"
@@ -61,7 +54,7 @@ class UsageOptions(usage.Options):
                   'User agent for HTTP requests']
                 ]
 
-class CaptivePortal(nettest.NetTestCase):
+class CaptivePortal(httpt.HTTPTest,dnst.DNSTest):
     """
     Compares content and status codes of HTTP responses, and attempts
     to determine if content has been altered.
@@ -75,23 +68,23 @@ class CaptivePortal(nettest.NetTestCase):
     requiresRoot = False
     requiresTor = False
 
+    @defer.inlineCallbacks
     def http_fetch(self, url, headers={}):
         """
-        Parses an HTTP url, fetches it, and returns a urllib2 response
+        Parses an HTTP url, fetches it, and returns a response
         object.
         """
         url = urlparse(url).geturl()
-        request = urllib2.Request(url, None, headers)
         #XXX: HTTP Error 302: The HTTP server returned a redirect error that
         #would lead to an infinite loop.  The last 30x error message was: Found
         try:
-            response = urllib2.urlopen(request)
-            response_headers = dict(response.headers)
-            return response, response_headers
-        except urllib2.HTTPError, e:
-            log.err("HTTPError: %s" % e)
-            return None, None
+            response = yield self.doRequest(url,"GET",headers)
+            defer.returnValue(response)
+        except Exception:
+            log.err("HTTPError")
+            defer.returnValue(None)
 
+    @defer.inlineCallbacks
     def http_content_match_fuzzy_opt(self, experimental_url, control_result,
                                      headers=None, fuzzy=False):
         """
@@ -109,13 +102,15 @@ class CaptivePortal(nettest.NetTestCase):
             default_ua = self.local_options['user-agent']
             headers = {'User-Agent': default_ua}
 
-        response, response_headers = self.http_fetch(experimental_url, headers)
+        response = yield self.http_fetch(experimental_url, headers)
+        response_headers = response.headers
 
-        response_content = response.read() if response else None
+        response_content = response.body if response else None
         response_code = response.code if response else None
         if response_content is None:
             log.err("HTTP connection appears to have failed.")
-            return False, False, False
+            r = (False, False, False)
+            defer.returnValue(r)
 
         if fuzzy:
             pattern = re.compile(control_result)
@@ -124,18 +119,22 @@ class CaptivePortal(nettest.NetTestCase):
             log.msg("'%s'" % experimental_url)
             if not match:
                 log.msg("does not match!")
-                return False, response_code, response_headers
+                r = (False, response_code, response_headers)
+                defer.returnValue(r)
             else:
                 log.msg("and the expected control result yielded a match.")
-                return True, response_code, response_headers
+                r = (True, response_code, response_headers)
+                defer.returnValue(r)
         else:
             if str(response_content) != str(control_result):
                 log.msg("HTTP content comparison of experiment URL")
                 log.msg("'%s'" % experimental_url)
                 log.msg("and the expected control result do not match.")
-                return False, response_code, response_headers
+                r = (False, response_code, response_headers)
+                defer.returnValue(r)
             else:
-                return True, response_code, response_headers
+                r = (True, response_code, response_headers)
+                defer.returnValue(r)
 
     def http_status_code_match(self, experiment_code, control_code):
         """
@@ -149,6 +148,7 @@ class CaptivePortal(nettest.NetTestCase):
         """
         return int(experiment_code) != int(control_code)
 
+    @defer.inlineCallbacks
     def dns_resolve(self, hostname, nameserver=None):
         """
         Resolves hostname(s) though nameserver to corresponding
@@ -156,42 +156,29 @@ class CaptivePortal(nettest.NetTestCase):
         or a list of strings. If nameserver is not given, use local
         DNS resolver, and if that fails try using 8.8.8.8.
         """
-        if not resolver:
-            log.msg("dnspython is not installed.\
-                    Cannot perform DNS Resolve test")
-            return []
         if isinstance(hostname, str):
             hostname = [hostname]
 
-        if nameserver is not None:
-            res = resolver.Resolver(configure=False)
-            res.nameservers = [nameserver]
-        else:
-            res = resolver.Resolver()
-
         response = []
         answer = None
-
         for hn in hostname:
             try:
-                answer = res.query(hn)
-            except resolver.NoNameservers:
-                res.nameservers = ['8.8.8.8']
-                try:
-                    answer = res.query(hn)
-                except resolver.NXDOMAIN:
+                answer = yield self.performALookup(hn)
+                if not answer:
+                    answer = yield self.performALookup(hn, ('8.8.8.8',53))
+            except error.DNSNameError:
                     log.msg("DNS resolution for %s returned NXDOMAIN" % hn)
                     response.append('NXDOMAIN')
-            except resolver.NXDOMAIN:
-                log.msg("DNS resolution for %s returned NXDOMAIN" % hn)
-                response.append('NXDOMAIN')
+            except Exception:
+                log.err("DNS Resolution failed")
             finally:
                 if not answer:
-                    return response
+                    defer.returnValue(response)
                 for addr in answer:
-                    response.append(addr.address)
-        return response
+                    response.append(addr)
+        defer.returnValue(response)
 
+    @defer.inlineCallbacks
     def dns_resolve_match(self, experiment_hostname, control_address):
         """
         Resolve experiment_hostname, and check to see that it returns
@@ -199,18 +186,22 @@ class CaptivePortal(nettest.NetTestCase):
         they match, returns True and experiment_address; otherwise
         returns False and experiment_address.
         """
-        experiment_address = self.dns_resolve(experiment_hostname)
+        experiment_address = yield self.dns_resolve(experiment_hostname)
         if not experiment_address:
             log.debug("dns_resolve() for %s failed" % experiment_hostname)
-            return None, experiment_address
+            ret = None, experiment_address
+            defer.returnValue(ret)
 
         if len(set(experiment_address) & set([control_address])) > 0:
-            return True, experiment_address
+            ret = True, experiment_address
+            defer.returnValue(ret)
         else:
             log.msg("DNS comparison of control '%s' does not" % control_address)
             log.msg("match experiment response '%s'" % experiment_address)
-            return False, experiment_address
+            ret = False, experiment_address
+            defer.returnValue(ret)
 
+    @defer.inlineCallbacks
     def get_auth_nameservers(self, hostname):
         """
         Many CPs set a nameserver to be used. Let's query that
@@ -219,17 +210,8 @@ class CaptivePortal(nettest.NetTestCase):
         The equivalent of:
         $ dig +short NS ooni.nu
         """
-        if not resolver:
-            log.msg("dnspython not installed.")
-            log.msg("Cannot perform test.")
-            return []
-
-        res = resolver.Resolver()
-        answer = res.query(hostname, 'NS')
-        auth_nameservers = []
-        for auth in answer:
-            auth_nameservers.append(auth.to_text())
-        return auth_nameservers
+        auth_nameservers = yield self.performNSLookup(hostname)
+        defer.returnValue(auth_nameservers)
 
     def hostname_to_0x20(self, hostname):
         """
@@ -248,6 +230,7 @@ class CaptivePortal(nettest.NetTestCase):
                 hostname_0x20 += char.lower()
         return hostname_0x20
 
+    @defer.inlineCallbacks
     def check_0x20_to_auth_ns(self, hostname, sample_size=None):
         """
         Resolve a 0x20 DNS request for hostname over hostname's
@@ -264,12 +247,12 @@ class CaptivePortal(nettest.NetTestCase):
         log.msg("Testing random capitalization of DNS queries...")
         log.msg("Testing that Start of Authority serial numbers match...")
 
-        auth_nameservers = self.get_auth_nameservers(hostname)
+        auth_nameservers = yield self.get_auth_nameservers(hostname)
 
         if sample_size is None:
             sample_size = 5
-            resolved_auth_ns = random.sample(self.dns_resolve(auth_nameservers),
-                                             sample_size)
+            res = yield self.dns_resolve(auth_nameservers)
+            resolved_auth_ns = random.sample(res,sample_size)
 
         querynames = []
         answernames = []
@@ -280,16 +263,14 @@ class CaptivePortal(nettest.NetTestCase):
         hostname = self.hostname_to_0x20(hostname)
 
         for auth_ns in resolved_auth_ns:
-            res = resolver.Resolver(configure=False)
-            res.nameservers = [auth_ns]
             try:
-                answer = res.query(hostname, 'SOA')
-            except resolver.Timeout:
+                answer = yield self.performSOALookup(hostname,(auth_ns,53))
+            except Exception:
                 continue
-            querynames.append(answer.qname.to_text())
-            answernames.append(answer.rrset.name.to_text())
+            querynames.append(hostname)
             for soa in answer:
-                serials.append(str(soa.serial))
+                answernames.append(soa[0])
+                serials.append(str(soa[1]))
 
         if len(set(querynames).intersection(answernames)) == 1:
             log.msg("Capitalization in DNS queries and responses match.")
@@ -312,13 +293,13 @@ class CaptivePortal(nettest.NetTestCase):
 
         if name_match and serial_match:
             log.msg("Your DNS queries do not appear to be tampered.")
-            return ret
+            defer.returnValue(ret)
         elif name_match or serial_match:
             log.msg("Something is tampering with your DNS queries.")
-            return ret
+            defer.returnValue(ret)
         elif not name_match and not serial_match:
             log.msg("Your DNS queries are definitely being tampered with.")
-            return ret
+            defer.returnValue(ret)
 
     def get_random_url_safe_string(self, length):
         """
@@ -359,10 +340,11 @@ class CaptivePortal(nettest.NetTestCase):
             random_sld = self.get_random_url_safe_string(length)
 
         tld_list = ['.com', '.net', '.org', '.info', '.test', '.invalid']
-        random_tld = urllib2.random.choice(tld_list)
+        random_tld = random.choice(tld_list)
         random_hostname = random_sld + random_tld
         return random_hostname
 
+    @defer.inlineCallbacks
     def compare_random_hostnames(self, hostname_count=None, hostname_length=None):
         """
         Get hostname_count number of random hostnames with SLD length
@@ -392,7 +374,7 @@ class CaptivePortal(nettest.NetTestCase):
 
         for x in range(hostname_count):
             random_hostname = self.get_random_hostname(hostname_length)
-            response_match, response_address = self.dns_resolve_match(random_hostname,
+            response_match, response_address = yield self.dns_resolve_match(random_hostname,
                                                                       control[0])
             for address in response_address:
                 if response_match is False:
@@ -410,16 +392,19 @@ class CaptivePortal(nettest.NetTestCase):
         if len(intersection) == 1:
             log.msg("All %d random hostnames properly resolved to NXDOMAIN."
                      % hostname_count)
-            return True, relative_complement
+            ret = True, relative_complement
+            defer.returnValue(ret)
         elif (len(intersection) == 1) and (len(r) > 1):
             log.msg("Something odd happened. Some random hostnames correctly")
             log.msg("resolved to NXDOMAIN, but several others resolved to")
             log.msg("to the following addresses: %s" % relative_complement)
-            return False, relative_complement
+            ret = False, relative_complement
+            defer.returnValue(ret)
         elif (len(intersection) == 0) and (len(r) == 1):
             log.msg("All random hostnames resolved to the IP address ")
             log.msg("'%s', which is indicative of a captive portal." % r)
-            return False, relative_complement
+            ret = False, relative_complement
+            defer.returnValue(ret)
         else:
             log.debug("Apparently, pigs are flying on your network, 'cause a")
             log.debug("bunch of hostnames made from 32-byte random strings")
@@ -430,8 +415,10 @@ class CaptivePortal(nettest.NetTestCase):
             log.debug("it nearly twice as unlikely as an MD5 hash collision.")
             log.debug("Either someone is seriously messing with your network,")
             log.debug("or else you are witnessing the impossible. %s" % r)
-            return False, relative_complement
+            ret = False, relative_complement
+            defer.returnValue(ret)
 
+    @defer.inlineCallbacks
     def google_dns_cp_test(self):
         """
         Google Chrome resolves three 10-byte random hostnames.
@@ -439,18 +426,19 @@ class CaptivePortal(nettest.NetTestCase):
         subtest = "Google Chrome DNS-based"
         log.msg("Running the Google Chrome DNS-based captive portal test...")
 
-        gmatch, google_dns_result = self.compare_random_hostnames(3, 10)
+        gmatch, google_dns_result = yield self.compare_random_hostnames(3, 10)
 
         if gmatch:
             log.msg("Google Chrome DNS-based captive portal test did not")
             log.msg("detect a captive portal.")
-            return google_dns_result
+            defer.returnValue(google_dns_result)
         else:
             log.msg("Google Chrome DNS-based captive portal test believes")
             log.msg("you are in a captive portal, or else something very")
             log.msg("odd is happening with your DNS.")
-            return google_dns_result
+            defer.returnValue(google_dns_result)
 
+    @defer.inlineCallbacks
     def ms_dns_cp_test(self):
         """
         Microsoft "phones home" to a server which will always resolve
@@ -462,27 +450,28 @@ class CaptivePortal(nettest.NetTestCase):
         log.msg("Running the Microsoft NCSI DNS-based captive portal")
         log.msg("test...")
 
-        msmatch, ms_dns_result = self.dns_resolve_match("dns.msftncsi.com",
+        msmatch, ms_dns_result = yield self.dns_resolve_match("dns.msftncsi.com",
                                                         "131.107.255.255")
         if msmatch:
             log.msg("Microsoft NCSI DNS-based captive portal test did not")
             log.msg("detect a captive portal.")
-            return ms_dns_result
+            defer.returnValue(ms_dns_result)
         else:
             log.msg("Microsoft NCSI DNS-based captive portal test ")
             log.msg("believes you are in a captive portal.")
-            return ms_dns_result
+            defer.returnValue(ms_dns_result)
 
+    @defer.inlineCallbacks
     def run_vendor_dns_tests(self):
         """
         Run the vendor DNS tests.
         """
         report = {}
-        report['google_dns_cp'] = self.google_dns_cp_test()
-        report['ms_dns_cp'] = self.ms_dns_cp_test()
+        report['google_dns_cp'] = yield self.google_dns_cp_test()
+        report['ms_dns_cp'] = yield self.ms_dns_cp_test()
+        defer.returnValue(report)
 
-        return report
-
+    @defer.inlineCallbacks
     def run_vendor_tests(self, *a, **kw):
         """
         These are several vendor tests used to detect the presence of
@@ -514,24 +503,24 @@ class CaptivePortal(nettest.NetTestCase):
         sm = self.http_status_code_match
         snm = self.http_status_code_no_match
 
+        @defer.inlineCallbacks
         def compare_content(status_func, fuzzy, experiment_url, control_result,
                             control_code, headers, test_name):
             log.msg("")
             log.msg("Running the %s test..." % test_name)
 
-            content_match, experiment_code, experiment_headers = cm(experiment_url,
+            content_match, experiment_code, experiment_headers = yield cm(experiment_url,
                                                                     control_result,
                                                                     headers, fuzzy)
             status_match = status_func(experiment_code, control_code)
-
             if status_match and content_match:
                 log.msg("The %s test was unable to detect" % test_name)
                 log.msg("a captive portal.")
-                return True
+                defer.returnValue(True)
             else:
                 log.msg("The %s test shows that your network" % test_name)
                 log.msg("is filtered.")
-                return False
+                defer.returnValue(False)
 
         result = []
         for vt in vendor_tests:
@@ -547,19 +536,20 @@ class CaptivePortal(nettest.NetTestCase):
             args = (experiment_url, control_result, control_code, headers, test_name)
 
             if test_name == "MS HTTP Captive Portal":
-                report['result'] = compare_content(sm, False, *args)
+                report['result'] = yield compare_content(sm, False, *args)
 
             elif test_name == "Apple HTTP Captive Portal":
-                report['result'] = compare_content(sm, True, *args)
+                report['result'] = yield compare_content(sm, True, *args)
 
             elif test_name == "W3 Captive Portal":
-                report['result'] = compare_content(snm, True, *args)
+                report['result'] = yield compare_content(snm, True, *args)
 
             else:
                 log.err("Ooni is trying to run an undefined CP vendor test.")
             result.append(report)
-        return result
+        defer.returnValue(result)
 
+    @defer.inlineCallbacks
     def control(self, experiment_result, args):
         """
         Compares the content and status code of the HTTP response for
@@ -582,7 +572,7 @@ class CaptivePortal(nettest.NetTestCase):
         snm = self.http_status_code_no_match
 
         log.msg("Running test for '%s'..." % experiment_url)
-        content_match, experiment_code, experiment_headers = cm(experiment_url,
+        content_match, experiment_code, experiment_headers = yield cm(experiment_url,
                                                                 control_result)
         status_match = sm(experiment_code, control_code)
         if status_match and content_match:
@@ -594,7 +584,7 @@ class CaptivePortal(nettest.NetTestCase):
         elif status_match and not content_match:
             log.msg("Retrying '%s' with fuzzy match enabled."
                      % experiment_url)
-            fuzzy_match, experiment_code, experiment_headers = cm(experiment_url,
+            fuzzy_match, experiment_code, experiment_headers = yield cm(experiment_url,
                                                                   control_result,
                                                                   fuzzy=True)
             if fuzzy_match:
@@ -637,15 +627,15 @@ class CaptivePortal(nettest.NetTestCase):
 
         log.msg("")
         log.msg("Running vendor tests...")
-        self.report['vendor_tests'] = yield threads.deferToThread(self.run_vendor_tests)
+        self.report['vendor_tests'] = yield self.run_vendor_tests()
 
         log.msg("")
         log.msg("Running vendor DNS-based tests...")
-        self.report['vendor_dns_tests'] = yield threads.deferToThread(self.run_vendor_dns_tests)
+        self.report['vendor_dns_tests'] = yield self.run_vendor_dns_tests()
 
         log.msg("")
         log.msg("Checking that DNS requests are not being tampered...")
-        self.report['check0x20'] = yield threads.deferToThread(self.check_0x20_to_auth_ns, 'ooni.nu')
+        self.report['check0x20'] = yield self.check_0x20_to_auth_ns('ooni.nu')
 
         log.msg("")
         log.msg("Captive portal test finished!")

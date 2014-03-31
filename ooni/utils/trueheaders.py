@@ -32,6 +32,8 @@ class TrueHeaders(http_headers.Headers):
                   self.setRawHeaders(name, values[:])
                 elif type(values) is dict:
                   self._rawHeaders[name.lower()] = values
+                elif type(values) is str:
+                  self.setRawHeaders(name, values)
 
     def setRawHeaders(self, name, values):
         if name.lower() not in self._rawHeaders:
