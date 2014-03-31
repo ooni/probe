@@ -3,7 +3,7 @@
 # :authors: Arturo Filastò
 # :licence: see LICENSE
 
-from twisted.internet import defer
+from twisted.internet import defer, udp, error, base
 from twisted.internet.defer import TimeoutError
 from twisted.names import client, dns
 from twisted.names.client import Resolver
@@ -14,8 +14,50 @@ from ooni.utils import log
 from ooni.nettest import NetTestCase
 from ooni.errors import failureToString
 
+import socket
 from socket import gaierror
 
+dns.DNSDatagramProtocol.noisy = False
+
+def _bindSocket(self):
+    """
+    _bindSocket taken from Twisted 13.1.0 to suppress logging.
+    """
+    try:
+        skt = self.createInternetSocket()
+        skt.bind((self.interface, self.port))
+    except socket.error as le:
+        raise error.CannotListenError(self.interface, self.port, le)
+
+    # Make sure that if we listened on port 0, we update that to
+    # reflect what the OS actually assigned us.
+    self._realPortNumber = skt.getsockname()[1]
+    
+    # Here we remove the logging.
+    # log.msg("%s starting on %s" % (
+    #         self._getLogPrefix(self.protocol), self._realPortNumber))
+
+    self.connected = 1
+    self.socket = skt
+    self.fileno = self.socket.fileno
+udp.Port._bindSocket = _bindSocket
+
+def connectionLost(self, reason=None):
+    """
+    Taken from Twisted 13.1.0 to suppress log.msg printing.
+    """
+    # Here we remove the logging.
+    # log.msg('(UDP Port %s Closed)' % self._realPortNumber)
+    self._realPortNumber = None
+    base.BasePort.connectionLost(self, reason)
+    self.protocol.doStop()
+    self.socket.close()
+    del self.socket
+    del self.fileno
+    if hasattr(self, "d"):
+        self.d.callback(None)
+        del self.d
+udp.Port.connectionLost = connectionLost
 
 def representAnswer(answer):
     # We store the resource record and the answer payload in a
@@ -127,8 +169,6 @@ class DNSTest(NetTestCase):
             return addrs
 
         def gotError(failure):
-            log.err("Failed to perform "+dns_type+" lookup")
-            log.exception(failure)
             failure.trap(gaierror, TimeoutError)
             DNSTest.addToReport(self, query, resolver=dns_server, query_type=dns_type,
                         failure=failure)
