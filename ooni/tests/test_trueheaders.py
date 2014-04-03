@@ -36,6 +36,15 @@ class TestTrueHeaders(unittest.TestCase):
         th = TrueHeaders(dummy_headers_dict)
         self.assertEqual(th.getDiff(TrueHeaders(dummy_headers_dict2), ignore=['Header3']), set())
 
-
-
-
+    def test_order_preserved(self):
+        th = TrueHeaders()
+        th.setRawHeaders("HeaderFIRST", ["Value1", "Value2"])
+        th.setRawHeaders("headersecond", ["ValueA", "ValueB"])
+        th.setRawHeaders("HeaderNext", ["ValueZ", "ValueY", "ValueX"])
+        th.setRawHeaders("HeaderLast", ["Value2", "Value1"])
+        self.assertEqual(list(th.getAllRawHeaders()),[
+            ("HeaderFIRST", ["Value1", "Value2"]),
+            ("headersecond", ["ValueA", "ValueB"]),
+            ("HeaderNext", ["ValueZ", "ValueY", "ValueX"]),
+            ("HeaderLast", ["Value2", "Value1"])
+        ])

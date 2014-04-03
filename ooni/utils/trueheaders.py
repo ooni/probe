@@ -7,6 +7,7 @@
 import struct
 import itertools
 from copy import copy
+from collections import OrderedDict
 
 from zope.interface import implements
 from twisted.web import client, _newclient, http_headers
@@ -25,21 +26,20 @@ from ooni.utils import log
 
 class TrueHeaders(http_headers.Headers):
     def __init__(self, rawHeaders=None):
-        self._rawHeaders = dict()
+        self._rawHeaders = OrderedDict()
+        self._headerCases = dict()
         if rawHeaders is not None:
             for name, values in rawHeaders.iteritems():
-                if type(values) is list:
-                  self.setRawHeaders(name, values[:])
-                elif type(values) is dict:
-                  self._rawHeaders[name.lower()] = values
-                elif type(values) is str:
-                  self.setRawHeaders(name, values)
+                self.setRawHeaders(name, values)
 
     def setRawHeaders(self, name, values):
-        if name.lower() not in self._rawHeaders:
-          self._rawHeaders[name.lower()] = dict()
-        self._rawHeaders[name.lower()]['name'] = name
-        self._rawHeaders[name.lower()]['values'] = values
+        #Store original name case for later lookup
+        if name.lower() not in self._caseMappings:
+          self._headerCases[name.lower()] = name
+        self._rawHeaders[name.lower()] = values
+
+    def _canonicalNameCaps(self, name):
+        return self._headerCases.get(name.lower())
 
     def getDiff(self, headers, ignore=[]):
         """
@@ -80,15 +80,6 @@ class TrueHeaders(http_headers.Headers):
             else:
                 diff.add(name)
         return diff
-
-    def getAllRawHeaders(self):
-        for k, v in self._rawHeaders.iteritems():
-            yield v['name'], v['values']
-
-    def getRawHeaders(self, name, default=None):
-        if name.lower() in self._rawHeaders:
-            return self._rawHeaders[name.lower()]['values']
-        return default
 
 class HTTPClientParser(_newclient.HTTPClientParser):
     def logPrefix(self):
