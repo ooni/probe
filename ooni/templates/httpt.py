@@ -1,10 +1,8 @@
 import random
 
-from zope.interface import implements
-
 from twisted.internet import defer
 
-from txtorcon.interface import IStreamListener
+from txtorcon.interface import StreamListenerMixin
 
 from twisted.internet import reactor
 from twisted.internet.endpoints import TCP4ClientEndpoint
@@ -22,14 +20,10 @@ from ooni.errors import handleAllFailures
 class InvalidSocksProxyOption(Exception):
     pass
 
-class StreamListener(object):
-    implements(IStreamListener)
+class StreamListener(StreamListenerMixin):
 
     def __init__(self, request):
         self.request = request
-
-    def stream_new(self, stream):
-            pass
 
     def stream_succeeded(self, stream):
         host=self.request['url'].split('/')[2]
@@ -37,17 +31,9 @@ class StreamListener(object):
             if stream.target_host == host and len(self.request['tor']) == 1:
                 self.request['tor']['exit_ip'] = stream.circuit.path[-1].ip
                 self.request['tor']['exit_name'] = stream.circuit.path[-1].name
+                config.tor_state.stream_listeners.remove(self)
         except:
             log.err("Tor Exit ip detection failed")
-
-    def stream_attach(self, stream, circuit):
-            pass
-
-    def stream_closed(self, stream,**k):
-            pass
-
-    def stream_failed(self, stream, reason, remote_reason):
-            pass
 
 class HTTPTest(NetTestCase):
     """
