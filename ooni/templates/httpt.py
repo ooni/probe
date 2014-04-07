@@ -1,20 +1,13 @@
-import copy
 import random
-import struct
 
 from zope.interface import implements
 
-from twisted.plugin import IPlugin
-from twisted.internet import protocol, defer
-from twisted.internet.ssl import ClientContextFactory
+from twisted.internet import defer
 
 from txtorcon.interface import IStreamListener
 
 from twisted.internet import reactor
-from twisted.internet.error import ConnectionRefusedError, DNSLookupError, TCPTimedOutError
 from twisted.internet.endpoints import TCP4ClientEndpoint
-from twisted.web._newclient import Request, Response, ResponseNeverReceived
-from twisted.web.client import Agent
 from ooni.utils.trueheaders import TrueHeadersAgent, TrueHeadersSOCKS5Agent
 
 from ooni.nettest import NetTestCase
