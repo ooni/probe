@@ -34,7 +34,7 @@ class TrueHeaders(http_headers.Headers):
 
     def setRawHeaders(self, name, values):
         #Store original name case for later lookup
-        if name.lower() not in self._caseMappings:
+        if name.lower() not in self._headerCases:
           self._headerCases[name.lower()] = name
         self._rawHeaders[name.lower()] = values
 
