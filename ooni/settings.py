@@ -66,13 +66,14 @@ class OConfig(object):
     def _create_config_file(self):
         sample_config_file = os.path.join(self.data_directory,
                                           'ooniprobe.conf.sample')
-        target_config_file = os.path.join(self.ooni_home,
-                                          'ooniprobe.conf')
+        target_config_file = self.config_file
         print "Creating it for you in '%s'." % target_config_file
         usr_share_path = '/usr/share'
         if hasattr(sys, 'real_prefix'):
             usr_share_path = os.path.abspath(os.path.join(sys.prefix, 'share'))
-        
+
+        if not os.path.isdir(os.path.dirname(target_config_file)):
+            os.mkdir(os.path.dirname(target_config_file))
         with open(sample_config_file) as f:
             with open(target_config_file, 'w+') as w:
                 for line in f:
