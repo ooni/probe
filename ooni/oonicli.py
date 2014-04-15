@@ -233,7 +233,7 @@ def runWithDirector(logging=True, start_tor=True):
                 if global_options['collector']:
                     collector = global_options['collector']
                 elif 'collector' in config.reports and config.reports['collector']:
-                    collector = config.report['collector']
+                    collector = config.reports['collector']
                 elif net_test_loader.collector:
                     collector = net_test_loader.collector
 
