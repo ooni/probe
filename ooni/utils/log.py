@@ -29,7 +29,7 @@ class OONILogger(object):
         daily_logfile = None
 
         if not logfile:
-            logfile = os.path.expanduser(config.basic.logfile)
+            logfile = config.basic.logfile
 
         log_folder = os.path.dirname(logfile)
         log_filename = os.path.basename(logfile)

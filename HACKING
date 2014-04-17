@@ -45,11 +45,6 @@ Code Structure
 - ooni/
   Contains the main ooni probe comand line client
 
-- ooni/config.py
-  Parts of the code related to parsing OONI
-  configuration files and making them accessible
-  to other components of the software.
-
 - ooni/inputunit.py
   In here we have functions related to the creation of input
   units. Input units are how the inputs to be fed to tests are
@@ -74,6 +69,11 @@ Code Structure
 - ooni/runner.py
   Handles running ooni.nettests as well as
   ooni.plugoo.tests.OONITests.
+
+- ooni/settings.py
+  Parts of the code related to parsing OONI
+  configuration files and making them accessible
+  to other components of the software.
 
 - ooni/otime.py
   Generation of timestamps, time conversions and all the rest

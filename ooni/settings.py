@@ -49,9 +49,12 @@ class OConfig(object):
 
         if self.global_options.get('configfile'):
             config_file = self.global_options['configfile']
+            self.config_file = expanduser(config_file)
         else:
-            config_file = os.path.join('~', '.ooni', 'ooniprobe.conf')
-        self.config_file = expanduser(config_file)
+            self.config_file = os.path.join(self.ooni_home, 'ooniprobe.conf')
+
+        if 'logfile' in self.basic:
+            self.basic.logfile = expanduser(self.basic.logfile.replace('~','~'+self.current_user))
 
     def initialize_ooni_home(self):
         if not os.path.isdir(self.ooni_home):
@@ -66,13 +69,12 @@ class OConfig(object):
     def _create_config_file(self):
         sample_config_file = os.path.join(self.data_directory,
                                           'ooniprobe.conf.sample')
-        target_config_file = os.path.join(self.ooni_home,
-                                          'ooniprobe.conf')
+        target_config_file = self.config_file
         print "Creating it for you in '%s'." % target_config_file
         usr_share_path = '/usr/share'
         if hasattr(sys, 'real_prefix'):
             usr_share_path = os.path.abspath(os.path.join(sys.prefix, 'share'))
-        
+
         with open(sample_config_file) as f:
             with open(target_config_file, 'w+') as w:
                 for line in f:
