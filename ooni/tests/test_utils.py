@@ -1,7 +1,9 @@
 import os
 from twisted.trial import unittest
 
-from ooni.utils import pushFilenameStack
+from ooni.utils import pushFilenameStack, log
+
+
 class TestUtils(unittest.TestCase):
     def test_pushFilenameStack(self):
         basefilename = os.path.join(os.getcwd(), 'dummyfile')
@@ -20,3 +22,11 @@ class TestUtils(unittest.TestCase):
             self.assertEqual(str(i-1), str(c))
             f.close()
 
+    def test_log_encode(self):
+        logmsgs = (
+            (r"spam\x07\x08", "spam\a\b"),
+            (r"spam\x07\x08", u"spam\a\b"),
+            (r"ham\u237e", u"ham"+u"\u237e")
+        )
+        for encoded_logmsg, logmsg in logmsgs:
+            self.assertEqual(log.log_encode(logmsg), encoded_logmsg)
