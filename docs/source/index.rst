@@ -35,6 +35,34 @@ component for running the test.
 blocked from the probes network point of view. As such they usually require to
 have specified an input list for running the test.
 
+Threat Model
+------------
+
+Our adversary is capable of doing country wide network surveillance and 
+manipulation of network traffic.
+
+The goals of our adversary are:
+
+  * Restrict access to certain content, while not degrading overall quality of 
+    the network
+  * Monitor the network in a way that they are able to identify misuse of it in
+    real time
+
+More specifc to the running of network filtering detection tests:
+
+1. Detect actors performing censorship detection tests
+2. Fool people running such tests into believing that the network is 
+   unrestricted
+
+*Note* that while 2) => 1) it is not true that 1) => 2) as the identification of 
+such actors does not necessarily have to happen in real time.
+While our intention is to minimize the risk of users running OONI probe to be 
+identified, this comes with a tradeoff in accuracy. It is therefore necessary in 
+certain tests to trade-off fingerprintability in favour of tests accuracy.
+
+This is why we divide tests based on what risk the user running it can face, 
+allowing the user to freely choose what threat model they wish to adere to.
+
 Installation
 ------------
 
