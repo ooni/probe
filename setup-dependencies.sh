@@ -867,7 +867,7 @@ install_virtualenv_securely() {
 }
 
 case $DISTRO_VERSION in
-  natty|wheezy|squeeze|precise|n/a)
+  natty|wheezy|squeeze|precise|n/a|raring|saucy|trusty)
 
   # Create the build directories
   DO "mkdir -p ${BUILD_DIR}" "0"
