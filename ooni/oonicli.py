@@ -10,7 +10,7 @@ from twisted.internet import reactor
 from twisted.python import usage
 from twisted.python.util import spewer
 
-from ooni import errors
+from ooni import errors, __version__
 
 from ooni.settings import config
 from ooni.director import Director
@@ -69,6 +69,13 @@ class Options(usage.Options):
         """
         sys.settrace(spewer)
 
+    def opt_version(self):
+        """
+        Display the ooniprobe version and exit.
+        """
+        print "ooniprobe version:", __version__
+        sys.exit(0)
+
     def parseArgs(self, *args):
         if self['testdeck'] or self['list']:
             return
@@ -81,7 +88,7 @@ class Options(usage.Options):
 def parseOptions():
     print "WARNING: running ooniprobe involves some risk that varies greatly"
     print "         from country to country. You should be aware of this when"
-    print "         running the tool. Read more about this in the README."
+    print "         running the tool. Read more about this in the manpage or README."
     cmd_line_options = Options()
     if len(sys.argv) == 1:
         cmd_line_options.getUsage()
