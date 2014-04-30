@@ -127,7 +127,6 @@ class Director(object):
             log.msg("Connecting to Tor Control Port...")
             yield self.getTorState()
 
-        config.probe_ip = geoip.ProbeIP()
         yield config.probe_ip.lookup()
 
     @property
@@ -222,7 +221,7 @@ class Director(object):
         """
         if config.privacy.includepcap:
             if not config.reports.pcap:
-                config.reports.pcap = config.generatePcapFilename(net_test_loader.testDetails)
+                config.reports.pcap = config.generate_pcap_filename(net_test_loader.testDetails)
             self.startSniffing()
 
         report = Report(reporters, self.reportEntryManager)

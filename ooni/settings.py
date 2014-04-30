@@ -8,7 +8,7 @@ from os.path import abspath, expanduser
 
 from twisted.internet import reactor, threads, defer
 
-from ooni import otime
+from ooni import otime, geoip
 from ooni.utils import Storage
 
 class OConfig(object):
@@ -19,7 +19,7 @@ class OConfig(object):
         self.scapyFactory = None
         self.tor_state = None
         # This is used to store the probes IP address obtained via Tor
-        self.probe_ip = None
+        self.probe_ip = geoip.ProbeIP()
         # This is used to keep track of the state of the sniffer
         self.sniffer_running = None
         self.logging = True
@@ -105,7 +105,7 @@ class OConfig(object):
                     pass
         self.set_paths()
 
-    def generatePcapFilename(self, testDetails):
+    def generate_pcap_filename(self, testDetails):
         test_name, start_time = testDetails['test_name'], testDetails['start_time']
         start_time = otime.epochToTimestamp(start_time)
         return "report-%s-%s.%s" % (test_name, start_time, "pcap")

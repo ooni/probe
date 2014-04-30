@@ -5,11 +5,9 @@ import random
 from twisted.web import client, http_headers
 client._HTTP11ClientFactory.noisy = False
 
-from ooni.utils.net import userAgents, BodyReceiver
 from twisted.internet import reactor, defer, protocol
 
 from ooni.utils import log, net, checkForRoot
-from ooni.settings import config
 from ooni import errors
 
 try:
@@ -26,6 +24,8 @@ class GeoIPDataFilesNotFound(Exception):
     pass
 
 def IPToLocation(ipaddr):
+    from ooni.settings import config
+
     city_file = os.path.join(config.advanced.geoip_data_dir, 'GeoLiteCity.dat')
     country_file = os.path.join(config.advanced.geoip_data_dir, 'GeoIP.dat')
     asn_file = os.path.join(config.advanced.geoip_data_dir, 'GeoIPASNum.dat')
@@ -67,6 +67,8 @@ class HTTPGeoIPLookupper(object):
         self.agent = self._agent(reactor)
 
     def _response(self, response):
+        from ooni.utils.net import BodyReceiver
+
         content_length = response.headers.getRawHeaders('content-length')
 
         finished = defer.Deferred()
@@ -88,6 +90,8 @@ class HTTPGeoIPLookupper(object):
         return failure
 
     def lookup(self):
+        from ooni.utils.net import userAgents
+
         headers = {}
         headers['User-Agent'] = [random.choice(userAgents)]
 
@@ -117,16 +121,37 @@ class ProbeIP(object):
     address = None
 
     def __init__(self):
-        self.tor_state = config.tor_state
-        self.geoIPServices = {'ubuntu': UbuntuGeoIP,
+        self.geoIPServices = {
+            'ubuntu': UbuntuGeoIP,
             'torproject': TorProjectGeoIP
         }
+        self.geodata = {
+            'asn': 'AS0',
+            'city': None,
+            'countrycode': 'ZZ',
+            'ip': '127.0.0.1'
+        }
+    
+    def resolveGeodata(self):
+        from ooni.settings import config
+
+        self.geodata = IPToLocation(self.address)
+        self.geodata['ip'] = self.address
+        if not config.privacy.includeasn:
+            self.geodata['asn'] = 'AS0'
+        if not config.privacy.includecity:
+            self.geodata['city'] = None
+        if not config.privacy.includecountry:
+            self.geodata['countrycode'] = 'ZZ'
+        if not config.privacy.includeip:
+            self.geodata['ip'] = '127.0.0.1'
 
     @defer.inlineCallbacks
     def lookup(self):
         try:
             yield self.askTor()
             log.msg("Found your IP via Tor %s" % self.address)
+            self.resolveGeodata()
             defer.returnValue(self.address)
         except errors.TorStateNotFound:
             log.debug("Tor is not running. Skipping IP lookup via Tor.")
@@ -136,6 +161,7 @@ class ProbeIP(object):
         try:
             yield self.askTraceroute()
             log.msg("Found your IP via Traceroute %s" % self.address)
+            self.resolveGeodata()
             defer.returnValue(self.address)
         except errors.InsufficientPrivileges:
             log.debug("Cannot determine the probe IP address with a traceroute, becase of insufficient priviledges")
@@ -145,6 +171,7 @@ class ProbeIP(object):
         try:
             yield self.askGeoIPService()
             log.msg("Found your IP via a GeoIP service: %s" % self.address)
+            self.resolveGeodata()
             defer.returnValue(self.address)
         except Exception, e:
             log.msg("Unable to lookup the probe IP via GeoIPService")
@@ -183,8 +210,10 @@ class ProbeIP(object):
         XXX this lookup method is currently broken when there are cached descriptors or consensus documents
         see: https://trac.torproject.org/projects/tor/ticket/8214
         """
-        if self.tor_state:
-            d = self.tor_state.protocol.get_info("address")
+        from ooni.settings import config
+
+        if config.tor_state:
+            d = config.tor_state.protocol.get_info("address")
             @d.addCallback
             def cb(result):
                 self.strategy = 'tor_get_info_address'
