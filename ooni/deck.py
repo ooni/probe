@@ -6,6 +6,7 @@ from ooni.settings import config
 from ooni.utils import log
 from ooni import errors as e
 
+from twisted.python.filepath import FilePath
 from twisted.internet import reactor, defer
 
 import os
@@ -65,19 +66,23 @@ class InputFile(object):
             file_hash = sha256(f.read())
             assert file_hash.hexdigest() == digest
 
-def nettest_to_path(path):
+def nettest_to_path(path, allow_arbitrary_paths=False):
     """
     Takes as input either a path or a nettest name.
     
+    Args:
+
+        allow_arbitrary_paths:
+            allow also paths that are not relative to the nettest_directory.
+
     Returns:
 
         full path to the nettest file.
     """
-    path_via_name = os.path.join(config.nettest_directory, path + '.py')
-    if os.path.exists(path):
+    if allow_arbitrary_paths and os.path.exists(path):
         return path
-    elif os.path.exists(path_via_name):
-        return path_via_name
+    elif FilePath(config.nettest_directory).preauthChild(path + '.py').exists():
+        return os.path.join(config.nettest_directory, path + '.py')
     else:
         raise e.NetTestNotFound(path)
 

@@ -39,9 +39,9 @@ class BaseTestCase(unittest.TestCase):
             reportfile: null
             resume: 0
             subargs: []
-            test_file: %s/dummy_test.py
+            test_file: manipulation/http_invalid_request_line
             testdeck: null
-""" % self.cwd
+"""
 
 class TestInputFile(BaseTestCase):
     def test_file_cached(self):
@@ -101,11 +101,15 @@ class TestDeck(BaseTestCase):
             f.write(net_test_string)
 
     def test_open_deck(self):
-        deck = Deck(deckFile=self.deck_file, decks_directory=".")
+        deck = Deck(decks_directory=".")
+        deck.bouncer = "httpo://foo.onion"
+        deck.loadDeck(self.deck_file)
         assert len(deck.netTestLoaders) == 1
 
     def test_save_deck_descriptor(self):
-        deck = Deck(deckFile=self.deck_file, decks_directory=".")
+        deck = Deck(decks_directory=".")
+        deck.bouncer = "httpo://foo.onion"
+        deck.loadDeck(self.deck_file)
         deck.load({'name': 'spam',
             'id': 'spam',
             'version': 'spam',
@@ -118,13 +122,14 @@ class TestDeck(BaseTestCase):
     
     @defer.inlineCallbacks
     def test_lookuptest_helpers(self):
-        deck = Deck(deckFile=self.deck_file, decks_directory=".")
+        deck = Deck(decks_directory=".")
+        deck.bouncer = "httpo://foo.onion"
         deck.oonibclient = MockOONIBClient()
+        deck.loadDeck(self.deck_file)
         yield deck.lookupTestHelpers()
 
         assert deck.netTestLoaders[0].collector == 'httpo://thirteenchars1234.onion'
 
         required_test_helpers = deck.netTestLoaders[0].requiredTestHelpers
         assert len(required_test_helpers) == 1
-        assert required_test_helpers[0]['test_class'].localOptions['spam'] == '127.0.0.1'
-
+        assert required_test_helpers[0]['test_class'].localOptions['backend'] == '127.0.0.1'

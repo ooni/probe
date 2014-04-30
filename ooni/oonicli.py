@@ -155,7 +155,7 @@ def runWithDirector(logging=True, start_tor=True):
             deck.loadDeck(global_options['testdeck'])
         else:
             log.debug("No test deck detected")
-            test_file = nettest_to_path(global_options['test_file'])
+            test_file = nettest_to_path(global_options['test_file'], True)
             net_test_loader = NetTestLoader(global_options['subargs'],
                     test_file=test_file)
             deck.insert(net_test_loader)
