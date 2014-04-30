@@ -1,10 +1,8 @@
 import os
 import sys
 import yaml
-import signal
-import socket
 
-from twisted.internet import base, defer
+from twisted.internet import defer
 from twisted.trial import unittest
 
 from ooni.tests import is_internet_connected
@@ -25,7 +23,7 @@ def verify_header(header):
 def verify_entry(entry):
     assert 'input' in entry
 
-   
+
 class TestRunDirector(unittest.TestCase):
     def setUp(self):
         if not is_internet_connected():
@@ -68,7 +66,7 @@ class TestRunDirector(unittest.TestCase):
             assert 'factor' in entry
             assert 'headers_diff' in entry
             assert 'headers_match' in entry
-        yield self.run_test('blocking/http_requests', 
+        yield self.run_test('blocking/http_requests',
                       ['-u', 'http://torproject.org/'],
                       verify_function)
 
@@ -82,7 +80,7 @@ class TestRunDirector(unittest.TestCase):
             assert 'factor' in entry
             assert 'headers_diff' in entry
             assert 'headers_match' in entry
-        yield self.run_test('blocking/http_requests', 
+        yield self.run_test('blocking/http_requests',
                       ['-f', 'example-input.txt'],
                       verify_function)
 
@@ -114,6 +112,6 @@ class TestRunDirector(unittest.TestCase):
             assert 'request_line_capitalization' in entry['tampering']
             assert 'total' in entry['tampering']
 
-        yield self.run_test('manipulation/http_header_field_manipulation', 
+        yield self.run_test('manipulation/http_header_field_manipulation',
                             ['-b', 'http://64.9.225.221'],
                            verify_function)
