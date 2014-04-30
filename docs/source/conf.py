@@ -216,7 +216,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    ('index', 'ooni', u'OONI Documentation',
+    ('index', 'ooniprobe', u'an internet censorship measurement tool',
      [u'The Tor Project'], 1)
 ]
 

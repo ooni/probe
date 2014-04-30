@@ -1,0 +1,1100 @@
+.\" Man page generated from reStructuredText.
+.
+.TH "OONI" "1" "April 29, 2014" "0.1" "OONI"
+.SH NAME
+ooniprobe - a network censorship measurement tool.
+.
+.nr rst2man-indent-level 0
+.
+.de1 rstReportMargin
+\\$1 \\n[an-margin]
+level \\n[rst2man-indent-level]
+level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
+-
+\\n[rst2man-indent0]
+\\n[rst2man-indent1]
+\\n[rst2man-indent2]
+..
+.de1 INDENT
+.\" .rstReportMargin pre:
+. RS \\$1
+. nr rst2man-indent\\n[rst2man-indent-level] \\n[an-margin]
+. nr rst2man-indent-level +1
+.\" .rstReportMargin post:
+..
+.de UNINDENT
+. RE
+.\" indent \\n[an-margin]
+.\" old: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.nr rst2man-indent-level -1
+.\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.in \\n[rst2man-indent\\n[rst2man-indent-level]]u
+..
+
+.SH SYNOPSIS
+.B ooniprobe
+.RB [ \-hnsp ]
+.RB [ --version ]
+.RB [ --spew ]
+.RB [ \-o
+.IR reportfile ]
+.RB [ \-i
+.IR testdeck ]
+.RB [ \-c
+.IR collector ]
+.RB [ \-b
+.IR bouncer ]
+.RB [ \-l
+.IR logfile ]
+.RB [ \-O
+.IR pcapfile ]
+.RB [ \-f
+.IR configfile ]
+.RB [ \-d
+.IR datadir ]
+.I "test_name"
+
+.SH DESCRIPTION
+.sp
+ooniprobe is tool for performing internet censorship measurements. Our goal is
+to achieve a command data format and set of methodologies for conducting
+censorship related research.
+
+.SH OPTIONS
+
+.TP
+.BR \-\^h " or " \-\-help
+Display this help and exit.
+.TP
+.BR \-\^n " or " \-\-no\-collector
+Disable reporting the net test results to an oonib collector.
+.TP
+.BR \-\^s " or " \-\-list
+List all of the available net tests.
+.TP
+.BR \-\^p " or " \-\-printdeck
+Print to standard output the specified command line options as an ooniprobe test deck.
+.TP
+.BR \-\^o " or " \-\-reportfile
+Specify the path to report file to write.
+.TP
+.BR \-\^i " or " \-\-testdeck
+Specify as input a test deck: a yaml file containing the tests to run and their
+arguments.
+.TP
+.BR \-\^c " or " \-\-collector
+Specify the address of the collector of net test results. It is advisable to
+always specify and bouncer and let it return a collector for the test or test
+deck you are running.
+.TP
+.BR \-\^b " or " \-\-bouncer
+Address of the bouncer that will inform the probe of which collector to use and
+the addresses of test helpers. default: httpo://nkvphnp3p6agi5qq.onion
+.TP
+.BR \-\^l " or " \-\-logfile
+Path to the log file to write
+.TP
+.BR \-\^O " or " \-\-pcapfile
+Path to the pcap file name.
+.TP
+.BR \-\^f " or " \-\-configfile
+Specify a path to the ooniprobe configuration file.
+.TP
+.BR \-\^d " or " \-\-datadir
+Specify a path to the ooniprobe data directory
+.TP
+.BR \-\-spew
+Print an insanely verbose log of everything that happens.
+Useful when debugging freezes or locks in complex code.
+.TP
+.BR \-\-version
+Display the ooniprobe version and exit.
+
+.SH OONIPROBE
+.sp
+Is the tool that volunteers and researches interested in contributing data to
+the project should be running.
+.sp
+ooniprobe allows the user to select what test should be run and what backend
+should be used for storing the test report and/or assisting them in the running
+of the test.
+.sp
+ooniprobe tests are divided into two categories: \fBTraffic Manipulation\fP and
+\fBContent Blocking\fP\&.
+.sp
+\fBTraffic Manipulation\fP tests aim to detect the presence of some sort of
+tampering with the internet traffic between the probe and a remote test helper
+backend. As such they usually require the selection of a oonib backend
+component for running the test.
+.sp
+\fBContent Blocking\fP are aimed at enumerating the kind of content that is
+blocked from the probes network point of view. As such they usually require to
+have specified an input list for running the test.
+.SS Threat Model
+.sp
+Our adversary is capable of doing country wide network surveillance and
+manipulation of network traffic.
+.sp
+The goals of our adversary are:
+.INDENT 0.0
+.INDENT 3.5
+.INDENT 0.0
+.IP \(bu 2
+Restrict access to certain content, while not degrading overall quality of
+the network
+.IP \(bu 2
+Monitor the network in a way that they are able to identify misuse of it in
+real time
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.sp
+More specifc to the running of network filtering detection tests:
+.INDENT 0.0
+.IP 1. 3
+Detect actors performing censorship detection tests
+.IP 2. 3
+Fool people running such tests into believing that the network is
+unrestricted
+
+.UNINDENT
+.sp
+\fINote\fP that while 2) => 1) it is not true that 1) => 2) as the identification of
+such actors does not necessarily have to happen in real time.
+While our intention is to minimize the risk of users running OONI probe to be
+identified, this comes with a tradeoff in accuracy. It is therefore necessary in
+certain tests to trade\-off fingerprintability in favour of tests accuracy.
+.sp
+This is why we divide tests based on what risk the user running it can face,
+allowing the user to freely choose what threat model they wish to adere to.
+.SS Installation
+.sp
+\fBRead this before running ooniprobe!\fP
+.sp
+Running ooniprobe is a potentially risky activity. This greatly depends on the
+jurisdiction in which you are in and which test you are running. It is
+technically possible for a person observing your internet connection to be
+aware of the fact that you are running ooniprobe. This means that if running
+network measurement tests is something considered to be illegal in your country
+then you could be spotted.
+.sp
+Futhermore, ooniprobe takes no precautions to protect the install target machine
+from forensics analysis.  If the fact that you have installed or used ooni
+probe is a liability for you, please be aware of this risk.
+.SS Debian based systems
+.sp
+\fIsudo sh \-c \(aqecho "deb http://deb.ooni.nu/ooni wheezy main" >> /etc/apt/sources.list\(aq\fP
+.sp
+\fIgpg \-\-keyserver pgp.mit.edu \-\-recv\-key 0x49B8CDF4\fP
+.sp
+\fIgpg \-\-export 89AB86D4788F3785FE9EDA31F9E2D9B049B8CDF4 | sudo apt\-key add \-\fP
+.sp
+\fIsudo apt\-get update && sudo apt\-get install ooniprobe\fP
+.SS Linux
+.sp
+We believe that ooniprobe runs reasonably well on Debian GNU/Linux wheezy as
+well as versions of Ubuntu such as natty and later releases. Running ooniprobe
+without installing it is supported with the following commands:
+.sp
+\fIgit clone https://git.torproject.org/ooni\-probe.git\fP
+.sp
+\fIcd ooni\-probe\fP
+.sp
+\fI\&./setup\-dependencies.sh\fP
+.sp
+\fIpython setup.py install\fP
+.SS Setting up development environment
+.sp
+On debian based systems this can be done with:
+.sp
+\fIVsudo apt\-get install libgeoip\-dev python\-virtualenv virtualenvwrapper\fP
+.sp
+\fImkvirtualenv ooniprobe\fP
+.sp
+\fIpython setup.py install\fP
+.sp
+\fIpip install \-r requirements\-dev.txt\fP
+.SS Other platforms (with Vagrant)
+.sp
+\fI\%Install Vagrant\fP
+and \fI\%Install Virtualbox\fP
+.sp
+\fBOn OSX:\fP
+.sp
+If you don\(aqt have it install \fI\%homebrew\fP
+.sp
+\fIbrew install git\fP
+.sp
+\fBOn debian/ubuntu:\fP
+.sp
+\fIsudo apt\-get install git\fP
+.INDENT 0.0
+.IP 1. 3
+Open a Terminal and run:
+.UNINDENT
+.sp
+\fIgit clone https://git.torproject.org/ooni\-probe.git\fP
+.sp
+\fIcd ooni\-probe/\fP
+.sp
+\fIvagrant up\fP
+.INDENT 0.0
+.IP 2. 3
+Login to the box with:
+.UNINDENT
+.sp
+\fIvagrant ssh\fP
+.sp
+ooniprobe will be installed in \fI/ooni\fP\&.
+.INDENT 0.0
+.IP 3. 3
+You can run tests with:
+.UNINDENT
+.sp
+\fIooniprobe blocking/http_requests \-f /ooni/inputs/input\-pack/alexa\-top\-1k.txt\fP
+.SS Using ooniprobe
+.sp
+\fBNet test\fP is a set of measurements to assess what kind of internet censorship is occurring.
+.sp
+\fBDecks\fP are collections of ooniprobe nettests with some associated inputs.
+.sp
+\fBCollector\fP is a service used to report the results of measurements.
+.sp
+\fBTest helper\fP is a service used by a probe for successfully performing its measurements.
+.sp
+\fBBouncer\fP is a service used to discover the addresses of test helpers and collectors.
+.SS Configuring ooniprobe
+.sp
+You may edit the configuration for ooniprobe by editing the configuration file
+found inside of \fI~/.ooni/ooniprobe.conf\fP\&.
+.sp
+By default ooniprobe will not include personal identifying information in the
+test result, nor create a pcap file. This behavior can be personalized.
+.SS Running decks
+.sp
+You will find all the installed decks inside of \fI/usr/share/ooni/decks\fP\&.
+.sp
+You may then run a deck by using the command line option \fI\-i\fP:
+.sp
+As root:
+.sp
+\fIooniprobe \-i /usr/share/ooni/decks/mlab.deck\fP
+.sp
+Or as a user:
+.sp
+\fIooniprobe \-i /usr/share/ooni/decks/mlab_no_root.deck\fP
+.sp
+Or:
+.sp
+As root:
+.sp
+\fIooniprobe \-i /usr/share/ooni/decks/complete.deck\fP
+.sp
+Or as a user:
+.sp
+\fIooniprobe \-i /usr/share/ooni/decks/complete_no_root.deck\fP
+.sp
+The above tests will require around 20\-30 minutes to complete depending on your network speed.
+.sp
+If you would prefer to run some faster tests you should run:
+As root:
+.sp
+\fIooniprobe \-i /usr/share/ooni/decks/fast.deck\fP
+.sp
+Or as a user:
+.sp
+\fIooniprobe \-i /usr/share/ooni/decks/fast_no_root.deck\fP
+.SS Running net tests
+.sp
+You may list all the installed stable net tests with:
+.sp
+\fIooniprobe \-s\fP
+.sp
+You may then run a nettest by specifying its name for example:
+.sp
+\fIooniprobe manipulation/http_header_field_manipulation\fP
+.sp
+It is also possible to specify inputs to tests as URLs:
+.sp
+\fIooniprobe blocking/http_requests \-f httpo://ihiderha53f36lsd.onion/input/37e60e13536f6afe47a830bfb6b371b5cf65da66d7ad65137344679b24fdccd1\fP
+.sp
+You can find the result of the test in your current working directory.
+.sp
+By default the report result will be collected by the default ooni collector
+and the addresses of test helpers will be obtained from the default bouncer.
+.sp
+You may also specify your own collector or bouncer with the options \fI\-c\fP and
+\fI\-b\fP\&.
+.SS (Optional) Install obfsproxy
+.sp
+Install the latest version of obfsproxy for your platform.
+.sp
+\fI\%Download Obfsproxy\fP
+.SS Bridges and obfsproxy bridges
+.sp
+ooniprobe submits reports to oonib report collectors through Tor to a hidden
+service endpoint. By default, ooniprobe uses the installed system Tor, but can
+also be configured to launch Tor (see the advanced.start_tor option in
+ooniprobe.conf), and ooniprobe supports bridges (and obfsproxy bridges, if
+obfsproxy is installed). The tor.bridges option in ooniprobe.conf sets the path
+to a file that should contain a set of "bridge" lines (of the same format as
+used in torrc, and as returned by \fI\%https://bridges.torproject.org\fP). If obfsproxy
+bridges are to be used, the path to the obfsproxy binary must be configured.
+See option advanced.obfsproxy_binary, in ooniprobe.conf.
+.SS Setting capabilities on your virtualenv python binary
+.sp
+If your distributation supports capabilities you can avoid needing to run OONI as root:
+.sp
+\fIsetcap cap_net_admin,cap_net_raw+eip /path/to/your/virtualenv\(aqs/python\fP
+.SS Core ooniprobe Tests
+.sp
+The source for \fI\%Content blocking tests\fP
+and \fI\%Traffic Manipulation tests\fP
+can be found in the nettests/blocking and nettests/manipulation directories
+respectively.
+.SS Content Blocking Tests
+.INDENT 0.0
+.INDENT 3.5
+.INDENT 0.0
+.IP \(bu 2
+\fI\%DNSConsistency\fP
+.IP \(bu 2
+\fI\%HTTP Requests\fP
+.IP \(bu 2
+\fI\%TCP Connect\fP
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.SS Traffic Manipulation Tests
+.INDENT 0.0
+.INDENT 3.5
+.INDENT 0.0
+.IP \(bu 2
+\fI\%HTTP Invalid Request Line:\fP
+.IP \(bu 2
+\fI\%DNS Spoof\fP
+.IP \(bu 2
+\fI\%HTTP Header Field Manipulation\fP
+.IP \(bu 2
+\fI\%Traceroute\fP
+.IP \(bu 2
+\fI\%HTTP Host\fP
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.SS Other tests
+.sp
+We also have some other tests that are currently not fully supported or still
+being experimented with.
+.sp
+You can find these in:
+.INDENT 0.0
+.INDENT 3.5
+.INDENT 0.0
+.IP \(bu 2
+\fI\%ooni/nettests/experimental\fP
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.sp
+Tests that don\(aqt do a measurement but are useful for scanning can be found in:
+.INDENT 0.0
+.INDENT 3.5
+.INDENT 0.0
+.IP \(bu 2
+\fI\%ooni/nettests/scanning\fP
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.sp
+Tests that involve running third party tools may be found in:
+.INDENT 0.0
+.INDENT 3.5
+.INDENT 0.0
+.IP \(bu 2
+\fI\%ooni/nettests/third_party\fP
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.SS Reports
+.sp
+The reports collected by ooniprobe are stored on
+\fI\%https://ooni.torproject.org/reports/0.1/\fP \fBCC\fP /
+.sp
+Where \fBCC\fP is the two letter country code as specified by \fI\%ISO 31666\-2\fP\&.
+.sp
+For example the reports for Italy (\fBCC\fP is \fBit\fP) of the  may be found in:
+.sp
+\fI\%https://ooni.torproject.org/reports/0.1/IT/\fP
+.sp
+This directory shall contain the various reports for the test using the
+following convention:
+.sp
+\fBtestName\fP \- \fBdateInISO8601Format\fP \- \fBprobeASNumber\fP .yamloo
+.sp
+The date is expressed using \fI\%ISO 8601\fP
+including seconds and with no \fB:\fP to delimit hours, minutes, days.
+.sp
+Like so:
+.sp
+\fBYEAR\fP \- \fBMONTH\fP \- \fBDAY\fP T \fBHOURS\fP \fBMINUTES\fP \fBSECONDS\fP Z
+.sp
+Look \fI\%here for the up to date list of ISO 8601 country codes\fP
+.sp
+The time is \fBalways\fP expressed in UTC.
+.sp
+If a collision is detected then an int (starting with 1) will get appended to
+the test.
+.sp
+For example if two report that are created on the first of January 2012 at Noon
+(UTC time) sharp from MIT (AS3) will be stored here:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+https://ooni.torproject.org/reports/0.1/US/2012\-01\-01T120000Z_AS3.yamloo
+https://ooni.torproject.org/reports/0.1/US/2012\-01\-01T120000Z_AS3.1.yamloo
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+Note: it is highly unlikely that reports get created with the same exact
+timestamp from the same exact ASN. If this does happen it could be index of
+some malicious report poisoning attack in progress.
+.SS Report format version changelog
+.sp
+In here shall go details about the major changes to the reporting format.
+.SS version 0.1
+.sp
+Initial format version.
+.SS Writing OONI tests
+.sp
+The OONI testing API is heavily influenced and partially based on the python
+\fBunittest\fP module and \fBtwisted.trial\fP\&.
+.SS Test Cases
+.sp
+The atom of OONI Testing is called a Test Case. A test case class may contain
+multiple Test Methods.
+.INDENT 0.0
+.TP
+.B class ooni.nettest.NetTestCase
+This is the base of the OONI nettest universe. When you write a nettest
+you will subclass this object.
+.INDENT 7.0
+.IP \(bu 2
+inputs: can be set to a static set of inputs. All the tests (the methods
+starting with the "test" prefix) will be run once per input.  At every run
+the _input_ attribute of the TestCase instance will be set to the value of
+the current iteration over inputs.  Any python iterable object can be set
+to inputs.
+.IP \(bu 2
+inputFile: attribute should be set to an array containing the command line
+argument that should be used as the input file. Such array looks like
+this:
+.INDENT 2.0
+.INDENT 3.5
+\fB["commandlinearg", "c", "default value" "The description"]\fP
+.UNINDENT
+.UNINDENT
+.sp
+The second value of such arrray is the shorthand for the command line arg.
+The user will then be able to specify inputs to the test via:
+.INDENT 2.0
+.INDENT 3.5
+\fBooniprobe mytest.py \-\-commandlinearg path/to/file.txt\fP
+.UNINDENT
+.UNINDENT
+.sp
+or
+.INDENT 2.0
+.INDENT 3.5
+\fBooniprobe mytest.py \-c path/to/file.txt\fP
+.UNINDENT
+.UNINDENT
+.IP \(bu 2
+inputProcessor: should be set to a function that takes as argument a
+filename and it will return the input to be passed to the test
+instance.
+.IP \(bu 2
+name: should be set to the name of the test.
+.IP \(bu 2
+author: should contain the name and contact details for the test author.
+The format for such string is as follows:
+.INDENT 2.0
+.INDENT 3.5
+\fBThe Name <email@example.com>\fP
+.UNINDENT
+.UNINDENT
+.IP \(bu 2
+version: is the version string of the test.
+.IP \(bu 2
+requiresRoot: set to True if the test must be run as root.
+.IP \(bu 2
+usageOptions: a subclass of twisted.python.usage.Options for processing of command line arguments
+.IP \(bu 2
+localOptions: contains the parsed command line arguments.
+.UNINDENT
+.sp
+Quirks:
+Every class that is prefixed with test \fImust\fP return a twisted.internet.defer.Deferred.
+.UNINDENT
+.sp
+If the test you plan to write is not listed on the \fI\%Tor OONI trac page\fP, you should
+add it to the list and then add a description about it following the \fI\%Test
+Template\fP
+.sp
+Tests are driven by inputs. For every input a new test instance is created,
+internally the _setUp method is called that is defined inside of test
+templates, then the setUp method that is overwritable by users.
+.sp
+Gotchas:
+\fBnever\fP call reactor.start of reactor.stop inside of your test method and all
+will be good.
+.SS Inputs
+.sp
+Inputs are what is given as input to every iteration of the Test Case.
+Iflyou have 100 inputs, then every test case will be run 100 times.
+.sp
+To configure a static set of inputs you should define the
+\fBooni.nettest.NetTestCase\fP attribute \fBinputs\fP\&. The test will be
+run \fBlen(inputs)\fP times. Any iterable object is a valid \fBinputs\fP
+attribute.
+.sp
+If you would like to have inputs be determined from a user specified input
+file, then you must set the \fBinputFile\fP attribute. This is an array that
+specifies what command line option may be used to control this value.
+.sp
+By default the \fBinputProcessor\fP is set to read the file line by line and
+strip newline characters. To change this behavior you must set the
+\fBinputProcessor\fP attribute to a function that takes as argument a file
+descriptor and yield the next item. The default \fBinputProcessor\fP looks like
+this:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+def lineByLine(filename):
+    fp = open(filename)
+    for x in fp.xreadlines():
+        yield x.strip()
+    fp.close()
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.SS Setup and command line passing
+.sp
+Tests may define the \fIsetUp\fP method that will be called every time the
+Test Case object is instantiated, in here you may place some common logic
+to all your Test Methods that should be run before any testing occurs.
+.sp
+Command line arguments can be parsed thanks to the twisted
+\fBtwisted.python.usage.UsageOptions\fP class.
+.sp
+You will have to subclass this and define the NetTestCase attribute
+usageOptions to point to a subclass of this.
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+class UsageOptions(usage.Options):
+  optParameters = [[\(aqbackend\(aq, \(aqb\(aq, \(aqhttp://127.0.0.1:57001\(aq,
+                      \(aqURL of the test backend to use\(aq]
+                  ]
+
+class MyTestCase(nettest.NetTestCase):
+  usageOptions = UsageOptions
+
+  inputFile = [\(aqfile\(aq, \(aqf\(aq, None, "Some foo file"]
+  requiredOptions = [\(aqbackend\(aq]
+
+  def test_my_test(self):
+    self.localOptions[\(aqbackend\(aq]
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+You will then be able to access the parsed command line arguments via the
+class attribute localOptions.
+.sp
+The \fIrequiredOptions\fP attributes specifies an array of parameters that are
+required for the test to run properly.
+.sp
+\fIinputFile\fP is a special class attribute that will be used for processing
+of the inputFile. The filename that is read here will be given to the
+\fBooni.nettest.NetTestCase.inputProcessor\fP method that will yield, by
+default, one line of the file at a time.
+.SS Test Methods
+.sp
+These shall be defined inside of your \fBooni.nettest.NetTestCase\fP
+subclass.  These will be class methods.
+.sp
+All class methods that are prefixed with test_ shall be run. Functions
+that are relevant to your test should be all lowercase separated by
+underscore.
+.sp
+To add data to the test report you may write directly to the report object
+like so:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+def test_my_function():
+    result = do_something()
+    self.report[\(aqsomething\(aq] = result
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+OONI will then handle the writing of the data to the final test report.
+.sp
+To access the current input you can use the \fBinput\fP attribute, for example:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+def test_with_input():
+    do_something_with_input(self.input)
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+This will at each iteration over the list of inputs do something with the
+input.
+.SS Test Templates
+.sp
+Test templates assist you in writing tests. They already contain all the
+common functionality that is useful to running a test of that type. They
+also take care of writing the data they collect that is relevant to the
+test run to the report file.
+.sp
+Currently implemented test templates are \fBooni.templates.scapyt\fP for
+tests based on Scapy, \fBooni.templates.tcpt\fP for tests based on TCP,
+\fBooni.templates.httpt\fP for tests based on HTTP, and
+\fBooni.templates.dnst\fP for tests based on DNS.
+.SS Scapy based tests
+.sp
+Scapy based tests will be a subclass of \fBooni.templates.scapyt.BaseScapyTest\fP\&.
+.sp
+It provides a wrapper around the scapy send and receive function that will
+write the sent and received packets to the report with sanitization of the
+src and destination IP addresses.
+.sp
+It has the same syntax as the Scapy sr function, except that it will
+return a deferred.
+.sp
+To implement a simple ICMP ping based on this function you can do like so
+(Taken from \fBnettest.examples.example_scapyt.ExampleICMPPingScapy\fP)
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+from twisted.python import usage
+
+from scapy.all import IP, ICMP
+
+from ooni.templates import scapyt
+
+class UsageOptions(usage.Options):
+    optParameters = [[\(aqtarget\(aq, \(aqt\(aq, \(aq127.0.0.1\(aq, "Specify the target to ping"]]
+
+class ExampleICMPPingScapy(scapyt.BaseScapyTest):
+    name = "Example ICMP Ping Test"
+
+    usageOptions = UsageOptions
+
+    def test_icmp_ping(self):
+        def finished(packets):
+            print packets
+            answered, unanswered = packets
+            for snd, rcv in answered:
+                rcv.show()
+
+        packets = IP(dst=self.localOptions[\(aqtarget\(aq])/ICMP()
+        d = self.sr(packets)
+        d.addCallback(finished)
+        return d
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+The arguments taken by self.sr() are exactly the same as the scapy send and
+receive function, the only difference is that instead of using the regular
+scapy super socket it uses our twisted driven wrapper around it.
+.sp
+Alternatively this test can also be written using the
+\fBtwisted.defer.inlineCallbacks()\fP decorator, that makes it look more similar to
+regular sequential code.
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+from twisted.python import usage
+from twisted.internet import defer
+
+from scapy.all import IP, ICMP
+
+from ooni.templates import scapyt
+
+class UsageOptions(usage.Options):
+    optParameters = [[\(aqtarget\(aq, \(aqt\(aq, \(aq127.0.0.1\(aq, "Specify the target to ping"]]
+
+class ExampleICMPPingScapyYield(scapyt.BaseScapyTest):
+    name = "Example ICMP Ping Test"
+
+    usageOptions = UsageOptions
+
+    @defer.inlineCallbacks
+    def test_icmp_ping(self):
+        packets = IP(dst=self.localOptions[\(aqtarget\(aq])/ICMP()
+        answered, unanswered = yield self.sr(packets)
+        for snd, rcv in answered:
+            rcv.show()
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.SS Report Format
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+###########################################
+# OONI Probe Report for Example ICMP Ping Test test
+# Thu Nov 22 18:20:43 2012
+###########################################
+\-\-\-
+{probe_asn: null, probe_cc: null, probe_ip: 127.0.0.1, software_name: ooniprobe, software_version: 0.0.7.1\-alpha,
+  start_time: 1353601243.0, test_name: Example ICMP Ping Test, test_version: 0.1}
+\&...
+\-\-\-
+input: null
+report:
+  answer_flags: [ipsrc]
+  answered_packets:
+  \- \- raw_packet: !!binary |
+        RQAAHAEdAAAuAbjKCAgICH8AAAEAAAAAAAAAAA==
+      summary: IP / ICMP 8.8.8.8 > 127.0.0.1 echo\-reply 0
+  sent_packets:
+  \- \- raw_packet: !!binary |
+        RQAAHAABAABAAevPfwAAAQgICAgIAPf/AAAAAA==
+      summary: IP / ICMP 127.0.0.1 > 8.8.8.8 echo\-request 0
+test_name: test_icmp_ping
+test_started: 1353604843.553605
+\&...
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.SS TCP based tests
+.sp
+TCP based tests will subclass \fBooni.templates.tcpt.TCPTest\fP\&.
+.sp
+This test template facilitates the sending of TCP payloads to the wire and
+recording the response.
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+from twisted.internet.error import ConnectionRefusedError
+from ooni.utils import log
+from ooni.templates import tcpt
+
+class ExampleTCPT(tcpt.TCPTest):
+    def test_hello_world(self):
+        def got_response(response):
+            print "Got this data %s" % response
+
+        def connection_failed(failure):
+            failure.trap(ConnectionRefusedError)
+            print "Connection Refused"
+
+        self.address = "127.0.0.1"
+        self.port = 57002
+        payload = "Hello World!\en\er"
+        d = self.sendPayload(payload)
+        d.addErrback(connection_failed)
+        d.addCallback(got_response)
+        return d
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+The possible failures for a TCP connection are:
+.sp
+\fBtwisted.internet.error.NoRouteError\fP that corresponds to errno.ENETUNREACH
+.sp
+\fBtwisted.internet.error.ConnectionRefusedError\fP that corresponds to
+errno.ECONNREFUSED
+.sp
+\fBtwisted.internet.error.TCPTimedOutError\fP that corresponds to errno.ETIMEDOUT
+.SS Report format
+.sp
+The basic report of a TCP test looks like the following (this is an report
+generated by running the above example against a TCP echo server).
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+###########################################
+# OONI Probe Report for Base TCP Test test
+# Thu Nov 22 18:18:28 2012
+###########################################
+\-\-\-
+{probe_asn: null, probe_cc: null, probe_ip: 127.0.0.1, software_name: ooniprobe, software_version: 0.0.7.1\-alpha,
+  start_time: 1353601108.0, test_name: Base TCP Test, test_version: \(aq0.1\(aq}
+\&...
+\-\-\-
+input: null
+report:
+  errors: []
+  received: ["Hello World!\en\er"]
+  sent: ["Hello World!\en\er"]
+test_name: test_hello_world
+test_started: 1353604708.705081
+\&...
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+TODO finish this with more details
+.SS HTTP based tests
+.sp
+HTTP based tests will be a subclass of  \fBooni.templates.httpt.HTTPTest\fP\&.
+.sp
+It provides methods \fBooni.templates.httpt.HTTPTest.processResponseBody()\fP and
+\fBooni.templates.httpt.HTTPTest.processResponseHeaders()\fP for interacting with the
+response body and headers respectively.
+.sp
+For example, to implement a HTTP test that returns the sha256 hash of the
+response body (based on \fBnettests.examples.example_httpt\fP):
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+from ooni.utils import log
+from ooni.templates import httpt
+from hashlib import sha256
+
+class SHA256HTTPBodyTest(httpt.HTTPTest):
+    name = "ChecksumHTTPBodyTest"
+    author = "Aaron Gibson"
+    version = 0.1
+
+    inputFile = [\(aqurl file\(aq, \(aqf\(aq, None,
+            \(aqList of URLS to perform GET requests to\(aq]
+    requiredOptions = [\(aqurl file\(aq]
+
+    def test_http(self):
+        if self.input:
+            url = self.input
+            return self.doRequest(url)
+        else:
+            raise Exception("No input specified")
+
+    def processResponseBody(self, body):
+        body_sha256sum = sha256(body).hexdigest()
+        self.report[\(aqchecksum\(aq] = body_sha256sum
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.SS Report format
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+###########################################
+# OONI Probe Report for ChecksumHTTPBodyTest test
+# Thu Dec  6 17:31:57 2012
+###########################################
+\-\-\-
+options:
+  collector: null
+  help: 0
+  logfile: null
+  pcapfile: null
+  reportfile: null
+  resume: 0
+  subargs: [\-f, hosts]
+  test: nettests/examples/example_http_checksum.py
+probe_asn: null
+probe_cc: null
+probe_ip: 127.0.0.1
+software_name: ooniprobe
+software_version: 0.0.7.1\-alpha
+start_time: 1354786317.0
+test_name: ChecksumHTTPBodyTest
+test_version: 0.1
+\&...
+\-\-\-
+input: http://www.google.com
+report:
+  agent: agent
+  checksum: d630fa2efd547d3656e349e96ff7af5496889dad959e8e29212af1ff843e7aa1
+  requests:
+  \- request:
+      body: null
+      headers:
+      \- \- User\-Agent
+        \- \- [Opera/9.00 (Windows NT 5.1; U; en), \(aqOpera 9.0, Windows XP\(aq]
+      method: GET
+      url: http://www.google.com
+    response:
+      body: \(aq<!doctype html><html ... snip ...  </html>\(aq
+      code: 200
+      headers:
+      \- \- X\-XSS\-Protection
+        \- [1; mode=block]
+      \- \- Set\-Cookie
+        \- [\(aqPREF=ID=fada4216eb3684f9:FF=0:TM=1354800717:LM=1354800717:S=IT\-2GCkNAocyXlVa;
+            expires=Sat, 06\-Dec\-2014 13:31:57 GMT; path=/; domain=.google.com\(aq, \(aqNID=66=KWaLbNQumuGuYf0HrWlGm54u9l\-DKJwhFCMQXfhQPZM\-qniRhmF6QRGXUKXb_8CIUuCOHnyoC5oAX5jWNrsfk\-LLJLW530UiMp6hemTtDMh_e6GSiEB4GR3yOP_E0TCN;
+            expires=Fri, 07\-Jun\-2013 13:31:57 GMT; path=/; domain=.google.com; HttpOnly\(aq]
+      \- \- Expires
+        \- [\(aq\-1\(aq]
+      \- \- Server
+        \- [gws]
+      \- \- Connection
+        \- [close]
+      \- \- Cache\-Control
+        \- [\(aqprivate, max\-age=0\(aq]
+      \- \- Date
+        \- [\(aqThu, 06 Dec 2012 13:31:57 GMT\(aq]
+      \- \- P3P
+        \- [\(aqCP="This is not a P3P policy! See http://www.google.com/support/accounts/bin/answer.py?hl=en&answer=151657
+            for more info."\(aq]
+      \- \- Content\-Type
+        \- [text/html; charset=UTF\-8]
+      \- \- X\-Frame\-Options
+        \- [SAMEORIGIN]
+  socksproxy: null
+test_name: test_http
+test_runtime: 0.08298492431640625
+test_started: 1354800717.478403
+\&...
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.SS DNS based tests
+.sp
+DNS based tests will be a subclass of \fBooni.templates.dnst.DNSTest\fP\&.
+.sp
+It provides methods \fBooni.templates.dnst.DNSTest.performPTRLookup()\fP
+and \fBooni.templates.dnst.DNSTest.performALookup()\fP
+.sp
+For example (taken from \fBnettests.examples.example_dnst\fP):
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+from ooni.templates.dnst import DNSTest
+
+class ExampleDNSTest(DNSTest):
+    def test_a_lookup(self):
+        def gotResult(result):
+            # Result is an array containing all the A record lookup results
+            print result
+
+        d = self.performALookup(\(aqtorproject.org\(aq, (\(aq8.8.8.8\(aq, 53))
+        d.addCallback(gotResult)
+        return d
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.SS Report format
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+###########################################
+# OONI Probe Report for Base DNS Test test
+# Thu Dec  6 17:42:51 2012
+###########################################
+\-\-\-
+options:
+  collector: null
+  help: 0
+  logfile: null
+  pcapfile: null
+  reportfile: null
+  resume: 0
+  subargs: []
+  test: nettests/examples/example_dnst.py
+probe_asn: null
+probe_cc: null
+probe_ip: 127.0.0.1
+software_name: ooniprobe
+software_version: 0.0.7.1\-alpha
+start_time: 1354786971.0
+test_name: Base DNS Test
+test_version: 0.1
+\&...
+\-\-\-
+input: null
+report:
+  queries:
+  \- addrs: [82.195.75.101, 86.59.30.40, 38.229.72.14, 38.229.72.16]
+    answers:
+    \- [<RR name=torproject.org type=A class=IN ttl=782s auth=False>, <A address=82.195.75.101
+        ttl=782>]
+    \- [<RR name=torproject.org type=A class=IN ttl=782s auth=False>, <A address=86.59.30.40
+        ttl=782>]
+    \- [<RR name=torproject.org type=A class=IN ttl=782s auth=False>, <A address=38.229.72.14
+        ttl=782>]
+    \- [<RR name=torproject.org type=A class=IN ttl=782s auth=False>, <A address=38.229.72.16
+        ttl=782>]
+    query: \(aq[Query(\(aq\(aqtorproject.org\(aq\(aq, 1, 1)]\(aq
+    query_type: A
+    resolver: [8.8.8.8, 53]
+test_name: test_a_lookup
+test_runtime: 0.028924942016601562
+test_started: 1354801371.980114
+\&...
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+For a more complex example, see: \fBnettests.blocking.dnsconsistency\fP
+
+.SH GLOSSARY
+.sp
+Here we will summarize some of the jargon that is unique to OONI.
+.sp
+\fBTest Case\fP: a set of measurements performed on a to be tested network that
+are logically grouped together
+.sp
+\fBReport\fP: is the output of a test run containing all the information that is
+require for a researcher to assess what is the output of a test.
+.sp
+\fBYamlooni\fP: The format we use for Reports, that is based on YAML.
+.sp
+\fBInput\fP: What is given as input to a TestCase to perform a measurement.
+.SH AUTHOR
+The Tor Project
+.SH COPYRIGHT
+2014, The Tor Project
+.
