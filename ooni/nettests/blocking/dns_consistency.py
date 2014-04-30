@@ -40,11 +40,10 @@ class DNSConsistencyTest(dnst.DNSTest):
     description = "Checks to see if the DNS responses from a set of DNS resolvers are consistent."
     version = "0.6"
     authors = "Arturo Filastò, Isis Lovecruft"
-    requirements = None
 
     inputFile = ['file', 'f', None,
                  'Input file of list of hostnames to attempt to resolve']
-    
+
     requiredTestHelpers = {'backend': 'dns'}
     requiresRoot = False
     requiresTor = False

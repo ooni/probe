@@ -106,16 +106,16 @@ def runWithDirector(logging=True, start_tor=True):
         config.advanced.debug = True
     if not start_tor:
         config.advanced.start_tor = False
-    
+
     if logging:
         log.start(global_options['logfile'])
-    
+
     if config.privacy.includepcap:
         try:
             checkForRoot()
         except errors.InsufficientPrivileges:
              log.err("Insufficient Privileges to capture packets."
-                     " See ooniprobe.conf privacy.includepcap") 
+                     " See ooniprobe.conf privacy.includepcap")
              sys.exit(2)
 
     director = Director()
@@ -123,12 +123,12 @@ def runWithDirector(logging=True, start_tor=True):
         print "# Installed nettests"
         for net_test_id, net_test in director.getNetTests().items():
             print "* %s (%s/%s)" % (net_test['name'],
-                                    net_test['category'], 
+                                    net_test['category'],
                                     net_test['id'])
             print "  %s" % net_test['description']
 
         sys.exit(0)
-    
+
     elif global_options['printdeck']:
         del global_options['printdeck']
         print "# Copy and paste the lines below into a test deck to run the specified test with the specified arguments"
@@ -222,7 +222,7 @@ def runWithDirector(logging=True, start_tor=True):
 
         if config.advanced.debug:
             log.exception(failure)
-    
+
     # Wait until director has started up (including bootstrapping Tor)
     # before adding tests
     def post_director_start(_):

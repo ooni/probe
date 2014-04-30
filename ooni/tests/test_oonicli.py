@@ -34,11 +34,17 @@ class TestRunDirector(unittest.TestCase):
             f.write('http://torproject.org/\n')
             f.write('http://bridges.torproject.org/\n')
             f.write('http://blog.torproject.org/\n')
-    
+
     def tearDown(self):
-        os.remove('test_report.yaml')
-        os.remove('example-input.txt')
-    
+        try:
+            os.remove('test_report.yaml')
+        except:
+            pass
+        try:
+            os.remove('example-input.txt')
+        except:
+            pass
+
     @defer.inlineCallbacks
     def run_test(self, test_name, args, verify_function):
         output_file = 'test_report.yaml'
@@ -91,8 +97,8 @@ class TestRunDirector(unittest.TestCase):
             assert 'control_resolver' in entry
             assert 'tampering' in entry
             assert len(entry['tampering']) == 1
-        yield self.run_test('blocking/dns_consistency', 
-                            ['-b', '8.8.8.8:53', 
+        yield self.run_test('blocking/dns_consistency',
+                            ['-b', '8.8.8.8:53',
                              '-t', '8.8.8.8',
                              '-f', 'example-input.txt'],
                             verify_function)
