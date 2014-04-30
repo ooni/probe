@@ -32,7 +32,8 @@ class Options(usage.Options):
                 ["resume", "r"],
                 ["no-collector", "n"],
                 ["list", "s"],
-                ["printdeck", "p"]
+                ["printdeck", "p"],
+                ["verbose", "v"]
                 ]
 
     optParameters = [["reportfile", "o", None, "report file name"],
@@ -101,18 +102,20 @@ def runWithDirector(logging=True, start_tor=True):
     config.global_options = global_options
     config.set_paths()
     config.read_config_file()
+    if global_options['verbose']:
+        config.advanced.debug = True
     if not start_tor:
         config.advanced.start_tor = False
-    
+
     if logging:
         log.start(global_options['logfile'])
-    
+
     if config.privacy.includepcap:
         try:
             checkForRoot()
         except errors.InsufficientPrivileges:
              log.err("Insufficient Privileges to capture packets."
-                     " See ooniprobe.conf privacy.includepcap") 
+                     " See ooniprobe.conf privacy.includepcap")
              sys.exit(2)
 
     director = Director()
@@ -120,12 +123,12 @@ def runWithDirector(logging=True, start_tor=True):
         print "# Installed nettests"
         for net_test_id, net_test in director.getNetTests().items():
             print "* %s (%s/%s)" % (net_test['name'],
-                                    net_test['category'], 
+                                    net_test['category'],
                                     net_test['id'])
             print "  %s" % net_test['description']
 
         sys.exit(0)
-    
+
     elif global_options['printdeck']:
         del global_options['printdeck']
         print "# Copy and paste the lines below into a test deck to run the specified test with the specified arguments"
@@ -166,7 +169,10 @@ def runWithDirector(logging=True, start_tor=True):
     except usage.UsageError, e:
         log.err(e)
         print net_test_loader.usageOptions().getUsage()
-        sys.exit(2)
+        sys.exit(4)
+    except Exception as e:
+        log.err(e)
+        sys.exit(5)
     
     d = director.start(start_tor=start_tor)
    
@@ -181,7 +187,8 @@ def runWithDirector(logging=True, start_tor=True):
         r = failure.trap(errors.TorNotRunning,
                 errors.InvalidOONIBCollectorAddress,
                 errors.UnableToLoadDeckInput, errors.CouldNotFindTestHelper,
-                errors.CouldNotFindTestCollector, errors.ProbeIPUnknown)
+                errors.CouldNotFindTestCollector, errors.ProbeIPUnknown,
+                errors.InvalidInputFile)
 
         if isinstance(failure.value, errors.TorNotRunning):
             log.err("Tor does not appear to be running")
@@ -210,10 +217,11 @@ def runWithDirector(logging=True, start_tor=True):
             log.err("Failed to lookup probe IP address.")
             log.msg("Check your internet connection.")
 
+        elif isinstance(failure.value, errors.InvalidInputFile):
+            log.err("Invalid input file \"%s\"" % failure.value)
+
         if config.advanced.debug:
             log.exception(failure)
-
-        reactor.stop()
 
     # Wait until director has started up (including bootstrapping Tor)
     # before adding tests

@@ -30,6 +30,8 @@ class TaskManager(object):
         to be re-run once all the currently scheduled tasks have run.
         """
         log.err("Task %s has failed %s times" % (task, task.failures))
+        if config.advanced.debug:
+            log.exception(failure)
 
         self._active_tasks.remove(task)
         self.failures = self.failures + 1
@@ -81,10 +83,11 @@ class TaskManager(object):
         """
         self._active_tasks.remove(task)
 
-        self._fillSlots()
-
         # Fires the done deferred when the task has completed
         task.done.callback(result)
+
+        self._fillSlots()
+
         self.succeeded(result, task)
 
     @property

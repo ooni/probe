@@ -220,6 +220,9 @@ class InvalidOption(Exception):
 class TaskTimedOut(Exception):
     pass
 
+class InvalidInputFile(Exception):
+    pass
+
 def get_error(error_key):
     if error_key == 'test-helpers-key-missing':
         return CouldNotFindTestHelper

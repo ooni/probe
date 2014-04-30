@@ -9,8 +9,10 @@ from twisted.internet import defer, reactor, error
 
 import txtorcon
 
-from ooni.utils import log
+from ooni.utils import log, onion
 from ooni import nettest
+
+class TorIsNotInstalled(Exception): pass
 
 class UsageOptions(usage.Options):
     optParameters = [['timeout', 't', 120,
@@ -19,6 +21,7 @@ class UsageOptions(usage.Options):
 
 class BridgeReachability(nettest.NetTestCase):
     name = "Bridge Reachability"
+    description = "A test for checking if bridges are reachable from a given location."
     author = "Arturo Filastò"
     version = "0.1"
 
@@ -30,22 +33,31 @@ class BridgeReachability(nettest.NetTestCase):
                  'TransportType IP:ORPort (ex. obfs2 127.0.0.1:443)']
 
     requiredOptions = ['file']
+    
+    def requirements(self):
+        if not onion.find_tor_binary():
+            raise TorIsNotInstalled("For instructions on installing Tor see: https://www.torproject.org/download/download")
 
     def setUp(self):
         self.tor_progress = 0
         self.timeout = int(self.localOptions['timeout'])
 
+        self.report['error'] = None
+        self.report['success'] = None
         self.report['timeout'] = self.timeout
         self.report['transport_name'] = 'vanilla'
+        self.report['tor_version'] = str(onion.tor_details['version'])
         self.report['tor_progress'] = 0
         self.report['tor_progress_tag'] = None
         self.report['tor_progress_summary'] = None
+        self.report['tor_log'] = None
         self.report['bridge_address'] = None
 
         self.bridge = self.input
         if self.input.startswith('Bridge'):
             self.bridge = self.input.replace('Bridge ', '')
         self.pyobfsproxy_bin = find_executable('obfsproxy')
+        self.fteproxy_bin = find_executable('fteproxy')
     
     def postProcessor(self, measurements):
         if 'successes' not in self.summary:
@@ -78,51 +90,57 @@ class BridgeReachability(nettest.NetTestCase):
         working_bridges = ', '.join(["%s %s" % (x['transport_name'], x['address']) for x in summary['successes']])
         failing_bridges = ', '.join(["%s %s (at %s%%)" % (x['transport_name'], x['address'], x['tor_progress']) for x in summary['failures']])
 
-        print "Total successes: %d" % len(summary['successes'])
-        print "Total failures: %d" % len(summary['failures'])
+        log.msg("Total successes: %d" % len(summary['successes']))
+        log.msg("Total failures: %d" % len(summary['failures']))
 
         for transport, count in successful_count.items():
-            print "%s successes: %d" % (transport.title(), count)
+            log.msg("%s successes: %d" % (transport.title(), count))
         for transport, count in failure_count.items():
-            print "%s failures: %d" % (transport.title(), count)
+            log.msg("%s failures: %d" % (transport.title(), count))
 
-        print "Working bridges: %s" % working_bridges
-        print "Failing bridges: %s" % failing_bridges
+        log.msg("Working bridges: %s" % working_bridges)
+        log.msg("Failing bridges: %s" % failing_bridges)
 
     def test_full_tor_connection(self):
-        def getTransport(address):
-            """
-            If the address of the bridge starts with a valid c identifier then
-            we consider it to be a bridge.
-            Returns:
-                The transport_name if it's a transport.
-                None if it's not a obfsproxy bridge.
-            """
-            transport_name = address.split(' ')[0]
-            transport_name_chars = string.ascii_letters + string.digits
-            if all(c in transport_name_chars for c in transport_name):
-                return transport_name
-            else:
-                return None
-
         config = txtorcon.TorConfig()
         config.ControlPort = random.randint(2**14, 2**16)
         config.SocksPort = random.randint(2**14, 2**16)
+        log.msg("Connecting to %s with tor %s" % (self.bridge, onion.tor_details['version']))
         
-        transport_name = getTransport(self.bridge)
-        if transport_name and self.pyobfsproxy_bin:
+        transport_name = onion.transport_name(self.bridge)
+        if transport_name and transport_name == 'fte' and self.fteproxy_bin:
+            config.ClientTransportPlugin = "%s exec %s --managed" % (transport_name, self.fteproxy_bin)
+            self.report['transport_name'] = transport_name
+            self.report['bridge_address'] = self.bridge.split(' ')[1]
+        elif transport_name and transport_name == 'fte' and not self.fteproxy_bin:
+            log.err("Unable to test bridge because fteproxy is not installed")
+            self.report['error'] = 'missing-fteproxy'
+            return
+        elif transport_name and self.pyobfsproxy_bin:
             config.ClientTransportPlugin = "%s exec %s managed" % (transport_name, self.pyobfsproxy_bin)
             self.report['transport_name'] = transport_name
             self.report['bridge_address'] = self.bridge.split(' ')[1]
         elif transport_name and not self.pyobfsproxy_bin:
             log.err("Unable to test bridge because pyobfsproxy is not installed")
-            self.report['success'] = None
+            self.report['error'] = 'missing-pyobfsproxy'
             return
         else:
             self.report['bridge_address'] = self.bridge.split(' ')[0]
+        
+        if transport_name and transport_name == 'scramblesuit' and \
+                onion.TorVersion('0.2.5.1') > onion.tor_details['version']:
+            self.report['error'] = 'unsupported-tor-version'
+            log.err("Unsupported Tor version.")
+            return
+        elif transport_name and \
+                onion.TorVersion('0.2.4.1') > onion.tor_details['version']:
+            self.report['error'] = 'unsupported-tor-version'
+            log.err("Unsupported Tor version.")
+            return
 
         config.Bridge = self.bridge
         config.UseBridges = 1
+        config.log = 'notice'
         config.save()
 
         def updates(prog, tag, summary):
@@ -145,6 +163,7 @@ class BridgeReachability(nettest.NetTestCase):
         @d.addErrback
         def setup_failed(failure):
             log.msg("Failed to connect to %s" % self.bridge)
+            self.report['tor_log'] = failure.value.message
             self.report['success'] = False
 
         return d

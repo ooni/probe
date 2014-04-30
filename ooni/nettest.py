@@ -138,7 +138,7 @@ class NetTestLoader(object):
     requiresTor = False
 
     def __init__(self, options, test_file=None, test_string=None):
-        self.onionInputRegex =  re.compile("(httpo://[a-z0-9]{16}\.onion)/input/([a-z0-9]{64})$")
+        self.onionInputRegex = re.compile("(httpo://[a-z0-9]{16}\.onion)/input/([a-z0-9]{64})$")
         self.options = options
         self.testCases = []
 
@@ -185,10 +185,13 @@ class NetTestLoader(object):
                     input_file['hash'] = m.group(2)
                 else:
                     input_file['filename'] = filename
-                    with open(filename) as f:
-                        h = sha256()
-                        for l in f:
-                            h.update(l)
+                    try:
+                        with open(filename) as f:
+                            h = sha256()
+                            for l in f:
+                                h.update(l)
+                    except:
+                        raise e.InvalidInputFile(filename)
                     input_file['hash'] = h.hexdigest()
                 input_files.append(input_file)
 
@@ -290,7 +293,7 @@ class NetTestLoader(object):
 
         if not test_cases:
             raise e.NoTestCasesFound
-
+        
         self.setupTestCases(test_cases)
 
     def setupTestCases(self, test_cases):
@@ -326,10 +329,6 @@ class NetTestLoader(object):
         """
         Call processTest and processOptions methods of each NetTestCase
         """
-        test_classes = set([])
-        for test_class, test_method in self.testCases:
-            test_classes.add(test_class)
-
         for klass in self.testClasses:
             options = self.usageOptions()
             options.parseOptions(self.options)
@@ -342,6 +341,7 @@ class NetTestLoader(object):
                 checkForRoot()
             if test_instance.requiresTor:
                 self.requiresTor = True
+            test_instance.requirements()
             test_instance._checkRequiredOptions()
             test_instance._checkValidOptions()
 
@@ -440,6 +440,8 @@ class NetTest(object):
         return ' '.join(tc.name for tc, _ in self.testCases)
     
     def doneNetTest(self, result):
+        if not self.summary:
+            return
         print "Summary for %s" % self.testDetails['test_name']
         print "------------" + "-"*len(self.testDetails['test_name'])
         for test_class in self.testClasses:
@@ -612,6 +614,13 @@ class NetTestCase(object):
         """
         self.report = {}
         self.inputs = None
+    
+    def requirements(self):
+        """
+        Place in here logic that will be executed before the test is to be run.
+        If some condition is not met then you should raise an exception.
+        """
+        pass
 
     def setUp(self):
         """

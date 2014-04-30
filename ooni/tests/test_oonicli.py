@@ -1,10 +1,8 @@
 import os
 import sys
 import yaml
-import signal
-import socket
 
-from twisted.internet import base, defer
+from twisted.internet import defer
 from twisted.trial import unittest
 
 from ooni.tests import is_internet_connected
@@ -25,7 +23,7 @@ def verify_header(header):
 def verify_entry(entry):
     assert 'input' in entry
 
-   
+
 class TestRunDirector(unittest.TestCase):
     def setUp(self):
         if not is_internet_connected():
@@ -36,11 +34,17 @@ class TestRunDirector(unittest.TestCase):
             f.write('http://torproject.org/\n')
             f.write('http://bridges.torproject.org/\n')
             f.write('http://blog.torproject.org/\n')
-    
+
     def tearDown(self):
-        os.remove('test_report.yaml')
-        os.remove('example-input.txt')
-    
+        try:
+            os.remove('test_report.yaml')
+        except:
+            pass
+        try:
+            os.remove('example-input.txt')
+        except:
+            pass
+
     @defer.inlineCallbacks
     def run_test(self, test_name, args, verify_function):
         output_file = 'test_report.yaml'
@@ -68,7 +72,7 @@ class TestRunDirector(unittest.TestCase):
             assert 'factor' in entry
             assert 'headers_diff' in entry
             assert 'headers_match' in entry
-        yield self.run_test('blocking/http_requests', 
+        yield self.run_test('blocking/http_requests',
                       ['-u', 'http://torproject.org/'],
                       verify_function)
 
@@ -82,7 +86,7 @@ class TestRunDirector(unittest.TestCase):
             assert 'factor' in entry
             assert 'headers_diff' in entry
             assert 'headers_match' in entry
-        yield self.run_test('blocking/http_requests', 
+        yield self.run_test('blocking/http_requests',
                       ['-f', 'example-input.txt'],
                       verify_function)
 
@@ -93,8 +97,8 @@ class TestRunDirector(unittest.TestCase):
             assert 'control_resolver' in entry
             assert 'tampering' in entry
             assert len(entry['tampering']) == 1
-        yield self.run_test('blocking/dns_consistency', 
-                            ['-b', '8.8.8.8:53', 
+        yield self.run_test('blocking/dns_consistency',
+                            ['-b', '8.8.8.8:53',
                              '-t', '8.8.8.8',
                              '-f', 'example-input.txt'],
                             verify_function)
@@ -114,6 +118,6 @@ class TestRunDirector(unittest.TestCase):
             assert 'request_line_capitalization' in entry['tampering']
             assert 'total' in entry['tampering']
 
-        yield self.run_test('manipulation/http_header_field_manipulation', 
+        yield self.run_test('manipulation/http_header_field_manipulation',
                             ['-b', 'http://64.9.225.221'],
                            verify_function)
