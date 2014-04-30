@@ -93,7 +93,7 @@ class TestRunDirector(unittest.TestCase):
             assert 'control_resolver' in entry
             assert 'tampering' in entry
             assert len(entry['tampering']) == 1
-        yield self.run_test('blocking/dnsconsistency', 
+        yield self.run_test('blocking/dns_consistency', 
                             ['-b', '8.8.8.8:53', 
                              '-t', '8.8.8.8',
                              '-f', 'example-input.txt'],

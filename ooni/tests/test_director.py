@@ -34,7 +34,7 @@ class TestDirector(unittest.TestCase):
         director = Director()
         nettests = director.getNetTests()
         assert 'http_requests' in nettests
-        assert 'dnsconsistency' in nettests
+        assert 'dns_consistency' in nettests
         assert 'http_header_field_manipulation' in nettests
         assert 'traceroute' in nettests
 

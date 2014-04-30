@@ -5,7 +5,7 @@ Details
 
 *Current version*: 0.4
 
-*NetTest*: DNS Consistency Test (https://gitweb.torproject.org/ooni-probe.git/blob/HEAD:/ooni/nettests/blocking/dnsconsistency.py)
+*NetTest*: DNS Consistency Test (https://gitweb.torproject.org/ooni-probe.git/blob/HEAD:/nettests/blocking/dns_consistency.py)
 
 *Test Helper*: DNS Test Helper (https://gitweb.torproject.org/oonib.git/blob/HEAD:/oonib/testhelpers/dns_helpers.py)
 
@@ -28,7 +28,7 @@ Youtube, etc.
 How to run the test
 ===================
 
-`ooniprobe blocking/dnsconsistency [-t <test resolvers>|-T <test resolver file>-f <input file> -b IP:PORT`
+`ooniprobe blocking/dns_consistency [-t <test resolvers>|-T <test resolver file>-f <input file> -b IP:PORT`
 
 *test resolvers* is a single test resolver (IP address)
 
@@ -42,7 +42,7 @@ Sample report
 =============
 
 From running:
-`ooniprobe blocking/dnsconsistency -T test_inputs/dns_tamper_test_resolvers.txt -f test_inputs/http_host_file.txt`
+`ooniprobe blocking/dns_consistency -T test_inputs/dns_tamper_test_resolvers.txt -f test_inputs/http_host_file.txt`
 
 ::
 
@@ -59,7 +59,7 @@ From running:
       reportfile: null
       resume: 0
       subargs: [-t, 8.8.8.8, -f, test_inputs/dns_tamper_file.txt]
-      test: nettests/blocking/dnsconsistency.py
+      test: nettests/blocking/dns_consistency.py
     probe_asn: null
     probe_cc: null
     probe_ip: 127.0.0.1
