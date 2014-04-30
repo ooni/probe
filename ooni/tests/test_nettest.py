@@ -121,7 +121,7 @@ class TestNetTest(unittest.TestCase):
             for i in range(10):
                 f.write("%s\n" % i)
 
-        from ooni.settings import config
+        config.initialize_ooni_home('ooni_home')
         config.read_config_file()
 
     def assertCallable(self, thing):
@@ -298,7 +298,7 @@ class TestNettestTimeout(unittest.TestCase):
     def tearDown(self):
         self.factory.stopFactory()
         self.port.stopListening()
-    
+
     def test_nettest_timeout(self):
         ntl = NetTestLoader(('-u', 'http://localhost:8007/'))
         ntl.loadNetTestString(http_net_test)

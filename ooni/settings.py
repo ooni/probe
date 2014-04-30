@@ -3,15 +3,14 @@ import sys
 import yaml
 import getpass
 
-from shutil import copyfile
 from os.path import abspath, expanduser
-
-from twisted.internet import reactor, threads, defer
 
 from ooni import otime, geoip
 from ooni.utils import Storage
 
 class OConfig(object):
+    _custom_home = None
+
     def __init__(self):
         self.current_user = getpass.getuser()
         self.global_options = {}
@@ -28,9 +27,11 @@ class OConfig(object):
         self.tor = Storage()
         self.privacy = Storage()
         self.set_paths()
-        self.initialize_ooni_home()
 
-    def set_paths(self):
+    def set_paths(self, ooni_home=None):
+        if ooni_home:
+            self._custom_home = ooni_home
+
         if self.global_options.get('datadir'):
             self.data_directory = abspath(expanduser(self.global_options['datadir']))
         elif self.advanced.get('data_dir'):
@@ -43,6 +44,8 @@ class OConfig(object):
         self.nettest_directory = abspath(os.path.join(__file__, '..', 'nettests'))
 
         self.ooni_home = os.path.join(expanduser('~'+self.current_user), '.ooni')
+        if self._custom_home:
+            self.ooni_home = self._custom_home
         self.inputs_directory = os.path.join(self.ooni_home, 'inputs')
         self.decks_directory = os.path.join(self.ooni_home, 'decks')
         self.reports_directory = os.path.join(self.ooni_home, 'reports')
@@ -56,7 +59,10 @@ class OConfig(object):
         if 'logfile' in self.basic:
             self.basic.logfile = expanduser(self.basic.logfile.replace('~','~'+self.current_user))
 
-    def initialize_ooni_home(self):
+    def initialize_ooni_home(self, ooni_home=None):
+        if ooni_home:
+            self.set_paths(ooni_home)
+
         if not os.path.isdir(self.ooni_home):
             print "Ooni home directory does not exist."
             print "Creating it in '%s'." % self.ooni_home

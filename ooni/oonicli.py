@@ -101,6 +101,7 @@ def runWithDirector(logging=True, start_tor=True):
     global_options = parseOptions()
     config.global_options = global_options
     config.set_paths()
+    config.initialize_ooni_home()
     config.read_config_file()
     if global_options['verbose']:
         config.advanced.debug = True
@@ -175,7 +176,7 @@ def runWithDirector(logging=True, start_tor=True):
         sys.exit(5)
     
     d = director.start(start_tor=start_tor)
-   
+
     def setup_nettest(_):
         try:
             return deck.setup()
