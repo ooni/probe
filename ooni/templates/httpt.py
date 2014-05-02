@@ -327,7 +327,8 @@ class HTTPTest(NetTestCase):
 
         if use_tor:
             state = config.tor_state
-            state.add_stream_listener(StreamListener(request))
+            if state:
+                state.add_stream_listener(StreamListener(request))
 
         d = agent.request(request['method'], request['url'], headers,
                 body_producer)
