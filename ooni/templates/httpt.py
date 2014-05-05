@@ -1,16 +1,11 @@
-import copy
 import random
-import struct
 
-from twisted.plugin import IPlugin
-from twisted.internet import protocol, defer
-from twisted.internet.ssl import ClientContextFactory
+from twisted.internet import defer
+
+from txtorcon.interface import StreamListenerMixin
 
 from twisted.internet import reactor
-from twisted.internet.error import ConnectionRefusedError, DNSLookupError, TCPTimedOutError
 from twisted.internet.endpoints import TCP4ClientEndpoint
-from twisted.web._newclient import Request, Response, ResponseNeverReceived
-from twisted.web.client import Agent
 from ooni.utils.trueheaders import TrueHeadersAgent, TrueHeadersSOCKS5Agent
 
 from ooni.nettest import NetTestCase
@@ -18,13 +13,27 @@ from ooni.utils import log
 from ooni.settings import config
 
 from ooni.utils.net import BodyReceiver, StringProducer, userAgents
-
 from ooni.utils.trueheaders import TrueHeaders
 from ooni.errors import handleAllFailures
 
 
 class InvalidSocksProxyOption(Exception):
     pass
+
+class StreamListener(StreamListenerMixin):
+
+    def __init__(self, request):
+        self.request = request
+
+    def stream_succeeded(self, stream):
+        host=self.request['url'].split('/')[2]
+        try:
+            if stream.target_host == host and len(self.request['tor']) == 1:
+                self.request['tor']['exit_ip'] = stream.circuit.path[-1].ip
+                self.request['tor']['exit_name'] = stream.circuit.path[-1].name
+                config.tor_state.stream_listeners.remove(self)
+        except:
+            log.err("Tor Exit ip detection failed")
 
 class HTTPTest(NetTestCase):
     """
@@ -228,7 +237,7 @@ class HTTPTest(NetTestCase):
             content_length = int(response.headers.getRawHeaders('content-length')[0])
         except Exception:
             content_length = None
-        
+
         finished = defer.Deferred()
         response.deliverBody(BodyReceiver(finished, content_length))
         finished.addCallback(self._processResponseBody, request,
@@ -285,9 +294,11 @@ class HTTPTest(NetTestCase):
         request['url'] = url
         request['headers'] = headers
         request['body'] = body
-        request['tor'] = False
+        request['tor'] = {}
         if use_tor:
-            request['tor'] = True
+            request['tor']['is_tor'] = True
+        else:
+            request['tor']['is_tor'] = False
 
         if self.randomizeUA:
             log.debug("Randomizing user agent")
@@ -306,13 +317,18 @@ class HTTPTest(NetTestCase):
         headers = TrueHeaders(request['headers'])
 
         def errback(failure, request):
-            if request['tor']:
+            if request['tor']['is_tor']:
                 log.err("Error performing torified request: %s" % request['url'])
             else:
                 log.err("Error performing request: %s" % request['url'])
             failure_string = handleAllFailures(failure)
             self.addToReport(request, failure_string=failure_string)
             return failure
+
+        if use_tor:
+            state = config.tor_state
+            if state:
+                state.add_stream_listener(StreamListener(request))
 
         d = agent.request(request['method'], request['url'], headers,
                 body_producer)
