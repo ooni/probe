@@ -21,7 +21,7 @@ class InputFile(object):
         cache_path = os.path.join(os.path.abspath(base_path), input_hash)
         self.cached_file = cache_path
         self.cached_descriptor = cache_path + '.desc'
-    
+
     @property
     def descriptorCached(self):
         if os.path.exists(self.cached_descriptor):
@@ -30,7 +30,7 @@ class InputFile(object):
                 self.load(descriptor)
             return True
         return False
-    
+
     @property
     def fileCached(self):
         if os.path.exists(self.cached_file):
@@ -52,7 +52,7 @@ class InputFile(object):
                 'date': self.date,
                 'description': self.description
             }, f)
-    
+
     def load(self, descriptor):
         self.name = descriptor['name']
         self.version = descriptor['version']
@@ -69,7 +69,7 @@ class InputFile(object):
 def nettest_to_path(path, allow_arbitrary_paths=False):
     """
     Takes as input either a path or a nettest name.
-    
+
     Args:
 
         allow_arbitrary_paths:
@@ -81,13 +81,15 @@ def nettest_to_path(path, allow_arbitrary_paths=False):
     """
     if allow_arbitrary_paths and os.path.exists(path):
         return path
-    elif FilePath(config.nettest_directory).preauthChild(path + '.py').exists():
-        return os.path.join(config.nettest_directory, path + '.py')
+
+    fp = FilePath(config.nettest_directory).preauthChild(path + '.py')
+    if fp.exists():
+        return fp.path
     else:
         raise e.NetTestNotFound(path)
 
 class Deck(InputFile):
-    def __init__(self, deck_hash=None, 
+    def __init__(self, deck_hash=None,
                  deckFile=None,
                  decks_directory=config.decks_directory):
         self.id = deck_hash
@@ -107,7 +109,7 @@ class Deck(InputFile):
     @property
     def cached_file(self):
         return os.path.join(self.decksDirectory, self.deckHash)
-   
+
     @property
     def cached_descriptor(self):
         return self.cached_file + '.desc'
@@ -162,7 +164,7 @@ class Deck(InputFile):
         if self.bouncer:
             log.msg("Looking up test helpers...")
             yield self.lookupTestHelpers()
-    
+
     @defer.inlineCallbacks
     def lookupTestHelpers(self):
         self.oonibclient.address = self.bouncer
@@ -178,7 +180,7 @@ class Deck(InputFile):
                 if th['test_class'].localOptions[th['option']]:
                     continue
                 required_test_helpers.append(th['name'])
-        
+
         if not required_test_helpers and not requires_collector:
             defer.returnValue(None)
 
@@ -212,7 +214,7 @@ class Deck(InputFile):
             if 'url' in i:
                 log.debug("Downloading %s" % i['url'])
                 self.oonibclient.address = i['address']
-                
+
                 try:
                     input_file = yield self.oonibclient.downloadInput(i['hash'])
                 except:
@@ -222,5 +224,5 @@ class Deck(InputFile):
                     input_file.verify()
                 except AssertionError:
                     raise e.UnableToLoadDeckInput, cached_path
-                
+
                 i['test_class'].localOptions[i['key']] = input_file.cached_file

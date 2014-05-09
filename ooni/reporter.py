@@ -171,7 +171,7 @@ class YAMLReporter(OReporter):
 
         if not os.path.isdir(report_destination):
             raise InvalidDestination
-        
+
         if not report_filename:
             report_filename = "report-" + \
                               test_details['test_name'] + "-" + \
@@ -301,7 +301,7 @@ class OONIBReporter(OReporter):
 
         from txsocksx.http import SOCKS5Agent
         from twisted.internet import reactor
-        
+
         if self.collectorAddress.startswith('httpo://'):
             self.collectorAddress = \
                     self.collectorAddress.replace('httpo://', 'http://')
@@ -369,7 +369,7 @@ class OONIBReporter(OReporter):
             log.err("Failed to parse collector response %s" % backend_response)
             log.exception(e)
             raise errors.OONIBReportCreationError
-       
+
         if response.code == 406:
             # XXX make this more strict
             log.err("The specified input or nettests cannot be submitted to this collector.")

@@ -181,7 +181,7 @@ def runWithDirector(logging=True, start_tor=True):
     except Exception as e:
         log.err(e)
         sys.exit(5)
-    
+
     d = director.start(start_tor=start_tor)
 
     def setup_nettest(_):
