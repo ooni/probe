@@ -1,3 +1,17 @@
+## v1.0.2
+
+* Add ooniprobe manpage.
+
+* Fix various security issues raised by the least authority audit.
+
+* Add a test that checks for Tor bridge reachability.
+
+* Record the IP address of the exit node being used in torified requests.
+
+* Captive portal test now uses the ooni-probe test templates.
+
+* Have better test naming consistency.
+
 ## v1.0.1
 
 * Fix bugs in the traceroute test that lead to not all packets being collected.
