@@ -181,7 +181,7 @@ class MeasurementManager(LinkedTaskManager):
 
     def succeeded(self, result, measurement):
         log.debug("Successfully performed measurement %s" % measurement)
-        log.debug(result)
+        log.debug("%s" % result)
 
     def failed(self, failure, measurement):
         pass
