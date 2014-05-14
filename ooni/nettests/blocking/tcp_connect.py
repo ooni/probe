@@ -2,35 +2,42 @@
 from twisted.internet.protocol import Factory, Protocol
 from twisted.internet.endpoints import TCP4ClientEndpoint
 
-from twisted.internet.error import ConnectionRefusedError
-from twisted.internet.error import TCPTimedOutError, TimeoutError
-
 from ooni import nettest
 from ooni.errors import handleAllFailures
 from ooni.utils import log
 
+
 class TCPFactory(Factory):
+
     def buildProtocol(self, addr):
         return Protocol()
 
+
 class TCPConnectTest(nettest.NetTestCase):
     name = "TCP Connect"
-    description = "Performs a TCP connect scan of all the host port combinations given as input."
+    description = "Performs a TCP connect scan of all the " \
+                  "host port combinations given as input."
     author = "Arturo Filastò"
     version = "0.1"
-    inputFile = ['file', 'f', None,
-            'File containing the IP:PORT combinations to be tested, one per line']
-    
+    inputFile = [
+        'file',
+        'f',
+        None,
+        'File containing the IP:PORT combinations to be tested, one per line']
+
     requiresTor = False
     requiresRoot = False
     requiredOptions = ['file']
+
     def test_connect(self):
         """
-        This test performs a TCP connection to the remote host on the specified port.
-        the report will contains the string 'success' if the test has
+        This test performs a TCP connection to the remote host on the
+        specified port.
+        The report will contains the string 'success' if the test has
         succeeded, or the reason for the failure if it has failed.
         """
         host, port = self.input.split(":")
+
         def connectionSuccess(protocol):
             protocol.transport.loseConnection()
             log.debug("Got a connection to %s" % self.input)

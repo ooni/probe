@@ -15,29 +15,30 @@
 # :authors: Arturo Filastò, Isis Lovecruft
 # :licence: see LICENSE
 
-import pdb
 
 from twisted.python import usage
 from twisted.internet import defer
 
 from ooni.templates import dnst
 
-from ooni import nettest
 from ooni.utils import log
+
 
 class UsageOptions(usage.Options):
     optParameters = [['backend', 'b', None,
-                        'The OONI backend that runs the DNS resolver'],
+                      'The OONI backend that runs the DNS resolver'],
                      ['testresolvers', 'T', None,
-                        'File containing list of DNS resolvers to test against'],
+                      'File containing list of DNS resolvers to test against'],
                      ['testresolver', 't', None,
                          'Specify a single test resolver to use for testing']
-                    ]
+                     ]
+
 
 class DNSConsistencyTest(dnst.DNSTest):
 
     name = "DNS Consistency"
-    description = "Checks to see if the DNS responses from a set of DNS resolvers are consistent."
+    description = "Checks to see if the DNS responses from a "\
+                  "set of DNS resolvers are consistent."
     version = "0.6"
     authors = "Arturo Filastò, Isis Lovecruft"
 
@@ -52,7 +53,7 @@ class DNSConsistencyTest(dnst.DNSTest):
     requiredOptions = ['backend', 'file']
 
     def setUp(self):
-        if (not self.localOptions['testresolvers'] and \
+        if (not self.localOptions['testresolvers'] and
                 not self.localOptions['testresolver']):
             self.test_resolvers = []
             with open('/etc/resolv.conf') as f:
@@ -69,11 +70,12 @@ class DNSConsistencyTest(dnst.DNSTest):
 
         try:
             with open(test_resolvers_file) as f:
-                self.test_resolvers = [x.split('#')[0].strip() for x in f.readlines()]
+                self.test_resolvers = [
+                    x.split('#')[0].strip() for x in f.readlines()]
                 self.report['test_resolvers'] = self.test_resolvers
             f.close()
 
-        except IOError, e:
+        except IOError as e:
             log.exception(e)
             raise usage.UsageError("Invalid test resolvers file")
 
@@ -106,25 +108,30 @@ class DNSConsistencyTest(dnst.DNSTest):
         true).
         """
         log.msg("Doing the test lookups on %s" % self.input)
-        list_of_ds = []
         hostname = self.input
 
         self.report['tampering'] = {}
 
-        control_answers = yield self.performALookup(hostname, self.control_dns_server)
+        control_answers = yield self.performALookup(hostname,
+                                                    self.control_dns_server)
         if not control_answers:
-                log.err("Got no response from control DNS server %s:%d," \
-                        " perhaps the DNS resolver is down?" % self.control_dns_server[0])
-                self.report['tampering']["%s:%d" % self.control_dns_server] = 'no_answer'
-                return
+            log.err(
+                "Got no response from control DNS server %s:%d, "
+                "perhaps the DNS resolver is down?" %
+                self.control_dns_server[0])
+            self.report['tampering'][
+                "%s:%d" %
+                self.control_dns_server] = 'no_answer'
+            return
 
         for test_resolver in self.test_resolvers:
             log.msg("Testing resolver: %s" % test_resolver)
             test_dns_server = (test_resolver, 53)
 
             try:
-                experiment_answers = yield self.performALookup(hostname, test_dns_server)
-            except Exception, e:
+                experiment_answers = yield self.performALookup(hostname,
+                                                               test_dns_server)
+            except Exception as e:
                 log.err("Problem performing the DNS lookup")
                 log.exception(e)
                 self.report['tampering'][test_resolver] = 'dns_lookup_error'
@@ -135,7 +142,9 @@ class DNSConsistencyTest(dnst.DNSTest):
                 self.report['tampering'][test_resolver] = 'no_answer'
                 continue
             else:
-                log.debug("Got the following A lookup answers %s from %s" % (experiment_answers, test_resolver))
+                log.debug(
+                    "Got the following A lookup answers %s from %s" %
+                    (experiment_answers, test_resolver))
 
             def lookup_details():
                 """
@@ -145,16 +154,19 @@ class DNSConsistencyTest(dnst.DNSTest):
                 log.msg("experiment answers: %s" % experiment_answers)
                 log.msg("control answers: %s" % control_answers)
 
-            log.debug("Comparing %s with %s" % (experiment_answers, control_answers))
+            log.debug(
+                "Comparing %s with %s" %
+                (experiment_answers, control_answers))
             if set(experiment_answers) & set(control_answers):
                 lookup_details()
                 log.msg("tampering: false")
                 self.report['tampering'][test_resolver] = False
             else:
                 log.msg("Trying to do reverse lookup")
-
-                experiment_reverse = yield self.performPTRLookup(experiment_answers[0], test_dns_server)
-                control_reverse = yield self.performPTRLookup(control_answers[0], self.control_dns_server)
+                experiment_reverse = yield self.performPTRLookup(experiment_answers[0],
+                                                                 test_dns_server)
+                control_reverse = yield self.performPTRLookup(control_answers[0],
+                                                              self.control_dns_server)
 
                 if experiment_reverse == control_reverse:
                     log.msg("Further testing has eliminated false positives")

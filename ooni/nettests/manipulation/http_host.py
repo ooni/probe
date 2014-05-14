@@ -11,10 +11,11 @@ import json
 from twisted.internet import defer
 from twisted.python import usage
 
-from ooni.utils import randomStr, randomSTR
+from ooni.utils import randomStr
 
 from ooni.utils import log
 from ooni.templates import httpt
+
 
 class UsageOptions(usage.Options):
     optParameters = [['backend', 'b', None,
@@ -24,18 +25,21 @@ class UsageOptions(usage.Options):
                      ['content', 'c', None, 'The file to read \
                             from containing the content of a block page']]
 
+
 class HTTPHost(httpt.HTTPTest):
+
     """
     This test performs various manipulations of the HTTP Host header field and
     attempts to detect which filter bypassing strategies will work against the
     censor.
 
     Usually this test should be run with a list of sites that are known to be
-    blocked inside of a particular network to assess which filter evasion strategies
-    will work.
+    blocked inside of a particular network to assess which filter evasion
+    strategies will work.
     """
     name = "HTTP Host"
-    description = "Tests a variety of different filter bypassing techniques based on the HTTP Host header field."
+    description = "Tests a variety of different filter bypassing techniques " \
+                  "based on the HTTP Host header field."
     author = "Arturo Filastò"
     version = "0.2.4"
 
@@ -43,13 +47,13 @@ class HTTPHost(httpt.HTTPTest):
     usageOptions = UsageOptions
 
     inputFile = ['file', 'f', None,
-            'List of hostnames to test for censorship']
+                 'List of hostnames to test for censorship']
 
     requiredTestHelpers = {'backend': 'http-return-json-headers'}
     requiredOptions = ['backend']
     requiresTor = False
     requiresRoot = False
-    
+
     def setUp(self):
         self.report['transparent_http_proxy'] = False
 
@@ -81,7 +85,8 @@ class HTTPHost(httpt.HTTPTest):
                 'request_line' in content and \
                 'headers_dict' in content:
             log.msg("Found the keys I expected in %s" % content)
-            self.report['transparent_http_proxy'] = self.report['transparent_http_proxy'] | False
+            self.report['transparent_http_proxy'] = self.report[
+                'transparent_http_proxy'] | False
             self.report[test_name] = False
         else:
             log.msg("Did not find the keys I expected in %s" % content)
@@ -91,7 +96,7 @@ class HTTPHost(httpt.HTTPTest):
                 censorship_page = open(self.localOptions['content'])
                 response_page = iter(body.split("\n"))
 
-                for censorship_line in censorship_page.xreadlines():
+                for censorship_line in censorship_page:
                     response_line = response_page.next()
                     if response_line != censorship_line:
                         self.report[test_name] = False
@@ -104,7 +109,8 @@ class HTTPHost(httpt.HTTPTest):
         test_name = sys._getframe().f_code.co_name.replace('test_', '')
         headers = {}
         headers["Host"] = [self.input]
-        response = yield self.doRequest(self.localOptions['backend'], method="\nGET",
+        response = yield self.doRequest(self.localOptions['backend'],
+                                        method="\nGET",
                                         headers=headers)
         self.check_for_censorship(response.body, test_name)
 
@@ -159,4 +165,5 @@ class HTTPHost(httpt.HTTPTest):
             for x in fp.readlines():
                 yield x.strip().split('//')[-1].split('/')[0]
             fp.close()
-        else: pass
+        else:
+            pass

@@ -5,12 +5,17 @@ from ooni.utils import log
 from ooni.utils import randomStr, randomSTR
 from ooni.templates import tcpt
 
+
 class UsageOptions(usage.Options):
-    optParameters = [['backend', 'b', None,
-                        'The OONI backend that runs a TCP echo server'],
-                    ['backendport', 'p', 80, 'Specify the port that the TCP echo server is running (should only be set for debugging)']]
+    optParameters = [
+        ['backend', 'b', None, 'The OONI backend that runs a TCP echo server'],
+        ['backendport', 'p', 80,
+         'Specify the port that the TCP echo server is running '
+         '(should only be set for debugging)']]
+
 
 class HTTPInvalidRequestLine(tcpt.TCPTest):
+
     """
     The goal of this test is to do some very basic and not very noisy fuzzing
     on the HTTP request line. We generate a series of requests that are not
@@ -20,7 +25,8 @@ class HTTPInvalidRequestLine(tcpt.TCPTest):
     ascii letters or numbers ('XxXx' will be 4).
     """
     name = "HTTP Invalid Request Line"
-    description = "Performs out of spec HTTP requests in the attempt to trigger a proxy error message."
+    description = "Performs out of spec HTTP requests in the attempt to "\
+                  "trigger a proxy error message."
     version = "0.2"
     authors = "Arturo Filastò"
 
@@ -109,4 +115,3 @@ class HTTPInvalidRequestLine(tcpt.TCPTest):
         d = self.sendPayload(payload)
         d.addCallback(self.check_for_manipulation, payload)
         return d
-

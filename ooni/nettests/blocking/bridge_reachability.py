@@ -1,27 +1,31 @@
 # -*- encoding: utf-8 -*-
 import random
-import string
-import subprocess
 from distutils.spawn import find_executable
 
 from twisted.python import usage
-from twisted.internet import defer, reactor, error
+from twisted.internet import reactor, error
 
 import txtorcon
 
 from ooni.utils import log, onion
 from ooni import nettest
 
-class TorIsNotInstalled(Exception): pass
+
+class TorIsNotInstalled(Exception):
+    pass
+
 
 class UsageOptions(usage.Options):
-    optParameters = [['timeout', 't', 120,
-                      'Specify the timeout after which to consider the Tor bootstrapping process to have failed'],
-                    ]
+    optParameters = [
+        ['timeout', 't', 120,
+         'Specify the timeout after which to consider '
+         'the Tor bootstrapping process to have failed'], ]
+
 
 class BridgeReachability(nettest.NetTestCase):
     name = "Bridge Reachability"
-    description = "A test for checking if bridges are reachable from a given location."
+    description = "A test for checking if bridges are reachable " \
+                  "from a given location."
     author = "Arturo Filastò"
     version = "0.1"
 
@@ -33,10 +37,12 @@ class BridgeReachability(nettest.NetTestCase):
                  'TransportType IP:ORPort (ex. obfs2 127.0.0.1:443)']
 
     requiredOptions = ['file']
-    
+
     def requirements(self):
         if not onion.find_tor_binary():
-            raise TorIsNotInstalled("For instructions on installing Tor see: https://www.torproject.org/download/download")
+            raise TorIsNotInstalled(
+                "For instructions on installing Tor see: "
+                "https://www.torproject.org/download/download")
 
     def setUp(self):
         self.tor_progress = 0
@@ -58,7 +64,7 @@ class BridgeReachability(nettest.NetTestCase):
             self.bridge = self.input.replace('Bridge ', '')
         self.pyobfsproxy_bin = find_executable('obfsproxy')
         self.fteproxy_bin = find_executable('fteproxy')
-    
+
     def postProcessor(self, measurements):
         if 'successes' not in self.summary:
             self.summary['successes'] = []
@@ -79,6 +85,7 @@ class BridgeReachability(nettest.NetTestCase):
     def displaySummary(self, summary):
         successful_count = {}
         failure_count = {}
+
         def count(results, counter):
             for result in results:
                 if result['transport_name'] not in counter:
@@ -87,8 +94,13 @@ class BridgeReachability(nettest.NetTestCase):
         count(summary['successes'], successful_count)
         count(summary['failures'], failure_count)
 
-        working_bridges = ', '.join(["%s %s" % (x['transport_name'], x['address']) for x in summary['successes']])
-        failing_bridges = ', '.join(["%s %s (at %s%%)" % (x['transport_name'], x['address'], x['tor_progress']) for x in summary['failures']])
+        working_bridges = ', '.join(
+            ["%s %s" % (x['transport_name'], x['address'])
+             for x in summary['successes']])
+        failing_bridges = ', '.join(
+            ["%s %s (at %s%%)"
+             % (x['transport_name'], x['address'], x['tor_progress'])
+             for x in summary['failures']])
 
         log.msg("Total successes: %d" % len(summary['successes']))
         log.msg("Total failures: %d" % len(summary['failures']))
@@ -105,28 +117,34 @@ class BridgeReachability(nettest.NetTestCase):
         config = txtorcon.TorConfig()
         config.ControlPort = random.randint(2**14, 2**16)
         config.SocksPort = random.randint(2**14, 2**16)
-        log.msg("Connecting to %s with tor %s" % (self.bridge, onion.tor_details['version']))
-        
+        log.msg(
+            "Connecting to %s with tor %s" %
+            (self.bridge, onion.tor_details['version']))
+
         transport_name = onion.transport_name(self.bridge)
         if transport_name and transport_name == 'fte' and self.fteproxy_bin:
-            config.ClientTransportPlugin = "%s exec %s --managed" % (transport_name, self.fteproxy_bin)
+            config.ClientTransportPlugin = "%s exec %s --managed" % (
+                transport_name, self.fteproxy_bin)
             self.report['transport_name'] = transport_name
             self.report['bridge_address'] = self.bridge.split(' ')[1]
-        elif transport_name and transport_name == 'fte' and not self.fteproxy_bin:
+        elif transport_name and transport_name == 'fte'\
+                and not self.fteproxy_bin:
             log.err("Unable to test bridge because fteproxy is not installed")
             self.report['error'] = 'missing-fteproxy'
             return
         elif transport_name and self.pyobfsproxy_bin:
-            config.ClientTransportPlugin = "%s exec %s managed" % (transport_name, self.pyobfsproxy_bin)
+            config.ClientTransportPlugin = "%s exec %s managed" % (
+                transport_name, self.pyobfsproxy_bin)
             self.report['transport_name'] = transport_name
             self.report['bridge_address'] = self.bridge.split(' ')[1]
         elif transport_name and not self.pyobfsproxy_bin:
-            log.err("Unable to test bridge because pyobfsproxy is not installed")
+            log.err(
+                "Unable to test bridge because pyobfsproxy is not installed")
             self.report['error'] = 'missing-pyobfsproxy'
             return
         else:
             self.report['bridge_address'] = self.bridge.split(' ')[0]
-        
+
         if transport_name and transport_name == 'scramblesuit' and \
                 onion.TorVersion('0.2.5.1') > onion.tor_details['version']:
             self.report['error'] = 'unsupported-tor-version'
@@ -151,6 +169,7 @@ class BridgeReachability(nettest.NetTestCase):
 
         d = txtorcon.launch_tor(config, reactor, timeout=self.timeout,
                                 progress_updates=updates)
+
         @d.addCallback
         def setup_complete(proto):
             try:

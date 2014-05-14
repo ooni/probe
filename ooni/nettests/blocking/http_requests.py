@@ -4,21 +4,23 @@
 # :licence: see LICENSE
 
 import random
-from twisted.internet import defer
 from twisted.python import usage, failure
 
 from ooni.utils import log
 from ooni.utils.net import userAgents
 from ooni.templates import httpt
-from ooni.errors import failureToString, handleAllFailures
+from ooni.errors import failureToString
+
 
 class UsageOptions(usage.Options):
     optParameters = [
-                     ['url', 'u', None, 'Specify a single URL to test.'],
-                     ['factor', 'f', 0.8, 'What factor should be used for triggering censorship (0.8 == 80%)']
-                    ]
+        ['url', 'u', None, 'Specify a single URL to test.'],
+        ['factor', 'f', 0.8,
+         'What factor should be used for triggering censorship (0.8 == 80%)']]
+
 
 class HTTPRequestsTest(httpt.HTTPTest):
+
     """
     Performs a two GET requests to the set of sites to be tested for
     censorship, one over a known good control channel (Tor), the other over the
@@ -28,14 +30,15 @@ class HTTPRequestsTest(httpt.HTTPTest):
     lengths match.
     """
     name = "HTTP Requests"
-    description = "Performs a HTTP GET request over Tor and one over the local network and compares the two results."
+    description = "Performs a HTTP GET request over Tor and one over the " \
+                  "local network and compares the two results."
     author = "Arturo Filastò"
     version = "0.2.4"
 
     usageOptions = UsageOptions
 
     inputFile = ['file', 'f', None,
-            'List of URLS to perform GET and POST requests to']
+                 'List of URLS to perform GET and POST requests to']
     requiresRoot = False
     requiresTor = False
 
@@ -58,7 +61,7 @@ class HTTPRequestsTest(httpt.HTTPTest):
         self.factor = self.localOptions['factor']
         self.report['control_failure'] = None
         self.report['experiment_failure'] = None
-        self.report['body_length_match'] =  None
+        self.report['body_length_match'] = None
         self.report['body_proportion'] = None
         self.report['factor'] = float(self.factor)
         self.report['headers_diff'] = None
@@ -101,31 +104,33 @@ class HTTPRequestsTest(httpt.HTTPTest):
 
     def test_get_experiment(self):
         log.msg("Performing GET request to %s" % self.url)
-        return  self.doRequest(self.url, method="GET",
-                use_tor=False, headers=self.headers)
+        return self.doRequest(self.url, method="GET",
+                              use_tor=False, headers=self.headers)
 
     def test_get_control(self):
         log.msg("Performing GET request to %s over Tor" % self.url)
         return self.doRequest(self.url, method="GET",
-                use_tor=True, headers=self.headers)
+                              use_tor=True, headers=self.headers)
 
     def postProcessor(self, measurements):
         experiment = control = None
         for status, measurement in measurements:
             if 'experiment' in str(measurement.netTestMethod):
                 if isinstance(measurement.result, failure.Failure):
-                    self.report['experiment_failure'] = failureToString(measurement.result)
+                    self.report['experiment_failure'] = failureToString(
+                        measurement.result)
                 else:
                     experiment = measurement.result
             elif 'control' in str(measurement.netTestMethod):
                 if isinstance(measurement.result, failure.Failure):
-                    self.report['control_failure'] = failureToString(measurement.result)
+                    self.report['control_failure'] = failureToString(
+                        measurement.result)
                 else:
                     control = measurement.result
 
         if experiment and control:
             self.compare_body_lengths(len(control.body),
-                    len(experiment.body))
+                                      len(experiment.body))
             self.compare_headers(control.headers,
-                    experiment.headers)
+                                 experiment.headers)
         return self.report
