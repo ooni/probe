@@ -13,6 +13,7 @@ from ooni.utils import log, net, randomStr
 from ooni.templates import httpt
 from ooni.utils.trueheaders import TrueHeaders
 
+
 def random_capitalization(string):
     output = ""
     original_string = string
@@ -27,22 +28,27 @@ def random_capitalization(string):
     else:
         return output
 
+
 class UsageOptions(usage.Options):
     optParameters = [
-            ['backend', 'b', None,
-                'URL of the backend to use for sending the requests'],
-            ['headers', 'h', None,
-                'Specify a yaml formatted file from which to read the request headers to send']
-            ]
+        ['backend', 'b', None,
+         'URL of the backend to use for sending the requests'],
+        ['headers', 'h', None,
+         'Specify a yaml formatted file from which to read '
+         'the request headers to send']
+        ]
+
 
 class HTTPHeaderFieldManipulation(httpt.HTTPTest):
+
     """
     It performes HTTP requests with request headers that vary capitalization
     towards a backend. If the headers reported by the server differ from
     the ones we sent, then we have detected tampering.
     """
     name = "HTTP Header Field Manipulation"
-    description = "Checks if the HTTP request the server sees is the same as the one that the client has created."
+    description = "Checks if the HTTP request the server " \
+                  "sees is the same as the one that the client has created."
     author = "Arturo Filastò"
     version = "0.1.4"
 
@@ -66,15 +72,20 @@ class HTTPHeaderFieldManipulation(httpt.HTTPTest):
             headers = yaml.safe_load(content)
             return headers
         else:
-            # XXX generate these from a random choice taken from whatheaders.com
+            # XXX generate these from a random choice taken from
+            # whatheaders.com
             # http://s3.amazonaws.com/data.whatheaders.com/whatheaders-latest.xml.zip
-            headers = {"User-Agent": [random.choice(net.userAgents)],
+            headers = {
+                "User-Agent": [
+                    random.choice(
+                        net.userAgents)],
                 "Accept": ["text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"],
                 "Accept-Encoding": ["gzip,deflate,sdch"],
                 "Accept-Language": ["en-US,en;q=0.8"],
                 "Accept-Charset": ["ISO-8859-1,utf-8;q=0.7,*;q=0.3"],
-                "Host": [randomStr(15)+'.com']
-            }
+                "Host": [
+                    randomStr(15) +
+                    '.com']}
             return headers
 
     def get_random_caps_headers(self):
@@ -143,20 +154,28 @@ class HTTPHeaderFieldManipulation(httpt.HTTPTest):
 
         request_headers = TrueHeaders(self.request_headers)
         diff = request_headers.getDiff(TrueHeaders(response_headers_dict),
-                ignore=['Connection'])
+                                       ignore=['Connection'])
         if diff:
             self.report['tampering']['header_field_name'] = True
         else:
             self.report['tampering']['header_field_name'] = False
         self.report['tampering']['header_name_diff'] = list(diff)
         log.msg("    total: %(total)s" % self.report['tampering'])
-        log.msg("    request_line_capitalization: %(request_line_capitalization)s" % self.report['tampering'])
-        log.msg("    header_name_capitalization: %(header_name_capitalization)s" % self.report['tampering'])
-        log.msg("    header_field_value: %(header_field_value)s" % self.report['tampering'])
-        log.msg("    header_field_number: %(header_field_number)s" % self.report['tampering'])
+        log.msg(
+            "    request_line_capitalization: %(request_line_capitalization)s" %
+            self.report['tampering'])
+        log.msg(
+            "    header_name_capitalization: %(header_name_capitalization)s" %
+            self.report['tampering'])
+        log.msg(
+            "    header_field_value: %(header_field_value)s" %
+            self.report['tampering'])
+        log.msg(
+            "    header_field_number: %(header_field_number)s" %
+            self.report['tampering'])
 
     def test_get_random_capitalization(self):
         self.request_method = random_capitalization("GET")
         self.request_headers = self.get_random_caps_headers()
         return self.doRequest(self.url, self.request_method,
-                headers=self.request_headers)
+                              headers=self.request_headers)
