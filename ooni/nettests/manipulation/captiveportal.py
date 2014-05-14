@@ -40,21 +40,23 @@ from twisted.python import usage
 from twisted.internet import defer, threads
 
 from ooni import nettest
-from ooni.templates import httpt,dnst
+from ooni.templates import httpt, dnst
 from ooni.utils import net
 from ooni.utils import log
 
 __plugoo__ = "captiveportal"
 __desc__ = "Captive portal detection test"
 
+
 class UsageOptions(usage.Options):
     optParameters = [['asset', 'a', None, 'Asset file'],
-                 ['experiment-url', 'e', 'http://google.com/', 'Experiment URL'],
-                 ['user-agent', 'u', random.choice(net.userAgents),
-                  'User agent for HTTP requests']
-                ]
+                     ['experiment-url', 'e', 'http://google.com/', 'Experiment URL'],
+                     ['user-agent', 'u', random.choice(net.userAgents),
+                      'User agent for HTTP requests']
+    ]
 
-class CaptivePortal(httpt.HTTPTest,dnst.DNSTest):
+
+class CaptivePortal(httpt.HTTPTest, dnst.DNSTest):
     """
     Compares content and status codes of HTTP responses, and attempts
     to determine if content has been altered.
@@ -78,7 +80,7 @@ class CaptivePortal(httpt.HTTPTest,dnst.DNSTest):
         #XXX: HTTP Error 302: The HTTP server returned a redirect error that
         #would lead to an infinite loop.  The last 30x error message was: Found
         try:
-            response = yield self.doRequest(url,"GET",headers)
+            response = yield self.doRequest(url, "GET", headers)
             defer.returnValue(response)
         except Exception:
             log.err("HTTPError")
@@ -165,10 +167,10 @@ class CaptivePortal(httpt.HTTPTest,dnst.DNSTest):
             try:
                 answer = yield self.performALookup(hn)
                 if not answer:
-                    answer = yield self.performALookup(hn, ('8.8.8.8',53))
+                    answer = yield self.performALookup(hn, ('8.8.8.8', 53))
             except error.DNSNameError:
-                    log.msg("DNS resolution for %s returned NXDOMAIN" % hn)
-                    response.append('NXDOMAIN')
+                log.msg("DNS resolution for %s returned NXDOMAIN" % hn)
+                response.append('NXDOMAIN')
             except Exception:
                 log.err("DNS Resolution failed")
             finally:
@@ -251,8 +253,8 @@ class CaptivePortal(httpt.HTTPTest,dnst.DNSTest):
 
         if sample_size is None:
             sample_size = 5
-            res = yield self.dns_resolve(auth_nameservers)
-            resolved_auth_ns = random.sample(res,sample_size)
+        res = yield self.dns_resolve(auth_nameservers)
+        resolved_auth_ns = random.sample(res, sample_size)
 
         querynames = []
         answernames = []
@@ -264,7 +266,7 @@ class CaptivePortal(httpt.HTTPTest,dnst.DNSTest):
 
         for auth_ns in resolved_auth_ns:
             try:
-                answer = yield self.performSOALookup(hostname,(auth_ns,53))
+                answer = yield self.performSOALookup(hostname, (auth_ns, 53))
             except Exception:
                 continue
             querynames.append(hostname)
@@ -307,18 +309,16 @@ class CaptivePortal(httpt.HTTPTest,dnst.DNSTest):
         0 < length <= 256. The returned string will always start with
         an alphabetic character.
         """
-        if (length <= 0):
+        if length <= 0:
             length = 1
-        elif (length > 256):
+        elif length > 256:
             length = 256
 
-        random_ascii = base64.urlsafe_b64encode(os.urandom(int(length)))
+        random_string = ''
+        while length > 0:
+            random_string += random.choice(string.lowercase)
+            length -= 1
 
-        while not random_ascii[:1].isalpha():
-            random_ascii = base64.urlsafe_b64encode(os.urandom(int(length)))
-
-        three_quarters = int((len(random_ascii)) * (3.0/4.0))
-        random_string = random_ascii[:three_quarters]
         return random_string
 
     def get_random_hostname(self, length=None):
@@ -334,11 +334,6 @@ class CaptivePortal(httpt.HTTPTest,dnst.DNSTest):
             length = 32
 
         random_sld = self.get_random_url_safe_string(length)
-
-        # if it doesn't start with a letter, chuck it.
-        while not random_sld[:1].isalpha():
-            random_sld = self.get_random_url_safe_string(length)
-
         tld_list = ['.com', '.net', '.org', '.info', '.test', '.invalid']
         random_tld = random.choice(tld_list)
         random_hostname = random_sld + random_tld
@@ -375,12 +370,12 @@ class CaptivePortal(httpt.HTTPTest,dnst.DNSTest):
         for x in range(hostname_count):
             random_hostname = self.get_random_hostname(hostname_length)
             response_match, response_address = yield self.dns_resolve_match(random_hostname,
-                                                                      control[0])
+                                                                            control[0])
             for address in response_address:
                 if response_match is False:
                     log.msg("Strangely, DNS resolution of the random hostname")
                     log.msg("%s actually points to %s"
-                             % (random_hostname, response_address))
+                            % (random_hostname, response_address))
                     responses = responses + [address]
                 else:
                     responses = responses + [address]
@@ -391,10 +386,10 @@ class CaptivePortal(httpt.HTTPTest,dnst.DNSTest):
 
         if len(intersection) == 1:
             log.msg("All %d random hostnames properly resolved to NXDOMAIN."
-                     % hostname_count)
+                    % hostname_count)
             ret = True, relative_complement
             defer.returnValue(ret)
-        elif (len(intersection) == 1) and (len(r) > 1):
+        elif (len(intersection) == 0) and (len(r) > 1):
             log.msg("Something odd happened. Some random hostnames correctly")
             log.msg("resolved to NXDOMAIN, but several others resolved to")
             log.msg("to the following addresses: %s" % relative_complement)
@@ -451,7 +446,7 @@ class CaptivePortal(httpt.HTTPTest,dnst.DNSTest):
         log.msg("test...")
 
         msmatch, ms_dns_result = yield self.dns_resolve_match("dns.msftncsi.com",
-                                                        "131.107.255.255")
+                                                              "131.107.255.255")
         if msmatch:
             log.msg("Microsoft NCSI DNS-based captive portal test did not")
             log.msg("detect a captive portal.")
@@ -497,7 +492,7 @@ class CaptivePortal(httpt.HTTPTest,dnst.DNSTest):
                          'Microsoft NCSI',
                          '200',
                          'Microsoft NCSI',
-                         'MS HTTP Captive Portal',]]
+                         'MS HTTP Captive Portal', ]]
 
         cm = self.http_content_match_fuzzy_opt
         sm = self.http_status_code_match
@@ -510,8 +505,8 @@ class CaptivePortal(httpt.HTTPTest,dnst.DNSTest):
             log.msg("Running the %s test..." % test_name)
 
             content_match, experiment_code, experiment_headers = yield cm(experiment_url,
-                                                                    control_result,
-                                                                    headers, fuzzy)
+                                                                          control_result,
+                                                                          headers, fuzzy)
             status_match = status_func(experiment_code, control_code)
             if status_match and content_match:
                 log.msg("The %s test was unable to detect" % test_name)
@@ -573,7 +568,7 @@ class CaptivePortal(httpt.HTTPTest,dnst.DNSTest):
 
         log.msg("Running test for '%s'..." % experiment_url)
         content_match, experiment_code, experiment_headers = yield cm(experiment_url,
-                                                                control_result)
+                                                                      control_result)
         status_match = sm(experiment_code, control_code)
         if status_match and content_match:
             log.msg("The test for '%s'" % experiment_url)
@@ -583,10 +578,10 @@ class CaptivePortal(httpt.HTTPTest,dnst.DNSTest):
 
         elif status_match and not content_match:
             log.msg("Retrying '%s' with fuzzy match enabled."
-                     % experiment_url)
+                    % experiment_url)
             fuzzy_match, experiment_code, experiment_headers = yield cm(experiment_url,
-                                                                  control_result,
-                                                                  fuzzy=True)
+                                                                        control_result,
+                                                                        fuzzy=True)
             if fuzzy_match:
                 self.report['result'] = True
             else:
