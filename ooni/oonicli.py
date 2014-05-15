@@ -31,6 +31,7 @@ class Options(usage.Options):
     optFlags = [["help", "h"],
                 ["resume", "r"],
                 ["no-collector", "n"],
+                ["no-geoip", "g"],
                 ["list", "s"],
                 ["printdeck", "p"],
                 ["verbose", "v"]

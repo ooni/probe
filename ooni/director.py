@@ -127,7 +127,8 @@ class Director(object):
             log.msg("Connecting to Tor Control Port...")
             yield self.getTorState()
 
-        yield config.probe_ip.lookup()
+        if not config.global_options['no-geoip']:
+            yield config.probe_ip.lookup()
 
     @property
     def measurementSuccessRatio(self):
