@@ -222,3 +222,13 @@ If your distributation supports capabilities you can avoid needing to run OONI a
 ```
 setcap cap_net_admin,cap_net_raw+eip /path/to/your/virtualenv's/python
 ```
+
+
+## Reporting bugs
+
+You can report bugs and issues you find with ooni-probe on The Tor Projec issue
+tracker [filing them under the "Ooni" component](https://trac.torproject.org/projects/tor/newticket?component=Ooni).
+
+You can either register an account or use the group account "cypherpunks" with
+password "writecode".
+
