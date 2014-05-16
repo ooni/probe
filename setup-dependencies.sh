@@ -892,6 +892,11 @@ case $DISTRO_VERSION in
     echo "[.] It appears that you have the torproject.org Debian repository installed!";
   fi
 
+  if [[ $DISTRO_VERSION == "lucid" ]]; then
+    echo "[+] Installing Ubuntu universe repository...";
+    DO "sudo add-apt-repository "deb http://archive.ubuntu.com $DISTRO_VERSION universe"" "0"
+  fi
+
   # Install the basic packages to get pip ready to roll
   echo "[+] Updating OS package list...";
   sudo sudo apt-get update 2>&1 > /dev/null;
@@ -903,7 +908,12 @@ case $DISTRO_VERSION in
 
     install_virtualenv_securely
 
+  if [[ $DISTRO_VERSION == "lucid" ]]; then
+    DO "sudo apt-get -y install python-virtualenv" "0"
+  else
     DO "sudo apt-get -y install virtualenvwrapper" "0"
+  fi
+
     if [ ! -f $HOME/.virtualenvs/ooniprobe/bin/activate ]; then
       # Set up the virtual environment
       DO "mkdir -p $HOME/.virtualenvs" "0"
