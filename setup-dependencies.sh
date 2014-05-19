@@ -867,7 +867,7 @@ install_virtualenv_securely() {
 }
 
 case $DISTRO_VERSION in
-  natty|wheezy|squeeze|precise|n/a|raring|saucy|trusty)
+  lucid|natty|wheezy|squeeze|precise|n/a|raring|saucy|trusty)
 
   # Create the build directories
   DO "mkdir -p ${BUILD_DIR}" "0"
@@ -892,6 +892,16 @@ case $DISTRO_VERSION in
     echo "[.] It appears that you have the torproject.org Debian repository installed!";
   fi
 
+  if [[ $DISTRO_VERSION == "lucid" ]]; then
+    HAVE_UNIVERSE_REPO="`grep -x 'deb http://archive.ubuntu.com/ubuntu lucid universe' /etc/apt/sources.list /etc/apt/sources.list.d/ 2>&1|grep universe|head -n 1`";
+    if [ -z "$HAVE_UNIVERSE_REPO" ]; then
+      echo "[-] It appears that you do not have the Ubuntu universe repository; installing it...";
+      sudo add-apt-repository "deb http://archive.ubuntu.com/ubuntu $DISTRO_VERSION universe"
+    else
+      echo "[.] It appears that you have the Ubuntu universe repository installed!";
+    fi
+  fi
+
   # Install the basic packages to get pip ready to roll
   echo "[+] Updating OS package list...";
   sudo sudo apt-get update 2>&1 > /dev/null;
@@ -903,7 +913,12 @@ case $DISTRO_VERSION in
 
     install_virtualenv_securely
 
+  if [[ $DISTRO_VERSION == "lucid" ]]; then
+    DO "sudo apt-get -y install python-virtualenv" "0"
+  else
     DO "sudo apt-get -y install virtualenvwrapper" "0"
+  fi
+
     if [ ! -f $HOME/.virtualenvs/ooniprobe/bin/activate ]; then
       # Set up the virtual environment
       DO "mkdir -p $HOME/.virtualenvs" "0"
@@ -923,9 +938,16 @@ case $DISTRO_VERSION in
       # pip 1.5 needs this
       DO "sudo pip install setuptools --no-use-wheel --upgrade"
   fi
+  
 
   # Install all of the out of package manager dependencies
   DO "pip install -v --timeout 60 -r ${REPO_ROOT}/requirements.txt" "0"
+  
+  # Install lucid required pip dependencies
+  if [[ $DISTRO_VERSION == "lucid" ]]; then
+       DO "pip install -v --timeout 60 pygeoip service-identity" "0"
+  fi
+
   if [ $? != 0 ]; then
       echo "[+] It appears that pip is having issues installing our Python dependency requirements, we'll try again!";
       DO "pip install -v --timeout 60 -r ${REPO_ROOT}/requirements.txt" "0"
