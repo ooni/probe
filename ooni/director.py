@@ -127,7 +127,12 @@ class Director(object):
             log.msg("Connecting to Tor Control Port...")
             yield self.getTorState()
 
-        if not config.global_options['no-geoip']:
+        if config.global_options['no-geoip']:
+            annotations = config.global_options['annotations'].lower()
+            aux = map(lambda x: x in annotations, ["city", "country", "asn"])
+            if annotations is None or not all(aux):
+                log.msg("You should add annotations for the country, city and ASN")
+        else:
             yield config.probe_ip.lookup()
 
     @property

@@ -49,7 +49,9 @@ class Options(usage.Options):
                      ["configfile", "f", None,
                          "Specify a path to the ooniprobe configuration file"],
                      ["datadir", "d", None,
-                         "Specify a path to the ooniprobe data directory"]
+                         "Specify a path to the ooniprobe data directory"],
+                     ["annotations", "a", None,
+                         "Annotate the report with a key:value[, key:value] format."]
                      ]
 
     compData = usage.Completions(
