@@ -128,9 +128,11 @@ class Director(object):
             yield self.getTorState()
 
         if config.global_options['no-geoip']:
-            annotations = config.global_options['annotations'].lower()
-            aux = map(lambda x: x in annotations, ["city", "country", "asn"])
-            if annotations is None or not all(aux):
+            aux = [False]
+            if 'annotations' in config.global_options and config.global_options['annotations'] is not None:
+                annotations = config.global_options['annotations'].lower()
+                aux = map(lambda x: x in annotations, ["city", "country", "asn"])
+            if not all(aux):
                 log.msg("You should add annotations for the country, city and ASN")
         else:
             yield config.probe_ip.lookup()
