@@ -2,13 +2,11 @@
 
 import sys
 import os
-import time
 import yaml
-import random
 
-from twisted.internet import reactor
 from twisted.python import usage
 from twisted.python.util import spewer
+from twisted.internet import defer
 
 from ooni import errors, __version__
 
@@ -31,6 +29,7 @@ class Options(usage.Options):
     optFlags = [["help", "h"],
                 ["resume", "r"],
                 ["no-collector", "n"],
+                ["no-geoip", "g"],
                 ["list", "s"],
                 ["printdeck", "p"],
                 ["verbose", "v"]
@@ -48,7 +47,9 @@ class Options(usage.Options):
                      ["configfile", "f", None,
                          "Specify a path to the ooniprobe configuration file"],
                      ["datadir", "d", None,
-                         "Specify a path to the ooniprobe data directory"]
+                         "Specify a path to the ooniprobe data directory"],
+                     ["annotations", "a", None,
+                         "Annotate the report with a key:value[, key:value] format."]
                      ]
 
     compData = usage.Completions(
@@ -143,6 +144,19 @@ def runWithDirector(logging=True, start_tor=True):
         print yaml.safe_dump([{'options': global_options}]).strip()
 
         sys.exit(0)
+
+    if global_options.get('annotations') is not None:
+        annotations = {}
+        for annotation in global_options["annotations"].split(","):
+            pair = annotation.split(":")
+            if len(pair) == 2:
+                key = pair[0].strip()
+                value = pair[1].strip()
+                annotations[key] = value
+            else:
+                log.err("Invalid annotation: %s" % annotation)
+                sys.exit(1)
+        global_options["annotations"] = annotations
 
     #XXX: This should mean no bouncer either!
     if global_options['no-collector']:
@@ -258,6 +272,8 @@ def runWithDirector(logging=True, start_tor=True):
                 raise errors.TorNotRunning
 
             test_details = net_test_loader.testDetails
+            test_details['annotations'] = global_options['annotations']
+
             yaml_reporter = YAMLReporter(test_details,
                                          report_filename=global_options['reportfile'])
             reporters = [yaml_reporter]

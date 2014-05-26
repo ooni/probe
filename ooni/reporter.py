@@ -1,10 +1,6 @@
-import traceback
-import itertools
-import logging
 import time
 import yaml
 import json
-import sys
 import os
 import re
 
@@ -13,12 +9,10 @@ from yaml.emitter import *
 from yaml.serializer import *
 from yaml.resolver import *
 from twisted.python.util import untilConcludes
-from twisted.trial import reporter
-from twisted.internet import defer, reactor
+from twisted.internet import defer
 from twisted.internet.error import ConnectionRefusedError
 from twisted.python.failure import Failure
 from twisted.internet.endpoints import TCP4ClientEndpoint
-from twisted.web.client import Agent
 
 from ooni.utils import log
 from ooni.tasks import Measurement
@@ -33,7 +27,7 @@ from ooni import errors
 
 from ooni import otime
 from ooni.utils import pushFilenameStack
-from ooni.utils.net import BodyReceiver, StringProducer, userAgents
+from ooni.utils.net import BodyReceiver, StringProducer
 
 from ooni.settings import config
 
