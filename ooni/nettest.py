@@ -293,7 +293,7 @@ class NetTestLoader(object):
 
         if not test_cases:
             raise e.NoTestCasesFound
-        
+
         self.setupTestCases(test_cases)
 
     def setupTestCases(self, test_cases):
@@ -435,10 +435,10 @@ class NetTest(object):
         self.done.addCallback(self.doneNetTest)
 
         self.state = NetTestState(self.done)
-    
+
     def __str__(self):
         return ' '.join(tc.name for tc, _ in self.testCases)
-    
+
     def doneNetTest(self, result):
         if not self.summary:
             return
@@ -601,7 +601,7 @@ class NetTestCase(object):
     optParameters = None
     baseParameters = None
     baseFlags = None
-    
+
     requiredTestHelpers = {}
     requiredOptions = []
     requiresRoot = False
@@ -709,7 +709,7 @@ class NetTestCase(object):
 
         We check to see if it's possible to have an input file and if the user
         has specified such file.
-            
+
 
         If the operations to be done here are network related or blocking, they
         should be wrapped in a deferred. That is the return value of this
@@ -725,7 +725,7 @@ class NetTestCase(object):
 
         if self.inputs:
             return self.inputs
- 
+
         return None
 
     def _checkValidOptions(self):

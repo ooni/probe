@@ -1,9 +1,5 @@
-import random
-import sys
 import os
-import re
 
-from ooni import geoip
 from ooni.managers import ReportEntryManager, MeasurementManager
 from ooni.reporter import Report
 from ooni.utils import log, pushFilenameStack
@@ -110,7 +106,7 @@ class Director(object):
 
                     if nettest['id'] in nettests:
                         log.err("Found a two tests with the same name %s, %s" %
-                                (nettest_path, nettests[nettest['id']]['path']))
+                                (net_test_file, nettests[nettest['id']]['path']))
                     else:
                         category = dirname.replace(config.nettest_directory, '')
                         nettests[nettest['id']] = nettest
@@ -289,7 +285,7 @@ class Director(object):
             log.debug("We now have the following circuits: ")
             for circuit in state.circuits.values():
                 log.debug(" * %s" % circuit)
-            
+
             socks_port = yield state.protocol.get_conf("SocksPort")
             control_port = yield state.protocol.get_conf("ControlPort")
 
@@ -344,7 +340,7 @@ class Director(object):
                     else:
                         bridges.append(bridge.strip())
             tor_config.Bridge = bridges
-        
+
         if config.tor.torrc:
             for i in config.tor.torrc.keys():
                 setattr(tor_config, i, config.tor.torrc[i])

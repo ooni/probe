@@ -2,13 +2,11 @@
 
 import sys
 import os
-import time
 import yaml
-import random
 
-from twisted.internet import reactor
 from twisted.python import usage
 from twisted.python.util import spewer
+from twisted.internet import defer
 
 from ooni import errors, __version__
 
@@ -197,7 +195,7 @@ def runWithDirector(logging=True, start_tor=True):
     except Exception as e:
         log.err(e)
         sys.exit(5)
-    
+
     d = director.start(start_tor=start_tor)
 
     def setup_nettest(_):
