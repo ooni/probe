@@ -613,19 +613,8 @@ class NetTestCase(object):
         This is the internal setup method to be overwritten by templates.
         """
         self.report = {}
-        if "annotations" in config.global_options and config.global_options["annotations"] is not None:
-            annotations = []
-            for annotation in config.global_options["annotations"].split(","):
-                pair = annotation.split(":")
-                if len(pair) == 2:
-                    key = pair[0].strip()
-                    value = pair[1].strip()
-                    annotations.append({key: value})
-                else:
-                    log.err("Invalid annotation: %s" % annotation)
-            self.report["annotations"] = annotations
         self.inputs = None
-    
+
     def requirements(self):
         """
         Place in here logic that will be executed before the test is to be run.

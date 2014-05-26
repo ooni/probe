@@ -129,8 +129,8 @@ class Director(object):
 
         if config.global_options['no-geoip']:
             aux = [False]
-            if 'annotations' in config.global_options and config.global_options['annotations'] is not None:
-                annotations = config.global_options['annotations'].lower()
+            if config.global_options.get('annotations') is not None:
+                annotations = [k.lower() for k in config.global_options['annotations'].keys()]
                 aux = map(lambda x: x in annotations, ["city", "country", "asn"])
             if not all(aux):
                 log.msg("You should add annotations for the country, city and ASN")

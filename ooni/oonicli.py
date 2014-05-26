@@ -147,6 +147,19 @@ def runWithDirector(logging=True, start_tor=True):
 
         sys.exit(0)
 
+    if global_options.get('annotations') is not None:
+        annotations = {}
+        for annotation in global_options["annotations"].split(","):
+            pair = annotation.split(":")
+            if len(pair) == 2:
+                key = pair[0].strip()
+                value = pair[1].strip()
+                annotations[key] = value
+            else:
+                log.err("Invalid annotation: %s" % annotation)
+                sys.exit(1)
+        global_options["annotations"] = annotations
+
     #XXX: This should mean no bouncer either!
     if global_options['no-collector']:
         log.msg("Not reporting using a collector")
@@ -261,6 +274,8 @@ def runWithDirector(logging=True, start_tor=True):
                 raise errors.TorNotRunning
 
             test_details = net_test_loader.testDetails
+            test_details['annotations'] = global_options['annotations']
+
             yaml_reporter = YAMLReporter(test_details,
                                          report_filename=global_options['reportfile'])
             reporters = [yaml_reporter]
