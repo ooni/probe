@@ -94,14 +94,14 @@ class DNSConsistencyTest(dnst.DNSTest):
         tested and an A lookup on the known good DNS server.
 
         We then compare the results from test_resolvers and that from
-        control_resolver and see if the match up.
+        control_resolver and see if they match up.
         If they match up then no censorship is happening (tampering: false).
 
         If they do not we do a reverse lookup (PTR) on the test_resolvers and
         the control resolver for every IP address we got back and check to see
         if anyone of them matches the control ones.
 
-        If they do then we take not of the fact that censorship is probably not
+        If they do, then we take note of the fact that censorship is probably not
         happening (tampering: reverse-match).
 
         If they do not match then censorship is probably going on (tampering:
