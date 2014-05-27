@@ -64,7 +64,7 @@ class CaptivePortal(httpt.HTTPTest, dnst.DNSTest):
 
     name = "captiveportal"
     description = "Captive Portal Test"
-    version = '0.2'
+    version = '0.3'
     author = "Isis Lovecruft"
     usageOptions = UsageOptions
     requiresRoot = False
@@ -265,11 +265,11 @@ class CaptivePortal(httpt.HTTPTest, dnst.DNSTest):
         hostname = self.hostname_to_0x20(hostname)
 
         for auth_ns in resolved_auth_ns:
+            querynames.append(hostname)
             try:
                 answer = yield self.performSOALookup(hostname, (auth_ns, 53))
             except Exception:
                 continue
-            querynames.append(hostname)
             for soa in answer:
                 answernames.append(soa[0])
                 serials.append(str(soa[1]))
@@ -291,17 +291,22 @@ class CaptivePortal(httpt.HTTPTest, dnst.DNSTest):
             log.msg("Some SOA serial numbers did not match the rest!")
             serial_match = False
 
-        ret = name_match, serial_match, querynames, answernames, serials
-
         if name_match and serial_match:
             log.msg("Your DNS queries do not appear to be tampered.")
-            defer.returnValue(ret)
         elif name_match or serial_match:
             log.msg("Something is tampering with your DNS queries.")
-            defer.returnValue(ret)
         elif not name_match and not serial_match:
             log.msg("Your DNS queries are definitely being tampered with.")
-            defer.returnValue(ret)
+
+        ret = {
+            'result': name_match and serial_match,
+            'name_match': name_match,
+            'serial_match': serial_match,
+            'querynames': querynames,
+            'answernames': answernames,
+            'SOA_serials': serials
+        }
+        defer.returnValue(ret)
 
     def get_random_url_safe_string(self, length):
         """
@@ -422,16 +427,20 @@ class CaptivePortal(httpt.HTTPTest, dnst.DNSTest):
         log.msg("Running the Google Chrome DNS-based captive portal test...")
 
         gmatch, google_dns_result = yield self.compare_random_hostnames(3, 10)
+        ret = {
+            'result': gmatch,
+            'addresses': google_dns_result
+        }
 
         if gmatch:
             log.msg("Google Chrome DNS-based captive portal test did not")
             log.msg("detect a captive portal.")
-            defer.returnValue(google_dns_result)
+            defer.returnValue(ret)
         else:
             log.msg("Google Chrome DNS-based captive portal test believes")
             log.msg("you are in a captive portal, or else something very")
             log.msg("odd is happening with your DNS.")
-            defer.returnValue(google_dns_result)
+            defer.returnValue(ret)
 
     @defer.inlineCallbacks
     def ms_dns_cp_test(self):
@@ -447,6 +456,10 @@ class CaptivePortal(httpt.HTTPTest, dnst.DNSTest):
 
         msmatch, ms_dns_result = yield self.dns_resolve_match("dns.msftncsi.com",
                                                               "131.107.255.255")
+        ret = {
+            'result': msmatch,
+            'address': ms_dns_result
+        }
         if msmatch:
             log.msg("Microsoft NCSI DNS-based captive portal test did not")
             log.msg("detect a captive portal.")
@@ -517,10 +530,9 @@ class CaptivePortal(httpt.HTTPTest, dnst.DNSTest):
                 log.msg("is filtered.")
                 defer.returnValue(False)
 
-        result = []
+        result = {}
         for vt in vendor_tests:
             report = {}
-            report['vt'] = vt
 
             experiment_url = vt[0]
             control_result = vt[1]
@@ -541,7 +553,13 @@ class CaptivePortal(httpt.HTTPTest, dnst.DNSTest):
 
             else:
                 log.err("Ooni is trying to run an undefined CP vendor test.")
-            result.append(report)
+
+            report['URL'] = experiment_url
+            report['http_status_summary'] = control_result
+            report['http_status_number'] = control_code
+            report['User_Agent'] = vt[3]
+            result[test_name] = report
+
         defer.returnValue(result)
 
     @defer.inlineCallbacks
