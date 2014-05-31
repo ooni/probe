@@ -133,7 +133,7 @@ install_tor() {
     RETVAL=3
   esac
   exit \$RETVAL
-  EOF &&
+EOF
   sudo mv tor.init /etc/init.d/tor &&
   sudo chmod +x /etc/init.d/tor &&
   sudo /etc/init.d/tor restart
