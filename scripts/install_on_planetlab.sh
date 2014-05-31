@@ -198,7 +198,7 @@ run_or_exit() {
   echo "[*] Running" $1 &&
   $1 &&
   echo "[*] Completed running" $1 ||
-  echo "[!] Failed to run" $1 && exit 1
+  (echo "[!] Failed to run" $1 && exit 1)
 }
 
 run_or_exit yum_installs
