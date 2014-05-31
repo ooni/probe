@@ -194,11 +194,16 @@ setup_ooniprobe() {
 }
 
 run_or_exit() {
+  command=$1
   cd $TMP_INSTALL_DIR &&
-  echo "[*] Running" $1 &&
-  $1 &&
-  echo "[*] Completed running" $1 ||
-  (echo "[!] Failed to run" $1 && exit 1)
+  echo "[*] Running" $command
+  $command
+  return_value=$?
+  if [ $return_value -ne 0 ]; then
+    echo "[!] Failed to run" $command
+    exit 1
+  fi
+  echo "[*] Completed running" $command
 }
 
 run_or_exit yum_installs
