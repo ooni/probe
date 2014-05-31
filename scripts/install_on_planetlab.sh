@@ -12,7 +12,7 @@ yum_installs() {
 install_python() {
   cd $TMP_INSTALL_DIR;
   # Install Python 2.7.6
-  curl -o Python-2.7.6.tgz https://www.python.org/ftp/python/2.7.6/Python-2.7.6.tgz &&
+  curl -L -o Python-2.7.6.tgz https://www.python.org/ftp/python/2.7.6/Python-2.7.6.tgz &&
   tar xzf Python-2.7.6.tgz &&
   cd Python-2.7.6 &&
   ./configure --prefix=/usr/local --enable-unicode=ucs4 --enable-shared LDFLAGS="-Wl,-rpath /usr/local/lib" &&
@@ -23,7 +23,7 @@ install_python() {
 
 install_libtool() {
   # Install the latest version of libtool
-  curl -o libtool-2.4.2.tar.gz http://ftpmirror.gnu.org/libtool/libtool-2.4.2.tar.gz &&
+  curl -L -o libtool-2.4.2.tar.gz http://ftpmirror.gnu.org/libtool/libtool-2.4.2.tar.gz &&
   tar xzf libtool-2.4.2.tar.gz &&
   cd libtool-2.4.2 &&
   ./configure &&
@@ -35,7 +35,7 @@ install_libtool() {
 
 install_autoconf() {
   # Install the latest version of autoconf
-  curl -o autoconf-2.69.tar.gz http://ftp.gnu.org/gnu/autoconf/autoconf-2.69.tar.gz &&
+  curl -L -o autoconf-2.69.tar.gz http://ftp.gnu.org/gnu/autoconf/autoconf-2.69.tar.gz &&
   tar xzf autoconf-2.69.tar.gz &&
   cd autoconf-2.69 &&
   ./configure &&
@@ -47,7 +47,7 @@ install_autoconf() {
 
 install_automake(){
   # Install the latest version of automake
-  curl -o automake-1.14.1.tar.gz http://ftp.gnu.org/gnu/automake/automake-1.14.1.tar.gz &&
+  curl -L -o automake-1.14.1.tar.gz http://ftp.gnu.org/gnu/automake/automake-1.14.1.tar.gz &&
   tar xzf automake-1.14.1.tar.gz &&
   cd automake-1.14.1 &&
   ./configure &&
@@ -59,7 +59,7 @@ install_automake(){
 
 install_libevent(){
   # Install latest version of libevent
-  curl -o libevent-2.0.21-stable.tar.gz https://github.com/downloads/libevent/libevent/libevent-2.0.21-stable.tar.gz &&
+  curl -L -o libevent-2.0.21-stable.tar.gz https://github.com/downloads/libevent/libevent/libevent-2.0.21-stable.tar.gz &&
   tar xvzf libevent-2.0.21-stable.tar.gz &&
   cd libevent-2.0.21-stable &&
   ./autogen.sh &&
@@ -71,7 +71,7 @@ install_libevent(){
 
 install_gmp() {
   # Install GMP
-  curl -o gmp-6.0.0a.tar.bz2 https://gmplib.org/download/gmp/gmp-6.0.0a.tar.bz2 &&
+  curl -L -o gmp-6.0.0a.tar.bz2 https://gmplib.org/download/gmp/gmp-6.0.0a.tar.bz2 &&
   tar xjpf gmp-6.0.0a.tar.bz2 &&
   cd gmp-6.0.0 &&
   export ABI=32 &&
@@ -82,7 +82,7 @@ install_gmp() {
 
 install_tor() {
   # Install the latest version of Tor
-  curl -o tor.zip https://github.com/hellais/tor/archive/fix/fedora8.zip &&
+  curl -L -o tor.zip https://github.com/hellais/tor/archive/fix/fedora8.zip &&
   unzip tor.zip &&
   cd tor-fix-fedora8 &&
   ./autogen.sh &&
@@ -91,8 +91,8 @@ install_tor() {
   sudo make install &&
   sudo mv /usr/bin/tor /usr/bin/tor.old &&
   sudo ln -s /usr/local/bin/tor /usr/bin/tor &&
-  echo "SocksPort 9050" > /usr/local/etc/tor/torrc &&
-  cat torrc >> /usr/local/etc/tor/torrc &&
+  echo "SocksPort 9050" > torrc &&
+  sudo mv torrc /usr/local/etc/tor/torrc &&
   cat <<EOF > tor.init
   RETVAL=0
   prog="tor"
@@ -142,7 +142,7 @@ EOF
 
 install_geoip() {
   # Install libGeoIP
-  curl -o master.zip https://github.com/maxmind/geoip-api-c/archive/master.zip &&
+  curl -L -o master.zip https://github.com/maxmind/geoip-api-c/archive/master.zip &&
   unzip master.zip &&
   cd geoip-api-c-master/ &&
   ./bootstrap &&
@@ -153,20 +153,23 @@ install_geoip() {
 
 install_pip() {
   # Install the latest version of pip
-  curl -o get-pip.py https://raw.github.com/pypa/pip/master/contrib/get-pip.py &&
+  curl -L -o get-pip.py https://raw.githubusercontent.com/pypa/pip/master/contrib/get-pip.py &&
   sudo python get-pip.py
 }
 
 install_cryptography() {
-  # Install the patched versions of cryptography and pyopenssl
-  sudo pip install cryptography &&
-  sudo pip install https://github.com/pyca/pyopenssl/archive/master.zip
+  # Install the patched versions of cryptography, pyopenssl and pycrypto
+  # This is needed to avoid this bug: https://groups.google.com/forum/#!topic/ikarus-users/_R0QHqwyYz8
+  export ac_cv_func_malloc_0_nonnull=yes
+  sudo -E `which pip` install PyCrypto &&
+  sudo `which pip` install cryptography &&
+  sudo `which pip` install https://github.com/pyca/pyopenssl/archive/master.zip
 }
 
 install_pluggable_transports() {
   # Install pluggable transport related stuff
-  sudo pip install obfsproxy
-  curl -o 0.2.9.zip https://github.com/kpdyer/fteproxy/archive/0.2.9.zip
+  sudo `which pip` install obfsproxy
+  curl -L -o 0.2.9.zip https://github.com/kpdyer/fteproxy/archive/0.2.9.zip
   unzip 0.2.9.zip
   cd fteproxy-0.2.9
   make
@@ -176,12 +179,13 @@ install_pluggable_transports() {
 
 install_ooniprobe() {
   # Install ooniprobe and obfsproxy
-  sudo pip install https://github.com/TheTorProject/ooni-probe/archive/master.zip &&
-  /usr/local/bin/ooniprobe
+  sudo `which pip` install https://github.com/TheTorProject/ooni-probe/archive/master.zip &&
+  /usr/local/bin/ooniprobe --version
 }
 
 setup_ooniprobe() {
   # Update the Tor running in ooniprobe
+  mkdir ~/.ooni/
   cat /usr/share/ooni/ooniprobe.conf.sample | sed s/'start_tor: true'/'start_tor: false'/ | sed s/'#socks_port: 8801'/'socks_port: 9050'/ > ~/.ooni/ooniprobe.conf &&
 
   mkdir /home/$USER/bridge_reachability/ &&
