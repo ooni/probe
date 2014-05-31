@@ -204,13 +204,15 @@ def runWithDirector(logging=True, start_tor=True):
         except errors.UnableToLoadDeckInput as error:
             return defer.failure.Failure(error)
 
-    def director_startup_failed(failure):
-        log.err("Failed to start the director")
-        r = failure.trap(errors.TorNotRunning,
-                errors.InvalidOONIBCollectorAddress,
-                errors.UnableToLoadDeckInput, errors.CouldNotFindTestHelper,
-                errors.CouldNotFindTestCollector, errors.ProbeIPUnknown,
-                errors.InvalidInputFile)
+    def director_startup_handled_failures(failure):
+        log.err("Could not start the director")
+        failure.trap(errors.TorNotRunning,
+                     errors.InvalidOONIBCollectorAddress,
+                     errors.UnableToLoadDeckInput,
+                     errors.CouldNotFindTestHelper,
+                     errors.CouldNotFindTestCollector,
+                     errors.ProbeIPUnknown,
+                     errors.InvalidInputFile)
 
         if isinstance(failure.value, errors.TorNotRunning):
             log.err("Tor does not appear to be running")
@@ -244,6 +246,10 @@ def runWithDirector(logging=True, start_tor=True):
 
         if config.advanced.debug:
             log.exception(failure)
+
+    def director_startup_other_failures(failure):
+        log.err("An unhandled exception occurred while starting the director!")
+        log.exception(failure)
 
     # Wait until director has started up (including bootstrapping Tor)
     # before adding tests
@@ -292,7 +298,8 @@ def runWithDirector(logging=True, start_tor=True):
     def start():
         d.addCallback(setup_nettest)
         d.addCallback(post_director_start)
-        d.addErrback(director_startup_failed)
+        d.addErrback(director_startup_handled_failures)
+        d.addErrback(director_startup_other_failures)
         return d
 
     return start()
