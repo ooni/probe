@@ -196,7 +196,7 @@ class ReportEntryManager(LinkedTaskManager):
 
     def succeeded(self, result, task):
         log.debug("Successfully performed report %s" % task)
-        log.debug(result)
+        log.debug(str(result))
 
     def failed(self, failure, task):
         pass

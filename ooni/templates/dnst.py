@@ -3,12 +3,10 @@
 # :authors: Arturo Filastò
 # :licence: see LICENSE
 
-from twisted.internet import defer, udp, error, base
+from twisted.internet import udp, error, base
 from twisted.internet.defer import TimeoutError
 from twisted.names import client, dns
 from twisted.names.client import Resolver
-
-from twisted.names.error import DNSQueryRefusedError
 
 from ooni.utils import log
 from ooni.nettest import NetTestCase
@@ -32,7 +30,7 @@ def _bindSocket(self):
     # Make sure that if we listened on port 0, we update that to
     # reflect what the OS actually assigned us.
     self._realPortNumber = skt.getsockname()[1]
-    
+
     # Here we remove the logging.
     # log.msg("%s starting on %s" % (
     #         self._getLogPrefix(self.protocol), self._realPortNumber))
@@ -144,7 +142,7 @@ class DNSTest(NetTestCase):
         query = [dns.Query(hostname, dnsType, dns.IN)]
         def gotResponse(message):
             log.debug(dns_type+" Lookup successful")
-            log.debug(message)
+            log.debug(str(message))
             addrs = []
             answers = []
             if dns_server:
