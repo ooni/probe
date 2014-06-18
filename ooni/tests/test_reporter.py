@@ -1,3 +1,4 @@
+import os
 import yaml
 import json
 import time
@@ -6,9 +7,9 @@ from mock import MagicMock
 from twisted.internet import defer
 from twisted.trial import unittest
 
-from ooni.utils.net import StringProducer
 from ooni import errors as e
-from ooni.reporter import YAMLReporter, OONIBReporter
+from ooni.reporter import YAMLReporter, OONIBReporter, OONIBReportLog
+
 
 class MockTest(object):
     _start_time = time.time()
@@ -33,7 +34,9 @@ oonib_generic_error_message = {
     'error': 'generic-error'
 }
 
+
 class TestYAMLReporter(unittest.TestCase):
+
     def setUp(self):
         pass
 
@@ -51,37 +54,44 @@ class TestYAMLReporter(unittest.TestCase):
 
             entry = report_entries.next()
             # Check for first entry of report
-            assert all(x in entry \
-                       for x in ['report_content', 'input', \
-                                 'test_name', 'test_started', \
+            assert all(x in entry
+                       for x in ['report_content', 'input',
+                                 'test_name', 'test_started',
                                  'test_runtime'])
 
+
 class TestOONIBReporter(unittest.TestCase):
-    
+
     def setUp(self):
         self.mock_response = {}
         self.collector_address = 'http://example.com'
 
-        self.oonib_reporter = OONIBReporter(test_details, self.collector_address)
+        self.oonib_reporter = OONIBReporter(
+            test_details,
+            self.collector_address)
         self.oonib_reporter.agent = MagicMock()
         self.mock_agent_response = MagicMock()
+
         def deliverBody(body_receiver):
             body_receiver.dataReceived(json.dumps(self.mock_response))
             body_receiver.connectionLost(None)
         self.mock_agent_response.deliverBody = deliverBody
-        self.oonib_reporter.agent.request.return_value = defer.succeed(self.mock_agent_response)
-    
+        self.oonib_reporter.agent.request.return_value = defer.succeed(
+            self.mock_agent_response)
+
     @defer.inlineCallbacks
     def test_create_report(self):
         self.mock_response = oonib_new_report_message
         yield self.oonib_reporter.createReport()
-        assert self.oonib_reporter.reportID == oonib_new_report_message['report_id']
+        assert self.oonib_reporter.reportID == oonib_new_report_message[
+            'report_id']
 
     @defer.inlineCallbacks
     def test_create_report_failure(self):
         self.mock_response = oonib_generic_error_message
         self.mock_agent_response.code = 406
-        yield self.assertFailure(self.oonib_reporter.createReport(), e.OONIBReportCreationError)
+        yield self.assertFailure(self.oonib_reporter.createReport(),
+                                 e.OONIBReportCreationError)
 
     @defer.inlineCallbacks
     def test_write_report_entry(self):
@@ -89,3 +99,55 @@ class TestOONIBReporter(unittest.TestCase):
         yield self.oonib_reporter.writeReportEntry(req)
         assert self.oonib_reporter.agent.request.called
 
+
+class TestOONIBReportLog(unittest.TestCase):
+
+    def setUp(self):
+        self.report_log = OONIBReportLog('report_log')
+        self.report_log.create_report_log()
+
+    def tearDown(self):
+        os.remove(self.report_log.file_name)
+
+    @defer.inlineCallbacks
+    def test_report_created(self):
+        yield self.report_log.report_created("path_to_my_report.yaml",
+                                             'httpo://foo.onion',
+                                             'someid')
+        with open(self.report_log.file_name) as f:
+            report = yaml.safe_load(f)
+            assert "path_to_my_report.yaml" in report
+
+    @defer.inlineCallbacks
+    def test_concurrent_edit(self):
+        d1 = self.report_log.report_created("path_to_my_report1.yaml",
+                                            'httpo://foo.onion',
+                                            'someid1')
+        d2 = self.report_log.report_created("path_to_my_report2.yaml",
+                                            'httpo://foo.onion',
+                                            'someid2')
+        yield defer.DeferredList([d1, d2])
+        with open(self.report_log.file_name) as f:
+            report = yaml.safe_load(f)
+            assert "path_to_my_report1.yaml" in report
+            assert "path_to_my_report2.yaml" in report
+
+    @defer.inlineCallbacks
+    def test_report_closed(self):
+        yield self.report_log.report_created("path_to_my_report.yaml",
+                                             'httpo://foo.onion',
+                                             'someid')
+        yield self.report_log.report_closed("path_to_my_report.yaml")
+
+        with open(self.report_log.file_name) as f:
+            report = yaml.safe_load(f)
+            assert "path_to_my_report.yaml" not in report
+
+    @defer.inlineCallbacks
+    def test_report_creation_failed(self):
+        yield self.report_log.report_creation_failed("path_to_my_report.yaml",
+                                                     'httpo://foo.onion')
+        with open(self.report_log.file_name) as f:
+            report = yaml.safe_load(f)
+        assert "path_to_my_report.yaml" in report
+        assert report["path_to_my_report.yaml"]["status"] == "creation-failed"

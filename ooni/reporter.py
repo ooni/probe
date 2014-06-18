@@ -401,7 +401,62 @@ class OONIBReporter(OReporter):
     def finish(self):
         url = self.collectorAddress + '/report/' + self.reportID + '/close'
         log.debug("Closing the report %s" % url)
-        response = yield self.agent.request("POST", str(url))
+        yield self.agent.request("POST", str(url))
+
+
+class OONIBReportLog(object):
+
+    def __init__(self, file_name=config.report_log_file):
+        self._lock = defer.DeferredLock()
+        self.file_name = file_name
+
+    def create_report_log(self):
+        if os.path.exists(self.file_name):
+            raise errors.ReportLogExists
+        with open(self.file_name, 'w+') as f:
+            f.write(yaml.safe_dump({}))
+
+    @contextmanager
+    def edit_report_log(self):
+        with open(self.file_name) as rfp:
+            report = yaml.safe_load(rfp)
+        with open(self.file_name, 'w+') as wfp:
+            yield report
+            wfp.write(yaml.safe_dump(report))
+
+    def _report_created(self, report_file, collector_address, report_id):
+        with self.edit_report_log() as report:
+            report[report_file] = {
+                'created_at': datetime.now(),
+                'status': 'created',
+                'collector': collector_address,
+                'report_id': report_id
+            }
+
+    def report_created(self, report_file, collector_address, report_id):
+        return self._lock.run(self._report_created, report_file,
+                              collector_address, report_id)
+
+    def _report_creation_failed(self, report_file, collector_address):
+        with self.edit_report_log() as report:
+            report[report_file] = {
+                'created_at': datetime.now(),
+                'status': 'creation-failed',
+                'collector': collector_address
+            }
+
+    def report_creation_failed(self, report_file, collector_address):
+        return self._lock.run(self._report_creation_failed, report_file,
+                              collector_address)
+
+    def _report_closed(self, report_file):
+        with self.edit_report_log() as report:
+            if report[report_file]['status'] != "created":
+                raise errors.ReportNotCreated()
+            del report[report_file]
+
+    def report_closed(self, report_file):
+        return self._lock.run(self._report_closed, report_file)
 
 
 class Report(object):

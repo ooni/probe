@@ -190,19 +190,11 @@ class TorControlPortNotFound(Exception):
     pass
 
 
-class ReportNotCreated(Exception):
-    pass
-
-
 class InsufficientPrivileges(Exception):
     pass
 
 
 class ProbeIPUnknown(Exception):
-    pass
-
-
-class GeoIPDataFilesNotFound(Exception):
     pass
 
 
@@ -279,6 +271,10 @@ class ReporterException(Exception):
 
 
 class InvalidDestination(ReporterException):
+    pass
+
+
+class ReportLogExists(Exception):
     pass
 
 
