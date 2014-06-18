@@ -15,22 +15,41 @@ from txsocksx.errors import HostUnreachable, ConnectionRefused
 from txsocksx.errors import TTLExpired, CommandNotSupported
 
 from socket import gaierror
+
+
 def handleAllFailures(failure):
     """
     Here we make sure to trap all the failures that are supported by the
     failureToString function and we return the the string that represents the
     failure.
     """
-    failure.trap(ConnectionRefusedError, gaierror, DNSLookupError,
-            TCPTimedOutError, ResponseNeverReceived, DeferTimeoutError,
-            GenericTimeoutError,
-            SOCKSError, MethodsNotAcceptedError, AddressNotSupported,
-            ConnectionError, NetworkUnreachable, ConnectionLostEarly,
-            ConnectionNotAllowed, NoAcceptableMethods, ServerFailure,
-            HostUnreachable, ConnectionRefused, TTLExpired, CommandNotSupported,
-            ConnectError, ConnectionLost, CancelledError)
+    failure.trap(
+        ConnectionRefusedError,
+        gaierror,
+        DNSLookupError,
+        TCPTimedOutError,
+        ResponseNeverReceived,
+        DeferTimeoutError,
+        GenericTimeoutError,
+        SOCKSError,
+        MethodsNotAcceptedError,
+        AddressNotSupported,
+        ConnectionError,
+        NetworkUnreachable,
+        ConnectionLostEarly,
+        ConnectionNotAllowed,
+        NoAcceptableMethods,
+        ServerFailure,
+        HostUnreachable,
+        ConnectionRefused,
+        TTLExpired,
+        CommandNotSupported,
+        ConnectError,
+        ConnectionLost,
+        CancelledError)
 
     return failureToString(failure)
+
 
 def failureToString(failure):
     """
@@ -119,7 +138,7 @@ def failureToString(failure):
     elif isinstance(failure.value, SOCKSError):
         log.err("Generic SOCKS error")
         string = 'socks_error'
-    
+
     elif isinstance(failure.value, CancelledError):
         log.err("Task timed out")
         string = 'task_timed_out'
@@ -130,98 +149,138 @@ def failureToString(failure):
 
     return string
 
+
 class DirectorException(Exception):
     pass
+
 
 class UnableToStartTor(DirectorException):
     pass
 
+
 class InvalidOONIBCollectorAddress(Exception):
     pass
+
 
 class InvalidOONIBBouncerAddress(Exception):
     pass
 
+
 class AllReportersFailed(Exception):
     pass
+
 
 class GeoIPDataFilesNotFound(Exception):
     pass
 
+
 class ReportNotCreated(Exception):
     pass
+
 
 class ReportAlreadyClosed(Exception):
     pass
 
+
 class TorStateNotFound(Exception):
     pass
+
 
 class TorControlPortNotFound(Exception):
     pass
 
+
 class ReportNotCreated(Exception):
     pass
+
 
 class InsufficientPrivileges(Exception):
     pass
 
+
 class ProbeIPUnknown(Exception):
     pass
+
 
 class GeoIPDataFilesNotFound(Exception):
     pass
 
+
 class NoMoreReporters(Exception):
     pass
+
 
 class TorNotRunning(Exception):
     pass
 
+
 class OONIBError(Exception):
     pass
+
 
 class OONIBReportError(OONIBError):
     pass
 
+
 class OONIBReportUpdateError(OONIBReportError):
     pass
+
 
 class OONIBReportCreationError(OONIBReportError):
     pass
 
+
 class OONIBTestDetailsLookupError(OONIBReportError):
     pass
+
 
 class UnableToLoadDeckInput(Exception):
     pass
 
+
 class CouldNotFindTestHelper(Exception):
     pass
+
 
 class CouldNotFindTestCollector(Exception):
     pass
 
+
 class NetTestNotFound(Exception):
     pass
+
 
 class MissingRequiredOption(Exception):
     pass
 
+
 class FailureToLoadNetTest(Exception):
     pass
+
 
 class NoPostProcessor(Exception):
     pass
 
+
 class InvalidOption(Exception):
     pass
+
 
 class TaskTimedOut(Exception):
     pass
 
+
 class InvalidInputFile(Exception):
     pass
+
+
+class ReporterException(Exception):
+    pass
+
+
+class InvalidDestination(ReporterException):
+    pass
+
 
 def get_error(error_key):
     if error_key == 'test-helpers-key-missing':

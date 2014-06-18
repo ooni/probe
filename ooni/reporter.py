@@ -4,10 +4,13 @@ import json
 import os
 import re
 
-from yaml.representer import *
-from yaml.emitter import *
-from yaml.serializer import *
-from yaml.resolver import *
+from datetime import datetime
+from contextlib import contextmanager
+
+from yaml.representer import SafeRepresenter
+from yaml.emitter import Emitter
+from yaml.serializer import Serializer
+from yaml.resolver import Resolver
 from twisted.python.util import untilConcludes
 from twisted.internet import defer
 from twisted.internet.error import ConnectionRefusedError
@@ -20,6 +23,7 @@ try:
     from scapy.packet import Packet
 except ImportError:
     log.err("Scapy is not installed.")
+
     class Packet(object):
         pass
 
@@ -32,8 +36,7 @@ from ooni.utils.net import BodyReceiver, StringProducer
 from ooni.settings import config
 
 from ooni.tasks import ReportEntry, ReportTracker
-class ReporterException(Exception):
-    pass
+
 
 def createPacketReport(packet_list):
     """
@@ -45,16 +48,19 @@ def createPacketReport(packet_list):
     report = []
     for packet in packet_list:
         report.append({'raw_packet': str(packet),
-            'summary': str([packet])})
+                       'summary': str([packet])})
     return report
 
+
 class OSafeRepresenter(SafeRepresenter):
+
     """
     This is a custom YAML representer that allows us to represent reports
     safely.
     It extends the SafeRepresenter to be able to also represent complex
     numbers and scapy packet.
     """
+
     def represent_data(self, data):
         """
         This is very hackish. There is for sure a better way either by using
@@ -82,29 +88,32 @@ class OSafeRepresenter(SafeRepresenter):
 OSafeRepresenter.add_representer(complex,
                                  OSafeRepresenter.represent_complex)
 
+
 class OSafeDumper(Emitter, Serializer, OSafeRepresenter, Resolver):
+
     """
     This is a modification of the YAML Safe Dumper to use our own Safe
     Representer that supports complex numbers.
     """
+
     def __init__(self, stream,
-            default_style=None, default_flow_style=None,
-            canonical=None, indent=None, width=None,
-            allow_unicode=None, line_break=None,
-            encoding=None, explicit_start=None, explicit_end=None,
-            version=None, tags=None):
+                 default_style=None, default_flow_style=None,
+                 canonical=None, indent=None, width=None,
+                 allow_unicode=None, line_break=None,
+                 encoding=None, explicit_start=None, explicit_end=None,
+                 version=None, tags=None):
+
         Emitter.__init__(self, stream, canonical=canonical,
-                indent=indent, width=width,
-                allow_unicode=allow_unicode, line_break=line_break)
+                         indent=indent, width=width,
+                         allow_unicode=allow_unicode, line_break=line_break)
         Serializer.__init__(self, encoding=encoding,
-                explicit_start=explicit_start, explicit_end=explicit_end,
-                version=version, tags=tags)
+                            explicit_start=explicit_start,
+                            explicit_end=explicit_end,
+                            version=version, tags=tags)
         OSafeRepresenter.__init__(self, default_style=default_style,
-                default_flow_style=default_flow_style)
+                                  default_flow_style=default_flow_style)
         Resolver.__init__(self)
 
-class NoTestIDSpecified(Exception):
-    pass
 
 def safe_dump(data, stream=None, **kw):
     """
@@ -112,7 +121,9 @@ def safe_dump(data, stream=None, **kw):
     """
     return yaml.dump_all([data], stream, Dumper=OSafeDumper, **kw)
 
+
 class OReporter(object):
+
     def __init__(self, test_details):
         self.testDetails = test_details
 
@@ -149,10 +160,9 @@ class OReporter(object):
 
         return defer.maybeDeferred(self.writeReportEntry, test_report)
 
-class InvalidDestination(ReporterException):
-    pass
 
 class YAMLReporter(OReporter):
+
     """
     These are useful functions for reporting to YAML format.
 
@@ -160,11 +170,13 @@ class YAMLReporter(OReporter):
         the destination directory of the report
 
     """
-    def __init__(self, test_details, report_destination='.', report_filename=None):
+
+    def __init__(self, test_details, report_destination='.',
+                 report_filename=None):
         self.reportDestination = report_destination
 
         if not os.path.isdir(report_destination):
-            raise InvalidDestination
+            raise errors.InvalidDestination
 
         if not report_filename:
             report_filename = "report-" + \
@@ -216,8 +228,11 @@ class YAMLReporter(OReporter):
 
         self._writeln("###########################################")
 
-        self._writeln("# OONI Probe Report for %s (%s)" % (self.testDetails['test_name'],
-                    self.testDetails['test_version']))
+        self._writeln("# OONI Probe Report for %s (%s)" % (
+            self.testDetails['test_name'],
+            self.testDetails['test_version'])
+        )
+
         self._writeln("# %s" % otime.prettyDateNow())
         self._writeln("###########################################")
 
@@ -226,13 +241,16 @@ class YAMLReporter(OReporter):
     def finish(self):
         self._stream.close()
 
+
 def collector_supported(collector_address):
     if collector_address.startswith('httpo') \
             and (not (config.tor_state or config.tor.socks_port)):
         return False
     return True
 
+
 class OONIBReporter(OReporter):
+
     def __init__(self, test_details, collector_address):
         self.collectorAddress = collector_address
         self.validateCollectorAddress()
@@ -265,7 +283,7 @@ class OONIBReporter(OReporter):
         url = self.collectorAddress + '/report'
 
         request = {'report_id': self.reportID,
-                'content': content}
+                   'content': content}
 
         log.debug("Updating report with id %s (%s)" % (self.reportID, url))
         request_json = json.dumps(request)
@@ -274,8 +292,8 @@ class OONIBReporter(OReporter):
         bodyProducer = StringProducer(json.dumps(request))
 
         try:
-            response = yield self.agent.request("PUT", url,
-                                bodyProducer=bodyProducer)
+            yield self.agent.request("PUT", url,
+                                     bodyProducer=bodyProducer)
         except:
             # XXX we must trap this in the runner and make sure to report the
             # data later.
@@ -298,10 +316,10 @@ class OONIBReporter(OReporter):
 
         if self.collectorAddress.startswith('httpo://'):
             self.collectorAddress = \
-                    self.collectorAddress.replace('httpo://', 'http://')
-            self.agent = SOCKS5Agent(reactor,
-                    proxyEndpoint=TCP4ClientEndpoint(reactor, '127.0.0.1',
-                        config.tor.socks_port))
+                self.collectorAddress.replace('httpo://', 'http://')
+            proxyEndpoint = TCP4ClientEndpoint(reactor, '127.0.0.1',
+                                               config.tor.socks_port)
+            self.agent = SOCKS5Agent(reactor, proxyEndpoint=proxyEndpoint)
 
         elif self.collectorAddress.startswith('https://'):
             # XXX add support for securely reporting to HTTPS collectors.
@@ -313,15 +331,16 @@ class OONIBReporter(OReporter):
         content += safe_dump(self.testDetails)
         content += '...\n'
 
-        request = {'software_name': self.testDetails['software_name'],
+        request = {
+            'software_name': self.testDetails['software_name'],
             'software_version': self.testDetails['software_version'],
             'probe_asn': self.testDetails['probe_asn'],
             'test_name': self.testDetails['test_name'],
             'test_version': self.testDetails['test_version'],
             'input_hashes': self.testDetails['input_hashes'],
             # XXX there is a bunch of redundancy in the arguments getting sent
-            # to the backend. This may need to get changed in the client and the
-            # backend.
+            # to the backend. This may need to get changed in the client and
+            # the backend.
             'content': content
         }
 
@@ -336,9 +355,11 @@ class OONIBReporter(OReporter):
 
         try:
             response = yield self.agent.request("POST", url,
-                                bodyProducer=bodyProducer)
+                                                bodyProducer=bodyProducer)
+
         except ConnectionRefusedError:
-            log.err("Connection to reporting backend failed (ConnectionRefusedError)")
+            log.err("Connection to reporting backend failed "
+                    "(ConnectionRefusedError)")
             raise errors.OONIBReportCreationError
 
         except errors.HostUnreachable:
@@ -366,8 +387,10 @@ class OONIBReporter(OReporter):
 
         if response.code == 406:
             # XXX make this more strict
-            log.err("The specified input or nettests cannot be submitted to this collector.")
-            log.msg("Try running a different test or try reporting to a different collector.")
+            log.err("The specified input or nettests cannot be submitted to "
+                    "this collector.")
+            log.msg("Try running a different test or try reporting to a "
+                    "different collector.")
             raise errors.OONIBReportCreationError
 
         self.reportID = parsed_response['report_id']
@@ -380,10 +403,9 @@ class OONIBReporter(OReporter):
         log.debug("Closing the report %s" % url)
         response = yield self.agent.request("POST", str(url))
 
-class ReportClosed(Exception):
-    pass
 
 class Report(object):
+
     def __init__(self, reporters, reportEntryManager):
         """
         This is an abstraction layer on top of all the configured reporters.
@@ -499,7 +521,8 @@ class Report(object):
             log.err("Failed to write to %s reporter, giving up..." % reporter)
             self.reporters.remove(reporter)
         else:
-            log.err("Failed to write to (already) removed reporter %s" % reporter)
+            log.err("Failed to write to (already) removed reporter %s" %
+                    reporter)
 
         # Don't forward the exception unless there are no more reporters
         if len(self.reporters) == 0:
@@ -516,7 +539,6 @@ class Report(object):
         """
         log.err("Failed to open %s reporter, giving up..." % reporter)
         log.err("Reporter %s failed, removing from report..." % reporter)
-        #log.exception(failure)
         if reporter in self.reporters:
             self.reporters.remove(reporter)
         # Don't forward the exception unless there are no more reporters
