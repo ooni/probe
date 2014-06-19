@@ -3,14 +3,12 @@ import re
 import time
 from hashlib import sha256
 
-from twisted.internet import defer, reactor
+from twisted.internet import defer
 from twisted.trial.runner import filenameToModule
 from twisted.python import usage, reflect
 
-from ooni import geoip
 from ooni.tasks import Measurement
 from ooni.utils import log, checkForRoot
-from ooni import otime
 from ooni.settings import config
 
 from ooni import errors as e
@@ -457,9 +455,6 @@ class NetTest(object):
         reached the done state.
         """
         self.state.taskDone()
-
-        if len(self.report.reporters) == 0:
-            raise e.AllReportersFailed
 
         return report_results
 

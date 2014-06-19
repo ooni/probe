@@ -111,7 +111,7 @@ class TestOONIBReportLog(unittest.TestCase):
 
     @defer.inlineCallbacks
     def test_report_created(self):
-        yield self.report_log.report_created("path_to_my_report.yaml",
+        yield self.report_log.created("path_to_my_report.yaml",
                                              'httpo://foo.onion',
                                              'someid')
         with open(self.report_log.file_name) as f:
@@ -120,10 +120,10 @@ class TestOONIBReportLog(unittest.TestCase):
 
     @defer.inlineCallbacks
     def test_concurrent_edit(self):
-        d1 = self.report_log.report_created("path_to_my_report1.yaml",
+        d1 = self.report_log.created("path_to_my_report1.yaml",
                                             'httpo://foo.onion',
                                             'someid1')
-        d2 = self.report_log.report_created("path_to_my_report2.yaml",
+        d2 = self.report_log.created("path_to_my_report2.yaml",
                                             'httpo://foo.onion',
                                             'someid2')
         yield defer.DeferredList([d1, d2])
@@ -134,10 +134,10 @@ class TestOONIBReportLog(unittest.TestCase):
 
     @defer.inlineCallbacks
     def test_report_closed(self):
-        yield self.report_log.report_created("path_to_my_report.yaml",
+        yield self.report_log.created("path_to_my_report.yaml",
                                              'httpo://foo.onion',
                                              'someid')
-        yield self.report_log.report_closed("path_to_my_report.yaml")
+        yield self.report_log.closed("path_to_my_report.yaml")
 
         with open(self.report_log.file_name) as f:
             report = yaml.safe_load(f)
@@ -145,7 +145,7 @@ class TestOONIBReportLog(unittest.TestCase):
 
     @defer.inlineCallbacks
     def test_report_creation_failed(self):
-        yield self.report_log.report_creation_failed("path_to_my_report.yaml",
+        yield self.report_log.creation_failed("path_to_my_report.yaml",
                                                      'httpo://foo.onion')
         with open(self.report_log.file_name) as f:
             report = yaml.safe_load(f)

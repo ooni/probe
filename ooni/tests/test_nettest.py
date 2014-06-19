@@ -1,22 +1,15 @@
 import os
-from StringIO import StringIO
-from tempfile import TemporaryFile, mkstemp
+from tempfile import mkstemp
 
 from twisted.trial import unittest
 from twisted.internet import defer, reactor
 from twisted.python.usage import UsageError
 
 from ooni.settings import config
-from ooni.errors import MissingRequiredOption, InvalidOption, FailureToLoadNetTest
+from ooni.errors import MissingRequiredOption
 from ooni.nettest import NetTest, NetTestLoader
-from ooni.tasks import BaseTask
 
 from ooni.director import Director
-from ooni.managers import TaskManager
-
-from ooni.tests.mocks import MockMeasurement, MockMeasurementFailOnce
-from ooni.tests.mocks import MockNetTest, MockDirector, MockReporter
-from ooni.tests.mocks import MockMeasurementManager
 
 net_test_string = """
 from twisted.python import usage
@@ -95,7 +88,6 @@ from ooni.errors import failureToString, handleAllFailures
 class UsageOptions(usage.Options):
     optParameters = [
                      ['url', 'u', None, 'Specify a single URL to test.'],
-                     ['factor', 'f', 0.8, 'What factor should be used for triggering censorship (0.8 == 80%)']
                     ]
 
 class HTTPBasedTest(httpt.HTTPTest):
@@ -107,15 +99,17 @@ class HTTPBasedTest(httpt.HTTPTest):
 
 dummyInputs = range(1)
 dummyArgs = ('--spam', 'notham')
-dummyOptions = {'spam':'notham'}
+dummyOptions = {'spam': 'notham'}
 dummyInvalidArgs = ('--cram', 'jam')
-dummyInvalidOptions= {'cram':'jam'}
+dummyInvalidOptions = {'cram': 'jam'}
 dummyArgsWithRequiredOptions = ('--foo', 'moo', '--bar', 'baz')
-dummyRequiredOptions = {'foo':'moo', 'bar':'baz'}
+dummyRequiredOptions = {'foo': 'moo', 'bar': 'baz'}
 dummyArgsWithFile = ('--spam', 'notham', '--file', 'dummyInputFile.txt')
+
 
 class TestNetTest(unittest.TestCase):
     timeout = 1
+
     def setUp(self):
         with open('dummyInputFile.txt', 'w') as f:
             for i in range(10):
@@ -211,7 +205,7 @@ class TestNetTest(unittest.TestCase):
         ntl.loadNetTestString(net_test_string_with_file)
 
         ntl.checkOptions()
-        nt = NetTest(ntl,None)
+        nt = NetTest(ntl, None)
         nt.initializeInputProcessor()
 
         # XXX: if you use the same test_class twice you will have consumed all
@@ -249,7 +243,7 @@ class TestNetTest(unittest.TestCase):
         ntl.checkOptions()
         director = Director()
 
-        d = director.startNetTest(ntl, [MockReporter()])
+        d = director.startNetTest(ntl, 'dummy_report.yaml')
 
         @d.addCallback
         def complete(result):
@@ -259,24 +253,28 @@ class TestNetTest(unittest.TestCase):
         return d
 
     def test_require_root_succeed(self):
-        #XXX: will require root to run
+        # XXX: will require root to run
         ntl = NetTestLoader(dummyArgs)
         ntl.loadNetTestString(net_test_root_required)
 
         for test_class, method in ntl.testCases:
             self.assertTrue(test_class.requiresRoot)
 
+
 class TestNettestTimeout(unittest.TestCase):
+
     @defer.inlineCallbacks
     def setUp(self):
         from twisted.internet.protocol import Protocol, Factory
         from twisted.internet.endpoints import TCP4ServerEndpoint
 
         class DummyProtocol(Protocol):
+
             def dataReceived(self, data):
                 pass
 
         class DummyFactory(Factory):
+
             def __init__(self):
                 self.protocols = []
 
@@ -306,7 +304,7 @@ class TestNettestTimeout(unittest.TestCase):
         ntl.checkOptions()
         director = Director()
 
-        d = director.startNetTest(ntl, [MockReporter()])
+        d = director.startNetTest(ntl, 'dummy_report.yaml')
 
         @d.addCallback
         def complete(result):

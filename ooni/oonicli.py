@@ -13,7 +13,6 @@ from ooni import errors, __version__
 from ooni.settings import config
 from ooni.director import Director
 from ooni.deck import Deck, nettest_to_path
-from ooni.reporter import YAMLReporter, OONIBReporter
 from ooni.nettest import NetTestLoader
 
 from ooni.utils import log, checkForRoot
@@ -280,19 +279,9 @@ def runWithDirector(logging=True, start_tor=True):
             test_details = net_test_loader.testDetails
             test_details['annotations'] = global_options['annotations']
 
-            yaml_reporter = YAMLReporter(test_details,
-                                         report_filename=global_options['reportfile'])
-            reporters = [yaml_reporter]
-
-            if collector:
-                log.msg("Reporting using collector: %s" % collector)
-                try:
-                    oonib_reporter = OONIBReporter(test_details, collector)
-                    reporters.append(oonib_reporter)
-                except errors.InvalidOONIBCollectorAddress, e:
-                    raise e
-
-            netTestDone = director.startNetTest(net_test_loader, reporters)
+            director.startNetTest(net_test_loader,
+                                  global_options['reportfile'],
+                                  collector)
         return director.allTestsDone
 
     def start():
