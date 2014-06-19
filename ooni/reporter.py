@@ -447,6 +447,7 @@ class OONIBReportLog(object):
     def _not_created(self, report_file):
         with self.edit_log() as report:
             report[report_file] = {
+                'pid': os.getpid(),
                 'created_at': datetime.now(),
                 'status': 'not-created',
                 'collector': None
@@ -458,6 +459,7 @@ class OONIBReportLog(object):
     def _created(self, report_file, collector_address, report_id):
         with self.edit_log() as report:
             report[report_file] = {
+                'pid': os.getpid(),
                 'created_at': datetime.now(),
                 'status': 'created',
                 'collector': collector_address,
@@ -471,6 +473,7 @@ class OONIBReportLog(object):
     def _creation_failed(self, report_file, collector_address):
         with self.edit_log() as report:
             report[report_file] = {
+                'pid': os.getpid(),
                 'created_at': datetime.now(),
                 'status': 'creation-failed',
                 'collector': collector_address
