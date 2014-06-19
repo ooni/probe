@@ -194,7 +194,7 @@ class Director(object):
         return measurement
 
     def measurementFailed(self, failure, measurement):
-        log.msg("Failed doing measurement: %s" % measurement)
+        log.debug("Failed doing measurement: %s" % measurement)
         self.totalMeasurementRuntime += measurement.runtime
 
         self.failedMeasurements += 1

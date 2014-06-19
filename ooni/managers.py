@@ -29,7 +29,7 @@ class TaskManager(object):
         The has failed to complete, we append it to the end of the task chain
         to be re-run once all the currently scheduled tasks have run.
         """
-        log.err("Task %s has failed %s times" % (task, task.failures))
+        log.debug("Task %s has failed %s times" % (task, task.failures))
         if config.advanced.debug:
             log.exception(failure)
 
@@ -42,7 +42,7 @@ class TaskManager(object):
 
         else:
             # This fires the errback when the task is done but has failed.
-            log.err('Permanent failure for %s' % task)
+            log.debug('Permanent failure for %s' % task)
             task.done.errback(failure)
 
         self._fillSlots()
