@@ -546,7 +546,8 @@ class Report(object):
     def open_oonib_reporter(self):
         def creation_failed(failure):
             self.oonib_reporter = None
-            return self.report_log.creation_failed(self.report_filename)
+            return self.report_log.creation_failed(self.report_filename,
+                                                   self.collector_address)
 
         def created(report_id):
             return self.report_log.created(self.report_filename,
