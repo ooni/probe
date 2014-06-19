@@ -398,11 +398,10 @@ class OONIBReporter(OReporter):
         log.debug("Created report with id %s" % parsed_response['report_id'])
         defer.returnValue(parsed_response['report_id'])
 
-    @defer.inlineCallbacks
     def finish(self):
         url = self.collectorAddress + '/report/' + self.reportID + '/close'
         log.debug("Closing the report %s" % url)
-        yield self.agent.request("POST", str(url))
+        return self.agent.request("POST", str(url))
 
 
 class OONIBReportLog(object):
@@ -650,6 +649,9 @@ class Report(object):
         def oonib_report_closed(result):
             return self.report_log.closed(self.report_filename)
 
+        def oonib_report_failed(result):
+            log.err("Failed to close oonib report.")
+
         def all_reports_closed(_):
             if not d.called:
                 d.callback(None)
@@ -661,6 +663,7 @@ class Report(object):
         if self.oonib_reporter:
             close_oonib = self.oonib_reporter.finish()
             close_oonib.addCallback(oonib_report_closed)
+            close_oonib.addErrback(oonib_report_failed)
             deferreds.append(close_oonib)
 
         dl = defer.DeferredList(deferreds)
