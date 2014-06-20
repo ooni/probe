@@ -3,20 +3,20 @@ from twisted.trial import unittest
 from ooni.utils.trueheaders import TrueHeaders
 
 dummy_headers_dict = {
-        'Header1': ['Value1', 'Value2'],
-        'Header2': ['ValueA', 'ValueB']
+    'Header1': ['Value1', 'Value2'],
+    'Header2': ['ValueA', 'ValueB']
 }
 
 dummy_headers_dict2 = {
-        'Header1': ['Value1', 'Value2'],
-        'Header2': ['ValueA', 'ValueB'],
-        'Header3': ['ValueA', 'ValueB'],
+    'Header1': ['Value1', 'Value2'],
+    'Header2': ['ValueA', 'ValueB'],
+    'Header3': ['ValueA', 'ValueB'],
 }
 
 dummy_headers_dict3 = {
-        'Header1': ['Value1', 'Value2'],
-        'Header2': ['ValueA', 'ValueB'],
-        'Header4': ['ValueA', 'ValueB'],
+    'Header1': ['Value1', 'Value2'],
+    'Header2': ['ValueA', 'ValueB'],
+    'Header4': ['ValueA', 'ValueB'],
 }
 
 

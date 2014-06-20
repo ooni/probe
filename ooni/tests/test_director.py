@@ -7,6 +7,7 @@ from twisted.internet import defer
 from twisted.trial import unittest
 
 from txtorcon import TorControlProtocol
+
 proto = MagicMock()
 proto.tor_protocol = TorControlProtocol()
 
@@ -23,6 +24,7 @@ proto.tor_protocol.post_bootstrap = defer.succeed(state)
 
 mock_launch_tor = MagicMock()
 mock_launch_tor.return_value = defer.succeed(proto)
+
 
 class TestDirector(unittest.TestCase):
     def tearDown(self):

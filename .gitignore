@@ -39,3 +39,5 @@ ooniprobe.resume
 docs/build/*
 
 .vagrant/*
+
+cover/*

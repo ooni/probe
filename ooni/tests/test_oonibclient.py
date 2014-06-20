@@ -13,6 +13,7 @@ from ooni.oonibclient import OONIBClient
 input_id = '37e60e13536f6afe47a830bfb6b371b5cf65da66d7ad65137344679b24fdccd1'
 deck_id = 'd4ae40ecfb3c1b943748cce503ab8233efce7823f3e391058fc0f87829c644ed'
 
+
 class TestOONIBClient(unittest.TestCase):
     def setUp(self):
         host = '127.0.0.1'
@@ -25,20 +26,22 @@ class TestOONIBClient(unittest.TestCase):
             data_dir = '/tmp/testooni'
             config.advanced.data_dir = data_dir
 
-            try: shutil.rmtree(data_dir)
-            except: pass
+            try:
+                shutil.rmtree(data_dir)
+            except:
+                pass
             os.mkdir(data_dir)
             os.mkdir(os.path.join(data_dir, 'inputs'))
             os.mkdir(os.path.join(data_dir, 'decks'))
         except Exception as ex:
             self.skipTest("OONIB must be listening on port 8888 to run this test (tor_hidden_service: false)")
         self.oonibclient = OONIBClient('http://' + host + ':' + str(port))
-    
+
     @defer.inlineCallbacks
     def test_query(self):
         res = yield self.oonibclient.queryBackend('GET', '/policy/input')
         self.assertTrue(isinstance(res, list))
-    
+
     @defer.inlineCallbacks
     def test_get_input_list(self):
         input_list = yield self.oonibclient.getInputList()
@@ -47,7 +50,7 @@ class TestOONIBClient(unittest.TestCase):
     @defer.inlineCallbacks
     def test_get_input_descriptor(self):
         input_descriptor = yield self.oonibclient.getInput(input_id)
-        for key in ['name', 'description', 
+        for key in ['name', 'description',
                     'version', 'author', 'date', 'id']:
             self.assertTrue(hasattr(input_descriptor, key))
 
@@ -63,7 +66,7 @@ class TestOONIBClient(unittest.TestCase):
     @defer.inlineCallbacks
     def test_get_deck_descriptor(self):
         deck_descriptor = yield self.oonibclient.getDeck(deck_id)
-        for key in ['name', 'description', 
+        for key in ['name', 'description',
                     'version', 'author', 'date', 'id']:
             self.assertTrue(hasattr(deck_descriptor, key))
 
@@ -74,9 +77,9 @@ class TestOONIBClient(unittest.TestCase):
     def test_lookup_invalid_helpers(self):
         self.oonibclient.address = 'http://127.0.0.1:8888'
         return self.failUnlessFailure(
-                self.oonibclient.lookupTestHelpers([
-                    'sdadsadsa', 'dns'
-                ]), e.CouldNotFindTestHelper)
+            self.oonibclient.lookupTestHelpers([
+                'sdadsadsa', 'dns'
+            ]), e.CouldNotFindTestHelper)
 
     @defer.inlineCallbacks
     def test_lookup_no_test_helpers(self):
@@ -105,8 +108,8 @@ class TestOONIBClient(unittest.TestCase):
                 except:
                     pass
 
-        for path in ['/policy/input', '/policy/nettest', 
-                '/input', '/input/'+'a'*64, '/fooo']:
+        for path in ['/policy/input', '/policy/nettest',
+                     '/input', '/input/' + 'a' * 64, '/fooo']:
             yield all_requests(path)
 
         for path in ['/bouncer']:
@@ -116,35 +119,35 @@ class TestOONIBClient(unittest.TestCase):
     @defer.inlineCallbacks
     def test_create_report(self):
         res = yield self.oonibclient.queryBackend('POST', '/report', {
-                'software_name': 'spam',
-                'software_version': '2.0',
-                'probe_asn': 'AS0',
-                'probe_cc': 'ZZ',
-                'test_name': 'foobar',
-                'test_version': '1.0',
-                'input_hashes': []
+            'software_name': 'spam',
+            'software_version': '2.0',
+            'probe_asn': 'AS0',
+            'probe_cc': 'ZZ',
+            'test_name': 'foobar',
+            'test_version': '1.0',
+            'input_hashes': []
         })
         assert isinstance(res['report_id'], unicode)
 
     @defer.inlineCallbacks
     def test_report_lifecycle(self):
         res = yield self.oonibclient.queryBackend('POST', '/report', {
-                'software_name': 'spam',
-                'software_version': '2.0',
-                'probe_asn': 'AS0',
-                'probe_cc': 'ZZ',
-                'test_name': 'foobar',
-                'test_version': '1.0',
-                'input_hashes': []
+            'software_name': 'spam',
+            'software_version': '2.0',
+            'probe_asn': 'AS0',
+            'probe_cc': 'ZZ',
+            'test_name': 'foobar',
+            'test_version': '1.0',
+            'input_hashes': []
         })
         report_id = str(res['report_id'])
 
-        res = yield self.oonibclient.queryBackend('POST', '/report/'+report_id, {
+        res = yield self.oonibclient.queryBackend('POST', '/report/' + report_id, {
             'content': '---\nspam: ham\n...\n'
         })
 
-        res = yield self.oonibclient.queryBackend('POST', '/report/'+report_id, {
+        res = yield self.oonibclient.queryBackend('POST', '/report/' + report_id, {
             'content': '---\nspam: ham\n...\n'
         })
-        
-        res = yield self.oonibclient.queryBackend('POST', '/report/'+report_id+'/close')
+
+        res = yield self.oonibclient.queryBackend('POST', '/report/' + report_id + '/close')

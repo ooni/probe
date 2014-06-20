@@ -9,6 +9,7 @@ from ooni.tests import is_internet_connected
 from ooni.settings import config
 from ooni.oonicli import runWithDirector
 
+
 def verify_header(header):
     assert 'input_hashes' in header.keys()
     assert 'options' in header.keys()
@@ -19,6 +20,7 @@ def verify_header(header):
     assert 'software_version' in header.keys()
     assert 'test_name' in header.keys()
     assert 'test_version' in header.keys()
+
 
 def verify_entry(entry):
     assert 'input' in entry
@@ -46,7 +48,7 @@ class TestRunDirector(unittest.TestCase):
             pass
 
     @defer.inlineCallbacks
-    def run_test(self, test_name, args, verify_function):
+    def run_helper(self, test_name, args, verify_function):
         output_file = 'test_report.yaml'
         sys.argv = ['', '-n', '-o', output_file, test_name]
         sys.argv.extend(args)
@@ -72,9 +74,10 @@ class TestRunDirector(unittest.TestCase):
             assert 'factor' in entry
             assert 'headers_diff' in entry
             assert 'headers_match' in entry
-        yield self.run_test('blocking/http_requests',
-                      ['-u', 'http://torproject.org/'],
-                      verify_function)
+
+        yield self.run_helper('blocking/http_requests',
+                              ['-u', 'http://torproject.org/'],
+                              verify_function)
 
     @defer.inlineCallbacks
     def test_http_requests_with_file(self):
@@ -86,9 +89,10 @@ class TestRunDirector(unittest.TestCase):
             assert 'factor' in entry
             assert 'headers_diff' in entry
             assert 'headers_match' in entry
-        yield self.run_test('blocking/http_requests',
-                      ['-f', 'example-input.txt'],
-                      verify_function)
+
+        yield self.run_helper('blocking/http_requests',
+                              ['-f', 'example-input.txt'],
+                              verify_function)
 
     @defer.inlineCallbacks
     def test_dnsconsistency(self):
@@ -97,11 +101,12 @@ class TestRunDirector(unittest.TestCase):
             assert 'control_resolver' in entry
             assert 'tampering' in entry
             assert len(entry['tampering']) == 1
-        yield self.run_test('blocking/dns_consistency',
-                            ['-b', '8.8.8.8:53',
-                             '-t', '8.8.8.8',
-                             '-f', 'example-input.txt'],
-                            verify_function)
+
+        yield self.run_helper('blocking/dns_consistency',
+                              ['-b', '8.8.8.8:53',
+                               '-t', '8.8.8.8',
+                               '-f', 'example-input.txt'],
+                              verify_function)
 
     @defer.inlineCallbacks
     def test_http_header_field_manipulation(self):
@@ -118,6 +123,6 @@ class TestRunDirector(unittest.TestCase):
             assert 'request_line_capitalization' in entry['tampering']
             assert 'total' in entry['tampering']
 
-        yield self.run_test('manipulation/http_header_field_manipulation',
-                            ['-b', 'http://64.9.225.221'],
-                           verify_function)
+        yield self.run_helper('manipulation/http_header_field_manipulation',
+                              ['-b', 'http://64.9.225.221'],
+                              verify_function)

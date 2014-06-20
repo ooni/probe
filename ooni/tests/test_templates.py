@@ -4,18 +4,22 @@ from twisted.internet.error import DNSLookupError
 from twisted.internet import reactor, defer
 from twisted.trial import unittest
 
+
 class TestHTTPT(unittest.TestCase):
     def setUp(self):
         from twisted.web.resource import Resource
         from twisted.web.server import Site
+
         class DummyResource(Resource):
             isLeaf = True
+
             def render_GET(self, request):
                 return "%s" % request.method
+
         r = DummyResource()
         factory = Site(r)
         self.port = reactor.listenTCP(8880, factory)
-    
+
     def tearDown(self):
         self.port.stopListening()
 

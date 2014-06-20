@@ -18,6 +18,7 @@ from ooni.settings import config
 
 class TestTaskManager(unittest.TestCase):
     timeout = 1
+
     def setUp(self):
         self.measurementManager = MockTaskManager()
         self.measurementManager.concurrency = 20
@@ -39,6 +40,7 @@ class TestTaskManager(unittest.TestCase):
             self.measurementManager.schedule(mock_task)
 
         d = defer.DeferredList(all_done)
+
         @d.addCallback
         def done(res):
             for task_result, task_instance in self.measurementManager.successes:
@@ -56,16 +58,17 @@ class TestTaskManager(unittest.TestCase):
             self.measurementManager.schedule(mock_task)
 
         d = defer.DeferredList(all_done)
+
         @d.addCallback
         def done(res):
             # 10*2 because 2 is the number of retries
-            self.assertEqual(self.measurementManager.failures, number*3)
+            self.assertEqual(self.measurementManager.failures, number * 3)
             # XXX @aagbsn is there a reason why you switched to using an int
             # over a using a list?
             # self.assertEqual(len(self.measurementManager.failures), number*3)
             # for task_result, task_instance in self.measurementManager.failures:
-            #     self.assertEqual(task_result, mockFailure)
-            #     self.assertIsInstance(task_instance, task_type)
+            # self.assertEqual(task_result, mockFailure)
+            # self.assertIsInstance(task_instance, task_type)
 
         return d
 
@@ -100,7 +103,7 @@ class TestTaskManager(unittest.TestCase):
             self.assertEqual(self.measurementManager.failures, 1)
             # self.assertEqual(len(self.measurementManager.failures), 1)
             # for task_result, task_instance in self.measurementManager.failures:
-            #     self.assertIsInstance(task_instance, task_type)
+            # self.assertIsInstance(task_instance, task_type)
 
         return mock_task.done
 
@@ -119,16 +122,15 @@ class TestTaskManager(unittest.TestCase):
         @mock_task.done.addBoth
         def done(res):
             self.assertEqual(self.measurementManager.failures, 1)
-            #self.assertEqual(len(self.measurementManager.failures), 1)
+            # self.assertEqual(len(self.measurementManager.failures), 1)
             # for task_result, task_instance in self.measurementManager.failures:
-            #     self.assertIsInstance(task_instance, task_type)
+            # self.assertIsInstance(task_instance, task_type)
 
             for task_result, task_instance in self.measurementManager.successes:
                 self.assertEqual(task_result, 42)
                 self.assertIsInstance(task_instance, task_type)
 
         return mock_task.done
-
 
     def test_schedule_failing_one_task(self):
         return self.schedule_failing_tasks(MockFailTask)
@@ -155,11 +157,11 @@ class TestTaskManager(unittest.TestCase):
         @mock_task.done.addCallback
         def done(res):
             self.assertEqual(self.measurementManager.failures, 1)
-            #self.assertEqual(len(self.measurementManager.failures), 1)
+            # self.assertEqual(len(self.measurementManager.failures), 1)
             # self.assertEqual(self.measurementManager.failures,
-            #         [(mockFailure, mock_task)])
+            # [(mockFailure, mock_task)])
             self.assertEqual(self.measurementManager.successes,
-                    [(42, mock_task)])
+                             [(42, mock_task)])
 
         return mock_task.done
 
@@ -179,12 +181,13 @@ class TestTaskManager(unittest.TestCase):
         @d.addCallback
         def done(res):
             self.assertEqual(self.measurementManager.failures, number)
-            #self.assertEqual(len(self.measurementManager.failures), number)
+            # self.assertEqual(len(self.measurementManager.failures), number)
             for task_result, task_instance in self.measurementManager.successes:
                 self.assertEqual(task_result, 42)
                 self.assertIsInstance(task_instance, MockFailOnceTask)
 
         return d
+
 
 class TestMeasurementManager(unittest.TestCase):
     def setUp(self):
@@ -208,9 +211,10 @@ class TestMeasurementManager(unittest.TestCase):
         @mock_task.done.addCallback
         def done(res):
             self.assertEqual(self.mockNetTest.successes,
-                    [42])
+                             [42])
 
             self.assertEqual(len(self.mockNetTest.successes), 1)
+
         return mock_task.done
 
     def test_schedule_failing_one_measurement(self):
@@ -220,7 +224,7 @@ class TestMeasurementManager(unittest.TestCase):
         @mock_task.done.addErrback
         def done(failure):
             self.assertEqual(self.measurementManager.failures, 3)
-            #self.assertEqual(len(self.measurementManager.failures), 3)
+            # self.assertEqual(len(self.measurementManager.failures), 3)
 
             self.assertEqual(failure, mockFailure)
             self.assertEqual(len(self.mockNetTest.successes), 0)

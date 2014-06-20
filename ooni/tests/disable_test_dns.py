@@ -10,6 +10,7 @@ from twisted.internet import reactor
 from twisted.names import dns
 from twisted.names.client import Resolver
 
+
 class DNSTest(unittest.TestCase):
     def test_a_lookup_ooni_query(self):
         def done_query(message, *arg):
