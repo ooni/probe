@@ -38,6 +38,7 @@ class TestRunDirector(unittest.TestCase):
             f.write('http://blog.torproject.org/\n')
 
     def tearDown(self):
+        config.read_config_file()
         try:
             os.remove('test_report.yaml')
         except:

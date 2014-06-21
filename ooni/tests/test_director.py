@@ -29,8 +29,7 @@ mock_launch_tor.return_value = defer.succeed(proto)
 class TestDirector(unittest.TestCase):
     def tearDown(self):
         config.tor_state = None
-        config.tor.socks_port = None
-        config.tor.control_port = None
+        config.read_config_file()
 
     def test_get_net_tests(self):
         director = Director()

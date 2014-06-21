@@ -2,6 +2,7 @@ import socket
 from ooni.settings import config
 
 config.initialize_ooni_home('ooni_home')
+config.read_config_file()
 config.logging = False
 config.advanced.debug = False
 

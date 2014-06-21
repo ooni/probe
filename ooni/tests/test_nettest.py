@@ -304,6 +304,7 @@ class TestNettestTimeout(unittest.TestCase):
     def tearDown(self):
         self.factory.stopFactory()
         self.port.stopListening()
+        config.read_config_file()
 
     def test_nettest_timeout(self):
         ntl = NetTestLoader(('-u', 'http://localhost:8007/'))

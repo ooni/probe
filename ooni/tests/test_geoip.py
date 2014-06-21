@@ -9,10 +9,6 @@ from ooni import geoip
 
 
 class TestGeoIP(unittest.TestCase):
-    def setUp(self):
-        config.initialize_ooni_home('ooni_home')
-        config.read_config_file()
-
     def test_ip_to_location(self):
         location = geoip.IPToLocation('8.8.8.8')
         assert 'countrycode' in location

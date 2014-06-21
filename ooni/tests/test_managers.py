@@ -29,7 +29,17 @@ class TestTaskManager(unittest.TestCase):
         self.clock = task.Clock()
         data_dir = os.path.dirname(os.path.abspath(__file__))
         data_dir = os.path.join(data_dir, '..', '..', 'data')
+        self.old_datadir = ""
+        if hasattr(config.global_options, 'datadir'):
+            self.old_datadir = config.global_options['datadir']
         config.global_options['datadir'] = data_dir
+        config.set_paths()
+
+    def tearDown(self):
+        if self.old_datadir == "":
+            del config.global_options['datadir']
+        else:
+            config.global_options['datadir'] = self.old_datadir
         config.set_paths()
 
     def schedule_successful_tasks(self, task_type, number=1):

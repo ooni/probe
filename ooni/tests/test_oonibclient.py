@@ -37,6 +37,9 @@ class TestOONIBClient(unittest.TestCase):
             self.skipTest("OONIB must be listening on port 8888 to run this test (tor_hidden_service: false)")
         self.oonibclient = OONIBClient('http://' + host + ':' + str(port))
 
+    def tearDown(self):
+        config.read_config_file()
+
     @defer.inlineCallbacks
     def test_query(self):
         res = yield self.oonibclient.queryBackend('GET', '/policy/input')
