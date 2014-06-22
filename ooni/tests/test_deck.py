@@ -5,6 +5,7 @@ from twisted.trial import unittest
 
 from hashlib import sha256
 from ooni.deck import InputFile, Deck
+from ooni.tests.mocks import MockOONIBClient
 
 net_test_string = """
 from twisted.python import usage
@@ -81,22 +82,6 @@ class TestInputFile(BaseTestCase):
         assert os.path.isfile(self.filename)
 
         assert input_file.descriptorCached
-
-
-class MockOONIBClient(object):
-    def lookupTestHelpers(self, required_test_helpers):
-        ret = {
-            'default': {
-                'address': '127.0.0.1',
-                'collector': 'httpo://thirteenchars1234.onion'
-            }
-        }
-        for required_test_helper in required_test_helpers:
-            ret[required_test_helper] = {
-                'address': '127.0.0.1',
-                'collector': 'httpo://thirteenchars1234.onion'
-            }
-        return defer.succeed(ret)
 
 
 class TestDeck(BaseTestCase):

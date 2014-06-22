@@ -2,6 +2,7 @@ from mock import patch, MagicMock
 
 from ooni.settings import config
 from ooni.director import Director
+from ooni.tests.bases import ConfigTestCase
 
 from twisted.internet import defer
 from twisted.trial import unittest
@@ -26,10 +27,10 @@ mock_launch_tor = MagicMock()
 mock_launch_tor.return_value = defer.succeed(proto)
 
 
-class TestDirector(unittest.TestCase):
+class TestDirector(ConfigTestCase):
     def tearDown(self):
+        super(TestDirector, self).tearDown()
         config.tor_state = None
-        config.read_config_file()
 
     def test_get_net_tests(self):
         director = Director()

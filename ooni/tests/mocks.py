@@ -189,3 +189,18 @@ class MockTaskManager(TaskManager):
     def succeeded(self, result, task):
         self.successes.append((result, task))
 
+
+class MockOONIBClient(object):
+    def lookupTestHelpers(self, required_test_helpers):
+        ret = {
+            'default': {
+                'address': '127.0.0.1',
+                'collector': 'httpo://thirteenchars1234.onion'
+            }
+        }
+        for required_test_helper in required_test_helpers:
+            ret[required_test_helper] = {
+                'address': '127.0.0.1',
+                'collector': 'httpo://thirteenchars1234.onion'
+            }
+        return defer.succeed(ret)

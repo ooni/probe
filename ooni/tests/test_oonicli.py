@@ -6,6 +6,7 @@ from twisted.internet import defer
 from twisted.trial import unittest
 
 from ooni.tests import is_internet_connected
+from ooni.tests.bases import ConfigTestCase
 from ooni.settings import config
 from ooni.oonicli import runWithDirector
 
@@ -26,31 +27,28 @@ def verify_entry(entry):
     assert 'input' in entry
 
 
-class TestRunDirector(unittest.TestCase):
+class TestRunDirector(ConfigTestCase):
     def setUp(self):
         if not is_internet_connected():
             self.skipTest("You must be connected to the internet to run this test")
         config.tor.socks_port = 9050
         config.tor.control_port = None
+        self.filenames = ['example-input.txt']
         with open('example-input.txt', 'w+') as f:
             f.write('http://torproject.org/\n')
             f.write('http://bridges.torproject.org/\n')
             f.write('http://blog.torproject.org/\n')
 
     def tearDown(self):
-        config.read_config_file()
-        try:
-            os.remove('test_report.yaml')
-        except:
-            pass
-        try:
-            os.remove('example-input.txt')
-        except:
-            pass
+        super(TestRunDirector, self).tearDown()
+        if len(self.filenames) > 0:
+            for filename in self.filenames:
+                os.remove(filename)
 
     @defer.inlineCallbacks
     def run_helper(self, test_name, args, verify_function):
         output_file = 'test_report.yaml'
+        self.filenames.append(output_file)
         sys.argv = ['', '-n', '-o', output_file, test_name]
         sys.argv.extend(args)
         yield runWithDirector(False, False)

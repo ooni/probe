@@ -18,6 +18,7 @@ from ooni.managers import TaskManager
 from ooni.tests.mocks import MockMeasurement, MockMeasurementFailOnce
 from ooni.tests.mocks import MockNetTest, MockDirector, MockReporter
 from ooni.tests.mocks import MockMeasurementManager
+from ooni.tests.bases import ConfigTestCase
 
 net_test_string = """
 from twisted.python import usage
@@ -114,20 +115,19 @@ dummyInvalidOptions = {'cram': 'jam'}
 dummyArgsWithRequiredOptions = ('--foo', 'moo', '--bar', 'baz')
 dummyRequiredOptions = {'foo': 'moo', 'bar': 'baz'}
 dummyArgsWithFile = ('--spam', 'notham', '--file', 'dummyInputFile.txt')
+dummyInputFile = 'dummyInputFile.txt'
 
 
 class TestNetTest(unittest.TestCase):
     timeout = 1
-    HOME_DIR = 'ooni_home'
-    DUMMY_INPUT_FILE = 'dummyInputFile.txt'
 
     def setUp(self):
-        with open(self.DUMMY_INPUT_FILE, 'w') as f:
+        with open(dummyInputFile, 'w') as f:
             for i in range(10):
                 f.write("%s\n" % i)
 
     def tearDown(self):
-        os.remove(self.DUMMY_INPUT_FILE)
+        os.remove(dummyInputFile)
 
     def assertCallable(self, thing):
         self.assertIn('__call__', dir(thing))
@@ -272,7 +272,7 @@ class TestNetTest(unittest.TestCase):
             self.assertTrue(test_class.requiresRoot)
 
 
-class TestNettestTimeout(unittest.TestCase):
+class TestNettestTimeout(ConfigTestCase):
     @defer.inlineCallbacks
     def setUp(self):
         from twisted.internet.protocol import Protocol, Factory
@@ -302,9 +302,9 @@ class TestNettestTimeout(unittest.TestCase):
         config.advanced.measurement_timeout = 2
 
     def tearDown(self):
+        super(TestNettestTimeout, self).tearDown()
         self.factory.stopFactory()
         self.port.stopListening()
-        config.read_config_file()
 
     def test_nettest_timeout(self):
         ntl = NetTestLoader(('-u', 'http://localhost:8007/'))

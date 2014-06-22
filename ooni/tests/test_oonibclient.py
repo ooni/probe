@@ -9,12 +9,13 @@ from ooni import errors as e
 from ooni.utils import log
 from ooni.settings import config
 from ooni.oonibclient import OONIBClient
+from ooni.tests.bases import ConfigTestCase
 
 input_id = '37e60e13536f6afe47a830bfb6b371b5cf65da66d7ad65137344679b24fdccd1'
 deck_id = 'd4ae40ecfb3c1b943748cce503ab8233efce7823f3e391058fc0f87829c644ed'
 
 
-class TestOONIBClient(unittest.TestCase):
+class TestOONIBClient(ConfigTestCase):
     def setUp(self):
         host = '127.0.0.1'
         port = 8889
@@ -36,9 +37,6 @@ class TestOONIBClient(unittest.TestCase):
         except Exception as ex:
             self.skipTest("OONIB must be listening on port 8888 to run this test (tor_hidden_service: false)")
         self.oonibclient = OONIBClient('http://' + host + ':' + str(port))
-
-    def tearDown(self):
-        config.read_config_file()
 
     @defer.inlineCallbacks
     def test_query(self):
