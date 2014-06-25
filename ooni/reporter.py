@@ -413,6 +413,24 @@ class OONIBReportLog(object):
     def __init__(self, file_name=config.report_log_file):
         self.file_name = file_name
         self.create_report_log()
+        self._reports_incomplete = []
+        self._reports_in_progress = []
+        self._reports_to_upload = []
+
+    def update_stored_reports(self):
+        pass
+
+    @property
+    def reports_incomplete(self):
+        pass
+
+    @property
+    def reports_in_progress(self):
+        pass
+
+    @property
+    def reports_to_upload(self):
+        pass
 
     def run(self, f, *arg, **kw):
         lock = defer.DeferredFilesystemLock(self.file_name + '.lock')
@@ -439,9 +457,14 @@ class OONIBReportLog(object):
     def edit_log(self):
         with open(self.file_name) as rfp:
             report = yaml.safe_load(rfp)
+        # This should never happen.
+        if report is None:
+            report = {}
         with open(self.file_name, 'w+') as wfp:
-            yield report
-            wfp.write(yaml.safe_dump(report))
+            try:
+                yield report
+            finally:
+                wfp.write(yaml.safe_dump(report))
 
     def _not_created(self, report_file):
         with self.edit_log() as report:
