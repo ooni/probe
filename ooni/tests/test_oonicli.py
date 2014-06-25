@@ -6,8 +6,10 @@ from twisted.internet import defer
 from twisted.trial import unittest
 
 from ooni.tests import is_internet_connected
+from ooni.tests.bases import ConfigTestCase
 from ooni.settings import config
 from ooni.oonicli import runWithDirector
+
 
 def verify_header(header):
     assert 'input_hashes' in header.keys()
@@ -20,34 +22,33 @@ def verify_header(header):
     assert 'test_name' in header.keys()
     assert 'test_version' in header.keys()
 
+
 def verify_entry(entry):
     assert 'input' in entry
 
 
-class TestRunDirector(unittest.TestCase):
+class TestRunDirector(ConfigTestCase):
     def setUp(self):
         if not is_internet_connected():
             self.skipTest("You must be connected to the internet to run this test")
         config.tor.socks_port = 9050
         config.tor.control_port = None
+        self.filenames = ['example-input.txt']
         with open('example-input.txt', 'w+') as f:
             f.write('http://torproject.org/\n')
             f.write('http://bridges.torproject.org/\n')
             f.write('http://blog.torproject.org/\n')
 
     def tearDown(self):
-        try:
-            os.remove('test_report.yaml')
-        except:
-            pass
-        try:
-            os.remove('example-input.txt')
-        except:
-            pass
+        super(TestRunDirector, self).tearDown()
+        if len(self.filenames) > 0:
+            for filename in self.filenames:
+                os.remove(filename)
 
     @defer.inlineCallbacks
-    def run_test(self, test_name, args, verify_function):
+    def run_helper(self, test_name, args, verify_function):
         output_file = 'test_report.yaml'
+        self.filenames.append(output_file)
         sys.argv = ['', '-n', '-o', output_file, test_name]
         sys.argv.extend(args)
         yield runWithDirector(False, False)
@@ -72,9 +73,10 @@ class TestRunDirector(unittest.TestCase):
             assert 'factor' in entry
             assert 'headers_diff' in entry
             assert 'headers_match' in entry
-        yield self.run_test('blocking/http_requests',
-                      ['-u', 'http://torproject.org/'],
-                      verify_function)
+
+        yield self.run_helper('blocking/http_requests',
+                              ['-u', 'http://torproject.org/'],
+                              verify_function)
 
     @defer.inlineCallbacks
     def test_http_requests_with_file(self):
@@ -86,9 +88,10 @@ class TestRunDirector(unittest.TestCase):
             assert 'factor' in entry
             assert 'headers_diff' in entry
             assert 'headers_match' in entry
-        yield self.run_test('blocking/http_requests',
-                      ['-f', 'example-input.txt'],
-                      verify_function)
+
+        yield self.run_helper('blocking/http_requests',
+                              ['-f', 'example-input.txt'],
+                              verify_function)
 
     @defer.inlineCallbacks
     def test_dnsconsistency(self):
@@ -97,11 +100,12 @@ class TestRunDirector(unittest.TestCase):
             assert 'control_resolver' in entry
             assert 'tampering' in entry
             assert len(entry['tampering']) == 1
-        yield self.run_test('blocking/dns_consistency',
-                            ['-b', '8.8.8.8:53',
-                             '-t', '8.8.8.8',
-                             '-f', 'example-input.txt'],
-                            verify_function)
+
+        yield self.run_helper('blocking/dns_consistency',
+                              ['-b', '8.8.8.8:53',
+                               '-t', '8.8.8.8',
+                               '-f', 'example-input.txt'],
+                              verify_function)
 
     @defer.inlineCallbacks
     def test_http_header_field_manipulation(self):
@@ -118,6 +122,6 @@ class TestRunDirector(unittest.TestCase):
             assert 'request_line_capitalization' in entry['tampering']
             assert 'total' in entry['tampering']
 
-        yield self.run_test('manipulation/http_header_field_manipulation',
-                            ['-b', 'http://64.9.225.221'],
-                           verify_function)
+        yield self.run_helper('manipulation/http_header_field_manipulation',
+                              ['-b', 'http://64.9.225.221'],
+                              verify_function)

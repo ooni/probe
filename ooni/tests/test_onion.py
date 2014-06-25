@@ -1,5 +1,6 @@
-from twisted.trial import unittest 
+from twisted.trial import unittest
 from ooni.utils import onion
+
 
 class TestOnion(unittest.TestCase):
     def test_tor_details(self):

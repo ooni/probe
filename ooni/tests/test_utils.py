@@ -11,16 +11,19 @@ class TestUtils(unittest.TestCase):
         f.write("0\n")
         f.close()
         for i in xrange(1, 20):
-            f = open(basefilename+".%s" % i, "w+")
+            f = open("%s.%d" % (basefilename, i), "w+")
             f.write("%s\n" % i)
             f.close()
 
         pushFilenameStack(basefilename)
         for i in xrange(1, 20):
-            f = open(basefilename+".%s" % i)
+            f = open("%s.%d" % (basefilename, i))
             c = f.readlines()[0].strip()
             self.assertEqual(str(i-1), str(c))
             f.close()
+
+        for i in xrange(1, 21):
+            os.remove("%s.%d" % (basefilename, i))
 
     def test_log_encode(self):
         logmsgs = (
