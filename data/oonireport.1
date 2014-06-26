@@ -1,0 +1,100 @@
+.\" Man page generated from reStructuredText.
+.
+.TH "oonireport" "1" "June 26, 2014" "1.0.2" "oonireport"
+.SH NAME
+oonireport - tool for managing ooniprobe reports.
+.
+.nr rst2man-indent-level 0
+.
+.de1 rstReportMargin
+\\$1 \\n[an-margin]
+level \\n[rst2man-indent-level]
+level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
+-
+\\n[rst2man-indent0]
+\\n[rst2man-indent1]
+\\n[rst2man-indent2]
+..
+.de1 INDENT
+.\" .rstReportMargin pre:
+. RS \\$1
+. nr rst2man-indent\\n[rst2man-indent-level] \\n[an-margin]
+. nr rst2man-indent-level +1
+.\" .rstReportMargin post:
+..
+.de UNINDENT
+. RE
+.\" indent \\n[an-margin]
+.\" old: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.nr rst2man-indent-level -1
+.\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.in \\n[rst2man-indent\\n[rst2man-indent-level]]u
+..
+
+.SH SYNOPSIS
+.B oonireport
+.RB [ --version ]
+.RB [ --help ]
+.RB [ \-c
+.IR collector ]
+.I "status | upload"
+.I [ report file ]
+
+.SH DESCRIPTION
+.sp
+oonireport is a tool for viewing which ooniprobe reports have not been
+submitted to a collector and upload them.
+
+.SH OPTIONS
+
+.TP
+.BR \-\^h " or " \-\-help
+Display this help and exit.
+.TP
+.BR \-\^c " or " \-\-collector
+Specify the address of the collector to use for uploading reports.
+.TP
+.BR upload
+If no argument is specified all the reports that have not been submitted will
+be submitted to either the collector specified as an option (\-c) or to the
+collector that was previously used.
+If a report file is specified then only that report file will be uploaded
+.TP
+.BR status
+Outputs all of the reports that are either "not uploaded", "incomplete" or
+"pending".
+The possible statuses are:
+
+.BR not-created
+.sp
+If it has not been created, because the user specified to not use a
+collector.
+
+.BR creation-failed
+.sp
+If we attempted to create the report, but failed to do so either because
+the collector does not accept our report or because it was unreachable at the
+time.
+
+.BR created
+.sp
+If the report has been successfully created, but has not yet been closed.
+
+.BR incomplete
+.sp
+If the report has been created, but we have failed to update the report
+with some data.
+
+.SH OONIREPORT
+.sp
+This tool is used to upload reports that are stored on the users filesystem and
+have not been submitted to a collector. This can be either because the
+collector was unreachable when we attempted to submit the report or because the policy
+of the collector did not support the specified test.
+.sp
+
+.SH AUTHOR
+The Tor Project
+.SH COPYRIGHT
+2014, The Tor Project
+.
