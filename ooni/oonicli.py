@@ -1,5 +1,3 @@
-#-*- coding: utf-8 -*-
-
 import sys
 import os
 import yaml
@@ -13,10 +11,10 @@ from ooni import errors, __version__
 from ooni.settings import config
 from ooni.director import Director
 from ooni.deck import Deck, nettest_to_path
-from ooni.reporter import YAMLReporter, OONIBReporter
 from ooni.nettest import NetTestLoader
 
 from ooni.utils import log, checkForRoot
+
 
 class Options(usage.Options):
     synopsis = """%s [options] [path to test].py
@@ -35,27 +33,27 @@ class Options(usage.Options):
                 ["verbose", "v"]
                 ]
 
-    optParameters = [["reportfile", "o", None, "report file name"],
-                     ["testdeck", "i", None,
-                         "Specify as input a test deck: a yaml file containing the tests to run and their arguments"],
-                     ["collector", "c", None,
-                         "Address of the collector of test results. This option should not be used, but you should always use a bouncer."],
-                     ["bouncer", "b", 'httpo://nkvphnp3p6agi5qq.onion',
-                         "Address of the bouncer for test helpers. default: httpo://nkvphnp3p6agi5qq.onion"],
-                     ["logfile", "l", None, "log file name"],
-                     ["pcapfile", "O", None, "pcap file name"],
-                     ["configfile", "f", None,
-                         "Specify a path to the ooniprobe configuration file"],
-                     ["datadir", "d", None,
-                         "Specify a path to the ooniprobe data directory"],
-                     ["annotations", "a", None,
-                         "Annotate the report with a key:value[, key:value] format."]
-                     ]
+    optParameters = [
+        ["reportfile", "o", None, "report file name"],
+        ["testdeck", "i", None,
+         "Specify as input a test deck: a yaml file containing the tests to run and their arguments"],
+        ["collector", "c", None,
+         "Address of the collector of test results. This option should not be used, but you should always use a bouncer."],
+        ["bouncer", "b", 'httpo://nkvphnp3p6agi5qq.onion',
+         "Address of the bouncer for test helpers. default: httpo://nkvphnp3p6agi5qq.onion"],
+        ["logfile", "l", None, "log file name"],
+        ["pcapfile", "O", None, "pcap file name"],
+        ["configfile", "f", None,
+         "Specify a path to the ooniprobe configuration file"],
+        ["datadir", "d", None,
+         "Specify a path to the ooniprobe data directory"],
+        ["annotations", "a", None,
+         "Annotate the report with a key:value[, key:value] format."]]
 
     compData = usage.Completions(
         extraActions=[usage.CompleteFiles(
-                "*.py", descr="file | module | package | TestCase | testMethod",
-                repeat=True)],)
+            "*.py", descr="file | module | package | TestCase | testMethod",
+            repeat=True)],)
 
     tracer = None
 
@@ -86,6 +84,7 @@ class Options(usage.Options):
         except:
             raise usage.UsageError("No test filename specified!")
 
+
 def parseOptions():
     print "WARNING: running ooniprobe involves some risk that varies greatly"
     print "         from country to country. You should be aware of this when"
@@ -95,11 +94,12 @@ def parseOptions():
         cmd_line_options.getUsage()
     try:
         cmd_line_options.parseOptions()
-    except usage.UsageError, ue:
+    except usage.UsageError as ue:
         print cmd_line_options.getUsage()
-        raise SystemExit, "%s: %s" % (sys.argv[0], ue)
+        raise SystemExit("%s: %s" % (sys.argv[0], ue))
 
     return dict(cmd_line_options)
+
 
 def runWithDirector(logging=True, start_tor=True):
     """
@@ -123,9 +123,9 @@ def runWithDirector(logging=True, start_tor=True):
         try:
             checkForRoot()
         except errors.InsufficientPrivileges:
-             log.err("Insufficient Privileges to capture packets."
-                     " See ooniprobe.conf privacy.includepcap")
-             sys.exit(2)
+            log.err("Insufficient Privileges to capture packets."
+                    " See ooniprobe.conf privacy.includepcap")
+            sys.exit(2)
 
     director = Director()
     if global_options['list']:
@@ -158,10 +158,10 @@ def runWithDirector(logging=True, start_tor=True):
                 sys.exit(1)
         global_options["annotations"] = annotations
 
-    #XXX: This should mean no bouncer either!
+    # XXX: This should mean no bouncer either!
     if global_options['no-collector']:
         log.msg("Not reporting using a collector")
-        collector = global_options['collector'] = None
+        global_options['collector'] = None
         global_options['bouncer'] = None
 
     deck = Deck()
@@ -179,16 +179,16 @@ def runWithDirector(logging=True, start_tor=True):
             log.debug("No test deck detected")
             test_file = nettest_to_path(global_options['test_file'], True)
             net_test_loader = NetTestLoader(global_options['subargs'],
-                    test_file=test_file)
+                                            test_file=test_file)
             deck.insert(net_test_loader)
-    except errors.MissingRequiredOption, option_name:
+    except errors.MissingRequiredOption as option_name:
         log.err('Missing required option: "%s"' % option_name)
         print net_test_loader.usageOptions().getUsage()
         sys.exit(2)
-    except errors.NetTestNotFound, path:
+    except errors.NetTestNotFound as path:
         log.err('Requested NetTest file not found (%s)' % path)
         sys.exit(3)
-    except usage.UsageError, e:
+    except usage.UsageError as e:
         log.err(e)
         print net_test_loader.usageOptions().getUsage()
         sys.exit(4)
@@ -218,24 +218,29 @@ def runWithDirector(logging=True, start_tor=True):
             log.err("Tor does not appear to be running")
             log.err("Reporting with the collector %s is not possible" %
                     global_options['collector'])
-            log.msg("Try with a different collector or disable collector reporting with -n")
+            log.msg(
+                "Try with a different collector or disable collector reporting with -n")
 
         elif isinstance(failure.value, errors.InvalidOONIBCollectorAddress):
             log.err("Invalid format for oonib collector address.")
-            log.msg("Should be in the format http://<collector_address>:<port>")
+            log.msg(
+                "Should be in the format http://<collector_address>:<port>")
             log.msg("for example: ooniprobe -c httpo://nkvphnp3p6agi5qq.onion")
 
         elif isinstance(failure.value, errors.UnableToLoadDeckInput):
             log.err("Unable to fetch the required inputs for the test deck.")
-            log.msg("Please file a ticket on our issue tracker: https://github.com/thetorproject/ooni-probe/issues")
+            log.msg(
+                "Please file a ticket on our issue tracker: https://github.com/thetorproject/ooni-probe/issues")
 
         elif isinstance(failure.value, errors.CouldNotFindTestHelper):
             log.err("Unable to obtain the required test helpers.")
-            log.msg("Try with a different bouncer or check that Tor is running properly.")
+            log.msg(
+                "Try with a different bouncer or check that Tor is running properly.")
 
         elif isinstance(failure.value, errors.CouldNotFindTestCollector):
             log.err("Could not find a valid collector.")
-            log.msg("Try with a different bouncer, specify a collector with -c or disable reporting to a collector with -n.")
+            log.msg(
+                "Try with a different bouncer, specify a collector with -c or disable reporting to a collector with -n.")
 
         elif isinstance(failure.value, errors.ProbeIPUnknown):
             log.err("Failed to lookup probe IP address.")
@@ -268,7 +273,8 @@ def runWithDirector(logging=True, start_tor=True):
             if not global_options['no-collector']:
                 if global_options['collector']:
                     collector = global_options['collector']
-                elif 'collector' in config.reports and config.reports['collector']:
+                elif 'collector' in config.reports \
+                        and config.reports['collector']:
                     collector = config.reports['collector']
                 elif net_test_loader.collector:
                     collector = net_test_loader.collector
@@ -280,19 +286,9 @@ def runWithDirector(logging=True, start_tor=True):
             test_details = net_test_loader.testDetails
             test_details['annotations'] = global_options['annotations']
 
-            yaml_reporter = YAMLReporter(test_details,
-                                         report_filename=global_options['reportfile'])
-            reporters = [yaml_reporter]
-
-            if collector:
-                log.msg("Reporting using collector: %s" % collector)
-                try:
-                    oonib_reporter = OONIBReporter(test_details, collector)
-                    reporters.append(oonib_reporter)
-                except errors.InvalidOONIBCollectorAddress, e:
-                    raise e
-
-            netTestDone = director.startNetTest(net_test_loader, reporters)
+            director.startNetTest(net_test_loader,
+                                  global_options['reportfile'],
+                                  collector)
         return director.allTestsDone
 
     def start():

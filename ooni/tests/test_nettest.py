@@ -1,23 +1,16 @@
 import os
-from StringIO import StringIO
-from tempfile import TemporaryFile, mkstemp
-import shutil
+from tempfile import mkstemp
 
 from twisted.trial import unittest
 from twisted.internet import defer, reactor
 from twisted.python.usage import UsageError
 
 from ooni.settings import config
-from ooni.errors import MissingRequiredOption, InvalidOption, FailureToLoadNetTest
+from ooni.errors import MissingRequiredOption
 from ooni.nettest import NetTest, NetTestLoader
-from ooni.tasks import BaseTask
 
 from ooni.director import Director
-from ooni.managers import TaskManager
 
-from ooni.tests.mocks import MockMeasurement, MockMeasurementFailOnce
-from ooni.tests.mocks import MockNetTest, MockDirector, MockReporter
-from ooni.tests.mocks import MockMeasurementManager
 from ooni.tests.bases import ConfigTestCase
 
 net_test_string = """
@@ -97,7 +90,6 @@ from ooni.errors import failureToString, handleAllFailures
 class UsageOptions(usage.Options):
     optParameters = [
                      ['url', 'u', None, 'Specify a single URL to test.'],
-                     ['factor', 'f', 0.8, 'What factor should be used for triggering censorship (0.8 == 80%)']
                     ]
 
 class HTTPBasedTest(httpt.HTTPTest):
@@ -116,6 +108,7 @@ dummyArgsWithRequiredOptions = ('--foo', 'moo', '--bar', 'baz')
 dummyRequiredOptions = {'foo': 'moo', 'bar': 'baz'}
 dummyArgsWithFile = ('--spam', 'notham', '--file', 'dummyInputFile.txt')
 dummyInputFile = 'dummyInputFile.txt'
+
 
 
 class TestNetTest(unittest.TestCase):
@@ -254,7 +247,7 @@ class TestNetTest(unittest.TestCase):
         ntl.checkOptions()
         director = Director()
 
-        d = director.startNetTest(ntl, [MockReporter()])
+        d = director.startNetTest(ntl, 'dummy_report.yaml')
 
         @d.addCallback
         def complete(result):
@@ -273,16 +266,19 @@ class TestNetTest(unittest.TestCase):
 
 
 class TestNettestTimeout(ConfigTestCase):
+
     @defer.inlineCallbacks
     def setUp(self):
         from twisted.internet.protocol import Protocol, Factory
         from twisted.internet.endpoints import TCP4ServerEndpoint
 
         class DummyProtocol(Protocol):
+
             def dataReceived(self, data):
                 pass
 
         class DummyFactory(Factory):
+
             def __init__(self):
                 self.protocols = []
 
@@ -313,7 +309,7 @@ class TestNettestTimeout(ConfigTestCase):
         ntl.checkOptions()
         director = Director()
 
-        d = director.startNetTest(ntl, [MockReporter()])
+        d = director.startNetTest(ntl, 'dummy_report.yaml')
 
         @d.addCallback
         def complete(result):

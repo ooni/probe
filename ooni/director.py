@@ -13,10 +13,12 @@ from txtorcon import TorConfig, TorState, launch_tor, build_tor_connection
 from twisted.internet import defer, reactor
 from twisted.internet.endpoints import TCP4ClientEndpoint
 
+
 class Director(object):
+
     """
-    Singleton object responsible for coordinating the Measurements Manager and the
-    Reporting Manager.
+    Singleton object responsible for coordinating the Measurements Manager
+    and the Reporting Manager.
 
     How this all looks like is as follows:
 
@@ -55,6 +57,7 @@ class Director(object):
     +------+
 
     """
+
     _scheduledTests = 0
     # Only list NetTests belonging to these categories
     categories = ['blocking', 'manipulation']
@@ -91,9 +94,10 @@ class Director(object):
 
     def getNetTests(self):
         nettests = {}
+
         def is_nettest(filename):
             return not filename == '__init__.py' \
-                    and filename.endswith('.py')
+                and filename.endswith('.py')
 
         for category in self.categories:
             dirname = os.path.join(config.nettest_directory, category)
@@ -106,9 +110,11 @@ class Director(object):
 
                     if nettest['id'] in nettests:
                         log.err("Found a two tests with the same name %s, %s" %
-                                (net_test_file, nettests[nettest['id']]['path']))
+                                (net_test_file,
+                                 nettests[nettest['id']]['path']))
                     else:
-                        category = dirname.replace(config.nettest_directory, '')
+                        category = dirname.replace(config.nettest_directory,
+                                                   '')
                         nettests[nettest['id']] = nettest
 
         return nettests
@@ -188,7 +194,7 @@ class Director(object):
         return measurement
 
     def measurementFailed(self, failure, measurement):
-        log.msg("Failed doing measurement: %s" % measurement)
+        log.debug("Failed doing measurement: %s" % measurement)
         self.totalMeasurementRuntime += measurement.runtime
 
         self.failedMeasurements += 1
@@ -214,7 +220,8 @@ class Director(object):
             self.allTestsDone.callback(None)
 
     @defer.inlineCallbacks
-    def startNetTest(self, net_test_loader, reporters):
+    def startNetTest(self, net_test_loader, report_filename,
+                     collector_address=None):
         """
         Create the Report for the NetTest and start the report NetTest.
 
@@ -222,15 +229,19 @@ class Director(object):
             net_test_loader:
                 an instance of :class:ooni.nettest.NetTestLoader
         """
+
         if self.allTestsDone.called:
             self.allTestsDone = defer.Deferred()
 
         if config.privacy.includepcap:
             if not config.reports.pcap:
-                config.reports.pcap = config.generate_pcap_filename(net_test_loader.testDetails)
+                config.reports.pcap = config.generate_pcap_filename(
+                    net_test_loader.testDetails
+                )
             self.startSniffing()
 
-        report = Report(reporters, self.reportEntryManager)
+        report = Report(net_test_loader.testDetails, report_filename,
+                        self.reportEntryManager, collector_address)
 
         net_test = NetTest(net_test_loader, report)
         net_test.director = self
@@ -255,7 +266,8 @@ class Director(object):
         config.scapyFactory = ScapyFactory(config.advanced.interface)
 
         if os.path.exists(config.reports.pcap):
-            log.msg("Report PCAP already exists with filename %s" % config.reports.pcap)
+            log.msg("Report PCAP already exists with filename %s" %
+                    config.reports.pcap)
             log.msg("Renaming files with such name...")
             pushFilenameStack(config.reports.pcap)
 
@@ -268,9 +280,8 @@ class Director(object):
     @defer.inlineCallbacks
     def getTorState(self):
         connection = TCP4ClientEndpoint(reactor, '127.0.0.1',
-                config.tor.control_port)
+                                        config.tor.control_port)
         config.tor_state = yield build_tor_connection(connection)
-
 
     def startTor(self):
         """ Starts Tor
@@ -278,6 +289,7 @@ class Director(object):
         :param: tor_binary set in ooniprobe.conf
         """
         log.msg("Starting Tor...")
+
         @defer.inlineCallbacks
         def state_complete(state):
             config.tor_state = state
@@ -328,9 +340,10 @@ class Director(object):
         if config.tor.bridges:
             tor_config.UseBridges = 1
             if config.advanced.obfsproxy_binary:
-                tor_config.ClientTransportPlugin = \
-                        'obfs2,obfs3 exec %s managed' % \
-                        config.advanced.obfsproxy_binary
+                tor_config.ClientTransportPlugin = (
+                    'obfs2,obfs3 exec %s managed' %
+                    config.advanced.obfsproxy_binary
+                )
             bridges = []
             with open(config.tor.bridges) as f:
                 for bridge in f:
@@ -347,12 +360,12 @@ class Director(object):
 
         tor_config.save()
 
-        if not hasattr(tor_config,'ControlPort'):
+        if not hasattr(tor_config, 'ControlPort'):
             control_port = int(randomFreePort())
             tor_config.ControlPort = control_port
             config.tor.control_port = control_port
 
-        if not hasattr(tor_config,'SocksPort'):
+        if not hasattr(tor_config, 'SocksPort'):
             socks_port = int(randomFreePort())
             tor_config.SocksPort = socks_port
             config.tor.socks_port = socks_port

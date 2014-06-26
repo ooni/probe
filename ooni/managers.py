@@ -1,8 +1,8 @@
 import itertools
 
-from twisted.internet import defer
 from ooni.utils import log
 from ooni.settings import config
+
 
 def makeIterable(item):
     """
@@ -14,6 +14,7 @@ def makeIterable(item):
     except TypeError:
         iterable = iter([item])
     return iterable
+
 
 class TaskManager(object):
     retries = 2
@@ -29,7 +30,7 @@ class TaskManager(object):
         The has failed to complete, we append it to the end of the task chain
         to be re-run once all the currently scheduled tasks have run.
         """
-        log.err("Task %s has failed %s times" % (task, task.failures))
+        log.debug("Task %s has failed %s times" % (task, task.failures))
         if config.advanced.debug:
             log.exception(failure)
 
@@ -42,7 +43,7 @@ class TaskManager(object):
 
         else:
             # This fires the errback when the task is done but has failed.
-            log.err('Permanent failure for %s' % task)
+            log.debug('Permanent failure for %s' % task)
             task.done.errback(failure)
 
         self._fillSlots()
@@ -60,7 +61,7 @@ class TaskManager(object):
                 self._run(task)
             except StopIteration:
                 break
-            except ValueError as exc:
+            except ValueError:
                 # XXX this is a workaround the race condition that leads the
                 # _tasks generator to throw the exception
                 # ValueError: generator already called.
@@ -103,8 +104,8 @@ class TaskManager(object):
 
     def schedule(self, task_or_task_iterator):
         """
-        Takes as argument a single task or a task iterable and appends it to the task
-        generator queue.
+        Takes as argument a single task or a task iterable and appends it to
+        the task generator queue.
         """
         log.debug("Starting this task %s" % repr(task_or_task_iterator))
 
@@ -136,7 +137,9 @@ class TaskManager(object):
         """
         raise NotImplemented
 
+
 class LinkedTaskManager(TaskManager):
+
     def __init__(self):
         super(LinkedTaskManager, self).__init__()
         self.child = None
@@ -160,10 +163,13 @@ class LinkedTaskManager(TaskManager):
         if self.parent:
             self.parent._fillSlots()
 
+
 class MeasurementManager(LinkedTaskManager):
+
     """
-    This is the Measurement Tracker. In here we keep track of active measurements
-    and issue new measurements once the active ones have been completed.
+    This is the Measurement Tracker. In here we keep track of active
+    measurements and issue new measurements once the active ones have been
+    completed.
 
     MeasurementTracker does not keep track of the typology of measurements that
     it is running. It just considers a measurement something that has an input
@@ -172,6 +178,7 @@ class MeasurementManager(LinkedTaskManager):
     NetTest on the contrary is aware of the typology of measurements that it is
     dispatching as they are logically grouped by test file.
     """
+
     def __init__(self):
         if config.advanced.measurement_retries:
             self.retries = config.advanced.measurement_retries
@@ -186,7 +193,9 @@ class MeasurementManager(LinkedTaskManager):
     def failed(self, failure, measurement):
         pass
 
+
 class ReportEntryManager(LinkedTaskManager):
+
     def __init__(self):
         if config.advanced.reporting_retries:
             self.retries = config.advanced.reporting_retries
@@ -200,4 +209,3 @@ class ReportEntryManager(LinkedTaskManager):
 
     def failed(self, failure, task):
         pass
-

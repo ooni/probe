@@ -7,10 +7,9 @@ from ooni.utils import log
 from ooni import errors as e
 
 from twisted.python.filepath import FilePath
-from twisted.internet import reactor, defer
+from twisted.internet import defer
 
 import os
-import re
 import yaml
 import json
 from hashlib import sha256
@@ -187,12 +186,15 @@ class Deck(InputFile):
         response = yield self.oonibclient.lookupTestHelpers(required_test_helpers)
 
         for net_test_loader in self.netTestLoaders:
-            log.msg("Setting collector and test helpers for %s" % net_test_loader.testDetails['test_name'])
+            log.msg("Setting collector and test helpers for %s" %
+                    net_test_loader.testDetails['test_name'])
 
             # Only set the collector if the no collector has been specified
             # from the command line or via the test deck.
-            if not required_test_helpers and net_test_loader in requires_collector:
-                log.msg("Using the default collector: %s" % response['default']['collector'])
+            if not net_test_loader.requiredTestHelpers and \
+                    net_test_loader in requires_collector:
+                log.msg("Using the default collector: %s" %
+                        response['default']['collector'])
                 net_test_loader.collector = response['default']['collector'].encode('utf-8')
                 continue
 
@@ -223,6 +225,6 @@ class Deck(InputFile):
                 try:
                     input_file.verify()
                 except AssertionError:
-                    raise e.UnableToLoadDeckInput, cached_path
+                    raise e.UnableToLoadDeckInput
 
                 i['test_class'].localOptions[i['key']] = input_file.cached_file

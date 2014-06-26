@@ -8,6 +8,7 @@ from os.path import abspath, expanduser
 from ooni import otime, geoip
 from ooni.utils import Storage
 
+
 class OConfig(object):
     _custom_home = None
 
@@ -49,6 +50,7 @@ class OConfig(object):
         self.inputs_directory = os.path.join(self.ooni_home, 'inputs')
         self.decks_directory = os.path.join(self.ooni_home, 'decks')
         self.reports_directory = os.path.join(self.ooni_home, 'reports')
+        self.report_log_file = os.path.join(self.ooni_home, 'reporting.yml')
 
         if self.global_options.get('configfile'):
             config_file = self.global_options['configfile']

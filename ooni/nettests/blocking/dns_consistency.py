@@ -101,8 +101,8 @@ class DNSConsistencyTest(dnst.DNSTest):
         the control resolver for every IP address we got back and check to see
         if anyone of them matches the control ones.
 
-        If they do, then we take note of the fact that censorship is probably not
-        happening (tampering: reverse-match).
+        If they do, then we take note of the fact that censorship is probably
+        not happening (tampering: reverse-match).
 
         If they do not match then censorship is probably going on (tampering:
         true).
@@ -131,9 +131,8 @@ class DNSConsistencyTest(dnst.DNSTest):
             try:
                 experiment_answers = yield self.performALookup(hostname,
                                                                test_dns_server)
-            except Exception as e:
+            except Exception:
                 log.err("Problem performing the DNS lookup")
-                log.exception(e)
                 self.report['tampering'][test_resolver] = 'dns_lookup_error'
                 continue
 

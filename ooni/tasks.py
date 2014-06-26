@@ -126,34 +126,12 @@ class Measurement(TaskWithTimeout):
     def run(self):
         return self.netTestMethod()
 
-class ReportTracker(object):
-    def __init__(self, reporters):
-        self.report_completed = 0
-        self.reporters = reporters
-        self.failedReporters = []
-
-    def finished(self):
-        """
-        Returns true if all the tasks are done. False if not.
-        """
-        # If a reporter fails and is removed, the report
-        # is considered completed but failed, but the number
-        # of reporters is now decreased by the number of failed
-        # reporters.
-        if self.report_completed == (len(self.reporters) + len(self.failedReporters)):
-            return True
-        return False
-
-    def completed(self):
-        """
-        Called when a new report is completed.
-        """
-        self.report_completed += 1
 
 class ReportEntry(TaskWithTimeout):
+
     def __init__(self, reporter, entry):
         self.reporter = reporter
-        self.entry = entry 
+        self.entry = entry
 
         if config.advanced.reporting_timeout:
             self.timeout = config.advanced.reporting_timeout
