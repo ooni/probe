@@ -34,7 +34,7 @@ def download_geoip_files(dst):
                 chunk = response.read(CHUNK)
                 if not chunk: break
                 f.write(chunk)
-        
+
         with open(target_file, 'w+') as f:
             gf = gzip.open(target_gz_file, 'rb')
             while True:
@@ -86,13 +86,13 @@ setup(
     url="https://ooni.torproject.org/",
     package_dir={'ooni': 'ooni'},
     data_files=data_files,
-    packages=['ooni', 'ooni.api', 'ooni.kit', 
-        'ooni.nettests', 'ooni.nettests.manipulation', 
+    packages=['ooni', 'ooni.api', 'ooni.kit',
+        'ooni.nettests', 'ooni.nettests.manipulation',
         'ooni.nettests.experimental', 'ooni.nettests.scanning',
         'ooni.nettests.blocking',
         'ooni.nettests.third_party',
         'ooni.templates', 'ooni.tests', 'ooni.utils'],
-    scripts=["bin/ooniprobe"],
+    scripts=["bin/ooniprobe", "bin/oonireport"],
     dependency_links=dependency_links,
     install_requires=install_requires
 )
