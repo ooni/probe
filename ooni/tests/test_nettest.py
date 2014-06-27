@@ -6,7 +6,7 @@ from twisted.internet import defer, reactor
 from twisted.python.usage import UsageError
 
 from ooni.settings import config
-from ooni.errors import MissingRequiredOption
+from ooni.errors import MissingRequiredOption, OONIUsageError
 from ooni.nettest import NetTest, NetTestLoader
 
 from ooni.director import Director
@@ -67,6 +67,7 @@ class UsageOptions(usage.Options):
 class DummyTestCase(NetTestCase):
     inputFile = ['file', 'f', None, 'The input File']
 
+    requiredOptions = ['foo', 'bar']
     usageOptions = UsageOptions
 
     def test_a(self):
@@ -74,8 +75,6 @@ class DummyTestCase(NetTestCase):
 
     def test_b(self):
         self.report['foo'] = 'foo'
-
-    requiredOptions = ['foo', 'bar']
 """
 
 http_net_test = """
@@ -115,12 +114,15 @@ class TestNetTest(unittest.TestCase):
     timeout = 1
 
     def setUp(self):
+        self.filename = ""
         with open(dummyInputFile, 'w') as f:
             for i in range(10):
                 f.write("%s\n" % i)
 
     def tearDown(self):
         os.remove(dummyInputFile)
+        if self.filename != "":
+            os.remove(self.filename)
 
     def assertCallable(self, thing):
         self.assertIn('__call__', dir(thing))
@@ -181,14 +183,10 @@ class TestNetTest(unittest.TestCase):
                 self.assertIn(option, test_klass.usageOptions())
 
     def test_load_with_invalid_option(self):
-        try:
-            ntl = NetTestLoader(dummyInvalidArgs)
-            ntl.loadNetTestString(net_test_string)
-
-            ntl.checkOptions()
-            raise Exception
-        except UsageError:
-            pass
+        ntl = NetTestLoader(dummyInvalidArgs)
+        ntl.loadNetTestString(net_test_string)
+        self.assertRaises(UsageError, ntl.checkOptions)
+        self.assertRaises(OONIUsageError, ntl.checkOptions)
 
     def test_load_with_required_option(self):
         ntl = NetTestLoader(dummyArgsWithRequiredOptions)
@@ -197,12 +195,9 @@ class TestNetTest(unittest.TestCase):
         self.assertIsInstance(ntl, NetTestLoader)
 
     def test_load_with_missing_required_option(self):
-        try:
-            ntl = NetTestLoader(dummyArgs)
-            ntl.loadNetTestString(net_test_string_with_required_option)
-
-        except MissingRequiredOption:
-            pass
+        ntl = NetTestLoader(dummyArgs)
+        ntl.loadNetTestString(net_test_string_with_required_option)
+        self.assertRaises(MissingRequiredOption, ntl.checkOptions)
 
     def test_net_test_inputs(self):
         ntl = NetTestLoader(dummyArgsWithFile)
@@ -247,7 +242,8 @@ class TestNetTest(unittest.TestCase):
         ntl.checkOptions()
         director = Director()
 
-        d = director.startNetTest(ntl, 'dummy_report.yaml')
+        self.filename = 'dummy_report.yaml'
+        d = director.startNetTest(ntl, self.filename)
 
         @d.addCallback
         def complete(result):
@@ -301,6 +297,7 @@ class TestNettestTimeout(ConfigTestCase):
         super(TestNettestTimeout, self).tearDown()
         self.factory.stopFactory()
         self.port.stopListening()
+        os.remove(self.filename)
 
     def test_nettest_timeout(self):
         ntl = NetTestLoader(('-u', 'http://localhost:8007/'))
@@ -309,7 +306,8 @@ class TestNettestTimeout(ConfigTestCase):
         ntl.checkOptions()
         director = Director()
 
-        d = director.startNetTest(ntl, 'dummy_report.yaml')
+        self.filename = 'dummy_report.yaml'
+        d = director.startNetTest(ntl, self.filename)
 
         @d.addCallback
         def complete(result):

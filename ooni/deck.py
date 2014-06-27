@@ -144,7 +144,7 @@ class Deck(InputFile):
             net_test_loader.checkOptions()
             if net_test_loader.requiresTor:
                 self.requiresTor = True
-        except e.MissingRequiredOption, missing_options:
+        except e.MissingRequiredOption as missing_options:
             if not self.bouncer:
                 raise
             for missing_option in missing_options.message:
