@@ -5,7 +5,7 @@ Details
 
 *Current version*: 0.1
 
-*NetTest*: DNSSpoof (https://gitweb.torproject.org/ooni-probe.git/blob/HEAD:/ooni/nettests/manipulation/dnsspoof.py)
+*NetTest*: DNSSpoof (https://gitweb.torproject.org/ooni-probe.git/blob/HEAD:/ooni/nettests/manipulation/dns_spoof.py)
 
 *Test Helper*: DNS Test Helper (https://gitweb.torproject.org/oonib.git/blob/HEAD:/oonib/testhelpers/dns_helpers.py)
 
@@ -21,7 +21,7 @@ This test performs A queries to a test resolver and a known good control resolve
 How to run the test
 ===================
 
-`./bin/ooniprobe nettests/manipulation/dnsspoof.py [-s] [-k] [-i] -r <test resolver> -h <hostname> -b IP:PORT`
+`./bin/ooniprobe nettests/manipulation/dns_spoof.py [-s] [-k] [-i] -r <test resolver> -h <hostname> -b IP:PORT`
 
 *test resolver* is a single test resolver (IP address).
 *hostname* is the hostname to query.
@@ -35,7 +35,7 @@ Sample report
 =============
 
 From running:
-`./bin/ooniprobe nettests/manipulation/dnsspoof.py -h torproject.org -r 4.2.2.2:53`
+`./bin/ooniprobe nettests/manipulation/dns_spoof.py -h torproject.org -r 4.2.2.2:53`
 
 ::
 
@@ -52,7 +52,7 @@ From running:
     reportfile: null
     resume: 0
     subargs: [-h, torproject.org, -r, '4.2.2.2:53']
-    test: nettests/manipulation/dnsspoof.py
+    test: nettests/manipulation/dns_spoof.py
   probe_asn: null
   probe_cc: null
   probe_ip: 127.0.0.1
