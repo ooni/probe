@@ -1,6 +1,7 @@
 from twisted.internet.defer import CancelledError
 from twisted.internet.defer import TimeoutError as DeferTimeoutError
 from twisted.web._newclient import ResponseNeverReceived
+from twisted.web.error import Error
 
 from twisted.internet.error import ConnectionRefusedError, TCPTimedOutError
 from twisted.internet.error import DNSLookupError, ConnectError, ConnectionLost
@@ -208,6 +209,10 @@ class OONIBError(Exception):
     pass
 
 
+class OONIBInvalidRequest(OONIBError):
+    pass
+
+
 class OONIBReportError(OONIBError):
     pass
 
@@ -221,6 +226,14 @@ class OONIBReportCreationError(OONIBReportError):
 
 
 class OONIBTestDetailsLookupError(OONIBReportError):
+    pass
+
+
+class OONIBInputError(OONIBError):
+    pass
+
+
+class OONIBInputDescriptorNotFound(OONIBInputError):
     pass
 
 
@@ -279,5 +292,11 @@ class ReportLogExists(Exception):
 def get_error(error_key):
     if error_key == 'test-helpers-key-missing':
         return CouldNotFindTestHelper
+    if error_key == 'input-descriptor-not-found':
+        return OONIBInputDescriptorNotFound
+    if error_key == 'invalid-request':
+        return OONIBInvalidRequest
+    elif isinstance(error_key, int):
+        return Error("%d" % error_key)
     else:
         return OONIBError

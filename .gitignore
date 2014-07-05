@@ -41,3 +41,4 @@ docs/build/*
 .vagrant/*
 
 cover/*
+ooni_home/*

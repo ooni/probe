@@ -69,7 +69,6 @@ class OONIBClient(object):
 
         def perform_request(attempts):
             uri = address + urn
-            headers = {}
             d = agent.request(method, uri, bodyProducer=bodyProducer)
 
             @d.addCallback

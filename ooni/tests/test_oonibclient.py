@@ -4,6 +4,7 @@ import socket
 
 from twisted.trial import unittest
 from twisted.internet import defer
+from twisted.web import error
 
 from ooni import errors as e
 from ooni.utils import log
@@ -99,23 +100,22 @@ class TestOONIBClient(ConfigTestCase):
         self.assertTrue(int(helpers['dns']['address'].split('.')[0]))
 
     @defer.inlineCallbacks
-    def test_invalid_requests(self):
+    def test_input_descriptor_not_found(self):
+        try:
+            yield self.oonibclient.queryBackend('GET', '/input/' + 'a'*64)
+        except e.OONIBInputDescriptorNotFound:
+            pass
+        else:
+            assert False
 
-        @defer.inlineCallbacks
-        def all_requests(path):
-            for mthd in ['GET', 'POST', 'PUT', 'OPTION']:
-                try:
-                    yield self.oonibclient.queryBackend(mthd, path)
-                except:
-                    pass
-
-        for path in ['/policy/input', '/policy/nettest',
-                     '/input', '/input/' + 'a' * 64, '/fooo']:
-            yield all_requests(path)
-
-        for path in ['/bouncer']:
-            self.oonibclient.address = 'http://127.0.0.1:8888'
-            yield all_requests(path)
+    @defer.inlineCallbacks
+    def test_http_errors(self):
+        try:
+            yield self.oonibclient.queryBackend('PUT', '/policy/input')
+        except error.Error:
+            pass
+        else:
+            assert False
 
     @defer.inlineCallbacks
     def test_create_report(self):
