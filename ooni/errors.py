@@ -6,6 +6,8 @@ from twisted.internet.error import ConnectionRefusedError, TCPTimedOutError
 from twisted.internet.error import DNSLookupError, ConnectError, ConnectionLost
 from twisted.internet.error import TimeoutError as GenericTimeoutError
 
+from twisted.python import usage
+
 from txsocksx.errors import SOCKSError
 from txsocksx.errors import MethodsNotAcceptedError, AddressNotSupported
 from txsocksx.errors import ConnectionError, NetworkUnreachable
@@ -241,8 +243,16 @@ class NetTestNotFound(Exception):
 
 
 class MissingRequiredOption(Exception):
-    pass
+    def __init__(self, message, net_test_loader):
+        super(MissingRequiredOption, self).__init__()
+        self.net_test_loader = net_test_loader
+        self.message = message
 
+
+class OONIUsageError(usage.UsageError):
+    def __init__(self, net_test_loader):
+        super(OONIUsageError, self).__init__()
+        self.net_test_loader = net_test_loader
 
 class FailureToLoadNetTest(Exception):
     pass

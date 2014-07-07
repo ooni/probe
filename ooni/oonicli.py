@@ -183,14 +183,15 @@ def runWithDirector(logging=True, start_tor=True):
             deck.insert(net_test_loader)
     except errors.MissingRequiredOption as option_name:
         log.err('Missing required option: "%s"' % option_name)
-        print net_test_loader.usageOptions().getUsage()
+        incomplete_net_test_loader = option_name.net_test_loader
+        print incomplete_net_test_loader.usageOptions().getUsage()
         sys.exit(2)
     except errors.NetTestNotFound as path:
         log.err('Requested NetTest file not found (%s)' % path)
         sys.exit(3)
-    except usage.UsageError as e:
+    except errors.OONIUsageError as e:
         log.err(e)
-        print net_test_loader.usageOptions().getUsage()
+        print e.net_test_loader.usageOptions().getUsage()
         sys.exit(4)
     except Exception as e:
         log.err(e)

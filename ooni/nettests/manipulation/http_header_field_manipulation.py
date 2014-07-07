@@ -50,7 +50,7 @@ class HTTPHeaderFieldManipulation(httpt.HTTPTest):
     description = "Checks if the HTTP request the server " \
                   "sees is the same as the one that the client has created."
     author = "Arturo Filastò"
-    version = "0.1.4"
+    version = "0.1.5"
 
     randomizeUA = False
     usageOptions = UsageOptions
@@ -59,6 +59,10 @@ class HTTPHeaderFieldManipulation(httpt.HTTPTest):
     requiredOptions = ['backend']
     requiresTor = False
     requiresRoot = False
+
+    def setUp(self):
+        super(HTTPHeaderFieldManipulation, self).setUp()
+        self.url = self.localOptions['backend']
 
     def get_headers(self):
         headers = {}
@@ -95,12 +99,6 @@ class HTTPHeaderFieldManipulation(httpt.HTTPTest):
             new_key = random_capitalization(k)
             headers[new_key] = v
         return headers
-
-    def processInputs(self):
-        if self.localOptions['backend']:
-            self.url = self.localOptions['backend']
-        else:
-            raise Exception("No backend specified")
 
     def processResponseBody(self, data):
         self.check_for_tampering(data)

@@ -1,6 +1,7 @@
 import os
 import re
 import time
+import sys
 from hashlib import sha256
 
 from twisted.internet import defer
@@ -342,7 +343,11 @@ class NetTestLoader(object):
         """
         for klass in self.testClasses:
             options = self.usageOptions()
-            options.parseOptions(self.options)
+            try:
+                options.parseOptions(self.options)
+            except usage.UsageError:
+                tb = sys.exc_info()[2]
+                raise e.OONIUsageError(self), None, tb
 
             if options:
                 klass.localOptions = options
@@ -764,7 +769,7 @@ class NetTestCase(object):
                     self.localOptions[required_option] is None:
                 missing_options.append(required_option)
         if missing_options:
-            raise e.MissingRequiredOption(missing_options)
+            raise e.MissingRequiredOption(missing_options, self)
 
     def __repr__(self):
         return "<%s inputs=%s>" % (self.__class__, self.inputs)
