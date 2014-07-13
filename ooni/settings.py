@@ -3,10 +3,15 @@ import sys
 import yaml
 import getpass
 
+from twisted.internet import defer, reactor
+from twisted.internet.endpoints import TCP4ClientEndpoint
+
 from os.path import abspath, expanduser
+from scapy.all import get_if_list
+import txtorcon
 
 from ooni import otime, geoip
-from ooni.utils import Storage
+from ooni.utils import Storage, log
 
 
 class OConfig(object):
@@ -93,10 +98,9 @@ class OConfig(object):
                     else:
                         w.write(line)
 
+    @defer.inlineCallbacks
     def read_config_file(self):
-        try:
-            with open(self.config_file) as f: pass
-        except IOError:
+        if not os.path.exists(self.config_file):
             print "Configuration file does not exist."
             self._create_config_file()
             self.read_config_file()
@@ -105,13 +109,66 @@ class OConfig(object):
             config_file_contents = '\n'.join(f.readlines())
             configuration = yaml.safe_load(config_file_contents)
 
-            for setting in ['basic', 'reports', 'advanced', 'privacy', 'tor']:
-                try:
-                    for k, v in configuration[setting].items():
-                        getattr(self, setting)[k] = v
-                except AttributeError:
-                    pass
+        for setting in configuration.keys():
+            if setting in dir(self):
+                for k, v in configuration[setting].items():
+                    getattr(self, setting)[k] = v
         self.set_paths()
+
+        # The incoherent checks must be performed after OConfig is in a valid state to runWithDirector
+        coherent = yield self.check_incoherences(configuration)
+        if not coherent:
+            sys.exit(6)
+
+    @defer.inlineCallbacks
+    def check_incoherences(self, configuration):
+        incoherent = []
+        deferreds = []
+
+        if not configuration['advanced']['start_tor']:
+            if not 'socks_port' in configuration['tor']:
+                incoherent.append('tor:socks_port')
+            if not 'control_port' in configuration['tor']:
+                incoherent.append('tor:control_port')
+            if 'socks_port' in configuration['tor'] and 'control_port' in configuration['tor']:
+                # Check if tor is listening in these ports
+                @defer.inlineCallbacks
+                def cb(state):
+                    timeout_call.cancel()
+                    result = yield state.protocol.get_info("net/listeners/socks")
+                    if result["net/listeners/socks"].split(':')[1] != str(configuration['tor']['socks_port']):
+                        incoherent.append('tor:socks_port')
+
+                def err(failure):
+                    incoherent.append('tor:socks_port')
+                    if timeout_call.active:
+                        timeout_call.cancel()
+
+                def timeout():
+                    incoherent.append('tor:control_port')
+                    if not d.called:
+                        d.errback()
+
+                connection = TCP4ClientEndpoint(reactor, "localhost", configuration['tor']['control_port'])
+                d = txtorcon.build_tor_connection(connection)
+                d.addCallback(cb)
+                d.addErrback(err)
+                deferreds.append(d)
+                timeout_call = reactor.callLater(30, timeout)
+
+        if configuration['advanced']['interface'] != 'auto' and configuration['advanced']['interface'] not in get_if_list():
+            incoherent.append('advanced:interface')
+
+        deferred_list = defer.DeferredList(deferreds)
+        yield deferred_list
+        if len(incoherent) > 0:
+            if len(incoherent) > 1:
+                incoherent_pretty = ", ".join(incoherent[:-1]) + ' and ' + incoherent[-1]
+            else:
+                incoherent_pretty = incoherent[0]
+            log.err("You must set properly %s in %s." % (incoherent_pretty, self.config_file))
+            defer.returnValue(False)
+        defer.returnValue(True)
 
     def generate_pcap_filename(self, testDetails):
         test_name, start_time = testDetails['test_name'], testDetails['start_time']
