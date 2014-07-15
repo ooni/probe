@@ -302,6 +302,10 @@ class ReportLogExists(Exception):
 class InvalidConfigFile(Exception):
     pass
 
+class ConfigFileIncoherent(Exception):
+    pass
+
+
 def get_error(error_key):
     if error_key == 'test-helpers-key-missing':
         return CouldNotFindTestHelper

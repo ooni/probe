@@ -12,6 +12,7 @@ import txtorcon
 
 from ooni import otime, geoip
 from ooni.utils import Storage, log
+from ooni import errors
 
 
 class OConfig(object):
@@ -99,7 +100,7 @@ class OConfig(object):
                         w.write(line)
 
     @defer.inlineCallbacks
-    def read_config_file(self):
+    def read_config_file(self, check_incoherences=False):
         if not os.path.exists(self.config_file):
             print "Configuration file does not exist."
             self._create_config_file()
@@ -116,9 +117,10 @@ class OConfig(object):
         self.set_paths()
 
         # The incoherent checks must be performed after OConfig is in a valid state to runWithDirector
-        coherent = yield self.check_incoherences(configuration)
-        if not coherent:
-            sys.exit(6)
+        if check_incoherences:
+            coherent = yield self.check_incoherences(configuration)
+            if not coherent:
+                raise errors.ConfigFileIncoherent
 
     @defer.inlineCallbacks
     def check_incoherences(self, configuration):
