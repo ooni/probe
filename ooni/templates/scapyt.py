@@ -13,6 +13,7 @@ from ooni.settings import config
 from ooni.utils.txscapy import ScapySender, getDefaultIface, ScapyFactory
 from ooni.utils.txscapy import hasRawSocketPermission
 
+
 class BaseScapyTest(NetTestCase):
     """
     The report of a test run with scapy looks like this:
@@ -29,13 +30,13 @@ class BaseScapyTest(NetTestCase):
 
     requiresRoot = not hasRawSocketPermission()
     baseFlags = [
-            ['ipsrc', 's',
-                'Does *not* check if IP src and ICMP IP citation matches when processing answers'],
-            ['seqack', 'k',
-                'Check if TCP sequence number and ACK match in the ICMP citation when processing answers'],
-            ['ipid', 'i',
-                'Check if the IPID matches when processing answers']
-            ]
+        ['ipsrc', 's',
+         'Does *not* check if IP src and ICMP IP citation matches when processing answers'],
+        ['seqack', 'k',
+         'Check if TCP sequence number and ACK match in the ICMP citation when processing answers'],
+        ['ipid', 'i',
+         'Check if the IPID matches when processing answers']
+    ]
 
     def _setUp(self):
         super(BaseScapyTest, self)._setUp()
@@ -143,5 +144,6 @@ class BaseScapyTest(NetTestCase):
         scapySender.stopSending()
         for sent_packet in packets:
             self.report['sent_packets'].append(sent_packet)
+
 
 ScapyTest = BaseScapyTest
