@@ -28,10 +28,8 @@ class TestOONIBClient(ConfigTestCase):
             data_dir = '/tmp/testooni'
             config.advanced.data_dir = data_dir
 
-            try:
+            if os.path.exists(data_dir):
                 shutil.rmtree(data_dir)
-            except:
-                pass
             os.mkdir(data_dir)
             os.mkdir(os.path.join(data_dir, 'inputs'))
             os.mkdir(os.path.join(data_dir, 'decks'))
@@ -101,21 +99,11 @@ class TestOONIBClient(ConfigTestCase):
 
     @defer.inlineCallbacks
     def test_input_descriptor_not_found(self):
-        try:
-            yield self.oonibclient.queryBackend('GET', '/input/' + 'a'*64)
-        except e.OONIBInputDescriptorNotFound:
-            pass
-        else:
-            assert False
+        yield self.assertFailure(self.oonibclient.queryBackend('GET', '/input/' + 'a'*64), e.OONIBInputDescriptorNotFound)
 
     @defer.inlineCallbacks
     def test_http_errors(self):
-        try:
-            yield self.oonibclient.queryBackend('PUT', '/policy/input')
-        except error.Error:
-            pass
-        else:
-            assert False
+        yield self.assertFailure(self.oonibclient.queryBackend('PUT', '/policy/input'), error.Error)
 
     @defer.inlineCallbacks
     def test_create_report(self):

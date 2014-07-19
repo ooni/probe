@@ -29,6 +29,7 @@ private/*
 ooni/report*.yaml
 report*.yaml
 *.yamloo
+*.pcap
 pcaps/
 
 ooniprobe.conf

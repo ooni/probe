@@ -41,10 +41,6 @@ class BaseScapyTest(NetTestCase):
     def _setUp(self):
         super(BaseScapyTest, self)._setUp()
 
-        if not config.scapyFactory:
-            log.debug("Scapy factory not set, registering it.")
-            config.scapyFactory = ScapyFactory(config.advanced.interface)
-
         self.report['answer_flags'] = []
         if self.localOptions['ipsrc']:
             config.checkIPsrc = 0
@@ -93,12 +89,12 @@ class BaseScapyTest(NetTestCase):
             self.report['answered_packets'].append(received_packet)
         return packets
 
-    def sr(self, packets, *arg, **kw):
+    def sr(self, packets, timeout=None, *arg, **kw):
         """
         Wrapper around scapy.sendrecv.sr for sending and receiving of packets
         at layer 3.
         """
-        scapySender = ScapySender()
+        scapySender = ScapySender(timeout=timeout)
 
         config.scapyFactory.registerProtocol(scapySender)
         log.debug("Using sending with hash %s" % scapySender.__hash__)

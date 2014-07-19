@@ -1,5 +1,3 @@
-import ipaddr
-import struct
 import socket
 import os
 import sys
@@ -9,12 +7,10 @@ import random
 from twisted.internet import protocol, base, fdesc
 from twisted.internet import reactor, threads, error
 from twisted.internet import defer, abstract
-from zope.interface import implements
 
 from scapy.config import conf
 from scapy.supersocket import L3RawSocket
-from scapy.all import RandShort, IP, IPerror, ICMP, ICMPerror
-from scapy.all import TCP, TCPerror, UDP, UDPerror
+from scapy.all import RandShort, IP, IPerror, ICMP, ICMPerror, TCP, TCPerror, UDP, UDPerror, read_routes
 
 from ooni.utils import log
 from ooni.settings import config
@@ -53,10 +49,8 @@ def pcapdnet_installed():
 
         config.pcap_dnet = True
 
-    except ImportError:
-        log.err("pypcap or dnet not installed. "
-                "Certain tests may not work.")
-
+    except ImportError as e:
+        log.err(e.message + ". Pypcap or dnet are not properly installed. Certain tests may not work.")
         config.pcap_dnet = False
         conf.use_pcap = False
         conf.use_dnet = False
@@ -320,6 +314,9 @@ class ScapySniffer(ScapyProtocol):
     def packetReceived(self, packet):
         self.pcapwriter.write(packet)
 
+    def close(self):
+        self.pcapwriter.close()
+
 
 class ParasiticTraceroute(ScapyProtocol):
     def __init__(self):
@@ -363,11 +360,7 @@ class ParasiticTraceroute(ScapyProtocol):
 
         def maxttl(packet=None):
             if packet:
-                return min(self.ttl_max,
-                           min(
-                               abs(64 - packet.ttl),
-                               abs(128 - packet.ttl),
-                               abs(256 - packet.ttl))) - 1
+                return min(self.ttl_max, *map(lambda x: x - packet.ttl, [64, 128, 256])) - 1
             else:
                 return self.ttl_max
 
