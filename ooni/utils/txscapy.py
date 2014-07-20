@@ -124,13 +124,9 @@ def getAddresses():
 
 def getDefaultIface():
     """ Return the default interface or raise IfaceError """
-    # XXX: currently broken on OpenVZ environments, because
-    # the routing table does not contain a default route
-    # Workaround: Set the default interface in ooniprobe.conf
-    networks = getNetworksFromRoutes()
-    for net in networks:
-        if net.is_private:
-            return net.iface
+    for route in read_routes():
+        if route[2] == '0.0.0.0' and route[3] != 'lo':
+            return route[3]
     raise IfaceError
 
 
