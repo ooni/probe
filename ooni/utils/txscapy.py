@@ -10,7 +10,7 @@ from twisted.internet import defer, abstract
 
 from scapy.config import conf
 from scapy.supersocket import L3RawSocket
-from scapy.all import RandShort, IP, IPerror, ICMP, ICMPerror, TCP, TCPerror, UDP, UDPerror, read_routes
+from scapy.all import RandShort, IP, IPerror, ICMP, ICMPerror, TCP, TCPerror, UDP, UDPerror
 
 from ooni.utils import log
 from ooni.settings import config
@@ -124,9 +124,9 @@ def getAddresses():
 
 def getDefaultIface():
     """ Return the default interface or raise IfaceError """
-    for route in read_routes():
-        if route[2] == '0.0.0.0' and route[3] != 'lo':
-            return route[3]
+    iface = conf.route.route('0.0.0.0', verbose=0)[0]
+    if len(iface) > 0:
+        return iface
     raise IfaceError
 
 

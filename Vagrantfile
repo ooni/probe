@@ -10,7 +10,7 @@ Vagrant.configure("2") do |config|
 
   config.vm.synced_folder ".", "/ooni"
   # Place the ooni-backend source code in ../ooni-backend to sync it with the vagrant instance
-  # config.vm.synced_folder "../ooni-backend", "/oonib"
+  config.vm.synced_folder "../ooni-backend", "/oonib"
 
 end
 
