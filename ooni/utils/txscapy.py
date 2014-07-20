@@ -255,8 +255,7 @@ class ScapySender(ScapyProtocol):
             self.stopSending()
             return
 
-        if self.expected_answers and \
-                        self.expected_answers == len(self.answered_packets):
+        if self.expected_answers and self.expected_answers == len(self.answered_packets):
             log.debug("Got the number of expected answers")
             self.stopSending()
 
@@ -416,7 +415,8 @@ class MPTraceroute(ScapyProtocol):
         self.numPackets = 1
 
     def ICMPTraceroute(self, host):
-        if host not in self.hosts: self.hosts.append(host)
+        if host not in self.hosts:
+            self.hosts.append(host)
 
         d = defer.Deferred()
         reactor.callLater(self.timeout, d.callback, self)
@@ -425,7 +425,8 @@ class MPTraceroute(ScapyProtocol):
         return d
 
     def UDPTraceroute(self, host):
-        if host not in self.hosts: self.hosts.append(host)
+        if host not in self.hosts:
+            self.hosts.append(host)
 
         d = defer.Deferred()
         reactor.callLater(self.timeout, d.callback, self)
@@ -436,7 +437,8 @@ class MPTraceroute(ScapyProtocol):
         return d
 
     def TCPTraceroute(self, host):
-        if host not in self.hosts: self.hosts.append(host)
+        if host not in self.hosts:
+            self.hosts.append(host)
 
         d = defer.Deferred()
         reactor.callLater(self.timeout, d.callback, self)
@@ -533,8 +535,7 @@ class MPTraceroute(ScapyProtocol):
         l = packet.getlayer(1)
         if not l:
             return
-        elif (isinstance(l, ICMP) or isinstance(l, UDP) or
-                  isinstance(l, TCP)):
+        elif isinstance(l, ICMP) or isinstance(l, UDP) or isinstance(l, TCP):
             self._recvbuf.append(packet)
 
     def stopListening(self):

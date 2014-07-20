@@ -6,13 +6,16 @@ from txtorcon.util import find_tor_binary as tx_find_tor_binary
 
 from ooni.settings import config
 
+
 class TorVersion(LooseVersion):
     pass
+
 
 def find_tor_binary():
     if config.advanced.tor_binary:
         return config.advanced.tor_binary
     return tx_find_tor_binary()
+
 
 def tor_version():
     tor_binary = find_tor_binary()
@@ -29,6 +32,7 @@ def tor_version():
             return TorVersion(stdout.strip().split(' ')[2])
     return None
 
+
 def transport_name(address):
     """
     If the address of the bridge starts with a valid c identifier then
@@ -43,6 +47,7 @@ def transport_name(address):
         return transport_name
     else:
         return None
+
 
 tor_details = {
     'binary': find_tor_binary(),

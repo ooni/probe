@@ -5,6 +5,7 @@ import os
 
 from ooni import errors, otime
 
+
 class Storage(dict):
     """
     A Storage object is like a dictionary except `obj.foo` can be used
@@ -22,6 +23,7 @@ class Storage(dict):
         >>> o.a
         None
     """
+
     def __getattr__(self, key):
         try:
             return self[key]
@@ -47,9 +49,11 @@ class Storage(dict):
         for (k, v) in value.items():
             self[k] = v
 
+
 def checkForRoot():
     if os.getuid() != 0:
         raise errors.InsufficientPrivileges
+
 
 def randomSTR(length, num=True):
     """
@@ -60,6 +64,7 @@ def randomSTR(length, num=True):
         chars += string.digits
     return ''.join(random.choice(chars) for x in range(length))
 
+
 def randomstr(length, num=True):
     """
     Returns a random all lowercase alfa-numerical (if num True) string long length
@@ -68,6 +73,7 @@ def randomstr(length, num=True):
     if num:
         chars += string.digits
     return ''.join(random.choice(chars) for x in range(length))
+
 
 def randomStr(length, num=True):
     """
@@ -78,6 +84,7 @@ def randomStr(length, num=True):
     if num:
         chars += string.digits
     return ''.join(random.choice(chars) for x in range(length))
+
 
 def pushFilenameStack(filename):
     """
@@ -90,7 +97,7 @@ def pushFilenameStack(filename):
     Args:
         filename (str): the path to filename that you wish to create.
     """
-    stack = glob.glob(filename+".*")
+    stack = glob.glob(filename + ".*")
     stack.sort(key=lambda x: int(x.split('.')[-1]))
     for f in reversed(stack):
         c_idx = f.split(".")[-1]
@@ -98,7 +105,7 @@ def pushFilenameStack(filename):
         new_idx = int(c_idx) + 1
         new_filename = "%s.%s" % (c_filename, new_idx)
         os.rename(f, new_filename)
-    os.rename(filename, filename+".1")
+    os.rename(filename, filename + ".1")
 
 
 def generate_filename(testDetails, prefix=None, extension=None, filename=None):
