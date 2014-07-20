@@ -5,7 +5,7 @@ import getpass
 
 from os.path import abspath, expanduser
 
-from ooni import otime, geoip
+from ooni import geoip
 from ooni.utils import Storage
 
 

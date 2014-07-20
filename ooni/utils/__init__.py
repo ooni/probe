@@ -1,12 +1,9 @@
-import logging
 import string
 import random
 import glob
-import yaml
-import imp
 import os
 
-from ooni import errors
+from ooni import errors, otime
 
 class Storage(dict):
     """
@@ -102,3 +99,27 @@ def pushFilenameStack(filename):
         new_filename = "%s.%s" % (c_filename, new_idx)
         os.rename(f, new_filename)
     os.rename(filename, filename+".1")
+
+
+def generate_filename(testDetails, prefix=None, extension=None, filename=None):
+    """
+    Returns a filename for every test execution.
+
+    It's used to assure that all files of a certain test have a common basename but different
+    extension.
+    """
+    if filename is None:
+        test_name, start_time = testDetails['test_name'], testDetails['start_time']
+        start_time = otime.epochToTimestamp(start_time)
+        suffix = "%s-%s" % (test_name, start_time)
+        basename = '%s-%s' % (prefix, suffix) if prefix is not None else suffix
+        final_filename = '%s.%s' % (basename, extension) if extension is not None else basename
+    else:
+        if extension is not None:
+            basename = filename.split('.')[0] if '.' in filename else filename
+            final_filename = '%s.%s' % (basename, extension)
+        else:
+            final_filename = filename
+
+    return final_filename
+

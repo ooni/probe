@@ -2,14 +2,12 @@ import os
 import sys
 import yaml
 
-from twisted.internet import defer
-from twisted.trial import unittest
+from twisted.internet import defer, reactor
 
 from ooni.tests import is_internet_connected
 from ooni.tests.bases import ConfigTestCase
 from ooni.settings import config
 from ooni.oonicli import runWithDirector
-
 
 def verify_header(header):
     assert 'input_hashes' in header.keys()
@@ -25,6 +23,34 @@ def verify_header(header):
 
 def verify_entry(entry):
     assert 'input' in entry
+
+config_includepcap = """
+basic:
+    logfile: ~/.ooni/ooniprobe.log
+privacy:
+    includeip: false
+    includeasn: true
+    includecountry: true
+    includecity: false
+    includepcap: true
+reports:
+    pcap: null
+    collector: null
+advanced:
+    geoip_data_dir: /usr/share/ooni/geoip
+    debug: false
+    interface: auto
+    start_tor: true
+    measurement_timeout: 60
+    measurement_retries: 2
+    measurement_concurrency: 10
+    reporting_timeout: 80
+    reporting_retries: 3
+    reporting_concurrency: 15
+    data_dir: /usr/share/ooni
+    oonid_api_port: 8042
+tor:
+"""
 
 
 class TestRunDirector(ConfigTestCase):
@@ -43,14 +69,18 @@ class TestRunDirector(ConfigTestCase):
         super(TestRunDirector, self).tearDown()
         if len(self.filenames) > 0:
             for filename in self.filenames:
-                os.remove(filename)
+                if os.path.exists(filename):
+                    os.remove(filename)
 
     @defer.inlineCallbacks
-    def run_helper(self, test_name, args, verify_function):
-        output_file = 'test_report.yaml'
+    def run_helper(self, test_name, nettest_args, verify_function, ooni_args=[]):
+        output_file = 'test_report.yamloo'
         self.filenames.append(output_file)
-        sys.argv = ['', '-n', '-o', output_file, test_name]
-        sys.argv.extend(args)
+        oldargv = sys.argv
+        sys.argv = ['']
+        sys.argv.extend(ooni_args)
+        sys.argv.extend(['-n', '-o', output_file, test_name])
+        sys.argv.extend(nettest_args)
         yield runWithDirector(False, False)
         with open(output_file) as f:
             entries = yaml.safe_load_all(f)
@@ -62,6 +92,7 @@ class TestRunDirector(ConfigTestCase):
         verify_header(header)
         verify_entry(first_entry)
         verify_function(first_entry)
+        sys.argv = oldargv
 
     @defer.inlineCallbacks
     def test_http_requests(self):
@@ -125,3 +156,21 @@ class TestRunDirector(ConfigTestCase):
         yield self.run_helper('manipulation/http_header_field_manipulation',
                               ['-b', 'http://64.9.225.221'],
                               verify_function)
+
+    @defer.inlineCallbacks
+    def test_sniffing_activated(self):
+        filename = 'test_report.pcap'
+        self.filenames.append(filename)
+        conf_file = 'fake_config.conf'
+        with open(conf_file, 'w') as cfg:
+            cfg.writelines(config_includepcap)
+        self.filenames.append(conf_file)
+
+        def verify_function(_):
+            assert os.path.exists(filename)
+            self.assertGreater(os.stat(filename).st_size, 0)
+        yield self.run_helper('blocking/http_requests',
+                              ['-f', 'example-input.txt'],
+                              verify_function, ooni_args=['-f', conf_file])
+
+        config.scapyFactory.connectionLost('')

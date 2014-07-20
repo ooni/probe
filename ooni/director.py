@@ -1,14 +1,13 @@
 import os
-import otime
-from psutil import Process
 
 from ooni.managers import ReportEntryManager, MeasurementManager
 from ooni.reporter import Report
-from ooni.utils import log, pushFilenameStack
+from ooni.utils import log, generate_filename
 from ooni.utils.net import randomFreePort
 from ooni.nettest import NetTest, getNetTestInformation
 from ooni.settings import config
 from ooni import errors
+from ooni.nettest import test_class_name_to_name
 
 from txtorcon import TorConfig, TorState, launch_tor, build_tor_connection
 
@@ -191,7 +190,7 @@ class Director(object):
         self.totalMeasurementRuntime += measurement.runtime
         self.successfulMeasurements += 1
         measurement.result = result
-        test_name = measurement.testInstance.__class__.__name__
+        test_name = test_class_name_to_name(measurement.testInstance.name)
         sniffer = self.sniffers[test_name]
         config.scapyFactory.unRegisterProtocol(sniffer)
         sniffer.close()
@@ -264,16 +263,14 @@ class Director(object):
         """
         from ooni.utils.txscapy import ScapySniffer
 
-        test_name, start_time = testDetails['test_name'], testDetails['start_time']
-        start_time = otime.epochToTimestamp(start_time)
-        suffix = "%s-%s.%s" % (test_name, start_time, "pcap")
         if not config.reports.pcap:
-            filename_pcap= "%s-%s" % ("report", suffix)
+            prefix = 'report'
         else:
-            filename_pcap = "%s-%s" % (config.reports.pcap, suffix)
-
-        if len(self.sniffers) > 1:
-            pcap_filenames = set(sniffer.pcapwriter.filename for sniffer in self.sniffers)
+            prefix = config.reports.pcap
+        filename = config.global_options['reportfile'] if 'reportfile' in config.global_options.keys() else None
+        filename_pcap = generate_filename(testDetails, filename=filename, prefix=prefix, extension='pcap')
+        if len(self.sniffers) > 0:
+            pcap_filenames = set(sniffer.pcapwriter.filename for sniffer in self.sniffers.values())
             pcap_filenames.add(filename_pcap)
             log.msg("pcap files %s can be messed up because several netTests are being executed in parallel." %
                     ','.join(pcap_filenames))
