@@ -1,10 +1,20 @@
 import os
 from twisted.trial import unittest
 
-from ooni.utils import pushFilenameStack, log
+from ooni.utils import pushFilenameStack, log, generate_filename
 
 
 class TestUtils(unittest.TestCase):
+    def setUp(self):
+        self.test_details = {
+            'test_name': 'foo',
+            'start_time': 1
+        }
+        self.extension = 'ext'
+        self.prefix = 'prefix'
+        self.basename = 'filename'
+        self.filename = 'filename.txe'
+
     def test_pushFilenameStack(self):
         basefilename = os.path.join(os.getcwd(), 'dummyfile')
         f = open(basefilename, "w+")
@@ -33,3 +43,31 @@ class TestUtils(unittest.TestCase):
         )
         for encoded_logmsg, logmsg in logmsgs:
             self.assertEqual(log.log_encode(logmsg), encoded_logmsg)
+
+    def test_generate_filename(self):
+        filename = generate_filename(self.test_details)
+        self.assertEqual(filename, 'foo-1')
+
+    def test_generate_filename_with_extension(self):
+        filename = generate_filename(self.test_details, extension=self.extension)
+        self.assertEqual(filename, 'foo-1.ext')
+
+    def test_generate_filename_with_prefix(self):
+        filename = generate_filename(self.test_details, prefix=self.prefix)
+        self.assertEqual(filename, 'prefix-foo-1')
+
+    def test_generate_filename_with_extension_and_prefix(self):
+        filename = generate_filename(self.test_details, prefix=self.prefix, extension=self.extension)
+        self.assertEqual(filename, 'prefix-foo-1.ext')
+
+    def test_generate_filename_with_filename(self):
+        filename = generate_filename(self.test_details, filename=self.filename)
+        self.assertEqual(filename, 'filename.txe')
+
+    def test_generate_filename_with_extension_and_filename(self):
+        filename = generate_filename(self.test_details, extension=self.extension, filename=self.filename)
+        self.assertEqual(filename, 'filename.ext')
+
+    def test_generate_filename_with_extension_and_basename(self):
+        filename = generate_filename(self.test_details, extension=self.extension, filename=self.basename)
+        self.assertEqual(filename, 'filename.ext')
