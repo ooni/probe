@@ -174,8 +174,7 @@ class StartTest(ORequestHandler):
         net_test_loader = get_net_test_loader(test_options, test_file)
         try:
             net_test_loader.checkOptions()
-            d = oonidApplication.director.startNetTest(net_test_loader,
-                                                       get_reporters(net_test_loader))
+            d = oonidApplication.director.startNetTest(net_test_loader, None)
             @d.addBoth
             def cleanup(result):
                 for fd, path in tmp_files:
