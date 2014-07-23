@@ -125,9 +125,9 @@ def getDefaultIface():
     # Workaround: Set the default interface in ooniprobe.conf
     networks = getNetworksFromRoutes()
     for net in networks:
-        if net.is_private:
+        if net.netmask == ipaddr.IPv4Address("0.0.0.0"):
             return net.iface
-    raise IfaceError
+    raise IfaceError("Could not auto-detect default interface.")
 
 def hasRawSocketPermission():
     try:
