@@ -23,9 +23,14 @@ class FilenameExists(Exception):
 def check_xsrf(method):
     @functools.wraps(method)
     def wrapper(self, *args, **kw):
-        xsrf_header = self.request.headers.get("X-XSRF-TOKEN")
-        if self.xsrf_token != xsrf_header:
+        xsrf_cookie = self.request.headers.get("Cookie")
+        if (not xsrf_cookie) or (not xsrf_cookie.startswith("XSRF-TOKEN=")):
+            raise web.HTTPError(403, "Missing XSRF token.")
+
+        received_token = xsrf_cookie.split("=")[-1]
+        if received_token != self.xsrf_token:
             raise web.HTTPError(403, "Invalid XSRF token.")
+
         return method(self, *args, **kw)
     return wrapper
 
