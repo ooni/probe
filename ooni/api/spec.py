@@ -82,17 +82,21 @@ class Inputs(ORequestHandler):
         input_file = self.request.files.get("file")[0]
         filename = input_file['filename']
 
-        if not filename or not re.match('(\w.*\.\w.*).*', filename):
-            raise InvalidInputFilename
+        expected_format = "(\w.*\.\w.*).*"
+        if not filename or not re.match(expected_format, filename):
+            raise InvalidInputFilename("File name should match regular "
+                                       "expression: %s" % expected_format)
 
-        if os.path.exists(filename):
-            raise FilenameExists
+        filename = os.path.join(config.inputs_directory, filename)
+        absolute_filename = os.path.abspath(filename)
+
+        if os.path.exists(absolute_filename):
+            raise FilenameExists("File %s already exists." % absolute_filename)
 
         content_type = input_file["content_type"]
         body = input_file["body"]
 
-        fn = os.path.join(config.inputs_directory, filename)
-        with open(os.path.abspath(fn), "w") as fp:
+        with open(absolute_filename, "w") as fp:
             fp.write(body)
 
 class ListTests(ORequestHandler):
