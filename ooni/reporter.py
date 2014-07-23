@@ -171,7 +171,8 @@ class YAMLReporter(OReporter):
 
     """
 
-    def __init__(self, test_details, report_destination='.',
+    def __init__(self, test_details,
+                 report_destination=config.reports_directory,
                  report_filename=None):
         self.reportDestination = report_destination
 
