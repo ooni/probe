@@ -109,7 +109,6 @@ class TestRunDirector(ConfigTestCase):
 
     @defer.inlineCallbacks
     def test_http_header_field_manipulation(self):
-        self.skipTest("Packets to 64.9.255.221:80 seems to be filtered.")
         def verify_function(entry):
             assert 'agent' in entry
             assert 'requests' in entry
