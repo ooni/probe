@@ -111,7 +111,7 @@ class OConfig(object):
             configuration = yaml.safe_load(config_file_contents)
 
         for setting in configuration.keys():
-            if setting in dir(self):
+            if setting in dir(self) and configuration[setting] is not None:
                 for k, v in configuration[setting].items():
                     getattr(self, setting)[k] = v
         self.set_paths()
