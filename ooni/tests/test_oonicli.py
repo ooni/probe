@@ -8,6 +8,9 @@ from ooni.tests import is_internet_connected
 from ooni.tests.bases import ConfigTestCase
 from ooni.settings import config
 from ooni.oonicli import runWithDirector
+from ooni.utils import checkForRoot
+from ooni.errors import InsufficientPrivileges
+
 
 def verify_header(header):
     assert 'input_hashes' in header.keys()
@@ -57,6 +60,10 @@ class TestRunDirector(ConfigTestCase):
     def setUp(self):
         if not is_internet_connected():
             self.skipTest("You must be connected to the internet to run this test")
+        try:
+            checkForRoot()
+        except InsufficientPrivileges:
+            self.skipTest("You must be root to run this test")
         config.tor.socks_port = 9050
         config.tor.control_port = None
         self.filenames = ['example-input.txt']
