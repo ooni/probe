@@ -4,7 +4,7 @@ import yaml
 
 from twisted.python import usage
 from twisted.python.util import spewer
-from twisted.internet import defer
+from twisted.internet import defer, reactor
 
 from ooni import errors, __version__
 
@@ -110,7 +110,14 @@ def runWithDirector(logging=True, start_tor=True):
     config.global_options = global_options
     config.set_paths()
     config.initialize_ooni_home()
-    config.read_config_file()
+    d = config.read_config_file(check_incoherences=True)
+
+    @d.addErrback
+    def shutdown(failure):
+        failure.trap(errors.ConfigFileIncoherent)
+        log.err("Shutting down until ooniprobe.conf is coherent.")
+        reactor.callWhenRunning(reactor.stop)
+
     if global_options['verbose']:
         config.advanced.debug = True
     if not start_tor:
