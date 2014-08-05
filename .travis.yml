@@ -13,6 +13,6 @@ install:
   - pip install -r requirements-dev.txt
 # command to run tests, e.g. python setup.py test
 script:
-  - sudo coverage run $(which trial) ooni
+  - sudo $(which coverage) run $(which trial) ooni
 after_success: 
   - coveralls
