@@ -37,7 +37,7 @@ reports:
     pcap: null
     collector: null
 advanced:
-    geoip_data_dir: /usr/share/ooni/geoip
+    geoip_data_dir: /usr/share/GeoIP
     debug: false
     interface: auto
     start_tor: true
