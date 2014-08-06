@@ -110,13 +110,10 @@ def runWithDirector(logging=True, start_tor=True):
     config.global_options = global_options
     config.set_paths()
     config.initialize_ooni_home()
-    d = config.read_config_file(check_incoherences=True)
-
-    @d.addErrback
-    def shutdown(failure):
-        failure.trap(errors.ConfigFileIncoherent)
-        log.err("Shutting down until ooniprobe.conf is coherent.")
-        reactor.callWhenRunning(reactor.stop)
+    try:
+        config.read_config_file(check_incoherences=True)
+    except errors.ConfigFileIncoherent:
+        sys.exit(6)
 
     if global_options['verbose']:
         config.advanced.debug = True
@@ -173,11 +170,11 @@ def runWithDirector(logging=True, start_tor=True):
 
     deck = Deck()
     deck.bouncer = global_options['bouncer']
-    start_tor = deck.requiresTor
+    conditions_to_start_tor = [False]
     if global_options['bouncer']:
-        start_tor = True
+        conditions_to_start_tor.append(True)
     if global_options['collector']:
-        start_tor = True
+        conditions_to_start_tor.append(True)
 
     try:
         if global_options['testdeck']:
@@ -204,6 +201,8 @@ def runWithDirector(logging=True, start_tor=True):
         log.err(e)
         sys.exit(5)
 
+    conditions_to_start_tor.append(deck.requiresTor)
+    start_tor = any(conditions_to_start_tor)
     d = director.start(start_tor=start_tor)
 
     def setup_nettest(_):
@@ -220,7 +219,8 @@ def runWithDirector(logging=True, start_tor=True):
                      errors.CouldNotFindTestHelper,
                      errors.CouldNotFindTestCollector,
                      errors.ProbeIPUnknown,
-                     errors.InvalidInputFile)
+                     errors.InvalidInputFile,
+                     errors.ConfigFileIncoherent)
 
         if isinstance(failure.value, errors.TorNotRunning):
             log.err("Tor does not appear to be running")
@@ -256,6 +256,9 @@ def runWithDirector(logging=True, start_tor=True):
 
         elif isinstance(failure.value, errors.InvalidInputFile):
             log.err("Invalid input file \"%s\"" % failure.value)
+
+        elif isinstance(failure.value, errors.ConfigFileIncoherent):
+            log.err("Incoherent config file")
 
         if config.advanced.debug:
             log.exception(failure)

@@ -123,11 +123,13 @@ class Director(object):
     def start(self, start_tor=False):
         self.netTests = self.getNetTests()
 
-        if config.advanced.start_tor and start_tor:
-            yield self.startTor()
-        elif config.tor.control_port:
-            log.msg("Connecting to Tor Control Port...")
-            yield self.getTorState()
+        if start_tor:
+            yield config.check_tor()
+            if config.advanced.start_tor:
+                yield self.startTor()
+            elif config.tor.control_port:
+                log.msg("Connecting to Tor Control Port...")
+                yield self.getTorState()
 
         if config.global_options['no-geoip']:
             aux = [False]
