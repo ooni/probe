@@ -99,7 +99,6 @@ class OConfig(object):
                     else:
                         w.write(line)
 
-    @defer.inlineCallbacks
     def read_config_file(self, check_incoherences=False):
         if not os.path.exists(self.config_file):
             print "Configuration file does not exist."
@@ -116,61 +115,60 @@ class OConfig(object):
                     getattr(self, setting)[k] = v
         self.set_paths()
 
-        # The incoherent checks must be performed after OConfig is in a valid state to runWithDirector
         if check_incoherences:
-            coherent = yield self.check_incoherences(configuration)
-            if not coherent:
-                raise errors.ConfigFileIncoherent
+            self.check_incoherences(configuration)
 
-    @defer.inlineCallbacks
     def check_incoherences(self, configuration):
         incoherent = []
-        deferreds = []
 
-        if not configuration['advanced']['start_tor']:
-            if not 'socks_port' in configuration['tor']:
+        if configuration['advanced']['interface'] != 'auto' and configuration['advanced']['interface'] not in get_if_list():
+            incoherent.append('advanced:interface')
+
+        self.log_incoherences(incoherent)
+
+    def log_incoherences(self, incoherences):
+        if len(incoherences) > 0:
+            if len(incoherences) > 1:
+                incoherent_pretty = ", ".join(incoherences[:-1]) + ' and ' + incoherences[-1]
+            else:
+                incoherent_pretty = incoherences[0]
+            log.err("You must set properly %s in %s." % (incoherent_pretty, self.config_file))
+            raise errors.ConfigFileIncoherent
+
+    @defer.inlineCallbacks
+    def check_tor(self):
+        """
+        Called only when we must start tor by director.start
+        """
+        incoherent = []
+        d = defer.Deferred()
+
+        if not self.advanced.start_tor:
+            if self.tor.socks_port is None:
                 incoherent.append('tor:socks_port')
-            if not 'control_port' in configuration['tor']:
+            if self.tor.control_port is None:
                 incoherent.append('tor:control_port')
-            if 'socks_port' in configuration['tor'] and 'control_port' in configuration['tor']:
+            if self.tor.socks_port is not None and self.tor.control_port is not None:
                 # Check if tor is listening in these ports
-                @defer.inlineCallbacks
-                def cb(state):
-                    timeout_call.cancel()
-                    result = yield state.protocol.get_info("net/listeners/socks")
-                    if result["net/listeners/socks"].split(':')[1] != str(configuration['tor']['socks_port']):
-                        incoherent.append('tor:socks_port')
-
-                def err(failure):
-                    incoherent.append('tor:socks_port')
-                    if timeout_call.active:
-                        timeout_call.cancel()
-
                 def timeout():
                     incoherent.append('tor:control_port')
                     if not d.called:
                         d.errback()
 
-                connection = TCP4ClientEndpoint(reactor, "localhost", configuration['tor']['control_port'])
-                d = txtorcon.build_tor_connection(connection)
-                d.addCallback(cb)
-                d.addErrback(err)
-                deferreds.append(d)
+                connection = TCP4ClientEndpoint(reactor, "localhost", self.tor.control_port)
                 timeout_call = reactor.callLater(30, timeout)
-
-        if configuration['advanced']['interface'] != 'auto' and configuration['advanced']['interface'] not in get_if_list():
-            incoherent.append('advanced:interface')
-
-        deferred_list = defer.DeferredList(deferreds)
-        yield deferred_list
-        if len(incoherent) > 0:
-            if len(incoherent) > 1:
-                incoherent_pretty = ", ".join(incoherent[:-1]) + ' and ' + incoherent[-1]
-            else:
-                incoherent_pretty = incoherent[0]
-            log.err("You must set properly %s in %s." % (incoherent_pretty, self.config_file))
-            defer.returnValue(False)
-        defer.returnValue(True)
+                try:
+                    d = txtorcon.build_tor_connection(connection)
+                    state = yield d
+                    result = yield state.protocol.get_info("net/listeners/socks")
+                    if result["net/listeners/socks"].split(':')[1] != str(self.tor.socks_port):
+                        incoherent.append('tor:socks_port')
+                except Exception:
+                    incoherent.append('tor:socks_port')
+                finally:
+                    if timeout_call.active:
+                        timeout_call.cancel()
+            self.log_incoherences(incoherent)
 
     def generate_pcap_filename(self, testDetails):
         test_name, start_time = testDetails['test_name'], testDetails['start_time']

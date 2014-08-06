@@ -7,10 +7,13 @@ from scapy.all import get_if_list
 import txtorcon
 
 from ooni.settings import OConfig
+from ooni import errors
+from bases import ConfigTestCase
 
 
-class TestSettings(unittest.TestCase):
+class TestSettings(ConfigTestCase):
     def setUp(self):
+        super(ConfigTestCase, self).setUp()
         self.conf = OConfig()
         self.configuration = {'advanced': {'interface': 'auto',
                                            'start_tor': True},
@@ -19,6 +22,7 @@ class TestSettings(unittest.TestCase):
         self.tor_protocol = None
 
     def tearDown(self):
+        super(ConfigTestCase, self).tearDown()
         if self.silly_listener is not None:
             self.silly_listener.stopListening()
 
@@ -29,8 +33,8 @@ class TestSettings(unittest.TestCase):
             print '%s %s' % (prog, summary)
 
         config = txtorcon.TorConfig()
-        config.SocksPort = self.configuration['tor']['socks_port']
-        config.ControlPort = self.configuration['tor']['control_port']
+        config.SocksPort = self.conf.tor.socks_port
+        config.ControlPort = self.conf.tor.control_port
         d = txtorcon.launch_tor(config, reactor, progress_updates=progress)
         return d
 
@@ -42,33 +46,39 @@ class TestSettings(unittest.TestCase):
         class SillyFactory(Factory):
             protocol = SillyProtocol
 
-        self.silly_listener = reactor.listenTCP(self.configuration['tor']['socks_port'], SillyFactory())
+        self.silly_listener = reactor.listenTCP(self.conf.tor.socks_port, SillyFactory())
 
-    @defer.inlineCallbacks
     def test_vanilla_configuration(self):
-        ret = yield self.conf.check_incoherences(self.configuration)
-        self.assertEqual(ret, True)
+        self.conf.check_incoherences(self.configuration)
 
     @defer.inlineCallbacks
-    def test_check_incoherences_start_tor_missing_options(self):
-        self.configuration['advanced']['start_tor'] = False
-        ret = yield self.conf.check_incoherences(self.configuration)
-        self.assertEqual(ret, False)
-        self.configuration['tor'] = {'socks_port': 9999}
-        ret = yield self.conf.check_incoherences(self.configuration)
-        self.assertEqual(ret, False)
-        self.configuration['tor']['control_port'] = 9998
-        ret = yield self.conf.check_incoherences(self.configuration)
-        self.assertEqual(ret, False)
+    def test_check_tor_missing_options(self):
+        self.conf.advanced.start_tor = False
+        try:
+            yield self.conf.check_tor()
+        except errors.ConfigFileIncoherent:
+            pass
+
+        self.conf.tor.socks_port = 9999
+        try:
+            yield self.conf.check_tor()
+        except errors.ConfigFileIncoherent:
+            pass
+
+        self.conf.tor.socks_port = None
+        self.conf.tor.control_port = 9998
+        try:
+            yield self.conf.check_tor()
+        except errors.ConfigFileIncoherent:
+            pass
 
     @defer.inlineCallbacks
-    def test_check_incoherences_start_tor_correct(self):
-        self.configuration['advanced']['start_tor'] = False
-        self.configuration['tor'] = {'socks_port': 9999}
-        self.configuration['tor']['control_port'] = 9998
+    def test_check_tor_correct(self):
+        self.conf.advanced.start_tor = False
+        self.conf.tor.socks_port = 9999
+        self.conf.tor.control_port = 9998
         self.tor_process = yield self.run_tor()
-        ret = yield self.conf.check_incoherences(self.configuration)
-        self.assertEqual(ret, True)
+        yield self.conf.check_incoherences(self.configuration)
         self.tor_process.transport.signalProcess('TERM')
 
         d = defer.Deferred()
@@ -76,20 +86,19 @@ class TestSettings(unittest.TestCase):
         yield d
 
     @defer.inlineCallbacks
-    def test_check_incoherences_start_tor_silly_listener(self):
-        self.configuration['advanced']['start_tor'] = False
-        self.configuration['tor'] = {'socks_port': 9999}
-        self.configuration['tor']['control_port'] = 9998
+    def test_check_tor_silly_listener(self):
+        self.conf.advanced.start_tor = False
+        self.conf.tor.socks_port = 9999
+        self.conf.tor.control_port = 9998
         self.run_silly_server()
-        ret = yield self.conf.check_incoherences(self.configuration)
-        self.assertEqual(ret, False)
+        try:
+            yield self.conf.check_tor()
+        except errors.ConfigFileIncoherent:
+            pass
 
-    @defer.inlineCallbacks
     def test_check_incoherences_interface(self):
         self.configuration['advanced']['interface'] = 'funky'
-        ret = yield self.conf.check_incoherences(self.configuration)
-        self.assertEqual(ret, False)
+        self.assertRaises(errors.ConfigFileIncoherent, self.conf.check_incoherences, self.configuration)
 
         self.configuration['advanced']['interface'] = random.choice(get_if_list())
-        ret = yield self.conf.check_incoherences(self.configuration)
-        self.assertEqual(ret, True)
+        self.conf.check_incoherences(self.configuration)
