@@ -48,11 +48,11 @@ class TestRunDirector(ConfigTestCase):
     @defer.inlineCallbacks
     def run_helper(self, test_name, args, verify_function):
         output_file = 'test_report.yaml'
-        self.filenames.append(output_file)
+        self.filenames.append(os.path.join(config.reports_directory, output_file))
         sys.argv = ['', '-n', '-o', output_file, test_name]
         sys.argv.extend(args)
         yield runWithDirector(False, False)
-        with open(output_file) as f:
+        with open(os.path.join(config.reports_directory, output_file)) as f:
             entries = yaml.safe_load_all(f)
             header = entries.next()
             try:
