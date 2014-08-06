@@ -17,11 +17,11 @@ privacy:
     # Should we collect a full packet capture on the client?
     includepcap: false
 reports:
-    # This is a packet capture file (.pcap) to load as a test:
+    # This is a prefix for each packet capture file (.pcap) per test:
     pcap: null
     collector: null
 advanced:
-    geoip_data_dir: /usr/share/ooni/geoip
+    geoip_data_dir: /usr/share/GeoIP
     debug: false
     # enable if auto detection fails
     #tor_binary: /usr/sbin/tor

@@ -2,11 +2,12 @@ import os
 
 from ooni.managers import ReportEntryManager, MeasurementManager
 from ooni.reporter import Report
-from ooni.utils import log, pushFilenameStack
+from ooni.utils import log, generate_filename
 from ooni.utils.net import randomFreePort
 from ooni.nettest import NetTest, getNetTestInformation
 from ooni.settings import config
 from ooni import errors
+from ooni.nettest import test_class_name_to_name
 
 from txtorcon import TorConfig, TorState, launch_tor, build_tor_connection
 
@@ -15,7 +16,6 @@ from twisted.internet.endpoints import TCP4ClientEndpoint
 
 
 class Director(object):
-
     """
     Singleton object responsible for coordinating the Measurements Manager
     and the Reporting Manager.
@@ -90,14 +90,13 @@ class Director(object):
         # This deferred is fired once all the measurements and their reporting
         # tasks are completed.
         self.allTestsDone = defer.Deferred()
-        self.sniffer = None
+        self.sniffers = {}
 
     def getNetTests(self):
         nettests = {}
 
         def is_nettest(filename):
-            return not filename == '__init__.py' \
-                and filename.endswith('.py')
+            return not filename == '__init__.py' and filename.endswith('.py')
 
         for category in self.categories:
             dirname = os.path.join(config.nettest_directory, category)
@@ -191,6 +190,11 @@ class Director(object):
         self.totalMeasurementRuntime += measurement.runtime
         self.successfulMeasurements += 1
         measurement.result = result
+        test_name = test_class_name_to_name(measurement.testInstance.name)
+        sniffer = self.sniffers[test_name]
+        config.scapyFactory.unRegisterProtocol(sniffer)
+        sniffer.close()
+        del self.sniffers[test_name]
         return measurement
 
     def measurementFailed(self, failure, measurement):
@@ -229,16 +233,11 @@ class Director(object):
             net_test_loader:
                 an instance of :class:ooni.nettest.NetTestLoader
         """
-
         if self.allTestsDone.called:
             self.allTestsDone = defer.Deferred()
 
         if config.privacy.includepcap:
-            if not config.reports.pcap:
-                config.reports.pcap = config.generate_pcap_filename(
-                    net_test_loader.testDetails
-                )
-            self.startSniffing()
+            self.startSniffing(net_test_loader.testDetails)
 
         report = Report(net_test_loader.testDetails, report_filename,
                         self.reportEntryManager, collector_address)
@@ -258,24 +257,28 @@ class Director(object):
         finally:
             self.netTestDone(net_test)
 
-    def startSniffing(self):
+    def startSniffing(self, testDetails):
         """ Start sniffing with Scapy. Exits if required privileges (root) are not
         available.
         """
-        from ooni.utils.txscapy import ScapyFactory, ScapySniffer
-        config.scapyFactory = ScapyFactory(config.advanced.interface)
+        from ooni.utils.txscapy import ScapySniffer
 
-        if os.path.exists(config.reports.pcap):
-            log.msg("Report PCAP already exists with filename %s" %
-                    config.reports.pcap)
-            log.msg("Renaming files with such name...")
-            pushFilenameStack(config.reports.pcap)
+        if not config.reports.pcap:
+            prefix = 'report'
+        else:
+            prefix = config.reports.pcap
+        filename = config.global_options['reportfile'] if 'reportfile' in config.global_options.keys() else None
+        filename_pcap = generate_filename(testDetails, filename=filename, prefix=prefix, extension='pcap')
+        if len(self.sniffers) > 0:
+            pcap_filenames = set(sniffer.pcapwriter.filename for sniffer in self.sniffers.values())
+            pcap_filenames.add(filename_pcap)
+            log.msg("pcap files %s can be messed up because several netTests are being executed in parallel." %
+                    ','.join(pcap_filenames))
 
-        if self.sniffer:
-            config.scapyFactory.unRegisterProtocol(self.sniffer)
-        self.sniffer = ScapySniffer(config.reports.pcap)
-        config.scapyFactory.registerProtocol(self.sniffer)
-        log.msg("Starting packet capture to: %s" % config.reports.pcap)
+        sniffer = ScapySniffer(filename_pcap)
+        self.sniffers[testDetails['test_name']] = sniffer
+        config.scapyFactory.registerProtocol(sniffer)
+        log.msg("Starting packet capture to: %s" % filename_pcap)
 
     @defer.inlineCallbacks
     def getTorState(self):

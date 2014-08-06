@@ -12,6 +12,7 @@ from ooni.settings import config
 from ooni.director import Director
 from ooni.deck import Deck, nettest_to_path
 from ooni.nettest import NetTestLoader
+from ooni.utils.txscapy import ScapyFactory
 
 from ooni.utils import log, checkForRoot
 
@@ -111,14 +112,17 @@ def runWithDirector(logging=True, start_tor=True):
     config.set_paths()
     config.initialize_ooni_home()
     config.read_config_file()
+
     if global_options['verbose']:
         config.advanced.debug = True
+
     if not start_tor:
         config.advanced.start_tor = False
 
     if logging:
         log.start(global_options['logfile'])
 
+    config.scapyFactory = ScapyFactory(config.advanced.interface)
     if config.privacy.includepcap:
         try:
             checkForRoot()

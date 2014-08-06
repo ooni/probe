@@ -10,7 +10,7 @@ Vagrant.configure("2") do |config|
 
   config.vm.synced_folder ".", "/ooni"
   # Place the ooni-backend source code in ../ooni-backend to sync it with the vagrant instance
-  # config.vm.synced_folder "../ooni-backend", "/oonib"
+  config.vm.synced_folder "../ooni-backend", "/oonib"
 
 end
 
@@ -32,6 +32,9 @@ apt-get update
 apt-get install -y tor deb.torproject.org-keyring
 apt-get install -y ooniprobe geoip-database-contrib
 
+# Setup for sniffer subsystem
+apt-get install -y build-essential libdnet-dev libpcap-dev python-dev python-pip python-networkx
+pip install PyDNET graphillion
 echo "Login using 'vagrant ssh', and dont forget to run ooniprobe as root."
 echo "First run: 'sudo ooniprobe -i /usr/share/ooni/decks/fast.deck'"
 

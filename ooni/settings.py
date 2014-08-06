@@ -5,7 +5,7 @@ import getpass
 
 from os.path import abspath, expanduser
 
-from ooni import otime, geoip
+from ooni import geoip
 from ooni.utils import Storage
 
 
@@ -112,10 +112,5 @@ class OConfig(object):
                 except AttributeError:
                     pass
         self.set_paths()
-
-    def generate_pcap_filename(self, testDetails):
-        test_name, start_time = testDetails['test_name'], testDetails['start_time']
-        start_time = otime.epochToTimestamp(start_time)
-        return "report-%s-%s.%s" % (test_name, start_time, "pcap")
 
 config = OConfig()

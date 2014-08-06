@@ -19,9 +19,11 @@ from twisted.internet.defer import Deferred, succeed, fail, maybeDeferred
 
 from txsocksx.http import SOCKS5Agent
 from txsocksx.client import SOCKS5ClientFactory
+
 SOCKS5ClientFactory.noisy = False
 
 from ooni.utils import log
+
 
 class TrueHeaders(http_headers.Headers):
     def __init__(self, rawHeaders=None):
@@ -29,15 +31,15 @@ class TrueHeaders(http_headers.Headers):
         if rawHeaders is not None:
             for name, values in rawHeaders.iteritems():
                 if type(values) is list:
-                  self.setRawHeaders(name, values[:])
+                    self.setRawHeaders(name, values[:])
                 elif type(values) is dict:
-                  self._rawHeaders[name.lower()] = values
+                    self._rawHeaders[name.lower()] = values
                 elif type(values) is str:
-                  self.setRawHeaders(name, values)
+                    self.setRawHeaders(name, values)
 
     def setRawHeaders(self, name, values):
         if name.lower() not in self._rawHeaders:
-          self._rawHeaders[name.lower()] = dict()
+            self._rawHeaders[name.lower()] = dict()
         self._rawHeaders[name.lower()]['name'] = name
         self._rawHeaders[name.lower()]['values'] = values
 
@@ -71,7 +73,7 @@ class TrueHeaders(http_headers.Headers):
                 pass
 
         for k, v in itertools.chain(headers_a.getAllRawHeaders(), \
-                headers_b.getAllRawHeaders()):
+                                    headers_b.getAllRawHeaders()):
             field_names.append(k)
 
         for name in field_names:
@@ -90,6 +92,7 @@ class TrueHeaders(http_headers.Headers):
             return self._rawHeaders[name.lower()]['values']
         return default
 
+
 class HTTPClientParser(_newclient.HTTPClientParser):
     def logPrefix(self):
         return 'HTTPClientParser'
@@ -106,6 +109,7 @@ class HTTPClientParser(_newclient.HTTPClientParser):
         else:
             headers = self.headers
         headers.addRawHeader(name, value)
+
 
 class HTTP11ClientProtocol(_newclient.HTTP11ClientProtocol):
     def request(self, request):
@@ -142,18 +146,23 @@ class HTTP11ClientProtocol(_newclient.HTTP11ClientProtocol):
 
         return self._finishedRequest
 
+
 class _HTTP11ClientFactory(client._HTTP11ClientFactory):
     noisy = False
+
     def buildProtocol(self, addr):
         return HTTP11ClientProtocol(self._quiescentCallback)
 
+
 class HTTPConnectionPool(client.HTTPConnectionPool):
     _factory = _HTTP11ClientFactory
+
 
 class TrueHeadersAgent(client.Agent):
     def __init__(self, *args, **kw):
         super(TrueHeadersAgent, self).__init__(*args, **kw)
         self._pool = HTTPConnectionPool(reactor, False)
+
 
 class TrueHeadersSOCKS5Agent(SOCKS5Agent):
     def __init__(self, *args, **kw):

@@ -1,5 +1,3 @@
-import ipaddr
-import struct
 import socket
 import os
 import sys
@@ -9,18 +7,18 @@ import random
 from twisted.internet import protocol, base, fdesc
 from twisted.internet import reactor, threads, error
 from twisted.internet import defer, abstract
-from zope.interface import implements
 
 from scapy.config import conf
 from scapy.supersocket import L3RawSocket
-from scapy.all import RandShort, IP, IPerror, ICMP, ICMPerror
-from scapy.all import TCP, TCPerror, UDP, UDPerror
+from scapy.all import RandShort, IP, IPerror, ICMP, ICMPerror, TCP, TCPerror, UDP, UDPerror
 
 from ooni.utils import log
 from ooni.settings import config
 
+
 class LibraryNotInstalledError(Exception):
     pass
+
 
 def pcapdnet_installed():
     """
@@ -39,8 +37,10 @@ def pcapdnet_installed():
     # expecting "dnet" so we try and import it under such name.
     try:
         import dumbnet
+
         sys.modules['dnet'] = dumbnet
-    except ImportError: pass
+    except ImportError:
+        pass
 
     try:
         conf.use_pcap = True
@@ -49,10 +49,8 @@ def pcapdnet_installed():
 
         config.pcap_dnet = True
 
-    except ImportError:
-        log.err("pypcap or dnet not installed. "
-                "Certain tests may not work.")
-
+    except ImportError as e:
+        log.err(e.message + ". Pypcap or dnet are not properly installed. Certain tests may not work.")
         config.pcap_dnet = False
         conf.use_pcap = False
         conf.use_dnet = False
@@ -67,6 +65,7 @@ def pcapdnet_installed():
         raise LibraryNotInstalledError
 
     return config.pcap_dnet
+
 
 if pcapdnet_installed():
     from scapy.all import PcapWriter
@@ -84,17 +83,18 @@ else:
 
 from scapy.all import Gen, SetGen, MTU
 
+
 def getNetworksFromRoutes():
     """ Return a list of networks from the routing table """
     from scapy.all import conf, ltoa, read_routes
-    from ipaddr    import IPNetwork, IPAddress
+    from ipaddr import IPNetwork, IPAddress
 
-    ## Hide the 'no routes' warnings
+    # # Hide the 'no routes' warnings
     conf.verb = 0
 
     networks = []
     for nw, nm, gw, iface, addr in read_routes():
-        n = IPNetwork( ltoa(nw) )
+        n = IPNetwork(ltoa(nw))
         (n.netmask, n.gateway, n.ipaddr) = [IPAddress(x) for x in [nm, gw, addr]]
         n.iface = iface
         if not n.compressed in networks:
@@ -102,12 +102,15 @@ def getNetworksFromRoutes():
 
     return networks
 
+
 class IfaceError(Exception):
     pass
+
 
 def getAddresses():
     from scapy.all import get_if_addr, get_if_list
     from ipaddr import IPAddress
+
     addresses = set()
     for i in get_if_list():
         try:
@@ -118,16 +121,14 @@ def getAddresses():
         addresses.remove('0.0.0.0')
     return [IPAddress(addr) for addr in addresses]
 
+
 def getDefaultIface():
     """ Return the default interface or raise IfaceError """
-    #XXX: currently broken on OpenVZ environments, because
-    # the routing table does not contain a default route
-    # Workaround: Set the default interface in ooniprobe.conf
-    networks = getNetworksFromRoutes()
-    for net in networks:
-        if net.netmask == ipaddr.IPv4Address("0.0.0.0"):
-            return net.iface
-    raise IfaceError("Could not auto-detect default interface.")
+    iface = conf.route.route('0.0.0.0', verbose=0)[0]
+    if len(iface) > 0:
+        return iface
+    raise IfaceError
+
 
 def hasRawSocketPermission():
     try:
@@ -136,17 +137,21 @@ def hasRawSocketPermission():
     except socket.error:
         return False
 
+
 class ProtocolNotRegistered(Exception):
     pass
 
+
 class ProtocolAlreadyRegistered(Exception):
     pass
+
 
 class ScapyFactory(abstract.FileDescriptor):
     """
     Inspired by muxTCP scapyLink:
     https://github.com/enki/muXTCP/blob/master/scapyLink.py
     """
+
     def __init__(self, interface, super_socket=None, timeout=5):
 
         abstract.FileDescriptor.__init__(self, reactor)
@@ -201,6 +206,7 @@ class ScapyFactory(abstract.FileDescriptor):
         else:
             raise ProtocolNotRegistered
 
+
 class ScapyProtocol(object):
     factory = None
 
@@ -212,6 +218,7 @@ class ScapyProtocol(object):
         Every protocol that is registered will have this method called.
         """
         raise NotImplementedError
+
 
 class ScapySender(ScapyProtocol):
     timeout = 5
@@ -236,7 +243,7 @@ class ScapySender(ScapyProtocol):
             if packet.answers(answer_hr[i]):
                 self.answered_packets.append((answer_hr[i], packet))
                 if not self.multi:
-                    del(answer_hr[i])
+                    del (answer_hr[i])
                 break
 
         if len(self.answered_packets) == len(self.sent_packets):
@@ -244,8 +251,7 @@ class ScapySender(ScapyProtocol):
             self.stopSending()
             return
 
-        if self.expected_answers and \
-                self.expected_answers == len(self.answered_packets):
+        if self.expected_answers and self.expected_answers == len(self.answered_packets):
             log.debug("Got the number of expected answers")
             self.stopSending()
 
@@ -295,12 +301,17 @@ class ScapySender(ScapyProtocol):
         self.sendPackets(packets)
         return self.d
 
+
 class ScapySniffer(ScapyProtocol):
     def __init__(self, pcap_filename, *arg, **kw):
         self.pcapwriter = PcapWriter(pcap_filename, *arg, **kw)
 
     def packetReceived(self, packet):
         self.pcapwriter.write(packet)
+
+    def close(self):
+        self.pcapwriter.close()
+
 
 class ParasiticTraceroute(ScapyProtocol):
     def __init__(self):
@@ -332,7 +343,7 @@ class ParasiticTraceroute(ScapyProtocol):
                 return
             try:
                 packet[IP].ttl = self.hosts[packet.dst]['ttl'].pop()
-                del packet.chksum #XXX Why is this incorrect?
+                del packet.chksum  # XXX Why is this incorrect?
                 log.debug("Sent packet to %s with ttl %d" % (packet.dst, packet.ttl))
                 self.sendPacket(packet)
                 k = (packet.id, packet[TCP].sport, packet[TCP].dport, packet[TCP].seq)
@@ -344,11 +355,7 @@ class ParasiticTraceroute(ScapyProtocol):
 
         def maxttl(packet=None):
             if packet:
-                return min(self.ttl_max,
-                        min(
-                            abs( 64  - packet.ttl ),
-                            abs( 128 - packet.ttl ),
-                            abs( 256 - packet.ttl ))) - 1
+                return min(self.ttl_max, *map(lambda x: x - packet.ttl, [64, 128, 256])) - 1
             else:
                 return self.ttl_max
 
@@ -362,15 +369,15 @@ class ParasiticTraceroute(ScapyProtocol):
                     and packet.dst not in self.addresses \
                     and isinstance(packet.getlayer(1), TCP):
 
-                self.hosts[packet.dst] = {'ttl' : genttl()}
+                self.hosts[packet.dst] = {'ttl': genttl()}
                 log.debug("Tracing to %s" % packet.dst)
 
             elif packet.src not in self.hosts \
                     and packet.src not in self.addresses \
                     and isinstance(packet.getlayer(1), TCP):
 
-                self.hosts[packet.src] = {'ttl' : genttl(packet),
-                        'ttl_max': maxttl(packet)}
+                self.hosts[packet.src] = {'ttl': genttl(packet),
+                                          'ttl_max': maxttl(packet)}
                 log.debug("Tracing to %s" % packet.src)
             return
 
@@ -386,6 +393,7 @@ class ParasiticTraceroute(ScapyProtocol):
 
     def stopListening(self):
         self.factory.unRegisterProtocol(self)
+
 
 class MPTraceroute(ScapyProtocol):
     dst_ports = [0, 22, 23, 53, 80, 123, 443, 8080, 65535]
@@ -403,32 +411,39 @@ class MPTraceroute(ScapyProtocol):
         self.numPackets = 1
 
     def ICMPTraceroute(self, host):
-        if host not in self.hosts: self.hosts.append(host)
+        if host not in self.hosts:
+            self.hosts.append(host)
 
         d = defer.Deferred()
         reactor.callLater(self.timeout, d.callback, self)
 
-        self.sendPackets(IP(dst=host,ttl=(self.ttl_min,self.ttl_max), id=RandShort())/ICMP(id=RandShort()))
+        self.sendPackets(IP(dst=host, ttl=(self.ttl_min, self.ttl_max), id=RandShort()) / ICMP(id=RandShort()))
         return d
 
     def UDPTraceroute(self, host):
-        if host not in self.hosts: self.hosts.append(host)
+        if host not in self.hosts:
+            self.hosts.append(host)
 
         d = defer.Deferred()
         reactor.callLater(self.timeout, d.callback, self)
 
         for dst_port in self.dst_ports:
-            self.sendPackets(IP(dst=host,ttl=(self.ttl_min,self.ttl_max), id=RandShort())/UDP(dport=dst_port, sport=RandShort()))
+            self.sendPackets(
+                IP(dst=host, ttl=(self.ttl_min, self.ttl_max), id=RandShort()) / UDP(dport=dst_port, sport=RandShort()))
         return d
 
     def TCPTraceroute(self, host):
-        if host not in self.hosts: self.hosts.append(host)
+        if host not in self.hosts:
+            self.hosts.append(host)
 
         d = defer.Deferred()
         reactor.callLater(self.timeout, d.callback, self)
 
         for dst_port in self.dst_ports:
-            self.sendPackets(IP(dst=host,ttl=(self.ttl_min,self.ttl_max), id=RandShort())/TCP(flags=2L, dport=dst_port, sport=RandShort(), seq=RandShort()))
+            self.sendPackets(
+                IP(dst=host, ttl=(self.ttl_min, self.ttl_max), id=RandShort()) / TCP(flags=2L, dport=dst_port,
+                                                                                     sport=RandShort(),
+                                                                                     seq=RandShort()))
         return d
 
     @defer.inlineCallbacks
@@ -499,10 +514,10 @@ class MPTraceroute(ScapyProtocol):
             l = p.getlayer(1)
             i = 0
             if isinstance(l, ICMP):
-                i += matchResponse(('icmp', p.id), p) # match by ipid
-                i += matchResponse(('icmp', l.id), p) # match by icmpid
+                i += matchResponse(('icmp', p.id), p)  # match by ipid
+                i += matchResponse(('icmp', l.id), p)  # match by icmpid
             if isinstance(l, TCP):
-                i += matchResponse(('tcp', l.dport, l.sport), p) # match by s|dport 
+                i += matchResponse(('tcp', l.dport, l.sport), p)  # match by s|dport
                 i += matchResponse(('tcp', l.seq, l.sport, l.dport), p)
             if isinstance(l, UDP):
                 i += matchResponse(('udp', l.dport, l.sport), p)
@@ -516,8 +531,7 @@ class MPTraceroute(ScapyProtocol):
         l = packet.getlayer(1)
         if not l:
             return
-        elif (isinstance(l, ICMP) or isinstance(l, UDP) or
-                isinstance(l, TCP)):
+        elif isinstance(l, ICMP) or isinstance(l, UDP) or isinstance(l, TCP):
             self._recvbuf.append(packet)
 
     def stopListening(self):

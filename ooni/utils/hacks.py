@@ -3,6 +3,7 @@
 
 import copy_reg
 
+
 def patched_reduce_ex(self, proto):
     """
     This is a hack to overcome a bug in one of pythons core functions. It is
@@ -22,20 +23,20 @@ def patched_reduce_ex(self, proto):
 
     XXX see if there is a better way. sigh...
     """
-    _HEAPTYPE = 1<<9
+    _HEAPTYPE = 1 << 9
     assert proto < 2
     for base in self.__class__.__mro__:
         if hasattr(base, '__flags__') and not base.__flags__ & _HEAPTYPE:
             break
     else:
-        base = object # not really reachable
+        base = object  # not really reachable
     if base is object:
         state = None
     elif base is int:
         state = None
     else:
         if base is self.__class__:
-            raise TypeError, "can't pickle %s objects" % base.__name__
+            raise TypeError("can't pickle %s objects" % base.__name__)
         state = base(self)
     args = (self.__class__, base, state)
     try:

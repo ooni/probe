@@ -8,3 +8,7 @@ txsocksx>=0.0.2
 parsley>=1.1
 scapy-real>=2.2.0-dev
 pypcap>=1.1
+service-identity
+PyDNET
+graphillion
+networkx

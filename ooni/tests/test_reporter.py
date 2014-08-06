@@ -25,7 +25,8 @@ test_details = {
     'software_name': 'spam',
     'software_version': '1.0',
     'input_hashes': [],
-    'probe_asn': 'AS0'
+    'probe_asn': 'AS0',
+    'start_time': time.time()
 }
 
 oonib_new_report_message = {

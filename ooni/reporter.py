@@ -30,7 +30,7 @@ except ImportError:
 from ooni import errors
 
 from ooni import otime
-from ooni.utils import pushFilenameStack
+from ooni.utils import pushFilenameStack, generate_filename
 from ooni.utils.net import BodyReceiver, StringProducer
 
 from ooni.settings import config
@@ -179,10 +179,7 @@ class YAMLReporter(OReporter):
         if not os.path.isdir(report_destination):
             raise errors.InvalidDestination
 
-        if not report_filename:
-            report_filename = "report-" + \
-                              test_details['test_name'] + "-" + \
-                              otime.timestamp() + ".yamloo"
+        report_filename = generate_filename(test_details, filename=report_filename, prefix='report', extension='yamloo')
 
         report_path = os.path.join(self.reportDestination, report_filename)
 
@@ -554,8 +551,7 @@ class Report(object):
 
         self.report_log = OONIBReportLog()
 
-        self.yaml_reporter = YAMLReporter(test_details,
-                                          report_filename=report_filename)
+        self.yaml_reporter = YAMLReporter(test_details, report_filename=report_filename)
         self.report_filename = self.yaml_reporter.report_path
 
         self.oonib_reporter = None

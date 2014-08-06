@@ -242,7 +242,7 @@ class TestNetTest(unittest.TestCase):
         ntl.checkOptions()
         director = Director()
 
-        self.filename = 'dummy_report.yaml'
+        self.filename = 'dummy_report.yamloo'
         d = director.startNetTest(ntl, self.filename)
 
         @d.addCallback
@@ -306,7 +306,7 @@ class TestNettestTimeout(ConfigTestCase):
         ntl.checkOptions()
         director = Director()
 
-        self.filename = 'dummy_report.yaml'
+        self.filename = 'dummy_report.yamloo'
         d = director.startNetTest(ntl, self.filename)
 
         @d.addCallback

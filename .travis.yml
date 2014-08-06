@@ -9,10 +9,11 @@ python:
 install:
   - pip install pyrex-real
   - pip install coveralls
-  - python setup.py install
+  - pip install -r requirements.txt
   - pip install -r requirements-dev.txt
+  - python setup.py install
 # command to run tests, e.g. python setup.py test
 script:
-  - coverage run $(which trial) ooni
+  - sudo $(which coverage) run $(which trial) ooni
 after_success: 
   - coveralls
