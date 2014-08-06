@@ -171,7 +171,7 @@ class TestNetTest(unittest.TestCase):
     def tearDown(self):
         os.remove(dummyInputFile)
         if self.filename != "":
-            os.remove(self.filename)
+            os.remove(os.path.join(config.reports_directory, self.filename))
 
     def assertCallable(self, thing):
         self.assertIn('__call__', dir(thing))
@@ -361,7 +361,7 @@ class TestNettestTimeout(ConfigTestCase):
         super(TestNettestTimeout, self).tearDown()
         self.factory.stopFactory()
         self.port.stopListening()
-        os.remove(self.filename)
+        os.remove(os.path.join(config.reports_directory, self.filename))
 
     def test_nettest_timeout(self):
         ntl = NetTestLoader(('-u', 'http://localhost:8007/'))
