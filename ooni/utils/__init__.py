@@ -3,6 +3,7 @@ import random
 import glob
 import os
 
+from ooni import otime
 from ooni import errors
 
 
@@ -27,7 +28,7 @@ class Storage(dict):
     def __getattr__(self, key):
         try:
             return self[key]
-        except KeyError, k:
+        except KeyError:
             return None
 
     def __setattr__(self, key, value):
@@ -117,6 +118,7 @@ def generate_filename(testDetails, prefix=None, extension=None, filename=None):
     """
     if filename is None:
         test_name, start_time = testDetails['test_name'], testDetails['start_time']
+        start_time = otime.epochToTimestamp(start_time)
         suffix = "%s-%s" % (test_name, start_time)
         basename = '%s-%s' % (prefix, suffix) if prefix is not None else suffix
         final_filename = '%s.%s' % (basename, extension) if extension is not None else basename
