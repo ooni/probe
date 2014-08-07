@@ -567,6 +567,8 @@ class Report(object):
                                                    self.collector_address)
 
         def created(report_id):
+            if not self.oonib_reporter:
+                return
             return self.report_log.created(self.report_filename,
                                            self.collector_address,
                                            report_id)
