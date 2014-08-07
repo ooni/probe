@@ -15,6 +15,8 @@ oonib_report_log = OONIBReportLog()
 
 @defer.inlineCallbacks
 def upload(report_file, collector=None, bouncer=None):
+    print "Attempting to upload %s" % report_file
+
     with open(config.report_log_file) as f:
         report_log = yaml.safe_load(f)
 
@@ -49,9 +51,7 @@ def upload(report_file, collector=None, bouncer=None):
 
 @defer.inlineCallbacks
 def upload_all(collector=None, bouncer=None):
-    print "Running upload all..."
     for report_file, value in oonib_report_log.reports_to_upload:
-        print report_file
         try:
             yield upload(report_file, collector, bouncer)
         except Exception as exc:

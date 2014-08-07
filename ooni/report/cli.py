@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import os
 import sys
 
@@ -21,7 +23,7 @@ class Options(usage.Options):
     ]
 
     def opt_version(self):
-        print "oonireport version:", __version__
+        print("oonireport version: %s" % __version__)
         sys.exit(0)
 
     def parseArgs(self, *args):
@@ -42,18 +44,27 @@ def parse_options():
     try:
         options.parseOptions()
     except Exception as exc:
-        print exc
+        print(exc)
     return dict(options)
+
+
+def tor_check():
+    if not config.tor.socks_port:
+        print("Currently oonireport requires that you start Tor yourself "
+              "and set the socks_port inside of ooniprobe.conf")
+        sys.exit(1)
 
 
 def run():
     config.read_config_file()
     options = parse_options()
     if options['command'] == "upload" and options['report_file']:
+        tor_check()
         return tool.upload(options['report_file'],
                            options['collector'],
                            options['bouncer'])
     elif options['command'] == "upload":
+        tor_check()
         return tool.upload_all(options['collector'],
                                options['bouncer'])
     elif options['command'] == "status":
