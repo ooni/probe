@@ -187,6 +187,8 @@ def runWithDirector(logging=True, start_tor=True):
             test_file = nettest_to_path(global_options['test_file'], True)
             net_test_loader = NetTestLoader(global_options['subargs'],
                                             test_file=test_file)
+            if global_options['collector']:
+                net_test_loader.collector = global_options['collector']
             deck.insert(net_test_loader)
     except errors.MissingRequiredOption as option_name:
         log.err('Missing required option: "%s"' % option_name)

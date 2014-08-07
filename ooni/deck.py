@@ -127,11 +127,10 @@ class Deck(InputFile):
                 log.msg("Skipping...")
                 continue
             net_test_loader = NetTestLoader(test['options']['subargs'],
-                    test_file=nettest_path)
+                                            test_file=nettest_path)
+            if test['options']['collector']:
+                net_test_loader.collector = test['options']['collector']
             self.insert(net_test_loader)
-            #XXX: If the deck specifies the collector, we use the specified collector
-            # And it should also specify the test helper address to use
-            # net_test_loader.collector = test['options']['collector']
 
     def insert(self, net_test_loader):
         """ Add a NetTestLoader to this test deck """
