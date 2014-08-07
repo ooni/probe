@@ -11,6 +11,7 @@ from twisted.python import usage, reflect
 from ooni.tasks import Measurement
 from ooni.utils import log, checkForRoot
 from ooni.settings import config
+from ooni import geoip
 
 from ooni import errors as e
 
@@ -228,7 +229,8 @@ class NetTestLoader(object):
                         'software_name': 'ooniprobe',
                         'software_version': software_version,
                         'options': self.options,
-                        'input_hashes': input_file_hashes
+                        'input_hashes': input_file_hashes,
+                        'geoip_database_version': geoip.database_version()
                         }
         return test_details
 
