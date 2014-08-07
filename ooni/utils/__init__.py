@@ -131,3 +131,14 @@ def generate_filename(testDetails, prefix=None, extension=None, filename=None):
 
     return final_filename
 
+def sanitize_options(options):
+    """
+    Strips all possible user identifying information from the ooniprobe test
+    options.
+    Currently only strips leading directories from filepaths.
+    """
+    sanitized_options = []
+    for option in options:
+        option = os.path.basename(option)
+        sanitized_options.append(option)
+    return sanitized_options
