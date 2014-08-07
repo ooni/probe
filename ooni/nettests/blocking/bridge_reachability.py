@@ -7,8 +7,9 @@ from twisted.internet import reactor, error
 
 import txtorcon
 
+from ooni.settings import config
 from ooni.utils import log, onion
-from ooni import nettest
+from ooni import nettest, errors
 
 
 class TorIsNotInstalled(Exception):
@@ -47,6 +48,12 @@ class BridgeReachability(nettest.NetTestCase):
     def setUp(self):
         self.tor_progress = 0
         self.timeout = int(self.localOptions['timeout'])
+
+        if self.timeout > config.advanced.measurement_timeout:
+            log.err("The measurement timeout is less than the bridge reachability test timeout")
+            log.err("Adjust your ooniprobe.conf file by setting the "
+                    "advanced: measurement_timeout: value to %d" % self.timeout)
+            raise errors.InvalidConfigFile("advanced->measurement_timeout < %d" % self.timeout)
 
         self.report['error'] = None
         self.report['success'] = None
