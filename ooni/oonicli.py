@@ -173,11 +173,11 @@ def runWithDirector(logging=True, start_tor=True):
 
     deck = Deck()
     deck.bouncer = global_options['bouncer']
-    conditions_to_start_tor = [False]
+    start_tor = False
     if global_options['bouncer']:
-        conditions_to_start_tor.append(True)
+        start_tor |= True
     if global_options['collector']:
-        conditions_to_start_tor.append(True)
+        start_tor |= True
 
     try:
         if global_options['testdeck']:
@@ -204,8 +204,7 @@ def runWithDirector(logging=True, start_tor=True):
         log.err(e)
         sys.exit(5)
 
-    conditions_to_start_tor.append(deck.requiresTor)
-    start_tor = any(conditions_to_start_tor)
+    start_tor |= deck.requiresTor
     d = director.start(start_tor=start_tor)
 
     def setup_nettest(_):
