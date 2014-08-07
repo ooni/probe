@@ -100,7 +100,7 @@ class OConfig(object):
                         w.write(line)
 
     def read_config_file(self, check_incoherences=False):
-        if not os.path.exists(self.config_file):
+        if not os.path.isfile(self.config_file):
             print "Configuration file does not exist."
             self._create_config_file()
             self.read_config_file()
