@@ -33,13 +33,16 @@ class Options(usage.Options):
         if self['command'] == "upload":
             try:
                 self['report_file'] = args[1]
-            except KeyError:
+            except IndexError:
                 self['report_file'] = None
 
 
 def parse_options():
     options = Options()
-    options.parseOptions()
+    try:
+        options.parseOptions()
+    except Exception as exc:
+        print exc
     return dict(options)
 
 

@@ -409,24 +409,45 @@ class OONIBReportLog(object):
     def __init__(self, file_name=config.report_log_file):
         self.file_name = file_name
         self.create_report_log()
-        self._reports_incomplete = []
-        self._reports_in_progress = []
-        self._reports_to_upload = []
 
-    def update_stored_reports(self):
-        pass
+    def get_report_log(self):
+        with open(self.file_name) as f:
+            report_log = yaml.safe_load(f)
+        return report_log
 
     @property
     def reports_incomplete(self):
-        pass
+        reports = []
+        report_log = self.get_report_log()
+        for report_file, value in report_log.items():
+            if value['status'] in ('created'):
+                try:
+                    os.kill(value['pid'])
+                except:
+                    reports.append((report_file, value))
+        return reports
 
     @property
     def reports_in_progress(self):
-        pass
+        reports = []
+        report_log = self.get_report_log()
+        for report_file, value in report_log.items():
+            if value['status'] in ('created'):
+                try:
+                    os.kill(value['pid'])
+                    reports.append((report_file, value))
+                except:
+                    pass
+        return reports
 
     @property
     def reports_to_upload(self):
-        pass
+        reports = []
+        report_log = self.get_report_log()
+        for report_file, value in report_log.items():
+            if value['status'] in ('creation-failed', 'not-created'):
+                reports.append((report_file, value))
+        return reports
 
     def run(self, f, *arg, **kw):
         lock = defer.DeferredFilesystemLock(self.file_name + '.lock')

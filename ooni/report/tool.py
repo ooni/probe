@@ -28,9 +28,11 @@ def upload(report_file, collector=None, bouncer=None):
     if collector is None:
         try:
             collector = report_log[report_file]['collector']
+            if collector is None:
+                raise KeyError
         except KeyError:
             raise Exception(
-                "No collector or bouncer specified and report file not in log."
+                "No collector or bouncer specified and collector not in report log."
             )
 
     oonib_reporter = OONIBReporter(report.header, collector)
@@ -47,8 +49,13 @@ def upload(report_file, collector=None, bouncer=None):
 
 @defer.inlineCallbacks
 def upload_all(collector=None, bouncer=None):
+    print "Running upload all..."
     for report_file, value in oonib_report_log.reports_to_upload:
-        yield upload(report_file, collector, bouncer)
+        print report_file
+        try:
+            yield upload(report_file, collector, bouncer)
+        except Exception as exc:
+            print exc
 
 
 def print_report(report_file, value):
