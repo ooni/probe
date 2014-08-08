@@ -82,14 +82,14 @@ class TestRunDirector(ConfigTestCase):
     @defer.inlineCallbacks
     def run_helper(self, test_name, nettest_args, verify_function, ooni_args=[]):
         output_file = 'test_report.yamloo'
-        self.filenames.append(output_file)
+        self.filenames.append(os.path.join(config.reports_directory, output_file))
         oldargv = sys.argv
         sys.argv = ['']
         sys.argv.extend(ooni_args)
         sys.argv.extend(['-n', '-o', output_file, test_name])
         sys.argv.extend(nettest_args)
         yield runWithDirector(False, False)
-        with open(output_file) as f:
+        with open(os.path.join(config.reports_directory, output_file)) as f:
             entries = yaml.safe_load_all(f)
             header = entries.next()
             try:
