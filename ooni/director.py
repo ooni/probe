@@ -1,3 +1,4 @@
+import pwd
 import os
 
 from ooni.managers import ReportEntryManager, MeasurementManager
@@ -362,6 +363,8 @@ class Director(object):
         if config.tor.torrc:
             for i in config.tor.torrc.keys():
                 setattr(tor_config, i, config.tor.torrc[i])
+
+        tor_config.User = pwd.getpwuid(os.geteuid()).pw_name
 
         tor_config.save()
 
