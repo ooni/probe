@@ -43,7 +43,7 @@ advanced:
     geoip_data_dir: /usr/share/GeoIP
     debug: false
     interface: auto
-    start_tor: true
+    start_tor: false
     measurement_timeout: 60
     measurement_retries: 2
     measurement_concurrency: 10
@@ -53,6 +53,8 @@ advanced:
     data_dir: /usr/share/ooni
     oonid_api_port: 8042
 tor:
+    socks_port: 9050
+
 """
 
 
@@ -88,7 +90,7 @@ class TestRunDirector(ConfigTestCase):
         sys.argv.extend(ooni_args)
         sys.argv.extend(['-n', '-o', output_file, test_name])
         sys.argv.extend(nettest_args)
-        yield runWithDirector(False, False)
+        yield runWithDirector(False, False, False)
         with open(output_file) as f:
             entries = yaml.safe_load_all(f)
             header = entries.next()

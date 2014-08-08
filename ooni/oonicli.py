@@ -102,7 +102,7 @@ def parseOptions():
     return dict(cmd_line_options)
 
 
-def runWithDirector(logging=True, start_tor=True):
+def runWithDirector(logging=True, start_tor=True, check_incoherences=True):
     """
     Instance the director, parse command line options and start an ooniprobe
     test!
@@ -112,7 +112,7 @@ def runWithDirector(logging=True, start_tor=True):
     config.set_paths()
     config.initialize_ooni_home()
     try:
-        config.read_config_file(check_incoherences=True)
+        config.read_config_file(check_incoherences=check_incoherences)
     except errors.ConfigFileIncoherent:
         sys.exit(6)
 
@@ -207,7 +207,8 @@ def runWithDirector(logging=True, start_tor=True):
         sys.exit(5)
 
     start_tor |= deck.requiresTor
-    d = director.start(start_tor=start_tor)
+    d = director.start(start_tor=start_tor,
+                       check_incoherences=check_incoherences)
 
     def setup_nettest(_):
         try:

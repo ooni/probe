@@ -120,11 +120,12 @@ class Director(object):
         return nettests
 
     @defer.inlineCallbacks
-    def start(self, start_tor=False):
+    def start(self, start_tor=False, check_incoherences=True):
         self.netTests = self.getNetTests()
 
         if start_tor:
-            yield config.check_tor()
+            if check_incoherences:
+                yield config.check_tor()
             if config.advanced.start_tor:
                 yield self.startTor()
             elif config.tor.control_port:
