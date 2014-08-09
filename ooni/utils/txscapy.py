@@ -61,7 +61,7 @@ def pcapdnet_installed():
     try:
         from scapy.arch import pcapdnet
     except ImportError:
-        log.err("Your platform requires to having libdnet and libpcap installed.")
+        log.err("Your platform requires having libdnet and libpcap installed.")
         raise LibraryNotInstalledError
 
     return config.pcap_dnet
@@ -71,6 +71,7 @@ if pcapdnet_installed():
     from scapy.all import PcapWriter
 
 else:
+
     class DummyPcapWriter:
         def __init__(self, pcap_filename, *arg, **kw):
             log.err("Initializing DummyPcapWriter. We will not actually write to a pcapfile")
@@ -205,7 +206,6 @@ class ScapyFactory(abstract.FileDescriptor):
                 self.loseConnection()
         else:
             raise ProtocolNotRegistered
-
 
 class ScapyProtocol(object):
     factory = None

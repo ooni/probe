@@ -1,6 +1,7 @@
+import os
+import pwd
 import random
 
-from twisted.trial import unittest
 from twisted.internet import defer, reactor
 from twisted.internet.protocol import Protocol, Factory
 from scapy.all import get_if_list
@@ -74,6 +75,33 @@ class TestSettings(ConfigTestCase):
 
     @defer.inlineCallbacks
     def test_check_tor_correct(self):
+        """
+        This test has been disabled because there is a starge concatenation of
+        conditions that make it not possible to run it on travis.
+        The tests need to be run as root on travis so that the ones that use
+        scapy will work properly. When running tor as root, though, it will by
+        default drop priviledges to a lesser priviledged user (on debian based
+        systems debian-tor). The problem is that the datadir will have already
+        been created with the priviledges of root, hence it will fail to use it
+        as a datadir and fail.
+        txtorcon addressed this issue in https://github.com/meejah/txtorcon/issues/26
+        by chmodding the datadir with what is set as User.
+        So we could either:
+
+            1) Set User to root so that tor has access to that directory, but
+            this will not work because then it will not be happy that
+            /var/run/tor has more lax permissions (also debian-tor can read it)
+            so it will fail. We could disable the control port, hence not
+            needing to use /var/run/tor, but this is not possible due to:
+            https://github.com/meejah/txtorcon/issues/80
+
+            2) We set the User to be the owner of /var/run/tor, but this does
+            not exist on all systems, so it would only work for travis.
+
+        For the time being I am just going to disable this test and wait for
+        one of the above bugs to have a better fix.
+        """
+        self.skipTest("See comment in the code")
         self.conf.advanced.start_tor = False
         self.conf.tor.socks_port = 9999
         self.conf.tor.control_port = 9998

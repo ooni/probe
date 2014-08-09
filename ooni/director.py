@@ -365,7 +365,8 @@ class Director(object):
             for i in config.tor.torrc.keys():
                 setattr(tor_config, i, config.tor.torrc[i])
 
-        tor_config.User = pwd.getpwuid(os.geteuid()).pw_name
+        if os.geteuid() == 0:
+            tor_config.User = pwd.getpwuid(os.geteuid()).pw_name
 
         tor_config.save()
 

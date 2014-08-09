@@ -2,7 +2,7 @@ import os
 import sys
 import yaml
 
-from twisted.internet import defer, reactor
+from twisted.internet import defer
 
 from ooni.tests import is_internet_connected
 from ooni.tests.bases import ConfigTestCase
@@ -76,14 +76,14 @@ class TestRunDirector(ConfigTestCase):
 
     def tearDown(self):
         super(TestRunDirector, self).tearDown()
-        if len(self.filenames) > 0:
-            for filename in self.filenames:
-                if os.path.exists(filename):
-                    os.remove(filename)
+        for filename in self.filenames:
+            if os.path.exists(filename):
+                os.remove(filename)
+        self.filenames = []
 
     @defer.inlineCallbacks
-    def run_helper(self, test_name, nettest_args, verify_function, ooni_args=[]):
-        output_file = 'test_report.yamloo'
+    def run_helper(self, test_name, nettest_args, verify_function, ooni_args=()):
+        output_file = os.path.abspath('test_report.yamloo')
         self.filenames.append(output_file)
         oldargv = sys.argv
         sys.argv = ['']
@@ -168,9 +168,9 @@ class TestRunDirector(ConfigTestCase):
 
     @defer.inlineCallbacks
     def test_sniffing_activated(self):
-        filename = 'test_report.pcap'
+        filename = os.path.abspath('test_report.pcap')
         self.filenames.append(filename)
-        conf_file = 'fake_config.conf'
+        conf_file = os.path.abspath('fake_config.conf')
         with open(conf_file, 'w') as cfg:
             cfg.writelines(config_includepcap)
         self.filenames.append(conf_file)
@@ -181,5 +181,4 @@ class TestRunDirector(ConfigTestCase):
         yield self.run_helper('blocking/http_requests',
                               ['-f', 'example-input.txt'],
                               verify_function, ooni_args=['-f', conf_file])
-
         config.scapyFactory.connectionLost('')
