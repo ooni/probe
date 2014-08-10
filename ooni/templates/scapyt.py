@@ -1,26 +1,23 @@
-import random
-from zope.interface import implements
-from twisted.plugin import IPlugin
-from twisted.internet import protocol, defer, threads
-
-from scapy.all import send, sr, IP, TCP, config
-
-from ooni.reporter import createPacketReport
 from ooni.nettest import NetTestCase
 from ooni.utils import log
 from ooni.settings import config
 
-from ooni.utils.txscapy import ScapySender, getDefaultIface, ScapyFactory
+from ooni.utils.txscapy import ScapySender, ScapyFactory
 from ooni.utils.txscapy import hasRawSocketPermission
 
 
 class BaseScapyTest(NetTestCase):
+
     """
     The report of a test run with scapy looks like this:
 
     report:
-        sent_packets: [{'raw_packet': BASE64Encoding of packet,
-                        'summary': 'IP / TCP 192.168.2.66:ftp_data > 8.8.8.8:http S'}]
+        sent_packets: [
+            {
+            'raw_packet': BASE64Encoding of packet,
+            'summary': 'IP / TCP 192.168.2.66:ftp_data > 8.8.8.8:http S'
+            }
+        ]
 
         answered_packets: []
 
@@ -31,12 +28,12 @@ class BaseScapyTest(NetTestCase):
     requiresRoot = not hasRawSocketPermission()
     baseFlags = [
         ['ipsrc', 's',
-         'Does *not* check if IP src and ICMP IP citation matches when processing answers'],
+         'Does *not* check if IP src and ICMP IP citation '
+         'matches when processing answers'],
         ['seqack', 'k',
-         'Check if TCP sequence number and ACK match in the ICMP citation when processing answers'],
-        ['ipid', 'i',
-         'Check if the IPID matches when processing answers']
-    ]
+         'Check if TCP sequence number and ACK match in the '
+         'ICMP citation when processing answers'],
+        ['ipid', 'i', 'Check if the IPID matches when processing answers']]
 
     def _setUp(self):
         super(BaseScapyTest, self)._setUp()
@@ -84,8 +81,10 @@ class BaseScapyTest(NetTestCase):
             received_packet = rcv
 
             if not config.privacy.includeip:
-                log.debug("Detected you would not like to include your ip in the report")
-                log.debug("Stripping source and destination IPs from the reports")
+                log.debug("Detected you would not like to "
+                          "include your ip in the report")
+                log.debug(
+                    "Stripping source and destination IPs from the reports")
                 sent_packet.src = '127.0.0.1'
                 received_packet.dst = '127.0.0.1'
 
