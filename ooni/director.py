@@ -265,7 +265,10 @@ class Director(object):
         """ Start sniffing with Scapy. Exits if required privileges (root) are not
         available.
         """
-        from ooni.utils.txscapy import ScapySniffer
+        from ooni.utils.txscapy import ScapySniffer, ScapyFactory
+
+        if config.scapyFactory is None:
+            config.scapyFactory = ScapyFactory(config.advanced.interface)
 
         if not config.reports.pcap:
             prefix = 'report'

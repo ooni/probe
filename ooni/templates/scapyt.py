@@ -41,6 +41,10 @@ class BaseScapyTest(NetTestCase):
     def _setUp(self):
         super(BaseScapyTest, self)._setUp()
 
+        if config.scapyFactory is None:
+            log.debug("Scapy factory not set, registering it.")
+            config.scapyFactory = ScapyFactory(config.advanced.interface)
+
         self.report['answer_flags'] = []
         if self.localOptions['ipsrc']:
             config.checkIPsrc = 0

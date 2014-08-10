@@ -125,10 +125,10 @@ def runWithDirector(logging=True, start_tor=True, check_incoherences=True):
     if logging:
         log.start(global_options['logfile'])
 
-    config.scapyFactory = ScapyFactory(config.advanced.interface)
     if config.privacy.includepcap:
         try:
             checkForRoot()
+            config.scapyFactory = ScapyFactory(config.advanced.interface)
         except errors.InsufficientPrivileges:
             log.err("Insufficient Privileges to capture packets."
                     " See ooniprobe.conf privacy.includepcap")
