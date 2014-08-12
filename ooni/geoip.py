@@ -34,29 +34,30 @@ def IPToLocation(ipaddr):
 
     location = {'city': None, 'countrycode': 'ZZ', 'asn': 'AS0'}
 
+    def error():
+        log.err("Could not find GeoIP data file in %s."
+                "Try running ooniresources --update-geoip or"
+                " edit your ooniprobe.conf" % config.advanced.geoip_data_dir)
+
     try:
         country_dat = GeoIP(country_file)
         location['countrycode'] = country_dat.country_code_by_addr(ipaddr)
         if not location['countrycode']:
             location['countrycode'] = 'ZZ'
     except IOError:
-        log.err("Could not find GeoIP data file. Go into %s "
-                "and make sure GeoIP.dat is present or change the location "
-                "in the config file" % config.advanced.geoip_data_dir)
+        error()
+
     try:
         city_dat = GeoIP(city_file)
         location['city'] = city_dat.record_by_addr(ipaddr)['city']
     except:
-         log.err("Could not find the city your IP is from. "
-                "Download the GeoLiteCity.dat file into the geoip_data_dir"
-                " or install geoip-database-contrib.")
+        error()
+
     try:
         asn_dat = GeoIP(asn_file)
         location['asn'] = asn_dat.org_by_addr(ipaddr).split(' ')[0]
     except:
-        log.err("Could not find the ASN for your IP. "
-                "Download the GeoIPASNum.dat file into the geoip_data_dir"
-                " or install geoip-database-contrib.")
+        error()
 
     return location
 
