@@ -4,7 +4,7 @@ from twisted.internet import reactor, defer, protocol
 from twisted.web.client import RedirectAgent, Agent
 
 from ooni.settings import config
-from ooni.resources import inputs
+from ooni.resources import inputs, geoip
 
 agent = RedirectAgent(Agent(reactor))
 
@@ -29,12 +29,11 @@ class SaveToFile(protocol.Protocol):
 
 
 @defer.inlineCallbacks
-def download_inputs():
-    for filename, resource in inputs.items():
+def download_resource(resources):
+    for filename, resource in resources.items():
         print "Downloading %s" % filename
 
         filename = os.path.join(config.resources_directory, filename)
-
         response = yield agent.request("GET", resource['url'])
         finished = defer.Deferred()
         response.deliverBody(SaveToFile(finished, response.length, filename))
@@ -45,3 +44,11 @@ def download_inputs():
                                       filename,
                                       *resource['action_args'])
         print "%s written." % filename
+
+
+def download_inputs():
+    return download_resource(inputs)
+
+
+def download_geoip():
+    return download_resource(geoip)
