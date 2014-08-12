@@ -44,6 +44,42 @@ Futhermore, ooniprobe takes no precautions to protect the install target machine
 from forensics analysis.  If the fact that you have installed or used ooni
 probe is a liability for you, please be aware of this risk.
 
+OONI in 5 minutes
+=================
+
+On debian testing or unstable::
+
+    sudo apt-get install ooniprobe
+
+If you are running debian stable you can get it from backports via::
+
+    sudo sh -c 'echo "deb http://http.debian.net/debian wheezy-backports main" >> /etc/apt/sources.list'
+    sudo apt-get update && sudo apt-get install ooniprobe
+
+On unix systems::
+
+    sudo pip install ooniprobe
+
+The run::
+
+    YOUR_COUNTRY_CODE="it"
+    PATH_TO_MY_DECK=`pwd`
+    mkdir my_decks
+    sudo ooniresource --update-inputs --update-geoip
+    oonideckgen --country-code $YOUR_COUNTRY_CODE -o my_decks/
+    ooniprobe -i my_decks/deck-$YOUR_COUNTRY_CODE/0.0.1-$YOUR_COUNTRY_CODE-user.deck
+
+The output from oonideckgen should give you the full path to the test deck.
+
+If you would like to contribute measurements to OONI daily you can also add
+this to your crontab::
+
+    @daily ooni /usr/bin/ooniprobe -i REPLACE_WITH_PATH_TO_THE_DECK
+
+This command should automatically do it if you did not quit the shell::
+
+      (crontab -l 2>/dev/null; echo "@daily ooni /usr/bin/ooniprobe -i $PATH_TO_MY_DECK/my_decks/$YOUR_COUNTRY_CODE/0.0.1-$YOUR_COUNTRY_CODE-user.deck") | crontab -
+
 Installation
 ============
 
@@ -80,15 +116,6 @@ without installing it is supported with the following commands::
     ./setup-dependencies.sh
     python setup.py install
 
-Setting up development environment
-----------------------------------
-
-On debian based systems this can be done with::
-
-    sudo apt-get install libgeoip-dev python-virtualenv virtualenvwrapper
-    mkvirtualenv ooniprobe
-    python setup.py install
-    pip install -r requirements-dev.txt
 
 Other platforms (with Vagrant)
 ------------------------------
@@ -142,6 +169,43 @@ found inside of ``~/.ooni/ooniprobe.conf``.
 
 By default ooniprobe will not include personal identifying information in the
 test result, nor create a pcap file. This behavior can be personalized.
+
+
+Updating resources
+------------------
+
+To generate decks you will have to update the input resources of ooniprobe.
+
+This can be done with::
+
+    ooniresource --update-inputs
+
+If you get a permission error, you may have to run the command as root or
+change the ooniprobe data directory inside of `ooniprobe.conf`.
+
+On some platforms, for example debian contrib, you will not get all the geoip
+related files needed. In that case it is possible to manually download them
+with ``ooniresources``::
+
+    ooniresource --update-geoip
+
+Generating decks
+----------------
+
+You can generate decks for your country thanks to the oonideckgen command.
+
+If you wish, for example, to generate a deck to be run in the country of Italy,
+you can do so (be sure to have updated the input resources first) by running::
+
+    oonideck --country-code IT --output ~/
+
+You will now have in your home a folder called `deck-it`, containing the ooni
+deck (ends with .deck) and the inputs.
+Note: that you should not move the `deck-*` directory once it has been
+generated as the paths to the inputs referenced by the test in the deck are
+absolute. If you want your deck to live in another directory you must
+regenerated it.
+
 
 Running decks
 -------------
@@ -244,7 +308,6 @@ If your distributation supports capabilities you can avoid needing to run OONI a
     setcap cap_net_admin,cap_net_raw+eip /path/to/your/virtualenv's/python
 
 
-
 Reporting bugs
 ==============
 
@@ -280,3 +343,13 @@ that is different from master) with::
 
     git format-patch master --stdout > my_first_ooniprobe.patch
 
+
+Setting up development environment
+----------------------------------
+
+On debian based systems this can be done with::
+
+    sudo apt-get install libgeoip-dev python-virtualenv virtualenvwrapper
+    mkvirtualenv ooniprobe
+    python setup.py install
+    pip install -r requirements-dev.txt
