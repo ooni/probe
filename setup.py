@@ -92,7 +92,8 @@ setup(
         'ooni.nettests.blocking',
         'ooni.nettests.third_party',
         'ooni.templates', 'ooni.tests', 'ooni.utils'],
-    scripts=["bin/ooniprobe", "bin/oonireport"],
+    scripts=["bin/oonideckgen", "bin/ooniprobe",
+             "bin/oonireport", "bin/ooniresources"],
     dependency_links=dependency_links,
     install_requires=install_requires
 )
