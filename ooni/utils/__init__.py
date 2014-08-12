@@ -3,6 +3,8 @@ import random
 import glob
 import os
 
+from zipfile import ZipFile
+
 from ooni import otime
 from ooni import errors
 
@@ -142,3 +144,15 @@ def sanitize_options(options):
         option = os.path.basename(option)
         sanitized_options.append(option)
     return sanitized_options
+
+def unzip(filename, dst):
+
+    assert filename.endswith('.zip')
+    dst_path = os.path.join(
+        dst,
+        os.path.basename(filename).replace(".zip", "")
+    )
+    with open(filename) as zfp:
+        zip_file = ZipFile(zfp)
+        zip_file.extractall(dst_path)
+    return dst_path

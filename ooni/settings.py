@@ -54,6 +54,7 @@ class OConfig(object):
         self.decks_directory = os.path.join(self.ooni_home, 'decks')
         self.reports_directory = os.path.join(self.ooni_home, 'reports')
         self.report_log_file = os.path.join(self.ooni_home, 'reporting.yml')
+        self.resources_directory = os.path.join(self.data_directory, "resources")
 
         if self.global_options.get('configfile'):
             config_file = self.global_options['configfile']

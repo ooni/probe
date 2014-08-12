@@ -7,6 +7,7 @@ sys.path.insert(0, os.path.abspath(os.getcwd()))
 
 from twisted.internet import defer, reactor
 
+from ooni.utils import log
 from ooni.report import cli
 
 def failed(failure):
@@ -20,7 +21,7 @@ def done(result):
 def start():
     d = defer.maybeDeferred(cli.run)
     d.addCallback(done)
-    d.addErrback(done)
+    d.addErrback(failed)
 
 reactor.callWhenRunning(start)
 reactor.run()
