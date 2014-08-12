@@ -232,3 +232,27 @@ tracker [filing them under the "Ooni" component](https://trac.torproject.org/pro
 You can either register an account or use the group account "cypherpunks" with
 password "writecode".
 
+## Contributing
+
+You can download the code for ooniprobe from the following git repository:
+
+```
+git clone https://git.torproject.org/ooni-probe.git
+```
+
+It is also viewable on the web via [https://gitweb.torproject.org/ooni-probe.git](https://git.torproject.org/ooni-probe.git).
+
+You should then submit patches for review as pull requests to this github repository: 
+
+https://github.com/TheTorProject/ooni-probe
+
+Read this article to learn how to [create a pull request on github](https://help.github.com/articles/creating-a-pull-request).
+
+If you prefer not to use github (or don't have an account), you may also submit
+patches as attachments to tickets.
+
+Be sure to format the patch (given that you are working on a feature branch that is different from master) with:
+
+```
+git format-patch master --stdout > my_first_ooniprobe.patch
+```
