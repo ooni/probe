@@ -2,6 +2,8 @@ import sys
 
 from twisted.python import usage
 
+from ooni.settings import config
+
 from ooni.resources import __version__
 from ooni.resources import update
 
@@ -21,6 +23,7 @@ class Options(usage.Options):
 
 def run():
     options = Options()
+    config.read_config_file()
     try:
         options.parseOptions()
     except usage.UsageError as error_message:
