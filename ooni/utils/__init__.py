@@ -1,8 +1,10 @@
+import shutil
 import string
 import random
 import glob
 import os
 
+import gzip
 from zipfile import ZipFile
 
 from ooni import otime
@@ -156,3 +158,14 @@ def unzip(filename, dst):
         zip_file = ZipFile(zfp)
         zip_file.extractall(dst_path)
     return dst_path
+
+def gunzip(filename, dst):
+    assert filename.endswith(".gz")
+    dst_path = os.path.join(
+        dst,
+        os.path.basename(filename).replace(".gz", "")
+    )
+    with open(dst_path, "w+") as fw:
+        gzip_file = gzip.open(filename)
+        shutil.copyfileobj(gzip_file, fw)
+        gzip_file.close()
