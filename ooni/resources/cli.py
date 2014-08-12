@@ -9,6 +9,9 @@ from ooni.resources import update
 class Options(usage.Options):
     synopsis = """%s"""
 
+    optFlags = [
+        ["update-inputs", None, "Update the resources needed for inputs"]
+    ]
     optParameters = []
 
     def opt_version(self):
@@ -25,4 +28,9 @@ def run():
         print "%s: Try --help for usage details." % (sys.argv[0])
         sys.exit(1)
 
-    return update.download_inputs()
+    if options['update-inputs']:
+        return update.download_inputs()
+
+    print "%s: no command specified" % sys.argv[0]
+    print "%s: Try --help for usage details." % (sys.argv[0])
+    sys.exit(1)
