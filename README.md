@@ -50,26 +50,24 @@ sudo pip install ooniprobe
 
 The run:
 ```
-YOUR_COUNTRY_CODE="it"
-PATH_TO_MY_DECK=`pwd`
 mkdir my_decks
 sudo ooniresource --update-inputs --update-geoip
-oonideckgen --country-code $YOUR_COUNTRY_CODE -o my_decks/
-ooniprobe -i my_decks/deck-$YOUR_COUNTRY_CODE/0.0.1-$YOUR_COUNTRY_CODE-user.deck
+oonideckgen -o my_decks/
 ```
 
-The output from oonideckgen should give you the full path to the test deck.
+The output from the last command will tell you how to run ooniprobe to perform
+the measurment.
 
 If you would like to contribute measurements to OONI daily you can also add
 this to your crontab:
 
 ```
-@daily ooni /usr/bin/ooniprobe -i REPLACE_WITH_PATH_TO_THE_DECK
+@daily ooni $THE_OONI_COMMAND
 ```
 
 This command should automatically do it if you did not quit the shell
 ```
-(crontab -l 2>/dev/null; echo "@daily ooni /usr/bin/ooniprobe -i $PATH_TO_MY_DECK/my_decks/$YOUR_COUNTRY_CODE/0.0.1-$YOUR_COUNTRY_CODE-user.deck") | crontab -
+(crontab -l 2>/dev/null; echo "@daily ooni $THE_OONI_COMMAND") | crontab -
 ```
 
 ## Installation
