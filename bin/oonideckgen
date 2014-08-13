@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import os
 import sys
+import exceptions
 
 sys.path[:] = map(os.path.abspath, sys.path)
 sys.path.insert(0, os.path.abspath(os.getcwd()))
@@ -11,8 +12,10 @@ from ooni.utils import log
 from ooni.deckgen import cli
 
 def failed(failure):
-    log.err("Failed to run oonideckgen")
-    log.exception(failure)
+    r = failure.trap(exceptions.SystemExit)
+    if r != exceptions.SystemExit:
+        log.err("Failed to run oonideckgen")
+        log.exception(failure)
     reactor.stop()
 
 def done(result):
