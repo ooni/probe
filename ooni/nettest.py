@@ -9,7 +9,7 @@ from twisted.trial.runner import filenameToModule
 from twisted.python import usage, reflect
 
 from ooni.tasks import Measurement
-from ooni.utils import log, checkForRoot
+from ooni.utils import log, checkForRoot, sanitize_options
 from ooni.settings import config
 from ooni import geoip
 
@@ -219,6 +219,7 @@ class NetTestLoader(object):
         for input_file in self.inputFiles:
             input_file_hashes.append(input_file['hash'])
 
+        options = sanitize_options(self.options)
         test_details = {'start_time': time.time(),
                         'probe_asn': config.probe_ip.geodata['asn'],
                         'probe_cc': config.probe_ip.geodata['countrycode'],
@@ -228,9 +229,8 @@ class NetTestLoader(object):
                         'test_version': self.testVersion,
                         'software_name': 'ooniprobe',
                         'software_version': software_version,
-                        'options': self.options,
-                        'input_hashes': input_file_hashes,
-                        'geoip_database_version': geoip.database_version()
+                        'options': options,
+                        'input_hashes': input_file_hashes
                         }
         return test_details
 
