@@ -2,12 +2,14 @@ import re
 import os
 import random
 
+from hashlib import sha256
+
 from twisted.web import client, http_headers
 client._HTTP11ClientFactory.noisy = False
 
-from twisted.internet import reactor, defer, protocol
+from twisted.internet import reactor, defer
 
-from ooni.utils import log, net, checkForRoot
+from ooni.utils import log, checkForRoot
 from ooni import errors
 
 try:
@@ -31,7 +33,7 @@ def IPToLocation(ipaddr):
     asn_file = os.path.join(config.advanced.geoip_data_dir, 'GeoIPASNum.dat')
 
     location = {'city': None, 'countrycode': 'ZZ', 'asn': 'AS0'}
-    
+
     try:
         country_dat = GeoIP(country_file)
         location['countrycode'] = country_dat.country_code_by_addr(ipaddr)
@@ -55,8 +57,49 @@ def IPToLocation(ipaddr):
         log.err("Could not find the ASN for your IP. "
                 "Download the GeoIPASNum.dat file into the geoip_data_dir"
                 " or install geoip-database-contrib.")
-    
+
     return location
+
+def database_version():
+    from ooni.settings import config
+
+    version = {
+        'GeoIP': {
+            'sha256': None,
+            'timestamp': None,
+        },
+        'GeoIPASNum': {
+            'sha256': None,
+            'timestamp': None
+        },
+        'GeoLiteCity': {
+            'sha256': None,
+            'timestamp': None
+        }
+    }
+
+    geoip_data_dir = config.advanced.get("geoip_data_dir")
+    if not geoip_data_dir:
+        return version
+
+    for key in version.keys():
+        geoip_file = os.path.join(geoip_data_dir, key + ".dat")
+        if not os.path.isfile(geoip_file):
+            continue
+        timestamp = os.stat(geoip_file).st_mtime
+
+        sha256hash = sha256()
+        with open(geoip_file) as f:
+            while True:
+                chunk = f.read(8192)
+                if not chunk:
+                    break
+                sha256hash.update(chunk)
+
+        version[key]['timestamp'] = timestamp
+        version[key]['sha256'] = sha256hash.hexdigest()
+    return version
+
 
 class HTTPGeoIPLookupper(object):
     url = None
@@ -131,7 +174,7 @@ class ProbeIP(object):
             'countrycode': 'ZZ',
             'ip': '127.0.0.1'
         }
-    
+
     def resolveGeodata(self):
         from ooni.settings import config
 

@@ -1,10 +1,8 @@
-import os
 
 from twisted.internet import defer
 from twisted.trial import unittest
 
 from ooni.tests import is_internet_connected
-from ooni.settings import config
 from ooni import geoip
 
 
@@ -24,3 +22,14 @@ class TestGeoIP(unittest.TestCase):
         probe_ip = geoip.ProbeIP()
         res = yield probe_ip.lookup()
         assert len(res.split('.')) == 4
+
+    def test_geoip_database_version(self):
+        version = geoip.database_version()
+        assert 'GeoIP' in version.keys()
+        assert 'GeoIPASNum' in version.keys()
+        assert 'GeoLiteCity' in version.keys()
+
+        assert len(version['GeoIP']['sha256']) == 64
+        assert isinstance(version['GeoIP']['timestamp'], float)
+        assert len(version['GeoIPASNum']['sha256']) == 64
+        assert isinstance(version['GeoIPASNum']['timestamp'], float)
