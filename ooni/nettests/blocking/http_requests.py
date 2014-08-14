@@ -115,13 +115,15 @@ class HTTPRequestsTest(httpt.HTTPTest):
     def postProcessor(self, measurements):
         experiment = control = None
         for status, measurement in measurements:
-            if 'experiment' in str(measurement.netTestMethod):
+            net_test_method = measurement.netTestMethod.im_func.func_name
+
+            if net_test_method == "test_get_experiment":
                 if isinstance(measurement.result, failure.Failure):
                     self.report['experiment_failure'] = failureToString(
                         measurement.result)
                 else:
                     experiment = measurement.result
-            elif 'control' in str(measurement.netTestMethod):
+            elif net_test_method == "test_get_control":
                 if isinstance(measurement.result, failure.Failure):
                     self.report['control_failure'] = failureToString(
                         measurement.result)

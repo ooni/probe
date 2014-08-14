@@ -154,6 +154,12 @@ class HTTPTest(NetTestCase):
         response.body = response_body
         return response
 
+    def _processResponseBodyFail(self, failure, request):
+        failure_string = handleAllFailures(failure)
+        HTTPTest.addToReport(self, request, response,
+                             failure_string=failure_string)
+        return response
+
     def processResponseBody(self, body):
         """
         Overwrite this method if you wish to interact with the response body of
@@ -242,6 +248,8 @@ class HTTPTest(NetTestCase):
         response.deliverBody(BodyReceiver(finished, content_length))
         finished.addCallback(self._processResponseBody, request,
                 response, body_processor)
+        finished.addErrback(self._processResponseBodyFail, request,
+                            response)
         return finished
 
     def doRequest(self, url, method="GET",
