@@ -37,5 +37,12 @@ geoip = {
         "action": gunzip,
         "action_args": [config.advanced.geoip_data_dir],
         "processor": None
+    },
+    "GeoLiteCity.dat.gz": {
+        "url": "http://geolite.maxmind.com/"
+               "download/geoip/database/GeoLiteCity.dat.gz",
+        "action": gunzip,
+        "action_args": [config.advanced.geoip_data_dir],
+        "processor": None
     }
 }
