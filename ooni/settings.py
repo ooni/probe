@@ -3,12 +3,11 @@ import sys
 import yaml
 import getpass
 
-from twisted.internet import defer, reactor
-from twisted.internet.endpoints import TCP4ClientEndpoint
+from twisted.internet import defer, reactor, protocol
+from twisted.internet.endpoints import TCP4ClientEndpoint, connectProtocol
 
 from os.path import abspath, expanduser
 from scapy.all import get_if_list
-import txtorcon
 
 from ooni import otime, geoip
 from ooni.utils import Storage, log
@@ -141,33 +140,27 @@ class OConfig(object):
         Called only when we must start tor by director.start
         """
         incoherent = []
-        d = defer.Deferred()
-
         if not self.advanced.start_tor:
             if self.tor.socks_port is None:
                 incoherent.append('tor:socks_port')
-            if self.tor.control_port is None:
-                incoherent.append('tor:control_port')
-            if self.tor.socks_port is not None and self.tor.control_port is not None:
-                # Check if tor is listening in these ports
-                def timeout():
-                    incoherent.append('tor:control_port')
-                    if not d.called:
-                        d.errback()
-
-                connection = TCP4ClientEndpoint(reactor, "localhost", self.tor.control_port)
-                timeout_call = reactor.callLater(30, timeout)
+            else:
+                socks_port_ep = TCP4ClientEndpoint(reactor,
+                                                   "localhost",
+                                                   self.tor.socks_port)
                 try:
-                    d = txtorcon.build_tor_connection(connection)
-                    state = yield d
-                    result = yield state.protocol.get_info("net/listeners/socks")
-                    if result["net/listeners/socks"].split(':')[1] != str(self.tor.socks_port):
-                        incoherent.append('tor:socks_port')
+                    yield connectProtocol(socks_port_ep, protocol.Protocol())
                 except Exception:
                     incoherent.append('tor:socks_port')
-                finally:
-                    if timeout_call.active:
-                        timeout_call.cancel()
+
+            if self.tor.control_port is not None:
+                control_port_ep = TCP4ClientEndpoint(reactor,
+                                                     "localhost",
+                                                     self.tor.control_port)
+                try:
+                    yield connectProtocol(control_port_ep, protocol.Protocol())
+                except Exception:
+                    incoherent.append('tor:control_port')
+
             self.log_incoherences(incoherent)
 
     def generate_pcap_filename(self, testDetails):
