@@ -3,12 +3,13 @@ import sys
 import yaml
 import getpass
 
-from twisted.internet import defer, reactor, protocol
+from twisted.internet import defer, reactor
 from twisted.internet.endpoints import TCP4ClientEndpoint, connectProtocol
 
 from os.path import abspath, expanduser
 from scapy.all import get_if_list
 
+from ooni.utils.net import ConnectAndCloseProtocol
 from ooni import otime, geoip
 from ooni.utils import Storage, log
 from ooni import errors
@@ -148,7 +149,7 @@ class OConfig(object):
                                                    "localhost",
                                                    self.tor.socks_port)
                 try:
-                    yield connectProtocol(socks_port_ep, protocol.Protocol())
+                    yield connectProtocol(socks_port_ep, ConnectAndCloseProtocol())
                 except Exception:
                     incoherent.append('tor:socks_port')
 
@@ -157,7 +158,7 @@ class OConfig(object):
                                                      "localhost",
                                                      self.tor.control_port)
                 try:
-                    yield connectProtocol(control_port_ep, protocol.Protocol())
+                    yield connectProtocol(control_port_ep, ConnectAndCloseProtocol())
                 except Exception:
                     incoherent.append('tor:control_port')
 

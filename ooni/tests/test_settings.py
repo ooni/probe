@@ -117,7 +117,7 @@ class TestSettings(ConfigTestCase):
     def test_check_tor_silly_listener(self):
         self.conf.advanced.start_tor = False
         self.conf.tor.socks_port = 9999
-        self.conf.tor.control_port = 9998
+        self.conf.tor.control_port = None
         self.run_silly_server()
         try:
             yield self.conf.check_tor()

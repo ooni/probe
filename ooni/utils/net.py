@@ -113,6 +113,10 @@ class Downloader(protocol.Protocol):
         self.finished.callback(None)
 
 
+class ConnectAndCloseProtocol(protocol.Protocol):
+    def connectionMade(self):
+        self.transport.loseConnection()
+
 def getSystemResolver():
     """
     XXX implement a function that returns the resolver that is currently
