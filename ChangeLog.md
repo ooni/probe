@@ -1,3 +1,47 @@
+## v1.1.0
+
+In this new release of ooniprobe we have added a new command line tool for
+listing the reports that have not been published to a collector and that allows
+the probe operator to choose which ones they would like to upload.
+
+We have also made some privacy improvements to the reports (we will sanitize
+all things that may look like file paths) and added metadata associated with
+the maxmind database being used by the probe operator.
+
+Here is a more detailed list of what has been done:
+
+* Annotate on disk which reports we have submitted and which ones we have not:
+  https://trac.torproject.org/projects/tor/ticket/11860
+
+* Add tool called oonireport for publishing unpublished ooniprobe reports to a
+  collector: https://trac.torproject.org/projects/tor/ticket/11862
+
+* Probe Report does not leak filepaths anymore:
+  https://trac.torproject.org/projects/tor/ticket/12706
+
+* Reports now include version information about the maxmind database being
+  used: https://trac.torproject.org/projects/tor/ticket/12771
+
+* We now do integrity checks on the ooniprobe.conf file so that we don't start
+  the tool if the config file is missing some settings or is not consistent:
+  https://trac.torproject.org/projects/tor/ticket/11983
+  (thanks to Alejandro López (kudrom))
+
+* Improvements have been made to the sniffer subsystem (thanks to Alejandro
+  López (kudrom))
+
+Minor bug fixes:
+
+* ooni might not look at requiresTor:
+  https://trac.torproject.org/projects/tor/ticket/11858
+
+* ooni spits out gobs of tracebacks if Tor is not running and the OONI config
+  says it will be:
+  https://trac.torproject.org/projects/tor/ticket/11859
+
+* The README for ooni-probe should mention the bugtracker and repository
+  https://trac.torproject.org/projects/tor/ticket/11980
+
 ## v1.0.2
 
 * Add ooniprobe manpage.
