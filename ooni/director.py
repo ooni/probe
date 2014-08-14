@@ -207,7 +207,6 @@ class Director(object):
         self.totalMeasurementRuntime += measurement.runtime
 
         self.failedMeasurements += 1
-        self.failures.append((failure, measurement))
         measurement.result = failure
         return measurement
 
