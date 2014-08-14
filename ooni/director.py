@@ -195,10 +195,11 @@ class Director(object):
         self.successfulMeasurements += 1
         measurement.result = result
         test_name = test_class_name_to_name(measurement.testInstance.name)
-        sniffer = self.sniffers[test_name]
-        config.scapyFactory.unRegisterProtocol(sniffer)
-        sniffer.close()
-        del self.sniffers[test_name]
+        if test_name in self.sniffers:
+            sniffer = self.sniffers[test_name]
+            config.scapyFactory.unRegisterProtocol(sniffer)
+            sniffer.close()
+            del self.sniffers[test_name]
         return measurement
 
     def measurementFailed(self, failure, measurement):
