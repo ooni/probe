@@ -26,8 +26,6 @@ class OConfig(object):
         self.tor_state = None
         # This is used to store the probes IP address obtained via Tor
         self.probe_ip = geoip.ProbeIP()
-        # This is used to keep track of the state of the sniffer
-        self.sniffer_running = None
         self.logging = True
         self.basic = Storage()
         self.advanced = Storage()
@@ -163,10 +161,5 @@ class OConfig(object):
                     incoherent.append('tor:control_port')
 
             self.log_incoherences(incoherent)
-
-    def generate_pcap_filename(self, testDetails):
-        test_name, start_time = testDetails['test_name'], testDetails['start_time']
-        start_time = otime.epochToTimestamp(start_time)
-        return "report-%s-%s.%s" % (test_name, start_time, "pcap")
 
 config = OConfig()

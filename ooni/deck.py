@@ -96,7 +96,6 @@ class Deck(InputFile):
         self.bouncer = ''
         self.netTestLoaders = []
         self.inputs = []
-        self.testHelpers = {}
 
         self.oonibclient = OONIBClient(self.bouncer)
 

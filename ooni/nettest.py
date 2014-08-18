@@ -23,24 +23,6 @@ class NoTestCasesFound(Exception):
     pass
 
 
-def get_test_methods(item, method_prefix="test_"):
-    """
-    Look for test_ methods in subclasses of NetTestCase
-    """
-    test_cases = []
-    try:
-        assert issubclass(item, NetTestCase)
-        methods = reflect.prefixedMethodNames(item, method_prefix)
-        test_methods = []
-        for method in methods:
-            test_methods.append(method_prefix + method)
-        if test_methods:
-            test_cases.append((item, test_methods))
-    except (TypeError, AssertionError):
-        pass
-    return test_cases
-
-
 def getTestClassFromFile(net_test_file):
     """
     Will return the first class that is an instance of NetTestCase.

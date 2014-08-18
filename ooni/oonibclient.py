@@ -13,33 +13,6 @@ from ooni.utils import log
 from ooni.utils.net import BodyReceiver, StringProducer, Downloader
 from ooni.utils.trueheaders import TrueHeadersSOCKS5Agent
 
-class Collector(object):
-    def __init__(self, address):
-        self.address = address
-
-        self.nettest_policy = None
-        self.input_policy = None
-    
-    @defer.inlineCallbacks
-    def loadPolicy(self):
-        # XXX implement caching of policies
-        oonibclient = OONIBClient(self.address)
-        log.msg("Looking up nettest policy for %s" % self.address)
-        self.nettest_policy = yield oonibclient.getNettestPolicy()
-        log.msg("Looking up input policy for %s" % self.address)
-        self.input_policy = yield oonibclient.getInputPolicy()
-
-    def validateInput(self, input_hash):
-        for i in self.input_policy:
-            if i['id'] == input_hash:
-                return True
-        return False
-
-    def validateNettest(self, nettest_name):
-        for i in self.nettest_policy:
-            if nettest_name == i['name']:
-                return True
-        return False
 
 class OONIBClient(object):
     retries = 3
@@ -99,7 +72,7 @@ class OONIBClient(object):
         bodyProducer = None
         if query:
             bodyProducer = StringProducer(json.dumps(query))
-        
+
         def genReceiver(finished, content_length):
             def process_response(s):
                 # If empty string then don't parse it.
@@ -124,9 +97,6 @@ class OONIBClient(object):
             return Downloader(download_path, finished, content_length)
 
         return self._request('GET', urn, genReceiver)
-    
-    def getNettestPolicy(self):
-        pass
 
     def getInput(self, input_hash):
         from ooni.deck import InputFile
@@ -239,7 +209,7 @@ class OONIBClient(object):
     def lookupTestHelpers(self, test_helper_names):
         try:
 
-            test_helper = yield self.queryBackend('POST', '/bouncer', 
+            test_helper = yield self.queryBackend('POST', '/bouncer',
                             query={'test-helpers': test_helper_names})
         except Exception, exc:
             log.exception(exc)
