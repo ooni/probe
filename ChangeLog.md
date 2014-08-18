@@ -32,6 +32,9 @@ Here is a more detailed list of what has been done:
 
 Minor bug fixes:
 
+* Fix dns_spoof test (by kudrom)
+  https://trac.torproject.org/projects/tor/ticket/12486
+
 * ooni might not look at requiresTor:
   https://trac.torproject.org/projects/tor/ticket/11858
 
