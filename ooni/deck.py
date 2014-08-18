@@ -90,9 +90,11 @@ def nettest_to_path(path, allow_arbitrary_paths=False):
 class Deck(InputFile):
     def __init__(self, deck_hash=None,
                  deckFile=None,
-                 decks_directory=config.decks_directory):
+                 decks_directory=config.decks_directory,
+                 no_collector=False):
         self.id = deck_hash
         self.requiresTor = False
+        self.no_collector = no_collector
         self.bouncer = ''
         self.netTestLoaders = []
         self.inputs = []
@@ -169,7 +171,7 @@ class Deck(InputFile):
         required_test_helpers = []
         requires_collector = []
         for net_test_loader in self.netTestLoaders:
-            if not net_test_loader.collector:
+            if not net_test_loader.collector and not self.no_collector:
                 requires_collector.append(net_test_loader)
 
             for th in net_test_loader.requiredTestHelpers:
