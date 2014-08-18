@@ -2,12 +2,10 @@ import os
 import shutil
 import socket
 
-from twisted.trial import unittest
 from twisted.internet import defer
 from twisted.web import error
 
 from ooni import errors as e
-from ooni.utils import log
 from ooni.settings import config
 from ooni.oonibclient import OONIBClient
 from ooni.tests.bases import ConfigTestCase
@@ -18,6 +16,7 @@ deck_id = 'd4ae40ecfb3c1b943748cce503ab8233efce7823f3e391058fc0f87829c644ed'
 
 class TestOONIBClient(ConfigTestCase):
     def setUp(self):
+        super(TestOONIBClient, self).setUp()
         host = '127.0.0.1'
         port = 8889
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -33,7 +32,7 @@ class TestOONIBClient(ConfigTestCase):
             os.mkdir(data_dir)
             os.mkdir(os.path.join(data_dir, 'inputs'))
             os.mkdir(os.path.join(data_dir, 'decks'))
-        except Exception as ex:
+        except Exception:
             self.skipTest("OONIB must be listening on port 8888 to run this test (tor_hidden_service: false)")
         self.oonibclient = OONIBClient('http://' + host + ':' + str(port))
 
