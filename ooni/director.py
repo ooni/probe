@@ -105,7 +105,11 @@ class Director(object):
             for filename in os.listdir(dirname):
                 if is_nettest(filename):
                     net_test_file = os.path.join(dirname, filename)
-                    nettest = getNetTestInformation(net_test_file)
+                    try:
+                        nettest = getNetTestInformation(net_test_file)
+                    except:
+                        log.err("Error processing %s" % filename)
+                        continue
                     nettest['category'] = category.replace('/', '')
 
                     if nettest['id'] in nettests:

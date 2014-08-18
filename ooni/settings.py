@@ -7,7 +7,6 @@ from twisted.internet import defer, reactor
 from twisted.internet.endpoints import TCP4ClientEndpoint, connectProtocol
 
 from os.path import abspath, expanduser
-from scapy.all import get_if_list
 
 from ooni.utils.net import ConnectAndCloseProtocol
 from ooni import geoip
@@ -119,8 +118,10 @@ class OConfig(object):
     def check_incoherences(self, configuration):
         incoherent = []
 
-        if configuration['advanced']['interface'] != 'auto' and configuration['advanced']['interface'] not in get_if_list():
-            incoherent.append('advanced:interface')
+        if configuration['advanced']['interface'] != 'auto':
+            from scapy.all import get_if_list
+            if configuration['advanced']['interface'] not in get_if_list():
+                incoherent.append('advanced:interface')
 
         self.log_incoherences(incoherent)
 

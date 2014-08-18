@@ -12,7 +12,6 @@ from ooni.settings import config
 from ooni.director import Director
 from ooni.deck import Deck, nettest_to_path
 from ooni.nettest import NetTestLoader
-from ooni.utils.txscapy import ScapyFactory
 
 from ooni.utils import log, checkForRoot
 
@@ -128,6 +127,7 @@ def runWithDirector(logging=True, start_tor=True, check_incoherences=True):
     if config.privacy.includepcap:
         try:
             checkForRoot()
+            from ooni.utils.txscapy import ScapyFactory
             config.scapyFactory = ScapyFactory(config.advanced.interface)
         except errors.InsufficientPrivileges:
             log.err("Insufficient Privileges to capture packets."
