@@ -422,7 +422,7 @@ class OONIBReportLog(object):
         for report_file, value in report_log.items():
             if value['status'] in ('created'):
                 try:
-                    os.kill(value['pid'])
+                    os.kill(value['pid'], 0)
                 except:
                     reports.append((report_file, value))
         return reports
@@ -434,7 +434,7 @@ class OONIBReportLog(object):
         for report_file, value in report_log.items():
             if value['status'] in ('created'):
                 try:
-                    os.kill(value['pid'])
+                    os.kill(value['pid'], 0)
                     reports.append((report_file, value))
                 except:
                     pass

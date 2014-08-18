@@ -161,3 +161,14 @@ class TestOONIBReportLog(unittest.TestCase):
             report = yaml.safe_load(f)
         assert "path_to_my_report.yaml" in report
         assert report["path_to_my_report.yaml"]["status"] == "creation-failed"
+
+    @defer.inlineCallbacks
+    def test_list_reports(self):
+        yield self.report_log.creation_failed("failed_report.yaml",
+                                              'httpo://foo.onion')
+        yield self.report_log.created("created_report.yaml",
+                                      'httpo://foo.onion', 'XXXX')
+
+        assert len(self.report_log.reports_in_progress) == 1
+        assert len(self.report_log.reports_incomplete) == 0
+        assert len(self.report_log.reports_to_upload) == 1
