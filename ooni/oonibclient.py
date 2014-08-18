@@ -1,7 +1,4 @@
-import os
 import json
-
-from hashlib import sha256
 
 from twisted.web.client import Agent
 from twisted.internet import defer, reactor

@@ -1,11 +1,10 @@
 import socket
-import os
 import sys
 import time
 import random
 
-from twisted.internet import protocol, base, fdesc
-from twisted.internet import reactor, threads, error
+from twisted.internet import fdesc
+from twisted.internet import reactor
 from twisted.internet import defer, abstract
 
 from scapy.config import conf
@@ -256,7 +255,6 @@ class ScapySender(ScapyProtocol):
             self.stopSending()
 
     def packetReceived(self, packet):
-        timeout = time.time() - self._start_time
         if self.timeout and time.time() - self._start_time > self.timeout:
             self.stopSending()
         if packet:
@@ -491,7 +489,6 @@ class MPTraceroute(ScapyProtocol):
         for p in self._recvbuf:
             l = p.getlayer(2)
             if isinstance(l, IPerror):
-                pid = l.id
                 l = p.getlayer(3)
                 if isinstance(l, ICMPerror):
                     addToReceivedPackets(('icmp', l.id), p)

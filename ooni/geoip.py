@@ -232,7 +232,7 @@ class ProbeIP(object):
                 self.address = yield s.lookup()
                 self.strategy = 'geo_ip_service-' + service_name
                 break
-            except Exception, e:
+            except Exception:
                 log.msg("Failed to lookup your IP via %s" % service_name)
 
         if not self.address:

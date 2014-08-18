@@ -10,7 +10,7 @@ from os.path import abspath, expanduser
 from scapy.all import get_if_list
 
 from ooni.utils.net import ConnectAndCloseProtocol
-from ooni import otime, geoip
+from ooni import geoip
 from ooni.utils import Storage, log
 from ooni import errors
 

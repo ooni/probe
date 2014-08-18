@@ -28,8 +28,6 @@
 # :authors: Jacob Appelbaum, Arturo Filastò, Isis Lovecruft
 # :license: see LICENSE for more details
 
-import base64
-import os
 import random
 import re
 import string
@@ -37,9 +35,8 @@ from urlparse import urlparse
 
 from twisted.names import error
 from twisted.python import usage
-from twisted.internet import defer, threads
+from twisted.internet import defer
 
-from ooni import nettest
 from ooni.templates import httpt, dnst
 from ooni.utils import net
 from ooni.utils import log

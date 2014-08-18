@@ -154,7 +154,7 @@ class HTTPTest(NetTestCase):
         response.body = response_body
         return response
 
-    def _processResponseBodyFail(self, failure, request):
+    def _processResponseBodyFail(self, failure, request, response):
         failure_string = handleAllFailures(failure)
         HTTPTest.addToReport(self, request, response,
                              failure_string=failure_string)

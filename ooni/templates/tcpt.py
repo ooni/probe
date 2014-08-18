@@ -1,5 +1,4 @@
 from twisted.internet import protocol, defer, reactor
-from twisted.internet.error import ConnectionDone
 from twisted.internet.endpoints import TCP4ClientEndpoint
 
 from ooni.nettest import NetTestCase

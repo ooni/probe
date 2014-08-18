@@ -4,7 +4,7 @@ import yaml
 
 from twisted.python import usage
 from twisted.python.util import spewer
-from twisted.internet import defer, reactor
+from twisted.internet import defer
 
 from ooni import errors, __version__
 

@@ -209,7 +209,7 @@ def checkInterfaces(ifaces=None, timeout=1):
                       + " local address {}".format(ifname, ifaddr))
             try:
                 pkt = IP(dst=ifaddr) / ICMP()
-                ans, unans = sr(pkt, iface=ifname, timeout=5, retry=3)
+                ans, unans = sr1(pkt, iface=ifname, timeout=5, retry=3)
             except Exception, e:
                 raise PermissionsError if e.find("Errno 1") else log.err(e)
             else:
@@ -252,4 +252,3 @@ def getNonLoopbackIfaces(platform_name=None):
 def getLocalAddress():
     default_iface = getDefaultIface()
     return default_iface.ipaddr
-

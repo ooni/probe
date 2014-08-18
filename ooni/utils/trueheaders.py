@@ -4,18 +4,13 @@
 # Here we make sure that the HTTP Headers sent and received are True. By this
 # we mean that they are not normalized and that the ordering is maintained.
 
-import struct
 import itertools
 from copy import copy
 
-from zope.interface import implements
 from twisted.web import client, _newclient, http_headers
-from twisted.web._newclient import Request, RequestNotSent, RequestGenerationFailed, TransportProxyProducer, STATUS
-from twisted.internet import protocol, reactor
-from twisted.internet.protocol import ClientFactory, Protocol
-from twisted.internet.endpoints import TCP4ClientEndpoint, SSL4ClientEndpoint
-from twisted.internet import interfaces, defer
-from twisted.internet.defer import Deferred, succeed, fail, maybeDeferred
+from twisted.web._newclient import RequestNotSent, RequestGenerationFailed, TransportProxyProducer, STATUS
+from twisted.internet import reactor
+from twisted.internet.defer import Deferred, fail, maybeDeferred, failure
 
 from txsocksx.http import SOCKS5Agent
 from txsocksx.client import SOCKS5ClientFactory
@@ -137,7 +132,7 @@ class HTTP11ClientProtocol(_newclient.HTTP11ClientProtocol):
                 self._state = 'GENERATION_FAILED'
                 self.transport.loseConnection()
                 self._finishedRequest.errback(
-                    Failure(RequestGenerationFailed([err])))
+                    failure.Failure(RequestGenerationFailed([err])))
             else:
                 log.err(err, 'Error writing request, but not in valid state '
                              'to finalize request: %s' % self._state)

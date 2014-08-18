@@ -11,7 +11,6 @@ from twisted.python import usage, reflect
 from ooni.tasks import Measurement
 from ooni.utils import log, checkForRoot, sanitize_options
 from ooni.settings import config
-from ooni import geoip
 
 from ooni import errors as e
 
