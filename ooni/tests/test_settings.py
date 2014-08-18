@@ -47,6 +47,10 @@ class TestSettings(ConfigTestCase):
         class SillyFactory(Factory):
             protocol = SillyProtocol
 
+            def buildProtocol(self, address):
+                p = self.protocol(self)
+                return p
+
         self.silly_listener = reactor.listenTCP(self.conf.tor.socks_port, SillyFactory())
 
     def test_vanilla_configuration(self):
