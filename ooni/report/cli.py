@@ -27,6 +27,11 @@ class Options(usage.Options):
         sys.exit(0)
 
     def parseArgs(self, *args):
+        if len(args) == 0:
+            raise usage.UsageError(
+                "Must specify at least one command"
+            )
+            return
         self['command'] = args[0]
         if self['command'] not in ("upload", "status"):
             raise usage.UsageError(
@@ -39,15 +44,6 @@ class Options(usage.Options):
                 self['report_file'] = None
 
 
-def parse_options():
-    options = Options()
-    try:
-        options.parseOptions()
-    except Exception as exc:
-        print(exc)
-    return dict(options)
-
-
 def tor_check():
     if not config.tor.socks_port:
         print("Currently oonireport requires that you start Tor yourself "
@@ -57,7 +53,13 @@ def tor_check():
 
 def run():
     config.read_config_file()
-    options = parse_options()
+    options = Options()
+    try:
+        options.parseOptions()
+    except Exception as exc:
+        print("Error: %s" % exc)
+        print(options)
+        sys.exit(2)
     if options['command'] == "upload" and options['report_file']:
         tor_check()
         return tool.upload(options['report_file'],
@@ -69,3 +71,5 @@ def run():
                                options['bouncer'])
     elif options['command'] == "status":
         return tool.status()
+    else:
+        print(options)
