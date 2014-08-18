@@ -165,11 +165,9 @@ def runWithDirector(logging=True, start_tor=True, check_incoherences=True):
                 sys.exit(1)
         global_options["annotations"] = annotations
 
-    # XXX: This should mean no bouncer either!
     if global_options['no-collector']:
         log.msg("Not reporting using a collector")
         global_options['collector'] = None
-        global_options['bouncer'] = None
 
     deck = Deck()
     deck.bouncer = global_options['bouncer']
