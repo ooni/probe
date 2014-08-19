@@ -30,7 +30,7 @@ class OONIBClient(object):
             raise e.InvalidOONIBBouncerAddress
 
         elif self.address.startswith('http://'):
-            log.msg("Warning using unencrypted collector")
+            log.msg("Warning using unencrypted backend")
             agent = Agent(reactor)
 
         attempts = 0
@@ -205,10 +205,9 @@ class OONIBClient(object):
     @defer.inlineCallbacks
     def lookupTestHelpers(self, test_helper_names):
         try:
-
             test_helper = yield self.queryBackend('POST', '/bouncer',
                             query={'test-helpers': test_helper_names})
-        except Exception, exc:
+        except Exception as exc:
             log.exception(exc)
             raise e.CouldNotFindTestHelper
 

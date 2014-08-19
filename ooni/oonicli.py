@@ -168,10 +168,12 @@ def runWithDirector(logging=True, start_tor=True, check_incoherences=True):
     if global_options['no-collector']:
         log.msg("Not reporting using a collector")
         global_options['collector'] = None
+        start_tor = False
+    else:
+        start_tor = True
 
     deck = Deck(no_collector=global_options['no-collector'])
     deck.bouncer = global_options['bouncer']
-    start_tor = False
     if global_options['collector']:
         start_tor |= True
 
