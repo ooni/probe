@@ -1,3 +1,6 @@
+Changelog
+=========
+
 v1.1.0
 ------
 
@@ -344,10 +347,10 @@ v0.0.4-alpha
 * Add multi protocol multi port traceroute for UDP and TCP
 
 * Implement basic HTTP request test that does capitalization variations on the
-HTTP method.
+  HTTP method.
 
 * Bugfixing and refactoring of txscapy for sending and receiving of scapy
-packets.
+  packets.
 
 v0.0.3-alpha
 ------------
