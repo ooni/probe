@@ -16,12 +16,7 @@ end
 
 $script = <<SCRIPT
 
-echo "deb http://deb.ooni.nu/ooni wheezy main" >> /etc/apt/sources.list
 echo "deb http://deb.torproject.org/torproject.org precise main" >> /etc/apt/sources.list
-
-# Install deb.ooni.nu key
-gpg --keyserver pgp.mit.edu --recv-key 0x49B8CDF4
-gpg --export 89AB86D4788F3785FE9EDA31F9E2D9B049B8CDF4 | apt-key add -
 
 # Install deb.torproject.org key
 gpg --keyserver keys.gnupg.net --recv 886DDD89
@@ -30,11 +25,11 @@ gpg --export A3C4F0F979CAA22CDBA8F512EE8CBC9E886DDD89 | apt-key add -
 apt-get update
 
 apt-get install -y tor deb.torproject.org-keyring
-apt-get install -y ooniprobe geoip-database-contrib
 
 # Setup for sniffer subsystem
-apt-get install -y build-essential libdnet-dev libpcap-dev python-dev python-pip python-networkx
-pip install PyDNET graphillion
+apt-get install -y build-essential libdumbnet-dev python-dumbnet python-pypcap libpcap-dev python-dev python-pip libgeoip-dev
+cd /ooni
+python setup.py install
 echo "Login using 'vagrant ssh', and dont forget to run ooniprobe as root."
 echo "First run: 'sudo ooniprobe -i /usr/share/ooni/decks/fast.deck'"
 
