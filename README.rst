@@ -7,6 +7,9 @@ ooniprobe: a network interference detection tool
 .. image:: https://coveralls.io/repos/TheTorProject/ooni-probe/badge.png
     :target: https://coveralls.io/r/TheTorProject/ooni-probe
 
+.. image:: https://ooni.torproject.org/theme/img/ooni-logo.png
+    :target: https:://ooni.torproject.org/
+
 OONI, the Open Observatory of Network Interference, is a global observation
 network which aims is to collect high quality data using open methodologies,
 using Free and Open Source Software (FL/OSS) to share observations and data
