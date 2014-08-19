@@ -97,7 +97,7 @@ with open('requirements.txt') as f:
 with open('README.rst') as f:
     readme = f.read()
 
-with open('Changelog.rst') as f:
+with open('ChangeLog.rst') as f:
     changelog = f.read()
 
 setup(
