@@ -123,7 +123,8 @@ Using ooniprobe
 
 **Bouncer** is a service used to discover the addresses of test helpers and collectors.
 
-### Configuring ooniprobe
+Configuring ooniprobe
+---------------------
 
 You may edit the configuration for ooniprobe by editing the configuration file
 found inside of ``~/.ooni/ooniprobe.conf``.
