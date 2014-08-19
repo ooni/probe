@@ -1,5 +1,6 @@
 import string
 import subprocess
+from distutils.spawn import find_executable
 from distutils.version import LooseVersion
 
 from txtorcon.util import find_tor_binary as tx_find_tor_binary
@@ -11,26 +12,41 @@ class TorVersion(LooseVersion):
     pass
 
 
+class OBFSProxyVersion(LooseVersion):
+    pass
+
+
 def find_tor_binary():
     if config.advanced.tor_binary:
         return config.advanced.tor_binary
     return tx_find_tor_binary()
 
 
-def tor_version():
-    tor_binary = find_tor_binary()
-    if not tor_binary:
+def executable_version(binary, strip=lambda x: x):
+    if not binary:
         return None
     try:
-        proc = subprocess.Popen((tor_binary, '--version'),
+        proc = subprocess.Popen((binary, '--version'),
                                 stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     except OSError:
         pass
     else:
         stdout, _ = proc.communicate()
         if proc.poll() == 0 and stdout != '':
-            return TorVersion(stdout.strip().split(' ')[2])
+            version = stdout.strip()
+            return LooseVersion(strip(version))
     return None
+
+
+def tor_version():
+    version = executable_version(find_tor_binary(),
+                                 lambda x: x.split(' ')[2])
+    return TorVersion(str(version))
+
+
+def obfsproxy_version():
+    version = executable_version(find_executable('obfsproxy'))
+    return OBFSProxyVersion(str(version))
 
 
 def transport_name(address):
@@ -52,4 +68,9 @@ def transport_name(address):
 tor_details = {
     'binary': find_tor_binary(),
     'version': tor_version()
+}
+
+obfsproxy_details = {
+    'binary': find_executable('obfsproxy'),
+    'version': obfsproxy_version()
 }

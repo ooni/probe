@@ -201,6 +201,8 @@ def runWithDirector(logging=True, start_tor=True, check_incoherences=True):
         print e.net_test_loader.usageOptions().getUsage()
         sys.exit(4)
     except Exception as e:
+        if config.advanced.debug:
+            log.exception(e)
         log.err(e)
         sys.exit(5)
 

@@ -64,12 +64,13 @@ class BridgeReachability(nettest.NetTestCase):
         self.report['tor_progress_tag'] = None
         self.report['tor_progress_summary'] = None
         self.report['tor_log'] = None
+        self.report['obfsproxy_version'] = str(onion.obfsproxy_details['version'])
         self.report['bridge_address'] = None
 
         self.bridge = self.input
         if self.input.startswith('Bridge'):
             self.bridge = self.input.replace('Bridge ', '')
-        self.pyobfsproxy_bin = find_executable('obfsproxy')
+        self.pyobfsproxy_bin = onion.obfsproxy_details['binary']
         self.fteproxy_bin = find_executable('fteproxy')
 
     def postProcessor(self, measurements):
@@ -143,6 +144,12 @@ class BridgeReachability(nettest.NetTestCase):
         elif transport_name and self.pyobfsproxy_bin:
             config.ClientTransportPlugin = "%s exec %s managed" % (
                 transport_name, self.pyobfsproxy_bin)
+            if onion.OBFSProxyVersion('0.2') > onion.obfsproxy_details['version']:
+                log.err(
+                    "The obfsproxy version you are using appears to be outdated."
+                )
+                self.report['error'] = 'old-obfsproxy'
+                return
             log.debug("Using pyobfsproxy from %s" % self.pyobfsproxy_bin)
             self.report['transport_name'] = transport_name
             self.report['bridge_address'] = self.bridge.split(' ')[1]
