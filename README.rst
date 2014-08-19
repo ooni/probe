@@ -1,17 +1,21 @@
+ooniprobe: a network interference detection tool
+================================================
+
 .. image:: https://travis-ci.org/TheTorProject/ooni-probe.png?branch=master
     :target: https://travis-ci.org/TheTorProject/ooni-probe
 
 .. image:: https://coveralls.io/repos/TheTorProject/ooni-probe/badge.png
     :target: https://coveralls.io/r/TheTorProject/ooni-probe
 
-    "The Net interprets censorship as damage and routes around it."
-                    - John Gilmore; TIME magazine (6 December 1993)
-
 OONI, the Open Observatory of Network Interference, is a global observation
 network which aims is to collect high quality data using open methodologies,
 using Free and Open Source Software (FL/OSS) to share observations and data
 about the various types, methods, and amounts of network tampering in the
 world.
+
+    "The Net interprets censorship as damage and routes around it."
+                    - John Gilmore; TIME magazine (6 December 1993)
+
 
 ooniprobe is the first program that users run to probe their network and to
 collect data for the OONI project. Are you interested in testing your network
