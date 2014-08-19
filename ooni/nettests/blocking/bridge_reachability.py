@@ -28,7 +28,7 @@ class BridgeReachability(nettest.NetTestCase):
     description = "A test for checking if bridges are reachable " \
                   "from a given location."
     author = "Arturo Filastò"
-    version = "0.1"
+    version = "0.1.1"
 
     usageOptions = UsageOptions
 
