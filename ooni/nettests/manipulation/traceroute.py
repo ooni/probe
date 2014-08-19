@@ -1,9 +1,11 @@
 # -*- encoding: utf-8 -*-
 
+from twisted.internet import defer
 from twisted.python import usage
 
 from ooni.templates import scapyt
 
+from ooni.utils import log
 from ooni.utils.txscapy import MPTraceroute
 from ooni.settings import config
 
@@ -37,50 +39,50 @@ class Traceroute(scapyt.BaseScapyTest):
     version = "0.3"
 
     def setUp(self):
-        self.st = MPTraceroute()
-        if self.localOptions['maxttl']:
-            self.st.ttl_max = int(self.localOptions['maxttl'])
-        if self.localOptions['dstport']:
-            self.st.dst_ports = [int(self.localOptions['dstport'])]
-        if self.localOptions['interval']:
-            self.st.interval = float(self.localOptions['interval'])
-
-        config.scapyFactory.registerProtocol(self.st)
-
         self.report['test_tcp_traceroute'] = dict(
             [('hops_%d' % d, []) for d in self.dst_ports])
         self.report['test_udp_traceroute'] = dict(
             [('hops_%d' % d, []) for d in self.dst_ports])
         self.report['test_icmp_traceroute'] = {'hops': []}
 
+    @defer.inlineCallbacks
+    def run_traceroute(self, protocol):
+        st = MPTraceroute()
+        if self.localOptions['maxttl']:
+            st.ttl_max = int(self.localOptions['maxttl'])
+        if self.localOptions['dstport']:
+            st.dst_ports = [int(self.localOptions['dstport'])]
+        if self.localOptions['interval']:
+            st.interval = float(self.localOptions['interval'])
+        log.msg("Running %s traceroute towards %s" % (protocol,
+                                                      self.localOptions['backend']))
+        log.msg("This will take about %s seconds" % st.timeout)
+        config.scapyFactory.registerProtocol(st)
+        traceroute = getattr(st, protocol + 'Traceroute')
+        yield traceroute(self.localOptions['backend'])
+        st.stopListening()
+        st.matchResponses()
+        for packet in st.sent_packets:
+            self.report['sent_packets'].append(packet)
+        for packet in st.matched_packets.values():
+            self.report['answered_packets'].extend(packet)
+
+        for ttl in xrange(st.ttl_min, st.ttl_max):
+            matchedPackets = filter(
+                lambda x: x.ttl == ttl,
+                st.matched_packets.keys())
+            for packet in matchedPackets:
+                for response in st.matched_packets[packet]:
+                    self.addToReport(packet, response)
+
     def test_icmp_traceroute(self):
-        return self.st.ICMPTraceroute(self.localOptions['backend'])
+        return self.run_traceroute('ICMP')
 
     def test_tcp_traceroute(self):
-        return self.st.TCPTraceroute(self.localOptions['backend'])
+        return self.run_traceroute('TCP')
 
     def test_udp_traceroute(self):
-        return self.st.UDPTraceroute(self.localOptions['backend'])
-
-    def postProcessor(self, measurements):
-        # should be called after all deferreds have calledback
-        self.st.stopListening()
-        self.st.matchResponses()
-
-        if measurements[0][1].result == self.st:
-            for packet in self.st.sent_packets:
-                self.report['sent_packets'].append(packet)
-            for packet in self.st.matched_packets.values():
-                self.report['answered_packets'].extend(packet)
-
-            for ttl in xrange(self.st.ttl_min, self.st.ttl_max):
-                matchedPackets = filter(
-                    lambda x: x.ttl == ttl,
-                    self.st.matched_packets.keys())
-                for packet in matchedPackets:
-                    for response in self.st.matched_packets[packet]:
-                        self.addToReport(packet, response)
-        return self.report
+        return self.run_traceroute('UDP')
 
     def addToReport(self, packet, response):
         if packet.proto == 1:
