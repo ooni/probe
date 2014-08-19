@@ -132,6 +132,7 @@ class BridgeReachability(nettest.NetTestCase):
         if transport_name and transport_name == 'fte' and self.fteproxy_bin:
             config.ClientTransportPlugin = "%s exec %s --managed" % (
                 transport_name, self.fteproxy_bin)
+            log.debug("Using fte from %s" % self.fteproxy_bin)
             self.report['transport_name'] = transport_name
             self.report['bridge_address'] = self.bridge.split(' ')[1]
         elif transport_name and transport_name == 'fte'\
@@ -142,6 +143,7 @@ class BridgeReachability(nettest.NetTestCase):
         elif transport_name and self.pyobfsproxy_bin:
             config.ClientTransportPlugin = "%s exec %s managed" % (
                 transport_name, self.pyobfsproxy_bin)
+            log.debug("Using pyobfsproxy from %s" % self.pyobfsproxy_bin)
             self.report['transport_name'] = transport_name
             self.report['bridge_address'] = self.bridge.split(' ')[1]
         elif transport_name and not self.pyobfsproxy_bin:
