@@ -80,6 +80,7 @@ packages=[
     'ooni.nettests.scanning',
     'ooni.nettests.blocking',
     'ooni.nettests.third_party',
+    'ooni.report',
     'ooni.templates',
     'ooni.tests',
     'ooni.utils'
