@@ -1,4 +1,5 @@
-## v1.1.0
+v1.1.0
+------
 
 In this new release of ooniprobe we have added a new command line tool for
 listing the reports that have not been published to a collector and that allows
@@ -45,7 +46,8 @@ Minor bug fixes:
 * The README for ooni-probe should mention the bugtracker and repository
   https://trac.torproject.org/projects/tor/ticket/11980
 
-## v1.0.2
+v1.0.2
+-------
 
 * Add ooniprobe manpage.
 
@@ -59,7 +61,8 @@ Minor bug fixes:
 
 * Have better test naming consistency.
 
-## v1.0.1
+v1.0.1
+-------
 
 * Fix bugs in the traceroute test that lead to not all packets being collected.
 
@@ -70,7 +73,8 @@ Minor bug fixes:
 
 * Add bridge_reachability test
 
-## v1.0.0
+v1.0.0
+-------
 
 * Add bouncer support for discovering test helpers and collectors
 
@@ -82,7 +86,8 @@ Minor bug fixes:
 
 * Add disclaimer when running ooniprobe
 
-## v0.1.0
+v0.1.0
+-------
 
 Improvements to HTML/JS based user interface:
 
@@ -92,7 +97,8 @@ Improvements to HTML/JS based user interface:
 
 Bugfixing and improvements to scheduler.
 
-## v0.0.12
+v0.0.12
+-------
 
 Implement JS/HTML based user interface.
 
@@ -102,7 +108,8 @@ Supports:
 
   * Monitoring of test progress
 
-## v0.0.11
+v0.0.11
+-------
 
 * Parametrize task timeout and retry count
 
@@ -112,9 +119,10 @@ Supports:
 
 * Add continuous integration with travis
 
-## v0.0.10
+v0.0.10
+-------
 
-### ooniprobe
+ooniprobe:
 
 * Fix bug that made HTTP based tests stall
 
@@ -132,7 +140,7 @@ Supports:
 
 * Do not swallow failures when a test instance fails to run fixes #7714
 
-### scripts
+scripts:
 
 * Add report archival script
 
@@ -141,7 +149,7 @@ Fix bug in TCP connect test that made it not properly log errors
 * Refactor failure handling code in nettest Add function that traps all the
 	supported failure and outputs the failure string representing it.
 
-### documentation
+documentation:
 
 * Add birdseye view of the ooniprobe architecture
 
@@ -151,9 +159,10 @@ Fix bug in TCP connect test that made it not properly log errors
 
 * Add instructions for supervisord configuration and clean up README.md
 
-## 0.0.9
+0.0.9
+-----
 
-### ooniprobe
+ooniprobe:
 
 * Set the default ASN to 0
 
@@ -168,7 +177,7 @@ Fix bug in TCP connect test that made it not properly log errors
 * Fix bug in ooniprobe test decks
 	https://trac.torproject.org/projects/tor/ticket/7664
 
-### oonib
+oonib:
 
 * Use twisted fdesc when writing to files
 
@@ -178,11 +187,11 @@ Fix bug in TCP connect test that made it not properly log errors
 
 * Add support for setting the tor binary path in oonib/config.py
 
-### scripts
+scripts:
 
 * Add a very simple example on how to securely parse the ooniprobe reports
 
-### documentation
+documentation:
 
 * Add documentation for the DNSSpoof test
 
@@ -192,13 +201,14 @@ Fix bug in TCP connect test that made it not properly log errors
 
 * Properly use the power of sphinx!
 
-### Tests
+Tests:
 
 * fixup Netalyzr third party plugin
 
-## v0.0.8-alpha
+v0.0.8-alpha
+------------
 
-### ooniprobe
+ooniprobe:
 
 * Allow test resolver file to have comments.
 
@@ -247,7 +257,7 @@ Fix bug in TCP connect test that made it not properly log errors
 	change the source and destination ip address of the sent and received
 	packets to 127.0.0.1.
 
-#### Tests
+tests:
 
 * Implement basic keyword filtering detection test.
 
@@ -284,7 +294,7 @@ Fix bug in TCP connect test that made it not properly log errors
 
 * Refactor captive portal test to run tests in threads
 
-### oonib
+oonib:
 
 * Implement basic collector for ooniprobe reports.
 	Reports can be submitted over the network via http to a remote collector.
@@ -304,15 +314,16 @@ Fix bug in TCP connect test that made it not properly log errors
 
 * Implement TCP Echo test helper.
 
-### scripts
+scripts:
 
 * Add fabfile for automatic deployment of ooni-probe to remote sites
 
-### documentation
+documentation:
 
 * Update documentation on how to setup ooniprobe.
 
-## v0.0.7.1-alpha
+v0.0.7.1-alpha
+--------------
 
 * Add software version to the report
 
@@ -320,13 +331,15 @@ Fix bug in TCP connect test that made it not properly log errors
 
 * Improve HTTP Host test to work with the HTTP Requests test backend
 
-## v0.0.7-alpha
+v0.0.7-alpha
+-------------
 
 * Add test_name key to ooniprobe reports
 
 * Port TCP connect test to the new API
 
-## v0.0.4-alpha
+v0.0.4-alpha
+------------
 
 * Add multi protocol multi port traceroute for UDP and TCP
 
@@ -336,7 +349,8 @@ HTTP method.
 * Bugfixing and refactoring of txscapy for sending and receiving of scapy
 packets.
 
-## v0.0.3-alpha
+v0.0.3-alpha
+------------
 
 * Implement logging to PCAP file support
 
@@ -361,7 +375,8 @@ packets.
 * Remove raw inputs and move them to a separate repository and add Makefile to
 	fetch such lists
 
-## 0.0.1-alpha
+0.0.1-alpha
+-----------
 
 First release of ooni-probe. woot!
 
