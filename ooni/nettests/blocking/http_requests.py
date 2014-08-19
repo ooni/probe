@@ -131,10 +131,12 @@ class HTTPRequestsTest(httpt.HTTPTest):
                     control = measurement.result
 
         if experiment and control:
-            if experiment.body and control.body:
+            if hasattr(experiment, 'body') and hasattr(control, 'body') \
+                    and experiment.body and control.body:
                 self.compare_body_lengths(len(control.body),
-                                        len(experiment.body))
-            if experiment.headers and control.headers:
+                                          len(experiment.body))
+            if hasattr(experiment, 'headers') and hasattr(control, 'headers') \
+                    and experiment.headers and control.headers:
                 self.compare_headers(control.headers,
-                                    experiment.headers)
+                                     experiment.headers)
         return self.report
