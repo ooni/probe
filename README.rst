@@ -1,10 +1,11 @@
-[![Build Status](https://travis-ci.org/TheTorProject/ooni-probe.png?branch=master)](https://travis-ci.org/TheTorProject/ooni-probe)
-[![Coverage Status](https://coveralls.io/repos/TheTorProject/ooni-probe/badge.png)](https://coveralls.io/r/TheTorProject/ooni-probe)
+.. image:: https://travis-ci.org/TheTorProject/ooni-probe.png?branch=master
+    :target: https://travis-ci.org/TheTorProject/ooni-probe
 
-![OONI](https://ooni.torproject.org/theme/img/ooni-logo.png)
+.. image:: https://coveralls.io/repos/TheTorProject/ooni-probe/badge.png
+    :target: https://coveralls.io/r/TheTorProject/ooni-probe
 
-"The Net interprets censorship as damage and routes around it."
-                - John Gilmore; TIME magazine (6 December 1993)
+    "The Net interprets censorship as damage and routes around it."
+                    - John Gilmore; TIME magazine (6 December 1993)
 
 OONI, the Open Observatory of Network Interference, is a global observation
 network which aims is to collect high quality data using open methodologies,
@@ -71,11 +72,9 @@ On debian based systems this can be done with::
 Other platforms (with Vagrant)
 ------------------------------
 
-0) [Install Vagrant](https://www.vagrantup.com/downloads.html) and [Install Virtualbox](https://www.virtualbox.org/wiki/Downloads)
+1. [Install Vagrant](https://www.vagrantup.com/downloads.html) and [Install Virtualbox](https://www.virtualbox.org/wiki/Downloads)
 
-0.1)
-
-On OSX:
+2. On OSX:
 
 If you don't have it install homebrew http://mxcl.github.io/homebrew/::
 
@@ -85,19 +84,19 @@ On debian/ubuntu::
 
     sudo apt-get install git
 
-1) Open a Terminal and run::
+3. Open a Terminal and run::
 
     git clone https://git.torproject.org/ooni-probe.git
     cd ooni-probe/
     vagrant up
 
-2) Login to the box with::
+4. Login to the box with::
 
     vagrant ssh
 
 ooniprobe will be installed in ``/ooni``.
 
-3) You can run tests with::
+5. You can run tests with::
 
     ooniprobe blocking/http_requests -f /ooni/example_inputs/alexa-top-1k.txt
 
