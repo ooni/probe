@@ -1,8 +1,8 @@
 Changelog
 =========
 
-v1.1.0
-------
+v1.1.0 (Tue, 19 Aug 2014)
+-------------------------
 
 In this new release of ooniprobe we have added a new command line tool for
 listing the reports that have not been published to a collector and that allows
@@ -34,6 +34,9 @@ Here is a more detailed list of what has been done:
 * Improvements have been made to the sniffer subsystem (thanks to Alejandro
   López (kudrom))
 
+* Fix the multi protocol traceroute test.
+  https://trac.torproject.org/projects/tor/ticket/12883
+
 Minor bug fixes:
 
 * Fix dns_spoof test (by kudrom)
@@ -49,8 +52,8 @@ Minor bug fixes:
 * The README for ooni-probe should mention the bugtracker and repository
   https://trac.torproject.org/projects/tor/ticket/11980
 
-v1.0.2
--------
+v1.0.2 (Fri, 9 May 2014)
+------------------------
 
 * Add ooniprobe manpage.
 
@@ -64,8 +67,8 @@ v1.0.2
 
 * Have better test naming consistency.
 
-v1.0.1
--------
+v1.0.1 (Fri, 14 Mar 2014)
+-------------------------
 
 * Fix bugs in the traceroute test that lead to not all packets being collected.
 
@@ -76,8 +79,8 @@ v1.0.1
 
 * Add bridge_reachability test
 
-v1.0.0
--------
+v1.0.0 (Thu, 20 Feb 2014)
+-------------------------
 
 * Add bouncer support for discovering test helpers and collectors
 
@@ -89,8 +92,8 @@ v1.0.0
 
 * Add disclaimer when running ooniprobe
 
-v0.1.0
--------
+v0.1.0 (Mon, 17 Jun 2013)
+-------------------------
 
 Improvements to HTML/JS based user interface:
 
@@ -100,8 +103,8 @@ Improvements to HTML/JS based user interface:
 
 Bugfixing and improvements to scheduler.
 
-v0.0.12
--------
+v0.0.12 (Sat, 8 Jun 2013)
+-------------------------
 
 Implement JS/HTML based user interface.
 
@@ -111,8 +114,8 @@ Supports:
 
   * Monitoring of test progress
 
-v0.0.11
--------
+v0.0.11 (Thu, 11 Apr 2013)
+--------------------------
 
 * Parametrize task timeout and retry count
 
@@ -122,8 +125,8 @@ v0.0.11
 
 * Add continuous integration with travis
 
-v0.0.10
--------
+v0.0.10 (Wed, 26 Dec 2012)
+--------------------------
 
 ooniprobe:
 
@@ -162,8 +165,8 @@ documentation:
 
 * Add instructions for supervisord configuration and clean up README.md
 
-0.0.9
------
+0.0.9 (Tue, 11 Dec 2012)
+------------------------
 
 ooniprobe:
 
@@ -208,8 +211,8 @@ Tests:
 
 * fixup Netalyzr third party plugin
 
-v0.0.8-alpha
-------------
+v0.0.8-alpha (Sun, 2 Dec 2012)
+------------------------------
 
 ooniprobe:
 
@@ -325,8 +328,8 @@ documentation:
 
 * Update documentation on how to setup ooniprobe.
 
-v0.0.7.1-alpha
---------------
+v0.0.7.1-alpha (Sun, 11 Nov 2012)
+---------------------------------
 
 * Add software version to the report
 
@@ -334,15 +337,15 @@ v0.0.7.1-alpha
 
 * Improve HTTP Host test to work with the HTTP Requests test backend
 
-v0.0.7-alpha
--------------
+v0.0.7-alpha (Sat, 10 Nov 2012)
+-------------------------------
 
 * Add test_name key to ooniprobe reports
 
 * Port TCP connect test to the new API
 
-v0.0.4-alpha
-------------
+v0.0.4-alpha (Sat, 10 Nov 2012)
+-------------------------------
 
 * Add multi protocol multi port traceroute for UDP and TCP
 
@@ -352,8 +355,8 @@ v0.0.4-alpha
 * Bugfixing and refactoring of txscapy for sending and receiving of scapy
   packets.
 
-v0.0.3-alpha
-------------
+v0.0.3-alpha (Fri, 9 Nov 2012)
+------------------------------
 
 * Implement logging to PCAP file support
 
@@ -378,8 +381,7 @@ v0.0.3-alpha
 * Remove raw inputs and move them to a separate repository and add Makefile to
 	fetch such lists
 
-0.0.1-alpha
------------
+0.0.1-alpha (Tue, 6 Nov 2012)
+-----------------------------
 
 First release of ooni-probe. woot!
-
