@@ -1,3 +1,9 @@
+ooniprobe (1.1.0-1) stable; urgency=low
+
+  * ooniprobe 1.1.0
+
+ -- OONI Developers (signing key) <ooni-dev@lists.torproject.org>  Tue, 19 Aug 2014 15:14:46 +0200
+
 ooniprobe (1.0.2-1) stable; urgency=low
 
   * ooniprobe 1.0.2
