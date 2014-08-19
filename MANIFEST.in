@@ -1,4 +1,4 @@
-include README.rst ChangeLog.md requirements.txt LICENSE
+include README.rst ChangeLog.rst requirements.txt LICENSE
 recursive-include data/decks *
 include data/inputs/
 include data/GeoIP.dat
