@@ -6,7 +6,7 @@ from twisted.internet import defer, reactor
 from twisted.python.usage import UsageError
 
 from ooni.settings import config
-from ooni.errors import MissingRequiredOption, OONIUsageError
+from ooni.errors import MissingRequiredOption, OONIUsageError, IncoherentOptions
 from ooni.nettest import NetTest, NetTestLoader
 
 from ooni.director import Director
@@ -235,7 +235,7 @@ class TestNetTest(unittest.TestCase):
         self.verifyMethods(ntl.testCases)
         self.verifyClasses(ntl.testCases, set(('DummyTestCaseA', 'DummyTestCaseB')))
 
-        self.assertRaises(AssertionError, ntl.checkOptions)
+        self.assertRaises(IncoherentOptions, ntl.checkOptions)
 
     def test_load_with_option(self):
         ntl = NetTestLoader(dummyArgs)

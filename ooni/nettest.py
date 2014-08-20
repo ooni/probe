@@ -250,7 +250,9 @@ class NetTestLoader(object):
             if not usage_options:
                 usage_options = self._parseNetTestOptions(test_class)
             else:
-                assert usage_options == test_class.usageOptions
+                if usage_options != test_class.usageOptions:
+                    raise e.IncoherentOptions(usage_options.__name__,
+                                              test_class.usageOptions.__name__)
         return usage_options
 
     def loadNetTestString(self, net_test_string):
