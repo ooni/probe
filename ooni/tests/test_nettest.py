@@ -54,6 +54,32 @@ class DummyTestCaseB(NetTestCase):
         self.report['foo'] = 'foo'
 """
 
+double_different_options_net_test_string = """
+from twisted.python import usage
+from ooni.nettest import NetTestCase
+
+class UsageOptionsA(usage.Options):
+    optParameters = [['spam', 's', None, 'ham']]
+
+class UsageOptionsB(usage.Options):
+    optParameters = [['spam', 's', None, 'ham']]
+
+class DummyTestCaseA(NetTestCase):
+
+    usageOptions = UsageOptionsA
+
+    def test_a(self):
+        self.report['bar'] = 'bar'
+
+
+class DummyTestCaseB(NetTestCase):
+
+    usageOptions = UsageOptionsB
+
+    def test_b(self):
+        self.report['foo'] = 'foo'
+"""
+
 net_test_root_required = net_test_string + """
     requiresRoot = True
 """
@@ -199,6 +225,17 @@ class TestNetTest(unittest.TestCase):
 
         self.verifyMethods(ntl.testCases)
         self.verifyClasses(ntl.testCases, set(('DummyTestCaseA', 'DummyTestCaseB')))
+
+        ntl.checkOptions()
+
+    def test_load_net_test_multiple_different_options(self):
+        ntl = NetTestLoader(dummyArgs)
+        ntl.loadNetTestString(double_different_options_net_test_string)
+
+        self.verifyMethods(ntl.testCases)
+        self.verifyClasses(ntl.testCases, set(('DummyTestCaseA', 'DummyTestCaseB')))
+
+        self.assertRaises(AssertionError, ntl.checkOptions)
 
     def test_load_with_option(self):
         ntl = NetTestLoader(dummyArgs)
