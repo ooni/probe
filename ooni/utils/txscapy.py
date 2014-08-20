@@ -160,7 +160,7 @@ class ScapyFactory(abstract.FileDescriptor):
         if not super_socket and sys.platform == 'darwin':
             super_socket = conf.L3socket(iface=interface, promisc=True, filter='')
         elif not super_socket:
-            super_socket = L3RawSocket(iface=interface, promisc=True)
+            super_socket = conf.L3socket(iface=interface)
 
         self.protocols = []
         fdesc._setCloseOnExec(super_socket.ins.fileno())
@@ -325,6 +325,8 @@ class ParasiticTraceroute(ScapyProtocol):
 
     def sendPacket(self, packet):
         self.factory.send(packet)
+        self.sent_packets.append(packet)
+        log.debug("Sent packet to %s with ttl %d" % (packet.dst, packet.ttl))
 
     def packetReceived(self, packet):
         try:
@@ -332,24 +334,25 @@ class ParasiticTraceroute(ScapyProtocol):
         except IndexError:
             return
 
+        # Add TTL Expired responses.
         if isinstance(packet.getlayer(3), TCPerror):
             self.received_packets.append(packet)
+            # Live traceroute?
+            log.debug("%s replied with icmp-ttl-exceeded for %s" % (packet.src, packet[IPerror].dst))
             return
-
         elif packet.dst in self.hosts:
             if random.randint(1, 100) > self.rate:
+                # Don't send a packet this time
                 return
             try:
                 packet[IP].ttl = self.hosts[packet.dst]['ttl'].pop()
                 del packet.chksum  # XXX Why is this incorrect?
-                log.debug("Sent packet to %s with ttl %d" % (packet.dst, packet.ttl))
                 self.sendPacket(packet)
                 k = (packet.id, packet[TCP].sport, packet[TCP].dport, packet[TCP].seq)
                 self.matched_packets[k] = {'ttl': packet.ttl}
                 return
             except IndexError:
-                pass
-            return
+                return
 
         def maxttl(packet=None):
             if packet:
@@ -369,17 +372,16 @@ class ParasiticTraceroute(ScapyProtocol):
 
                 self.hosts[packet.dst] = {'ttl': genttl()}
                 log.debug("Tracing to %s" % packet.dst)
-
-            elif packet.src not in self.hosts \
+                return
+            if packet.src not in self.hosts \
                     and packet.src not in self.addresses \
                     and isinstance(packet.getlayer(1), TCP):
-
                 self.hosts[packet.src] = {'ttl': genttl(packet),
                                           'ttl_max': maxttl(packet)}
                 log.debug("Tracing to %s" % packet.src)
-            return
+                return
 
-        elif packet.src in self.hosts and not 'ttl_max' in self.hosts[packet.src]:
+        if packet.src in self.hosts and not 'ttl_max' in self.hosts[packet.src]:
             self.hosts[packet.src]['ttl_max'] = ttl_max = maxttl(packet)
             log.debug("set ttl_max to %d for host %s" % (ttl_max, packet.src))
             ttl = []
