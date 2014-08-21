@@ -6,7 +6,7 @@ from twisted.internet import defer, reactor
 from twisted.python.usage import UsageError
 
 from ooni.settings import config
-from ooni.errors import MissingRequiredOption, OONIUsageError
+from ooni.errors import MissingRequiredOption, OONIUsageError, IncoherentOptions
 from ooni.nettest import NetTest, NetTestLoader
 
 from ooni.director import Director
@@ -26,6 +26,55 @@ class DummyTestCase(NetTestCase):
 
     def test_a(self):
         self.report['bar'] = 'bar'
+
+    def test_b(self):
+        self.report['foo'] = 'foo'
+"""
+
+double_net_test_string = """
+from twisted.python import usage
+from ooni.nettest import NetTestCase
+
+class UsageOptions(usage.Options):
+    optParameters = [['spam', 's', None, 'ham']]
+
+class DummyTestCaseA(NetTestCase):
+
+    usageOptions = UsageOptions
+
+    def test_a(self):
+        self.report['bar'] = 'bar'
+
+
+class DummyTestCaseB(NetTestCase):
+
+    usageOptions = UsageOptions
+
+    def test_b(self):
+        self.report['foo'] = 'foo'
+"""
+
+double_different_options_net_test_string = """
+from twisted.python import usage
+from ooni.nettest import NetTestCase
+
+class UsageOptionsA(usage.Options):
+    optParameters = [['spam', 's', None, 'ham']]
+
+class UsageOptionsB(usage.Options):
+    optParameters = [['spam', 's', None, 'ham']]
+
+class DummyTestCaseA(NetTestCase):
+
+    usageOptions = UsageOptionsA
+
+    def test_a(self):
+        self.report['bar'] = 'bar'
+
+
+class DummyTestCaseB(NetTestCase):
+
+    usageOptions = UsageOptionsB
 
     def test_b(self):
         self.report['foo'] = 'foo'
@@ -137,6 +186,13 @@ class TestNetTest(unittest.TestCase):
                 uniq_test_methods.add(test_method)
         self.assertEqual(set(['test_a', 'test_b']), uniq_test_methods)
 
+    def verifyClasses(self, test_cases, control_classes):
+        actual_classes = set()
+        for test_class, test_methods in test_cases:
+            actual_classes.add(test_class.__name__)
+
+        self.assertEqual(actual_classes, control_classes)
+
     def test_load_net_test_from_file(self):
         """
         Given a file verify that the net test cases are properly
@@ -163,15 +219,23 @@ class TestNetTest(unittest.TestCase):
 
         self.verifyMethods(ntl.testCases)
 
-    def test_load_net_test_from_StringIO(self):
-        """
-        Given a file like object verify that the net test cases are properly
-        generated.
-        """
+    def test_load_net_test_multiple(self):
         ntl = NetTestLoader(dummyArgs)
-        ntl.loadNetTestString(net_test_string)
+        ntl.loadNetTestString(double_net_test_string)
 
         self.verifyMethods(ntl.testCases)
+        self.verifyClasses(ntl.testCases, set(('DummyTestCaseA', 'DummyTestCaseB')))
+
+        ntl.checkOptions()
+
+    def test_load_net_test_multiple_different_options(self):
+        ntl = NetTestLoader(dummyArgs)
+        ntl.loadNetTestString(double_different_options_net_test_string)
+
+        self.verifyMethods(ntl.testCases)
+        self.verifyClasses(ntl.testCases, set(('DummyTestCaseA', 'DummyTestCaseB')))
+
+        self.assertRaises(IncoherentOptions, ntl.checkOptions)
 
     def test_load_with_option(self):
         ntl = NetTestLoader(dummyArgs)

@@ -264,10 +264,12 @@ class MissingRequiredOption(Exception):
     def __str__(self):
         return ','.join(self.message)
 
+
 class OONIUsageError(usage.UsageError):
     def __init__(self, net_test_loader):
         super(OONIUsageError, self).__init__()
         self.net_test_loader = net_test_loader
+
 
 class FailureToLoadNetTest(Exception):
     pass
@@ -279,6 +281,15 @@ class NoPostProcessor(Exception):
 
 class InvalidOption(Exception):
     pass
+
+
+class IncoherentOptions(Exception):
+    def __init__(self, first_options, second_options):
+        super(IncoherentOptions, self).__init__()
+        self.message = "%s is different to %s" % (first_options, second_options)
+
+    def __str__(self):
+        return self.message
 
 
 class TaskTimedOut(Exception):
@@ -303,6 +314,7 @@ class ReportLogExists(Exception):
 
 class InvalidConfigFile(Exception):
     pass
+
 
 class ConfigFileIncoherent(Exception):
     pass
