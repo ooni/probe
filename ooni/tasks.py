@@ -113,7 +113,10 @@ class Measurement(TaskWithTimeout):
 
         self.netTestMethod = getattr(self.testInstance, test_method)
 
-        if config.advanced.measurement_timeout:
+        if 'timeout' in dir(test_instance):
+            if isinstance(test_instance.timeout, int) or isinstance(test_instance.timeout, float):
+                self.timeout = test_instance.timeout
+        elif config.advanced.measurement_timeout:
             self.timeout = config.advanced.measurement_timeout
         TaskWithTimeout.__init__(self)
 
