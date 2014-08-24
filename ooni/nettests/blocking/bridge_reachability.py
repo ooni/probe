@@ -49,12 +49,6 @@ class BridgeReachability(nettest.NetTestCase):
         self.tor_progress = 0
         self.timeout = int(self.localOptions['timeout'])
 
-        if self.timeout > config.advanced.measurement_timeout:
-            log.err("The measurement timeout is less than the bridge reachability test timeout")
-            log.err("Adjust your ooniprobe.conf file by setting the "
-                    "advanced: measurement_timeout: value to %d" % self.timeout)
-            raise errors.InvalidConfigFile("advanced->measurement_timeout < %d" % self.timeout)
-
         self.report['error'] = None
         self.report['success'] = None
         self.report['timeout'] = self.timeout
