@@ -1,4 +1,4 @@
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 from ooni.oonibclient import OONIBClient
 from ooni.nettest import NetTestLoader
@@ -13,6 +13,7 @@ import os
 import yaml
 import json
 from hashlib import sha256
+
 
 class InputFile(object):
     def __init__(self, input_hash, base_path=config.inputs_directory):
@@ -44,13 +45,13 @@ class InputFile(object):
     def save(self):
         with open(self.cached_descriptor, 'w+') as f:
             json.dump({
-                'name': self.name,
-                'id': self.id,
-                'version': self.version,
-                'author': self.author,
-                'date': self.date,
-                'description': self.description
-            }, f)
+                          'name': self.name,
+                          'id': self.id,
+                          'version': self.version,
+                          'author': self.author,
+                          'date': self.date,
+                          'description': self.description
+                      }, f)
 
     def load(self, descriptor):
         self.name = descriptor['name']
@@ -64,6 +65,7 @@ class InputFile(object):
         with open(self.cached_file) as f:
             file_hash = sha256(f.read())
             assert file_hash.hexdigest() == digest
+
 
 def nettest_to_path(path, allow_arbitrary_paths=False):
     """
@@ -86,6 +88,7 @@ def nettest_to_path(path, allow_arbitrary_paths=False):
         return fp.path
     else:
         raise e.NetTestNotFound(path)
+
 
 class Deck(InputFile):
     def __init__(self, deck_hash=None,
@@ -135,11 +138,13 @@ class Deck(InputFile):
 
     def insert(self, net_test_loader):
         """ Add a NetTestLoader to this test deck """
+
         def has_test_helper(missing_option):
             for rth in net_test_loader.requiredTestHelpers:
                 if missing_option == rth['option']:
                     return True
             return False
+
         try:
             net_test_loader.checkOptions()
             if net_test_loader.requiresTor:
@@ -161,8 +166,67 @@ class Deck(InputFile):
             yield self.fetchAndVerifyNetTestInput(net_test_loader)
 
         if self.bouncer:
-            log.msg("Looking up test helpers...")
-            yield self.lookupTestHelpers()
+            log.msg("Looking up collector and test helpers")
+            yield self.lookupCollector()
+
+    @defer.inlineCallbacks
+    def lookupCollector(self):
+        self.oonibclient.address = self.bouncer
+
+        required_nettests = []
+
+        requires_test_helpers = False
+        requires_collector = False
+        for net_test_loader in self.netTestLoaders:
+            nettest = {
+                'name': net_test_loader.testDetails['test_name'],
+                'version': net_test_loader.testDetails['test_version'],
+                'test-helpers': [],
+                'input-hashes': [x['hash'] for x in net_test_loader.inputFiles]
+            }
+            if not net_test_loader.collector:
+                requires_collector = True
+
+            for th in net_test_loader.requiredTestHelpers:
+                # {'name':'', 'option':'', 'test_class':''}
+                if th['test_class'].localOptions[th['option']]:
+                    continue
+                nettest['test-helpers'].append(th['name'])
+                requires_test_helpers = True
+
+            required_nettests.append(nettest)
+
+        if not requires_test_helpers and not requires_collector:
+            defer.returnValue(None)
+
+        response = yield self.oonibclient.lookupTestCollector(required_nettests)
+        print response
+        provided_net_tests = response['net-tests']
+
+        def find_collector_and_test_helpers(test_name, test_version, input_files):
+            for net_test in provided_net_tests:
+                if net_test['name'] != test_name:
+                    continue
+                if net_test['version'] != test_version:
+                    continue
+                if set(net_test['input-hashes']) != set(input_files):
+                    continue
+                return net_test['collector'], net_test['test-helpers']
+
+        for net_test_loader in self.netTestLoaders:
+            log.msg("Setting collector and test helpers for %s" % net_test_loader.testDetails['test_name'])
+
+            collector, test_helpers = \
+                find_collector_and_test_helpers(net_test_loader.testDetails['test_name'],
+                                                net_test_loader.testDetails['test_version'],
+                                                net_test_loader.inputFiles)
+
+            for th in net_test_loader.requiredTestHelpers:
+                if not th['test_class'].localOptions[th['option']]:
+                    th['test_class'].localOptions[th['option']] = test_helpers[th['name']].encode('utf-8')
+
+            if not net_test_loader.collector:
+                net_test_loader.collector = collector.encode('utf-8')
 
     @defer.inlineCallbacks
     def lookupTestHelpers(self):
@@ -192,7 +256,7 @@ class Deck(InputFile):
             # Only set the collector if the no collector has been specified
             # from the command line or via the test deck.
             if not net_test_loader.requiredTestHelpers and \
-                    net_test_loader in requires_collector:
+                            net_test_loader in requires_collector:
                 log.msg("Using the default collector: %s" %
                         response['default']['collector'])
                 net_test_loader.collector = response['default']['collector'].encode('utf-8')
