@@ -193,10 +193,10 @@ class OONIBClient(object):
             return d
 
     @defer.inlineCallbacks
-    def lookupTestCollector(self, test_name):
+    def lookupTestCollector(self, net_tests):
         try:
             test_collector = yield self.queryBackend('POST', '/bouncer',
-                    query={'test-collector': test_name})
+                    query={'net-tests': net_tests})
         except Exception:
             raise e.CouldNotFindTestCollector
 
