@@ -1,6 +1,14 @@
 Changelog
 =========
 
+v1.1.1 (Sun, 24 Aug 2014)
+-------------------------
+
+* Update MANIFEST.in to include the manpages for ooniprobe and oonireport.
+
+* Raise a more specific exception when multiple test cases are in a single
+  nettest file and the usageOptions are incoherent.
+
 v1.1.0 (Tue, 19 Aug 2014)
 -------------------------
 
