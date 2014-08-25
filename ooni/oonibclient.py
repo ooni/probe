@@ -22,8 +22,8 @@ class OONIBClient(object):
         if self.address.startswith('httpo://'):
             address = self.address.replace('httpo://', 'http://')
             agent = TrueHeadersSOCKS5Agent(reactor,
-                proxyEndpoint=TCP4ClientEndpoint(reactor, '127.0.0.1',
-                    config.tor.socks_port))
+                                           proxyEndpoint=TCP4ClientEndpoint(reactor, '127.0.0.1',
+                                                                            config.tor.socks_port))
 
         elif self.address.startswith('https://'):
             log.err("HTTPS based bouncers are currently not supported.")
@@ -59,6 +59,7 @@ class OONIBClient(object):
                 else:
                     log.err("Failed. Giving up.")
                     finished.errback(err)
+
             d.addErrback(errback, attempts)
 
         perform_request(attempts)
@@ -84,6 +85,7 @@ class OONIBClient(object):
                     log.err("Got this backend error message %s" % response)
                     raise e.get_error(response['error'])
                 return response
+
             return BodyReceiver(finished, content_length, process_response)
 
         return self._request(method, urn, genReceiver, bodyProducer)
@@ -97,6 +99,7 @@ class OONIBClient(object):
 
     def getInput(self, input_hash):
         from ooni.deck import InputFile
+
         input_file = InputFile(input_hash)
         if input_file.descriptorCached:
             return defer.succeed(input_file)
@@ -121,12 +124,13 @@ class OONIBClient(object):
 
     def downloadInput(self, input_hash):
         from ooni.deck import InputFile
+
         input_file = InputFile(input_hash)
 
         if input_file.fileCached:
             return defer.succeed(input_file)
         else:
-            d = self.download('/input/'+input_hash+'/file', input_file.cached_file)
+            d = self.download('/input/' + input_hash + '/file', input_file.cached_file)
 
             @d.addCallback
             def cb(res):
@@ -151,6 +155,7 @@ class OONIBClient(object):
 
     def getDeck(self, deck_hash):
         from ooni.deck import Deck
+
         deck = Deck(deck_hash)
         if deck.descriptorCached:
             return defer.succeed(deck)
@@ -173,11 +178,12 @@ class OONIBClient(object):
 
     def downloadDeck(self, deck_hash):
         from ooni.deck import Deck
+
         deck = Deck(deck_hash)
         if deck.fileCached:
             return defer.succeed(deck)
         else:
-            d = self.download('/deck/'+deck_hash+'/file', deck.cached_file)
+            d = self.download('/deck/' + deck_hash + '/file', deck.cached_file)
 
             @d.addCallback
             def cb(res):
@@ -196,7 +202,7 @@ class OONIBClient(object):
     def lookupTestCollector(self, net_tests):
         try:
             test_collector = yield self.queryBackend('POST', '/bouncer',
-                    query={'net-tests': net_tests})
+                                                     query={'net-tests': net_tests})
         except Exception:
             raise e.CouldNotFindTestCollector
 
@@ -206,7 +212,7 @@ class OONIBClient(object):
     def lookupTestHelpers(self, test_helper_names):
         try:
             test_helper = yield self.queryBackend('POST', '/bouncer',
-                            query={'test-helpers': test_helper_names})
+                                                  query={'test-helpers': test_helper_names})
         except Exception as exc:
             log.exception(exc)
             raise e.CouldNotFindTestHelper

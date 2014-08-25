@@ -200,7 +200,6 @@ class Deck(InputFile):
             defer.returnValue(None)
 
         response = yield self.oonibclient.lookupTestCollector(required_nettests)
-        print response
         provided_net_tests = response['net-tests']
 
         def find_collector_and_test_helpers(test_name, test_version, input_files):
