@@ -184,7 +184,7 @@ class Deck(InputFile):
                 'test-helpers': [],
                 'input-hashes': [x['hash'] for x in net_test_loader.inputFiles]
             }
-            if not net_test_loader.collector:
+            if not net_test_loader.collector and not self.no_collector:
                 requires_collector = True
 
             for th in net_test_loader.requiredTestHelpers:
