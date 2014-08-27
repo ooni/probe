@@ -135,6 +135,7 @@ def generate_filename(testDetails, prefix=None, extension=None, filename=None):
 
     return final_filename
 
+
 def sanitize_options(options):
     """
     Strips all possible user identifying information from the ooniprobe test
@@ -147,8 +148,8 @@ def sanitize_options(options):
         sanitized_options.append(option)
     return sanitized_options
 
-def unzip(filename, dst):
 
+def unzip(filename, dst):
     assert filename.endswith('.zip')
     dst_path = os.path.join(
         dst,
@@ -158,6 +159,7 @@ def unzip(filename, dst):
         zip_file = ZipFile(zfp)
         zip_file.extractall(dst_path)
     return dst_path
+
 
 def gunzip(filename, dst):
     assert filename.endswith(".gz")

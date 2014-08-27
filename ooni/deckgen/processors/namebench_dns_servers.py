@@ -14,7 +14,6 @@ class GeoIPDB(object):
         self.__dict__ = self._borg
         if not self.country:
             try:
-                print config.advanced.geoip_data_dir
                 country_file = os.path.join(config.advanced.geoip_data_dir,
                                             'GeoIP.dat')
                 self.country = GeoIP.open(country_file,

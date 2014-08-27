@@ -4,7 +4,6 @@ from twisted.internet import defer
 from twisted.python import usage
 
 from ooni.utils import log
-from ooni.settings import config
 
 from ooni.resources import __version__
 from ooni.resources import update
@@ -26,7 +25,6 @@ class Options(usage.Options):
 
 @defer.inlineCallbacks
 def run():
-    config.read_config_file()
     options = Options()
     try:
         options.parseOptions()
