@@ -93,7 +93,7 @@ On debian based systems this can be done with::
 Other platforms (with Vagrant)
 ------------------------------
 
-1. [Install Vagrant](https://www.vagrantup.com/downloads.html) and [Install Virtualbox](https://www.virtualbox.org/wiki/Downloads)
+1. Install Vagrant (https://www.vagrantup.com/downloads.html) and Install Virtualbox (https://www.virtualbox.org/wiki/Downloads)
 
 2. On OSX:
 
@@ -233,7 +233,7 @@ See option advanced.obfsproxy_binary, in ooniprobe.conf.
 
 Install the latest version of obfsproxy for your platform.
 
-[Download Obfsproxy](https://www.torproject.org/projects/obfsproxy.html.en)
+Download Obfsproxy: https://www.torproject.org/projects/obfsproxy.html.en
 
 Setting capabilities on your virtualenv python binary
 =====================================================
@@ -249,7 +249,7 @@ Reporting bugs
 ==============
 
 You can report bugs and issues you find with ooni-probe on The Tor Projec issue
-tracker [filing them under the "Ooni" component](https://trac.torproject.org/projects/tor/newticket?component=Ooni).
+tracker filing them under the "Ooni" component: https://trac.torproject.org/projects/tor/newticket?component=Ooni.
 
 You can either register an account or use the group account "cypherpunks" with
 password "writecode".
@@ -263,13 +263,13 @@ You can download the code for ooniprobe from the following git repository::
     git clone https://git.torproject.org/ooni-probe.git
 
 
-It is also viewable on the web via [https://gitweb.torproject.org/ooni-probe.git](https://git.torproject.org/ooni-probe.git).
+It is also viewable on the web via: https://gitweb.torproject.org/ooni-probe.git.
 
 You should then submit patches for review as pull requests to this github repository: 
 
 https://github.com/TheTorProject/ooni-probe
 
-Read this article to learn how to [create a pull request on github](https://help.github.com/articles/creating-a-pull-request).
+Read this article to learn how to create a pull request on github (https://help.github.com/articles/creating-a-pull-request).
 
 If you prefer not to use github (or don't have an account), you may also submit
 patches as attachments to tickets.
