@@ -203,6 +203,7 @@ class Deck(InputFile):
         provided_net_tests = response['net-tests']
 
         def find_collector_and_test_helpers(test_name, test_version, input_files):
+            input_files = [u""+x['hash'] for x in input_files]
             for net_test in provided_net_tests:
                 if net_test['name'] != test_name:
                     continue
