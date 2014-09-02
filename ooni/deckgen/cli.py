@@ -5,7 +5,7 @@ import errno
 
 import yaml
 
-from twisted.internet import defer, reactor
+from twisted.internet import defer
 from twisted.python import usage
 
 from ooni.geoip import ProbeIP
@@ -36,7 +36,7 @@ class Options(usage.Options):
         sys.exit(0)
 
 
-class Deck():
+class Deck(object):
     _base_entry = {
         "options": {
             "collector": None,
@@ -105,7 +105,8 @@ def generate_deck(options):
     deck.add_test('manipulation/http_invalid_request_line')
     deck.add_test('manipulation/http_header_field_manipulation')
     # deck.add_test('manipulation/traceroute')
-    deck.pprint()
+    if config.advanced.debug:
+        deck.pprint()
     deck_filename = os.path.join(options['output'],
                                  "%s-%s-user.deck" % (__version__,
                                                       options['country-code']))
@@ -163,11 +164,3 @@ def run():
             raise
 
     generate_deck(options)
-
-if __name__ == "__main__":
-    d = run()
-
-    @d.addBoth
-    def cb(_):
-        reactor.stop()
-    reactor.start()

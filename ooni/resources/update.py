@@ -13,6 +13,15 @@ def download_resource(resources):
         print "Downloading %s" % filename
 
         filename = os.path.join(config.resources_directory, filename)
+        if not os.path.exists(filename):
+            directory = os.path.dirname(filename)
+            if not os.path.isdir(directory):
+                os.makedirs(directory)
+            f = open(filename, 'w')
+            f.close()
+        elif not os.path.isfile(filename):
+            print "[!] %s must be a file." % filename
+            defer.returnValue(False)
         yield downloadPage(resource['url'], filename)
 
         if resource['action'] is not None:
