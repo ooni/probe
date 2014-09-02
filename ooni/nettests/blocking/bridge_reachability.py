@@ -28,7 +28,7 @@ class BridgeReachability(nettest.NetTestCase):
     description = "A test for checking if bridges are reachable " \
                   "from a given location."
     author = "Arturo Filastò"
-    version = "0.1.1"
+    version = "0.1.2"
 
     usageOptions = UsageOptions
 
@@ -124,11 +124,14 @@ class BridgeReachability(nettest.NetTestCase):
             (self.bridge, onion.tor_details['version']))
 
         transport_name = onion.transport_name(self.bridge)
+
+        if transport_name:
+            self.report['transport_name'] = transport_name
+
         if transport_name and transport_name == 'fte' and self.fteproxy_bin:
             config.ClientTransportPlugin = "%s exec %s --managed" % (
                 transport_name, self.fteproxy_bin)
             log.debug("Using fte from %s" % self.fteproxy_bin)
-            self.report['transport_name'] = transport_name
             self.report['bridge_address'] = self.bridge.split(' ')[1]
         elif transport_name and transport_name == 'fte'\
                 and not self.fteproxy_bin:
@@ -145,7 +148,6 @@ class BridgeReachability(nettest.NetTestCase):
                 self.report['error'] = 'old-obfsproxy'
                 return
             log.debug("Using pyobfsproxy from %s" % self.pyobfsproxy_bin)
-            self.report['transport_name'] = transport_name
             self.report['bridge_address'] = self.bridge.split(' ')[1]
         elif transport_name and not self.pyobfsproxy_bin:
             log.err(
