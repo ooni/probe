@@ -73,6 +73,7 @@ for root, dirs, file_names in os.walk('data/'):
 packages=[
     'ooni',
     'ooni.api',
+    'ooni.deckgen',
     'ooni.kit',
     'ooni.nettests',
     'ooni.nettests.manipulation',
@@ -81,6 +82,7 @@ packages=[
     'ooni.nettests.blocking',
     'ooni.nettests.third_party',
     'ooni.report',
+    'ooni.resources',
     'ooni.templates',
     'ooni.tests',
     'ooni.utils'
@@ -113,7 +115,8 @@ setup(
     package_dir={'ooni': 'ooni'},
     data_files=data_files,
     packages=packages,
-    scripts=["bin/ooniprobe", "bin/oonireport"],
+    scripts=["bin/oonideckgen", "bin/ooniprobe",
+             "bin/oonireport", "bin/ooniresources"],
     dependency_links=dependency_links,
     install_requires=install_requires,
     classifiers=(

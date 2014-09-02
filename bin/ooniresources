@@ -8,10 +8,10 @@ sys.path.insert(0, os.path.abspath(os.getcwd()))
 from twisted.internet import defer, reactor
 
 from ooni.utils import log
-from ooni.report import cli
+from ooni.resources import cli
 
 def failed(failure):
-    log.err("Failed to run ooni-report")
+    log.err("Failed to run ooniresources")
     log.exception(failure)
     reactor.stop()
 
@@ -21,7 +21,7 @@ def done(result):
 def start():
     d = defer.maybeDeferred(cli.run)
     d.addCallback(done)
-    d.addErrback(failed)
+    d.addErrback(done)
 
 reactor.callWhenRunning(start)
 reactor.run()
