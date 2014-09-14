@@ -5,6 +5,7 @@ from ooni.nettest import NetTestCase
 from ooni.errors import failureToString
 from ooni.utils import log
 
+
 class TCPSender(protocol.Protocol):
     def __init__(self):
         self.received_data = ''
@@ -43,9 +44,11 @@ class TCPSender(protocol.Protocol):
         self.sent_data = payload
         self.transport.write(payload)
 
+
 class TCPSenderFactory(protocol.Factory):
     def buildProtocol(self, addr):
         return TCPSender()
+
 
 class TCPTest(NetTestCase):
     name = "Base TCP Test"
