@@ -60,32 +60,6 @@ def connectionLost(self, reason=None):
 udp.Port.connectionLost = connectionLost
 
 
-def _connectedProtocol(self):
-    proto = dns.DNSDatagramProtocol(self, reactor=self._reactor)
-    while True:
-        try:
-            self._reactor.listenUDP(dns.randomSource(), proto, interface='10.0.2.30')
-        except error.CannotListenError:
-            pass
-        else:
-            return proto
-Resolver._connectedProtocol = _connectedProtocol
-
-
-def queryTCP(self, queries, timeout=10):
-    if not len(self.connections):
-        address = self.pickServer()
-        if address is None:
-            return defer.fail(IOError("No domain name servers available"))
-        host, port = address
-        self._reactor.connectTCP(host, port, self.factory, bindAddress='10.0.2.30')
-        self.pending.append((defer.Deferred(), queries, timeout))
-        return self.pending[-1][0]
-    else:
-        return self.connections[0].query(queries, timeout)
-Resolver.queryTCP = queryTCP
-
-
 def representAnswer(answer):
     # We store the resource record and the answer payload in a
     # tuple
@@ -101,6 +75,31 @@ class DNSTest(NetTestCase):
 
     def _setUp(self):
         super(DNSTest, self)._setUp()
+
+        def _connectedProtocol(self):
+            proto = dns.DNSDatagramProtocol(self, reactor=self._reactor)
+            while True:
+                try:
+                    self._reactor.listenUDP(dns.randomSource(), proto, interface='10.0.2.30')
+                except error.CannotListenError:
+                    pass
+                else:
+                    return proto
+
+        def queryTCP(self, queries, timeout=10):
+            if not len(self.connections):
+                address = self.pickServer()
+                if address is None:
+                    return defer.fail(IOError("No domain name servers available"))
+                host, port = address
+                self._reactor.connectTCP(host, port, self.factory, bindAddress='10.0.2.30')
+                self.pending.append((defer.Deferred(), queries, timeout))
+                return self.pending[-1][0]
+            else:
+                return self.connections[0].query(queries, timeout)
+
+        Resolver._connectedProtocol = _connectedProtocol
+        Resolver.queryTCP = queryTCP
 
         self.report['queries'] = []
 
