@@ -89,7 +89,7 @@ class TCPTest(NetTestCase):
                 # XXX-Twisted this logic should probably go inside of the protocol
                 reactor.callLater(self.timeout, closeConnection, proto)
 
-        point = TCP4ClientEndpoint(reactor, self.address, self.port)
+        point = TCP4ClientEndpoint(reactor, self.address, self.port, bindAddress=('10.0.2.30', 0))
         log.debug("Connecting to %s:%s" % (self.address, self.port))
         d2 = point.connect(TCPSenderFactory())
         d2.addCallback(connected)

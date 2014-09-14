@@ -1,3 +1,4 @@
+from pyasn1_modules.rfc1905 import _BindValue
 import random
 
 from twisted.internet import defer
@@ -82,9 +83,9 @@ class HTTPTest(NetTestCase):
             socksport = int(socksport)
             self.agent = TrueHeadersSOCKS5Agent(reactor,
                 proxyEndpoint=TCP4ClientEndpoint(reactor, sockshost,
-                    socksport))
+                    socksport, bindAddress=('10.0.2.30', 0)))
         else:
-            self.agent = TrueHeadersAgent(reactor)
+            self.agent = TrueHeadersAgent(reactor, bindAddress=('10.0.2.30', 0))
 
         self.report['agent'] = 'agent'
 
