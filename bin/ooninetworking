@@ -1,0 +1,155 @@
+#!/usr/bin/env bash
+
+function print_usage {
+    echo "Usage: ooninetworking <command> [arguments]"
+    echo "  commands:"
+    echo "    add_nettest <name>"
+    echo "    del_nettest <name>"
+    echo "    add_deck <filepath>"
+    echo "    del_deck <filepath>"
+    exit -1
+}
+
+function gen_variables {
+    # TODO: Error handling
+    phy_dev=$(ip route | awk 'BEGIN {FS="dev "}; /^default/ {print $2}' | awk '{print $1}' | uniq)
+    subnet=$(ip route | awk -v phy_dev=$phy_dev '($0 ~ phy_dev) && ($0 !~ "default") {print $1}' | uniq)
+    # TODO: It won't work for netmasks != 24
+    host_ip=$(echo $subnet | sed 's;\(\([0-9]\{1,3\}\.\)\{3\}\)[0-9]\{1,3\};\1*;')
+}
+
+function gen_next_ip {
+    if [ ! -e /tmp/hosts.nmap ]
+    then
+        nmap -sP $subnet -oG /tmp/hosts.nmap.raw 2> /dev/null > /dev/null
+        grep "Up" /tmp/hosts.nmap.raw | cut -d' ' -f2 > /tmp/hosts.nmap
+    fi
+    taken_ips=$(cat /tmp/hosts.nmap)
+    n=40
+    assigned=0
+    while [ $assigned -eq 0 ]
+    do
+        IP=$(echo $host_ip | sed "s;\*/24;$n;")
+        old_n=$n
+        for taken_ip in $taken_ips
+        do
+            if [ $taken_ip == $IP ]
+            then
+                n=$((n + 1))
+                break
+            fi
+        done
+        if [ $old_n -eq $n ]
+        then
+            assigned=1
+            next_ip=$(echo $host_ip | sed "s;\*;$n;")
+            echo "$nettest_name $IP" >> /tmp/hosts.nmap
+        fi
+    done
+}
+
+function add_interface {
+    # TODO: IFNAMSIZ == 16
+    ip link add $1 type dummy
+    gen_next_ip
+    ip address add dev $1 $next_ip
+    ip link set dev $1 up
+    ip route del to $subnet dev $1 2> /dev/null
+}
+
+function del_interface {
+    ip link del $1
+    awk -v nettest_name=$nettest_name '$0 !~ nettest_name {print $0}' /tmp/hosts.nmap > /tmp/hosts.nmap.cache
+    mv /tmp/hosts.nmap.cache /tmp/hosts.nmap
+}
+
+function add_deck {
+    if [ ! -e "$1" ]
+    then
+        echo "[!] The deck must be a file"
+        exit -1
+    fi
+
+    nettests=$(awk 'BEGIN {FS=":"}; /test_file|nettest/ {print $2};' $1 | awk 'BEGIN {FS="/"}; {print $2}' | uniq)
+    for nettest_name in $nettests
+    do
+        echo "Adding interface for $nettest_name"
+        add_interface $nettest_name
+    done
+}
+function del_deck {
+    if [ ! -e "$1" ]
+    then
+        echo "[!] The deck must be a file"
+        exit -1
+    fi
+
+    nettests=$(awk 'BEGIN {FS=":"}; /test_file|nettest/ {print $2};' $1 | awk 'BEGIN {FS="/"}; {print $2}' | uniq)
+    for nettest_name in $nettests
+    do
+        echo "Deleting interface for $nettest_name"
+        del_interface $nettest_name
+    done
+}
+
+if [ $# -lt 1 ]
+then
+    print_usage
+fi
+
+comm=$1
+
+gen_variables
+case "$comm" in
+    "add_nettest")
+        if [ $# -lt 2 ]
+        then
+            print_usage
+        fi
+
+        nettest_name=$2
+        echo "Creating virtual interface for $nettest_name..."
+        add_interface $nettest_name
+        echo "Done"
+        ;;
+
+    "del_nettest")
+        if [ $# -lt 2 ]
+        then
+            print_usage
+        fi
+
+        nettest_name=$2
+        echo "Deleting virtual interface for $nettest_name..."
+        del_interface $nettest_name
+        echo "Done"
+        ;;
+
+    "add_deck")
+        if [ $# -lt 2 ]
+        then
+            print_usage
+        fi
+
+        deck_name=$2
+        echo "Creating virtual interfaces for deck $deck_name..."
+        add_deck $deck_name
+        echo "Done"
+        ;;
+
+    "del_deck")
+        if [ $# -lt 2 ]
+        then
+            print_usage
+        fi
+
+        deck_name=$2
+        echo "Deleting virtual interfaces for deck $deck_name..."
+        del_deck $deck_name
+        echo "Done"
+        ;;
+
+    *)
+        print_usage
+esac
+
