@@ -1,5 +1,7 @@
 # -*- encoding: utf-8 -*-
+import os
 import random
+import tempfile
 from distutils.spawn import find_executable
 
 from twisted.python import usage
@@ -48,6 +50,8 @@ class BridgeReachability(nettest.NetTestCase):
     def setUp(self):
         self.tor_progress = 0
         self.timeout = int(self.localOptions['timeout'])
+
+        _, self.logfile = tempfile.mkstemp()
 
         self.report['error'] = None
         self.report['success'] = None
@@ -170,7 +174,7 @@ class BridgeReachability(nettest.NetTestCase):
 
         config.Bridge = self.bridge
         config.UseBridges = 1
-        config.log = 'notice'
+        config.log = ['notice stdout', 'notice file %s' % self.logfile]
         config.save()
 
         def updates(prog, tag, summary):
@@ -194,7 +198,14 @@ class BridgeReachability(nettest.NetTestCase):
         @d.addErrback
         def setup_failed(failure):
             log.msg("Failed to connect to %s" % self.bridge)
-            self.report['tor_log'] = failure.value.message
             self.report['success'] = False
+            self.report['error'] = 'timeout-reached'
+            return
+
+        @d.addCallback
+        def write_log(_):
+            with open(self.logfile) as f:
+                self.report['tor_log'] = f.read()
+            os.remove(self.logfile)
 
         return d
