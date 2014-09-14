@@ -118,7 +118,11 @@ class Measurement(TaskWithTimeout):
 
         if 'timeout' in dir(test_instance):
             if isinstance(test_instance.timeout, int) or isinstance(test_instance.timeout, float):
-                self.timeout = test_instance.timeout
+                # If the test has a timeout option set we set the measurement
+                # timeout to that value + 8 seconds to give it enough time to
+                # trigger it's internal timeout before we start trigger the
+                # measurement timeout.
+                self.timeout = test_instance.timeout + 8
         elif config.advanced.measurement_timeout:
             self.timeout = config.advanced.measurement_timeout
         TaskWithTimeout.__init__(self)
