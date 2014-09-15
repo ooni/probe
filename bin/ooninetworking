@@ -11,9 +11,21 @@ function print_usage {
 }
 
 function gen_variables {
-    # TODO: Error handling
-    phy_dev=$(ip route | awk 'BEGIN {FS="dev "}; /^default/ {print $2}' | awk '{print $1}' | uniq)
+    # TODO: We need to skip the phy_dev extraction if the user provides one
+    phy_dev=$(ip route | awk 'BEGIN {FS="dev "}; /^default/ {print $2}' | awk '{print $1}' | head -n 1)
+    if [ -z $phy_dev ]
+    then
+        echo "[!] There's no network interface with a default route"
+        exit -2
+    fi
+
     subnet=$(ip route | awk -v phy_dev=$phy_dev '($0 ~ phy_dev) && ($0 !~ "default") {print $1}' | uniq)
+    if [ -z $subnet ]
+    then
+        echo "[!] The default route's NIC doesn't have a route to its subnet"
+        exit -3
+    fi
+
     # TODO: It won't work for netmasks != 24
     host_ip=$(echo $subnet | sed 's;\(\([0-9]\{1,3\}\.\)\{3\}\)[0-9]\{1,3\};\1*;')
 }
@@ -43,48 +55,84 @@ function gen_next_ip {
         then
             assigned=1
             next_ip=$(echo $host_ip | sed "s;\*;$n;")
-            echo "$nettest_name $IP" >> /tmp/hosts.nmap
+            echo "$nettest_name $iface_name $IP" >> /tmp/hosts.nmap
         fi
     done
 }
 
+function gen_iface_name {
+    IFNAMSIZ=15
+    nchars=$(echo $1 | wc -c)
+    iface_name=""
+    if [ $nchars -gt $IFNAMSIZ ]
+    then
+        words=$(echo $1 | sed 's/_/\n/g')
+        nwords=$(($(echo $1 | sed 's/_/\n/g' | wc -l)))
+        nword=$((nwords - 1))
+        declare -a rev_words
+        for word in $words
+        do
+            rev_words[nword]=$word
+            nword=$((nword - 1))
+        done
+        length=$((IFNAMSIZ - (nwords*2 - 1)))
+        for word in ${rev_words[*]}
+        do
+            size=$(echo $word | wc -c)
+            if [ $((length - size + 2)) -gt 0 ]
+            then
+                iface_name="$word-$iface_name"
+                length=$((length - size + 2))
+            else
+                first_letter=$(echo $word | head -c 1)
+                iface_name="$first_letter-$iface_name"
+                length=$((length - 2))
+            fi
+        done
+        iface_name=$(echo $iface_name | sed 's/-$//g' | sed 's/-/_/g')
+    else
+        iface_name=$1
+    fi
+}
+
 function add_interface {
-    # TODO: IFNAMSIZ == 16
-    ip link add $1 type dummy
+    gen_iface_name $1
+    ip link add $iface_name type dummy
     gen_next_ip
-    ip address add dev $1 $next_ip
-    ip link set dev $1 up
-    ip route del to $subnet dev $1 2> /dev/null
+    ip address add dev $iface_name $next_ip
+    ip link set dev $iface_name up
+    ip route del to $subnet dev $iface_name 2> /dev/null
 }
 
 function del_interface {
-    ip link del $1
+    gen_iface_name $1
+    ip link del $iface_name
     awk -v nettest_name=$nettest_name '$0 !~ nettest_name {print $0}' /tmp/hosts.nmap > /tmp/hosts.nmap.cache
     mv /tmp/hosts.nmap.cache /tmp/hosts.nmap
 }
 
-function add_deck {
+function aux_deck {
     if [ ! -e "$1" ]
     then
         echo "[!] The deck must be a file"
-        exit -1
+        exit -10
     fi
 
+    # TODO: If the deck defines an execution for the same nettest, the interface is going to be the same for both of them
     nettests=$(awk 'BEGIN {FS=":"}; /test_file|nettest/ {print $2};' $1 | awk 'BEGIN {FS="/"}; {print $2}' | uniq)
+}
+
+function add_deck {
+    aux_deck $1
     for nettest_name in $nettests
     do
         echo "Adding interface for $nettest_name"
         add_interface $nettest_name
     done
 }
-function del_deck {
-    if [ ! -e "$1" ]
-    then
-        echo "[!] The deck must be a file"
-        exit -1
-    fi
 
-    nettests=$(awk 'BEGIN {FS=":"}; /test_file|nettest/ {print $2};' $1 | awk 'BEGIN {FS="/"}; {print $2}' | uniq)
+function del_deck {
+    aux_deck $1
     for nettest_name in $nettests
     do
         echo "Deleting interface for $nettest_name"
