@@ -55,7 +55,6 @@ function gen_next_ip {
         then
             assigned=1
             next_ip=$(echo $host_ip | sed "s;\*;$n;")
-            echo "$nettest_name $iface_name $IP" >> /tmp/hosts.nmap
         fi
     done
 }
@@ -96,12 +95,14 @@ function gen_iface_name {
 }
 
 function add_interface {
+    # TODO: if the interface already exists and is valid, we should do nothing
     gen_iface_name $1
     ip link add $iface_name type dummy
     gen_next_ip
     ip address add dev $iface_name $next_ip
     ip link set dev $iface_name up
     ip route del to $subnet dev $iface_name 2> /dev/null
+    echo "$nettest_name $iface_name $IP" >> /tmp/hosts.nmap
 }
 
 function del_interface {

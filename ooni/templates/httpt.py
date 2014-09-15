@@ -75,6 +75,9 @@ class HTTPTest(NetTestCase):
 
         self.report['socksproxy'] = None
         sockshost, socksport = (None, None)
+        kwargs = {}
+        if self.private_ip != '':
+            kwargs['bindAddress'] = (self.private_ip, 0)
         if self.localOptions['socksproxy']:
             try:
                 sockshost, socksport = self.localOptions['socksproxy'].split(':')
@@ -85,9 +88,9 @@ class HTTPTest(NetTestCase):
             self.agent = TrueHeadersSOCKS5Agent(reactor,
                                                 proxyEndpoint=TCP4ClientEndpoint(reactor, sockshost,
                                                                                  socksport,
-                                                                                 bindAddress=('10.0.2.30', 0)))
+                                                                                 **kwargs))
         else:
-            self.agent = TrueHeadersAgent(reactor, bindAddress=('10.0.2.30', 0))
+            self.agent = TrueHeadersAgent(reactor, **kwargs)
 
         self.report['agent'] = 'agent'
 

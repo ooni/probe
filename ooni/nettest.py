@@ -2,6 +2,7 @@ import os
 import re
 import time
 import sys
+import importlib
 from hashlib import sha256
 
 from twisted.internet import defer
@@ -500,6 +501,19 @@ class NetTest(object):
             if not test_class.inputs:
                 test_class.inputs = [None]
 
+    def bind_private_ip(self, test_instance):
+        module_path = test_instance.__module__
+        module = importlib.import_module(module_path)
+        filepath = module.__file__
+        nettest = os.path.basename(filepath).split('.')[0]
+        if os.path.isfile(filepath):
+            with open('/tmp/hosts.nmap') as f:
+                for line in f.readlines():
+                    if nettest in line:
+                        test_instance.private_ip = line.split()[-1]
+        if test_instance.private_ip == '':
+            log.err('There was no interface to bind to %s' % nettest)
+
     def generateMeasurements(self):
         """
         This is a generator that yields measurements and registers the
@@ -512,6 +526,8 @@ class NetTest(object):
                 measurements = []
                 test_instance = test_class()
                 test_instance.summary = self.summary
+                if config.privacy.includepcap:
+                    self.bind_private_ip(test_instance)
                 for method in test_methods:
                     log.debug("Running %s %s" % (test_class, method))
                     measurement = self.makeMeasurement(
@@ -619,6 +635,8 @@ class NetTestCase(object):
     requiresTor = False
 
     localOptions = {}
+
+    private_ip = ''
 
     def _setUp(self):
         """
