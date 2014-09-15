@@ -7,6 +7,7 @@ function print_usage {
     echo "    del_nettest <name>"
     echo "    add_deck <filepath>"
     echo "    del_deck <filepath>"
+    echo "    clean"
     exit -1
 }
 
@@ -110,8 +111,19 @@ function del_interface {
     ip link del $iface_name
     awk -v nettest_name=$nettest_name '$0 !~ nettest_name {print $0}' /tmp/hosts.nmap > /tmp/hosts.nmap.cache
     mv /tmp/hosts.nmap.cache /tmp/hosts.nmap
+    echo "$iface_name deleted"
 }
 
+function clean {
+    interfaces=$(awk '{print $2}' /tmp/hosts.nmap)
+    for interface in $interfaces
+    do
+        if [ ! -z $interface ]
+        then
+            del_interface $interface
+        fi
+    done
+}
 function aux_deck {
     if [ ! -e "$1" ]
     then
@@ -195,6 +207,12 @@ case "$comm" in
         deck_name=$2
         echo "Deleting virtual interfaces for deck $deck_name..."
         del_deck $deck_name
+        echo "Done"
+        ;;
+
+    "clean")
+        echo "Cleaning all virtual interfaces"
+        clean
         echo "Done"
         ;;
 

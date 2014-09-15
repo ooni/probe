@@ -317,11 +317,18 @@ def runWithDirector(logging=True, start_tor=True, check_incoherences=True):
                                   collector)
         return director.allTestsDone
 
+    def clean_interfaces(_):
+        retval = subprocess.call(['ooninetworking', 'clean'])
+        if retval != 0:
+            log.err("There was a problem when cleaning the virtual interfaces")
+
     def start():
         d.addCallback(setup_nettest)
         d.addCallback(post_director_start)
         d.addErrback(director_startup_handled_failures)
         d.addErrback(director_startup_other_failures)
+        if config.privacy.includepcap:
+            d.addBoth(clean_interfaces)
         return d
 
     return start()
