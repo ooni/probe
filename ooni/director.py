@@ -201,9 +201,7 @@ class Director(object):
         test_name = test_class_name_to_name(measurement.testInstance.name)
         if test_name in self.sniffers:
             sniffer = self.sniffers[test_name]
-            scapyFactory = sniffer.factory
-            if scapyFactory is not None:
-                scapyFactory.unRegisterProtocol(sniffer)
+            config.scapyFactory.unRegisterProtocol(sniffer)
             sniffer.close()
             del self.sniffers[test_name]
         return measurement
@@ -281,6 +279,7 @@ class Director(object):
         filename_pcap = generate_filename(testDetails, filename=filename, prefix=prefix, extension='pcap')
 
         sniffer = ScapySniffer(filename_pcap)
+        config.scapyFactory.registerProtocol(sniffer)
         self.sniffers[testDetails['test_name']] = sniffer
 
     @defer.inlineCallbacks

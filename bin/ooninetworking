@@ -31,11 +31,21 @@ function gen_variables {
     host_ip=$(echo $subnet | sed 's;\(\([0-9]\{1,3\}\.\)\{3\}\)[0-9]\{1,3\};\1*;')
 }
 
+function execute_nmap {
+    nmap -sP $subnet -oG /tmp/hosts.nmap.raw 2> /dev/null > /dev/null
+    grep "Up" /tmp/hosts.nmap.raw | cut -d' ' -f2 > /tmp/hosts.nmap
+}
+
 function gen_next_ip {
     if [ ! -e /tmp/hosts.nmap ]
     then
-        nmap -sP $subnet -oG /tmp/hosts.nmap.raw 2> /dev/null > /dev/null
-        grep "Up" /tmp/hosts.nmap.raw | cut -d' ' -f2 > /tmp/hosts.nmap
+        execute_nmap
+    else
+        hosts_size=$(wc -c /tmp/hosts.nmap | awk '{print $1}')
+        if [ $hosts_size -eq 0 ]
+        then
+            execute_nmap
+        fi
     fi
     taken_ips=$(cat /tmp/hosts.nmap)
     n=40

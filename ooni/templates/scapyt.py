@@ -93,7 +93,10 @@ class BaseScapyTest(NetTestCase):
         Wrapper around scapy.sendrecv.sr for sending and receiving of packets
         at layer 3.
         """
-        scapySender = ScapySender(timeout=timeout)
+        kwargs = {}
+        if timeout is not None:
+            kwargs['timeout'] = timeout
+        scapySender = ScapySender(**kwargs)
 
         self.scapyFactory.registerProtocol(scapySender)
         log.debug("Using sending with hash %s" % scapySender.__hash__)

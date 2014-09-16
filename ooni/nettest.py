@@ -512,8 +512,9 @@ class NetTest(object):
                 for line in f.readlines():
                     if nettest in line:
                         test_instance.private_ip = line.split()[-1]
-        if test_instance.private_ip == '':
-            log.err('There was no interface to bind to %s' % nettest)
+                        return line.split()[1]
+        log.err('There was no interface to bind to %s' % nettest)
+        return None
 
     def generateMeasurements(self):
         """
@@ -527,19 +528,18 @@ class NetTest(object):
                 measurements = []
                 test_instance = test_class()
                 test_instance.summary = self.summary
+                factory = config.scapyFactory
                 if config.privacy.includepcap:
-                    self.bind_private_ip(test_instance)
-                    if test_instance.private_ip is not None:
+                    iface = self.bind_private_ip(test_instance)
+                    if iface is not None:
                         test_name = self.testDetails['test_name']
                         sniffer = self.director.sniffers[test_name]
-                        factory = ScapyFactory('auto')
-                        sniffer.factory = factory
                         sniffer.private_ip = test_instance.private_ip
-                        test_instance.scapyFactory = factory
-                        factory.registerProtocol(sniffer)
                         filename_pcap = os.path.abspath(sniffer.pcapwriter.filename)
+                        factory = ScapyFactory(iface)
                         log.msg("Starting packet capture from NIC address %s to %s" %
                                 (test_instance.private_ip, filename_pcap))
+                test_instance.scapyFactory = factory
                 for method in test_methods:
                     log.debug("Running %s %s" % (test_class, method))
                     measurement = self.makeMeasurement(

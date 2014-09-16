@@ -220,15 +220,14 @@ class ScapyProtocol(object):
 
 
 class ScapySender(ScapyProtocol):
-    timeout = 5
-
-    # This deferred will fire when we have finished sending a receiving packets.
-    # Should we look for multiple answers for the same sent packet?
-    multi = False
-
-    # When 0 we stop when all the packets we have sent have received an
-    # answer
-    expected_answers = 0
+    def __init__(self, timeout=5):
+        self.timeout = timeout
+        # This deferred will fire when we have finished sending a receiving packets.
+        # Should we look for multiple answers for the same sent packet?
+        self.multi = False
+        # When 0 we stop when all the packets we have sent have received an
+        # answer
+        self.expected_answers = 0
 
     def processPacket(self, packet):
         """
