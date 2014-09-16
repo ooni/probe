@@ -23,7 +23,7 @@ class ParasiticTracerouteTest(scapyt.BaseScapyTest):
         self.pt = ParasiticTraceroute()
         log.debug("Starting ParasiticTraceroute for up to %d hosts at inject "
                 "rate %d with %s" % (self.pt.numHosts, self.pt.rate, self.pt))
-        config.scapyFactory.registerProtocol(self.pt)
+        self.scapyFactory.registerProtocol(self.pt)
         d = defer.Deferred()
         reactor.callLater(self.samplePeriod, d.callback, self)
         d.addCallback(self.addToReport)

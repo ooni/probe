@@ -57,7 +57,7 @@ class Traceroute(scapyt.BaseScapyTest):
         log.msg("Running %s traceroute towards %s" % (protocol,
                                                       self.localOptions['backend']))
         log.msg("This will take about %s seconds" % st.timeout)
-        config.scapyFactory.registerProtocol(st)
+        self.scapyFactory.registerProtocol(st)
         traceroute = getattr(st, protocol + 'Traceroute')
         yield traceroute(self.localOptions['backend'])
         st.stopListening()

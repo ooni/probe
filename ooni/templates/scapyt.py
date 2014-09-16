@@ -38,10 +38,6 @@ class BaseScapyTest(NetTestCase):
     def _setUp(self):
         super(BaseScapyTest, self)._setUp()
 
-        if config.scapyFactory is None:
-            log.debug("Scapy factory not set, registering it.")
-            config.scapyFactory = ScapyFactory(config.advanced.interface)
-
         self.report['answer_flags'] = []
         if self.localOptions['ipsrc']:
             config.checkIPsrc = 0
@@ -99,7 +95,7 @@ class BaseScapyTest(NetTestCase):
         """
         scapySender = ScapySender(timeout=timeout)
 
-        config.scapyFactory.registerProtocol(scapySender)
+        self.scapyFactory.registerProtocol(scapySender)
         log.debug("Using sending with hash %s" % scapySender.__hash__)
 
         d = scapySender.startSending(packets)
@@ -122,7 +118,7 @@ class BaseScapyTest(NetTestCase):
         scapySender = ScapySender()
         scapySender.expected_answers = 1
 
-        config.scapyFactory.registerProtocol(scapySender)
+        self.scapyFactory.registerProtocol(scapySender)
 
         log.debug("Running sr1")
         d = scapySender.startSending(packets)
@@ -137,7 +133,7 @@ class BaseScapyTest(NetTestCase):
         """
         scapySender = ScapySender()
 
-        config.scapyFactory.registerProtocol(scapySender)
+        self.scapyFactory.registerProtocol(scapySender)
         scapySender.startSending(packets)
 
         scapySender.stopSending()

@@ -11,6 +11,7 @@ from twisted.python import usage, reflect
 
 from ooni.tasks import Measurement
 from ooni.utils import log, checkForRoot, sanitize_options
+from ooni.utils.txscapy import ScapyFactory
 from ooni.settings import config
 
 from ooni import errors as e
@@ -528,6 +529,17 @@ class NetTest(object):
                 test_instance.summary = self.summary
                 if config.privacy.includepcap:
                     self.bind_private_ip(test_instance)
+                    if test_instance.private_ip is not None:
+                        test_name = self.testDetails['test_name']
+                        sniffer = self.director.sniffers[test_name]
+                        factory = ScapyFactory('auto')
+                        sniffer.factory = factory
+                        sniffer.private_ip = test_instance.private_ip
+                        test_instance.scapyFactory = factory
+                        factory.registerProtocol(sniffer)
+                        filename_pcap = os.path.abspath(sniffer.pcapwriter.filename)
+                        log.msg("Starting packet capture from NIC address %s to %s" %
+                                (test_instance.private_ip, filename_pcap))
                 for method in test_methods:
                     log.debug("Running %s %s" % (test_class, method))
                     measurement = self.makeMeasurement(
@@ -637,6 +649,7 @@ class NetTestCase(object):
     localOptions = {}
 
     private_ip = ''
+    scapyFactory = None
 
     def _setUp(self):
         """

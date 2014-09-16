@@ -303,9 +303,12 @@ class ScapySender(ScapyProtocol):
 class ScapySniffer(ScapyProtocol):
     def __init__(self, pcap_filename, *arg, **kw):
         self.pcapwriter = PcapWriter(pcap_filename, *arg, **kw)
+        self.private_ip = None
 
     def packetReceived(self, packet):
-        self.pcapwriter.write(packet)
+        if self.private_ip is not None:
+            if 'src' in packet.fields and (packet.src == self.private_ip or packet.dst == self.private_ip):
+                self.pcapwriter.write(packet)
 
     def close(self):
         self.pcapwriter.close()

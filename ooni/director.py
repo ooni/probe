@@ -201,7 +201,9 @@ class Director(object):
         test_name = test_class_name_to_name(measurement.testInstance.name)
         if test_name in self.sniffers:
             sniffer = self.sniffers[test_name]
-            config.scapyFactory.unRegisterProtocol(sniffer)
+            scapyFactory = sniffer.factory
+            if scapyFactory is not None:
+                scapyFactory.unRegisterProtocol(sniffer)
             sniffer.close()
             del self.sniffers[test_name]
         return measurement
@@ -269,10 +271,7 @@ class Director(object):
         """ Start sniffing with Scapy. Exits if required privileges (root) are not
         available.
         """
-        from ooni.utils.txscapy import ScapySniffer, ScapyFactory
-
-        if config.scapyFactory is None:
-            config.scapyFactory = ScapyFactory(config.advanced.interface)
+        from ooni.utils.txscapy import ScapySniffer
 
         if not config.reports.pcap:
             prefix = 'report'
@@ -280,16 +279,9 @@ class Director(object):
             prefix = config.reports.pcap
         filename = config.global_options['reportfile'] if 'reportfile' in config.global_options.keys() else None
         filename_pcap = generate_filename(testDetails, filename=filename, prefix=prefix, extension='pcap')
-        if len(self.sniffers) > 0:
-            pcap_filenames = set(sniffer.pcapwriter.filename for sniffer in self.sniffers.values())
-            pcap_filenames.add(filename_pcap)
-            log.msg("pcap files %s can be messed up because several netTests are being executed in parallel." %
-                    ','.join(pcap_filenames))
 
         sniffer = ScapySniffer(filename_pcap)
         self.sniffers[testDetails['test_name']] = sniffer
-        config.scapyFactory.registerProtocol(sniffer)
-        log.msg("Starting packet capture to: %s" % filename_pcap)
 
     @defer.inlineCallbacks
     def getTorState(self):
