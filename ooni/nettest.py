@@ -11,7 +11,6 @@ from twisted.python import usage, reflect
 
 from ooni.tasks import Measurement
 from ooni.utils import log, checkForRoot, sanitize_options
-from ooni.utils.txscapy import ScapyFactory
 from ooni.settings import config
 
 from ooni import errors as e
@@ -504,15 +503,18 @@ class NetTest(object):
 
     def bind_private_ip(self, test_instance):
         module_path = test_instance.__module__
-        module = importlib.import_module(module_path)
-        filepath = module.__file__
-        nettest = os.path.basename(filepath).split('.')[0]
-        if os.path.isfile(filepath):
-            with open('/tmp/hosts.nmap') as f:
-                for line in f.readlines():
-                    if nettest in line:
-                        test_instance.private_ip = line.split()[-1]
-                        return line.split()[1]
+        # This is mainly for testing
+        if module_path != '__builtin__':
+            module = importlib.import_module(module_path)
+            filepath = module.__file__
+            nettest = os.path.basename(filepath).split('.')[0]
+        else:
+            nettest = test_instance.name
+        with open('/tmp/hosts.nmap') as f:
+            for line in f.readlines():
+                if nettest in line:
+                    test_instance.private_ip = line.split()[-1]
+                    return line.split()[1]
         log.err('There was no interface to bind to %s' % nettest)
         return None
 
@@ -521,6 +523,7 @@ class NetTest(object):
         This is a generator that yields measurements and registers the
         callbacks for when a measurement is successful or has failed.
         """
+        from ooni.utils.txscapy import ScapyFactory
 
         for test_class, test_methods in self.testCases:
             # load the input processor as late as possible
