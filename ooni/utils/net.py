@@ -6,6 +6,16 @@ from zope.interface import implements
 from twisted.internet import protocol, defer
 from twisted.web.iweb import IBodyProducer
 
+
+try:
+    from twisted.internet.endpoints import connectProtocol
+except ImportError:
+    def connectProtocol(endpoint, protocol):
+            class OneShotFactory(protocol.Factory):
+                def buildProtocol(self, addr):
+                    return protocol
+            return endpoint.connect(OneShotFactory())
+
 from ooni.utils import log
 
 # if sys.platform.system() == 'Windows':
