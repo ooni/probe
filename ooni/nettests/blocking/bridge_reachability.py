@@ -51,7 +51,8 @@ class BridgeReachability(nettest.NetTestCase):
         self.tor_progress = 0
         self.timeout = int(self.localOptions['timeout'])
 
-        _, self.logfile = tempfile.mkstemp()
+        fd, self.logfile = tempfile.mkstemp()
+        os.close(fd)
 
         self.report['error'] = None
         self.report['success'] = None
