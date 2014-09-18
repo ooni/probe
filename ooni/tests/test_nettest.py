@@ -328,7 +328,8 @@ class TestNetTest(ConfigTestCase):
         sniffer = MagicMock()
         director.sniffers = {'dummy_test_case': sniffer}
 
-        shutil.copyfile('/tmp/hosts.nmap', '/tmp/hosts.nmap.old')
+        if os.path.isfile('/tmp/hosts.nmap'):
+            shutil.copyfile('/tmp/hosts.nmap', '/tmp/hosts.nmap.old')
         with open('/tmp/hosts.nmap', 'a') as f:
             f.write('dummy_test_case dummy_test_iface 10.0.2.69\n')
 
@@ -342,7 +343,8 @@ class TestNetTest(ConfigTestCase):
                 self.assertEqual(measurement.testInstance.private_ip, '10.0.2.69')
                 self.assertEqual(measurement.testInstance.scapyFactory, factory)
 
-        shutil.copyfile('/tmp/hosts.nmap.old', '/tmp/hosts.nmap')
+        if os.path.isfile('/tmp/hosts.nmap.old'):
+            shutil.copyfile('/tmp/hosts.nmap.old', '/tmp/hosts.nmap')
 
     def test_net_test_completed_callback(self):
         ntl = NetTestLoader(dummyArgsWithFile)
