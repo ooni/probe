@@ -60,6 +60,10 @@ On unix systems::
 
     sudo pip install ooniprobe
 
+To install it from the current master run::
+
+    sudo pip install https://github.com/TheTorProject/ooni-probe/archive/master.zip
+
 The run::
 
     mkdir my_decks
