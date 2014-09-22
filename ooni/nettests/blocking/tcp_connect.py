@@ -67,13 +67,24 @@ class TCPConnectTest(nettest.NetTestCase):
             if proto == 'https':
                 return "%s:443" % host
 
+        pluggable_transports = ("obfs3", "obfs2", "fte", "scramblesuit")
+        def is_bridge_line(line):
+            first = line.split(" ")[0]
+            return first.lower() in pluggable_transports + ("bridge",)
+        def strip_bridge(line):
+            if line.lower().startswith("Bridge"):
+                return line.split(" ")[2]
+            return line.split(" ")[1]
+
         if filename:
             fp = open(filename)
             for x in fp.readlines():
                 if x.startswith("http"):
                     yield strip_url(x)
+                elif is_bridge_line(x):
+                    yield strip_bridge(x)
                 else:
-                    yield x.strip()
+                    yield x.split(" ")[0]
             fp.close()
         else:
             pass
