@@ -51,7 +51,9 @@ class BridgeReachability(nettest.NetTestCase):
         self.tor_progress = 0
         self.timeout = int(self.localOptions['timeout'])
 
-        fd, self.logfile = tempfile.mkstemp()
+        fd, self.tor_logfile = tempfile.mkstemp()
+        os.close(fd)
+        fd, self.obfsproxy_logfile = tempfile.mkstemp()
         os.close(fd)
 
         self.report['error'] = None
@@ -64,6 +66,7 @@ class BridgeReachability(nettest.NetTestCase):
         self.report['tor_progress_summary'] = None
         self.report['tor_log'] = None
         self.report['obfsproxy_version'] = str(onion.obfsproxy_details['version'])
+        self.report['obfsproxy_log'] = None
         self.report['bridge_address'] = None
 
         self.bridge = self.input
@@ -144,8 +147,10 @@ class BridgeReachability(nettest.NetTestCase):
             self.report['error'] = 'missing-fteproxy'
             return
         elif transport_name and self.pyobfsproxy_bin:
-            config.ClientTransportPlugin = "%s exec %s managed" % (
-                transport_name, self.pyobfsproxy_bin)
+            config.ClientTransportPlugin = ("%s exec %s --log-min-severity info "
+                "--log-file %s managed") % (transport_name,
+                                            self.pyobfsproxy_bin,
+                                            self.obfsproxy_logfile)
             if onion.OBFSProxyVersion('0.2') > onion.obfsproxy_details['version']:
                 log.err(
                     "The obfsproxy version you are using appears to be outdated."
@@ -175,7 +180,7 @@ class BridgeReachability(nettest.NetTestCase):
 
         config.Bridge = self.bridge
         config.UseBridges = 1
-        config.log = ['notice stdout', 'notice file %s' % self.logfile]
+        config.log = ['notice stdout', 'notice file %s' % self.tor_logfile]
         config.save()
 
         def updates(prog, tag, summary):
@@ -205,8 +210,11 @@ class BridgeReachability(nettest.NetTestCase):
 
         @d.addCallback
         def write_log(_):
-            with open(self.logfile) as f:
+            with open(self.tor_logfile) as f:
                 self.report['tor_log'] = f.read()
-            os.remove(self.logfile)
+            os.remove(self.tor_logfile)
+            with open(self.obfsproxy_logfile) as f:
+                self.report['obfsproxy_log'] = f.read()
+            os.remove(self.obfsproxy_logfile)
 
         return d
