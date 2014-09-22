@@ -119,5 +119,5 @@ class IPGenerator(object):
         pass
 
     def next_ip(self):
-        pass
+        return None
 ip_generator = IPGenerator()

@@ -1,7 +1,6 @@
 import sys
 import os
 import yaml
-import subprocess
 
 from twisted.python import usage
 from twisted.python.util import spewer
@@ -180,18 +179,9 @@ def runWithDirector(logging=True, start_tor=True, check_incoherences=True):
 
     try:
         if global_options['testdeck']:
-            if config.privacy.includepcap:
-                retval = subprocess.call(['ooninetworking', 'add_deck', global_options['testdeck']])
-                if retval != 0:
-                    log.err("The virtual interfaces for %s cannot be built" % global_options['testdeck'])
             deck.loadDeck(global_options['testdeck'])
         else:
             log.debug("No test deck detected")
-            if config.privacy.includepcap:
-                nettest = global_options['test_file'].split('/')[1]
-                retval = subprocess.call(['ooninetworking', 'add_nettest', nettest])
-                if retval != 0:
-                    log.err("The virtual interface for %s cannot be built" % nettest)
             test_file = nettest_to_path(global_options['test_file'], True)
             net_test_loader = NetTestLoader(global_options['subargs'],
                                             test_file=test_file)
@@ -317,18 +307,11 @@ def runWithDirector(logging=True, start_tor=True, check_incoherences=True):
                                   collector)
         return director.allTestsDone
 
-    def clean_interfaces(_):
-        retval = subprocess.call(['ooninetworking', 'clean'])
-        if retval != 0:
-            log.err("There was a problem when cleaning the virtual interfaces")
-
     def start():
         d.addCallback(setup_nettest)
         d.addCallback(post_director_start)
         d.addErrback(director_startup_handled_failures)
         d.addErrback(director_startup_other_failures)
-        if config.privacy.includepcap:
-            d.addBoth(clean_interfaces)
         return d
 
     return start()

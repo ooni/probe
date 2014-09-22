@@ -116,7 +116,7 @@ setup(
     data_files=data_files,
     packages=packages,
     scripts=["bin/oonideckgen", "bin/ooniprobe",
-             "bin/oonireport", "bin/ooniresources", "bin/ooninetworking"],
+             "bin/oonireport", "bin/ooniresources"],
     dependency_links=dependency_links,
     install_requires=install_requires,
     classifiers=(
