@@ -2,8 +2,8 @@ from ooni.nettest import NetTestCase
 from ooni.utils import log
 from ooni.settings import config
 
-from ooni.utils.txscapy import ScapySender, ScapyFactory
-from ooni.utils.txscapy import hasRawSocketPermission
+from ooni.utils.txscapy import ScapySender
+from ooni.utils.net import hasRawSocketPermission
 
 
 class BaseScapyTest(NetTestCase):
@@ -97,6 +97,7 @@ class BaseScapyTest(NetTestCase):
         if timeout is not None:
             kwargs['timeout'] = timeout
         scapySender = ScapySender(**kwargs)
+        scapySender.factory = self.scapyFactory
 
         self.scapyFactory.registerProtocol(scapySender)
         log.debug("Using sending with hash %s" % scapySender.__hash__)
@@ -120,6 +121,7 @@ class BaseScapyTest(NetTestCase):
 
         scapySender = ScapySender()
         scapySender.expected_answers = 1
+        scapySender.factory = self.scapyFactory
 
         self.scapyFactory.registerProtocol(scapySender)
 
@@ -135,6 +137,7 @@ class BaseScapyTest(NetTestCase):
         Wrapper around scapy.sendrecv.send for sending of packets at layer 3
         """
         scapySender = ScapySender()
+        scapySender.factory = self.scapyFactory
 
         self.scapyFactory.registerProtocol(scapySender)
         scapySender.startSending(packets)

@@ -326,25 +326,18 @@ class TestNetTest(ConfigTestCase):
         director = MagicMock()
         net_test.director = director
         sniffer = MagicMock()
+        sniffer.iface = 'dummy_iface'
+        sniffer.private_ip = 'dummy_private_ip'
         director.sniffers = {'dummy_test_case': sniffer}
-
-        if os.path.isfile('/tmp/hosts.nmap'):
-            shutil.copyfile('/tmp/hosts.nmap', '/tmp/hosts.nmap.old')
-        with open('/tmp/hosts.nmap', 'a') as f:
-            f.write('dummy_test_case dummy_test_iface 10.0.2.69\n')
 
         net_test.initializeInputProcessor()
 
         with patch('ooni.utils.txscapy.ScapyFactory') as scapyFactory:
             for measurement in net_test.generateMeasurements():
-                scapyFactory.assert_called_with('dummy_test_iface')
+                scapyFactory.assert_called_with('dummy_iface')
                 factory = scapyFactory.return_value
-                self.assertEqual(sniffer.private_ip, '10.0.2.69')
-                self.assertEqual(measurement.testInstance.private_ip, '10.0.2.69')
+                self.assertEqual(measurement.testInstance.private_ip, 'dummy_private_ip')
                 self.assertEqual(measurement.testInstance.scapyFactory, factory)
-
-        if os.path.isfile('/tmp/hosts.nmap.old'):
-            shutil.copyfile('/tmp/hosts.nmap.old', '/tmp/hosts.nmap')
 
     def test_net_test_completed_callback(self):
         ntl = NetTestLoader(dummyArgsWithFile)

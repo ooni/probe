@@ -27,7 +27,7 @@ apt-get update
 apt-get install -y tor deb.torproject.org-keyring
 
 # Setup for sniffer subsystem
-apt-get install -y build-essential libdumbnet-dev python-dumbnet python-pypcap libpcap-dev python-dev python-pip libgeoip-dev libffi-dev nmap
+apt-get install -y build-essential libdumbnet-dev python-dumbnet python-pypcap libpcap-dev python-dev python-pip libgeoip-dev libffi-dev
 cd /ooni
 python setup.py install
 echo "Login using 'vagrant ssh', and dont forget to run ooniprobe as root."

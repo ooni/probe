@@ -501,23 +501,6 @@ class NetTest(object):
             if not test_class.inputs:
                 test_class.inputs = [None]
 
-    def bind_private_ip(self, test_instance):
-        module_path = test_instance.__module__
-        # This is mainly for testing
-        if module_path != '__builtin__':
-            module = importlib.import_module(module_path)
-            filepath = module.__file__
-            nettest = os.path.basename(filepath).split('.')[0]
-        else:
-            nettest = test_instance.name
-        with open('/tmp/hosts.nmap') as f:
-            for line in f.readlines():
-                if nettest in line:
-                    test_instance.private_ip = line.split()[-1]
-                    return line.split()[1]
-        log.err('There was no interface to bind to %s' % nettest)
-        return None
-
     def generateMeasurements(self):
         """
         This is a generator that yields measurements and registers the
@@ -533,15 +516,15 @@ class NetTest(object):
                 test_instance.summary = self.summary
                 factory = config.scapyFactory
                 if config.privacy.includepcap:
-                    iface = self.bind_private_ip(test_instance)
+                    test_name = self.testDetails['test_name']
+                    sniffer = self.director.sniffers[test_name]
+                    iface = sniffer.iface
                     if iface is not None:
-                        test_name = self.testDetails['test_name']
-                        sniffer = self.director.sniffers[test_name]
-                        sniffer.private_ip = test_instance.private_ip
                         filename_pcap = os.path.abspath(sniffer.pcapwriter.filename)
                         factory = ScapyFactory(iface)
-                        log.msg("Starting packet capture from NIC address %s to %s" %
-                                (test_instance.private_ip, filename_pcap))
+                        test_instance.private_ip = sniffer.private_ip
+                        log.msg("Starting packet capture from %s(%s) to %s" %
+                                (iface, test_instance.private_ip, filename_pcap))
                 test_instance.scapyFactory = factory
                 for method in test_methods:
                     log.debug("Running %s %s" % (test_class, method))

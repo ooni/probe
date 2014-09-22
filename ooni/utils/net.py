@@ -5,6 +5,7 @@ from random import randint
 from zope.interface import implements
 from twisted.internet import protocol, defer
 from twisted.web.iweb import IBodyProducer
+from scapy.config import conf
 
 
 try:
@@ -17,9 +18,7 @@ except ImportError:
             return endpoint.connect(OneShotFactory())
 
 from ooni.utils import log
-
-# if sys.platform.system() == 'Windows':
-# import _winreg as winreg
+from ooni.errors import IfaceError, UnsupportedPlatform
 
 # These user agents are taken from the "How Unique Is Your Web Browser?"
 # (https://panopticlick.eff.org/browser-uniqueness.pdf) paper as the browser user
@@ -37,19 +36,6 @@ userAgents = ("Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.9.1.7) Gecko
               "Mozilla/5.0 (Windows; U; Windows NT 6.1; en-US; rv:1.9.1.7) Gecko/20091221 Firefox/3.5.7",
               "Mozilla/5.0 (Windows; U; Windows NT 5.1; de; rv:1.9.1.7) "
               "Gecko/20091221 Firefox/3.5.7 (.NET CLR 3.5.30729)")
-
-
-class UnsupportedPlatform(Exception):
-    """Support for this platform is not currently available."""
-
-
-class IfaceError(Exception):
-    """Could not find default network interface."""
-
-
-class PermissionsError(SystemExit):
-    """This test requires admin or root privileges to run. Exiting..."""
-
 
 PLATFORMS = {'LINUX': sys.platform.startswith("linux"),
              'OPENBSD': sys.platform.startswith("openbsd"),
@@ -127,18 +113,12 @@ class ConnectAndCloseProtocol(protocol.Protocol):
     def connectionMade(self):
         self.transport.loseConnection()
 
-def getSystemResolver():
-    """
-    XXX implement a function that returns the resolver that is currently
-    default on the system.
-    """
-
 
 def getClientPlatform(platform_name=None):
     for name, test in PLATFORMS.items():
         if not platform_name or platform_name.upper() == name:
             if test:
-                return name, test
+                return name
 
 
 def getPosixIfaces():
@@ -146,7 +126,7 @@ def getPosixIfaces():
 
     log.msg("Attempting to discover network interfaces...")
     ifaces = _posixifaces._interfaces()
-    ifup = tryInterfaces(ifaces)
+    ifup = checkInterfaces(ifaces)
     return ifup
 
 
@@ -155,12 +135,12 @@ def getWindowsIfaces():
 
     log.msg("Attempting to discover network interfaces...")
     ifaces = _win32ifaces._interfaces()
-    ifup = tryInterfaces(ifaces)
+    ifup = checkInterfaces(ifaces)
     return ifup
 
 
 def getIfaces(platform_name=None):
-    client, test = getClientPlatform(platform_name)
+    client = getClientPlatform(platform_name)
     if client:
         if client == ('LINUX' or 'DARWIN') or client[-3:] == 'BSD':
             return getPosixIfaces()
@@ -202,39 +182,29 @@ def checkInterfaces(ifaces=None, timeout=1):
     @param ifaces:
         A dictionary in the form of ifaces['if_name'] = 'if_addr'.
     """
-    try:
-        from scapy.all import IP, ICMP
-        from scapy.all import sr1  ## we want this check to be blocking
-    except:
-        log.msg(("Scapy required: www.secdev.org/projects/scapy"))
+    from scapy.all import IP, ICMP
+    from scapy.all import sr1
 
     ifup = {}
-    if not ifaces:
-        log.debug("checkInterfaces(): no interfaces specified!")
-        return None
-
     for iface in ifaces:
         for ifname, ifaddr in iface:
-            log.debug("checkInterfaces(): testing iface {} by pinging"
-                      + " local address {}".format(ifname, ifaddr))
-            try:
-                pkt = IP(dst=ifaddr) / ICMP()
-                ans, unans = sr1(pkt, iface=ifname, timeout=5, retry=3)
-            except Exception, e:
-                raise PermissionsError if e.find("Errno 1") else log.err(e)
-            else:
-                if ans.summary():
-                    log.debug("checkInterfaces(): got answer on interface %s"
-                              + ":\n%s".format(ifname, ans.summary()))
-                    ifup.update(ifname, ifaddr)
-                else:
-                    log.debug("Interface test packet was unanswered:\n%s"
-                              % unans.summary())
-    if len(ifup) > 0:
-        log.msg("Discovered working network interfaces: %s" % ifup)
-        return ifup
+            pkt = IP(dst=ifaddr) / ICMP()
+            ans, unans = sr1(pkt, iface=ifname, timeout=5, retry=3)
+            if ans.summary():
+                ifup.update(ifname, ifaddr)
+    return ifup
+
+
+def isHostAlive(dst):
+    from scapy.all import IP, ICMP
+    from scapy.all import sr1
+
+    pkt = IP(dst=dst) / ICMP()
+    ans, unans = sr1(pkt, timeout=5, retry=3)
+    if ans.summary():
+        return True
     else:
-        raise IfaceError
+        return False
 
 
 def getNonLoopbackIfaces(platform_name=None):
@@ -262,3 +232,53 @@ def getNonLoopbackIfaces(platform_name=None):
 def getLocalAddress():
     default_iface = getDefaultIface()
     return default_iface.ipaddr
+
+
+def getNetworksFromRoutes():
+    """ Return a list of networks from the routing table """
+    from scapy.all import conf, ltoa, read_routes
+    from ipaddr import IPNetwork, IPAddress
+
+    # # Hide the 'no routes' warnings
+    conf.verb = 0
+
+    networks = []
+    for nw, nm, gw, iface, addr in read_routes():
+        n = IPNetwork(ltoa(nw))
+        (n.netmask, n.gateway, n.ipaddr) = [IPAddress(x) for x in [nm, gw, addr]]
+        n.iface = iface
+        if not n.compressed in networks:
+            networks.append(n)
+
+    return networks
+
+
+def getAddresses():
+    from scapy.all import get_if_addr, get_if_list
+    from ipaddr import IPAddress
+
+    addresses = set()
+    for i in get_if_list():
+        try:
+            addresses.add(get_if_addr(i))
+        except:
+            pass
+    if '0.0.0.0' in addresses:
+        addresses.remove('0.0.0.0')
+    return [IPAddress(addr) for addr in addresses]
+
+
+def getDefaultIface():
+    """ Return the default interface or raise IfaceError """
+    iface = conf.route.route('0.0.0.0', verbose=0)[0]
+    if len(iface) > 0:
+        return iface
+    raise IfaceError
+
+
+def hasRawSocketPermission():
+    try:
+        socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.IPPROTO_RAW)
+        return True
+    except socket.error:
+        return False

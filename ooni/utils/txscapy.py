@@ -10,140 +10,12 @@ from twisted.internet import defer, abstract
 from scapy.config import conf
 from scapy.supersocket import L3RawSocket
 from scapy.all import RandShort, IP, IPerror, ICMP, ICMPerror, TCP, TCPerror, UDP, UDPerror
-
-from ooni.utils import log
-from ooni.settings import config
-
-
-class LibraryNotInstalledError(Exception):
-    pass
-
-
-def pcapdnet_installed():
-    """
-    Checks to see if libdnet or libpcap are installed and set the according
-    variables.
-
-    Returns:
-
-        True
-            if pypcap and libdnet are installed
-
-        False
-            if one of the two is absent
-    """
-    # In debian libdnet is called dumbnet instead of dnet, but scapy is
-    # expecting "dnet" so we try and import it under such name.
-    try:
-        import dumbnet
-
-        sys.modules['dnet'] = dumbnet
-    except ImportError:
-        pass
-
-    try:
-        conf.use_pcap = True
-        conf.use_dnet = True
-        from scapy.arch import pcapdnet
-
-        config.pcap_dnet = True
-
-    except ImportError as e:
-        log.err(e.message + ". Pypcap or dnet are not properly installed. Certain tests may not work.")
-        config.pcap_dnet = False
-        conf.use_pcap = False
-        conf.use_dnet = False
-
-    # This is required for unix systems that are different than linux (OSX for
-    # example) since scapy explicitly wants pcap and libdnet installed for it
-    # to work.
-    try:
-        from scapy.arch import pcapdnet
-    except ImportError:
-        log.err("Your platform requires having libdnet and libpcap installed.")
-        raise LibraryNotInstalledError
-
-    return config.pcap_dnet
-
-
-if pcapdnet_installed():
-    from scapy.all import PcapWriter
-
-else:
-
-    class DummyPcapWriter:
-        def __init__(self, pcap_filename, *arg, **kw):
-            log.err("Initializing DummyPcapWriter. We will not actually write to a pcapfile")
-
-        @staticmethod
-        def write(self):
-            pass
-
-    PcapWriter = DummyPcapWriter
-
 from scapy.all import Gen, SetGen, MTU
 
-
-def getNetworksFromRoutes():
-    """ Return a list of networks from the routing table """
-    from scapy.all import conf, ltoa, read_routes
-    from ipaddr import IPNetwork, IPAddress
-
-    # # Hide the 'no routes' warnings
-    conf.verb = 0
-
-    networks = []
-    for nw, nm, gw, iface, addr in read_routes():
-        n = IPNetwork(ltoa(nw))
-        (n.netmask, n.gateway, n.ipaddr) = [IPAddress(x) for x in [nm, gw, addr]]
-        n.iface = iface
-        if not n.compressed in networks:
-            networks.append(n)
-
-    return networks
-
-
-class IfaceError(Exception):
-    pass
-
-
-def getAddresses():
-    from scapy.all import get_if_addr, get_if_list
-    from ipaddr import IPAddress
-
-    addresses = set()
-    for i in get_if_list():
-        try:
-            addresses.add(get_if_addr(i))
-        except:
-            pass
-    if '0.0.0.0' in addresses:
-        addresses.remove('0.0.0.0')
-    return [IPAddress(addr) for addr in addresses]
-
-
-def getDefaultIface():
-    """ Return the default interface or raise IfaceError """
-    iface = conf.route.route('0.0.0.0', verbose=0)[0]
-    if len(iface) > 0:
-        return iface
-    raise IfaceError
-
-
-def hasRawSocketPermission():
-    try:
-        socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.IPPROTO_RAW)
-        return True
-    except socket.error:
-        return False
-
-
-class ProtocolNotRegistered(Exception):
-    pass
-
-
-class ProtocolAlreadyRegistered(Exception):
-    pass
+from ooni.utils import log
+from ooni.utils.net import getDefaultIface, getAddresses
+from ooni.settings import config
+from ooni.errors import ScapyProtocolAlreadyRegistered, ScapyProtocolNotRegistered, LibraryNotInstalledError
 
 
 class ScapyFactory(abstract.FileDescriptor):
@@ -196,7 +68,7 @@ class ScapyFactory(abstract.FileDescriptor):
             protocol.factory = self
             self.protocols.append(protocol)
         else:
-            raise ProtocolAlreadyRegistered
+            raise ScapyProtocolAlreadyRegistered
 
     def unRegisterProtocol(self, protocol):
         if protocol in self.protocols:
@@ -204,7 +76,8 @@ class ScapyFactory(abstract.FileDescriptor):
             if len(self.protocols) == 0:
                 self.loseConnection()
         else:
-            raise ProtocolNotRegistered
+            raise ScapyProtocolNotRegistered
+
 
 class ScapyProtocol(object):
     factory = None
@@ -297,20 +170,6 @@ class ScapySender(ScapyProtocol):
         self.d = defer.Deferred()
         self.sendPackets(packets)
         return self.d
-
-
-class ScapySniffer(ScapyProtocol):
-    def __init__(self, pcap_filename, *arg, **kw):
-        self.pcapwriter = PcapWriter(pcap_filename, *arg, **kw)
-        self.private_ip = None
-
-    def packetReceived(self, packet):
-        if self.private_ip is not None:
-            if 'src' in packet.fields and (packet.src == self.private_ip or packet.dst == self.private_ip):
-                self.pcapwriter.write(packet)
-
-    def close(self):
-        self.pcapwriter.close()
 
 
 class ParasiticTraceroute(ScapyProtocol):

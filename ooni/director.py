@@ -3,7 +3,7 @@ import os
 
 from ooni.managers import ReportEntryManager, MeasurementManager
 from ooni.reporter import Report
-from ooni.utils import log, generate_filename
+from ooni.utils import log
 from ooni.utils.net import randomFreePort
 from ooni.nettest import NetTest, getNetTestInformation
 from ooni.settings import config
@@ -265,22 +265,12 @@ class Director(object):
         finally:
             self.netTestDone(net_test)
 
-    def startSniffing(self, testDetails):
-        """ Start sniffing with Scapy. Exits if required privileges (root) are not
-        available.
-        """
-        from ooni.utils.txscapy import ScapySniffer
+    def startSniffing(self, test_details):
+        from ooni.sniffer import ScapySniffer
 
-        if not config.reports.pcap:
-            prefix = 'report'
-        else:
-            prefix = config.reports.pcap
-        filename = config.global_options['reportfile'] if 'reportfile' in config.global_options.keys() else None
-        filename_pcap = generate_filename(testDetails, filename=filename, prefix=prefix, extension='pcap')
-
-        sniffer = ScapySniffer(filename_pcap)
+        sniffer = ScapySniffer(test_details)
+        self.sniffers[test_details['test_name']] = sniffer
         config.scapyFactory.registerProtocol(sniffer)
-        self.sniffers[testDetails['test_name']] = sniffer
 
     @defer.inlineCallbacks
     def getTorState(self):

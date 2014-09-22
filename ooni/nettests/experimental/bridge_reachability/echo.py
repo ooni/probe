@@ -26,6 +26,7 @@ try:
     from ooni.lib              import txscapy
     from ooni.lib.txscapy      import txsr, txsend
     from ooni.templates.scapyt import BaseScapyTest
+    from ooni.utils.net import getDefaultIface
 except:
     log.msg("This test requires scapy, see www.secdev.org/projects/scapy")
 
@@ -66,7 +67,7 @@ class EchoTest(nettest.NetTestCase):
 
         if not self.interface:
             try:
-                iface = txscapy.getDefaultIface()
+                iface = getDefaultIface()
             except Exception, e:
                 log.msg("No network interface specified!")
                 log.err(e)

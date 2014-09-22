@@ -320,6 +320,26 @@ class ConfigFileIncoherent(Exception):
     pass
 
 
+class UnsupportedPlatform(Exception):
+    """Support for this platform is not currently available."""
+
+
+class IfaceError(Exception):
+    """Could not find default network interface."""
+
+
+class LibraryNotInstalledError(Exception):
+    pass
+
+
+class ScapyProtocolNotRegistered(Exception):
+    pass
+
+
+class ScapyProtocolAlreadyRegistered(Exception):
+    pass
+
+
 def get_error(error_key):
     if error_key == 'test-helpers-key-missing':
         return CouldNotFindTestHelper
