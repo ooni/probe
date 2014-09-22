@@ -76,6 +76,7 @@ class ScapySniffer(ScapyProtocol):
         self.private_ip = None
         self.iface = None
         self.platform = None
+        self.supported_platforms = ['LINUX', 'OPENBSD', 'FREEBSD', 'NETBSD', 'DARWIN']
 
         if not config.reports.pcap:
             prefix = 'report'
@@ -88,15 +89,17 @@ class ScapySniffer(ScapyProtocol):
         self.setup_interface()
 
     def setup_interface(self):
-        self.private_ip = ip_generator.next_ip()
         self.platform = getClientPlatform()
+        if not self.platform in self.supported_platforms:
+            log.err('Platform not supported for pcap recording')
+            return
+
+        self.private_ip = ip_generator.next_ip()
 
         if 'LINUX' == self.platform or 'BSD' in self.platform:
             self.attach_ip_linux()
         elif 'DARWIN' == self.platform:
             self.attach_ip_osx()
-        else:
-            log.err('Platform not supported for pcap recording')
 
     def attach_ip_linux(self):
         pass

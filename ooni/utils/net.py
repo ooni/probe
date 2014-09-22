@@ -5,7 +5,9 @@ from random import randint
 from zope.interface import implements
 from twisted.internet import protocol, defer
 from twisted.web.iweb import IBodyProducer
-from scapy.config import conf
+
+from scapy.all import IP, ICMP, sr1, conf, ltoa, read_routes, get_if_addr, get_if_list
+from ipaddr import IPNetwork, IPAddress
 
 
 try:
@@ -124,19 +126,15 @@ def getClientPlatform(platform_name=None):
 def getPosixIfaces():
     from twisted.internet.test import _posixifaces
 
-    log.msg("Attempting to discover network interfaces...")
     ifaces = _posixifaces._interfaces()
-    ifup = checkInterfaces(ifaces)
-    return ifup
+    return ifaces
 
 
 def getWindowsIfaces():
     from twisted.internet.test import _win32ifaces
 
-    log.msg("Attempting to discover network interfaces...")
     ifaces = _win32ifaces._interfaces()
-    ifup = checkInterfaces(ifaces)
-    return ifup
+    return ifaces
 
 
 def getIfaces(platform_name=None):
@@ -177,75 +175,39 @@ def randomFreePort(addr="127.0.0.1"):
     return port
 
 
-def checkInterfaces(ifaces=None, timeout=1):
-    """
-    @param ifaces:
-        A dictionary in the form of ifaces['if_name'] = 'if_addr'.
-    """
-    from scapy.all import IP, ICMP
-    from scapy.all import sr1
-
-    ifup = {}
-    for iface in ifaces:
-        for ifname, ifaddr in iface:
-            pkt = IP(dst=ifaddr) / ICMP()
-            ans, unans = sr1(pkt, iface=ifname, timeout=5, retry=3)
-            if ans.summary():
-                ifup.update(ifname, ifaddr)
-    return ifup
-
-
-def isHostAlive(dst):
-    from scapy.all import IP, ICMP
-    from scapy.all import sr1
-
-    pkt = IP(dst=dst) / ICMP()
-    ans, unans = sr1(pkt, timeout=5, retry=3)
-    if ans.summary():
+def isHostAlive(host):
+    pkt = IP(dst=host) / ICMP()
+    ans = sr1(pkt, timeout=2, retry=1, verbose=False)
+    if ans is not None and ans.summary():
         return True
     else:
         return False
 
 
 def getNonLoopbackIfaces(platform_name=None):
+    ifaces = {}
     try:
         ifaces = getIfaces(platform_name)
     except UnsupportedPlatform, up:
         log.err(up)
 
-    if not ifaces:
+    if len(ifaces) == 0:
         log.msg("Unable to discover network interfaces...")
         return None
-    else:
-        found = [{i[0]: i[2]} for i in ifaces if i[0] != 'lo']
-        log.debug("getNonLoopbackIfaces: Found non-loopback interfaces: %s"
-                  % found)
-        try:
-            interfaces = checkInterfaces(found)
-        except IfaceError, ie:
-            log.err(ie)
-            return None
-        else:
-            return interfaces
 
-
-def getLocalAddress():
-    default_iface = getDefaultIface()
-    return default_iface.ipaddr
+    found = [{i[0]: i[2]} for i in ifaces if i[0] != 'lo']
+    return found
 
 
 def getNetworksFromRoutes():
     """ Return a list of networks from the routing table """
-    from scapy.all import conf, ltoa, read_routes
-    from ipaddr import IPNetwork, IPAddress
-
     # # Hide the 'no routes' warnings
     conf.verb = 0
 
     networks = []
     for nw, nm, gw, iface, addr in read_routes():
-        n = IPNetwork(ltoa(nw))
-        (n.netmask, n.gateway, n.ipaddr) = [IPAddress(x) for x in [nm, gw, addr]]
+        n = IPNetwork('%s/%s' % (ltoa(nw), ltoa(nm)))
+        n.gateway = gw
         n.iface = iface
         if not n.compressed in networks:
             networks.append(n)
@@ -254,9 +216,6 @@ def getNetworksFromRoutes():
 
 
 def getAddresses():
-    from scapy.all import get_if_addr, get_if_list
-    from ipaddr import IPAddress
-
     addresses = set()
     for i in get_if_list():
         try:
