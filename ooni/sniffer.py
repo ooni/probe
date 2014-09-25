@@ -7,6 +7,7 @@ from ooni.utils import log
 from ooni.settings import config
 from ooni.utils import generate_filename
 from ooni.utils.txscapy import ScapyProtocol
+from ooni.utils.net import getDefaultIface, getNetworksFromRoutes, isHostAlive
 from ooni.errors import LibraryNotInstalledError
 
 
@@ -72,9 +73,11 @@ else:
 
 class ScapySniffer(ScapyProtocol):
     def __init__(self, testDetails, *arg, **kw):
+        self.IFNAMSIZ = 16 - 1
         self.test_name = testDetails['test_name']
         self.private_ip = None
         self.iface = None
+        self.index = None
         self.platform = None
         self.supported_platforms = ['LINUX', 'OPENBSD', 'FREEBSD', 'NETBSD', 'DARWIN']
 
@@ -95,16 +98,55 @@ class ScapySniffer(ScapyProtocol):
             return
 
         self.private_ip = ip_generator.next_ip()
-
-        if 'LINUX' == self.platform or 'BSD' in self.platform:
-            self.attach_ip_linux()
-        elif 'DARWIN' == self.platform:
-            self.attach_ip_osx()
+        if self.private_ip is not None:
+            if 'LINUX' == self.platform or 'BSD' in self.platform:
+                self.attach_ip_linux()
+            elif 'DARWIN' == self.platform:
+                self.attach_ip_osx()
 
     def attach_ip_linux(self):
-        pass
+        from pyroute2 import IPDB, IPRoute
+
+        self.gen_iface()
+
+        ipdb = IPDB()
+        with ipdb.create(kind='dummy', ifname=self.iface) as i:
+            i.add_ip(self.private_ip + '/' + str(ip_generator.subnet.prefixlen))
+
+        route = IPRoute()
+        for r in route.get_addr():
+            for attr in r['attrs']:
+                if attr[0] == 'IFA_LABEL' and attr[1] == self.iface:
+                    self.index = r['index']
+
+        if self.index is not None:
+            route.link_up(self.index)
+
+    def gen_iface(self):
+        self.iface = self.test_name
+        if len(self.iface) > self.IFNAMSIZ:
+            self.iface = ''
+            rev = self.test_name.split('_')[::-1]
+            length = len(rev)*2 - 1
+            for chunk in rev:
+                if length - 1 + len(chunk) <= self.IFNAMSIZ:
+                    self.iface = '%s_%s' % (chunk, self.iface)
+                    length += len(chunk) - 1
+                else:
+                    self.iface = '%s_%s' % (chunk[0], self.iface)
+            self.iface = self.iface[:-1]
+
+    def detach_ip_linux(self):
+        from pyroute2 import IPRoute
+
+        route = IPRoute()
+        if self.index is not None:
+            route.link_remove(self.index)
 
     def attach_ip_osx(self):
+        pass
+
+    def detach_ip_osx(self):
         pass
 
     def packetReceived(self, packet):
@@ -113,14 +155,42 @@ class ScapySniffer(ScapyProtocol):
                 self.pcapwriter.write(packet)
 
     def close(self):
-        # TODO: Clean interfaces, which can be None!!
         self.pcapwriter.close()
+
+        if self.private_ip is not None:
+            if 'LINUX' == self.platform or 'BSD' in self.platform:
+                self.detach_ip_linux()
+            elif 'DARWIN' == self.platform:
+                self.detach_ip_osx()
 
 
 class IPGenerator(object):
-    def __init__(self, start_ip=40):
-        pass
+    def __init__(self, start_ip='40'):
+        self.default_iface = getDefaultIface()
+        networks = getNetworksFromRoutes()
+        subnets = [n for n in networks if n.iface == self.default_iface and n.compressed != '0.0.0.0/0']
+        if len(subnets) > 1:
+            log.msg('More than one default subnet was detected, you should double check that the sniffer is working')
+        self.subnet = subnets[0]
+
+        if self.subnet.prefixlen != 24:
+            log.err('The netmask of the subnet %s must be 24')
+            self.current_ip = None
+        else:
+            template = self.subnet.ip.compressed.split('.')
+            template[-1] = str(start_ip)
+            self.current_ip = '.'.join(template)
 
     def next_ip(self):
-        return None
+        if self.current_ip is not None:
+            template = self.current_ip.split('.')
+            n = int(template[-1]) + 1
+            template[-1] = str(n)
+            while isHostAlive(self.current_ip):
+                self.current_ip = '.'.join(template)
+                n += 1
+                template[-1] = str(n)
+            old_ip = self.current_ip
+            self.current_ip = '.'.join(template)
+            return old_ip
 ip_generator = IPGenerator()

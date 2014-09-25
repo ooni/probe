@@ -176,12 +176,16 @@ def randomFreePort(addr="127.0.0.1"):
 
 
 def isHostAlive(host):
-    pkt = IP(dst=host) / ICMP()
-    ans = sr1(pkt, timeout=2, retry=1, verbose=False)
-    if ans is not None and ans.summary():
+    addrs = [addr.compressed for addr in getAddresses()]
+    if host in addrs:
         return True
     else:
-        return False
+        pkt = IP(dst=host) / ICMP()
+        ans = sr1(pkt, timeout=5, retry=1, verbose=False)
+        if ans is not None and ans.summary():
+            return True
+        else:
+            return False
 
 
 def getNonLoopbackIfaces(platform_name=None):
