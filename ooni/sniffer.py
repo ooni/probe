@@ -1,4 +1,6 @@
 import sys
+from distutils.spawn import find_executable
+import subprocess
 
 from scapy.config import conf
 
@@ -72,10 +74,14 @@ else:
 
 
 class ScapySniffer(ScapyProtocol):
+    """
+        If it's impossible to setup the sniffer, self.private_ip and self.iface must be None
+    """
     def __init__(self, testDetails, *arg, **kw):
         self.IFNAMSIZ = 16 - 1
         self.test_name = testDetails['test_name']
         self.private_ip = None
+        self.masked_ip = None
         self.iface = None
         self.index = None
         self.platform = None
@@ -91,13 +97,17 @@ class ScapySniffer(ScapyProtocol):
 
         self.setup_interface()
 
+    def clear(self):
+        self.private_ip = self.iface = None
+
     def setup_interface(self):
         self.platform = getClientPlatform()
         if not self.platform in self.supported_platforms:
             log.err('Platform not supported for pcap recording')
             return
 
-        self.private_ip = ip_generator.next_ip()
+        self.masked_ip = ip_generator.next_ip()
+        self.private_ip = self.masked_ip.split('/')[0]
         if self.private_ip is not None:
             if 'LINUX' == self.platform or 'BSD' in self.platform:
                 self.attach_ip_linux()
@@ -108,19 +118,19 @@ class ScapySniffer(ScapyProtocol):
         from pyroute2 import IPDB, IPRoute
 
         self.gen_iface()
+        try:
+            ipdb = IPDB()
+            with ipdb.create(kind='dummy', ifname=self.iface) as i:
+                i.add_ip(self.masked_ip)
 
-        ipdb = IPDB()
-        with ipdb.create(kind='dummy', ifname=self.iface) as i:
-            i.add_ip(self.private_ip + '/' + str(ip_generator.subnet.prefixlen))
-
-        route = IPRoute()
-        for r in route.get_addr():
-            for attr in r['attrs']:
-                if attr[0] == 'IFA_LABEL' and attr[1] == self.iface:
-                    self.index = r['index']
-
-        if self.index is not None:
+            route = IPRoute()
+            for r in route.get_addr():
+                for attr in r['attrs']:
+                    if attr[0] == 'IFA_LABEL' and attr[1] == self.iface:
+                        self.index = r['index']
             route.link_up(self.index)
+        except Exception:
+            self.clear()
 
     def gen_iface(self):
         self.iface = self.test_name
@@ -144,10 +154,17 @@ class ScapySniffer(ScapyProtocol):
             route.link_remove(self.index)
 
     def attach_ip_osx(self):
-        pass
+        ifconfig = find_executable('ifconfig')
+        if len(ifconfig) > 0:
+            self.iface = ip_generator.default_iface
+            subprocess.call([ifconfig, self.iface, 'alias', self.masked_ip])
+        else:
+            self.clear()
 
     def detach_ip_osx(self):
-        pass
+        ifconfig = find_executable('ifconfig')
+        if len(ifconfig) > 0:
+            subprocess.call([ifconfig, self.iface, '-alias', self.private_ip])
 
     def packetReceived(self, packet):
         if self.private_ip is not None:
@@ -192,5 +209,5 @@ class IPGenerator(object):
                 template[-1] = str(n)
             old_ip = self.current_ip
             self.current_ip = '.'.join(template)
-            return old_ip
+            return old_ip + '/' + str(self.subnet.prefixlen)
 ip_generator = IPGenerator()
