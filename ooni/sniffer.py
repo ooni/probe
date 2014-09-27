@@ -107,8 +107,8 @@ class ScapySniffer(ScapyProtocol):
             return
 
         self.masked_ip = ip_generator.next_ip()
-        self.private_ip = self.masked_ip.split('/')[0]
-        if self.private_ip is not None:
+        if self.masked_ip is not None:
+            self.private_ip = self.masked_ip.split('/')[0]
             if 'LINUX' == self.platform or 'BSD' in self.platform:
                 self.attach_ip_linux()
             elif 'DARWIN' == self.platform:
@@ -183,20 +183,29 @@ class ScapySniffer(ScapyProtocol):
 
 class IPGenerator(object):
     def __init__(self, start_ip='40'):
+        self.subnet = None
+        self.current_ip = None
         self.default_iface = getDefaultIface()
+
         networks = getNetworksFromRoutes()
         subnets = [n for n in networks if n.iface == self.default_iface and n.compressed != '0.0.0.0/0']
         if len(subnets) > 1:
             log.msg('More than one default subnet was detected, you should double check that the sniffer is working')
-        self.subnet = subnets[0]
-
-        if self.subnet.prefixlen != 24:
-            log.err('The netmask of the subnet %s must be 24')
-            self.current_ip = None
+        elif len(subnets) == 0:
+            log.msg('None subnet was found for %s' % self.default_iface)
+            log.debug('networks:')
+            for network in networks:
+                log.debug('%s(%s)' % (network.iface, network.compressed))
         else:
-            template = self.subnet.ip.compressed.split('.')
-            template[-1] = str(start_ip)
-            self.current_ip = '.'.join(template)
+            self.subnet = subnets[0]
+
+            if self.subnet.prefixlen != 24:
+                log.err('The netmask of the subnet %s must be 24')
+                self.current_ip = None
+            else:
+                template = self.subnet.ip.compressed.split('.')
+                template[-1] = str(start_ip)
+                self.current_ip = '.'.join(template)
 
     def next_ip(self):
         if self.current_ip is not None:

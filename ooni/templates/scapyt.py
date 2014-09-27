@@ -65,6 +65,14 @@ class BaseScapyTest(NetTestCase):
         self.report['sent_packets'] = []
         self.report['answered_packets'] = []
 
+    def register_scapy_protocol(self, scapySender):
+        if self.scapyFactory is not None:
+            self.scapyFactory.registerProtocol(scapySender)
+            return True
+        else:
+            log.err("You don't have enough privileges")
+            return False
+
     def finishedSendReceive(self, packets):
         """
         This gets called when all packets have been sent and received.
@@ -99,7 +107,7 @@ class BaseScapyTest(NetTestCase):
         scapySender = ScapySender(**kwargs)
         scapySender.factory = self.scapyFactory
 
-        self.scapyFactory.registerProtocol(scapySender)
+        self.register_scapy_protocol(scapySender)
         log.debug("Using sending with hash %s" % scapySender.__hash__)
 
         d = scapySender.startSending(packets)
@@ -123,9 +131,9 @@ class BaseScapyTest(NetTestCase):
         scapySender.expected_answers = 1
         scapySender.factory = self.scapyFactory
 
-        self.scapyFactory.registerProtocol(scapySender)
-
+        self.register_scapy_protocol(scapySender)
         log.debug("Running sr1")
+
         d = scapySender.startSending(packets)
         log.debug("Started to send")
         d.addCallback(self.finishedSendReceive)
@@ -139,7 +147,7 @@ class BaseScapyTest(NetTestCase):
         scapySender = ScapySender()
         scapySender.factory = self.scapyFactory
 
-        self.scapyFactory.registerProtocol(scapySender)
+        self.register_scapy_protocol(scapySender)
         scapySender.startSending(packets)
 
         scapySender.stopSending()

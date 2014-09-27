@@ -32,7 +32,7 @@ class ScapyFactory(abstract.FileDescriptor):
         if not super_socket and sys.platform == 'darwin':
             super_socket = conf.L3socket(iface=interface, promisc=True, filter='')
         elif not super_socket:
-            super_socket = L3RawSocket(iface=interface)
+            super_socket = conf.L3socket(iface=interface)
 
         self.protocols = []
         fdesc._setCloseOnExec(super_socket.ins.fileno())

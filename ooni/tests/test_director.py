@@ -5,6 +5,8 @@ from mock import patch, MagicMock
 from ooni.settings import config
 from ooni.director import Director
 from ooni.tests.bases import ConfigTestCase
+from ooni.utils import checkForRoot
+from ooni.errors import InsufficientPrivileges
 
 from twisted.internet import defer
 from twisted.trial import unittest
@@ -57,6 +59,10 @@ class TestDirector(ConfigTestCase):
 
 class TestStartSniffing(unittest.TestCase):
     def setUp(self):
+        try:
+            checkForRoot()
+        except InsufficientPrivileges:
+            self.skipTest('Not enough privileges to sniff traffic')
         self.director = Director()
         self.testDetails = {
             'test_name': 'foo',
