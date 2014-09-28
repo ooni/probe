@@ -555,6 +555,8 @@ class NetTest(object):
                 if self.report and self.director:
                     # ghetto hax to keep NetTestState counts are accurate
                     [post.addBoth(self.doneReport) for _ in measurements]
+            if test_instance.scapyFactory != config.scapyFactory:
+                test_instance.scapyFactory.connectionLost('')
 
         self.state.allTasksScheduled()
 

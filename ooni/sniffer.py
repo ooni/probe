@@ -1,17 +1,16 @@
 import sys
 from distutils.spawn import find_executable
-import subprocess
 
 from scapy.config import conf
 
-from twisted.internet import defer
+from twisted.internet import defer, reactor
 
 from ooni.utils.net import getClientPlatform
 from ooni.utils import log
 from ooni.settings import config
 from ooni.utils import generate_filename
 from ooni.utils.txscapy import ScapyProtocol
-from ooni.utils.net import getDefaultIface, getNetworksFromRoutes, isHostAlive
+from ooni.utils.net import getDefaultIface, getNetworksFromRoutes, isHostAlive, AsyncProcess
 from ooni.errors import LibraryNotInstalledError
 
 
@@ -155,17 +154,29 @@ class ScapySniffer(ScapyProtocol):
             route.link_remove(self.index)
 
     def attach_ip_osx(self):
+        def err_cb(reason):
+            self.private_ip = self.iface = None
         ifconfig = find_executable('ifconfig')
         if len(ifconfig) > 0:
             self.iface = ip_generator.default_iface
-            subprocess.call([ifconfig, self.iface, 'alias', self.masked_ip])
+            d = defer.Deferred()
+            process = AsyncProcess(d)
+            d.addErrback(err_cb)
+            reactor.spawnProcess(process, ifconfig, ['ifconfig', self.iface, 'alias', self.masked_ip])
+            process.transport.signalProcess('TERM')
         else:
             self.clear()
 
     def detach_ip_osx(self):
+        def err_cb(reason):
+            log.err('%s cannot be removed from %s' % (self.private_ip, self.iface))
         ifconfig = find_executable('ifconfig')
         if len(ifconfig) > 0:
-            subprocess.call([ifconfig, self.iface, '-alias', self.private_ip])
+            d = defer.Deferred()
+            process = AsyncProcess(d)
+            d.addErrback(err_cb)
+            reactor.spawnProcess(process, ifconfig, ['ifconfig', self.iface, '-alias', self.masked_ip])
+            process.transport.signalProcess('TERM')
 
     def packetReceived(self, packet):
         if self.private_ip is not None:

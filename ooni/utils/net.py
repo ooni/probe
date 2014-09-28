@@ -117,7 +117,7 @@ class ConnectAndCloseProtocol(protocol.Protocol):
         self.transport.loseConnection()
 
 
-class PingProcess(protocol.ProcessProtocol):
+class AsyncProcess(protocol.ProcessProtocol):
     def __init__(self, d):
         self.data = ''
         self.d = d
@@ -212,10 +212,9 @@ def isHostAlive(host):
                 return False
             # We are conservative here
             return True
-
         d = defer.Deferred()
         d.addCallbacks(succ_cb, err_cb)
-        ping_process = PingProcess(d)
+        ping_process = AsyncProcess(d)
         ping_path = find_executable('ping')
         reactor.spawnProcess(ping_process, ping_path, ['ping', '-t', '2', '-c', '1', host])
         result = yield d
