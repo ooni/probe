@@ -245,7 +245,7 @@ class Director(object):
             self.allTestsDone = defer.Deferred()
 
         if config.privacy.includepcap:
-            self.startSniffing(net_test_loader.testDetails)
+            yield self.startSniffing(net_test_loader.testDetails)
 
         report = Report(net_test_loader.testDetails, report_filename,
                         self.reportEntryManager, collector_address)
@@ -265,10 +265,12 @@ class Director(object):
         finally:
             self.netTestDone(net_test)
 
+    @defer.inlineCallbacks
     def startSniffing(self, test_details):
         from ooni.sniffer import ScapySniffer
 
         sniffer = ScapySniffer(test_details)
+        yield sniffer.setup_interface()
         self.sniffers[test_details['test_name']] = sniffer
         config.scapyFactory.registerProtocol(sniffer)
 

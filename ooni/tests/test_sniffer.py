@@ -1,4 +1,5 @@
 from twisted.trial import unittest
+from twisted.internet import defer
 
 from mock import MagicMock, patch
 
@@ -40,7 +41,8 @@ class SnifferTestCase(unittest.TestCase):
 
 
 class IPGeneratorTestCase(unittest.TestCase):
+    @defer.inlineCallbacks
     def test_next_ip_unique(self):
-        one = ip_generator.next_ip()
-        another = ip_generator.next_ip()
+        one = yield ip_generator.next_ip()
+        another = yield ip_generator.next_ip()
         self.assertNotEqual(one, another)

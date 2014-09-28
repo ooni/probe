@@ -1,9 +1,10 @@
 import sys
 import socket
+from distutils.spawn import find_executable
 from random import randint
 
 from zope.interface import implements
-from twisted.internet import protocol, defer
+from twisted.internet import protocol, defer, reactor
 from twisted.web.iweb import IBodyProducer
 
 from scapy.all import IP, ICMP, sr1, conf, ltoa, read_routes, get_if_addr, get_if_list
@@ -116,6 +117,27 @@ class ConnectAndCloseProtocol(protocol.Protocol):
         self.transport.loseConnection()
 
 
+class PingProcess(protocol.ProcessProtocol):
+    def __init__(self, d):
+        self.data = ''
+        self.d = d
+
+    def connectionMade(self):
+        self.transport.closeStdin()
+
+    def outReceived(self, data):
+        self.data += data
+
+    def outConnectionLost(self):
+        self.transport.loseConnection()
+        self.d.callback(self.data)
+
+    def processExited(self, reason):
+        self.transport.loseConnection()
+        if not self.d.called:
+            self.d.errback(reason)
+
+
 def getClientPlatform(platform_name=None):
     for name, test in PLATFORMS.items():
         if not platform_name or platform_name.upper() == name:
@@ -175,17 +197,30 @@ def randomFreePort(addr="127.0.0.1"):
     return port
 
 
+@defer.inlineCallbacks
 def isHostAlive(host):
     addrs = [addr.compressed for addr in getAddresses()]
-    if host in addrs:
-        return True
-    else:
-        pkt = IP(dst=host) / ICMP()
-        ans = sr1(pkt, timeout=5, retry=1, verbose=False)
-        if ans is not None and ans.summary():
+    result = True
+    if host not in addrs:
+        def succ_cb(data):
+            if 'Destination Host Unreachable' in data:
+                return False
             return True
-        else:
-            return False
+
+        def err_cb(reason):
+            if reason.exit_code == 1:
+                return False
+            # We are conservative here
+            return True
+
+        d = defer.Deferred()
+        d.addCallbacks(succ_cb, err_cb)
+        ping_process = PingProcess(d)
+        ping_path = find_executable('ping')
+        reactor.spawnProcess(ping_process, ping_path, ['ping', '-t', '2', '-c', '1', host])
+        result = yield d
+        ping_process.transport.signalProcess('TERM')
+    defer.returnValue(result)
 
 
 def getNonLoopbackIfaces(platform_name=None):

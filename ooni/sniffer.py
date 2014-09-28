@@ -4,6 +4,8 @@ import subprocess
 
 from scapy.config import conf
 
+from twisted.internet import defer
+
 from ooni.utils.net import getClientPlatform
 from ooni.utils import log
 from ooni.settings import config
@@ -95,18 +97,17 @@ class ScapySniffer(ScapyProtocol):
         filename_pcap = generate_filename(testDetails, filename=filename, prefix=prefix, extension='pcap')
         self.pcapwriter = PcapWriter(filename_pcap, *arg, **kw)
 
-        self.setup_interface()
-
     def clear(self):
         self.private_ip = self.iface = None
 
+    @defer.inlineCallbacks
     def setup_interface(self):
         self.platform = getClientPlatform()
         if not self.platform in self.supported_platforms:
             log.err('Platform not supported for pcap recording')
             return
 
-        self.masked_ip = ip_generator.next_ip()
+        self.masked_ip = yield ip_generator.next_ip()
         if self.masked_ip is not None:
             self.private_ip = self.masked_ip.split('/')[0]
             if 'LINUX' == self.platform or 'BSD' in self.platform:
@@ -207,16 +208,20 @@ class IPGenerator(object):
                 template[-1] = str(start_ip)
                 self.current_ip = '.'.join(template)
 
+    @defer.inlineCallbacks
     def next_ip(self):
         if self.current_ip is not None:
             template = self.current_ip.split('.')
             n = int(template[-1]) + 1
             template[-1] = str(n)
-            while isHostAlive(self.current_ip):
+            isAlive = yield isHostAlive(self.current_ip)
+            while isAlive:
                 self.current_ip = '.'.join(template)
                 n += 1
                 template[-1] = str(n)
+                isAlive = yield isHostAlive(self.current_ip)
             old_ip = self.current_ip
             self.current_ip = '.'.join(template)
-            return old_ip + '/' + str(self.subnet.prefixlen)
+            defer.returnValue(old_ip + '/' + str(self.subnet.prefixlen))
+        defer.returnValue(None)
 ip_generator = IPGenerator()
