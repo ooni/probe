@@ -106,8 +106,8 @@ class TestSettings(ConfigTestCase):
         """
         self.skipTest("See comment in the code")
         self.conf.advanced.start_tor = False
-        self.conf.tor.socks_port = 9999
-        self.conf.tor.control_port = 9998
+        self.conf.tor.socks_port = net.randomFreePort()
+        self.conf.tor.control_port = net.randomFreePort()
         self.tor_process = yield self.run_tor()
         yield self.conf.check_incoherences(self.configuration)
         self.tor_process.transport.signalProcess('TERM')
@@ -119,7 +119,7 @@ class TestSettings(ConfigTestCase):
     @defer.inlineCallbacks
     def test_check_tor_silly_listener(self):
         self.conf.advanced.start_tor = False
-        self.conf.tor.socks_port = 9999
+        self.conf.tor.socks_port = net.randomFreePort()
         self.conf.tor.control_port = None
         self.run_silly_server()
         try:
