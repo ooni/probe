@@ -1,5 +1,3 @@
-import os
-import pwd
 import random
 
 from twisted.internet import defer, reactor
@@ -9,12 +7,13 @@ import txtorcon
 
 from ooni.settings import OConfig
 from ooni import errors
+from ooni.utils import net
 from bases import ConfigTestCase
 
 
 class TestSettings(ConfigTestCase):
     def setUp(self):
-        super(ConfigTestCase, self).setUp()
+        super(TestSettings, self).setUp()
         self.conf = OConfig()
         self.configuration = {'advanced': {'interface': 'auto',
                                            'start_tor': True},
@@ -23,7 +22,7 @@ class TestSettings(ConfigTestCase):
         self.tor_protocol = None
 
     def tearDown(self):
-        super(ConfigTestCase, self).tearDown()
+        super(TestSettings, self).tearDown()
         if self.silly_listener is not None:
             self.silly_listener.stopListening()
 
