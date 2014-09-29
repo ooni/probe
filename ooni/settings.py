@@ -4,11 +4,11 @@ import yaml
 import getpass
 
 from twisted.internet import defer, reactor
-from twisted.internet.endpoints import TCP4ClientEndpoint, connectProtocol
+from twisted.internet.endpoints import TCP4ClientEndpoint
 
 from os.path import abspath, expanduser
 
-from ooni.utils.net import ConnectAndCloseProtocol
+from ooni.utils.net import ConnectAndCloseProtocol, connectProtocol
 from ooni import geoip
 from ooni.utils import Storage, log
 from ooni import errors
