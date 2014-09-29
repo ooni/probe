@@ -329,6 +329,7 @@ class TestNettestTimeout(ConfigTestCase):
 
     @defer.inlineCallbacks
     def setUp(self):
+        super(TestNettestTimeout, self).setUp()
         from twisted.internet.protocol import Protocol, Factory
         from twisted.internet.endpoints import TCP4ServerEndpoint
 

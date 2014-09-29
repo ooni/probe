@@ -60,6 +60,7 @@ tor:
 
 class TestRunDirector(ConfigTestCase):
     def setUp(self):
+        super(TestRunDirector, self).setUp()
         if not is_internet_connected():
             self.skipTest("You must be connected to the internet to run this test")
         try:

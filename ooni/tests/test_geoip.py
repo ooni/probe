@@ -1,12 +1,11 @@
 
 from twisted.internet import defer
-from twisted.trial import unittest
 
-from ooni.tests import is_internet_connected
+from ooni.tests import is_internet_connected, bases
 from ooni import geoip
 
 
-class TestGeoIP(unittest.TestCase):
+class TestGeoIP(bases.ConfigTestCase):
     def test_ip_to_location(self):
         location = geoip.IPToLocation('8.8.8.8')
         assert 'countrycode' in location

@@ -36,13 +36,15 @@ class OConfig(object):
         if ooni_home:
             self._custom_home = ooni_home
 
+        self.data_directory = abspath(os.path.join(__file__, '..', '..', 'data'))
+
         if self.global_options.get('datadir'):
             self.data_directory = abspath(expanduser(self.global_options['datadir']))
         elif self.advanced.get('data_dir'):
             self.data_directory = self.advanced['data_dir']
         elif hasattr(sys, 'real_prefix'):
             self.data_directory = os.path.abspath(os.path.join(sys.prefix, 'share', 'ooni'))
-        else:
+        elif not os.path.exists(self.data_directory):
             self.data_directory = '/usr/share/ooni/'
 
         self.nettest_directory = abspath(os.path.join(__file__, '..', 'nettests'))
@@ -65,6 +67,11 @@ class OConfig(object):
         if 'logfile' in self.basic:
             self.basic.logfile = expanduser(self.basic.logfile.replace('~','~'+self.current_user))
 
+        if not os.path.exists(self.data_directory):
+            log.err("Data directory %s does not exists" % self.data_directory)
+            log.err("Edit data_dir inside of %s" % self.config_file)
+
+
     def initialize_ooni_home(self, ooni_home=None):
         if ooni_home:
             self.set_paths(ooni_home)
@@ -79,13 +86,13 @@ class OConfig(object):
             os.mkdir(self.reports_directory)
 
     def _create_config_file(self):
-        sample_config_file = os.path.join(self.data_directory,
-                                          'ooniprobe.conf.sample')
         target_config_file = self.config_file
         print "Creating it for you in '%s'." % target_config_file
         usr_share_path = '/usr/share'
         if hasattr(sys, 'real_prefix'):
             usr_share_path = os.path.abspath(os.path.join(sys.prefix, 'share'))
+        sample_config_file = os.path.join(usr_share_path, 'ooni',
+                                          'ooniprobe.conf.sample')
 
         with open(sample_config_file) as f:
             with open(target_config_file, 'w+') as w:
@@ -111,8 +118,8 @@ class OConfig(object):
             if setting in dir(self) and configuration[setting] is not None:
                 for k, v in configuration[setting].items():
                     getattr(self, setting)[k] = v
-        self.set_paths()
 
+        self.set_paths()
         if check_incoherences:
             self.check_incoherences(configuration)
 
