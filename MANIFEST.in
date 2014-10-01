@@ -5,5 +5,7 @@ include data/GeoIP.dat
 include data/GeoIPASNum.dat
 include data/GeoLiteCity.dat
 include data/ooniprobe.conf.sample
+include data/oonideckgen.1
 include data/ooniprobe.1
 include data/oonireport.1
+include data/ooniresources.1

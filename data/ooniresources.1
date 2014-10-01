@@ -1,0 +1,78 @@
+.\" Man page generated from reStructuredText.
+.
+.TH "ooniresources" "1" "October 1, 2014" "1.1.4" "ooniresources"
+.SH NAME
+ooniresources - tool for generating ooniprobe test decks
+.
+.nr rst2man-indent-level 0
+.
+.de1 rstReportMargin
+\\$1 \\n[an-margin]
+level \\n[rst2man-indent-level]
+level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
+-
+\\n[rst2man-indent0]
+\\n[rst2man-indent1]
+\\n[rst2man-indent2]
+..
+.de1 INDENT
+.\" .rstReportMargin pre:
+. RS \\$1
+. nr rst2man-indent\\n[rst2man-indent-level] \\n[an-margin]
+. nr rst2man-indent-level +1
+.\" .rstReportMargin post:
+..
+.de UNINDENT
+. RE
+.\" indent \\n[an-margin]
+.\" old: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.nr rst2man-indent-level -1
+.\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.in \\n[rst2man-indent\\n[rst2man-indent-level]]u
+..
+
+.SH SYNOPSIS
+.B ooniresources
+.RB [ --version ]
+.RB [ --help ]
+.RB [ --update-inputs ]
+.RB [ --update-geoip ]
+
+.SH DESCRIPTION
+.sp
+ooniresources will update the resources that are needed for the functioning of
+ooniprobe and related tools.
+
+.SH OPTIONS
+
+.TP
+.BR \-\^h " or " \-\-help
+Display this help and exit.
+.TP
+.BR \-\-update\-inputs
+This will update the inputs that are used for generating test decks with
+oonideckgen.
+.TP
+.BR \-\-update\-geoip
+This will update the maxmind geoip databases that are used for detecting the
+probes country and ASN.
+.TP
+
+.SH OONIRESOURCES
+.sp
+This tools will update the resources needed for running ooniprobe and
+oonideckgen.
+You don't need to run it very often, but it's just sufficient to run it once
+every month of so as the data usually does not update or change that often.
+If you are seeing some errors related to the geoip subsystem not having some
+Maxmind databases, you probably want to run:
+ooniresources --update-geoip.
+If on the other hand you are interested in using oonideckgen, you should run:
+ooniresources --update-inputs.
+.sp
+
+.SH AUTHOR
+The Tor Project
+.SH COPYRIGHT
+2014, The Tor Project
+.

@@ -1,0 +1,85 @@
+.\" Man page generated from reStructuredText.
+.
+.TH "oonideckgen" "1" "October 1, 2014" "1.1.4" "oonideckgen"
+.SH NAME
+oonideckgen - tool for generating ooniprobe test decks
+.
+.nr rst2man-indent-level 0
+.
+.de1 rstReportMargin
+\\$1 \\n[an-margin]
+level \\n[rst2man-indent-level]
+level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
+-
+\\n[rst2man-indent0]
+\\n[rst2man-indent1]
+\\n[rst2man-indent2]
+..
+.de1 INDENT
+.\" .rstReportMargin pre:
+. RS \\$1
+. nr rst2man-indent\\n[rst2man-indent-level] \\n[an-margin]
+. nr rst2man-indent-level +1
+.\" .rstReportMargin post:
+..
+.de UNINDENT
+. RE
+.\" indent \\n[an-margin]
+.\" old: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.nr rst2man-indent-level -1
+.\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.in \\n[rst2man-indent\\n[rst2man-indent-level]]u
+..
+
+.SH SYNOPSIS
+.B oonideckgen
+.RB [ --version ]
+.RB [ --help ]
+.RB [ \-c
+.IR country-code]
+.RB [ \-o
+.IR output]
+
+.SH DESCRIPTION
+.sp
+oonideckgen will generate a ooniprobe test deck for the specified country. This
+will then allow the user to conduct measurements useful to assess internet
+censorship in that country.
+
+
+.SH OPTIONS
+
+.TP
+.BR \-\^h " or " \-\-help
+Display this help and exit.
+.TP
+.BR \-\^c " or " \-\-country-code
+Specify the country code for which a test deck should be geneated
+.TP
+.BR \-\^o " or " \-\-output
+Specify in which directory the deck should be written.
+.TP
+
+
+.SH OONIDECKGEN
+.sp
+This tools will generate a test deck that include the following tests:
+
+* blocking/http_requests, with a set of relevant sites for the country to be analysed
+
+* blocking/dns_consistency, with all the DNS resolver of the country to be analysed and a set of relevant sites
+
+* manipulation/http_invalid_request_line
+
+* manipulation/http_header_field_manipulation
+
+If deckgen is run with no arugment a geoip lookup is done on the IP of the user
+and that country is chosen.
+In order to run deckgen you must have first have run ooniresource --update-inputs.
+.sp
+
+.SH AUTHOR
+The Tor Project
+.SH COPYRIGHT
+2014, The Tor Project
+.
