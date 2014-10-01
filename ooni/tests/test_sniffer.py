@@ -43,6 +43,8 @@ class SnifferTestCase(unittest.TestCase):
 class IPGeneratorTestCase(unittest.TestCase):
     @defer.inlineCallbacks
     def test_next_ip_unique(self):
+        if ip_generator.current_ip is None:
+            raise unittest.SkipTest("It was impossible to guess the default iface's subnet")
         one = yield ip_generator.next_ip()
         another = yield ip_generator.next_ip()
         self.assertNotEqual(one, another)

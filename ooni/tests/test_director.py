@@ -72,6 +72,7 @@ class TestStartSniffing(unittest.TestCase):
         # Each NetTestCase has a name attribute
         class FooTestCase(object):
             name = 'foo'
+            scapyFactory = MagicMock()
         self.FooTestCase = FooTestCase
 
     def test_start_sniffing_once(self):
@@ -110,4 +111,5 @@ class TestStartSniffing(unittest.TestCase):
                 self.assertEqual(len(self.director.sniffers), 0)
                 sniffer = mock_scapy_sniffer.return_value
                 mock_scapy_factory.unRegisterProtocol.assert_called_once_with(sniffer)
+                measurement.testInstance.scapyFactory.connectionLost.assert_called_once_with('')
 

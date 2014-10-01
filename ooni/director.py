@@ -203,6 +203,7 @@ class Director(object):
             sniffer = self.sniffers[test_name]
             config.scapyFactory.unRegisterProtocol(sniffer)
             sniffer.close()
+            measurement.testInstance.scapyFactory.connectionLost('')
             del self.sniffers[test_name]
         return measurement
 
