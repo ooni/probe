@@ -1,6 +1,24 @@
 Changelog
 =========
 
+v1.2.0 (Wed, 1 Oct 2014)
+-------------------------
+
+* Introduce a new tool for generating ooniprobe test decks called oonideckgen.
+
+* Introduce a new tool for updating resources used for geoip lookup and deck
+  generation.
+
+* Add support for policy aware bouncing in the client.
+  https://trac.torproject.org/projects/tor/ticket/12579
+
+* Various improvements to the bridge_reachability test (enable better tor
+  logging and also log obfsproxy)
+
+* Fix backward compatibility with twisted 13.1 and add regression tests for
+  this.
+  https://trac.torproject.org/projects/tor/ticket/13139
+
 v1.1.1 (Sun, 24 Aug 2014)
 -------------------------
 
