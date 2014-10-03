@@ -32,20 +32,26 @@ class OConfig(object):
         self.privacy = Storage()
         self.set_paths()
 
+    @property
+    def data_directory(self):
+        data_directory = abspath(os.path.join(__file__, '..', '..', 'data'))
+
+        if os.getenv("OONI_DATA_DIR"):
+            data_directory = os.getenv("OONI_DATA_DIR")
+        elif self.global_options.get('datadir'):
+            data_directory = abspath(expanduser(self.global_options['datadir']))
+        elif self.advanced.get('data_dir'):
+            data_directory = self.advanced['data_dir']
+        elif hasattr(sys, 'real_prefix'):
+            data_directory = os.path.abspath(os.path.join(sys.prefix, 'share', 'ooni'))
+        elif not os.path.exists(data_directory):
+            data_directory = '/usr/share/ooni/'
+
+        return data_directory
+
     def set_paths(self, ooni_home=None):
         if ooni_home:
             self._custom_home = ooni_home
-
-        self.data_directory = abspath(os.path.join(__file__, '..', '..', 'data'))
-
-        if self.global_options.get('datadir'):
-            self.data_directory = abspath(expanduser(self.global_options['datadir']))
-        elif self.advanced.get('data_dir'):
-            self.data_directory = self.advanced['data_dir']
-        elif hasattr(sys, 'real_prefix'):
-            self.data_directory = os.path.abspath(os.path.join(sys.prefix, 'share', 'ooni'))
-        elif not os.path.exists(self.data_directory):
-            self.data_directory = '/usr/share/ooni/'
 
         self.nettest_directory = abspath(os.path.join(__file__, '..', 'nettests'))
 
@@ -91,14 +97,14 @@ class OConfig(object):
         usr_share_path = '/usr/share'
         if hasattr(sys, 'real_prefix'):
             usr_share_path = os.path.abspath(os.path.join(sys.prefix, 'share'))
-        sample_config_file = os.path.join(usr_share_path, 'ooni',
+        sample_config_file = os.path.join(self.data_directory,
                                           'ooniprobe.conf.sample')
 
         with open(sample_config_file) as f:
             with open(target_config_file, 'w+') as w:
                 for line in f:
                     if line.startswith('    data_dir: '):
-                        w.write('    data_dir: %s\n' % os.path.join(usr_share_path, 'ooni'))
+                        w.write('    data_dir: %s\n' % self.data_directory)
                     elif line.startswith('    geoip_data_dir: '):
                         w.write('    geoip_data_dir: %s\n' % os.path.join(usr_share_path, 'GeoIP'))
                     else:
