@@ -67,7 +67,7 @@ To install it from the current master run::
 The run::
 
     mkdir my_decks
-    sudo ooniresource --update-inputs --update-geoip
+    sudo ooniresources --update-inputs --update-geoip
     oonideckgen -o my_decks/
 
 The output from the last command will tell you how to run ooniprobe to perform
@@ -180,7 +180,7 @@ To generate decks you will have to update the input resources of ooniprobe.
 
 This can be done with::
 
-    ooniresource --update-inputs
+    ooniresources --update-inputs
 
 If you get a permission error, you may have to run the command as root or
 change the ooniprobe data directory inside of `ooniprobe.conf`.
@@ -189,7 +189,7 @@ On some platforms, for example debian contrib, you will not get all the geoip
 related files needed. In that case it is possible to manually download them
 with ``ooniresources``::
 
-    ooniresource --update-geoip
+    ooniresources --update-geoip
 
 Generating decks
 ----------------
@@ -199,7 +199,7 @@ You can generate decks for your country thanks to the oonideckgen command.
 If you wish, for example, to generate a deck to be run in the country of Italy,
 you can do so (be sure to have updated the input resources first) by running::
 
-    oonideck --country-code IT --output ~/
+    oonideckgen --country-code IT --output ~/
 
 You will now have in your home a folder called `deck-it`, containing the ooni
 deck (ends with .deck) and the inputs.
