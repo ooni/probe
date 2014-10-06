@@ -50,12 +50,12 @@ advanced:
     reporting_timeout: 80
     reporting_retries: 3
     reporting_concurrency: 15
-    data_dir: /usr/share/ooni
+    data_dir: %s
     oonid_api_port: 8042
 tor:
     socks_port: 9050
 
-"""
+""" % config.data_directory
 
 
 class TestRunDirector(ConfigTestCase):
