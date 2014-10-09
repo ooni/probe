@@ -74,6 +74,7 @@ packages=[
     'ooni',
     'ooni.api',
     'ooni.deckgen',
+    'ooni.deckgen.processors',
     'ooni.kit',
     'ooni.nettests',
     'ooni.nettests.manipulation',
