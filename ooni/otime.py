@@ -1,4 +1,17 @@
-from datetime import datetime
+from datetime import datetime, timedelta, tzinfo
+
+class UTC(tzinfo):
+    """UTC"""
+    ZERO = timedelta(0)
+
+    def utcoffset(self, dt):
+        return self.ZERO
+
+    def tzname(self, dt):
+        return "UTC"
+
+    def dst(self, dt):
+        return self.ZERO
 
 def prettyDateNow():
     """
@@ -67,7 +80,7 @@ def timestamp(t=None):
 
 
 def epochToTimestamp(seconds):
-    return timestamp(datetime.fromtimestamp(seconds))
+    return timestamp(datetime.fromtimestamp(seconds, UTC()))
 
 
 def epochToUTC(seconds):

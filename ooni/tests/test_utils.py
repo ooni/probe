@@ -8,7 +8,7 @@ class TestUtils(unittest.TestCase):
     def setUp(self):
         self.test_details = {
             'test_name': 'foo',
-            'start_time': 441759600
+            'start_time': 441763200
         }
         self.extension = 'ext'
         self.prefix = 'prefix'
