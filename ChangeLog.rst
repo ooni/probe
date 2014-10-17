@@ -1,7 +1,7 @@
 Changelog
 =========
 
-v1.2.1 (Fri, 17 Oct 2014)
+v1.2.2 (Fri, 17 Oct 2014)
 -------------------------
 
 Who said friday 17th is only bad luck?
