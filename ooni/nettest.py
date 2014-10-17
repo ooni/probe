@@ -528,9 +528,11 @@ class NetTest(object):
                 if self.report:
                     post = defer.DeferredList(measurements)
 
-                    @post.addCallback
+                    @post.addBoth
                     def set_runtime(results):
                         runtime = time.time() - test_instance._start_time
+                        for _, m in results:
+                            m.testInstance.report['test_runtime'] = runtime
                         test_instance.report['test_runtime'] = runtime
                         return results
 
