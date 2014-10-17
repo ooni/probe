@@ -8,6 +8,7 @@ from twisted.internet import defer
 from twisted.trial.runner import filenameToModule
 from twisted.python import usage, reflect
 
+from ooni import otime
 from ooni.tasks import Measurement
 from ooni.utils import log, checkForRoot, sanitize_options
 from ooni.settings import config
@@ -201,7 +202,7 @@ class NetTestLoader(object):
             input_file_hashes.append(input_file['hash'])
 
         options = sanitize_options(self.options)
-        test_details = {'start_time': time.time(),
+        test_details = {'start_time': otime.epochToUTC(time.time()),
                         'probe_asn': config.probe_ip.geodata['asn'],
                         'probe_cc': config.probe_ip.geodata['countrycode'],
                         'probe_ip': config.probe_ip.geodata['ip'],
@@ -526,6 +527,12 @@ class NetTest(object):
                 # call the postProcessor before writing the report
                 if self.report:
                     post = defer.DeferredList(measurements)
+
+                    @post.addCallback
+                    def set_runtime(results):
+                        runtime = time.time() - test_instance._start_time
+                        test_instance.report['test_runtime'] = runtime
+                        return results
 
                     # Call the postProcessor, which must return a single report
                     # or a deferred

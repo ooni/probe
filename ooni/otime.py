@@ -65,5 +65,10 @@ def timestamp(t=None):
     ISO8601 = "%Y-%m-%dT%H%M%SZ"
     return t.strftime(ISO8601)
 
+
 def epochToTimestamp(seconds):
-    return timestamp(datetime.utcfromtimestamp(seconds))
+    return timestamp(datetime.fromtimestamp(seconds))
+
+
+def epochToUTC(seconds):
+    return float(datetime.utcfromtimestamp(seconds).strftime("%s"))

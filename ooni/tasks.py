@@ -1,8 +1,10 @@
 import time
 
+from twisted.internet import defer, reactor
+
 from ooni import errors as e
 from ooni.settings import config
-from twisted.internet import defer, reactor
+from ooni import otime
 
 
 class BaseTask(object):
@@ -109,9 +111,15 @@ class Measurement(TaskWithTimeout):
         self.testInstance = test_instance
         self.testInstance.input = test_input
         self.testInstance._setUp()
+        if not hasattr(self.testInstance, '_start_time'):
+            self.testInstance._start_time = time.time()
+
         if 'input' not in self.testInstance.report.keys():
             self.testInstance.report['input'] = test_input
-        self.testInstance._start_time = time.time()
+        if 'test_start_time' not in self.testInstance.report.keys():
+            start_time = otime.epochToUTC(self.testInstance._start_time)
+            self.testInstance.report['test_start_time'] = start_time
+
         self.testInstance.setUp()
 
         self.netTestMethod = getattr(self.testInstance, test_method)

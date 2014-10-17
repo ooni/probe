@@ -142,25 +142,6 @@ class OReporter(object):
     def finish(self):
         pass
 
-    def testDone(self, test, test_name):
-        # XXX put this inside of Report.close
-        # or perhaps put something like this inside of netTestDone
-        log.msg("Finished running %s" % test_name)
-        test_report = dict(test.report)
-
-        if isinstance(test.input, Packet):
-            test_input = createPacketReport(test.input)
-        else:
-            test_input = test.input
-
-        test_report['input'] = test_input
-        test_report['test_name'] = test_name
-        test_report['test_started'] = test._start_time
-        test_report['test_runtime'] = time.time() - test._start_time
-
-        return defer.maybeDeferred(self.writeReportEntry, test_report)
-
-
 class YAMLReporter(OReporter):
 
     """
