@@ -1,6 +1,15 @@
 Changelog
 =========
 
+v1.2.1 (Fri, 17 Oct 2014)
+-------------------------
+
+Who said friday 17th is only bad luck?
+
+* Add two new report entry keys test_start_time and test_runtime
+
+* Fix bug that lead to ooniresources not working properly
+
 v1.2.0 (Wed, 1 Oct 2014)
 -------------------------
 
