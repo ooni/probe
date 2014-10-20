@@ -64,7 +64,7 @@ To install it from the current master run::
 
     sudo pip install https://github.com/TheTorProject/ooni-probe/archive/master.zip
 
-The run::
+Then run::
 
     mkdir my_decks
     sudo ooniresources --update-inputs --update-geoip
