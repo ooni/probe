@@ -271,20 +271,12 @@ class Director(object):
         """
         from ooni.utils.txscapy import ScapySniffer, ScapyFactory
 
-        if config.scapyFactory is None:
-            config.scapyFactory = ScapyFactory(config.advanced.interface)
-
         if not config.reports.pcap:
             prefix = 'report'
         else:
             prefix = config.reports.pcap
         filename = config.global_options['reportfile'] if 'reportfile' in config.global_options.keys() else None
         filename_pcap = generate_filename(testDetails, filename=filename, prefix=prefix, extension='pcap')
-        if len(self.sniffers) > 0:
-            pcap_filenames = set(sniffer.pcapwriter.filename for sniffer in self.sniffers.values())
-            pcap_filenames.add(filename_pcap)
-            log.msg("pcap files %s can be messed up because several netTests are being executed in parallel." %
-                    ','.join(pcap_filenames))
 
         sniffer = ScapySniffer(filename_pcap)
         self.sniffers[testDetails['test_name']] = sniffer

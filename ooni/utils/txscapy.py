@@ -1,6 +1,8 @@
 import sys
 import time
 import random
+import re
+
 from twisted.internet import fdesc
 from twisted.internet import reactor
 from twisted.internet import defer, abstract
@@ -140,6 +142,7 @@ class ScapyFactory(abstract.FileDescriptor):
         else:
             raise ProtocolNotRegistered
 
+
 class ScapyProtocol(object):
     factory = None
 
@@ -237,9 +240,67 @@ class ScapySender(ScapyProtocol):
 class ScapySniffer(ScapyProtocol):
     def __init__(self, pcap_filename, *arg, **kw):
         self.pcapwriter = PcapWriter(pcap_filename, *arg, **kw)
+        if config.advanced.debug:
+            self.debug = PcapWriter('debug.pcap', *arg, **kw)
+        self._conns = []
+        # A filter is {'dns_query': '', 'http_url': '', 'tdport': 0, 'udport': 0, 'dst': ''}
+        self.filters = []
+        self.ip_regex = re.compile('([0-9]{1,3}\.){3}[0-9]{1,3}$')
 
     def packetReceived(self, packet):
-        self.pcapwriter.write(packet)
+        selected = False
+        try:
+            src = packet.fields['src']
+            dst = packet.fields['dst']
+            sport = packet.payload.fields['sport']
+            dport = packet.payload.fields['dport']
+        except KeyError:
+            return
+
+        for conn in self._conns:
+            if (src == conn['src'] and dst == conn['dst'] and sport == conn['sport'] and dport == conn['dport']) or \
+                    (src == conn['dst'] and dst == conn['src'] and sport == conn['dport'] and dport == conn['sport']):
+                selected = True
+                break
+
+        if not selected:
+            for filter in self.filters:
+                for key, value in filter.items():
+                    if value:
+                        if key == 'dst' and dst == value:
+                            selected = True
+                        elif key == 'tdport' and isinstance(packet.payload, TCP) and dport == value:
+                            selected = True
+                        elif key == 'udport' and isinstance(packet.payload, UDP) and dport == value:
+                            selected = True
+                        elif key == 'dns_query' and isinstance(packet.payload.payload, DNS):
+                            payload = packet.payload.payload.original
+                            url = value.split('.')
+                            selected = all([chunk in payload for chunk in url])
+                        elif key == 'http_url' and isinstance(packet.payload, TCP):
+                            payload = packet.payload.payload.original
+                            splitted = value.split('/')
+                            if 'http' in splitted[0]:
+                                host = splitted[2]
+                                resource = '/'.join(splitted[3:])
+                            else:
+                                host = splitted[0]
+                                resource = '/'.join(splitted[1:])
+
+                            if len(resource) == 0 and re.match(self.ip_regex, host):
+                                selected = dst == host
+                            elif len(resource) > 0:
+                                selected = resource in payload
+                if selected:
+                    conn = {'src': src, 'dst': dst, 'sport': sport, 'dport': dport}
+                    self._conns.append(conn)
+                    break
+
+        if selected:
+            self.pcapwriter.write(packet)
+
+        if config.advanced.debug:
+            self.debug.write(packet)
 
     def close(self):
         self.pcapwriter.close()
@@ -303,7 +364,6 @@ class ParasiticTraceroute(ScapyProtocol):
             if packet.dst not in self.hosts \
                     and packet.dst not in self.addresses \
                     and isinstance(packet.getlayer(1), TCP):
-
                 self.hosts[packet.dst] = {'ttl': genttl()}
                 log.debug("Tracing to %s" % packet.dst)
                 return

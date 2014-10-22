@@ -514,6 +514,10 @@ class NetTest(object):
                 measurements = []
                 test_instance = test_class()
                 test_instance.summary = self.summary
+                if config.privacy.includepcap:
+                    test_name = self.testDetails['test_name']
+                    sniffer = self.director.sniffers[test_name]
+                    test_instance.sniffer = sniffer
                 for method in test_methods:
                     log.debug("Running %s %s" % (test_class, method))
                     measurement = self.makeMeasurement(
@@ -629,6 +633,8 @@ class NetTestCase(object):
     requiresTor = False
 
     localOptions = {}
+
+    sniffer = None
 
     def _setUp(self):
         """

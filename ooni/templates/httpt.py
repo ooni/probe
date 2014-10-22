@@ -296,6 +296,7 @@ class HTTPTest(NetTestCase):
             log.debug("Using SOCKS proxy %s for request" % (self.localOptions['socksproxy']))
 
         log.debug("Performing request %s %s %s" % (url, method, headers))
+        self.sniffer.filters.append({'http_url': url})
 
         request = {}
         request['method'] = method
