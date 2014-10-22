@@ -287,8 +287,12 @@ class ScapySniffer(ScapyProtocol):
                                 host = splitted[0]
                                 resource = '/'.join(splitted[1:])
 
-                            if len(resource) == 0 and re.match(self.ip_regex, host):
-                                selected = dst == host
+                            if len(resource) == 0:
+                                if re.match(self.ip_regex, host):
+                                    selected = dst == host
+                                else:
+                                    matched = re.match('(GET|POST|PUT|HEAD|PUT|DELETE) /', payload)
+                                    selected = matched is not None
                             elif len(resource) > 0:
                                 selected = resource in payload
                 if selected:

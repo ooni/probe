@@ -141,7 +141,8 @@ class DNSTest(NetTestCase):
         dnsType=types[dns_type]
         query = [dns.Query(hostname, dnsType, dns.IN)]
         filter = {'dns_query': hostname}
-        self.sniffer.filters.append(filter)
+        if self.sniffer is not None:
+            self.sniffer.filters.append(filter)
         def gotResponse(message):
             log.debug(dns_type+" Lookup successful")
             log.debug(str(message))
@@ -164,7 +165,8 @@ class DNSTest(NetTestCase):
                     addrs.append(addr)
                 answers.append(representAnswer(answer))
 
-            self.sniffer.filters.remove(filter)
+            if self.sniffer is not None:
+                self.sniffer.filters.remove(filter)
             DNSTest.addToReport(self, query, resolver=dns_server, query_type=dns_type,
                         answers=answers, addrs=addrs)
             return addrs

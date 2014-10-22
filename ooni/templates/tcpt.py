@@ -92,7 +92,8 @@ class TCPTest(NetTestCase):
         filter = {'dst': self.address}
         if self.port != 0:
             filter['tdport'] = self.port
-        self.sniffer.filters.append(filter)
+        if self.sniffer is not None:
+            self.sniffer.filters.append(filter)
         point = TCP4ClientEndpoint(reactor, self.address, self.port)
         log.debug("Connecting to %s:%s" % (self.address, self.port))
         d2 = point.connect(TCPSenderFactory())
