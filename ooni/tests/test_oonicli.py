@@ -8,8 +8,8 @@ from ooni.tests import is_internet_connected
 from ooni.tests.bases import ConfigTestCase
 from ooni.settings import config
 from ooni.oonicli import runWithDirector
-from ooni.utils import checkForRoot
 from ooni.errors import InsufficientPrivileges
+from ooni.utils.txscapy import hasRawSocketPermission
 
 
 def verify_header(header):
@@ -63,10 +63,9 @@ class TestRunDirector(ConfigTestCase):
         super(TestRunDirector, self).setUp()
         if not is_internet_connected():
             self.skipTest("You must be connected to the internet to run this test")
-        try:
-            checkForRoot()
-        except InsufficientPrivileges:
-            self.skipTest("You must be root to run this test")
+        elif not hasRawSocketPermission():
+            self.skipTest("You must run this test as root or have the capabilities "
+            "cap_net_admin,cap_net_raw+eip")
         config.tor.socks_port = 9050
         config.tor.control_port = None
         self.filenames = ['example-input.txt']

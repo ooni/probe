@@ -13,7 +13,8 @@ from ooni.director import Director
 from ooni.deck import Deck, nettest_to_path
 from ooni.nettest import NetTestLoader
 
-from ooni.utils import log, checkForRoot
+from ooni.utils import log
+from ooni.utils.txscapy import hasRawSocketPermission
 
 
 class Options(usage.Options):
@@ -125,11 +126,11 @@ def runWithDirector(logging=True, start_tor=True, check_incoherences=True):
         log.start(global_options['logfile'])
 
     if config.privacy.includepcap:
-        try:
-            checkForRoot()
+        if hasRawSocketPermission():
+            from ooni.utils.txscapy import hasRawSocketPermission
             from ooni.utils.txscapy import ScapyFactory
             config.scapyFactory = ScapyFactory(config.advanced.interface)
-        except errors.InsufficientPrivileges:
+        else:
             log.err("Insufficient Privileges to capture packets."
                     " See ooniprobe.conf privacy.includepcap")
             sys.exit(2)
