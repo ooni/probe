@@ -127,7 +127,6 @@ def runWithDirector(logging=True, start_tor=True, check_incoherences=True):
 
     if config.privacy.includepcap:
         if hasRawSocketPermission():
-            from ooni.utils.txscapy import hasRawSocketPermission
             from ooni.utils.txscapy import ScapyFactory
             config.scapyFactory = ScapyFactory(config.advanced.interface)
         else:
