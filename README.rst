@@ -71,16 +71,16 @@ Then run::
     oonideckgen -o my_decks/
 
 The output from the last command will tell you how to run ooniprobe to perform
-the measurment.
+the measurement.
 
 If you would like to contribute measurements to OONI daily you can also add
 this to your crontab::
 
-    @daily ooni $THE_OONI_COMMAND
+    @daily ooniprobe $THE_OONI_COMMAND
 
 Run this command to automatically update your crontab:: 
 
-      (crontab -l 2>/dev/null; echo "@daily ooni $THE_OONI_COMMAND") | crontab -
+      (crontab -l 2>/dev/null; echo "@daily ooniprobe $THE_OONI_COMMAND") | crontab -
 
 Installation
 ============
