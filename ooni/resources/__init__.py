@@ -32,7 +32,7 @@ inputs = {
 
 geoip = {
     "GeoIPASNum.dat.gz": {
-        "url": "https://www.maxmind.com/download/"
+        "url": "https://geolite.maxmind.com/download/"
                "geoip/database/asnum/GeoIPASNum.dat.gz",
         "action": gunzip,
         "action_args": [config.advanced.geoip_data_dir],
