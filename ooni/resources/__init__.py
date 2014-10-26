@@ -25,14 +25,14 @@ inputs = {
 
 geoip = {
     "GeoIPASNum.dat.gz": {
-        "url": "http://www.maxmind.com/download/"
+        "url": "https://www.maxmind.com/download/"
                "geoip/database/asnum/GeoIPASNum.dat.gz",
         "action": gunzip,
         "action_args": [config.advanced.geoip_data_dir],
         "processor": None
     },
     "GeoIP.dat.gz": {
-        "url": "http://geolite.maxmind.com/"
+        "url": "https://geolite.maxmind.com/"
                "download/geoip/database/GeoLiteCountry/GeoIP.dat.gz",
         "action": gunzip,
         "action_args": [config.advanced.geoip_data_dir],
