@@ -176,6 +176,6 @@ class OConfig(object):
 
 config = OConfig()
 if not os.path.isfile(config.config_file) \
-       and os.path.isfile('/etc/ooniprobe.conf'):
+       and os.path.isfile('/etc/ooni/ooniprobe.conf'):
     config.global_options['configfile'] = '/etc/ooniprobe.conf'
     config.set_paths(ooni_home=config.advanced.data_dir)
