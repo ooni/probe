@@ -2,8 +2,8 @@ from ooni.nettest import NetTestCase
 from ooni.utils import log
 from ooni.settings import config
 
-from ooni.utils.txscapy import ScapySender, ScapyFactory
-from ooni.utils.txscapy import hasRawSocketPermission
+from ooni.utils.txscapy import ScapySender
+from ooni.utils.net import hasRawSocketPermission
 
 
 class BaseScapyTest(NetTestCase):
@@ -38,10 +38,6 @@ class BaseScapyTest(NetTestCase):
     def _setUp(self):
         super(BaseScapyTest, self)._setUp()
 
-        if config.scapyFactory is None:
-            log.debug("Scapy factory not set, registering it.")
-            config.scapyFactory = ScapyFactory(config.advanced.interface)
-
         self.report['answer_flags'] = []
         if self.localOptions['ipsrc']:
             config.checkIPsrc = 0
@@ -68,6 +64,14 @@ class BaseScapyTest(NetTestCase):
 
         self.report['sent_packets'] = []
         self.report['answered_packets'] = []
+
+    def register_scapy_protocol(self, scapySender):
+        if self.scapyFactory is not None:
+            self.scapyFactory.registerProtocol(scapySender)
+            return True
+        else:
+            log.err("You don't have enough privileges")
+            return False
 
     def finishedSendReceive(self, packets):
         """
@@ -97,9 +101,13 @@ class BaseScapyTest(NetTestCase):
         Wrapper around scapy.sendrecv.sr for sending and receiving of packets
         at layer 3.
         """
-        scapySender = ScapySender(timeout=timeout)
+        kwargs = {}
+        if timeout is not None:
+            kwargs['timeout'] = timeout
+        scapySender = ScapySender(**kwargs)
+        scapySender.factory = self.scapyFactory
 
-        config.scapyFactory.registerProtocol(scapySender)
+        self.register_scapy_protocol(scapySender)
         log.debug("Using sending with hash %s" % scapySender.__hash__)
 
         d = scapySender.startSending(packets)
@@ -121,10 +129,11 @@ class BaseScapyTest(NetTestCase):
 
         scapySender = ScapySender()
         scapySender.expected_answers = 1
+        scapySender.factory = self.scapyFactory
 
-        config.scapyFactory.registerProtocol(scapySender)
-
+        self.register_scapy_protocol(scapySender)
         log.debug("Running sr1")
+
         d = scapySender.startSending(packets)
         log.debug("Started to send")
         d.addCallback(self.finishedSendReceive)
@@ -136,8 +145,9 @@ class BaseScapyTest(NetTestCase):
         Wrapper around scapy.sendrecv.send for sending of packets at layer 3
         """
         scapySender = ScapySender()
+        scapySender.factory = self.scapyFactory
 
-        config.scapyFactory.registerProtocol(scapySender)
+        self.register_scapy_protocol(scapySender)
         scapySender.startSending(packets)
 
         scapySender.stopSending()

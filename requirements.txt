@@ -9,3 +9,4 @@ parsley>=1.1
 scapy-real>=2.2.0-dev
 pypcap>=1.1
 service-identity
+pyroute2

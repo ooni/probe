@@ -10,6 +10,7 @@ from ooni.settings import config
 from ooni.oonicli import runWithDirector
 from ooni.utils import checkForRoot
 from ooni.errors import InsufficientPrivileges
+from ooni.sniffer import ip_generator
 
 
 def verify_header(header):
@@ -169,6 +170,8 @@ class TestRunDirector(ConfigTestCase):
 
     @defer.inlineCallbacks
     def test_sniffing_activated(self):
+        if ip_generator.current_ip is None:
+            self.skipTest("It was impossible to guess the default iface's subnet")
         filename = os.path.abspath('test_report.pcap')
         self.filenames.append(filename)
         conf_file = os.path.abspath('fake_config.conf')
@@ -179,7 +182,9 @@ class TestRunDirector(ConfigTestCase):
         def verify_function(_):
             assert os.path.exists(filename)
             self.assertGreater(os.stat(filename).st_size, 0)
-        yield self.run_helper('blocking/http_requests',
-                              ['-f', 'example-input.txt'],
+        yield self.run_helper('blocking/dns_consistency',
+                              ['-f', 'example-input.txt',
+                              '-b', '8.8.8.8:53',
+                               '-t', '8.8.8.8'],
                               verify_function, ooni_args=['-f', conf_file])
         config.scapyFactory.connectionLost('')

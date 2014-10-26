@@ -132,7 +132,8 @@ def runWithDirector(logging=True, start_tor=True, check_incoherences=True):
         except errors.InsufficientPrivileges:
             log.err("Insufficient Privileges to capture packets."
                     " See ooniprobe.conf privacy.includepcap")
-            sys.exit(2)
+            config.privacy.includepcap = False
+            config.scapyFactory = None
 
     director = Director()
     if global_options['list']:

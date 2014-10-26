@@ -5,6 +5,8 @@ from mock import patch, MagicMock
 from ooni.settings import config
 from ooni.director import Director
 from ooni.tests.bases import ConfigTestCase
+from ooni.utils import checkForRoot
+from ooni.errors import InsufficientPrivileges
 
 from twisted.internet import defer
 from twisted.trial import unittest
@@ -57,6 +59,10 @@ class TestDirector(ConfigTestCase):
 
 class TestStartSniffing(unittest.TestCase):
     def setUp(self):
+        try:
+            checkForRoot()
+        except InsufficientPrivileges:
+            self.skipTest('Not enough privileges to sniff traffic')
         self.director = Director()
         self.testDetails = {
             'test_name': 'foo',
@@ -66,18 +72,19 @@ class TestStartSniffing(unittest.TestCase):
         # Each NetTestCase has a name attribute
         class FooTestCase(object):
             name = 'foo'
+            scapyFactory = MagicMock()
         self.FooTestCase = FooTestCase
 
     def test_start_sniffing_once(self):
         with patch('ooni.settings.config.scapyFactory') as mock_scapy_factory:
-            with patch('ooni.utils.txscapy.ScapySniffer') as mock_scapy_sniffer:
+            with patch('ooni.sniffer.ScapySniffer') as mock_scapy_sniffer:
                 self.director.startSniffing(self.testDetails)
                 sniffer = mock_scapy_sniffer.return_value
                 mock_scapy_factory.registerProtocol.assert_called_once_with(sniffer)
 
     def test_start_sniffing_twice(self):
         with patch('ooni.settings.config.scapyFactory') as mock_scapy_factory:
-            with patch('ooni.utils.txscapy.ScapySniffer') as mock_scapy_sniffer:
+            with patch('ooni.sniffer.ScapySniffer') as mock_scapy_sniffer:
                 sniffer = mock_scapy_sniffer.return_value
                 sniffer.pcapwriter.filename = 'foo1_filename'
                 self.director.startSniffing(self.testDetails)
@@ -87,7 +94,7 @@ class TestStartSniffing(unittest.TestCase):
                 'test_name': 'bar',
                 'start_time': time.time()
             }
-            with patch('ooni.utils.txscapy.ScapySniffer') as mock_scapy_sniffer:
+            with patch('ooni.sniffer.ScapySniffer') as mock_scapy_sniffer:
                 sniffer = mock_scapy_sniffer.return_value
                 sniffer.pcapwriter.filename = 'foo2_filename'
                 self.director.startSniffing(self.testDetails)
@@ -95,7 +102,7 @@ class TestStartSniffing(unittest.TestCase):
 
     def test_measurement_succeeded(self):
         with patch('ooni.settings.config.scapyFactory') as mock_scapy_factory:
-            with patch('ooni.utils.txscapy.ScapySniffer') as mock_scapy_sniffer:
+            with patch('ooni.sniffer.ScapySniffer') as mock_scapy_sniffer:
                 self.director.startSniffing(self.testDetails)
                 self.assertEqual(len(self.director.sniffers), 1)
                 measurement = MagicMock()
@@ -104,4 +111,5 @@ class TestStartSniffing(unittest.TestCase):
                 self.assertEqual(len(self.director.sniffers), 0)
                 sniffer = mock_scapy_sniffer.return_value
                 mock_scapy_factory.unRegisterProtocol.assert_called_once_with(sniffer)
+                measurement.testInstance.scapyFactory.connectionLost.assert_called_once_with('')
 

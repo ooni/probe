@@ -1,7 +1,8 @@
 import os
+import shutil
 from tempfile import mkstemp
+from mock import MagicMock, patch
 
-from twisted.trial import unittest
 from twisted.internet import defer, reactor
 from twisted.python.usage import UsageError
 
@@ -92,6 +93,7 @@ class UsageOptions(usage.Options):
     optParameters = [['spam', 's', None, 'ham']]
 
 class DummyTestCase(NetTestCase):
+    name = 'dummy_test_case'
     inputFile = ['file', 'f', None, 'The input File']
 
     usageOptions = UsageOptions
@@ -159,16 +161,18 @@ dummyInputFile = 'dummyInputFile.txt'
 
 
 
-class TestNetTest(unittest.TestCase):
+class TestNetTest(ConfigTestCase):
     timeout = 1
 
     def setUp(self):
+        super(TestNetTest, self).setUp()
         self.filename = ""
         with open(dummyInputFile, 'w') as f:
             for i in range(10):
                 f.write("%s\n" % i)
 
     def tearDown(self):
+        super(TestNetTest, self).tearDown()
         os.remove(dummyInputFile)
         if self.filename != "":
             os.remove(self.filename)
@@ -299,6 +303,42 @@ class TestNetTest(unittest.TestCase):
         measurements = list(net_test.generateMeasurements())
         self.assertEqual(len(measurements), 20)
 
+    def test_generate_measurements_without_includepcap(self):
+        ntl = NetTestLoader(dummyArgsWithFile)
+        ntl.loadNetTestString(net_test_string_with_file)
+
+        ntl.checkOptions()
+        net_test = NetTest(ntl, None)
+
+        net_test.initializeInputProcessor()
+        measurements = list(net_test.generateMeasurements())
+        for measurement in measurements:
+            self.assertEqual(measurement.testInstance.private_ip, '')
+            self.assertEqual(measurement.testInstance.scapyFactory, config.scapyFactory)
+
+    def test_generate_measurements_with_includepcap(self):
+        config.privacy.includepcap = True
+        ntl = NetTestLoader(dummyArgsWithFile)
+        ntl.loadNetTestString(net_test_string_with_file)
+
+        ntl.checkOptions()
+        net_test = NetTest(ntl, None)
+        director = MagicMock()
+        net_test.director = director
+        sniffer = MagicMock()
+        sniffer.iface = 'dummy_iface'
+        sniffer.private_ip = 'dummy_private_ip'
+        director.sniffers = {'dummy_test_case': sniffer}
+
+        net_test.initializeInputProcessor()
+
+        with patch('ooni.utils.txscapy.ScapyFactory') as scapyFactory:
+            for measurement in net_test.generateMeasurements():
+                scapyFactory.assert_called_with('dummy_iface')
+                factory = scapyFactory.return_value
+                self.assertEqual(measurement.testInstance.private_ip, 'dummy_private_ip')
+                self.assertEqual(measurement.testInstance.scapyFactory, factory)
+
     def test_net_test_completed_callback(self):
         ntl = NetTestLoader(dummyArgsWithFile)
         ntl.loadNetTestString(net_test_string_with_file)
@@ -334,12 +374,10 @@ class TestNettestTimeout(ConfigTestCase):
         from twisted.internet.endpoints import TCP4ServerEndpoint
 
         class DummyProtocol(Protocol):
-
             def dataReceived(self, data):
                 pass
 
         class DummyFactory(Factory):
-
             def __init__(self):
                 self.protocols = []
 
@@ -352,6 +390,7 @@ class TestNettestTimeout(ConfigTestCase):
                 for proto in self.protocols:
                     proto.transport.loseConnection()
 
+        super(TestNettestTimeout, self).setUp()
         self.factory = DummyFactory()
         endpoint = TCP4ServerEndpoint(reactor, 8007)
         self.port = yield endpoint.listen(self.factory)

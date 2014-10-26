@@ -2,6 +2,7 @@ import os
 import re
 import time
 import sys
+import importlib
 from hashlib import sha256
 
 from twisted.internet import defer
@@ -506,13 +507,27 @@ class NetTest(object):
         This is a generator that yields measurements and registers the
         callbacks for when a measurement is successful or has failed.
         """
+        from ooni.utils.txscapy import ScapyFactory
 
         for test_class, test_methods in self.testCases:
             # load the input processor as late as possible
+            factory = config.scapyFactory
+            if config.privacy.includepcap:
+                test_name = self.testDetails['test_name']
+                sniffer = self.director.sniffers[test_name]
+                iface = sniffer.iface
+                if iface is not None:
+                    filename_pcap = os.path.abspath(sniffer.pcapwriter.filename)
+                    factory = ScapyFactory(iface)
+                    log.msg("Starting packet capture from %s(%s) to %s" %
+                            (iface, sniffer.private_ip, filename_pcap))
             for input in test_class.inputs:
                 measurements = []
                 test_instance = test_class()
                 test_instance.summary = self.summary
+                if config.privacy.includepcap:
+                    test_instance.private_ip = sniffer.private_ip
+                test_instance.scapyFactory = factory
                 for method in test_methods:
                     log.debug("Running %s %s" % (test_class, method))
                     measurement = self.makeMeasurement(
@@ -628,6 +643,9 @@ class NetTestCase(object):
     requiresTor = False
 
     localOptions = {}
+
+    private_ip = ''
+    scapyFactory = None
 
     def _setUp(self):
         """
