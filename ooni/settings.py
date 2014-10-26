@@ -107,6 +107,8 @@ class OConfig(object):
                         w.write('    data_dir: %s\n' % self.data_directory)
                     elif line.startswith('    geoip_data_dir: '):
                         w.write('    geoip_data_dir: %s\n' % os.path.join(usr_share_path, 'GeoIP'))
+                    elif line.startswith('    logfile: '):
+                        w.write('    logfile: %s\n' % os.path.join(self.ooni_home, 'ooniprobe.log'))
                     else:
                         w.write(line)
 
