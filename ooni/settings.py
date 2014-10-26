@@ -45,7 +45,7 @@ class OConfig(object):
         elif hasattr(sys, 'real_prefix'):
             data_directory = os.path.abspath(os.path.join(sys.prefix, 'share', 'ooni'))
         elif not os.path.exists(data_directory):
-            data_directory = '/usr/share/ooni/'
+            data_directory = '/var/lib/ooni/'
 
         return data_directory
 
@@ -94,7 +94,7 @@ class OConfig(object):
     def _create_config_file(self):
         target_config_file = self.config_file
         print "Creating it for you in '%s'." % target_config_file
-        usr_share_path = '/usr/share'
+        usr_share_path = '/var/lib/ooni'
         if hasattr(sys, 'real_prefix'):
             usr_share_path = os.path.abspath(os.path.join(sys.prefix, 'share'))
         sample_config_file = os.path.join(self.data_directory,
@@ -180,3 +180,7 @@ class OConfig(object):
             self.log_incoherences(incoherent)
 
 config = OConfig()
+if not os.path.isfile(config.config_file) \
+       and os.path.isfile('/etc/ooniprobe.conf'):
+    config.global_options['configfile'] = '/etc/ooniprobe.conf'
+    config.set_paths(ooni_home=config.advanced.data_dir)
