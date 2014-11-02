@@ -10,7 +10,7 @@ from ooni import nettest
 from ooni.utils import log
 import time
 import os
-from twisted.internet import reactor, threads, defer
+from twisted.internet import reactor, threads
 
 class NetalyzrWrapperTest(nettest.NetTestCase):
     name = "NetalyzrWrapper"

@@ -16,8 +16,6 @@ except ImportError:
                     return protocol
             return endpoint.connect(OneShotFactory())
 
-from ooni.utils import log
-
 # if sys.platform.system() == 'Windows':
 # import _winreg as winreg
 

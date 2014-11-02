@@ -2,7 +2,7 @@
 from twisted.python import usage
 
 from ooni.utils import log
-from ooni.utils import randomStr, randomSTR
+from ooni.utils import randomStr
 from ooni.templates import tcpt
 
 class UsageOptions(usage.Options):

@@ -8,7 +8,6 @@ from twisted.internet import reactor
 from twisted.internet import defer, abstract
 
 from scapy.config import conf
-from scapy.supersocket import L3RawSocket
 from scapy.all import RandShort, IP, IPerror, ICMP, ICMPerror, TCP, TCPerror, UDP, UDPerror
 
 from ooni.utils import log

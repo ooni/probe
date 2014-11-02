@@ -9,6 +9,7 @@
 from ooni import utils
 from ooni.utils import log
 from ooni.templates import httpt
+import re
 
 class SquidTest(httpt.HTTPTest):
     """
