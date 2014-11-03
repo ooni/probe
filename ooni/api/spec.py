@@ -136,7 +136,7 @@ def get_reporters(net_test_loader):
     reporters.append(yaml_reporter)
 
     if config.reports.collector and collector_supported(config.reports.collector):
-        oonib_reporter = OONIBReporter(test_details, collector)
+        oonib_reporter = OONIBReporter(test_details, config.reports.collector)
         reporters.append(oonib_reporter)
     return reporters
 
