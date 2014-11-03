@@ -9,7 +9,7 @@ client._HTTP11ClientFactory.noisy = False
 
 from twisted.internet import reactor, defer
 
-from ooni.utils import log, checkForRoot
+from ooni.utils import log
 from ooni import errors
 
 try:
@@ -243,7 +243,9 @@ class ProbeIP(object):
         """
         Perform a UDP traceroute to determine the probes IP address.
         """
-        checkForRoot()
+        from ooni.utils.txscapy import hasRawSocketPermission
+        if not hasRawSocketPermission():
+            raise errors.InsufficientPrivileges
         raise NotImplemented
 
     def askTor(self):

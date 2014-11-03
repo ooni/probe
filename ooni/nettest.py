@@ -10,7 +10,8 @@ from twisted.python import usage, reflect
 
 from ooni import otime
 from ooni.tasks import Measurement
-from ooni.utils import log, checkForRoot, sanitize_options
+from ooni.utils import log, sanitize_options
+from ooni.utils.txscapy import hasRawSocketPermission
 from ooni.settings import config
 
 from ooni import errors as e
@@ -339,8 +340,8 @@ class NetTestLoader(object):
                 klass.localOptions = options
 
             test_instance = klass()
-            if test_instance.requiresRoot:
-                checkForRoot()
+            if test_instance.requiresRoot and not hasRawSocketPermission():
+                raise errors.InsufficientPrivileges
             if test_instance.requiresTor:
                 self.requiresTor = True
             test_instance.requirements()
