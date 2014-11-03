@@ -2,7 +2,6 @@ import os
 import yaml
 import json
 import time
-import os
 from mock import MagicMock
 
 from twisted.internet import defer

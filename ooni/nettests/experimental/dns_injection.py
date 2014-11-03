@@ -3,7 +3,6 @@ from twisted.python import usage
 from twisted.internet import defer
 
 from ooni.templates import dnst
-from ooni import nettest
 from ooni.utils import log
 
 class UsageOptions(usage.Options):

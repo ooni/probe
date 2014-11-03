@@ -1,18 +1,16 @@
 import os
 
 from twisted.trial import unittest
-from twisted.python import failure
 from twisted.internet import defer, task
 
-from ooni.tasks import BaseTask, TaskWithTimeout
-from ooni.managers import TaskManager, MeasurementManager
+from ooni.managers import MeasurementManager
 
 from ooni.tests.mocks import MockSuccessTask, MockFailTask, MockFailOnceTask, MockFailure
 from ooni.tests.mocks import MockSuccessTaskWithTimeout, MockFailTaskThatTimesOut
 from ooni.tests.mocks import MockTimeoutOnceTask, MockFailTaskWithTimeout
 from ooni.tests.mocks import MockTaskManager, mockFailure, MockDirector
-from ooni.tests.mocks import MockNetTest, MockMeasurement, MockSuccessMeasurement
-from ooni.tests.mocks import MockFailMeasurement, MockFailOnceMeasurement
+from ooni.tests.mocks import MockNetTest, MockSuccessMeasurement
+from ooni.tests.mocks import MockFailMeasurement
 from ooni.settings import config
 
 

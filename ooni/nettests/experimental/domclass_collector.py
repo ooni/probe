@@ -7,8 +7,6 @@
 # :authors: Arturo Filastò
 # :licence: see LICENSE
 
-from twisted.internet import threads, defer
-
 from ooni.kit import domclass
 from ooni.templates import httpt
 

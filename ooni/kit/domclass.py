@@ -21,7 +21,6 @@ The procedure we use is the following:
      probability matrix B.
 """
 
-import yaml
 import numpy
 import time
 
@@ -63,8 +62,6 @@ def compute_probability_matrix(dataset):
 
     :dataset: an array of pairs representing the parent child relationships.
     """
-    import itertools
-    ret = {}
     matrix = numpy.zeros((len(thetags) + 1, len(thetags) + 1))
 
     for data in dataset:

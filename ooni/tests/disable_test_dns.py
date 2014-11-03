@@ -2,11 +2,7 @@
 # This unittest is to verify that our usage of the twisted DNS resolver does
 # not break with new versions of twisted.
 
-import pdb
 from twisted.trial import unittest
-
-from twisted.internet import reactor
-
 from twisted.names import dns
 from twisted.names.client import Resolver
 

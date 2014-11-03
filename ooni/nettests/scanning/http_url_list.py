@@ -3,7 +3,6 @@
 # :authors: Arturo Filastò
 # :licence: see LICENSE
 
-from twisted.internet import defer
 from twisted.python import usage
 from ooni.templates import httpt
 from ooni.utils import log

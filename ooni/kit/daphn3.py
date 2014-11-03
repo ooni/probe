@@ -1,8 +1,6 @@
-import sys
 import yaml
 
 from twisted.internet import protocol, defer
-from twisted.internet.error import ConnectionDone
 
 from ooni.utils import log
 

@@ -9,9 +9,8 @@ from twisted.internet import reactor, error
 
 import txtorcon
 
-from ooni.settings import config
 from ooni.utils import log, onion
-from ooni import nettest, errors
+from ooni import nettest
 
 
 class TorIsNotInstalled(Exception):

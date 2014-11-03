@@ -2,7 +2,6 @@
 import yaml
 
 from twisted.python import usage
-from twisted.plugin import IPlugin
 
 from ooni.templates import httpt
 from ooni.utils import log

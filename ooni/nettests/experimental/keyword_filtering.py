@@ -4,9 +4,7 @@
 # :licence: see LICENSE
 
 from twisted.python import usage
-from twisted.internet import defer
 
-from ooni.utils import log
 from ooni.templates import scapyt
 
 from scapy.layers.inet import TCP, IP

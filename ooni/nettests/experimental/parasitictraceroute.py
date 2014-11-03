@@ -1,4 +1,3 @@
-from twisted.python import usage
 from twisted.internet import defer, reactor
 from ooni.errors import handleAllFailures
 from ooni.templates import scapyt
