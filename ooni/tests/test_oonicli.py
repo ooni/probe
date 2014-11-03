@@ -164,7 +164,7 @@ class TestRunDirector(ConfigTestCase):
             assert 'total' in entry['tampering']
 
         yield self.run_helper('manipulation/http_header_field_manipulation',
-                              ['-b', 'http://64.9.225.221'],
+                              ['-b', 'http://64.9.225.208'],
                               verify_function)
 
     @defer.inlineCallbacks
