@@ -4,6 +4,7 @@ from twisted.internet.endpoints import TCP4ClientEndpoint
 from ooni.nettest import NetTestCase
 from ooni.errors import failureToString
 from ooni.utils import log
+from ooni.sniffer import Filter
 
 
 class TCPSender(protocol.Protocol):
@@ -80,10 +81,14 @@ class TCPTest(NetTestCase):
             proto.transport.loseConnection()
 
         def errback(failure):
+            if self.sniffer is not None:
+                self.sniffer.del_filter(self.__sniffer_filter)
             self.report['failure'] = failureToString(failure)
             d1.errback(failure)
 
         def connected(proto):
+            if self.sniffer is not None:
+                self.sniffer.del_filter(self.__sniffer_filter)
             log.debug("Connected to %s:%s" % (self.address, self.port))
             proto.report = self.report
             proto.deferred = d1
@@ -92,11 +97,10 @@ class TCPTest(NetTestCase):
                 # XXX-Twisted this logic should probably go inside of the protocol
                 reactor.callLater(self.timeout, closeConnection, proto)
 
-        filter = {'dst': self.address}
-        if self.port != 0:
-            filter['tdport'] = self.port
-        if self.sniffer is not None:
-            self.sniffer.filters.append(filter)
+        if self.sniffer is not None and self.port != 0:
+            self.__sniffer_filter = Filter()
+            self.__sniffer_filter.add_tcp_rule(dport=self.port)
+            self.sniffer.add_filter(self.__sniffer_filter)
         point = TCP4ClientEndpoint(reactor, self.address, self.port)
         log.debug("Connecting to %s:%s" % (self.address, self.port))
         d2 = point.connect(TCPSenderFactory())

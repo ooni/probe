@@ -11,6 +11,7 @@ from twisted.names.client import Resolver
 from ooni.utils import log
 from ooni.nettest import NetTestCase
 from ooni.errors import failureToString
+from ooni.sniffer import Filter
 
 import socket
 from socket import gaierror
@@ -148,9 +149,10 @@ class DNSTest(NetTestCase):
         types = {'NS': dns.NS, 'A': dns.A, 'SOA': dns.SOA, 'PTR': dns.PTR}
         dnsType = types[dns_type]
         query = [dns.Query(hostname, dnsType, dns.IN)]
-        filter = {'dns_query': hostname}
         if self.sniffer is not None:
-            self.sniffer.filters.append(filter)
+            self.__sniffer_filter = Filter()
+            self.__sniffer_filter.add_dns_rule(hostname)
+            self.sniffer.add_filter(self.__sniffer_filter)
 
         def gotResponse(message):
             log.debug(dns_type + " Lookup successful")
@@ -175,7 +177,7 @@ class DNSTest(NetTestCase):
                 answers.append(representAnswer(answer))
 
             if self.sniffer is not None:
-                self.sniffer.filters.remove(filter)
+                self.sniffer.del_filter(self.__sniffer_filter)
             DNSTest.addToReport(self, query, resolver=dns_server, query_type=dns_type,
                                 answers=answers, addrs=addrs)
             return addrs
@@ -184,6 +186,8 @@ class DNSTest(NetTestCase):
             failure.trap(gaierror, TimeoutError)
             DNSTest.addToReport(self, query, resolver=dns_server, query_type=dns_type,
                                 failure=failure)
+            if self.sniffer is not None:
+                self.sniffer.del_filter(self.__sniffer_filter)
             return failure
 
         if dns_server:

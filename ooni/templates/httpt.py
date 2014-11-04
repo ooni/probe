@@ -11,6 +11,7 @@ from ooni.utils.trueheaders import TrueHeadersAgent, TrueHeadersSOCKS5Agent
 from ooni.nettest import NetTestCase
 from ooni.utils import log
 from ooni.settings import config
+from ooni.sniffer import Filter
 
 from ooni.utils.net import BodyReceiver, StringProducer, userAgents
 from ooni.utils.trueheaders import TrueHeaders
@@ -223,6 +224,8 @@ class HTTPTest(NetTestCase):
                 be called.
 
         """
+        if self.sniffer is not None:
+            self.sniffer.del_filter(self.__sniffer_filter)
         if not response:
             log.err("Got no response for request %s" % request)
             HTTPTest.addToReport(self, request, response)
@@ -299,7 +302,9 @@ class HTTPTest(NetTestCase):
 
         log.debug("Performing request %s %s %s" % (url, method, headers))
         if self.sniffer is not None:
-            self.sniffer.filters.append({'http_url': url})
+            self.__sniffer_filter = Filter()
+            self.__sniffer_filter.add_http_rule(url)
+            self.sniffer.add_filter(self.__sniffer_filter)
 
         request = {}
         request['method'] = method
@@ -329,6 +334,8 @@ class HTTPTest(NetTestCase):
         headers = TrueHeaders(request['headers'])
 
         def errback(failure, request):
+            if self.sniffer is not None:
+                self.sniffer.del_filter(self.__sniffer_filter)
             if request['tor']['is_tor']:
                 log.err("Error performing torified request: %s" % request['url'])
             else:

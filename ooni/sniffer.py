@@ -64,7 +64,6 @@ if pcapdnet_installed():
     from scapy.all import PcapWriter
 
 else:
-
     class DummyPcapWriter:
         def __init__(self, pcap_filename, *arg, **kw):
             log.err("Initializing DummyPcapWriter. We will not actually write to a pcapfile")
@@ -76,18 +75,114 @@ else:
     PcapWriter = DummyPcapWriter
 
 
+class Filter(object):
+    def __init__(self):
+        self.rules = {}
+        self._ip_regex = re.compile('([0-9]{1,3}\.){3}[0-9]{1,3}$')
+
+    def add_ip_rule(self, dst=None, src=None):
+        self.rules['dst'] = dst
+        self.rules['src'] = src
+
+    def add_tcp_rule(self, dport=None, sport=None):
+        if not 'udp' in self.rules or not self.rules['udp']:
+            self.rules['tcp'] = True
+            self.rules['dport'] = dport
+            self.rules['sport'] = sport
+
+    def add_udp_rule(self, dport=None, sport=None):
+        if not 'tcp' in self.rules or not self.rules['tcp']:
+            self.rules['udp'] = True
+            self.rules['dport'] = dport
+            self.rules['sport'] = sport
+
+    def add_http_rule(self, url):
+        if not 'dns_host' in self.rules:
+            self.rules['http_url'] = url
+
+    def add_dns_rule(self, host):
+        if not 'http_url' in self.rules:
+            self.rules['dns_host'] = host
+
+    def matches(self, packet):
+        matches = []
+        if 'dst' in self.rules and self.rules['dst'] is not None:
+            dst = packet.fields['dst']
+            matches.append(dst == self.rules['dst'])
+        if 'src' in self.rules and self.rules['src'] is not None:
+            src = packet.fields['src']
+            matches.append(src == self.rules['src'])
+
+        if 'tcp' in self.rules and self.rules['tcp']:
+            matches.append(isinstance(packet.payload, TCP))
+        elif 'udp' in self.rules and self.rules['udp']:
+            matches.append(isinstance(packet.payload, UDP))
+
+        if 'dport' in self.rules and self.rules['dport'] is not None:
+            dport = packet.payload.fields['dport']
+            matches.append(dport == self.rules['dport'])
+        if 'sport' in self.rules and self.rules['sport'] is not None:
+            sport = packet.payload.fields['sport']
+            matches.append(sport == self.rules['sport'])
+
+        if 'http_url' in self.rules:
+            payload = packet.payload.payload.original
+            splitted = self.rules['http_url'].split('/')
+            if 'http' in splitted[0]:
+                host = splitted[2]
+                resource = '/'.join(splitted[3:])
+            else:
+                host = splitted[0]
+                resource = '/'.join(splitted[1:])
+
+            # This is too unrestricted
+            if len(resource) == 0:
+                if re.match(self._ip_regex, host):
+                    dst = packet.fields['dst']
+                    matches.append(dst == host)
+                else:
+                    has_http_method = re.match('(GET|POST|PUT|HEAD|PUT|DELETE)', payload)
+                    matches.append(has_http_method is not None)
+            elif len(resource) > 0:
+                matches.append(resource in payload)
+        elif 'dns_host' in self.rules:
+            payload = packet.payload.payload.original
+            url = self.rules['dns_host'].split('.')
+            matches.append(all([chunk in payload for chunk in url]))
+
+        return all(matches)
+
+
 class ScapySniffer(ScapyProtocol):
     def __init__(self, pcap_filename, *arg, **kw):
         self.pcapwriter = PcapWriter(pcap_filename, *arg, **kw)
-        if config.advanced.debug:
-            self.debug = PcapWriter('debug.pcap', *arg, **kw)
+        self.debug = PcapWriter('debug.pcap', *arg, **kw)
         self._conns = []
-        # A filter is {'dns_query': '', 'http_url': '', 'tdport': 0, 'udport': 0, 'dst': ''}
-        self.filters = []
-        self.ip_regex = re.compile('([0-9]{1,3}\.){3}[0-9]{1,3}$')
+        self._filters = []
 
-    def packetReceived(self, packet):
-        selected = False
+    def add_filter(self, filter):
+        if isinstance(filter, Filter):
+            self._filters.append(filter)
+
+    def del_filter(self, filter):
+        if filter in self._filters:
+            self._filters.remove(filter)
+
+    def is_in_conns(self, address):
+        # Change the address abstraction
+        src = address[0]
+        dst = address[1]
+        sport = address[2]
+        dport = address[3]
+        for conn in self._conns:
+            is_req = (src == conn['src'] and dst == conn['dst'] and sport == conn['sport'] and dport == conn['dport'])
+            is_answ = (src == conn['dst'] and dst == conn['src'] and sport == conn['dport'] and dport == conn['sport'])
+            if is_req or is_answ:
+                return True
+        return False
+
+    def extract_address(self, packet):
+        # Change the address abstraction
         try:
             src = packet.fields['src']
             dst = packet.fields['dst']
@@ -95,55 +190,24 @@ class ScapySniffer(ScapyProtocol):
             dport = packet.payload.fields['dport']
         except KeyError:
             return
+        else:
+            return src, dst, sport, dport
 
-        for conn in self._conns:
-            if (src == conn['src'] and dst == conn['dst'] and sport == conn['sport'] and dport == conn['dport']) or \
-                    (src == conn['dst'] and dst == conn['src'] and sport == conn['dport'] and dport == conn['sport']):
-                selected = True
-                break
-
-        if not selected:
-            for filter in self.filters:
-                for key, value in filter.items():
-                    if value:
-                        if key == 'dst' and dst == value:
-                            selected = True
-                        elif key == 'tdport' and isinstance(packet.payload, TCP) and dport == value:
-                            selected = True
-                        elif key == 'udport' and isinstance(packet.payload, UDP) and dport == value:
-                            selected = True
-                        elif key == 'dns_query' and isinstance(packet.payload.payload, DNS):
-                            payload = packet.payload.payload.original
-                            url = value.split('.')
-                            selected = all([chunk in payload for chunk in url])
-                        elif key == 'http_url' and isinstance(packet.payload, TCP):
-                            payload = packet.payload.payload.original
-                            splitted = value.split('/')
-                            if 'http' in splitted[0]:
-                                host = splitted[2]
-                                resource = '/'.join(splitted[3:])
-                            else:
-                                host = splitted[0]
-                                resource = '/'.join(splitted[1:])
-
-                            if len(resource) == 0:
-                                if re.match(self.ip_regex, host):
-                                    selected = dst == host
-                                else:
-                                    matched = re.match('(GET|POST|PUT|HEAD|PUT|DELETE) /', payload)
-                                    selected = matched is not None
-                            elif len(resource) > 0:
-                                selected = resource in payload
-                if selected:
-                    conn = {'src': src, 'dst': dst, 'sport': sport, 'dport': dport}
+    def packetReceived(self, packet):
+        selected = False
+        address = self.extract_address(packet)
+        if address is not None and not self.is_in_conns(address):
+            for filter in self._filters:
+                if filter.matches(packet):
+                    selected = True
+                    conn = {'src': address[0], 'dst': address[1], 'sport': address[2], 'dport': address[3]}
                     self._conns.append(conn)
                     break
 
         if selected:
             self.pcapwriter.write(packet)
 
-        if config.advanced.debug:
-            self.debug.write(packet)
+        self.debug.write(packet)
 
     def close(self):
         self.pcapwriter.close()
