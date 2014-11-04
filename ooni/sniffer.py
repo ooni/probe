@@ -168,21 +168,7 @@ class ScapySniffer(ScapyProtocol):
         if filter in self._filters:
             self._filters.remove(filter)
 
-    def is_in_conns(self, address):
-        # Change the address abstraction
-        src = address[0]
-        dst = address[1]
-        sport = address[2]
-        dport = address[3]
-        for conn in self._conns:
-            is_req = (src == conn['src'] and dst == conn['dst'] and sport == conn['sport'] and dport == conn['dport'])
-            is_answ = (src == conn['dst'] and dst == conn['src'] and sport == conn['dport'] and dport == conn['sport'])
-            if is_req or is_answ:
-                return True
-        return False
-
-    def extract_address(self, packet):
-        # Change the address abstraction
+    def packetReceived(self, packet):
         try:
             src = packet.fields['src']
             dst = packet.fields['dst']
@@ -190,24 +176,24 @@ class ScapySniffer(ScapyProtocol):
             dport = packet.payload.fields['dport']
         except KeyError:
             return
-        else:
-            return src, dst, sport, dport
 
-    def packetReceived(self, packet):
         selected = False
-        address = self.extract_address(packet)
-        if address is not None and not self.is_in_conns(address):
+        for conn in self._conns:
+            is_sent = (src == conn['src'] and dst == conn['dst'] and sport == conn['sport'] and dport == conn['dport'])
+            is_recv = (src == conn['dst'] and dst == conn['src'] and sport == conn['dport'] and dport == conn['sport'])
+            if is_sent or is_recv:
+                selected = True
+
+        if not selected:
             for filter in self._filters:
                 if filter.matches(packet):
                     selected = True
-                    conn = {'src': address[0], 'dst': address[1], 'sport': address[2], 'dport': address[3]}
+                    conn = {'src': src, 'dst': dst, 'sport': sport, 'dport': dport}
                     self._conns.append(conn)
                     break
 
         if selected:
             self.pcapwriter.write(packet)
-
-        self.debug.write(packet)
 
     def close(self):
         self.pcapwriter.close()
