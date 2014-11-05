@@ -9,7 +9,7 @@ from ooni.tests.bases import ConfigTestCase
 from ooni.settings import config
 from ooni.oonicli import runWithDirector
 from ooni.errors import InsufficientPrivileges
-from ooni.utils.txscapy import hasRawSocketPermission
+from ooni.utils.net import hasRawSocketPermission
 
 
 def verify_header(header):

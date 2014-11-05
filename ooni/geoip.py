@@ -5,6 +5,8 @@ import random
 from hashlib import sha256
 
 from twisted.web import client, http_headers
+from ooni.utils.net import hasRawSocketPermission
+
 client._HTTP11ClientFactory.noisy = False
 
 from twisted.internet import reactor, defer
@@ -243,7 +245,6 @@ class ProbeIP(object):
         """
         Perform a UDP traceroute to determine the probes IP address.
         """
-        from ooni.utils.txscapy import hasRawSocketPermission
         if not hasRawSocketPermission():
             raise errors.InsufficientPrivileges
         raise NotImplemented

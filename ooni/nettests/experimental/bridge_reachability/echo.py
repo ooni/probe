@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-#  +---------+
+# +---------+
 #  | echo.py |
 #  +---------+
 #     A simple ICMP-8 ping test.
@@ -13,21 +13,20 @@
 #
 
 import os
-import sys
 
-from twisted.python   import usage
-from twisted.internet import reactor, defer
-from ooni             import nettest
-from ooni.utils       import log, net, Storage, txscapy
+from twisted.python import usage
+from ooni import nettest
+from ooni.utils import log, net
 
 try:
-    from scapy.all             import IP, ICMP
-    from scapy.all             import sr1
-    from ooni.lib              import txscapy
-    from ooni.lib.txscapy      import txsr, txsend
+    from scapy.all import IP, ICMP
+    from scapy.all import sr1
+    from ooni.lib import txscapy
+    from ooni.lib.txscapy import txsr, txsend
     from ooni.templates.scapyt import BaseScapyTest
 except:
     log.msg("This test requires scapy, see www.secdev.org/projects/scapy")
+
 
 class UsageOptions(usage.Options):
     optParameters = [
@@ -41,17 +40,18 @@ class UsageOptions(usage.Options):
         ['pcap', 'p', None, 'Save pcap to this file'],
         ['receive', 'r', True, 'Receive response packets']]
 
+
 class EchoTest(nettest.NetTestCase):
     """
     xxx fill me in
     """
-    name         = 'echo'
-    author       = 'Isis Lovecruft <isis@torproject.org>'
-    description  = 'A simple ping test to see if a host is reachable.'
-    version      = '0.0.2'
+    name = 'echo'
+    author = 'Isis Lovecruft <isis@torproject.org>'
+    description = 'A simple ping test to see if a host is reachable.'
+    version = '0.0.2'
     requiresRoot = True
 
-    usageOptions    = UsageOptions
+    usageOptions = UsageOptions
     #requiredOptions = ['dst']
 
     def setUp(self, *a, **kw):
@@ -62,11 +62,11 @@ class EchoTest(nettest.NetTestCase):
                 log.debug("setting self.%s = %s" % (key, value))
                 setattr(self, key, value)
 
-        self.timeout *= 1000            ## convert to milliseconds
+        self.timeout *= 1000  ## convert to milliseconds
 
         if not self.interface:
             try:
-                iface = txscapy.getDefaultIface()
+                iface = net.getDefaultIface()
             except Exception, e:
                 log.msg("No network interface specified!")
                 log.err(e)
@@ -111,22 +111,22 @@ class EchoTest(nettest.NetTestCase):
 
     def test_icmp(self):
         def process_response(echo_reply, dest):
-           ans, unans = echo_reply
-           if ans:
-               log.msg("Recieved echo reply from %s: %s" % (dest, ans))
-           else:
-               log.msg("No reply was received from %s. Possible censorship event." % dest)
-               log.debug("Unanswered packets: %s" % unans)
-           self.report[dest] = echo_reply
+            ans, unans = echo_reply
+            if ans:
+                log.msg("Recieved echo reply from %s: %s" % (dest, ans))
+            else:
+                log.msg("No reply was received from %s. Possible censorship event." % dest)
+                log.debug("Unanswered packets: %s" % unans)
+            self.report[dest] = echo_reply
 
         for label, data in self.destinations.items():
-            reply = sr1(IP(dst=lebal)/ICMP())
+            reply = sr1(IP(dst=lebal) / ICMP())
             process = process_reponse(reply, label)
 
-        #(ans, unans) = ping
-        #self.destinations[self.dst].update({'ans': ans,
-        #                                    'unans': unans,
-        #                                    'response_packet': ping})
-        #return ping
+            #(ans, unans) = ping
+            #self.destinations[self.dst].update({'ans': ans,
+            #                                    'unans': unans,
+            #                                    'response_packet': ping})
+            #return ping
 
-        #return reply
+            #return reply

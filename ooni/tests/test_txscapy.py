@@ -52,16 +52,3 @@ class TestTxScapy(unittest.TestCase):
         assert result[0][0][0] == packet_sent
         assert result[0][0][1] == packet_received
 
-    def test_get_addresses(self):
-        addresses = txscapy.getAddresses()
-        assert isinstance(addresses, list)
-
-    # @defer.inlineCallbacks
-    # def test_multi_traceroute(self):
-    #     traceroute = txscapy.MPTraceroute()
-    #     traceroute.timeout = 3
-    #     self.scapy_factory.registerProtocol(traceroute)
-    #     yield traceroute.ICMPTraceroute('8.8.8.8')
-    #     yield traceroute.TCPTraceroute('8.8.8.8')
-    #     yield traceroute.UDPTraceroute('8.8.8.8')
-    #     self.scapy_factory.super_socket.send.assert_called()

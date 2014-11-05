@@ -11,7 +11,7 @@ from twisted.python import usage, reflect
 from ooni import otime
 from ooni.tasks import Measurement
 from ooni.utils import log, sanitize_options
-from ooni.utils.txscapy import hasRawSocketPermission
+from ooni.utils.net import hasRawSocketPermission
 from ooni.settings import config
 
 from ooni import errors as e

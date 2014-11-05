@@ -1,21 +1,18 @@
-import socket
 import sys
 import time
 import random
-
 from twisted.internet import fdesc
 from twisted.internet import reactor
 from twisted.internet import defer, abstract
-
 from scapy.config import conf
 from scapy.all import RandShort, IP, IPerror, ICMP, ICMPerror, TCP, TCPerror, UDP, UDPerror
 
+from ooni.errors import ProtocolNotRegistered, ProtocolAlreadyRegistered, LibraryNotInstalledError
+
 from ooni.utils import log
+
+from ooni.utils.net import getDefaultIface, getAddresses
 from ooni.settings import config
-
-
-class LibraryNotInstalledError(Exception):
-    pass
 
 
 def pcapdnet_installed():
@@ -81,68 +78,6 @@ else:
     PcapWriter = DummyPcapWriter
 
 from scapy.all import Gen, SetGen, MTU
-
-
-def getNetworksFromRoutes():
-    """ Return a list of networks from the routing table """
-    from scapy.all import conf, ltoa, read_routes
-    from ipaddr import IPNetwork, IPAddress
-
-    # # Hide the 'no routes' warnings
-    conf.verb = 0
-
-    networks = []
-    for nw, nm, gw, iface, addr in read_routes():
-        n = IPNetwork(ltoa(nw))
-        (n.netmask, n.gateway, n.ipaddr) = [IPAddress(x) for x in [nm, gw, addr]]
-        n.iface = iface
-        if not n.compressed in networks:
-            networks.append(n)
-
-    return networks
-
-
-class IfaceError(Exception):
-    pass
-
-
-def getAddresses():
-    from scapy.all import get_if_addr, get_if_list
-    from ipaddr import IPAddress
-
-    addresses = set()
-    for i in get_if_list():
-        try:
-            addresses.add(get_if_addr(i))
-        except:
-            pass
-    if '0.0.0.0' in addresses:
-        addresses.remove('0.0.0.0')
-    return [IPAddress(addr) for addr in addresses]
-
-
-def getDefaultIface():
-    """ Return the default interface or raise IfaceError """
-    iface = conf.route.route('0.0.0.0', verbose=0)[0]
-    if len(iface) > 0:
-        return iface
-    raise IfaceError
-
-
-def hasRawSocketPermission():
-    try:
-        socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.IPPROTO_RAW)
-        return True
-    except socket.error:
-        return False
-
-
-class ProtocolNotRegistered(Exception):
-    pass
-
-
-class ProtocolAlreadyRegistered(Exception):
-    pass
 
 
 class ScapyFactory(abstract.FileDescriptor):

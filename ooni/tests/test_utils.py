@@ -1,7 +1,7 @@
 import os
 from twisted.trial import unittest
 
-from ooni.utils import pushFilenameStack, log, generate_filename
+from ooni.utils import pushFilenameStack, log, generate_filename, net
 
 
 class TestUtils(unittest.TestCase):
@@ -71,3 +71,7 @@ class TestUtils(unittest.TestCase):
     def test_generate_filename_with_extension_and_basename(self):
         filename = generate_filename(self.test_details, extension=self.extension, filename=self.basename)
         self.assertEqual(filename, 'filename.ext')
+
+    def test_get_addresses(self):
+        addresses = net.getAddresses()
+        assert isinstance(addresses, list)

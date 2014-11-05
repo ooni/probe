@@ -1,9 +1,9 @@
 from ooni.nettest import NetTestCase
 from ooni.utils import log
 from ooni.settings import config
+from ooni.utils.net import hasRawSocketPermission
 
 from ooni.utils.txscapy import ScapySender, ScapyFactory
-from ooni.utils.txscapy import hasRawSocketPermission
 
 
 class BaseScapyTest(NetTestCase):
