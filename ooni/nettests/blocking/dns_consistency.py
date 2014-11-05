@@ -118,7 +118,7 @@ class DNSConsistencyTest(dnst.DNSTest):
             log.err(
                 "Got no response from control DNS server %s:%d, "
                 "perhaps the DNS resolver is down?" %
-                self.control_dns_server[0])
+                self.control_dns_server)
             self.report['tampering'][
                 "%s:%d" %
                 self.control_dns_server] = 'no_answer'
