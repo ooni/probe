@@ -78,7 +78,10 @@ else:
 class Filter(object):
     def __init__(self):
         self.rules = {}
-        self._ip_regex = re.compile('([0-9]{1,3}\.){3}[0-9]{1,3}$')
+        self._ip_regex = re.compile(r'([0-9]{1,3}\.){3}[0-9]{1,3}$')
+
+    def get_rules(self):
+        return self.rules
 
     def add_ip_rule(self, dst=None, src=None):
         self.rules['dst'] = dst
@@ -126,25 +129,24 @@ class Filter(object):
             matches.append(sport == self.rules['sport'])
 
         if 'http_url' in self.rules:
-            payload = packet.payload.payload.original
             splitted = self.rules['http_url'].split('/')
             if 'http' in splitted[0]:
                 host = splitted[2]
-                resource = '/'.join(splitted[3:])
+                resource = '/' + '/'.join(splitted[3:])
             else:
                 host = splitted[0]
-                resource = '/'.join(splitted[1:])
+                resource = '/' + '/'.join(splitted[1:])
 
-            # This is too unrestricted
-            if len(resource) == 0:
-                if re.match(self._ip_regex, host):
-                    dst = packet.fields['dst']
-                    matches.append(dst == host)
-                else:
-                    has_http_method = re.match('(GET|POST|PUT|HEAD|PUT|DELETE)', payload)
-                    matches.append(has_http_method is not None)
-            elif len(resource) > 0:
-                matches.append(resource in payload)
+            payload = packet.payload.payload.original
+            if re.match(self._ip_regex, host):
+                dst = packet.fields['dst']
+                matches.append(dst == host and 'HTTP' in payload)
+            else:
+                has_resource = re.search(r'(GET|POST|PUT|HEAD|PUT|DELETE) %s' % resource, payload)
+                if 'www.' in host:
+                    host = host[4:]
+                has_host = re.search(r'Host: (www\.)?%s' % host, payload)
+                matches.append(has_resource is not None and has_host is not None)
         elif 'dns_host' in self.rules:
             payload = packet.payload.payload.original
             url = self.rules['dns_host'].split('.')
@@ -167,6 +169,9 @@ class ScapySniffer(ScapyProtocol):
     def del_filter(self, filter):
         if filter in self._filters:
             self._filters.remove(filter)
+
+    def get_filters(self):
+        return self._filters
 
     def packetReceived(self, packet):
         try:
