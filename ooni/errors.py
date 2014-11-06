@@ -331,3 +331,19 @@ def get_error(error_key):
         return Error("%d" % error_key)
     else:
         return OONIBError
+
+
+class IfaceError(Exception):
+    pass
+
+
+class ProtocolNotRegistered(Exception):
+    pass
+
+
+class ProtocolAlreadyRegistered(Exception):
+    pass
+
+
+class LibraryNotInstalledError(Exception):
+    pass

@@ -14,7 +14,7 @@ from ooni.deck import Deck, nettest_to_path
 from ooni.nettest import NetTestLoader
 
 from ooni.utils import log
-from ooni.utils.txscapy import hasRawSocketPermission
+from ooni.utils.net import hasRawSocketPermission
 
 
 class Options(usage.Options):

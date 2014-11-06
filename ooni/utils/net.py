@@ -6,6 +6,9 @@ from zope.interface import implements
 from twisted.internet import protocol, defer
 from twisted.web.iweb import IBodyProducer
 
+from scapy.config import conf
+
+from ooni.errors import IfaceError
 
 try:
     from twisted.internet.endpoints import connectProtocol
@@ -136,3 +139,34 @@ def randomFreePort(addr="127.0.0.1"):
             pass
         s.close()
     return port
+
+
+def getDefaultIface():
+    """ Return the default interface or raise IfaceError """
+    iface = conf.route.route('0.0.0.0', verbose=0)[0]
+    if len(iface) > 0:
+        return iface
+    raise IfaceError
+
+
+def getAddresses():
+    from scapy.all import get_if_addr, get_if_list
+    from ipaddr import IPAddress
+
+    addresses = set()
+    for i in get_if_list():
+        try:
+            addresses.add(get_if_addr(i))
+        except:
+            pass
+    if '0.0.0.0' in addresses:
+        addresses.remove('0.0.0.0')
+    return [IPAddress(addr) for addr in addresses]
+
+
+def hasRawSocketPermission():
+    try:
+        socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.IPPROTO_RAW)
+        return True
+    except socket.error:
+        return False
