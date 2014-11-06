@@ -1,3 +1,5 @@
+import os
+
 from ooni.settings import config
 from ooni.utils import unzip, gunzip
 
@@ -24,15 +26,22 @@ inputs = {
 }
 
 geoip = {
+    "GeoLiteCity.dat.gz": {
+        "url": "https://geolite.maxmind.com/download/"
+               "geoip/database/GeoLiteCity.dat.gz",
+        "action": gunzip,
+        "action_args": [config.advanced.geoip_data_dir],
+        "processor": None
+    },
     "GeoIPASNum.dat.gz": {
-        "url": "http://www.maxmind.com/download/"
+        "url": "https://geolite.maxmind.com/download/"
                "geoip/database/asnum/GeoIPASNum.dat.gz",
         "action": gunzip,
         "action_args": [config.advanced.geoip_data_dir],
         "processor": None
     },
     "GeoIP.dat.gz": {
-        "url": "http://geolite.maxmind.com/"
+        "url": "https://geolite.maxmind.com/"
                "download/geoip/database/GeoLiteCountry/GeoIP.dat.gz",
         "action": gunzip,
         "action_args": [config.advanced.geoip_data_dir],

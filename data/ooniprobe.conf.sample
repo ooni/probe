@@ -4,7 +4,7 @@
 
 basic:
     # Where OONIProbe should be writing it's log file
-    logfile: ~/.ooni/ooniprobe.log
+    logfile: /var/log/ooniprobe.log
 privacy:
     # Should we include the IP address of the probe in the report?
     includeip: false
@@ -46,7 +46,7 @@ advanced:
     # How many reports to perform concurrently
     reporting_concurrency: 15
     # Specify here a custom data_dir path
-    data_dir: /usr/share/ooni
+    data_dir: /var/lib/ooni
     oonid_api_port: 8042
 tor:
     #socks_port: 8801
