@@ -103,6 +103,7 @@ class HTTPTest(NetTestCase):
                         "This may make the testing less precise.")
 
         self.processInputs()
+        self.__sniffer_filter = None
         log.debug("Finished test setup")
 
     def randomize_useragent(self, request):
@@ -155,12 +156,16 @@ class HTTPTest(NetTestCase):
         else:
             self.processResponseBody(response_body)
         response.body = response_body
+        if self.__sniffer_filter is not None:
+            self.sniffer.del_filter(self.__sniffer_filter)
         return response
 
     def _processResponseBodyFail(self, failure, request, response):
         failure_string = handleAllFailures(failure)
         HTTPTest.addToReport(self, request, response,
                              failure_string=failure_string)
+        if self.__sniffer_filter is not None:
+            self.sniffer.del_filter(self.__sniffer_filter)
         return response
 
     def processResponseBody(self, body):
@@ -224,8 +229,6 @@ class HTTPTest(NetTestCase):
                 be called.
 
         """
-        if self.sniffer is not None:
-            self.sniffer.del_filter(self.__sniffer_filter)
         if not response:
             log.err("Got no response for request %s" % request)
             HTTPTest.addToReport(self, request, response)
@@ -301,7 +304,7 @@ class HTTPTest(NetTestCase):
             log.debug("Using SOCKS proxy %s for request" % (self.localOptions['socksproxy']))
 
         log.debug("Performing request %s %s %s" % (url, method, headers))
-        if self.sniffer is not None:
+        if self.sniffer is not None and not use_tor:
             self.__sniffer_filter = Filter()
             self.__sniffer_filter.add_http_rule(url)
             self.sniffer.add_filter(self.__sniffer_filter)
@@ -334,8 +337,6 @@ class HTTPTest(NetTestCase):
         headers = TrueHeaders(request['headers'])
 
         def errback(failure, request):
-            if self.sniffer is not None:
-                self.sniffer.del_filter(self.__sniffer_filter)
             if request['tor']['is_tor']:
                 log.err("Error performing torified request: %s" % request['url'])
             else:

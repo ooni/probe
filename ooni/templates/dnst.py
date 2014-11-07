@@ -176,10 +176,10 @@ class DNSTest(NetTestCase):
                     addrs.append(addr)
                 answers.append(representAnswer(answer))
 
-            if self.sniffer is not None:
-                self.sniffer.del_filter(self.__sniffer_filter)
             DNSTest.addToReport(self, query, resolver=dns_server, query_type=dns_type,
                                 answers=answers, addrs=addrs)
+            if self.sniffer is not None:
+                self.sniffer.del_filter(self.__sniffer_filter)
             return addrs
 
         def gotError(failure):

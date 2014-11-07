@@ -201,7 +201,7 @@ class Director(object):
         test_name = test_class_name_to_name(measurement.testInstance.name)
         if test_name in self.sniffers:
             sniffer = self.sniffers[test_name]
-            config.scapyFactory.unRegisterProtocol(sniffer)
+            config.snifferFactory.unRegisterProtocol(sniffer)
             sniffer.close()
             del self.sniffers[test_name]
         return measurement
@@ -280,7 +280,7 @@ class Director(object):
 
         sniffer = ScapySniffer(filename_pcap)
         self.sniffers[testDetails['test_name']] = sniffer
-        config.scapyFactory.registerProtocol(sniffer)
+        config.snifferFactory.registerProtocol(sniffer)
         log.msg("Starting packet capture to: %s" % filename_pcap)
 
     @defer.inlineCallbacks

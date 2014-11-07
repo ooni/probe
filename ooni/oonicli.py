@@ -16,6 +16,8 @@ from ooni.nettest import NetTestLoader
 from ooni.utils import log
 from ooni.utils.net import hasRawSocketPermission
 
+from scapy.all import conf
+
 
 class Options(usage.Options):
     synopsis = """%s [options] [path to test].py
@@ -128,7 +130,7 @@ def runWithDirector(logging=True, start_tor=True, check_incoherences=True):
     if config.privacy.includepcap:
         if hasRawSocketPermission():
             from ooni.utils.txscapy import ScapyFactory
-            config.scapyFactory = ScapyFactory(config.advanced.interface)
+            config.snifferFactory = ScapyFactory(config.advanced.interface, super_socket=conf.L2listen())
         else:
             log.err("Insufficient Privileges to capture packets."
                     " See ooniprobe.conf privacy.includepcap")

@@ -145,7 +145,7 @@ class Filter(object):
                 has_resource = re.search(r'(GET|POST|PUT|HEAD|PUT|DELETE) %s' % resource, payload)
                 if 'www.' in host:
                     host = host[4:]
-                has_host = re.search(r'Host: (www\.)?%s' % host, payload)
+                has_host = re.search(r'[Hh]ost: (www\.)?%s' % host, payload)
                 matches.append(has_resource is not None and has_host is not None)
         elif 'dns_host' in self.rules:
             payload = packet.payload.payload.original
@@ -173,12 +173,13 @@ class ScapySniffer(ScapyProtocol):
     def get_filters(self):
         return self._filters
 
-    def packetReceived(self, packet):
+    def packetReceived(self, L2packet):
+        L3packet = L2packet.payload
         try:
-            src = packet.fields['src']
-            dst = packet.fields['dst']
-            sport = packet.payload.fields['sport']
-            dport = packet.payload.fields['dport']
+            src = L3packet.fields['src']
+            dst = L3packet.fields['dst']
+            sport = L3packet.payload.fields['sport']
+            dport = L3packet.payload.fields['dport']
         except KeyError:
             return
 
@@ -191,14 +192,14 @@ class ScapySniffer(ScapyProtocol):
 
         if not selected:
             for filter in self._filters:
-                if filter.matches(packet):
+                if filter.matches(L3packet):
                     selected = True
                     conn = {'src': src, 'dst': dst, 'sport': sport, 'dport': dport}
                     self._conns.append(conn)
                     break
 
         if selected:
-            self.pcapwriter.write(packet)
+            self.pcapwriter.write(L3packet)
 
     def close(self):
         self.pcapwriter.close()

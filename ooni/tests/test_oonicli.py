@@ -181,4 +181,4 @@ class TestRunDirector(ConfigTestCase):
         yield self.run_helper('blocking/http_requests',
                               ['-f', 'example-input.txt'],
                               verify_function, ooni_args=['-f', conf_file])
-        config.scapyFactory.connectionLost('')
+        config.snifferFactory.connectionLost('')

@@ -1,7 +1,7 @@
 import re
 import os
 
-from scapy.all import IP, TCP
+from scapy.all import IP, TCP, Ether
 from ooni.sniffer import ScapySniffer, pcapdnet_installed, Filter
 
 from twisted.trial.unittest import TestCase
@@ -70,10 +70,10 @@ class TestSniffer(TestCase):
     def test_sniffer_http_correct(self):
         pcap_filename = 'sniffer.pcap'
         self.filenames.append(pcap_filename)
-        packet = IP(src='10.0.2.1', dst='10.0.2.2') / TCP(dport=80, sport=8080)
-        packet.payload.payload.original = "Host: torproject.org\r\n" \
-                                          "MORE USEFUL HEADERS\r\n" \
-                                          "GET /something/fancy HTTP/1.0\r\n\r\n"
+        packet = Ether() / IP(src='10.0.2.1', dst='10.0.2.2') / TCP(dport=80, sport=8080)
+        packet.payload.payload.payload.original = "Host: torproject.org\r\n" \
+                                                  "MORE USEFUL HEADERS\r\n" \
+                                                  "GET /something/fancy HTTP/1.0\r\n\r\n"
         sniffer = ScapySniffer(pcap_filename)
         filter = Filter()
         filter.add_http_rule('www.torproject.org/something/fancy')
@@ -88,16 +88,16 @@ class TestSniffer(TestCase):
         size = os.stat(pcap_filename).st_size
         self.assertGreater(size, 0)
 
-        packet = IP(src='10.0.2.2', dst='10.0.2.1') / TCP(dport=8080, sport=80)
-        packet.payload.payload.original = "Response with the web page"
+        packet = Ether() / IP(src='10.0.2.2', dst='10.0.2.1') / TCP(dport=8080, sport=80)
+        packet.payload.payload.payload.original = "Response with the web page"
         sniffer.packetReceived(packet)
         self.assertEqual(size, os.stat(pcap_filename).st_size)
 
     def test_sniffer_http_with_www(self):
         pcap_filename = 'sniffer.pcap'
         self.filenames.append(pcap_filename)
-        packet = IP(src='10.0.2.1', dst='10.0.2.2') / TCP(dport=80, sport=8080)
-        packet.payload.payload.original = "Host: www.torproject.org\r\n" \
+        packet = Ether() / IP(src='10.0.2.1', dst='10.0.2.2') / TCP(dport=80, sport=8080)
+        packet.payload.payload.payload.original = "Host: www.torproject.org\r\n" \
                                           "MORE USEFUL HEADERS\r\n" \
                                           "GET /something/fancy HTTP/1.0\r\n\r\n"
         sniffer = ScapySniffer(pcap_filename)
@@ -113,8 +113,8 @@ class TestSniffer(TestCase):
     def test_sniffer_http_empty_resource(self):
         pcap_filename = 'sniffer.pcap'
         self.filenames.append(pcap_filename)
-        packet = IP(src='10.0.2.1', dst='10.0.2.2') / TCP(dport=80, sport=8080)
-        packet.payload.payload.original = "Host: torproject.org\r\n" \
+        packet = Ether() / IP(src='10.0.2.1', dst='10.0.2.2') / TCP(dport=80, sport=8080)
+        packet.payload.payload.payload.original = "Host: torproject.org\r\n" \
                                           "MORE USEFUL HEADERS\r\n" \
                                           "GET / HTTP/1.0\r\n\r\n"
         sniffer = ScapySniffer(pcap_filename)
@@ -130,8 +130,8 @@ class TestSniffer(TestCase):
     def test_sniffer_http_invalid_resource(self):
         pcap_filename = 'sniffer.pcap'
         self.filenames.append(pcap_filename)
-        packet = IP(src='10.0.2.1', dst='10.0.2.2') / TCP(dport=80, sport=8080)
-        packet.payload.payload.original = "Host: torproject.org\r\n" \
+        packet = Ether() / IP(src='10.0.2.1', dst='10.0.2.2') / TCP(dport=80, sport=8080)
+        packet.payload.payload.payload.original = "Host: torproject.org\r\n" \
                                           "MORE USEFUL HEADERS\r\n" \
                                           "GET /something/weird HTTP/1.0\r\n\r\n"
         sniffer = ScapySniffer(pcap_filename)
@@ -146,8 +146,8 @@ class TestSniffer(TestCase):
     def test_sniffer_http_invalid_host(self):
         pcap_filename = 'sniffer.pcap'
         self.filenames.append(pcap_filename)
-        packet = IP(src='10.0.2.1', dst='10.0.2.2') / TCP(dport=80, sport=8080)
-        packet.payload.payload.original = "Host: wired.org\r\n" \
+        packet = Ether() / IP(src='10.0.2.1', dst='10.0.2.2') / TCP(dport=80, sport=8080)
+        packet.payload.payload.payload.original = "Host: wired.org\r\n" \
                                           "MORE USEFUL HEADERS\r\n" \
                                           "GET /something/fancy HTTP/1.0\r\n\r\n"
         sniffer = ScapySniffer(pcap_filename)
@@ -163,8 +163,8 @@ class TestSniffer(TestCase):
         pcap_filename = 'sniffer.pcap'
         self.filenames.append(pcap_filename)
 
-        packet = IP(src='10.0.2.1', dst='10.0.2.2') / TCP(dport=80, sport=8080)
-        packet.payload.payload.original = "Host: torproject.org\r\n" \
+        packet = Ether() / IP(src='10.0.2.1', dst='10.0.2.2') / TCP(dport=80, sport=8080)
+        packet.payload.payload.payload.original = "Host: torproject.org\r\n" \
                                           "MORE USEFUL HEADERS\r\n"
         sniffer = ScapySniffer(pcap_filename)
         filter = Filter()
@@ -175,8 +175,8 @@ class TestSniffer(TestCase):
         size = os.stat(pcap_filename).st_size
         self.assertEqual(size, 0)
 
-        packet = IP(src='10.0.2.1', dst='10.0.2.2') / TCP(dport=80, sport=8080)
-        packet.payload.payload.original = "MORE USEFUL HEADERS\r\n" \
+        packet = Ether() / IP(src='10.0.2.1', dst='10.0.2.2') / TCP(dport=80, sport=8080)
+        packet.payload.payload.payload.original = "MORE USEFUL HEADERS\r\n" \
                                           "GET /something/fancy HTTP/1.0\r\n\r\n"
         sniffer.packetReceived(packet)
         self.assertEqual(len(sniffer._conns), 0)
@@ -186,8 +186,8 @@ class TestSniffer(TestCase):
     def test_sniffer_http_with_http(self):
         pcap_filename = 'sniffer.pcap'
         self.filenames.append(pcap_filename)
-        packet = IP(src='10.0.2.2', dst='10.0.2.1') / TCP(dport=8080, sport=80)
-        packet.payload.payload.original = "Host: torproject.org\r\n" \
+        packet = Ether() / IP(src='10.0.2.2', dst='10.0.2.1') / TCP(dport=8080, sport=80)
+        packet.payload.payload.payload.original = "Host: torproject.org\r\n" \
                                           "MORE USEFUL HEADERS\r\n" \
                                           "GET /something/fancy HTTP/1.0\r\n\r\n"
         sniffer = ScapySniffer(pcap_filename)
@@ -203,8 +203,7 @@ class TestSniffer(TestCase):
     def test_sniffer_http_ip_dst(self):
         pcap_filename = 'sniffer.pcap'
         self.filenames.append(pcap_filename)
-        packet = IP(src='10.0.2.1', dst='10.0.2.2') / TCP(dport=8080, sport=80)
-        packet.payload.payload.original = "GET / HTTP/1.0\r\n\r\n"
+        packet = Ether() / IP(src='10.0.2.1', dst='10.0.2.2') / TCP(dport=8080, sport=80)
         sniffer = ScapySniffer(pcap_filename)
         filter = Filter()
         filter.add_http_rule('http://10.0.2.2')
@@ -215,8 +214,7 @@ class TestSniffer(TestCase):
         size = os.stat(pcap_filename).st_size
         self.assertGreater(size, 0)
 
-        packet = IP(src='10.0.2.1', dst='10.0.2.32') / TCP(dport=8080, sport=80)
-        packet.payload.payload.original = "GET / HTTP/1.0\r\n\r\n"
+        packet = Ether() / IP(src='10.0.2.1', dst='10.0.2.32') / TCP(dport=8080, sport=80)
         sniffer.packetReceived(packet)
         self.assertEqual(size, os.stat(pcap_filename).st_size)
 
