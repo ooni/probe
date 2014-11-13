@@ -44,6 +44,7 @@ class install(_st_install):
                 ]
             )
         settings = SafeConfigParser()
+        settings.add_section("directories")
         settings.set("directories", "data_dir",
                      os.path.join(share_path, "ooni"))
         with open("ooni/settings.ini", "w+") as fp:
