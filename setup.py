@@ -5,6 +5,7 @@ from ooni import __version__, __author__
 import os
 import sys
 import tempfile
+from ConfigParser import SafeConfigParser
 
 from os.path import join as pj
 from setuptools import setup
@@ -42,6 +43,13 @@ class install(_st_install):
                     files
                 ]
             )
+        settings = SafeConfigParser()
+        with open("ooni/settings.ini") as fp:
+            settings.readfp(fp)
+        settings.set("directories", "data_dir",
+                     os.path.join(share_path, "ooni"))
+        with open("ooni/settings.ini", "w+") as fp:
+            settings.write(fp)
 
     def run(self):
         share_path = os.path.abspath(pj(self.prefix, 'share'))
@@ -98,6 +106,7 @@ setup(
     package_dir={'ooni': 'ooni'},
     data_files=data_files,
     packages=packages,
+    include_package_data = True,
     scripts=["bin/oonideckgen", "bin/ooniprobe",
              "bin/oonireport", "bin/ooniresources"],
     dependency_links=dependency_links,

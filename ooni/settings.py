@@ -43,17 +43,18 @@ class OConfig(object):
         else:
             embedded_settings = os.path.join(get_ooni_root(), 'settings.ini')
             settings = SafeConfigParser()
-            settings.readfp(open(embedded_settings))
+            with open(embedded_settings) as fp:
+                settings.readfp(fp)
             return os.path.abspath(settings.get("directories", "data_dir"))
-        #return abspath(os.path.join(__file__, '..', '..', 'data'))
 
     def set_paths(self, ooni_home=None):
         if ooni_home:
             self._custom_home = ooni_home
 
-        self.nettest_directory = abspath(os.path.join(__file__, '..', 'nettests'))
+        self.nettest_directory = os.path.join(get_ooni_root(), 'nettests')
 
-        self.ooni_home = os.path.join(expanduser('~'+self.current_user), '.ooni')
+        self.ooni_home = os.path.join(expanduser('~'+self.current_user),
+                                      '.ooni')
         if self._custom_home:
             self.ooni_home = self._custom_home
         self.inputs_directory = os.path.join(self.ooni_home, 'inputs')
