@@ -149,8 +149,5 @@ setup(
 
 from subprocess import Popen, PIPE
 process = Popen(['ooniresources', '--update-inputs', '--update-geoip'],
-                stdout=PIPE, stderr=PIPE)
-while process.poll() is None:
-    out = process.stdout.read()
-    sys.stdout.write(out)
-    sys.stdout.flush()
+                stdout=sys.stdout.fileno(), stderr=sys.stderr.fileno())
+process.wait()

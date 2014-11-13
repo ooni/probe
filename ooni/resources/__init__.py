@@ -1,11 +1,10 @@
-import os
-
 from ooni.settings import config
 from ooni.utils import unzip, gunzip
 
 from ooni.deckgen.processors import citizenlab_test_lists
 from ooni.deckgen.processors import namebench_dns_servers
 
+config.initialize_ooni_home()
 config.read_config_file()
 
 __version__ = "0.0.1"
