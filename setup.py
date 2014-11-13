@@ -44,8 +44,6 @@ class install(_st_install):
                 ]
             )
         settings = SafeConfigParser()
-        with open("ooni/settings.ini") as fp:
-            settings.readfp(fp)
         settings.set("directories", "data_dir",
                      os.path.join(share_path, "ooni"))
         with open("ooni/settings.ini", "w+") as fp:
@@ -106,7 +104,7 @@ setup(
     package_dir={'ooni': 'ooni'},
     data_files=data_files,
     packages=packages,
-    include_package_data = True,
+    include_package_data=True,
     scripts=["bin/oonideckgen", "bin/ooniprobe",
              "bin/oonireport", "bin/ooniresources"],
     dependency_links=dependency_links,

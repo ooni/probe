@@ -34,18 +34,19 @@ class OConfig(object):
 
     @property
     def data_directory(self):
+        embedded_settings = os.path.join(get_ooni_root(), 'settings.ini')
         if os.getenv("OONI_DATA_DIR"):
             return os.getenv("OONI_DATA_DIR")
         elif self.global_options.get('datadir'):
             return abspath(expanduser(self.global_options['datadir']))
         elif self.advanced.get('data_dir'):
             return self.advanced['data_dir']
-        else:
-            embedded_settings = os.path.join(get_ooni_root(), 'settings.ini')
+        elif os.path.isfile(embedded_settings):
             settings = SafeConfigParser()
             with open(embedded_settings) as fp:
                 settings.readfp(fp)
             return os.path.abspath(settings.get("directories", "data_dir"))
+        return abspath(os.path.join(get_ooni_root(), '..', 'data'))
 
     def set_paths(self, ooni_home=None):
         if ooni_home:
