@@ -42,7 +42,7 @@ class Storage(dict):
         try:
             del self[key]
         except KeyError, k:
-            raise AttributeError, k
+            raise AttributeError(k)
 
     def __repr__(self):
         return '<Storage ' + dict.__repr__(self) + '>'
@@ -171,3 +171,8 @@ def gunzip(filename, dst):
         gzip_file = gzip.open(filename)
         shutil.copyfileobj(gzip_file, fw)
         gzip_file.close()
+
+
+def get_ooni_root():
+    script = os.path.join(__file__, '..')
+    return os.path.dirname(os.path.realpath(script))
