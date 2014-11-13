@@ -3,6 +3,7 @@ import sys
 from twisted.internet import defer
 from twisted.python import usage
 
+from ooni.settings import config
 from ooni.utils import log
 
 from ooni.resources import __version__
@@ -38,6 +39,8 @@ def run():
         print options
         sys.exit(1)
 
+    config.initialize_ooni_home()
+    config.read_config_file()
     if options['update-inputs']:
         print "Downloading inputs"
         try:

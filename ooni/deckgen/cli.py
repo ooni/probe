@@ -155,6 +155,7 @@ def run():
                               "deck-%s" % options['country-code'])
     options['output'] = output_dir
 
+    config.initialize_ooni_home()
     config.read_config_file()
 
     try:
