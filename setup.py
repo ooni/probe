@@ -97,7 +97,7 @@ setup(
     name="ooniprobe",
     version=__version__,
     author=__author__,
-    author_email="ooni-dev@torproject.org",
+    author_email="ooni-dev@lists.torproject.org",
     description="Network Interference detection tool.",
     long_description=readme + '\n\n' + changelog,
     license='BSD 2 clause',
