@@ -4,6 +4,7 @@ from ooni.utils import unzip, gunzip
 from ooni.deckgen.processors import citizenlab_test_lists
 from ooni.deckgen.processors import namebench_dns_servers
 
+config.initialize_ooni_home()
 config.read_config_file()
 
 __version__ = "0.0.1"
@@ -24,15 +25,22 @@ inputs = {
 }
 
 geoip = {
+    "GeoLiteCity.dat.gz": {
+        "url": "https://geolite.maxmind.com/download/"
+               "geoip/database/GeoLiteCity.dat.gz",
+        "action": gunzip,
+        "action_args": [config.advanced.geoip_data_dir],
+        "processor": None
+    },
     "GeoIPASNum.dat.gz": {
-        "url": "http://www.maxmind.com/download/"
+        "url": "https://geolite.maxmind.com/download/"
                "geoip/database/asnum/GeoIPASNum.dat.gz",
         "action": gunzip,
         "action_args": [config.advanced.geoip_data_dir],
         "processor": None
     },
     "GeoIP.dat.gz": {
-        "url": "http://geolite.maxmind.com/"
+        "url": "https://geolite.maxmind.com/"
                "download/geoip/database/GeoLiteCountry/GeoIP.dat.gz",
         "action": gunzip,
         "action_args": [config.advanced.geoip_data_dir],

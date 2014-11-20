@@ -1,7 +1,7 @@
 import os
-import sys
 import yaml
 import getpass
+from ConfigParser import SafeConfigParser
 
 from twisted.internet import defer, reactor
 from twisted.internet.endpoints import TCP4ClientEndpoint
@@ -10,7 +10,7 @@ from os.path import abspath, expanduser
 
 from ooni.utils.net import ConnectAndCloseProtocol, connectProtocol
 from ooni import geoip
-from ooni.utils import Storage, log
+from ooni.utils import Storage, log, get_ooni_root
 from ooni import errors
 
 
@@ -34,28 +34,28 @@ class OConfig(object):
 
     @property
     def data_directory(self):
-        data_directory = abspath(os.path.join(__file__, '..', '..', 'data'))
-
+        embedded_settings = os.path.join(get_ooni_root(), 'settings.ini')
         if os.getenv("OONI_DATA_DIR"):
-            data_directory = os.getenv("OONI_DATA_DIR")
+            return os.getenv("OONI_DATA_DIR")
         elif self.global_options.get('datadir'):
-            data_directory = abspath(expanduser(self.global_options['datadir']))
+            return abspath(expanduser(self.global_options['datadir']))
         elif self.advanced.get('data_dir'):
-            data_directory = self.advanced['data_dir']
-        elif hasattr(sys, 'real_prefix'):
-            data_directory = os.path.abspath(os.path.join(sys.prefix, 'share', 'ooni'))
-        elif not os.path.exists(data_directory):
-            data_directory = '/usr/share/ooni/'
-
-        return data_directory
+            return self.advanced['data_dir']
+        elif os.path.isfile(embedded_settings):
+            settings = SafeConfigParser()
+            with open(embedded_settings) as fp:
+                settings.readfp(fp)
+            return os.path.abspath(settings.get("directories", "data_dir"))
+        return abspath(os.path.join(get_ooni_root(), '..', 'data'))
 
     def set_paths(self, ooni_home=None):
         if ooni_home:
             self._custom_home = ooni_home
 
-        self.nettest_directory = abspath(os.path.join(__file__, '..', 'nettests'))
+        self.nettest_directory = os.path.join(get_ooni_root(), 'nettests')
 
-        self.ooni_home = os.path.join(expanduser('~'+self.current_user), '.ooni')
+        self.ooni_home = os.path.join(expanduser('~'+self.current_user),
+                                      '.ooni')
         if self._custom_home:
             self.ooni_home = self._custom_home
         self.inputs_directory = os.path.join(self.ooni_home, 'inputs')
@@ -94,19 +94,14 @@ class OConfig(object):
     def _create_config_file(self):
         target_config_file = self.config_file
         print "Creating it for you in '%s'." % target_config_file
-        usr_share_path = '/usr/share'
-        if hasattr(sys, 'real_prefix'):
-            usr_share_path = os.path.abspath(os.path.join(sys.prefix, 'share'))
         sample_config_file = os.path.join(self.data_directory,
                                           'ooniprobe.conf.sample')
 
         with open(sample_config_file) as f:
             with open(target_config_file, 'w+') as w:
                 for line in f:
-                    if line.startswith('    data_dir: '):
-                        w.write('    data_dir: %s\n' % self.data_directory)
-                    elif line.startswith('    geoip_data_dir: '):
-                        w.write('    geoip_data_dir: %s\n' % os.path.join(usr_share_path, 'GeoIP'))
+                    if line.startswith('    logfile: '):
+                        w.write('    logfile: %s\n' % os.path.join(self.ooni_home, 'ooniprobe.log'))
                     else:
                         w.write(line)
 
@@ -178,3 +173,7 @@ class OConfig(object):
             self.log_incoherences(incoherent)
 
 config = OConfig()
+if not os.path.isfile(config.config_file) \
+       and os.path.isfile('/etc/ooni/ooniprobe.conf'):
+    config.global_options['configfile'] = '/etc/ooniprobe.conf'
+    config.set_paths(ooni_home=config.advanced.data_dir)
