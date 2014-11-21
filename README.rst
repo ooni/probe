@@ -47,20 +47,37 @@ probe is a liability for you, please be aware of this risk.
 OONI in 5 minutes
 =================
 
-On debian testing or unstable::
+Installation with Apt or Pip
+----------------------------
+    Install with Apt
+    -----------------
+Debian testing or unstable::
 
     sudo apt-get install ooniprobe
 
-If you are running debian stable you can get it from backports via::
+If you are running debian stable you can get it from backports. 
+Note this is version 1.1 and does not include ooniresources.
+The current version is here: packages.debian.org/testing/ooniprobe
 
     sudo sh -c 'echo "deb http://http.debian.net/debian wheezy-backports main" >> /etc/apt/sources.list'
     sudo apt-get update && sudo apt-get install ooniprobe
 
-On unix systems::
+    Install with Pip
+    ----------------
 
     sudo pip install ooniprobe
 
 To install it from the current master run::
+This current master is out of date! Use the one from PyPI.
+Prerequisites: 
+*build-essential
+*python-dev
+*python-setuptools
+*libdumbnet-dev
+*libgeoip-dev
+*libpcap0.8-dev
+*libssl-dev
+*libffi-dev
 
     sudo pip install https://github.com/TheTorProject/ooni-probe/archive/master.zip
 
