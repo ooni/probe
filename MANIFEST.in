@@ -1,12 +1,5 @@
 include README.rst ChangeLog.rst requirements.txt LICENSE
 recursive-include data/decks *
 include data/inputs/
-include data/GeoIP.dat
-include data/GeoIPASNum.dat
-include data/GeoLiteCity.dat
 include data/ooniprobe.conf.sample
-include data/oonideckgen.1
-include data/ooniprobe.1
-include data/oonireport.1
-include data/ooniresources.1
 include ooni/settings.ini
