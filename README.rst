@@ -45,24 +45,26 @@ from forensics analysis.  If the fact that you have installed or used ooni
 probe is a liability for you, please be aware of this risk.
 
 OONI in 5 minutes
-================
+=================
 Installation (Quick)
 --------------------
 
 Quick instructions for Git, Apt, or Pip. See Installation (below) for details on each, plus Vagrant.
 
-    Git::
+   Git::
 
     git clone https://git.torproject.org/ooni-probe.git
     cd ooni-probe
     ./setup-dependencies.sh
     python setup.py install
     
-    Apt::
+   Apt::
+
     sudo sh -c 'echo "deb http://http.debian.net/debian wheezy-backports main" >> /etc/apt/sources.list'
     sudo apt-get update && sudo apt-get install ooniprobe
 
-    Pip::
+   Pip::
+    
     sudo pip install https://pypi.python.org/packages/source/o/ooniprobe/ooniprobe-1.2.2.tar.gz
     
 Run
@@ -73,6 +75,7 @@ Try an individual test like this::
     ooniprobe blocking/http_requests -f /ooni/example_inputs/alexa-top-1k.txt
 
 Try a "deck" of tests like this::
+
     mkdir my_decks
     sudo ooniresources --update-inputs --update-geoip
     oonideckgen -o my_decks/
@@ -94,14 +97,14 @@ Prerequisites
 Depending on what is installed on your system, your installation may go flawlessly. 
 If not, check for these prerequisites::
 
-*build-essential
-*python-dev
-*python-setuptools
-*libdumbnet-dev
-*libgeoip-dev
-*libpcap0.8-dev
-*libssl-dev
-*libffi-dev
+-build-essential
+-python-dev
+-python-setuptools
+-libdumbnet-dev
+-libgeoip-dev
+-libpcap0.8-dev
+-libssl-dev
+-libffi-dev
 
 Installation with Git
 ---------------------
@@ -228,7 +231,7 @@ Generating decks
 Try out decks of tests
 ----------------------
 
-"Decks" are blah blah blah. To use them, run::
+"Decks" are collections of ooniprobe nettests. To use them, run::
 
     mkdir my_decks
     sudo ooniresources --update-inputs --update-geoip
