@@ -51,19 +51,19 @@ Installation (Quick)
 
 Quick instructions for Git, Apt, or Pip. See Installation (below) for details on each, plus Vagrant.
 
-   Git::
+Git::
 
     git clone https://git.torproject.org/ooni-probe.git
     cd ooni-probe
     ./setup-dependencies.sh
     python setup.py install
     
-   Apt::
+Apt::
 
     sudo sh -c 'echo "deb http://http.debian.net/debian wheezy-backports main" >> /etc/apt/sources.list'
     sudo apt-get update && sudo apt-get install ooniprobe
 
-   Pip::
+Pip::
     
     sudo pip install https://pypi.python.org/packages/source/o/ooniprobe/ooniprobe-1.2.2.tar.gz
     
