@@ -127,7 +127,7 @@ Those repos already contain the correct version::
 
 If you are running debian stable you can get it from backports. 
 Note this is version 1.1 and does not include ooniresources.
-The current version is here: packages.debian.org/testing/ooniprobe
+The current version is here: packages.debian.org/testing/ooniprobe (https://packages.debian.org/jessie/net/ooniprobe)::
 
     sudo sh -c 'echo "deb http://http.debian.net/debian wheezy-backports main" >> /etc/apt/sources.list'
     sudo apt-get update && sudo apt-get install ooniprobe
@@ -146,31 +146,29 @@ Otherwise, get it from the current master::
 Other platforms (with Vagrant)
 ------------------------------
 
-1. Install Vagrant (https://www.vagrantup.com/downloads.html) and Install Virtualbox (https://www.virtualbox.org/wiki/Downloads)
+1) Install Vagrant (https://www.vagrantup.com/downloads.html) and Install Virtualbox (https://www.virtualbox.org/wiki/Downloads)
 
-2. On OSX:
-
-If you don't have it install homebrew http://mxcl.github.io/homebrew/::
+2) On OSX, install homebrew if you don't have it http://mxcl.github.io/homebrew/::
 
     brew install git
 
-On debian/ubuntu::
+3) On debian/ubuntu::
 
     sudo apt-get install git
 
-3. Open a Terminal and run::
+	a) Open a Terminal and run::
 
     git clone https://git.torproject.org/ooni-probe.git
     cd ooni-probe/
     vagrant up
 
-4. Login to the box with::
+	b) Login to the box with::
 
     vagrant ssh
 
 ooniprobe will be installed in ``/ooni``.
 
-5. You can run tests with::
+4) You can run tests with::
 
     ooniprobe blocking/http_requests -f /ooni/example_inputs/alexa-top-1k.txt
 
