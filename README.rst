@@ -46,8 +46,8 @@ probe is a liability for you, please be aware of this risk.
 
 OONI in 5 minutes
 ================
-Install
--------
+Installation (Quick)
+--------------------
 
 Quick instructions for Git, Apt, or Pip. See Installation (below) for details on each, plus Vagrant.
 
@@ -85,8 +85,8 @@ with a test of your choice)::
 
       (crontab -l 2>/dev/null; echo "@daily ooniprobe $THE_OONI_COMMAND") | crontab -
 
-Installation
-============
+Installation (Detailed)
+=======================
 
 Prerequisites
 -------------
