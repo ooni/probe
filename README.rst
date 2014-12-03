@@ -46,10 +46,10 @@ probe is a liability for you, please be aware of this risk.
 
 OONI in 5 minutes
 =================
-Installation (Quick)
---------------------
+Quick Installation
+------------------
 
-Quick instructions for Git, Apt, or Pip. See Installation (below) for details on each, plus Vagrant.
+Quick instructions for Git, Apt, or Pip. See Detailed Installation for details on each, plus Vagrant.
 
 Git::
 
@@ -88,13 +88,13 @@ with a test of your choice)::
 
       (crontab -l 2>/dev/null; echo "@daily ooniprobe $THE_OONI_COMMAND") | crontab -
 
-Installation (Detailed)
-=======================
+Detailed Installation
+=====================
 
 Prerequisites
 -------------
 
-Depending on what is installed on your system, your installation may go flawlessly. 
+Depending on your system, your installation may go flawlessly. 
 If not, check for these prerequisites::
 
 -build-essential
