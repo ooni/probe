@@ -31,7 +31,7 @@ please read this document and we hope ooniprobe will help you to gather
 network data that will assist you with your endeavors!
 
 Read this before running ooniprobe!
------------------------------------
+===================================
 
 Running ooniprobe is a potentially risky activity. This greatly depends on the
 jurisdiction in which you are in and which test you are running. It is
@@ -45,13 +45,80 @@ from forensics analysis.  If the fact that you have installed or used ooni
 probe is a liability for you, please be aware of this risk.
 
 OONI in 5 minutes
-=================
+================
+Install
+-------
 
-Installation with Apt or Pip
-----------------------------
-    Install with Apt
-    -----------------
-Debian testing or unstable::
+Quick instructions for Git, Apt, or Pip. See Installation (below) for details on each, plus Vagrant.
+
+    Git::
+
+    git clone https://git.torproject.org/ooni-probe.git
+    cd ooni-probe
+    ./setup-dependencies.sh
+    python setup.py install
+    
+    Apt::
+    sudo sh -c 'echo "deb http://http.debian.net/debian wheezy-backports main" >> /etc/apt/sources.list'
+    sudo apt-get update && sudo apt-get install ooniprobe
+
+    Pip::
+    sudo pip install https://pypi.python.org/packages/source/o/ooniprobe/ooniprobe-1.2.2.tar.gz
+    
+Run
+---
+
+Try an individual test like this::
+
+    ooniprobe blocking/http_requests -f /ooni/example_inputs/alexa-top-1k.txt
+
+Try a "deck" of tests like this::
+    mkdir my_decks
+    sudo ooniresources --update-inputs --update-geoip
+    oonideckgen -o my_decks/
+    
+Contribute
+----------
+
+Contribute measurements to Ooni on a daily basis like this (replace "$THE_OONI_COMMAND" 
+with a test of your choice)::
+
+      (crontab -l 2>/dev/null; echo "@daily ooniprobe $THE_OONI_COMMAND") | crontab -
+
+Installation
+============
+
+Prerequisites
+-------------
+
+Depending on what is installed on your system, your installation may go flawlessly. 
+If not, check for these prerequisites::
+
+*build-essential
+*python-dev
+*python-setuptools
+*libdumbnet-dev
+*libgeoip-dev
+*libpcap0.8-dev
+*libssl-dev
+*libffi-dev
+
+Installation with Git
+---------------------
+We believe that ooniprobe runs reasonably well on Debian GNU/Linux wheezy as
+well as versions of Ubuntu such as natty and later releases. Installing Ooniprobe
+from our Git repository is supported with the following commands::
+
+    git clone https://git.torproject.org/ooni-probe.git
+    cd ooni-probe
+    ./setup-dependencies.sh
+    python setup.py install
+
+Installation with Apt 
+---------------------
+
+If you are running Debian testing or unstable, just use apt-get. 
+Those repos already contain the correct version::
 
     sudo apt-get install ooniprobe
 
@@ -62,79 +129,16 @@ The current version is here: packages.debian.org/testing/ooniprobe
     sudo sh -c 'echo "deb http://http.debian.net/debian wheezy-backports main" >> /etc/apt/sources.list'
     sudo apt-get update && sudo apt-get install ooniprobe
 
-    Install with Pip
-    ----------------
+Install with Pip
+----------------
+
+Try this, it might Just Work::
 
     sudo pip install ooniprobe
 
-To install it from the current master run::
-This current master is out of date! Use the one from PyPI.
-Prerequisites: 
-*build-essential
-*python-dev
-*python-setuptools
-*libdumbnet-dev
-*libgeoip-dev
-*libpcap0.8-dev
-*libssl-dev
-*libffi-dev
+Otherwise, get it from the current master::
 
-    sudo pip install https://github.com/TheTorProject/ooni-probe/archive/master.zip
-
-Then run::
-
-    mkdir my_decks
-    sudo ooniresources --update-inputs --update-geoip
-    oonideckgen -o my_decks/
-
-The output from the last command will tell you how to run ooniprobe to perform
-the measurement.
-
-If you would like to contribute measurements to OONI daily you can also add
-this to your crontab::
-
-    @daily ooniprobe $THE_OONI_COMMAND
-
-Run this command to automatically update your crontab:: 
-
-      (crontab -l 2>/dev/null; echo "@daily ooniprobe $THE_OONI_COMMAND") | crontab -
-
-Installation
-============
-
-Debian based systems
---------------------
-
-If you are running debian testing or debian unstable you can install ooniprobe
-simply with::
-    
-    apt-get install ooniprobe
-
-If you are running debian stable you can get it from backports via::
-
-    sudo sh -c 'echo "deb http://http.debian.net/debian wheezy-backports main" >> /etc/apt/sources.list'
-    sudo apt-get update && sudo apt-get install ooniprobe
-
-
-We also have our own debian repository. To install it from there run this::
-
-    sudo sh -c 'echo "deb http://deb.ooni.nu/ooni wheezy main" >> /etc/apt/sources.list'
-    gpg --keyserver pgp.mit.edu --recv-key 0x49B8CDF4
-    gpg --export 89AB86D4788F3785FE9EDA31F9E2D9B049B8CDF4 | sudo apt-key add -
-    sudo apt-get update && sudo apt-get install ooniprobe
-
-Linux
------
-
-We believe that ooniprobe runs reasonably well on Debian GNU/Linux wheezy as
-well as versions of Ubuntu such as natty and later releases. Running ooniprobe
-without installing it is supported with the following commands::
-
-    git clone https://git.torproject.org/ooni-probe.git
-    cd ooni-probe
-    ./setup-dependencies.sh
-    python setup.py install
-
+    sudo pip install https://pypi.python.org/packages/source/o/ooniprobe/ooniprobe-1.2.2.tar.gz
 
 Other platforms (with Vagrant)
 ------------------------------
@@ -180,6 +184,16 @@ Using ooniprobe
 
 **Bouncer** is a service used to discover the addresses of test helpers and collectors.
 
+Try out an individual test
+--------------------------
+
+You can run tests like this::
+
+    ooniprobe blocking/http_requests -f /ooni/example_inputs/alexa-top-1k.txt
+    
+******Put in another couple of examples here and note that 
+the command before the forward-slash may have its own parameters*****
+
 Configuring ooniprobe
 ---------------------
 
@@ -210,6 +224,19 @@ with ``ooniresources``::
 
 Generating decks
 ----------------
+
+Try out decks of tests
+----------------------
+
+"Decks" are blah blah blah. To use them, run::
+
+    mkdir my_decks
+    sudo ooniresources --update-inputs --update-geoip
+    oonideckgen -o my_decks/
+
+The output from the last command will tell you how to run ooniprobe to perform
+the measurement.
+
 
 You can generate decks for your country thanks to the oonideckgen command.
 
@@ -297,6 +324,17 @@ and the addresses of test helpers will be obtained from the default bouncer.
 You may also specify your own collector or bouncer with the options ``-c`` and
 ``-b``.
 
+Conribute measurements regularly
+================================
+
+If you would like to contribute measurements to OONI daily you can add
+this to your crontab::
+
+    @daily ooniprobe $THE_OONI_COMMAND
+
+Run this command to automatically update your crontab:: 
+
+      (crontab -l 2>/dev/null; echo "@daily ooniprobe $THE_OONI_COMMAND") | crontab -
 
 Bridges and obfsproxy bridges
 =============================
