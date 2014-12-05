@@ -49,7 +49,7 @@ OONI in 5 minutes
 Quick Installation
 ------------------
 
-Quick instructions for Git, Apt, or Pip. See Detailed Installation for details on each, plus Vagrant.
+Quick instructions for Git, Apt, or Pip. See `Detailed Installation`_ for details on each, plus Vagrant.
 
 Git::
 
@@ -95,16 +95,15 @@ Prerequisites
 -------------
 
 Depending on your system, your installation may go flawlessly. 
-If not, check for these prerequisites::
+If not, check for these prerequisites:
 
--build-essential
--python-dev
--python-setuptools
--libdumbnet-dev
--libgeoip-dev
--libpcap0.8-dev
--libssl-dev
--libffi-dev
+    - build-essential
+    - python-dev
+    - libdumbnet-dev
+    - libgeoip-dev
+    - libpcap0.8-dev
+    - libssl-dev
+    - libffi-dev
 
 Installation with Git
 ---------------------
@@ -125,12 +124,15 @@ Those repos already contain the correct version::
 
     sudo apt-get install ooniprobe
 
-If you are running debian stable you can get it from backports. 
-Note this is version 1.1 and does not include ooniresources.
-The current version is here: packages.debian.org/testing/ooniprobe (https://packages.debian.org/jessie/net/ooniprobe)::
+If you are running Debian stable, use testing (jessie) to get the current version::
+
+    sudo sh -c 'echo "deb http://http.debian.net/debian jessie main"  >> /etc/apt/sources.list'
+    sudo apt-get update && sudo apt-get install ooniprobe
+
+If you are running Debian stable and want to install ooniprobe v 1.1, you can 
+get it from backports. Note that this version does not include ooniresources::
 
     sudo sh -c 'echo "deb http://http.debian.net/debian wheezy-backports main" >> /etc/apt/sources.list'
-    sudo apt-get update && sudo apt-get install ooniprobe
 
 Install with Pip
 ----------------
@@ -152,7 +154,7 @@ Other platforms (with Vagrant)
 
     brew install git
 
-3) On debian/ubuntu::
+3) On Debian/Ubuntu::
 
     sudo apt-get install git
 
@@ -174,6 +176,8 @@ ooniprobe will be installed in ``/ooni``.
 
 Using ooniprobe
 ===============
+
+*******What do these really mean? Can I make a diagram?*******
 
 **Net test** is a set of measurements to assess what kind of internet censorship is occurring.
 
