@@ -150,25 +150,25 @@ Other platforms (with Vagrant)
 
 1) Install Vagrant (https://www.vagrantup.com/downloads.html) and Install Virtualbox (https://www.virtualbox.org/wiki/Downloads)
 
-2) On OSX, install homebrew if you don't have it http://mxcl.github.io/homebrew/::
+    a) On OSX, install homebrew if you don't have it http://mxcl.github.io/homebrew/::
 
-    brew install git
+        brew install git
 
-3) On Debian/Ubuntu::
+    b) On Debian/Ubuntu::
 
-    sudo apt-get install git
+      sudo apt-get install git
 
-	a) Open a Terminal and run::
+2) Open a Terminal and run::
 
     git clone https://git.torproject.org/ooni-probe.git
     cd ooni-probe/
     vagrant up
 
-	b) Login to the box with::
+3) Login to the box with::
 
     vagrant ssh
 
-ooniprobe will be installed in ``/ooni``.
+    ooniprobe will be installed in ``/ooni``.
 
 4) You can run tests with::
 
@@ -176,8 +176,6 @@ ooniprobe will be installed in ``/ooni``.
 
 Using ooniprobe
 ===============
-
-*******What do these really mean? Can I make a diagram?*******
 
 **Net test** is a set of measurements to assess what kind of internet censorship is occurring.
 
