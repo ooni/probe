@@ -156,7 +156,7 @@ Other platforms (with Vagrant)
 
     b) On Debian/Ubuntu::
 
-      sudo apt-get install git
+        sudo apt-get install git
 
 2) Open a Terminal and run::
 
