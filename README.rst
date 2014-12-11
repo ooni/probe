@@ -88,18 +88,24 @@ Installation
 Debian based systems
 --------------------
 
-If you are running debian testing or debian unstable you can install ooniprobe
+If you are running Debian testing or Debian unstable you can install ooniprobe
 simply with::
     
     apt-get install ooniprobe
 
-If you are running debian stable you can get it from backports via::
+If you are running Debian stable you can get it from backports via::
 
     sudo sh -c 'echo "deb http://http.debian.net/debian wheezy-backports main" >> /etc/apt/sources.list'
     sudo apt-get update && sudo apt-get install ooniprobe
 
+If you are running Ubuntu 14.04 LTS you can install it from the PPA
+(https://launchpad.net/~irl/+archive/ubuntu/ooni/)::
 
-We also have our own debian repository. To install it from there run this::
+    sudo add-apt-repository ppa:irl/ooni
+    sudo apt-get update && sudo apt-get install ooniprobe
+
+For other Debian based systems, we also have our own debian repository. To
+install it from there run this::
 
     sudo sh -c 'echo "deb http://deb.ooni.nu/ooni wheezy main" >> /etc/apt/sources.list'
     gpg --keyserver pgp.mit.edu --recv-key 0x49B8CDF4
