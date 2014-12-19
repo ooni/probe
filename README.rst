@@ -49,23 +49,27 @@ OONI in 5 minutes
 Quick Installation
 ------------------
 
-Quick instructions for Git, Apt, or Pip. See `Detailed Installation`_ for details on each, plus Vagrant.
+Quick instructions for Apt, Pip, or Git. See `Detailed Installation`_ for details on each, plus Vagrant.
 
+Apt (Recommended):
+
+The recommended method is to run Debian testing and install ooniprobe with apt-get::
+
+      # Run this echo command only if you are NOT running Debian testing:
+        sudo sh -c 'echo "deb http://http.debian.net/debian wheezy-backports main" >> /etc/apt/sources.list'
+     # Otherwise, just run this:
+        sudo apt-get update && sudo apt-get install ooniprobe
+
+Pip::
+    
+    sudo pip install https://pypi.python.org/packages/source/o/ooniprobe/ooniprobe-1.2.2.tar.gz
+    
 Git::
 
     git clone https://git.torproject.org/ooni-probe.git
     cd ooni-probe
     ./setup-dependencies.sh
     python setup.py install
-    
-Apt::
-
-    sudo sh -c 'echo "deb http://http.debian.net/debian wheezy-backports main" >> /etc/apt/sources.list'
-    sudo apt-get update && sudo apt-get install ooniprobe
-
-Pip::
-    
-    sudo pip install https://pypi.python.org/packages/source/o/ooniprobe/ooniprobe-1.2.2.tar.gz
     
 Run
 ---
