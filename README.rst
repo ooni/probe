@@ -104,7 +104,11 @@ If you are running Ubuntu 14.04 LTS you can install it from the PPA
     sudo add-apt-repository ppa:irl/ooni
     sudo apt-get update && sudo apt-get install ooniprobe
 
-For other Debian based systems, we also have our own debian repository. To
+You will be warned that the packages are unauthenticated. This is due to the
+PPA not being signed and is normal behaviour. If you would prefer to verify the
+integrity of the package, use our private Debian repository below.
+
+For other Debian based systems, we also have our own Debian repository. To
 install it from there run this::
 
     sudo sh -c 'echo "deb http://deb.ooni.nu/ooni wheezy main" >> /etc/apt/sources.list'
