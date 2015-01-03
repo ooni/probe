@@ -24,7 +24,13 @@ class install(_st_install):
         o.close()
         return config_file
 
-    def set_data_files(self, share_path):
+    def set_data_files(self, prefix):
+        share_path = pj(prefix, 'share')
+        if prefix.startswith("/usr"):
+            var_path = "/var/lib/"
+        else:
+            var_path = pj(prefix, 'var', 'lib')
+
         for root, dirs, file_names in os.walk('data/'):
             files = []
             for file_name in file_names:
@@ -45,14 +51,25 @@ class install(_st_install):
             )
         settings = SafeConfigParser()
         settings.add_section("directories")
-        settings.set("directories", "data_dir",
+        settings.set("directories", "usr_share",
                      os.path.join(share_path, "ooni"))
+        settings.set("directories", "var_lib",
+                     os.path.join(var_path, "ooni"))
         with open("ooni/settings.ini", "w+") as fp:
             settings.write(fp)
 
+        try:
+            os.makedirs(pj(var_path, 'ooni'))
+        except OSError:
+            pass
+        try:
+            os.makedirs(pj(share_path, 'ooni'))
+        except OSError:
+            pass
+
     def run(self):
-        share_path = os.path.abspath(pj(self.prefix, 'share'))
-        self.set_data_files(share_path)
+        prefix = os.path.abspath(self.prefix)
+        self.set_data_files(prefix)
         self.do_egg_install()
 
 

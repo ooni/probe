@@ -26,10 +26,10 @@ def generate_country_input(country_code, dst):
     country_code = country_code.lower()
     filename = os.path.join(dst, "citizenlab-urls-%s.txt" % country_code)
 
-    input_list = os.path.join(config.resources_directory,
-                              "citizenlab-test-lists",
-                              "test-lists-master",
-                              "csv", country_code + ".csv")
+    input_list = config.get_data_file_path("resources/"
+                                           "citizenlab-test-lists/"
+                                           "test-lists-master/csv/"
+                                           + country_code + ".csv")
 
     if not os.path.exists(input_list):
         raise Exception("Could not find list for country %s" % country_code)
@@ -42,10 +42,10 @@ def generate_country_input(country_code, dst):
 def generate_global_input(dst):
     filename = os.path.join(dst, "citizenlab-urls-global.txt")
 
-    input_list = os.path.join(config.resources_directory,
-                              "citizenlab-test-lists",
-                              "test-lists-master",
-                              "csv", "global.csv")
+    input_list = config.get_data_file_path("resources/"
+                                           "citizenlab-test-lists/"
+                                           "test-lists-master/csv/"
+                                           "global.csv")
 
     load_input(input_list, filename)
 

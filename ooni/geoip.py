@@ -30,9 +30,9 @@ class GeoIPDataFilesNotFound(Exception):
 def IPToLocation(ipaddr):
     from ooni.settings import config
 
-    city_file = os.path.join(config.advanced.geoip_data_dir, 'GeoLiteCity.dat')
-    country_file = os.path.join(config.advanced.geoip_data_dir, 'GeoIP.dat')
-    asn_file = os.path.join(config.advanced.geoip_data_dir, 'GeoIPASNum.dat')
+    city_file = config.get_data_file_path('GeoIP/GeoLiteCity.dat')
+    country_file = config.get_data_file_path('GeoIP/GeoIP.dat')
+    asn_file = config.get_data_file_path('GeoIP/GeoIPASNum.dat')
 
     location = {'city': None, 'countrycode': 'ZZ', 'asn': 'AS0'}
 
