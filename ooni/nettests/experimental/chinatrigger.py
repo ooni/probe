@@ -17,7 +17,7 @@ class ChinaTriggerTest(BaseScapyTest):
     by Philipp Winter to engage chinese probes in active scanning.
 
     Example of running it:
-    ./bin/ooniprobe chinatrigger -d 127.0.0.1 -p 8080
+    ooniprobe chinatrigger -d 127.0.0.1 -p 8080
     """
 
     name = "chinatrigger"

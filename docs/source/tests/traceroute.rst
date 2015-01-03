@@ -47,7 +47,7 @@ received a TTL expired from a router in a certain network range.
 How to run the test
 ===================
 
-`./bin/ooniprobe nettests/manipulation/traceroute.py -b <backend ip>``
+`ooniprobe nettests/manipulation/traceroute.py -b <backend ip>``
 
 *backend ip* is the IP address of the backend to traceroute to
 
@@ -56,7 +56,7 @@ Sample report
 
 From running:
 
-`./bin/ooniprobe nettests/core/traceroute.py -b 8.8.8.8`
+`ooniprobe nettests/core/traceroute.py -b 8.8.8.8`
 
 ::
 

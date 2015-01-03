@@ -23,14 +23,14 @@ detected tampering.
 How to run the test
 ===================
 
-`./bin/ooniprobe nettests/manipulation/http_header_field_manipulation.py -b <address of backend> [-h <headers>]`
+`ooniprobe nettests/manipulation/http_header_field_manipulation.py -b <address of backend> [-h <headers>]`
 `address of backend` is the IP:PORT of the SimpleHTTPChannel backend.
 
 Sample report
 =============
 
 From running:
-`./bin/ooniprobe nettests/manipulation/http_header_field_manipulation.py`
+`ooniprobe nettests/manipulation/http_header_field_manipulation.py`
 If no backend is specified, the default backend is 127.0.0.1:57001, where you will need to have oonib listening.
 
 ::
