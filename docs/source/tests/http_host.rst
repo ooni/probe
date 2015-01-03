@@ -39,7 +39,7 @@ test.
 How to run the test
 ===================
 
-`./bin/ooniprobe nettest/core/http_host.py -f <input file> -b <backend url> -c <content>`
+`ooniprobe nettest/core/http_host.py -f <input file> -b <backend url> -c <content>`
 
 *input_file* is a file containing the hostnames to check for censorship one per line.
 
@@ -55,7 +55,7 @@ Sample report
 =============
 
 From running:
-`./bin/ooniprobe nettests/core/http_host.py`
+`ooniprobe nettests/core/http_host.py`
 
 ::
 

@@ -21,7 +21,7 @@ This test performs A queries to a test resolver and a known good control resolve
 How to run the test
 ===================
 
-`./bin/ooniprobe nettests/manipulation/dns_spoof.py [-s] [-k] [-i] -r <test resolver> -h <hostname> -b IP:PORT`
+`ooniprobe nettests/manipulation/dns_spoof.py [-s] [-k] [-i] -r <test resolver> -h <hostname> -b IP:PORT`
 
 *test resolver* is a single test resolver (IP address).
 *hostname* is the hostname to query.
@@ -35,7 +35,7 @@ Sample report
 =============
 
 From running:
-`./bin/ooniprobe nettests/manipulation/dns_spoof.py -h torproject.org -r 4.2.2.2:53`
+`ooniprobe nettests/manipulation/dns_spoof.py -h torproject.org -r 4.2.2.2:53`
 
 ::
 

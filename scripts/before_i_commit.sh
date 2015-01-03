@@ -28,7 +28,7 @@ else
   echo "Assuming that your virtual environment is pre-configured...";
 fi
 
-./bin/ooniprobe -i decks/before_i_commit.testdeck
+./ooniprobe-dev -i decks/before_i_commit.testdeck
 
 echo "Below you should not see anything"
 echo "---------------------------------"

@@ -28,7 +28,7 @@ If the connection succeeds the test will report "success".
 How to run the test
 ===================
 
-`./bin/ooniprobe nettests/core/tcpconnect.py -f <input file>`
+`ooniprobe nettests/core/tcpconnect.py -f <input file>`
 
 *input file* a list of IP:PORT pairs to perform TCP connections to.
 
@@ -36,7 +36,7 @@ Sample report
 =============
 
 From running:
-`./bin/ooniprobe nettests/core/tcpconnect.py -f <input file>`
+`ooniprobe nettests/core/tcpconnect.py -f <input file>`
 
 ::
 

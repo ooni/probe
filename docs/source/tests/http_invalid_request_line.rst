@@ -81,7 +81,7 @@ is usually being split on the `.`.
 How to run the test
 ===================
 
-`./bin/ooniprobe nettests/manipulation/http_invalid_request_line.py -b <address of backend>`
+`ooniprobe nettests/manipulation/http_invalid_request_line.py -b <address of backend>`
 
 *address of the backend* is the hostname or IP address of a backend that runs
 a TCP echo server on port 80.
@@ -91,7 +91,7 @@ Sample report
 
 From running:
 
-`./bin/ooniprobe nettests/manipulation/http_invalid_request_line.py -b 127.0.0.1 -p 57002`
+`ooniprobe nettests/manipulation/http_invalid_request_line.py -b 127.0.0.1 -p 57002`
 
 ::
 

@@ -20,13 +20,13 @@ Description
 How to run the test
 ===================
 
-`./bin/ooniprobe nettests/core/my_test_name.py`
+`ooniprobe nettests/core/my_test_name.py`
 
 Sample report
 =============
 
 From running:
-`./bin/ooniprobe nettests/core/my_test_name.py`
+`ooniprobe nettests/core/my_test_name.py`
 
 ::
 
