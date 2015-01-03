@@ -81,12 +81,8 @@ def database_version():
         }
     }
 
-    geoip_data_dir = config.advanced.get("geoip_data_dir")
-    if not geoip_data_dir:
-        return version
-
     for key in version.keys():
-        geoip_file = os.path.join(geoip_data_dir, key + ".dat")
+        geoip_file = config.get_data_file_path("GeoIP/" + key + ".dat")
         if not os.path.isfile(geoip_file):
             continue
         timestamp = os.stat(geoip_file).st_mtime
