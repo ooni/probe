@@ -83,7 +83,7 @@ def database_version():
 
     for key in version.keys():
         geoip_file = config.get_data_file_path("GeoIP/" + key + ".dat")
-        if not os.path.isfile(geoip_file):
+        if not geoip_file or not os.path.isfile(geoip_file):
             continue
         timestamp = os.stat(geoip_file).st_mtime
 
