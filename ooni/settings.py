@@ -98,7 +98,6 @@ class OConfig(object):
 
         self.inputs_directory = os.path.join(self.ooni_home, 'inputs')
         self.decks_directory = os.path.join(self.ooni_home, 'decks')
-        self.reports_directory = os.path.join(self.ooni_home, 'reports')
         self.report_log_file = os.path.join(self.ooni_home, 'reporting.yml')
         self.resources_directory = os.path.join(self.data_directory,
                                                 'resources')
@@ -123,8 +122,6 @@ class OConfig(object):
             os.mkdir(self.ooni_home)
             os.mkdir(self.inputs_directory)
             os.mkdir(self.decks_directory)
-        if not os.path.isdir(self.reports_directory):
-            os.mkdir(self.reports_directory)
 
     def _create_config_file(self):
         target_config_file = self.config_file
