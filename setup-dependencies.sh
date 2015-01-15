@@ -7,6 +7,7 @@ TMP_KEYRING=${BUILD_DIR}/tmpkeyring.gpg
 DISTRO='unknown'
 DISTRO_VERSION='unknown'
 REPO_ROOT="$(pwd)"
+MINT_RELEASE_VARS="/etc/os-release"
 
 # Discover our Distro release
 if [ -f /etc/redhat-release ]; then
@@ -16,6 +17,10 @@ elif [ -r /lib/lsb/init-functions ]; then
   DISTRO_VERSION="$( lsb_release -cs )"
   if [ "$( lsb_release -is )" == "Ubuntu" ]; then
     DISTRO="ubuntu"
+  elif [ "$( lsb_release -is )" == "LinuxMint" ]; then
+    source $MINT_RELEASE_VARS
+    DISTRO="$ID"
+    DISTRO_VERSION="$( echo $VERSION | cut -d' ' -f2 | tr [:upper:] [:lower:] )"
   else
     DISTRO="debian"
   fi
