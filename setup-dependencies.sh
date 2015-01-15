@@ -906,7 +906,9 @@ case $DISTRO_VERSION in
   echo "[+] Updating OS package list...";
   sudo sudo apt-get update 2>&1 > /dev/null;
   echo "[+] Installing packages for your system...";
-  DO "sudo apt-get -y install curl git-core python python-dev python-setuptools build-essential libdumbnet1 python-dumbnet python-libpcap tor tor-geoipdb libgeoip-dev libpcap0.8-dev libssl-dev libffi-dev" "0"
+  DO "sudo apt-get -y install curl git-core python python-dev python-setuptools
+      build-essential libdumbnet1 python-dumbnet python-libpcap tor tor-geoipdb
+      libgeoip-dev libpcap0.8-dev libssl-dev libffi-dev libdumbnet-dev" "0"
 
   if [ "$PRIV_MODE" -eq "0" ]; then
     echo "[+] Using virtualenvironment..."
