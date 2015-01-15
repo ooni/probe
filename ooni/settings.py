@@ -32,21 +32,63 @@ class OConfig(object):
         self.privacy = Storage()
         self.set_paths()
 
-    @property
-    def data_directory(self):
+    def embedded_settings(self, category, option):
         embedded_settings = os.path.join(get_ooni_root(), 'settings.ini')
-        if os.getenv("OONI_DATA_DIR"):
-            return os.getenv("OONI_DATA_DIR")
-        elif self.global_options.get('datadir'):
-            return abspath(expanduser(self.global_options['datadir']))
-        elif self.advanced.get('data_dir'):
-            return self.advanced['data_dir']
-        elif os.path.isfile(embedded_settings):
+        if os.path.isfile(embedded_settings):
             settings = SafeConfigParser()
             with open(embedded_settings) as fp:
                 settings.readfp(fp)
-            return os.path.abspath(settings.get("directories", "data_dir"))
-        return abspath(os.path.join(get_ooni_root(), '..', 'data'))
+            return settings.get(category, option)
+        return None
+
+    @property
+    def var_lib_path(self):
+        var_lib_path = self.embedded_settings("directories", "var_lib")
+        if var_lib_path:
+            return os.path.abspath(var_lib_path)
+        return "/var/lib/ooni"
+
+    @property
+    def usr_share_path(self):
+        usr_share_path = self.embedded_settings("directories", "usr_share")
+        if usr_share_path:
+            return os.path.abspath(usr_share_path)
+        return "/usr/share/ooni"
+
+    @property
+    def data_directory_candidates(self):
+        dirs = [
+            os.path.join(expanduser('~'+self.current_user), '.ooni'),
+            self.var_lib_path,
+            self.usr_share_path,
+            os.path.join(get_ooni_root(), '..', 'data'),
+            '/usr/share/'
+        ]
+        if os.getenv("OONI_DATA_DIR"):
+            dirs.insert(0, os.getenv("OONI_DATA_DIR"))
+        if self.global_options.get('datadir'):
+            dirs.insert(0, abspath(expanduser(self.global_options['datadir'])))
+        return dirs
+
+    @property
+    def data_directory(self):
+        for target_dir in self.data_directory_candidates:
+            if os.path.isdir(target_dir):
+                return target_dir
+        return self.var_lib_path
+
+    @property
+    def ooni_home(self):
+        if self._custom_home:
+            return self._custom_home
+        return os.path.join(expanduser('~'+self.current_user),
+                                       '.ooni')
+
+    def get_data_file_path(self, file_name):
+        for target_dir in self.data_directory_candidates:
+            file_path = os.path.join(target_dir, file_name)
+            if os.path.isfile(file_path):
+                return file_path
 
     def set_paths(self, ooni_home=None):
         if ooni_home:
@@ -54,15 +96,11 @@ class OConfig(object):
 
         self.nettest_directory = os.path.join(get_ooni_root(), 'nettests')
 
-        self.ooni_home = os.path.join(expanduser('~'+self.current_user),
-                                      '.ooni')
-        if self._custom_home:
-            self.ooni_home = self._custom_home
         self.inputs_directory = os.path.join(self.ooni_home, 'inputs')
         self.decks_directory = os.path.join(self.ooni_home, 'decks')
-        self.reports_directory = os.path.join(self.ooni_home, 'reports')
         self.report_log_file = os.path.join(self.ooni_home, 'reporting.yml')
-        self.resources_directory = os.path.join(self.data_directory, "resources")
+        self.resources_directory = os.path.join(self.data_directory,
+                                                'resources')
 
         if self.global_options.get('configfile'):
             config_file = self.global_options['configfile']
@@ -71,12 +109,8 @@ class OConfig(object):
             self.config_file = os.path.join(self.ooni_home, 'ooniprobe.conf')
 
         if 'logfile' in self.basic:
-            self.basic.logfile = expanduser(self.basic.logfile.replace('~','~'+self.current_user))
-
-        if not os.path.exists(self.data_directory):
-            log.err("Data directory %s does not exists" % self.data_directory)
-            log.err("Edit data_dir inside of %s" % self.config_file)
-
+            self.basic.logfile = expanduser(self.basic.logfile.replace(
+                '~', '~'+self.current_user))
 
     def initialize_ooni_home(self, ooni_home=None):
         if ooni_home:
@@ -88,20 +122,19 @@ class OConfig(object):
             os.mkdir(self.ooni_home)
             os.mkdir(self.inputs_directory)
             os.mkdir(self.decks_directory)
-        if not os.path.isdir(self.reports_directory):
-            os.mkdir(self.reports_directory)
 
     def _create_config_file(self):
         target_config_file = self.config_file
         print "Creating it for you in '%s'." % target_config_file
-        sample_config_file = os.path.join(self.data_directory,
-                                          'ooniprobe.conf.sample')
+        sample_config_file = self.get_data_file_path('ooniprobe.conf.sample')
 
         with open(sample_config_file) as f:
             with open(target_config_file, 'w+') as w:
                 for line in f:
                     if line.startswith('    logfile: '):
-                        w.write('    logfile: %s\n' % os.path.join(self.ooni_home, 'ooniprobe.log'))
+                        w.write('    logfile: %s\n' % (
+                            os.path.join(self.ooni_home, 'ooniprobe.log'))
+                        )
                     else:
                         w.write(line)
 
@@ -176,4 +209,4 @@ config = OConfig()
 if not os.path.isfile(config.config_file) \
        and os.path.isfile('/etc/ooni/ooniprobe.conf'):
     config.global_options['configfile'] = '/etc/ooniprobe.conf'
-    config.set_paths(ooni_home=config.advanced.data_dir)
+    config.set_paths()

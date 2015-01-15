@@ -43,3 +43,5 @@ docs/build/*
 
 cover/*
 ooni_home/*
+
+ooni/settings.ini

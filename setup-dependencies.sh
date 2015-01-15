@@ -940,6 +940,8 @@ case $DISTRO_VERSION in
   fi
   
 
+  # First install pyasn1 and pyasn1-modules to avoid bugs
+  DO "pip install -v --timeout 60 pyasn1 pyasn1-modules" "0"
   # Install all of the out of package manager dependencies
   DO "pip install -v --timeout 60 -r ${REPO_ROOT}/requirements.txt" "0"
   

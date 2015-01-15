@@ -3,8 +3,7 @@ import os
 from twisted.internet import defer
 from twisted.web.client import downloadPage
 
-from ooni.settings import config
-from ooni.resources import inputs, geoip
+from ooni.resources import inputs, geoip, resources_directory
 from ooni.utils import unzip, gunzip
 
 
@@ -17,7 +16,7 @@ def download_resource(resources):
                     dirname = resource["action_args"][0]
                     filename = os.path.join(dirname, filename)
         else:
-            filename = os.path.join(config.resources_directory, filename)
+            filename = os.path.join(resources_directory, filename)
         if not os.path.exists(filename):
             directory = os.path.dirname(filename)
             if not os.path.isdir(directory):
