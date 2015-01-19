@@ -8,6 +8,7 @@ import yaml
 from twisted.internet import defer
 from twisted.python import usage
 
+from ooni import errors
 from ooni.geoip import ProbeIP
 from ooni.settings import config
 
@@ -138,7 +139,12 @@ def run():
         options['output'] = os.getcwd()
 
     if not options['country-code']:
-        options['country-code'] = yield get_user_country_code()
+        try:
+            options['country-code'] = yield get_user_country_code()
+        except errors.ProbeIPUnknown:
+            print "Could not determine your IP address."
+            print "Check your internet connection or specify a country code with -c."
+            sys.exit(4)
 
     if len(options['country-code']) != 2:
         print "%s: --country-code must be 2 characters" % sys.argv[0]
