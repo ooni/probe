@@ -11,14 +11,23 @@ from twisted.internet import defer, reactor
 from ooni.utils import log
 from ooni.deckgen import cli
 
+exitCode = 128
 def failed(failure):
+    global exitCode
+
     r = failure.trap(exceptions.SystemExit)
     if r != exceptions.SystemExit:
         log.err("Failed to run oonideckgen")
         log.exception(failure)
+        exitCode = 127
+    else:
+        exitCode = failure.value.code
     reactor.stop()
 
 def done(result):
+    global exitCode
+
+    exitCode = 0
     reactor.stop()
 
 def start():
@@ -28,3 +37,4 @@ def start():
 
 reactor.callWhenRunning(start)
 reactor.run()
+sys.exit(exitCode)
