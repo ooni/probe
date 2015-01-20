@@ -118,6 +118,7 @@ def generate_deck(options):
 
 @defer.inlineCallbacks
 def get_user_country_code():
+    config.privacy.includecountry = True
     probe_ip = ProbeIP()
     yield probe_ip.lookup()
     defer.returnValue(probe_ip.geodata['countrycode'])
@@ -154,9 +155,6 @@ def run():
     output_dir = os.path.join(output_dir,
                               "deck-%s" % options['country-code'])
     options['output'] = output_dir
-
-    config.initialize_ooni_home()
-    config.read_config_file()
 
     try:
         os.makedirs(options['output'])

@@ -14,8 +14,7 @@ class GeoIPDB(object):
         self.__dict__ = self._borg
         if not self.country:
             try:
-                country_file = os.path.join(config.advanced.geoip_data_dir,
-                                            'GeoIP.dat')
+                country_file = config.get_data_file_path('GeoIP/GeoIP.dat')
                 self.country = GeoIP.open(country_file,
                                           GeoIP.GEOIP_STANDARD)
             except:
@@ -25,8 +24,9 @@ class GeoIPDB(object):
 
 def generate_country_input(country_code, dst):
 
-    csv_file = os.path.join(config.resources_directory,
-                            "namebench-dns-servers.csv")
+    csv_file = config.get_data_file_path("resources/"
+                                           "namebench-dns-servers.csv")
+
     filename = os.path.join(dst, "dns-server-%s.txt" % country_code)
     fw = open(filename, "w")
     geoip_db = GeoIPDB()
