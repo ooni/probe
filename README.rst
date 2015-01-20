@@ -108,14 +108,6 @@ You will be warned that the packages are unauthenticated. This is due to the
 PPA not being signed and is normal behaviour. If you would prefer to verify the
 integrity of the package, use our private Debian repository below.
 
-For other Debian based systems, we also have our own Debian repository. To
-install it from there run this::
-
-    sudo sh -c 'echo "deb http://deb.ooni.nu/ooni wheezy main" >> /etc/apt/sources.list'
-    gpg --keyserver pgp.mit.edu --recv-key 0x49B8CDF4
-    gpg --export 89AB86D4788F3785FE9EDA31F9E2D9B049B8CDF4 | sudo apt-key add -
-    sudo apt-get update && sudo apt-get install ooniprobe
-
 Linux
 -----
 
