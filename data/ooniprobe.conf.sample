@@ -46,6 +46,7 @@ advanced:
     # How many reports to perform concurrently
     reporting_concurrency: 15
     oonid_api_port: 8042
+    report_log_file: null
 tor:
     #socks_port: 8801
     #control_port: 8802

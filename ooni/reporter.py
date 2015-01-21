@@ -386,7 +386,9 @@ class OONIBReportLog(object):
     Used to keep track of report creation on a collector backend.
     """
 
-    def __init__(self, file_name=config.report_log_file):
+    def __init__(self, file_name=None):
+        if file_name is None:
+            file_name = config.report_log_file
         self.file_name = file_name
         self.create_report_log()
 
