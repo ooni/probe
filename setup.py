@@ -10,7 +10,7 @@ from ConfigParser import SafeConfigParser
 from os.path import join as pj
 from setuptools import setup
 from setuptools.command.install import install as _st_install
-
+from distutils.spawn import find_executable
 
 class install(_st_install):
     def gen_config(self, share_path):
@@ -67,11 +67,18 @@ class install(_st_install):
         except OSError:
             pass
 
+    def ooniresources(self):
+        ooniresources = find_executable("ooniresources")
+        from subprocess import Popen, PIPE
+        process = Popen([ooniresources, '--update-inputs', '--update-geoip'],
+                        stdout=sys.stdout.fileno(), stderr=sys.stderr.fileno())
+        process.wait()
+
     def run(self):
         prefix = os.path.abspath(self.prefix)
         self.set_data_files(prefix)
         self.do_egg_install()
-
+        self.ooniresources()
 
 install_requires = []
 dependency_links = []
@@ -163,8 +170,3 @@ setup(
         "Topic :: System :: Networking :: Monitoring",
     )
 )
-
-from subprocess import Popen, PIPE
-process = Popen(['ooniresources', '--update-inputs', '--update-geoip'],
-                stdout=sys.stdout.fileno(), stderr=sys.stderr.fileno())
-process.wait()

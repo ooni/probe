@@ -1,6 +1,6 @@
 include README.rst ChangeLog.rst requirements.txt LICENSE
 recursive-include data/decks *
-include data/inputs/
+recursive-include data/inputs *
 include data/oonideckgen.1
 include data/ooniprobe.1
 include data/oonireport.1
