@@ -16,6 +16,8 @@ class Options(usage.Options):
 """ % (os.path.basename(sys.argv[0]),)
 
     optParameters = [
+        ["configfile", "f", None,
+         "Specify the configuration file to use."],
         ["collector", "c", None,
          "Specify the collector to upload the result to."],
         ["bouncer", "b", None,
@@ -52,7 +54,6 @@ def tor_check():
 
 
 def run():
-    config.read_config_file()
     options = Options()
     try:
         options.parseOptions()
@@ -60,6 +61,9 @@ def run():
         print("Error: %s" % exc)
         print(options)
         sys.exit(2)
+    config.global_options = dict(options)
+    config.set_paths()
+    config.read_config_file()
     if options['command'] == "upload" and options['report_file']:
         tor_check()
         return tool.upload(options['report_file'],

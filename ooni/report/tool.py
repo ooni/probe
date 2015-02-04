@@ -10,11 +10,10 @@ from ooni.settings import config
 from ooni.oonibclient import OONIBClient
 
 
-oonib_report_log = OONIBReportLog()
-
-
 @defer.inlineCallbacks
 def upload(report_file, collector=None, bouncer=None):
+    oonib_report_log = OONIBReportLog()
+
     print "Attempting to upload %s" % report_file
 
     with open(config.report_log_file) as f:
@@ -34,7 +33,8 @@ def upload(report_file, collector=None, bouncer=None):
                 raise KeyError
         except KeyError:
             raise Exception(
-                "No collector or bouncer specified and collector not in report log."
+                "No collector or bouncer specified"
+                " and collector not in report log."
             )
 
     oonib_reporter = OONIBReporter(report.header, collector)
@@ -51,6 +51,8 @@ def upload(report_file, collector=None, bouncer=None):
 
 @defer.inlineCallbacks
 def upload_all(collector=None, bouncer=None):
+    oonib_report_log = OONIBReportLog()
+
     for report_file, value in oonib_report_log.reports_to_upload:
         try:
             yield upload(report_file, collector, bouncer)
@@ -64,6 +66,8 @@ def print_report(report_file, value):
 
 
 def status():
+    oonib_report_log = OONIBReportLog()
+
     print "Reports to be uploaded"
     print "----------------------"
     for report_file, value in oonib_report_log.reports_to_upload:

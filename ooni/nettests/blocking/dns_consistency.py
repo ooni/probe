@@ -112,17 +112,23 @@ class DNSConsistencyTest(dnst.DNSTest):
 
         self.report['tampering'] = {}
 
-        control_answers = yield self.performALookup(hostname,
-                                                    self.control_dns_server)
-        if not control_answers:
-            log.err(
-                "Got no response from control DNS server %s:%d, "
-                "perhaps the DNS resolver is down?" %
-                self.control_dns_server)
+        try:
+            control_answers = yield self.performALookup(hostname,
+                                                        self.control_dns_server)
+
+            if not control_answers:
+                log.err(
+                    "Got no response from control DNS server %s:%d, "
+                    "perhaps the DNS resolver is down?" %
+                    self.control_dns_server)
+                self.report['tampering'][
+                    "%s:%d" %
+                    self.control_dns_server] = 'no_answer'
+        except:
             self.report['tampering'][
                 "%s:%d" %
-                self.control_dns_server] = 'no_answer'
-            return
+                self.control_dns_server] = 'error'
+            control_answers = None
 
         for test_resolver in self.test_resolvers:
             log.msg("Testing resolver: %s" % test_resolver)
@@ -156,7 +162,12 @@ class DNSConsistencyTest(dnst.DNSTest):
             log.debug(
                 "Comparing %s with %s" %
                 (experiment_answers, control_answers))
-            if set(experiment_answers) & set(control_answers):
+
+            if not control_answers:
+                log.msg("Skipping control resolver comparison")
+                self.report['tampering'][test_resolver] = None
+
+            elif set(experiment_answers) & set(control_answers):
                 lookup_details()
                 log.msg("tampering: false")
                 self.report['tampering'][test_resolver] = False

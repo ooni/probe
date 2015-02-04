@@ -12,7 +12,7 @@ from twisted.web._newclient import RequestNotSent, RequestGenerationFailed, Tran
 from twisted.internet import reactor
 from twisted.internet.defer import Deferred, fail, maybeDeferred, failure
 
-from txsocksx.http import SOCKS5Agent
+from ooni.utils.hacks import SOCKS5Agent
 from txsocksx.client import SOCKS5ClientFactory
 
 SOCKS5ClientFactory.noisy = False

@@ -287,7 +287,7 @@ class OONIBReporter(OReporter):
         # do this with some deferred kung foo or instantiate the reporter after
         # tor is started.
 
-        from txsocksx.http import SOCKS5Agent
+        from ooni.utils.hacks import SOCKS5Agent
         from twisted.internet import reactor
 
         if self.collectorAddress.startswith('httpo://'):
@@ -386,7 +386,9 @@ class OONIBReportLog(object):
     Used to keep track of report creation on a collector backend.
     """
 
-    def __init__(self, file_name=config.report_log_file):
+    def __init__(self, file_name=None):
+        if file_name is None:
+            file_name = config.report_log_file
         self.file_name = file_name
         self.create_report_log()
 
