@@ -20,7 +20,7 @@ def upload(report_file, collector=None, bouncer=None):
         report_log = yaml.safe_load(f)
 
     report = parser.ReportLoader(report_file)
-    if bouncer:
+    if bouncer and not collector:
         oonib_client = OONIBClient(bouncer)
         net_tests = [{
             'test-helpers': [],

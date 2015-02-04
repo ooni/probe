@@ -20,7 +20,7 @@ class Options(usage.Options):
          "Specify the configuration file to use."],
         ["collector", "c", None,
          "Specify the collector to upload the result to."],
-        ["bouncer", "b", None,
+        ["bouncer", "b", "httpo://nkvphnp3p6agi5qq.onion",
          "Specify the bouncer to query for a collector."]
     ]
 
