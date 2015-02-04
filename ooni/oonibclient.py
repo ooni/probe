@@ -203,7 +203,8 @@ class OONIBClient(object):
         try:
             test_collector = yield self.queryBackend('POST', '/bouncer/net-tests',
                                                      query={'net-tests': net_tests})
-        except Exception:
+        except Exception as exc:
+            log.exception(exc)
             raise e.CouldNotFindTestCollector
 
         defer.returnValue(test_collector)
