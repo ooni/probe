@@ -1,6 +1,17 @@
 Changelog
 =========
 
+v1.2.3-rc1 (Wed, 4 Feb 2015)
+------------------------
+* Restructure directories where ooni software writes/reads from
+  https://trac.torproject.org/projects/tor/ticket/14086
+
+* Properly set exit codes of oonideckgen
+
+* Exit cleanly if we can't find the probes IP address
+
+* Make the DNS Consistency test handle errors better
+
 v1.2.2 (Fri, 17 Oct 2014)
 -------------------------
 
