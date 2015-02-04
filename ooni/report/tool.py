@@ -22,9 +22,16 @@ def upload(report_file, collector=None, bouncer=None):
     report = parser.ReportLoader(report_file)
     if bouncer:
         oonib_client = OONIBClient(bouncer)
-        collector = yield oonib_client.lookupTestCollector(
-            report.header['test_name']
+        net_tests = [{
+            'test-helpers': [],
+            'input-hashes': report.header['input_hashes'],
+            'name': report.header['test_name'],
+            'version': report.header['test_version'],
+        }]
+        result = yield oonib_client.lookupTestCollector(
+            net_tests
         )
+        collector = str(result['net-tests'][0]['collector'])
 
     if collector is None:
         try:
@@ -57,7 +64,7 @@ def upload_all(collector=None, bouncer=None):
         try:
             yield upload(report_file, collector, bouncer)
         except Exception as exc:
-            print exc
+            log.exception(exc)
 
 
 def print_report(report_file, value):
