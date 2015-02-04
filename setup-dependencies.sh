@@ -20,7 +20,7 @@ elif [ -r /lib/lsb/init-functions ]; then
   elif [ "$( lsb_release -is )" == "LinuxMint" ]; then
     source $MINT_RELEASE_VARS
     DISTRO="$ID"
-    DISTRO_VERSION="$( echo $VERSION | cut -d' ' -f2 | tr [:upper:] [:lower:] )"
+    DISTRO_VERSION="$( echo $VERSION | cut -d' ' -f3 | tr [:upper:] [:lower:] )"
   else
     DISTRO="debian"
   fi
