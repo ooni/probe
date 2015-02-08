@@ -134,23 +134,27 @@ class BridgeReachability(nettest.NetTestCase):
 
         if transport_name:
             self.report['transport_name'] = transport_name
-            if transport_name == 'fte' and self.fteproxy_bin:
-                config.ClientTransportPlugin = "%s exec %s --managed" % (
-                    transport_name, self.fteproxy_bin)
-                log.debug("Using fte from %s" % self.fteproxy_bin)
-                self.report['bridge_address'] = self.bridge.split(' ')[1]
-            elif transport_name == 'fte' and not self.fteproxy_bin:
-                log.err("Unable to test bridge because fteproxy is not installed")
-                self.report['error'] = 'missing-fteproxy'
-                return
+            if transport_name == 'fte':
+                if self.fteproxy_bin:
+                    config.ClientTransportPlugin = "%s exec %s --managed" % (
+                        transport_name, self.fteproxy_bin)
+                    log.debug("Using fte from %s" % self.fteproxy_bin)
+                    self.report['bridge_address'] = self.bridge.split(' ')[1]
+                else:
+                    log.err("Unable to test bridge because fteproxy is not"
+                            "installed")
+                    self.report['error'] = 'missing-fteproxy'
+                    return
             elif self.pyobfsproxy_bin:
-                config.ClientTransportPlugin = ("%s exec %s --log-min-severity info "
-                    "--log-file %s managed") % (transport_name,
-                                                self.pyobfsproxy_bin,
-                                                self.obfsproxy_logfile)
-                if onion.OBFSProxyVersion('0.2') > onion.obfsproxy_details['version']:
+                config.ClientTransportPlugin = ("%s exec %s"
+                    "--log-min-severity info --log-file %s managed") % \
+                    (transport_name, self.pyobfsproxy_bin,
+                    self.obfsproxy_logfile)
+                if onion.OBFSProxyVersion('0.2') > \
+                    onion.obfsproxy_details['version']:
                     log.err(
-                        "The obfsproxy version you are using appears to be outdated."
+                        "The obfsproxy version you are using appears to be"
+                        "outdated."
                     )
                     self.report['error'] = 'old-obfsproxy'
                     return
@@ -158,7 +162,8 @@ class BridgeReachability(nettest.NetTestCase):
                 self.report['bridge_address'] = self.bridge.split(' ')[1]
             else:
                 log.err(
-                    "Unable to test bridge because pyobfsproxy is not installed")
+                    "Unable to test bridge because pyobfsproxy is not"
+                    "installed")
                 self.report['error'] = 'missing-pyobfsproxy'
                 return
         else:
