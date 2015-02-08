@@ -73,6 +73,7 @@ class BridgeReachability(nettest.NetTestCase):
             self.bridge = self.input.replace('Bridge ', '')
         self.pyobfsproxy_bin = onion.obfsproxy_details['binary']
         self.fteproxy_bin = find_executable('fteproxy')
+        self.obfs4proxy_bin = find_executable('obfs4proxy')
 
     def postProcessor(self, measurements):
         if 'successes' not in self.summary:
@@ -141,31 +142,46 @@ class BridgeReachability(nettest.NetTestCase):
                     log.debug("Using fte from %s" % self.fteproxy_bin)
                     self.report['bridge_address'] = self.bridge.split(' ')[1]
                 else:
-                    log.err("Unable to test bridge because fteproxy is not"
+                    log.err("Unable to test bridge because fteproxy is not "
                             "installed")
                     self.report['error'] = 'missing-fteproxy'
                     return
-            elif self.pyobfsproxy_bin:
-                config.ClientTransportPlugin = ("%s exec %s"
-                    "--log-min-severity info --log-file %s managed") % \
-                    (transport_name, self.pyobfsproxy_bin,
-                    self.obfsproxy_logfile)
-                if onion.OBFSProxyVersion('0.2') > \
-                    onion.obfsproxy_details['version']:
+            elif transport_name == 'scramblesuit':
+                if self.pyobfsproxy_bin:
+                    config.ClientTransportPlugin = ("%s exec %s "
+                        "--log-min-severity info --log-file %s managed") % \
+                        (transport_name, self.pyobfsproxy_bin,
+                        self.obfsproxy_logfile)
+                    if onion.OBFSProxyVersion('0.2') > \
+                        onion.obfsproxy_details['version']:
+                        log.err(
+                            "The obfsproxy version you are using appears to "
+                            "be outdated."
+                        )
+                        self.report['error'] = 'old-obfsproxy'
+                        return
+                    log.debug("Using pyobfsproxy from %s" % \
+                            self.pyobfsproxy_bin)
+                    self.report['bridge_address'] = self.bridge.split(' ')[1]
+                else:
                     log.err(
-                        "The obfsproxy version you are using appears to be"
-                        "outdated."
-                    )
-                    self.report['error'] = 'old-obfsproxy'
+                        "Unable to test bridge because pyobfsproxy is not "
+                        "installed")
+                    self.report['error'] = 'missing-pyobfsproxy'
                     return
-                log.debug("Using pyobfsproxy from %s" % self.pyobfsproxy_bin)
-                self.report['bridge_address'] = self.bridge.split(' ')[1]
-            else:
-                log.err(
-                    "Unable to test bridge because pyobfsproxy is not"
-                    "installed")
-                self.report['error'] = 'missing-pyobfsproxy'
-                return
+            else: # obfs2, obfs3, obfs4 handled by yawning's go
+                if self.obfs4proxy_bin:
+                    config.ClientTransportPlugin = ("%s exec %s") % \
+                        (transport_name, self.obfs4proxy_bin)
+                    log.debug("Using obfs4proxy from %s" % \
+                            self.obfs4proxy_bin)
+                    self.report['bridge_address'] = self.bridge.split(' ')[1]
+                else:
+                    log.err(
+                        "Unable to test bridge because obfs4proxy is not "
+                        "installed")
+                    self.report['error'] = 'missing-pyobfsproxy'
+                    return
         else:
             self.report['bridge_address'] = self.bridge.split(' ')[0]
 
