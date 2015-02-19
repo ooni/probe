@@ -146,7 +146,7 @@ class BridgeReachability(nettest.NetTestCase):
                             "installed")
                     self.report['error'] = 'missing-fteproxy'
                     return
-            elif transport_name == 'scramblesuit':
+            elif ['scramblesuit', 'obfs2', 'obfs3'].count(transport_name) > 0:
                 if self.pyobfsproxy_bin:
                     config.ClientTransportPlugin = ("%s exec %s "
                         "--log-min-severity info --log-file %s managed") % \
@@ -169,7 +169,7 @@ class BridgeReachability(nettest.NetTestCase):
                         "installed")
                     self.report['error'] = 'missing-pyobfsproxy'
                     return
-            else: # obfs2, obfs3, obfs4 handled by yawning's go
+            elif transport_name == 'obfs4':
                 if self.obfs4proxy_bin:
                     config.ClientTransportPlugin = ("%s exec %s") % \
                         (transport_name, self.obfs4proxy_bin)
@@ -180,8 +180,13 @@ class BridgeReachability(nettest.NetTestCase):
                     log.err(
                         "Unable to test bridge because obfs4proxy is not "
                         "installed")
-                    self.report['error'] = 'missing-pyobfsproxy'
+                    self.report['error'] = 'missing-obfs4proxy'
                     return
+            else:
+                log.err("Unable to test bridge because we don't handle %s" % \
+                        transport_name)
+                self.report['error'] = 'missing-transport'
+                return
         else:
             self.report['bridge_address'] = self.bridge.split(' ')[0]
 
