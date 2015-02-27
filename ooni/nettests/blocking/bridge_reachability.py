@@ -151,21 +151,12 @@ class BridgeReachability(nettest.NetTestCase):
                         bin_name)
                 self.report['error'] = "missing-%s" % bin_name
                 return
-
-            if onion.OBFSProxyVersion('0.2') > \
-                    onion.obfsproxy_details['version']:
+            except onion.OutdatedObfsproxy:
                 log.err("The obfsproxy version you are using " \
                         "appears to be outdated.")
                 self.report['error'] = 'old-obfsproxy'
                 return
-
-            if transport_name == 'scramblesuit' and \
-                    onion.TorVersion('0.2.5.1') > onion.tor_details['version']:
-                log.err("Unsupported Tor version.")
-                self.report['error'] = 'unsupported-tor-version'
-                return
-
-            if onion.TorVersion('0.2.4.1') > onion.tor_details['version']:
+            except onion.OutdatedTor:
                 log.err("Unsupported Tor version.")
                 self.report['error'] = 'unsupported-tor-version'
                 return

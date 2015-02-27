@@ -1,6 +1,6 @@
 from twisted.trial import unittest
 from ooni.utils import onion
-from mock import Mock
+from mock import Mock, patch
 
 sample_transport_lines = {
     'fte': 'fte exec /fakebin --managed',
@@ -30,3 +30,21 @@ class TestOnion(unittest.TestCase):
         for transport, exp_line in sample_transport_lines.iteritems():
             self.assertEqual(onion.bridge_line(transport, '/log.txt'),
                              exp_line)
+
+        with patch.dict(onion.obfsproxy_details,
+                {'version': onion.OBFSProxyVersion('0.1.12')}):
+            self.assertRaises(onion.OutdatedObfsproxy,
+                onion.bridge_line, 'obfs2', '/log.txt')
+
+        with patch.dict(onion.tor_details,
+                {'version': onion.TorVersion('0.2.4.20')}):
+            onion.bridge_line('fte', '/log.txt')
+            self.assertRaises(onion.OutdatedTor,
+                onion.bridge_line, 'scramblesuit', '/log.txt')
+            self.assertRaises(onion.OutdatedTor,
+                onion.bridge_line, 'obfs4', '/log.txt')
+
+        with patch.dict(onion.tor_details,
+                {'version': onion.TorVersion('0.2.3.20')}):
+            self.assertRaises(onion.OutdatedTor,
+                onion.bridge_line, 'fte', '/log.txt')

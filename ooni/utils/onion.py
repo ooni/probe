@@ -105,6 +105,10 @@ class UnrecognizedTransport(Exception):
     pass
 class UninstalledTransport(Exception):
     pass
+class OutdatedObfsproxy(Exception):
+    pass
+class OutdatedTor(Exception):
+    pass
 
 def bridge_line(transport, log_file):
     bin_name = transport_bin_name.get(transport)
@@ -114,5 +118,16 @@ def bridge_line(transport, log_file):
     bin_loc = find_executable(bin_name)
     if not bin_loc:
         raise UninstalledTransport
+
+    if OBFSProxyVersion('0.2') > obfsproxy_details['version']:
+        raise OutdatedObfsproxy
+
+    if (transport == 'scramblesuit' or \
+            bin_name == 'obfs4proxy') and \
+            TorVersion('0.2.5.1') > tor_details['version']:
+        raise OutdatedTor
+
+    if TorVersion('0.2.4.1') > tor_details['version']:
+        raise OutdatedTor
 
     return _transport_line_templates[transport](bin_loc, log_file)
