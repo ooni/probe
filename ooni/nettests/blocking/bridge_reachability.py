@@ -2,6 +2,7 @@
 import os
 import random
 import tempfile
+import shutil
 
 from twisted.python import usage
 from twisted.internet import reactor, error
@@ -53,6 +54,7 @@ class BridgeReachability(nettest.NetTestCase):
         os.close(fd)
         fd, self.obfsproxy_logfile = tempfile.mkstemp()
         os.close(fd)
+        self.tor_datadir = tempfile.mkdtemp()
 
         self.report['error'] = None
         self.report['success'] = None
@@ -123,6 +125,7 @@ class BridgeReachability(nettest.NetTestCase):
         config = txtorcon.TorConfig()
         config.ControlPort = random.randint(2**14, 2**16)
         config.SocksPort = random.randint(2**14, 2**16)
+        config.DataDirectory = self.tor_datadir
         log.msg(
             "Connecting to %s with tor %s" %
             (self.bridge, onion.tor_details['version']))
@@ -208,5 +211,13 @@ class BridgeReachability(nettest.NetTestCase):
             with open(self.obfsproxy_logfile) as f:
                 self.report['obfsproxy_log'] = f.read()
             os.remove(self.obfsproxy_logfile)
+            try:
+                with open(os.path.join(self.tor_datadir,
+                        'pt_state', 'obfs4proxy.log')) as f:
+                    self.report['obfsproxy_log'] = f.read()
+            except:
+                pass
+            finally:
+                shutil.rmtree(self.tor_datadir)
 
         return d

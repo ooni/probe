@@ -99,7 +99,7 @@ _transport_line_templates = {
         _pyobfsproxy_line('obfs3', bin_loc, log_file),
 
     'obfs4': lambda bin_loc, log_file: \
-        "obfs4 exec %s" % bin_loc }
+        "obfs4 exec %s --enableLogging=true --logLevel=INFO" % bin_loc }
 
 class UnrecognizedTransport(Exception):
     pass

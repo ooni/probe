@@ -7,7 +7,7 @@ sample_transport_lines = {
     'scramblesuit': 'scramblesuit exec /fakebin --log-min-severity info --log-file /log.txt managed',
     'obfs2': 'obfs2 exec /fakebin --log-min-severity info --log-file /log.txt managed',
     'obfs3': 'obfs3 exec /fakebin --log-min-severity info --log-file /log.txt managed',
-    'obfs4': 'obfs4 exec /fakebin' }
+    'obfs4': 'obfs4 exec /fakebin --enableLogging=true --logLevel=INFO' }
 
 
 class TestOnion(unittest.TestCase):
