@@ -12,7 +12,7 @@ class Daphn3ClientProtocol(daphn3.Daphn3Protocol):
         self.current_data_received = 0
         if self.current_step >= (len(self.steps) - 1):
             log.msg("Reached the end of the state machine")
-            log.msg("Censorship fingerpint bisected!")
+            log.msg("Censorship fingerprint bisected!")
             step_idx, mutation_idx = self.factory.mutation
             log.msg("step_idx: %s | mutation_id: %s" % (step_idx, mutation_idx))
             #self.transport.loseConnection()
