@@ -70,6 +70,15 @@ Then run::
     sudo ooniresources --update-inputs --update-geoip
     oonideckgen -o my_decks/
 
+**BUG** Note:
+ooniprobe version 1.2.2 when installed from the debian repository will not
+properly create the ooni home folder and if you run into an error in accessing
+`~/.ooni/` run::
+
+    ooniprobe -n blocking/http_requests -u http://google.com/
+
+This should generate the home and allow you to run oonideckgen.
+
 The output from the last command will tell you how to run ooniprobe to perform
 the measurement.
 
