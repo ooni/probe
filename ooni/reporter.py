@@ -288,6 +288,7 @@ class OONIBReporter(OReporter):
         # tor is started.
 
         from ooni.utils.hacks import SOCKS5Agent
+        from twisted.web.client import Agent
         from twisted.internet import reactor
 
         if self.collectorAddress.startswith('httpo://'):
@@ -298,8 +299,12 @@ class OONIBReporter(OReporter):
             self.agent = SOCKS5Agent(reactor, proxyEndpoint=proxyEndpoint)
 
         elif self.collectorAddress.startswith('https://'):
-            # XXX add support for securely reporting to HTTPS collectors.
-            log.err("HTTPS based collectors are currently not supported.")
+            # not sure if there's something else it needs.  Seems to work.
+            self.agent = Agent(reactor)
+
+        elif self.collectorAddress.startswith('http://'):
+            log.msg("Warning using unencrypted collector")
+            self.agent = Agent(reactor)
 
         url = self.collectorAddress + '/report'
 
