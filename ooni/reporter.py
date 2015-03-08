@@ -328,7 +328,7 @@ class OONIBReporter(OReporter):
             request['probe_id'] = os.environ['PROBE_ID']
         if 'PROBE_AUTH' in os.environ:
             request['probe_auth'] = os.environ['PROBE_AUTH']
-            request['created'] = datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
+            request['created'] = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%S')
 
         log.msg("Reporting %s" % url)
         request_json = json.dumps(request)
