@@ -324,7 +324,7 @@ class OONIBReporter(OReporter):
             # the backend.
             'content': content
         }
-        request.update([(k.lower(),v) for (k,v) in os.environ 
+        request.update([(k.lower(),v) for (k,v) in os.environ.iteritems()
                         if k.startswith('PROBE_')])
 
         log.msg("Reporting %s" % url)
