@@ -30,7 +30,6 @@ class OConfig(object):
         self.advanced = Storage()
         self.tor = Storage()
         self.privacy = Storage()
-        self.queue = Storage()
         self.set_paths()
 
     def embedded_settings(self, category, option):

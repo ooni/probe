@@ -2,6 +2,7 @@ import sys
 import os
 import json
 import yaml
+import urlparse
 
 from twisted.python import usage
 from twisted.python.util import spewer
@@ -53,7 +54,8 @@ class Options(usage.Options):
         ["datadir", "d", None,
          "Specify a path to the ooniprobe data directory"],
         ["annotations", "a", None,
-         "Annotate the report with a key:value[, key:value] format."]]
+         "Annotate the report with a key:value[, key:value] format."],
+        ["queue", "Q", None, "AMQP Queue URL amqp://user:pass@host:port/vhost/queue"]]
 
     compData = usage.Completions(
         extraActions=[usage.CompleteFiles(
@@ -492,18 +494,22 @@ def runWithDaemonDirector(logging=True, start_tor=True, check_incoherences=True)
                                                                  no_ack=False)
         readmsg(None, queue_object)
 
-    # Create the AMQP connection.  This requires and extra section in the
-    # config file, which specifies the AMQP connection details
-    qopts = config.queue
-    creds = pika.PlainCredentials(qopts['userid'],qopts['password'])
-    parameters = pika.ConnectionParameters(qopts['host'],
-                                           qopts['port'],
-                                           qopts['vhost'],
+    # Create the AMQP connection.  This could be refactored to allow test URLs
+    # to be submitted through an HTTP server interface or something.
+    urlp = urlparse.urlparse(config.global_options['queue'])
+
+    # AMQP connection details are sent through the cmdline parameter '-Q'
+    
+    creds = pika.PlainCredentials(urlp.username or 'guest',
+                                  urlp.password or 'guest')
+    parameters = pika.ConnectionParameters(urlp.hostname,
+                                           urlp.port or 5672,
+                                           urlp.path.rsplit('/',1)[0] or '/',
                                            creds)
     cc = protocol.ClientCreator(reactor,
                                 twisted_connection.TwistedProtocolConnection,
                                 parameters)
-    d = cc.connectTCP(qopts['host'], qopts['port'])
+    d = cc.connectTCP(urlp.hostname, urlp.port or 5672)
     d.addCallback(lambda protocol: protocol.ready)
     # start the wait/process sequence.
-    d.addCallback(runQueue, qopts['name'], int(qopts['qos']))
+    d.addCallback(runQueue, urlp.path.rsplit('/',1)[-1], 5) # hardcoded QOS
