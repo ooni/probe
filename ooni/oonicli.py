@@ -384,7 +384,7 @@ def runWithDaemonDirector(logging=True, start_tor=True, check_incoherences=True)
         start_tor = True
 
     def createDeck(url):
-        print "Creating deck", url
+        log.msg("Creating deck for: %s" %(url,) )
 
         deck = Deck(no_collector=global_options['no-collector'])
         deck.bouncer = global_options['bouncer']
