@@ -300,6 +300,7 @@ class OONIBReporter(OReporter):
 
         elif self.collectorAddress.startswith('https://'):
             # not sure if there's something else it needs.  Seems to work.
+            # Very difficult to get it to work with self-signed certs.
             self.agent = Agent(reactor)
 
         elif self.collectorAddress.startswith('http://'):
@@ -324,6 +325,7 @@ class OONIBReporter(OReporter):
             # the backend.
             'content': content
         }
+        # import values from the environment
         request.update([(k.lower(),v) for (k,v) in os.environ.iteritems()
                         if k.startswith('PROBE_')])
 
