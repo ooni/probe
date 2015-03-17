@@ -28,7 +28,7 @@ def generate_country_input(country_code, dst):
 
     input_list = config.get_data_file_path("resources/"
                                            "citizenlab-test-lists/"
-                                           "test-lists-master/csv/"
+                                           "test-lists-master/lists/"
                                            + country_code + ".csv")
 
     if not os.path.exists(input_list):
@@ -44,7 +44,7 @@ def generate_global_input(dst):
 
     input_list = config.get_data_file_path("resources/"
                                            "citizenlab-test-lists/"
-                                           "test-lists-master/csv/"
+                                           "test-lists-master/lists/"
                                            "global.csv")
 
     load_input(input_list, filename)
