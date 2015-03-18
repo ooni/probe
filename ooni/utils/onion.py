@@ -74,3 +74,60 @@ obfsproxy_details = {
     'binary': find_executable('obfsproxy'),
     'version': obfsproxy_version()
 }
+
+transport_bin_name = { 'fte': 'fteproxy',
+                       'scramblesuit': 'obfsproxy',
+                       'obfs2': 'obfsproxy',
+                       'obfs3': 'obfsproxy',
+                       'obfs4': 'obfs4proxy' }
+
+_pyobfsproxy_line = lambda transport, bin_loc, log_file: \
+    "%s exec %s --log-min-severity info --log-file %s managed" % \
+    (transport, bin_loc, log_file)
+
+_transport_line_templates = {
+    'fte': lambda bin_loc, log_file : \
+        "fte exec %s --managed" % bin_loc,
+
+    'scramblesuit': lambda bin_loc, log_file: \
+        _pyobfsproxy_line('scramblesuit', bin_loc, log_file),
+
+    'obfs2': lambda bin_loc, log_file: \
+        _pyobfsproxy_line('obfs2', bin_loc, log_file),
+
+    'obfs3': lambda bin_loc, log_file: \
+        _pyobfsproxy_line('obfs3', bin_loc, log_file),
+
+    'obfs4': lambda bin_loc, log_file: \
+        "obfs4 exec %s --enableLogging=true --logLevel=INFO" % bin_loc }
+
+class UnrecognizedTransport(Exception):
+    pass
+class UninstalledTransport(Exception):
+    pass
+class OutdatedObfsproxy(Exception):
+    pass
+class OutdatedTor(Exception):
+    pass
+
+def bridge_line(transport, log_file):
+    bin_name = transport_bin_name.get(transport)
+    if not bin_name:
+        raise UnrecognizedTransport
+
+    bin_loc = find_executable(bin_name)
+    if not bin_loc:
+        raise UninstalledTransport
+
+    if OBFSProxyVersion('0.2') > obfsproxy_details['version']:
+        raise OutdatedObfsproxy
+
+    if (transport == 'scramblesuit' or \
+            bin_name == 'obfs4proxy') and \
+            TorVersion('0.2.5.1') > tor_details['version']:
+        raise OutdatedTor
+
+    if TorVersion('0.2.4.1') > tor_details['version']:
+        raise OutdatedTor
+
+    return _transport_line_templates[transport](bin_loc, log_file)

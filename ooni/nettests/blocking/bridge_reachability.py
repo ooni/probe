@@ -2,7 +2,7 @@
 import os
 import random
 import tempfile
-from distutils.spawn import find_executable
+import shutil
 
 from twisted.python import usage
 from twisted.internet import reactor, error
@@ -54,6 +54,7 @@ class BridgeReachability(nettest.NetTestCase):
         os.close(fd)
         fd, self.obfsproxy_logfile = tempfile.mkstemp()
         os.close(fd)
+        self.tor_datadir = tempfile.mkdtemp()
 
         self.report['error'] = None
         self.report['success'] = None
@@ -71,8 +72,6 @@ class BridgeReachability(nettest.NetTestCase):
         self.bridge = self.input
         if self.input.startswith('Bridge'):
             self.bridge = self.input.replace('Bridge ', '')
-        self.pyobfsproxy_bin = onion.obfsproxy_details['binary']
-        self.fteproxy_bin = find_executable('fteproxy')
 
     def postProcessor(self, measurements):
         if 'successes' not in self.summary:
@@ -126,56 +125,44 @@ class BridgeReachability(nettest.NetTestCase):
         config = txtorcon.TorConfig()
         config.ControlPort = random.randint(2**14, 2**16)
         config.SocksPort = random.randint(2**14, 2**16)
+        config.DataDirectory = self.tor_datadir
         log.msg(
             "Connecting to %s with tor %s" %
             (self.bridge, onion.tor_details['version']))
 
         transport_name = onion.transport_name(self.bridge)
-
-        if transport_name:
+        if transport_name == None:
+            self.report['bridge_address'] = self.bridge.split(' ')[0]
+        else:
+            self.report['bridge_address'] = self.bridge.split(' ')[1]
             self.report['transport_name'] = transport_name
 
-        if transport_name and transport_name == 'fte' and self.fteproxy_bin:
-            config.ClientTransportPlugin = "%s exec %s --managed" % (
-                transport_name, self.fteproxy_bin)
-            log.debug("Using fte from %s" % self.fteproxy_bin)
-            self.report['bridge_address'] = self.bridge.split(' ')[1]
-        elif transport_name and transport_name == 'fte'\
-                and not self.fteproxy_bin:
-            log.err("Unable to test bridge because fteproxy is not installed")
-            self.report['error'] = 'missing-fteproxy'
-            return
-        elif transport_name and self.pyobfsproxy_bin:
-            config.ClientTransportPlugin = ("%s exec %s --log-min-severity info "
-                "--log-file %s managed") % (transport_name,
-                                            self.pyobfsproxy_bin,
-                                            self.obfsproxy_logfile)
-            if onion.OBFSProxyVersion('0.2') > onion.obfsproxy_details['version']:
-                log.err(
-                    "The obfsproxy version you are using appears to be outdated."
-                )
+            try:
+                config.ClientTransportPlugin = \
+                        onion.bridge_line(transport_name, self.obfsproxy_logfile)
+            except onion.UnrecognizedTransport:
+                log.err("Unable to test bridge because we don't recognize "
+                        "the %s transport" % transport_name)
+                self.report['error'] = "unrecognized-transport"
+                return
+            except onion.UninstalledTransport:
+                bin_name = onion.transport_bin_name.get(transport_name)
+                log.err("Unable to test bridge because %s is not installed" %
+                        bin_name)
+                self.report['error'] = "missing-%s" % bin_name
+                return
+            except onion.OutdatedObfsproxy:
+                log.err("The obfsproxy version you are using " \
+                        "appears to be outdated.")
                 self.report['error'] = 'old-obfsproxy'
                 return
-            log.debug("Using pyobfsproxy from %s" % self.pyobfsproxy_bin)
-            self.report['bridge_address'] = self.bridge.split(' ')[1]
-        elif transport_name and not self.pyobfsproxy_bin:
-            log.err(
-                "Unable to test bridge because pyobfsproxy is not installed")
-            self.report['error'] = 'missing-pyobfsproxy'
-            return
-        else:
-            self.report['bridge_address'] = self.bridge.split(' ')[0]
+            except onion.OutdatedTor:
+                log.err("Unsupported Tor version.")
+                self.report['error'] = 'unsupported-tor-version'
+                return
 
-        if transport_name and transport_name == 'scramblesuit' and \
-                onion.TorVersion('0.2.5.1') > onion.tor_details['version']:
-            self.report['error'] = 'unsupported-tor-version'
-            log.err("Unsupported Tor version.")
-            return
-        elif transport_name and \
-                onion.TorVersion('0.2.4.1') > onion.tor_details['version']:
-            self.report['error'] = 'unsupported-tor-version'
-            log.err("Unsupported Tor version.")
-            return
+            log.debug("Using ClientTransportPlugin '%s'" % \
+                      config.ClientTransportPlugin)
 
         config.Bridge = self.bridge
         config.UseBridges = 1
@@ -215,5 +202,13 @@ class BridgeReachability(nettest.NetTestCase):
             with open(self.obfsproxy_logfile) as f:
                 self.report['obfsproxy_log'] = f.read()
             os.remove(self.obfsproxy_logfile)
+            try:
+                with open(os.path.join(self.tor_datadir,
+                        'pt_state', 'obfs4proxy.log')) as f:
+                    self.report['obfsproxy_log'] = f.read()
+            except:
+                pass
+            finally:
+                shutil.rmtree(self.tor_datadir)
 
         return d
