@@ -493,12 +493,8 @@ def runWithDaemonDirector(logging=True, start_tor=True, check_incoherences=True)
 
         return start()
 
-    def runConsume(_, queue_object):
-        queuestate.task = task.LoopingCall(readmsg, None, queue_object)
-        d = queuestate.task.start(0.05)
-        d.addCallback(startBatch, queue_object)
 
-    def startBatch(_, queue_object):
+    def startBatch(_, channel, name):
         import tempfile
         # will this race?
         log.msg("Getting batch")
@@ -510,26 +506,41 @@ def runWithDaemonDirector(logging=True, start_tor=True, check_incoherences=True)
         queuestate.reset()
         d = createDeck(filename=fp.name)
         # When the test has been completed, go back to waiting for a message.
-        d.addCallback(runConsume, queue_object)
-
+        d.addCallback(runConsume, channel, name)
 
     @defer.inlineCallbacks
-    def readmsg(_,queue_object):
+    def stopRead(channel, consumer_tag):
+        log.msg("Cancelling consume")
+        yield channel.basic_cancel(consumer_tag=consumer_tag)
+        queuestate.task.stop()
+
+    @defer.inlineCallbacks
+    def readmsg(_,channel, queue_object, consumer_tag):
         # Wait for a message and decode it.
         log.msg("Waiting for message")
+        
         ch, method, properties, body = yield queue_object.get()
         log.msg("Got message")
         data = json.loads(body)
 
         log.msg("Added: %s" %(data['url'],))
         queuestate.add(data['url'].encode('utf8'))
+        # acknowledge the message
+        ch.basic_ack(delivery_tag=method.delivery_tag)
+
         if not queuestate.cbset:
             log.msg("Creating timeout")
             queuestate.cbset = True
-            reactor.callLater(3, queuestate.task.stop)
+            reactor.callLater(2.5, stopRead, channel, consumer_tag)
 
-        # acknowledge the message
-        ch.basic_ack(delivery_tag=method.delivery_tag)
+    @defer.inlineCallbacks
+    def runConsume(_, channel, name):
+        queue_object, consumer_tag = yield channel.basic_consume(queue=name,
+                                                                 no_ack=False)
+        queuestate.task = task.LoopingCall(readmsg, None, channel, 
+                                           queue_object, consumer_tag)
+        d = queuestate.task.start(0.05)
+        d.addCallback(startBatch, channel, queue_object, name)
 
 
     @defer.inlineCallbacks
@@ -537,10 +548,8 @@ def runWithDaemonDirector(logging=True, start_tor=True, check_incoherences=True)
         # Set up the queue consumer.  When a message is received, run readmsg
         channel = yield connection.channel()
         yield channel.basic_qos(prefetch_count=qos)
-        queue_object, consumer_tag = yield channel.basic_consume(queue=name,
-                                                                 no_ack=False)
 
-        runConsume(None, queue_object)
+        runConsume(None, channel, name)
 
     # Create the AMQP connection.  This could be refactored to allow test URLs
     # to be submitted through an HTTP server interface or something.
@@ -560,4 +569,4 @@ def runWithDaemonDirector(logging=True, start_tor=True, check_incoherences=True)
     d = cc.connectTCP(urlp.hostname, urlp.port or 5672)
     d.addCallback(lambda protocol: protocol.ready)
     # start the wait/process sequence.
-    d.addCallback(runQueue, urlp.path.rsplit('/',1)[-1], 5) # hardcoded QOS
+    d.addCallback(runQueue, urlp.path.rsplit('/',1)[-1], 1) # hardcoded QOS
