@@ -35,14 +35,6 @@ class QueueState(object):
         self.cbset = False
         self.entries = []
 
-    def start(self, *args):
-        log.msg("Starting queue listener")
-        self.task.start(0.1)
-
-    def stop(self):
-        log.msg("Stopping queue listener")
-        self.task.stop()
-
 queuestate = QueueState()
 
 class Options(usage.Options):
@@ -501,12 +493,15 @@ def runWithDaemonDirector(logging=True, start_tor=True, check_incoherences=True)
 
         return start()
 
+    def runConsume(_, queue_object):
+        queuestate.task = task.LoopingCall(readmsg, None, queue_object)
+        d = queuestate.task.start(0.05)
+        d.addCallback(startBatch, queue_object)
 
-    def startBatch():
+    def startBatch(_, queue_object):
         import tempfile
         # will this race?
         log.msg("Getting batch")
-        queuestate.stop()
         fp = tempfile.NamedTemporaryFile(delete=False, prefix='batch')
         for e in queuestate.entries:
             print >>fp, e
@@ -515,13 +510,15 @@ def runWithDaemonDirector(logging=True, start_tor=True, check_incoherences=True)
         queuestate.reset()
         d = createDeck(filename=fp.name)
         # When the test has been completed, go back to waiting for a message.
-        d.addCallback(queuestate.start)
+        d.addCallback(runConsume, queue_object)
 
 
     @defer.inlineCallbacks
     def readmsg(_,queue_object):
         # Wait for a message and decode it.
+        log.msg("Waiting for message")
         ch, method, properties, body = yield queue_object.get()
+        log.msg("Got message")
         data = json.loads(body)
 
         log.msg("Added: %s" %(data['url'],))
@@ -529,10 +526,11 @@ def runWithDaemonDirector(logging=True, start_tor=True, check_incoherences=True)
         if not queuestate.cbset:
             log.msg("Creating timeout")
             queuestate.cbset = True
-            reactor.callLater(3, startBatch)
+            reactor.callLater(3, queuestate.task.stop)
 
         # acknowledge the message
         ch.basic_ack(delivery_tag=method.delivery_tag)
+
 
     @defer.inlineCallbacks
     def runQueue(connection, name, qos):
@@ -542,8 +540,7 @@ def runWithDaemonDirector(logging=True, start_tor=True, check_incoherences=True)
         queue_object, consumer_tag = yield channel.basic_consume(queue=name,
                                                                  no_ack=False)
 
-        queuestate.task = task.LoopingCall(readmsg, None, queue_object)
-        queuestate.start()
+        runConsume(None, queue_object)
 
     # Create the AMQP connection.  This could be refactored to allow test URLs
     # to be submitted through an HTTP server interface or something.
