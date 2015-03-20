@@ -506,6 +506,7 @@ def runWithDaemonDirector(logging=True, start_tor=True, check_incoherences=True)
         import tempfile
         # will this race?
         log.msg("Getting batch")
+        queuestate.stop()
         fp = tempfile.NamedTemporaryFile(delete=False, prefix='batch')
         for e in queuestate.entries:
             print >>fp, e
@@ -542,7 +543,7 @@ def runWithDaemonDirector(logging=True, start_tor=True, check_incoherences=True)
                                                                  no_ack=False)
 
         queuestate.task = task.LoopingCall(readmsg, None, queue_object)
-        questate.start()
+        queuestate.start()
 
     # Create the AMQP connection.  This could be refactored to allow test URLs
     # to be submitted through an HTTP server interface or something.
