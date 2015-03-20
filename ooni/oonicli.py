@@ -22,6 +22,20 @@ from ooni.nettest import NetTestLoader
 from ooni.utils import log
 from ooni.utils.net import hasRawSocketPermission
 
+class QueueState(object):
+    def __init__(self):
+        self.entries = []
+        self.cbset = False
+
+    def add(self, url):
+        self.entries.append(url)
+
+    def reset(self):
+        self.cbset = False
+        self.entries = []
+
+queuestate = QueueState()
+
 class Options(usage.Options):
     synopsis = """%s [options] [path to test].py
     """ % (os.path.basename(sys.argv[0]),)
@@ -383,8 +397,9 @@ def runWithDaemonDirector(logging=True, start_tor=True, check_incoherences=True)
     else:
         start_tor = True
 
-    def createDeck(url):
-        log.msg("Creating deck for: %s" %(url,) )
+    def createDeck(url=None,filename=None):
+        assert url is not None or filename is not None
+        log.msg("Creating deck for: %s" %(url or filename,) )
 
         deck = Deck(no_collector=global_options['no-collector'])
         deck.bouncer = global_options['bouncer']
@@ -395,7 +410,11 @@ def runWithDaemonDirector(logging=True, start_tor=True, check_incoherences=True)
             else:
                 log.debug("No test deck detected")
                 test_file = nettest_to_path(global_options['test_file'], True)
-                net_test_loader = NetTestLoader(('-u',url),
+                if url is not None:
+                    args = ('-u',url)
+                else:
+                    args = ('-f',filename)
+                net_test_loader = NetTestLoader(args,
                                                 test_file=test_file)
                 if global_options['collector']:
                     net_test_loader.collector = global_options['collector']
@@ -474,16 +493,36 @@ def runWithDaemonDirector(logging=True, start_tor=True, check_incoherences=True)
         return start()
 
 
+    def startBatch(queue_object):
+        import tempfile
+        # will this race?
+        log.msg("Getting batch")
+        fp = tempfile.NamedTemporaryFile(delete=False, prefix='batch')
+        for e in queuestate.entries:
+            print >>fp, e
+        fp.close()
+        log.msg("Queue reset")
+        queuestate.reset()
+        d = createDeck(filename=fp.name)
+        # When the test has been completed, go back to waiting for a message.
+        d.addCallback(readmsg,queue_object)
+
+
     @defer.inlineCallbacks
     def readmsg(_,queue_object):
         # Wait for a message and decode it.
         ch, method, properties, body = yield queue_object.get()
         data = json.loads(body)
-        d = createDeck(data['url'])
-        # Once the deck has been created, acknowledge the message
+
+        log.msg("Added: %s" %(data['url'],))
+        queuestate.add(data['url'].encode('utf8'))
+        if not queuestate.cbset:
+            log.msg("Creating timeout")
+            queuestate.cbset = True
+            reactor.callLater(3, startBatch, queue_object)
+
+        # acknowledge the message
         ch.basic_ack(delivery_tag=method.delivery_tag)
-        # When the test has been completed, go back to waiting for a message.
-        d.addCallback(readmsg,queue_object)
 
     @defer.inlineCallbacks
     def runQueue(connection, name, qos):
