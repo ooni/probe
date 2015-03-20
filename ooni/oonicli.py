@@ -26,6 +26,7 @@ class QueueState(object):
     def __init__(self):
         self.entries = []
         self.cbset = False
+        self.task = None
 
     def add(self, url):
         self.entries.append(url)
@@ -33,6 +34,14 @@ class QueueState(object):
     def reset(self):
         self.cbset = False
         self.entries = []
+
+    def start(self, *args):
+        log.msg("Starting queue listener")
+        self.task.start(0.1)
+
+    def stop(self):
+        log.msg("Stopping queue listener")
+        self.task.stop()
 
 queuestate = QueueState()
 
@@ -493,7 +502,7 @@ def runWithDaemonDirector(logging=True, start_tor=True, check_incoherences=True)
         return start()
 
 
-    def startBatch(queue_object):
+    def startBatch():
         import tempfile
         # will this race?
         log.msg("Getting batch")
@@ -505,7 +514,7 @@ def runWithDaemonDirector(logging=True, start_tor=True, check_incoherences=True)
         queuestate.reset()
         d = createDeck(filename=fp.name)
         # When the test has been completed, go back to waiting for a message.
-        d.addCallback(readmsg,queue_object)
+        d.addCallback(queuestate.start)
 
 
     @defer.inlineCallbacks
@@ -519,7 +528,7 @@ def runWithDaemonDirector(logging=True, start_tor=True, check_incoherences=True)
         if not queuestate.cbset:
             log.msg("Creating timeout")
             queuestate.cbset = True
-            reactor.callLater(3, startBatch, queue_object)
+            reactor.callLater(3, startBatch)
 
         # acknowledge the message
         ch.basic_ack(delivery_tag=method.delivery_tag)
@@ -531,7 +540,9 @@ def runWithDaemonDirector(logging=True, start_tor=True, check_incoherences=True)
         yield channel.basic_qos(prefetch_count=qos)
         queue_object, consumer_tag = yield channel.basic_consume(queue=name,
                                                                  no_ack=False)
-        readmsg(None, queue_object)
+
+        queuestate.task = task.LoopingCall(readmsg, None, queue_object)
+        questate.start()
 
     # Create the AMQP connection.  This could be refactored to allow test URLs
     # to be submitted through an HTTP server interface or something.
