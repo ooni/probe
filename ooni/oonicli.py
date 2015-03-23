@@ -549,7 +549,7 @@ def runWithDaemonDirector(logging=True, start_tor=True, check_incoherences=True)
     def runConsume(_, channel, name):
         if not queuestate.canContinue():
             log.msg("Lifetime exceeded")
-            queuestate.finished.callback()
+            queuestate.finished.callback(None)
             return
         try:
             queue_object, consumer_tag = yield channel.basic_consume(
