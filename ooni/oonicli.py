@@ -30,7 +30,7 @@ class QueueState(object):
         self.task = None
         self.delay = None
         self.finished = defer.Deferred()
-        self.lifetime = random.randint(10,16)
+        self.lifetime = 3 # random.randint(10,16)
         self.resetcount = 0
 
     def add(self, url):
@@ -589,7 +589,9 @@ def runWithDaemonDirector(logging=True, start_tor=True, check_incoherences=True)
     parameters = pika.ConnectionParameters(urlp.hostname,
                                            urlp.port or 5672,
                                            urlp.path.rsplit('/',1)[0] or '/',
-                                           creds)
+                                           creds,
+                                           heartbeat_interval=120,
+                                           )
     cc = protocol.ClientCreator(reactor,
                                 twisted_connection.TwistedProtocolConnection,
                                 parameters)
