@@ -16,7 +16,7 @@ d = runWithDaemonDirector()
 @d.addBoth
 def cb(result):
     global code
-    if result not None:
+    if result is not None:
         code=1
     reactor.stop()
 reactor.run()
