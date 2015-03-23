@@ -574,7 +574,7 @@ def runWithDaemonDirector(logging=True, start_tor=True, check_incoherences=True)
         runConsume(None, channel, name)
 
     def onQueueError(*args):
-        if not isinstance(args[0], ValueError):
+        if not isinstance(args[0].value, ValueError):
             queuestate.finished.errback(args[0])
             return args[0]
 
