@@ -2,6 +2,7 @@ import sys
 import os
 import json
 import yaml
+import random
 import urlparse
 
 from twisted.python import usage
@@ -28,13 +29,22 @@ class QueueState(object):
         self.cbset = False
         self.task = None
         self.delay = None
+        self.finished = defer.Deferred()
+        self.lifetime = random.randint(10,16)
+        self.resetcount = 0
 
     def add(self, url):
         self.entries.append(url)
 
     def reset(self):
         self.cbset = False
+        self.resetcount += 1
         self.entries = []
+
+    def canContinue(self):
+        if self.resetcount >= self.lifetime:
+            return False
+        return True
 
 
 class Options(usage.Options):
@@ -537,12 +547,17 @@ def runWithDaemonDirector(logging=True, start_tor=True, check_incoherences=True)
 
     @defer.inlineCallbacks
     def runConsume(_, channel, name):
+        if not queuestate.canContinue():
+            log.msg("Lifetime exceeded")
+            queuestate.finished.callback()
+            return
         try:
             queue_object, consumer_tag = yield channel.basic_consume(
                                                        queue=name,
                                                        no_ack=False)
         except Exception,v:
             print v
+            queuestate.finished.errback(v)
         queuestate.task = task.LoopingCall(readmsg, None, channel, 
                                            queue_object, consumer_tag)
         d = queuestate.task.start(0.05)
@@ -556,6 +571,9 @@ def runWithDaemonDirector(logging=True, start_tor=True, check_incoherences=True)
         yield channel.basic_qos(prefetch_count=qos)
 
         runConsume(None, channel, name)
+
+    def onQueueError(*args):
+        queuestate.finished.errback(args[0])
 
     # Create the AMQP connection.  This could be refactored to allow test URLs
     # to be submitted through an HTTP server interface or something.
@@ -576,6 +594,9 @@ def runWithDaemonDirector(logging=True, start_tor=True, check_incoherences=True)
                                 twisted_connection.TwistedProtocolConnection,
                                 parameters)
     d = cc.connectTCP(urlp.hostname, urlp.port or 5672)
+    d.addErrback(onQueueError)
     d.addCallback(lambda protocol: protocol.ready)
     # start the wait/process sequence.
     d.addCallback(runQueue, urlp.path.rsplit('/',1)[-1], int(urlargs.get('qos',1)))
+
+    return queuestate.finished
