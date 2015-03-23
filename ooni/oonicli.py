@@ -561,7 +561,8 @@ def runWithDaemonDirector(logging=True, start_tor=True, check_incoherences=True)
         queuestate.task = task.LoopingCall(readmsg, None, channel, 
                                            queue_object, consumer_tag)
         d = queuestate.task.start(0.05)
-        d.addBoth(startBatch, channel, queue_object, name)
+        d.addCallback(startBatch, channel, queue_object, name)
+        d.addErrback(onQueueError)
 
 
     @defer.inlineCallbacks
@@ -574,6 +575,7 @@ def runWithDaemonDirector(logging=True, start_tor=True, check_incoherences=True)
 
     def onQueueError(*args):
         queuestate.finished.errback(args[0])
+        return args[0]
 
     # Create the AMQP connection.  This could be refactored to allow test URLs
     # to be submitted through an HTTP server interface or something.

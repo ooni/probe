@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import sys
 import copy_reg
 from twisted.internet import reactor
 
@@ -6,11 +7,17 @@ from twisted.internet import reactor
 from ooni.utils.hacks import patched_reduce_ex
 copy_reg._reduce_ex = patched_reduce_ex
 
+code=0
+
 # from ooni.oonicli import run
 # run()
 from ooni.oonicli import runWithDaemonDirector
 d = runWithDaemonDirector()
 @d.addBoth
 def cb(result):
+    global code
+    if result not None:
+        code=1
     reactor.stop()
 reactor.run()
+sys.exit(code)
