@@ -30,7 +30,7 @@ class QueueState(object):
         self.task = None
         self.delay = None
         self.finished = defer.Deferred()
-        self.lifetime = 3 # random.randint(10,16)
+        self.lifetime = random.randint(10,16)
         self.resetcount = 0
 
     def add(self, url):
