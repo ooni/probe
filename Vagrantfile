@@ -12,6 +12,8 @@ Vagrant.configure("2") do |config|
   # Place the ooni-backend source code in ../ooni-backend to sync it with the vagrant instance
   config.vm.synced_folder "../ooni-backend", "/backend"
 
+  config.vm.network :private_network, ip: "192.168.38.20"
+
 end
 
 $script = <<SCRIPT

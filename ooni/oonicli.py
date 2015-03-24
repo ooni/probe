@@ -23,6 +23,9 @@ from ooni.nettest import NetTestLoader
 from ooni.utils import log
 from ooni.utils.net import hasRawSocketPermission
 
+class QueueWaitTimeout(Exception):
+    pass
+
 class QueueState(object):
     def __init__(self):
         self.entries = []
@@ -523,7 +526,7 @@ def runWithDaemonDirector(logging=True, start_tor=True, check_incoherences=True)
     def stopRead(channel, queue_object, consumer_tag):
         log.msg("Cancelling consume")
         queuestate.task.stop()
-        queue_object.close(ValueError())
+        queue_object.close(QueueWaitTimeout())
         yield channel.basic_cancel(consumer_tag=consumer_tag)
 
     @defer.inlineCallbacks
@@ -574,7 +577,7 @@ def runWithDaemonDirector(logging=True, start_tor=True, check_incoherences=True)
         runConsume(None, channel, name)
 
     def onQueueError(*args):
-        if not isinstance(args[0].value, ValueError):
+        if not isinstance(args[0].value, QueueWaitTimeout):
             queuestate.finished.errback(args[0])
             return args[0]
 
