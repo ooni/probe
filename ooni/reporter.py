@@ -265,7 +265,7 @@ class OONIBReporter(OReporter):
         request_json = json.dumps(request)
         log.debug("Sending %s" % request_json)
 
-        bodyProducer = StringProducer(json.dumps(request))
+        bodyProducer = StringProducer(request_json)
 
         try:
             yield self.agent.request("PUT", url,
@@ -333,7 +333,7 @@ class OONIBReporter(OReporter):
         request_json = json.dumps(request)
         log.debug("Sending %s" % request_json)
 
-        bodyProducer = StringProducer(json.dumps(request))
+        bodyProducer = StringProducer(request_json)
 
         log.msg("Creating report with OONIB Reporter. Please be patient.")
         log.msg("This may take up to 1-2 minutes...")
