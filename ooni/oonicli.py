@@ -425,9 +425,11 @@ def runWithDaemonDirector(logging=True, start_tor=True, check_incoherences=True)
                 log.debug("No test deck detected")
                 test_file = nettest_to_path(global_options['test_file'], True)
                 if url is not None:
-                    args = global_options['subargs'] + ('-u',url)
+                    args = ('-u',url)
                 else:
-                    args = global_options['subargs'] + ('-f',filename)
+                    args = ('-f',filename)
+                if any(global_options['subargs']):
+                    args = global_options['subargs'] + args
                 net_test_loader = NetTestLoader(args,
                                                 test_file=test_file)
                 if global_options['collector']:
