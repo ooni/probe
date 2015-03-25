@@ -17,6 +17,9 @@ class UsageOptions(usage.Options):
         ['url', 'u', None, 'Specify a single URL to test.'],
         ['factor', 'f', 0.8,
          'What factor should be used for triggering censorship (0.8 == 80%)']]
+    optFlags = [
+        ["withoutbody","B", "Don't send page body with report"],
+        ]
 
 
 class HTTPRequestsTest(httpt.HTTPTest):
