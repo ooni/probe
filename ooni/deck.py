@@ -224,6 +224,7 @@ class Deck(InputFile):
             for th in net_test_loader.requiredTestHelpers:
                 if not th['test_class'].localOptions[th['option']]:
                     th['test_class'].localOptions[th['option']] = test_helpers[th['name']].encode('utf-8')
+                net_test_loader.testHelpers[th['option']] = th['test_class'].localOptions[th['option']]
 
             if not net_test_loader.collector:
                 net_test_loader.collector = collector.encode('utf-8')

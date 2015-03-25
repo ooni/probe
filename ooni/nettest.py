@@ -215,7 +215,8 @@ class NetTestLoader(object):
             'software_version': software_version,
             'options': options,
             'input_hashes': input_file_hashes,
-            'report_id': self.reportID
+            'report_id': self.reportID,
+            'test_helpers': self.testHelpers
         }
         return test_details
 
@@ -323,6 +324,7 @@ class NetTestLoader(object):
         self.testName = test_class_name_to_name(test_class.name)
         self.testCases = test_cases
         self.testClasses = set([])
+        self.testHelpers = {}
 
         if config.reports.unique_id is True:
             self.reportID = randomStr(64)
