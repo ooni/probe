@@ -6,6 +6,7 @@ from twisted.web.error import Error
 from twisted.internet.error import ConnectionRefusedError, TCPTimedOutError
 from twisted.internet.error import DNSLookupError, ConnectError, ConnectionLost
 from twisted.internet.error import TimeoutError as GenericTimeoutError
+from twisted.internet.error import ProcessDone
 
 from twisted.python import usage
 
@@ -143,6 +144,9 @@ def failureToString(failure):
     elif isinstance(failure.value, CancelledError):
         # log.err("Task timed out")
         string = 'task_timed_out'
+
+    elif isinstance(failure.value, ProcessDone):
+        string = 'process_done'
 
     else:
         # log.err("Unknown failure type: %s" % type(failure.value))

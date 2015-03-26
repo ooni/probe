@@ -215,9 +215,9 @@ class ProbeIP(object):
             log.msg("Found your IP via a GeoIP service: %s" % self.address)
             self.resolveGeodata()
             defer.returnValue(self.address)
-        except Exception, e:
+        except Exception:
             log.msg("Unable to lookup the probe IP via GeoIPService")
-            raise e
+            raise
 
     @defer.inlineCallbacks
     def askGeoIPService(self):
