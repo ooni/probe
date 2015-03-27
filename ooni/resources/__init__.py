@@ -6,7 +6,7 @@ from ooni.utils import unzip, gunzip
 from ooni.deckgen.processors import citizenlab_test_lists
 from ooni.deckgen.processors import namebench_dns_servers
 
-__version__ = "0.0.1"
+__version__ = "0.1.0"
 
 if os.access(config.var_lib_path, os.W_OK):
     resources_directory = os.path.join(config.var_lib_path,

@@ -1,6 +1,22 @@
 Changelog
 =========
 
+v1.3.0 (Fri, 27 Mar 2015)
+------------------------
+
+* Add obfs4 bridge reachability support
+
+* Avoid hacking sys.path in bin/* scripts to support running ooniprobe from
+  non-root.
+
+* Point to the new citizenlab test lists directory
+
+* Add support for report_id inside of reports
+
+* Add the list of test helper addresses to the report
+
+* Handle also unhandled exceptions inside of ooni(deckgen|report|resources)
+
 v1.2.3-rc1 (Wed, 4 Feb 2015)
 ------------------------
 * Restructure directories where ooni software writes/reads from
