@@ -132,6 +132,7 @@ class NetTestLoader(object):
     method_prefix = 'test'
     collector = None
     requiresTor = False
+    reportID = None
 
     def __init__(self, options, test_file=None, test_string=None):
         self.onionInputRegex = re.compile(
