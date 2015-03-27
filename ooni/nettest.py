@@ -10,7 +10,7 @@ from twisted.python import usage, reflect
 
 from ooni import otime
 from ooni.tasks import Measurement
-from ooni.utils import log, sanitize_options
+from ooni.utils import log, sanitize_options, randomStr
 from ooni.utils.net import hasRawSocketPermission
 from ooni.settings import config
 
@@ -203,18 +203,21 @@ class NetTestLoader(object):
             input_file_hashes.append(input_file['hash'])
 
         options = sanitize_options(self.options)
-        test_details = {'start_time': otime.epochToUTC(time.time()),
-                        'probe_asn': config.probe_ip.geodata['asn'],
-                        'probe_cc': config.probe_ip.geodata['countrycode'],
-                        'probe_ip': config.probe_ip.geodata['ip'],
-                        'probe_city': config.probe_ip.geodata['city'],
-                        'test_name': self.testName,
-                        'test_version': self.testVersion,
-                        'software_name': 'ooniprobe',
-                        'software_version': software_version,
-                        'options': options,
-                        'input_hashes': input_file_hashes
-                        }
+        test_details = {
+            'start_time': otime.epochToUTC(time.time()),
+            'probe_asn': config.probe_ip.geodata['asn'],
+            'probe_cc': config.probe_ip.geodata['countrycode'],
+            'probe_ip': config.probe_ip.geodata['ip'],
+            'probe_city': config.probe_ip.geodata['city'],
+            'test_name': self.testName,
+            'test_version': self.testVersion,
+            'software_name': 'ooniprobe',
+            'software_version': software_version,
+            'options': options,
+            'input_hashes': input_file_hashes,
+            'report_id': self.reportID,
+            'test_helpers': self.testHelpers
+        }
         return test_details
 
     def _parseNetTestOptions(self, klass):
@@ -321,6 +324,11 @@ class NetTestLoader(object):
         self.testName = test_class_name_to_name(test_class.name)
         self.testCases = test_cases
         self.testClasses = set([])
+        self.testHelpers = {}
+
+        if config.reports.unique_id is True:
+            self.reportID = randomStr(64)
+
         for test_class, test_method in self.testCases:
             self.testClasses.add(test_class)
 
@@ -341,7 +349,7 @@ class NetTestLoader(object):
 
             test_instance = klass()
             if test_instance.requiresRoot and not hasRawSocketPermission():
-                raise errors.InsufficientPrivileges
+                raise e.InsufficientPrivileges
             if test_instance.requiresTor:
                 self.requiresTor = True
             test_instance.requirements()
@@ -446,13 +454,14 @@ class NetTest(object):
         return ' '.join(tc.name for tc, _ in self.testCases)
 
     def doneNetTest(self, result):
-        if not self.summary:
-            return
-        print "Summary for %s" % self.testDetails['test_name']
-        print "------------" + "-"*len(self.testDetails['test_name'])
-        for test_class in self.testClasses:
-            test_instance = test_class()
-            test_instance.displaySummary(self.summary)
+        if self.summary:
+            print "Summary for %s" % self.testDetails['test_name']
+            print "------------" + "-"*len(self.testDetails['test_name'])
+            for test_class in self.testClasses:
+                test_instance = test_class()
+                test_instance.displaySummary(self.summary)
+        if self.testDetails["report_id"]:
+            print "Report ID: %s" % self.testDetails["report_id"]
 
     def doneReport(self, report_results):
         """

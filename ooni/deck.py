@@ -37,7 +37,8 @@ class InputFile(object):
             try:
                 self.verify()
             except AssertionError:
-                log.err("The input %s failed validation. Going to consider it not cached." % self.id)
+                log.err("The input %s failed validation."
+                        "Going to consider it not cached." % self.id)
                 return False
             return True
         return False
@@ -45,13 +46,13 @@ class InputFile(object):
     def save(self):
         with open(self.cached_descriptor, 'w+') as f:
             json.dump({
-                          'name': self.name,
-                          'id': self.id,
-                          'version': self.version,
-                          'author': self.author,
-                          'date': self.date,
-                          'description': self.description
-                      }, f)
+                'name': self.name,
+                'id': self.id,
+                'version': self.version,
+                'author': self.author,
+                'date': self.date,
+                'description': self.description
+            }, f)
 
     def load(self, descriptor):
         self.name = descriptor['name']
@@ -107,7 +108,8 @@ class Deck(InputFile):
         self.decksDirectory = os.path.abspath(decks_directory)
         self.deckHash = deck_hash
 
-        if deckFile: self.loadDeck(deckFile)
+        if deckFile:
+            self.loadDeck(deckFile)
 
     @property
     def cached_file(self):
@@ -224,6 +226,7 @@ class Deck(InputFile):
             for th in net_test_loader.requiredTestHelpers:
                 if not th['test_class'].localOptions[th['option']]:
                     th['test_class'].localOptions[th['option']] = test_helpers[th['name']].encode('utf-8')
+                net_test_loader.testHelpers[th['option']] = th['test_class'].localOptions[th['option']]
 
             if not net_test_loader.collector:
                 net_test_loader.collector = collector.encode('utf-8')
