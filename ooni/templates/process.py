@@ -21,6 +21,7 @@ class ProcessDirector(protocol.ProcessProtocol):
         self.transport.loseConnection()
 
     def resetTimer(self):
+        log.debug("Resetting Timer")
         if self.timeout is not None:
             if self.timer is not None:
                 self.timer.cancel()
