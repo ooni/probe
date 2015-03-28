@@ -1,5 +1,83 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+"""
+ooniprobe: a network interference detection tool
+================================================
+
+.. image:: https://travis-ci.org/TheTorProject/ooni-probe.png?branch=master
+    :target: https://travis-ci.org/TheTorProject/ooni-probe
+
+.. image:: https://coveralls.io/repos/TheTorProject/ooni-probe/badge.png
+    :target: https://coveralls.io/r/TheTorProject/ooni-probe
+
+___________________________________________________________________________
+
+.. image:: https://ooni.torproject.org/theme/img/ooni-logo.png
+    :target: https:://ooni.torproject.org/
+
+OONI, the Open Observatory of Network Interference, is a global observation
+network which aims is to collect high quality data using open methodologies,
+using Free and Open Source Software (FL/OSS) to share observations and data
+about the various types, methods, and amounts of network tampering in the
+world.
+
+Read this before running ooniprobe!
+-----------------------------------
+
+Running ooniprobe is a potentially risky activity. This greatly depends on the
+jurisdiction in which you are in and which test you are running. It is
+technically possible for a person observing your internet connection to be
+aware of the fact that you are running ooniprobe. This means that if running
+network measurement tests is something considered to be illegal in your country
+then you could be spotted.
+
+Futhermore, ooniprobe takes no precautions to protect the install target machine
+from forensics analysis. If the fact that you have installed or used ooni
+probe is a liability for you, please be aware of this risk.
+
+
+Setup ooniprobe
+-------------------
+
+To install ooniprobe you will need the following dependencies:
+
+    * python
+    * python-dev
+    * python-setuptools
+    * build-essential
+    * libdumbnet1
+    * python-dumbnet
+    * python-libpcap
+    * tor
+    * libgeoip-dev
+    * libpcap0.8-dev
+    * libssl-dev
+    * libffi-dev
+    * libdumbnet-dev
+
+When you got them run:
+
+.. code:: bash
+
+    sudo pip install ooniprobe
+
+Using ooniprobe
+---------------
+
+To generate a test deck for your country, cd to the directory where you want it
+and run:
+
+.. code:: bash
+
+    oonideckgen
+
+
+To setup a daily cronjob run this:
+
+.. code:: bash
+
+    (crontab -l 2>/dev/null; echo "@daily ooniprobe `oonideckgen | grep -e '^ooniprobe'`") | crontab -
+
+Have fun!
+"""
 
 from ooni import __version__, __author__
 import os
@@ -69,7 +147,7 @@ class install(_st_install):
 
     def ooniresources(self):
         ooniresources = find_executable("ooniresources")
-        from subprocess import Popen, PIPE
+        from subprocess import Popen
         process = Popen([ooniresources, '--update-inputs', '--update-geoip'],
                         stdout=sys.stdout.fileno(), stderr=sys.stderr.fileno())
         process.wait()
@@ -111,19 +189,14 @@ with open('requirements.txt') as f:
             continue
         install_requires.append(line)
 
-with open('README.rst') as f:
-    readme = f.read()
-
-with open('ChangeLog.rst') as f:
-    changelog = f.read()
-
 setup(
     name="ooniprobe",
     version=__version__,
     author=__author__,
     author_email="ooni-dev@lists.torproject.org",
-    description="Network Interference detection tool.",
-    long_description=readme + '\n\n' + changelog,
+    description="Network measurement tool for"
+                "identifying traffic manipulation and blocking.",
+    long_description=__doc__,
     license='BSD 2 clause',
     url="https://ooni.torproject.org/",
     package_dir={'ooni': 'ooni'},
