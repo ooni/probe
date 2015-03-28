@@ -2,7 +2,7 @@ Changelog
 =========
 
 v1.3.0 (Fri, 27 Mar 2015)
-------------------------
+-------------------------
 
 * Add obfs4 bridge reachability support
 
@@ -18,7 +18,7 @@ v1.3.0 (Fri, 27 Mar 2015)
 * Handle also unhandled exceptions inside of ooni(deckgen|report|resources)
 
 v1.2.3-rc1 (Wed, 4 Feb 2015)
-------------------------
+----------------------------
 * Restructure directories where ooni software writes/reads from
   https://trac.torproject.org/projects/tor/ticket/14086
 
