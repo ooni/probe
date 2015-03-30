@@ -51,7 +51,6 @@ class ProcessDirector(protocol.ProcessProtocol):
             self.transport.closeStdin()
 
     def outReceived(self, data):
-        self.resetTimer()
         log.debug("STDOUT: %s" % data)
         self.stdout += data
         if self.shouldClose():
