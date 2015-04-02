@@ -79,10 +79,13 @@ class OConfig(object):
 
     @property
     def ooni_home(self):
+        home = expanduser('~'+self.current_user)
+        if os.getenv("HOME"):
+            home = os.getenv("HOME")
         if self._custom_home:
             return self._custom_home
-        return os.path.join(expanduser('~'+self.current_user),
-                                       '.ooni')
+        else:
+            return os.path.join(home, '.ooni')
 
     def get_data_file_path(self, file_name):
         for target_dir in self.data_directory_candidates:
@@ -90,10 +93,7 @@ class OConfig(object):
             if os.path.isfile(file_path):
                 return file_path
 
-    def set_paths(self, ooni_home=None):
-        if ooni_home:
-            self._custom_home = ooni_home
-
+    def set_paths(self):
         self.nettest_directory = os.path.join(get_ooni_root(), 'nettests')
 
         self.inputs_directory = os.path.join(self.ooni_home, 'inputs')
@@ -117,9 +117,9 @@ class OConfig(object):
             self.basic.logfile = expanduser(self.basic.logfile.replace(
                 '~', '~'+self.current_user))
 
-    def initialize_ooni_home(self, ooni_home=None):
-        if ooni_home:
-            self.set_paths(ooni_home)
+    def initialize_ooni_home(self, custom_home=None):
+        if custom_home:
+            self._custom_home = custom_home
 
         if not os.path.isdir(self.ooni_home):
             print "Ooni home directory does not exist."
@@ -212,6 +212,6 @@ class OConfig(object):
 
 config = OConfig()
 if not os.path.isfile(config.config_file) \
-       and os.path.isfile('/etc/ooni/ooniprobe.conf'):
+       and os.path.isfile('/etc/ooniprobe.conf'):
     config.global_options['configfile'] = '/etc/ooniprobe.conf'
     config.set_paths()
