@@ -128,6 +128,7 @@ class OConfig(object):
     def initialize_ooni_home(self, custom_home=None):
         if custom_home:
             self._custom_home = custom_home
+            self.set_paths()
 
         if not os.path.isdir(self.ooni_home):
             print "Ooni home directory does not exist."
