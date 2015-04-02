@@ -407,6 +407,8 @@ class OONIBReportLog(object):
                     os.kill(value['pid'], 0)
                 except:
                     reports.append((report_file, value))
+            elif value['status'] in ('incomplete'):
+                reports.append((report_file, value))
         return reports
 
     @property
