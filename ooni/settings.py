@@ -96,8 +96,16 @@ class OConfig(object):
     def set_paths(self):
         self.nettest_directory = os.path.join(get_ooni_root(), 'nettests')
 
-        self.inputs_directory = os.path.join(self.ooni_home, 'inputs')
-        self.decks_directory = os.path.join(self.ooni_home, 'decks')
+        if self.advanced.inputs_dir:
+            self.inputs_directory = self.advanced.inputs_dir
+        else:
+            self.inputs_directory = os.path.join(self.ooni_home, 'inputs')
+
+        if self.advanced.decks_dir:
+            self.decks_directory = self.advanced.decks_dir
+        else:
+            self.decks_directory = os.path.join(self.ooni_home, 'decks')
+
         self.reports_directory = os.path.join(self.ooni_home, 'reports')
         self.resources_directory = os.path.join(self.data_directory,
                                                 "resources")
