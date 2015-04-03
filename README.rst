@@ -132,6 +132,8 @@ without installing it is supported with the following commands::
 OSX
 ---
 
+You can install ooniprobe on OSX if you have installed homebrew (http://mxcl.github.io/homebrew) with::
+
     brew install ooniprobe
 
 
