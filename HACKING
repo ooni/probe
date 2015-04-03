@@ -39,9 +39,6 @@ Code Structure
 - inputs/
   Contains input files for tests.
 
-- oonib/
-  Contains the OONI probe backend to be run on the ooni-net
-
 - ooni/
   Contains the main ooni probe comand line client
 
@@ -80,9 +77,6 @@ Code Structure
 
 - ooni/kit/
   In here go utilities that can be used by tests.
-
-- ooni/lib/
-  XXX this directory is to be removed.
 
 - ooni/utils/
   In here go internal utilities that are useful to ooniprobe
