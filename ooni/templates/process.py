@@ -16,12 +16,15 @@ class ProcessDirector(protocol.ProcessProtocol):
         self.timer = None
         self.exit_reason = None
 
+    def cancelTimer(self):
+        if self.timeout and self.timer:
+            self.timer.cancel()
+
     def close(self, reason=None):
         self.reason = reason
         self.transport.loseConnection()
 
     def resetTimer(self):
-        log.debug("Resetting Timer")
         if self.timeout is not None:
             if self.timer is not None:
                 self.timer.cancel()
