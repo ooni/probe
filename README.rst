@@ -129,6 +129,11 @@ without installing it is supported with the following commands::
     ./setup-dependencies.sh
     python setup.py install
 
+OSX
+---
+
+    brew install ooniprobe
+
 
 Other platforms (with Vagrant)
 ------------------------------
