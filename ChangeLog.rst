@@ -1,6 +1,17 @@
 Changelog
 =========
 
+v1.3.1 (Fri, 3 Apr 2015)
+------------------------
+
+* Fix bug with --help of oonireport
+
+* Read the home directory from an environement variable
+
+* Expose the inputs_dir and decks_dir from the config file
+
+* Fix bug that leads to some incomplete reports not showing up with oonireport
+
 v1.3.0 (Fri, 27 Mar 2015)
 -------------------------
 
