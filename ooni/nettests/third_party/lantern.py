@@ -62,20 +62,17 @@ class LanternTest(ProcessTest):
     requiredOptions = ['url']
 
     def setUp(self):
+        self.command = ["lantern_linux", "--headless"]
         self.d = defer.Deferred()
         self.processDirector = LanternProcessDirector(self.d, timeout=self.timeout)
-        self.d.addCallback(self.processEnded, "lantern_linux")
+        self.d.addCallback(self.processEnded, self.command)
         if self.localOptions['url']:
             self.url = self.localOptions['url']
 
     def runLantern(self):
-        command = ["lantern_linux", "--headless"]
-
-        paths = filter(os.path.exists,[os.path.join(os.path.expanduser(x), command[0]) for x in getenv('PATH').split(':')])
-        if paths:
-            command[0] = paths[0]
+        paths = filter(os.path.exists,[os.path.join(os.path.expanduser(x), self.command[0]) for x in getenv('PATH').split(':')])
         log.debug("Spawning Lantern")
-        reactor.spawnProcess(self.processDirector, command[0], command)
+        reactor.spawnProcess(self.processDirector, paths[0], self.command)
 
     def test_lantern_circumvent(self):
         proxyEndpoint=TCP4ClientEndpoint(reactor, '127.0.0.1', 8787)
