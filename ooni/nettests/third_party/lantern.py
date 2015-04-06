@@ -1,5 +1,6 @@
 from twisted.internet import defer, reactor
 from twisted.internet.endpoints import TCP4ClientEndpoint
+from twisted.python import usage
 from twisted.web.client import ProxyAgent, readBody
 from ooni.templates.process import ProcessTest, ProcessDirector
 from ooni.utils import log
@@ -7,6 +8,9 @@ from ooni.errors import handleAllFailures, TaskTimedOut
 import os.path
 from os import getenv
 
+class UsageOptions(usage.Options):
+    optParameters = [
+        ['url', 'u', None, 'Specify a single URL to test.'],]
 
 class LanternProcessDirector(ProcessDirector):
     """
@@ -50,14 +54,19 @@ class LanternTest(ProcessTest):
     """
 
     name = "Lantern Circumvention Tool Test"
+    description = "Bootstraps Lantern and does a HTTP GET for the specified URL"
     author = "Aaron Gibson"
     version = "0.0.1"
     timeout = 20
+    usageOptions = UsageOptions
+    requiredOptions = ['url']
 
     def setUp(self):
         self.d = defer.Deferred()
         self.processDirector = LanternProcessDirector(self.d, timeout=self.timeout)
         self.d.addCallback(self.processEnded, "lantern_linux")
+        if self.localOptions['url']:
+            self.url = self.localOptions['url']
 
     def runLantern(self):
         command = ["lantern_linux", "--headless"]
@@ -81,8 +90,8 @@ class LanternTest(ProcessTest):
             self.report['bootstrapped'] = False
 
         def doRequest(noreason):
-            log.debug("Doing HTTP request via Lantern (127.0.0.1:8787) for http://google.com")
-            request = agent.request("GET", "http://google.com")
+            log.debug("Doing HTTP request via Lantern (127.0.0.1:8787) for %s" % self.url)
+            request = agent.request("GET", self.url)
             request.addCallback(readBody)
             request.addCallback(addResultToReport)
             request.addCallback(self.processDirector.close)
