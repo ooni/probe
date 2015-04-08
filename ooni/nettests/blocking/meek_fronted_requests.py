@@ -64,9 +64,9 @@ class meekTest(httpt.HTTPTest):
                 % (self.DomainName, self.header))
         def process_body(body):
             if self.ExpectedBody != body:
-                self.report['censored'] = True
+                self.report['success'] = False
             else:
-                self.report['censored'] = False
+                self.report['success'] = True
 
         headers = {}
         headers['Host'] = [self.header]
