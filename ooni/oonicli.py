@@ -23,7 +23,7 @@ from ooni.nettest import NetTestLoader
 from ooni.utils import log
 from ooni.utils.net import hasRawSocketPermission
 
-lifetime = random.randint(20,32)
+lifetime = random.randint(820,1032)
 counter = 0
 
 
@@ -508,7 +508,7 @@ def runWithDaemonDirector(logging=True, start_tor=True, check_incoherences=True)
             data = json.loads(body)
             counter += 1
 
-            log.msg("Received: %s" %(data['url'],))
+            log.msg("Received %d/%d: %s" %(counter, lifetime, data['url'],))
             # acknowledge the message
             ch.basic_ack(delivery_tag=method.delivery_tag)
 
