@@ -23,32 +23,11 @@ from ooni.nettest import NetTestLoader
 from ooni.utils import log
 from ooni.utils.net import hasRawSocketPermission
 
-class QueueWaitTimeout(Exception):
-    pass
+lifetime = random.randint(20,32)
+counter = 0
 
-class QueueState(object):
-    def __init__(self):
-        self.entries = []
-        self.cbset = False
-        self.task = None
-        self.delay = None
-        self.finished = defer.Deferred()
-        self.lifetime = random.randint(10,16)
-        self.resetcount = 0
 
-    def add(self, url):
-        self.entries.append(url)
-
-    def reset(self):
-        self.cbset = False
-        self.resetcount += 1
-        self.entries = []
-
-    def canContinue(self):
-        if self.resetcount >= self.lifetime:
-            return False
-        return True
-
+class LifetimeExceeded(Exception): pass
 
 class Options(usage.Options):
     synopsis = """%s [options] [path to test].py
@@ -508,66 +487,35 @@ def runWithDaemonDirector(logging=True, start_tor=True, check_incoherences=True)
 
         return start()
 
-    queuestate = QueueState()
 
-    def startBatch(status, channel, queue_object, name):
-        import tempfile
-        # will this race?
-        log.msg("Getting batch")
-        fp = tempfile.NamedTemporaryFile(delete=False, prefix='batch')
-        for e in queuestate.entries:
-            print >>fp, e
-        fp.close()
-        log.msg("Queue reset")
-        queuestate.reset()
-        d = createDeck(filename=fp.name)
-        # When the test has been completed, go back to waiting for a message.
-        d.addCallback(runConsume, channel, name)
-
-    @defer.inlineCallbacks
-    def stopRead(channel, queue_object, consumer_tag):
-        log.msg("Cancelling consume")
-        queuestate.task.stop()
-        queue_object.close(QueueWaitTimeout())
-        yield channel.basic_cancel(consumer_tag=consumer_tag)
+    finished = defer.Deferred()
 
     @defer.inlineCallbacks
     def readmsg(_,channel, queue_object, consumer_tag):
+        global counter, lifetime
+
         # Wait for a message and decode it.
-        log.msg("Waiting for message")
-        
-        ch, method, properties, body = yield queue_object.get()
-        log.msg("Got message")
-        data = json.loads(body)
+        if counter >= lifetime:
+            queue_object.close(LifetimeExceeded())
+            yield channel.basic_cancel(consumer_tag=consumer_tag)
+            finished.call()
 
-        log.msg("Added: %s" %(data['url'],))
-        queuestate.add(data['url'].encode('utf8'))
-        # acknowledge the message
-        ch.basic_ack(delivery_tag=method.delivery_tag)
+        else:
+            log.msg("Waiting for message")
+            
+            ch, method, properties, body = yield queue_object.get()
+            log.msg("Got message")
+            data = json.loads(body)
+            counter += 1
 
-        if not queuestate.cbset:
-            log.msg("Creating timeout")
-            queuestate.cbset = True
-            reactor.callLater(queuestate.delay, stopRead, channel, queue_object, consumer_tag)
+            log.msg("Received: %s" %(data['url'],))
+            # acknowledge the message
+            ch.basic_ack(delivery_tag=method.delivery_tag)
 
-    @defer.inlineCallbacks
-    def runConsume(_, channel, name):
-        if not queuestate.canContinue():
-            log.msg("Lifetime exceeded")
-            queuestate.finished.callback(None)
-            return
-        try:
-            queue_object, consumer_tag = yield channel.basic_consume(
-                                                       queue=name,
-                                                       no_ack=False)
-        except Exception,v:
-            print v
-            queuestate.finished.errback(v)
-        queuestate.task = task.LoopingCall(readmsg, None, channel, 
-                                           queue_object, consumer_tag)
-        d = queuestate.task.start(0.05)
-        d.addErrback(onQueueError)
-        d.addBoth(startBatch, channel, queue_object, name)
+            d = createDeck(url=data['url'].encode('utf8'))
+            # When the test has been completed, go back to waiting for a message.
+            d.addCallback(readmsg, channel, queue_object, consumer_tag)
+
 
 
     @defer.inlineCallbacks
@@ -575,20 +523,17 @@ def runWithDaemonDirector(logging=True, start_tor=True, check_incoherences=True)
         # Set up the queue consumer.  When a message is received, run readmsg
         channel = yield connection.channel()
         yield channel.basic_qos(prefetch_count=qos)
+        queue_object, consumer_tag = yield channel.basic_consume(
+                                                   queue=name,
+                                                   no_ack=False)
+        readmsg(None,channel,queue_object,consumer_tag)
 
-        runConsume(None, channel, name)
 
-    def onQueueError(*args):
-        if not isinstance(args[0].value, QueueWaitTimeout):
-            queuestate.finished.errback(args[0])
-            return args[0]
 
     # Create the AMQP connection.  This could be refactored to allow test URLs
     # to be submitted through an HTTP server interface or something.
     urlp = urlparse.urlparse(config.global_options['queue'])
     urlargs = dict(urlparse.parse_qsl(urlp.query))
-
-    queuestate.delay = float(urlargs.get('batchdelay', 2.5))
 
     # AMQP connection details are sent through the cmdline parameter '-Q'
     
@@ -604,9 +549,8 @@ def runWithDaemonDirector(logging=True, start_tor=True, check_incoherences=True)
                                 twisted_connection.TwistedProtocolConnection,
                                 parameters)
     d = cc.connectTCP(urlp.hostname, urlp.port or 5672)
-    d.addErrback(onQueueError)
     d.addCallback(lambda protocol: protocol.ready)
     # start the wait/process sequence.
     d.addCallback(runQueue, urlp.path.rsplit('/',1)[-1], int(urlargs.get('qos',1)))
 
-    return queuestate.finished
+    return finished
