@@ -498,7 +498,7 @@ def runWithDaemonDirector(logging=True, start_tor=True, check_incoherences=True)
         if counter >= lifetime:
             queue_object.close(LifetimeExceeded())
             yield channel.basic_cancel(consumer_tag=consumer_tag)
-            finished.call()
+            finished.callback(None)
 
         else:
             log.msg("Waiting for message")
