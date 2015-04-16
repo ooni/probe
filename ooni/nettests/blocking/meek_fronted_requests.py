@@ -23,11 +23,10 @@ class meekTest(httpt.HTTPTest):
     and response with: "I’m just a happy little web server.\n".
     The input file should be formatted as (one per line):
     "DomainName:HostHeader"
-
-    Some default meek DomainName and HostHeader combinations:
     www.google.com:meek-reflect.appspot.com
     ajax.aspnetcdn.com:az668014.vo.msecnd.net
     a0.awsstatic.com:d2zfqthxsdq309.cloudfront.net
+
     """
     name = "meek fronted requests test"
     version = "0.0.1"
@@ -36,6 +35,9 @@ class meekTest(httpt.HTTPTest):
     inputFile = ['file', 'f', None,
                   "File containing the DomainName:HostHeader combinations to\
                   be tested, one per line."]
+    inputs = [('www.google.com', 'meek-reflect.appspot.com'),
+               ('ajax.aspnetcdn.com', 'az668014.vo.msecnd.net'),
+               ('a0.awsstatic.com', 'd2zfqthxsdq309.cloudfront.net')]
 
     requiresRoot = False
     requiresTor = False
@@ -44,14 +46,16 @@ class meekTest(httpt.HTTPTest):
         """
         Check for inputs.
         """
+
         if self.input:
-            self.DomainName, self.header = self.input.split(':')
+           if (isinstance(self.input, tuple) or isinstace(self.input, list)):
+               self.DomainName, self.header = self.input
+           else:
+               self.DomainName, self.header = self.input.split(':')
         elif (self.localOptions['DomainName'] and
               self.localOptions['HostHeader']):
                self.DomainName = self.localOptions['DomainName']
                self.header = self.localOptions['HostHeader']
-        else:
-            raise Exception("No input specified")
 
         self.ExpectedBody = self.localOptions['ExpectedBody']
         self.DomainName = 'https://' + self.DomainName
@@ -72,3 +76,4 @@ class meekTest(httpt.HTTPTest):
         headers['Host'] = [self.header]
         return self.doRequest(self.DomainName, method="GET", headers=headers,
                               body_processor=process_body)
+
