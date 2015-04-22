@@ -51,6 +51,8 @@ advanced:
     report_log_file: null
     inputs_dir: null
     decks_dir: null
+    # Minimum amount of RAM (in MB) required to run tests
+    critical_ram: 25
 tor:
     #socks_port: 8801
     #control_port: 8802
