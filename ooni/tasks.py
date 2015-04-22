@@ -6,7 +6,7 @@ from ooni import errors as e
 from ooni.settings import config
 from ooni import otime
 
-from psutils import virtual_memory
+from psutil import virtual_memory
 
 class BaseTask(object):
     _timer = None
