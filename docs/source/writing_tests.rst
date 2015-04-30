@@ -18,8 +18,8 @@ multiple Test Methods.
 
 If the test you plan to write is not listed on the `Tor OONI trac page
 <https://trac.torproject.org/projects/tor/wiki/doc/OONI/Tests>`_, you should
-add it to the list and then add a description about it following the `Test
-Template <https://gitweb.torproject.org/ooni-probe.git/blob/HEAD:/docs/source/tests/template.rst>`_
+add it to the list and then add a description about it following the `test
+template <https://gitweb.torproject.org/ooni-probe.git/plain/docs/source/tests/template.rst>`_.
 
 Tests are driven by inputs. For every input a new test instance is created,
 internally the _setUp method is called that is defined inside of test
@@ -33,7 +33,7 @@ Inputs
 ------
 
 Inputs are what is given as input to every iteration of the Test Case.
-Iflyou have 100 inputs, then every test case will be run 100 times.
+If you have 100 inputs, then every test case will be run 100 times.
 
 To configure a static set of inputs you should define the
 :class:`ooni.nettest.NetTestCase` attribute ``inputs``. The test will be
@@ -57,6 +57,13 @@ this::
             yield x.strip()
         fp.close()
 
+For example, if you wanted to modify inputProcessor to read enteries from a CSV file, you could use::
+            
+    def inputProcessor(self, filename):
+        with open(filename) as csvFile:
+            reader = DictReader(csvFile)
+            for entry in reader:
+                yield entry
 
 Setup and command line passing
 ------------------------------
