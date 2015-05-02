@@ -117,25 +117,32 @@ You will be warned that the packages are unauthenticated. This is due to the
 PPA not being signed and is normal behaviour. If you would prefer to verify the
 integrity of the package, use our private Debian repository below.
 
-Linux
------
-
-We believe that ooniprobe runs reasonably well on Debian GNU/Linux wheezy as
-well as versions of Ubuntu such as natty and later releases. Running ooniprobe
-without installing it is supported with the following commands::
-
-    git clone https://git.torproject.org/ooni-probe.git
-    cd ooni-probe
-    ./scripts/setup-dependencies.sh
-    python setup.py install
-
-OSX
----
+Mac OS X
+--------
 
 You can install ooniprobe on OSX if you have installed homebrew (http://mxcl.github.io/homebrew) with::
 
     brew install ooniprobe
 
+Unix systems (with pip)
+-----------------------
+
+Make sure you have installed the following depedencies:
+
+  * build-essential
+  * python (>=2.7)
+  * python-dev
+  * pip
+  * libgeoip-dev
+  * libdumbnet-dev
+  * libpcap-dev
+  * libssl-dev
+  * libffi-dev
+  * tor (>=0.2.5.1 to run all the tor related tests)
+
+Then you should be able to install ooniprobe by running::
+
+    pip install ooniprobe
 
 Other platforms (with Vagrant)
 ------------------------------
