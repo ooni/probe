@@ -1,14 +1,6 @@
 Measurement Developer API
 =========================
 
-:mod:`inputunit` Module
------------------------
-
-.. automodule:: ooni.inputunit
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 :mod:`nettest` Module
 ---------------------
 
@@ -17,10 +9,10 @@ Measurement Developer API
     :undoc-members:
     :show-inheritance:
 
-:mod:`config` Module
----------------------
+:mod:`settings` Module
+----------------------
 
-.. automodule:: ooni.config
+.. automodule:: ooni.settings
     :members:
     :undoc-members:
     :show-inheritance:
@@ -41,20 +33,11 @@ Measurement Developer API
     :undoc-members:
     :show-inheritance:
 
-:mod:`runner` Module
---------------------
-
-.. automodule:: ooni.runner
-    :members:
-    :undoc-members:
-    :show-inheritance:
 
 Subpackages
 -----------
 
 .. toctree::
 
-    ooni.lib
     ooni.templates
     ooni.utils
-

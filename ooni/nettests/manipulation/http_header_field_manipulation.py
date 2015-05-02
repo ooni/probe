@@ -122,6 +122,7 @@ class HTTPHeaderFieldManipulation(httpt.HTTPTest):
 
         *  **header_field_value** when the header field value does not match with the
         one we transmitted.
+
         """
         log.msg("Checking for tampering on %s" % self.url)
 

@@ -14,7 +14,7 @@ world.
                 - John Gilmore; TIME magazine (6 December 1993)
 
 ooniprobe
-*********
+---------
 
 ooniprobe is the first program that users run to probe their network and to
 collect data for the OONI project. Are you interested in testing your network
@@ -403,7 +403,7 @@ can be found in the nettests/blocking and nettests/manipulation directories
 respectively.
 
 Content Blocking Tests
-......................
+^^^^^^^^^^^^^^^^^^^^^^
 
   * `DNSConsistency <tests/dnsconsistency.html>`_
 
@@ -413,7 +413,7 @@ Content Blocking Tests
 
 
 Traffic Manipulation Tests
-..........................
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
   * `HTTP Invalid Request Line: <tests/http_invalid_request_line.html>`_
 
@@ -426,7 +426,7 @@ Traffic Manipulation Tests
   * `HTTP Host <tests/http_host.html>`_
 
 Other tests
-...........
+^^^^^^^^^^^
 
 We also have some other tests that are currently not fully supported or still
 being experimented with.
@@ -447,14 +447,14 @@ Tests that involve running third party tools may be found in:
     <https://gitweb.torproject.org/ooni-probe.git/tree/HEAD:/ooni/nettests/third_party>`_
 
 oonib
-*****
+-----
 
 This is the server side component of ooniprobe. It will store that data
 collected from ooniprobes and it will run a series of Test Helpers that assist
 `Traffic Manipulation Tests`_ in performing their measurements.
 
 Test Helpers
-------------
+^^^^^^^^^^^^
 
 The currently implemented test helpers are the following:
 
@@ -471,7 +471,7 @@ The currently implemented test helpers are the following:
     <https://gitweb.torproject.org/oonib.git/blob/HEAD:/oonib/testhelpers/dns_helpers.py>`_
 
 Threat Model
-************
+------------
 
 Our adversary is capable of doing country wide network surveillance and 
 manipulation of network traffic.
@@ -500,7 +500,7 @@ allowing the user to freely choose what threat model they wish to adere to.
 
 
 More developer documentation
-****************************
+----------------------------
 
 .. toctree::
     :maxdepth: 2

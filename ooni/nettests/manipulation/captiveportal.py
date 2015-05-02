@@ -617,7 +617,6 @@ class CaptivePortal(httpt.HTTPTest, dnst.DNSTest):
         Runs the CaptivePortal(Test).
 
         CONFIG OPTIONS
-        --------------
 
         If "do_captive_portal_vendor_tests" is set to "true", then vendor
         specific captive portal HTTP-based tests will be run.
