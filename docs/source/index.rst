@@ -446,8 +446,8 @@ Tests that involve running third party tools may be found in:
   * `ooni/nettests/third_party
     <https://gitweb.torproject.org/ooni-probe.git/tree/HEAD:/ooni/nettests/third_party>`_
 
-oonib
------
+ooni-backend
+------------
 
 This is the server side component of ooniprobe. It will store that data
 collected from ooniprobes and it will run a series of Test Helpers that assist
