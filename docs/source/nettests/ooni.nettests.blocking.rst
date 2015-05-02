@@ -1,26 +1,26 @@
-nettests blocking Package
+ooni.nettests blocking Package
 =========================
 
-:mod:`nettests.blocking.dnsconsistency` Module
+:mod:`ooni.nettests.blocking.dnsconsistency` Module
 -----------------------------------------
 
-.. automodule:: nettests.blocking.dnsconsistency
+.. automodule:: ooni.nettests.blocking.dnsconsistency
      :members:
      :undoc-members:
      :show-inheritance:
 
-:mod:`nettests.blocking.http_requests` Module
+:mod:`ooni.nettests.blocking.http_requests` Module
 ---------------------------------------------
 
-.. automodule:: nettests.blocking.http_requests
+.. automodule:: ooni.nettests.blocking.http_requests
      :members:
      :undoc-members:
      :show-inheritance:
 
-:mod:`nettests.blocking.tcpconnect` Module
+:mod:`ooni.nettests.blocking.tcpconnect` Module
 ------------------------------------------
 
-.. automodule:: nettests.blocking.tcpconnect
+.. automodule:: ooni.nettests.blocking.tcpconnect
      :members:
      :undoc-members:
      :show-inheritance:

@@ -1,10 +1,10 @@
-nettests third_party Package
+ooni.nettests third_party Package
 ============================
 
-:mod:`nettests.third_party.netalyzr` Module
+:mod:`ooni.nettests.third_party.netalyzr` Module
 -------------------------------------------
 
-.. automodule:: nettests.third_party.netalyzr
+.. automodule:: ooni.nettests.third_party.netalyzr
      :members:
      :undoc-members:
      :show-inheritance:
