@@ -126,7 +126,7 @@ without installing it is supported with the following commands::
 
     git clone https://git.torproject.org/ooni-probe.git
     cd ooni-probe
-    ./setup-dependencies.sh
+    ./scripts/setup-dependencies.sh
     python setup.py install
 
 OSX
