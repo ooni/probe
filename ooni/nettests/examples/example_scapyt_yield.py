@@ -10,7 +10,7 @@ from scapy.all import IP, ICMP
 from ooni.templates import scapyt
 
 class UsageOptions(usage.Options):
-    optParameters = [['target', 't', self.localOptions['target'], "Specify the target to ping"]]
+    optParameters = [['target', 't', None, "Specify the target to ping"]]
 
 class ExampleICMPPingScapyYield(scapyt.BaseScapyTest):
     name = "Example ICMP Ping Test"

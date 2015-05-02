@@ -20,7 +20,7 @@ ooni.nettests blocking Package
 :mod:`ooni.nettests.blocking.tcpconnect` Module
 -----------------------------------------------
 
-.. automodule:: ooni.nettests.blocking.tcpconnect
+.. automodule:: ooni.nettests.blocking.tcp_connect
      :members:
      :undoc-members:
      :show-inheritance:

@@ -17,7 +17,7 @@ ooni.nettests manipulation Package
      :undoc-members:
      :show-inheritance:
 
-:mod:`ooni.nettests.manipulation.dnsspoof` Module
+:mod:`ooni.nettests.manipulation.dns_spoof` Module
 --------------------------------------------------
 
 .. automodule:: ooni.nettests.manipulation.dnsspoof
