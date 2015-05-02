@@ -34,7 +34,7 @@ To provide this information we add the following to our test::
     class TCPPortScan(tcpt.TCPTest):
         name = 'TCP_port_scan_test'
         author = 'OONI Contributor <ooni@torproject.org>'
-        version = 0.0.1
+        version = '0.0.1'
 
         # Some tests may require root access
         requiresRoot = False
