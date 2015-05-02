@@ -1,8 +1,8 @@
 ooni.nettests manipulation Package
-=============================
+===================================
 
 :mod:`ooni.nettests.manipulation.captiveportal` Module
---------------------------------------------------
+-------------------------------------------------------
 
 .. automodule:: ooni.nettests.manipulation.captiveportal
      :members:
@@ -10,7 +10,7 @@ ooni.nettests manipulation Package
      :show-inheritance:
 
 :mod:`ooni.nettests.manipulation.daphne` Module
-------------------------------------------
+------------------------------------------------
 
 .. automodule:: ooni.nettests.manipulation.daphne
      :members:
@@ -18,7 +18,7 @@ ooni.nettests manipulation Package
      :show-inheritance:
 
 :mod:`ooni.nettests.manipulation.dnsspoof` Module
---------------------------------------------
+--------------------------------------------------
 
 .. automodule:: ooni.nettests.manipulation.dnsspoof
      :members:
@@ -26,7 +26,7 @@ ooni.nettests manipulation Package
      :show-inheritance:
 
 :mod:`ooni.nettests.manipulation.http_header_field_manipulation` Module
-------------------------------------------------------------------
+------------------------------------------------------------------------
 
 .. automodule:: ooni.nettests.manipulation.http_header_field_manipulation
      :members:
@@ -34,7 +34,7 @@ ooni.nettests manipulation Package
      :show-inheritance:
 
 :mod:`ooni.nettests.manipulation.http_host` Module
----------------------------------------------
+---------------------------------------------------
 
 .. automodule:: ooni.nettests.manipulation.http_host
      :members:
@@ -42,7 +42,7 @@ ooni.nettests manipulation Package
      :show-inheritance:
 
 :mod:`ooni.nettests.manipulation.http_invalid_request_line` Module
--------------------------------------------------------------
+-------------------------------------------------------------------
 
 .. automodule:: ooni.nettests.manipulation.http_invalid_request_line
      :members:
@@ -50,7 +50,7 @@ ooni.nettests manipulation Package
      :show-inheritance:
 
 :mod:`ooni.nettests.manipulation.traceroute` Module
-----------------------------------------------
+----------------------------------------------------
 
 .. automodule:: ooni.nettests.manipulation.traceroute
      :members:

@@ -1,8 +1,8 @@
 ooni.nettests blocking Package
-=========================
+==============================
 
 :mod:`ooni.nettests.blocking.dnsconsistency` Module
------------------------------------------
+---------------------------------------------------
 
 .. automodule:: ooni.nettests.blocking.dnsconsistency
      :members:
@@ -10,7 +10,7 @@ ooni.nettests blocking Package
      :show-inheritance:
 
 :mod:`ooni.nettests.blocking.http_requests` Module
----------------------------------------------
+--------------------------------------------------
 
 .. automodule:: ooni.nettests.blocking.http_requests
      :members:
@@ -18,7 +18,7 @@ ooni.nettests blocking Package
      :show-inheritance:
 
 :mod:`ooni.nettests.blocking.tcpconnect` Module
-------------------------------------------
+-----------------------------------------------
 
 .. automodule:: ooni.nettests.blocking.tcpconnect
      :members:

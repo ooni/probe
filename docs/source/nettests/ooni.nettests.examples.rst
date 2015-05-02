@@ -1,8 +1,8 @@
 ooni.nettests examples Package
-=========================
+==============================
 
 :mod:`ooni.nettests.examples.example_dnst` Module
---------------------------------------------
+-------------------------------------------------
 
 .. automodule:: ooni.nettests.examples.example_dnst
      :members:
@@ -10,7 +10,7 @@ ooni.nettests examples Package
      :show-inheritance:
 
 :mod:`ooni.nettests.examples.example_http_checksum` Module
------------------------------------------------------
+----------------------------------------------------------
 
 .. automodule:: ooni.nettests.examples.example_http_checksum
      :members:
@@ -18,7 +18,7 @@ ooni.nettests examples Package
      :show-inheritance:
 
 :mod:`ooni.nettests.examples.example_httpt` Module
----------------------------------------------
+--------------------------------------------------
 
 .. automodule:: ooni.nettests.examples.example_httpt
      :members:
@@ -26,7 +26,7 @@ ooni.nettests examples Package
      :show-inheritance:
 
 :mod:`ooni.nettests.examples.example_myip` Module
---------------------------------------------
+-------------------------------------------------
 
 .. automodule:: ooni.nettests.examples.example_myip
      :members:
@@ -34,7 +34,7 @@ ooni.nettests examples Package
      :show-inheritance:
 
 :mod:`ooni.nettests.examples.example_scapyt` Module
-----------------------------------------------
+---------------------------------------------------
 
 .. automodule:: ooni.nettests.examples.example_scapyt
      :members:
@@ -42,7 +42,7 @@ ooni.nettests examples Package
      :show-inheritance:
 
 :mod:`ooni.nettests.examples.example_scapyt_yield` Module
-----------------------------------------------------
+---------------------------------------------------------
 
 .. automodule:: ooni.nettests.examples.example_scapyt_yield
      :members:
@@ -50,7 +50,7 @@ ooni.nettests examples Package
      :show-inheritance:
 
 :mod:`ooni.nettests.examples.example_tcpt` Module
---------------------------------------------
+-------------------------------------------------
 
 .. automodule:: ooni.nettests.examples.example_tcpt
      :members:
