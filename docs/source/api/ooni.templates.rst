@@ -1,5 +1,5 @@
-templates Package
-=================
+Test Templates
+==============
 
 :mod:`ooni.templates.httpt` Module
 ----------------------------------

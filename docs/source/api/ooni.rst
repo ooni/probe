@@ -1,5 +1,5 @@
-ooni Package
-============
+Measurement Developer API
+=========================
 
 :mod:`inputunit` Module
 -----------------------

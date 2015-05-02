@@ -1,8 +1,5 @@
 Architecture
 ============
-:Author: Arturo Filastò
-:Contact: art@torproject.org
-:Copyright: This document has been placed in the public domain.
 
 The goal of this document is provide an overview of how ooni works, what are
 it's pieces and how they interact with one another.
@@ -161,7 +158,7 @@ Report collector
 
 
 An ooniprobe run
-================
+----------------
 
 Here we describe how an ooniprobe run should look like:
 
@@ -183,7 +180,10 @@ Here we describe how an ooniprobe run should look like:
 
 
 ooniprobe API
-=============
+-------------
+
+Note: This is currently not under active development, but we are looking for
+people interested in hacking on it!
 
 The goals of the ooniprobe API is that of allowing applications to interact
 with an ooniprobe.
@@ -304,7 +304,7 @@ Like so for example
 
 
 Implementation status
-=====================
+---------------------
 
 ooniprobe
 .........
