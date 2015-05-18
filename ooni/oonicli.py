@@ -41,7 +41,7 @@ class Options(usage.Options):
         ["collector", "c", None,
          "Address of the collector of test results. This option should not be used, but you should always use a bouncer."],
         ["bouncer", "b", 'httpo://nkvphnp3p6agi5qq.onion',
-         "Address of the bouncer for test helpers. default: httpo://nkvphnp3p6agi5qq.onion"],
+         "Address of the bouncer for test helpers."],
         ["logfile", "l", None, "log file name"],
         ["pcapfile", "O", None, "pcap file name"],
         ["configfile", "f", None,
