@@ -503,18 +503,21 @@ def runWithDaemonDirector(logging=True, start_tor=True, check_incoherences=True)
         else:
             log.msg("Waiting for message")
             
-            ch, method, properties, body = yield queue_object.get()
-            log.msg("Got message")
-            data = json.loads(body)
-            counter += 1
+            try:
+                ch, method, properties, body = yield queue_object.get()
+                log.msg("Got message")
+                data = json.loads(body)
+                counter += 1
 
-            log.msg("Received %d/%d: %s" %(counter, lifetime, data['url'],))
-            # acknowledge the message
-            ch.basic_ack(delivery_tag=method.delivery_tag)
+                log.msg("Received %d/%d: %s" %(counter, lifetime, data['url'],))
+                # acknowledge the message
+                ch.basic_ack(delivery_tag=method.delivery_tag)
 
-            d = createDeck(url=data['url'].encode('utf8'))
-            # When the test has been completed, go back to waiting for a message.
-            d.addCallback(readmsg, channel, queue_object, consumer_tag)
+                d = createDeck(url=data['url'].encode('utf8'))
+                # When the test has been completed, go back to waiting for a message.
+                d.addCallback(readmsg, channel, queue_object, consumer_tag)
+            except exceptions.AMQPError,v:
+                finished.errback(v)
 
 
 
