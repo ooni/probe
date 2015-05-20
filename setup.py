@@ -156,7 +156,7 @@ class install(_st_install):
         prefix = os.path.abspath(self.prefix)
         self.set_data_files(prefix)
         self.do_egg_install()
-        self.ooniresources()
+        #self.ooniresources()
 
 install_requires = []
 dependency_links = []
