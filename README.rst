@@ -9,7 +9,7 @@ ooniprobe: a network interference detection tool
 
 ___________________________________________________________________________
 
-.. image:: https://ooni.torproject.org/theme/img/ooni-logo.png
+.. image:: https://ooni.torproject.org/images/ooni-header-mascot.svg
     :target: https:://ooni.torproject.org/
 
 OONI, the Open Observatory of Network Interference, is a global observation
