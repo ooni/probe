@@ -80,11 +80,11 @@ class LanternTest(ProcessTest):
 
         def addResultToReport(result):
             self.report['body'] = result
-            self.report['bootstrapped'] = True
+            self.report['success'] = True
 
         def addFailureToReport(failure):
             self.report['failure'] = handleAllFailures(failure)
-            self.report['bootstrapped'] = False
+            self.report['success'] = False
 
         def doRequest(noreason):
             log.debug("Doing HTTP request via Lantern (127.0.0.1:8787) for %s" % self.url)
