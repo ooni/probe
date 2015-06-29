@@ -16,6 +16,10 @@ class ProcessDirector(protocol.ProcessProtocol):
         self.timer = None
         self.exit_reason = None
 
+    def cancelTimer(self):
+        if self.timeout and self.timer:
+            self.timer.cancel()
+
     def close(self, reason=None):
         self.reason = reason
         self.transport.loseConnection()
@@ -50,7 +54,6 @@ class ProcessDirector(protocol.ProcessProtocol):
             self.transport.closeStdin()
 
     def outReceived(self, data):
-        self.resetTimer()
         log.debug("STDOUT: %s" % data)
         self.stdout += data
         if self.shouldClose():
