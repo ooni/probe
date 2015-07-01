@@ -190,34 +190,37 @@ class ProbeIP(object):
 
     @defer.inlineCallbacks
     def lookup(self):
-        try:
-            yield self.askTor()
-            log.msg("Found your IP via Tor %s" % self.address)
-            self.resolveGeodata()
+        if self.address:
             defer.returnValue(self.address)
-        except errors.TorStateNotFound:
-            log.debug("Tor is not running. Skipping IP lookup via Tor.")
-        except Exception:
-            log.msg("Unable to lookup the probe IP via Tor.")
+        else:
+            try:
+                yield self.askTor()
+                log.msg("Found your IP via Tor %s" % self.address)
+                self.resolveGeodata()
+                defer.returnValue(self.address)
+            except errors.TorStateNotFound:
+                log.debug("Tor is not running. Skipping IP lookup via Tor.")
+            except Exception:
+                log.msg("Unable to lookup the probe IP via Tor.")
 
-        try:
-            yield self.askTraceroute()
-            log.msg("Found your IP via Traceroute %s" % self.address)
-            self.resolveGeodata()
-            defer.returnValue(self.address)
-        except errors.InsufficientPrivileges:
-            log.debug("Cannot determine the probe IP address with a traceroute, becase of insufficient priviledges")
-        except:
-            log.msg("Unable to lookup the probe IP via traceroute")
+            try:
+                yield self.askTraceroute()
+                log.msg("Found your IP via Traceroute %s" % self.address)
+                self.resolveGeodata()
+                defer.returnValue(self.address)
+            except errors.InsufficientPrivileges:
+                log.debug("Cannot determine the probe IP address with a traceroute, becase of insufficient priviledges")
+            except:
+                log.msg("Unable to lookup the probe IP via traceroute")
 
-        try:
-            yield self.askGeoIPService()
-            log.msg("Found your IP via a GeoIP service: %s" % self.address)
-            self.resolveGeodata()
-            defer.returnValue(self.address)
-        except Exception:
-            log.msg("Unable to lookup the probe IP via GeoIPService")
-            raise
+            try:
+                yield self.askGeoIPService()
+                log.msg("Found your IP via a GeoIP service: %s" % self.address)
+                self.resolveGeodata()
+                defer.returnValue(self.address)
+            except Exception, e:
+                log.msg("Unable to lookup the probe IP via GeoIPService")
+                raise e
 
     @defer.inlineCallbacks
     def askGeoIPService(self):

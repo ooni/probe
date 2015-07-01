@@ -240,7 +240,7 @@ class OONIBReporter(OReporter):
         Will raise :class:ooni.errors.InvalidOONIBCollectorAddress an exception
         if the oonib reporter is not valid.
         """
-        regexp = '^(http|httpo):\/\/[a-zA-Z0-9\-\.]+(:\d+)?$'
+        regexp = '^(http|https|httpo):\/\/[a-zA-Z0-9\-\.]+(:\d+)?$'
         if not re.match(regexp, self.collectorAddress):
             raise errors.InvalidOONIBCollectorAddress
 
@@ -265,7 +265,7 @@ class OONIBReporter(OReporter):
         request_json = json.dumps(request)
         log.debug("Sending %s" % request_json)
 
-        bodyProducer = StringProducer(json.dumps(request))
+        bodyProducer = StringProducer(request_json)
 
         try:
             yield self.agent.request("PUT", url,
@@ -288,6 +288,7 @@ class OONIBReporter(OReporter):
         # tor is started.
 
         from ooni.utils.hacks import SOCKS5Agent
+        from twisted.web.client import Agent
         from twisted.internet import reactor
 
         if self.collectorAddress.startswith('httpo://'):
@@ -298,8 +299,13 @@ class OONIBReporter(OReporter):
             self.agent = SOCKS5Agent(reactor, proxyEndpoint=proxyEndpoint)
 
         elif self.collectorAddress.startswith('https://'):
-            # XXX add support for securely reporting to HTTPS collectors.
-            log.err("HTTPS based collectors are currently not supported.")
+            # not sure if there's something else it needs.  Seems to work.
+            # Very difficult to get it to work with self-signed certs.
+            self.agent = Agent(reactor)
+
+        elif self.collectorAddress.startswith('http://'):
+            log.msg("Warning using unencrypted collector")
+            self.agent = Agent(reactor)
 
         url = self.collectorAddress + '/report'
 
@@ -319,12 +325,15 @@ class OONIBReporter(OReporter):
             # the backend.
             'content': content
         }
+        # import values from the environment
+        request.update([(k.lower(),v) for (k,v) in os.environ.iteritems()
+                        if k.startswith('PROBE_')])
 
         log.msg("Reporting %s" % url)
         request_json = json.dumps(request)
         log.debug("Sending %s" % request_json)
 
-        bodyProducer = StringProducer(json.dumps(request))
+        bodyProducer = StringProducer(request_json)
 
         log.msg("Creating report with OONIB Reporter. Please be patient.")
         log.msg("This may take up to 1-2 minutes...")
