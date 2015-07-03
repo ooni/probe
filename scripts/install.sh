@@ -134,23 +134,6 @@ fi
 
 install_obfs4proxy() {
 
-  if ! command_exists go; then
-    case "$lsb_dist" in
-      Fedora)
-        (
-          set -x
-          $sh_c "yum -y install golang"
-        )
-        ;;
-      Ubuntu|Debian)
-        (
-          set -x
-          $sh_c "apt-get install -y -q golang"
-        )
-        ;;
-    esac
-  fi
-
   if command_exists go; then
     (
       set -x
@@ -170,8 +153,38 @@ install_obfs4proxy() {
   fi
 }
 
+install_pluggable_transport_deps() {
+  case "$lsb_dist" in
+    Fedora)
+      if ! command_exists go; then
+        (
+        set -x
+        $sh_c "yum -y install golang"
+        )
+      fi
+      (
+      set -x
+      $sh_c "yum -y install gmp-devel"
+      )
+      ;;
+    Ubuntu|Debian)
+      if ! command_exists go; then
+        (
+        set -x
+        $sh_c "apt-get install -y -q golang"
+        )
+      fi
+      (
+      set -x
+      $sh_c "apt-get install -y -q libgmp-dev"
+      )
+      ;;
+  esac
+}
+
 install_pluggable_transports() {
   if [ "$INSTALL_PT" = "yes" ];then
+    install_pluggable_transport_deps
     (
       set -x
       $sh_c 'pip install obfsproxy fteproxy'
