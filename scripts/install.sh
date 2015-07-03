@@ -145,7 +145,8 @@ case "$lsb_dist" in
 		(
 			set -x
       $sh_c 'yum -y groupinstall "Development tools"'
-      $sh_c 'yum -y install zlib-devel bzip2-devel openssl-devel sqlite-devel libpcap-devel libffi-devel libevent-devel libgeoip-devel tor python-pip'
+      $sh_c 'yum -y install zlib-devel bzip2-devel openssl-devel sqlite-devel libpcap-devel libffi-devel libevent-devel libgeoip-devel tor'
+      $sh_c "$curl https://bootstrap.pypa.io/get-pip.py | python"
       $sh_c 'pip install ooniprobe'
 		)
 
@@ -197,6 +198,7 @@ case "$lsb_dist" in
       (
         set -x
         $sh_c 'apt-get install -y -q curl git-core python python-dev python-setuptools build-essential libdumbnet1 python-dumbnet python-libpcap tor tor-geoipdb libgeoip-dev libpcap0.8-dev libssl-dev libffi-dev libdumbnet-dev'
+        $sh_c "$curl https://bootstrap.pypa.io/get-pip.py | python"
         $sh_c 'pip install ooniprobe'
       )
     fi
