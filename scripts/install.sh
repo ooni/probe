@@ -64,7 +64,7 @@ elif command_exists busybox && busybox --list-modules | grep -q wget; then
 	curl='busybox wget --connect-timeout 20 -qO-'
 fi
 
-if ! (curl $TOR_DEB_REPO | grep "Apache Server at deb.torproject.org");then
+if ! ($curl $TOR_DEB_REPO | grep "Apache Server at deb.torproject.org");then
   echo '  The Tor Debian repository deb.torproject.org appears to be blocked.'
   echo '  Failing over to using the cloudfronted mirror.'
   TOR_DEB_REPO="https://d3skbh62gb3f3v.cloudfront.net/torproject.org" 
@@ -169,7 +169,7 @@ case "$lsb_dist" in
       https*) 
         (
           set -x
-          $sh_c 'apt-get install -y apt-transport-https'
+          $sh_c 'apt-get install -y -q apt-transport-https'
         )
         ;;
     esac
