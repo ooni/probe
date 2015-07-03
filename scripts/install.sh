@@ -76,6 +76,8 @@ if [ -z "$lsb_dist" ] && [ -r /etc/lsb-release ]; then
 fi
 if [ -z "$lsb_dist" ] && [ -r /etc/debian_version ]; then
 	lsb_dist='Debian'
+  distro_version="$(cat /etc/debian_version)"
+  distro_codename="$(. /etc/os-release && echo "$VERSION" | cut -d '(' -f2 | cut -d ')' -f1)"
 fi
 if [ -z "$lsb_dist" ] && [ -r /etc/fedora-release ]; then
 	lsb_dist='Fedora'
