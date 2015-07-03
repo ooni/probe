@@ -8,15 +8,52 @@ set -e
 #
 # It is heavily based upon the get.docker.io script
 
+TOR_DEB_REPO="http://deb.torproject.org/torproject.org"
+CLOUDFRONT="no"
+INSTALL_PT="yes"
+
 # These are the minimum ubuntu and debian version required to use the debian
 # package.
 # Currently you can only set the major version number.
 MIN_DEBIAN_VERSION=8
 MIN_UBUNTU_VERSION=11
-TOR_DEB_REPO="http://deb.torproject.org/torproject.org"
-INSTALL_PT="yes"
 
 url='https://get.ooni.io/'
+
+function usage()
+{
+    echo "This is the ooniprobe install script"
+    echo ""
+    echo "./install.sh"
+    echo "\t-h --help"
+    echo "\t-n Do not install pluggable transports"
+    echo "\t-c Use the cloudfronted Tor debian repository"
+    echo ""
+}
+ 
+while [ "$1" != "" ]; do
+    PARAM=`echo $1 | awk -F= '{print $1}'`
+    VALUE=`echo $1 | awk -F= '{print $2}'`
+    case $PARAM in
+        -h | --help)
+            usage
+            exit
+            ;;
+        -n)
+            INSTALL_PT="no"
+            ;;
+        -c)
+            CLOUDFRONT="yes"
+            ;;
+        *)
+            echo "ERROR: unknown parameter \"$PARAM\""
+            usage
+            exit 1
+            ;;
+    esac
+    shift
+done
+
 
 command_exists() {
 	command -v "$@" > /dev/null 2>&1
@@ -64,7 +101,10 @@ elif command_exists busybox && busybox --list-modules | grep -q wget; then
 	curl='busybox wget --connect-timeout 20 -qO-'
 fi
 
-if ! ($curl $TOR_DEB_REPO | grep "Apache Server at deb.torproject.org");then
+if [ $CLOUDFRONT = "yes" ];then
+  echo '  Using the cloudfronted tor mirror.'
+  TOR_DEB_REPO="https://d3skbh62gb3f3v.cloudfront.net/torproject.org" 
+elif ! ($curl $TOR_DEB_REPO | grep "Apache Server at deb.torproject.org");then
   echo '  The Tor Debian repository deb.torproject.org appears to be blocked.'
   echo '  Failing over to using the cloudfronted mirror.'
   TOR_DEB_REPO="https://d3skbh62gb3f3v.cloudfront.net/torproject.org" 
@@ -141,6 +181,7 @@ install_pluggable_transports() {
 }
 
 install_pip() {
+  echo ' Installing pip via get-pip.py'
   $curl https://bootstrap.pypa.io/get-pip.py > /tmp/get-pip.py
   $sh_c "python /tmp/get-pip.py > /dev/null 2>&1"
 }
