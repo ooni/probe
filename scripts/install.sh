@@ -131,7 +131,7 @@ install_obfs4proxy() {
 }
 
 install_pluggable_transports() {
-  if [ -z "$INSTALL_PT" ];then
+  if [ "$INSTALL_PT" = "yes" ];then
     (
       set -x
       $sh_c 'pip install obfsproxy fteproxy'
@@ -140,13 +140,18 @@ install_pluggable_transports() {
   fi
 }
 
+install_pip() {
+  $curl https://bootstrap.pypa.io/get-pip.py > /tmp/get-pip.py
+  $sh_c "python /tmp/get-pip.py > /dev/null 2>&1"
+}
+
 case "$lsb_dist" in
 	Fedora)
 		(
 			set -x
       $sh_c 'yum -y groupinstall "Development tools"'
       $sh_c 'yum -y install zlib-devel bzip2-devel openssl-devel sqlite-devel libpcap-devel libffi-devel libevent-devel libgeoip-devel tor'
-      $sh_c "$curl https://bootstrap.pypa.io/get-pip.py | python"
+      install_pip
       $sh_c 'pip install ooniprobe'
 		)
 
@@ -182,13 +187,15 @@ case "$lsb_dist" in
       $sh_c 'apt-get update'
     )
 
-    if [ "$lsb_dist" == 'Debian' ] && 
+    install_pip
+
+    if [ "$lsb_dist" = 'Debian' ] && 
       [ "$(echo $distro_version | cut -d '.' -f1 )" -gt $MIN_DEBIAN_VERSION ]; then
       (
         set -x
         $sh_c 'apt-get install -y -q ooniprobe'
       )
-    elif [ "$lsb_dist" == 'Ubuntu' ] &&
+    elif [ "$lsb_dist" = 'Ubuntu' ] &&
       [ "$(echo $distro_version | cut -d '.' -f1 )" -gt $MIN_UBUNTU_VERSION ]; then
       (
         set -x
@@ -198,7 +205,6 @@ case "$lsb_dist" in
       (
         set -x
         $sh_c 'apt-get install -y -q curl git-core python python-dev python-setuptools build-essential libdumbnet1 python-dumbnet python-libpcap tor tor-geoipdb libgeoip-dev libpcap0.8-dev libssl-dev libffi-dev libdumbnet-dev'
-        $sh_c "$curl https://bootstrap.pypa.io/get-pip.py | python"
         $sh_c 'pip install ooniprobe'
       )
     fi
