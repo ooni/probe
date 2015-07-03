@@ -14,6 +14,7 @@ set -e
 MIN_DEBIAN_VERSION=8
 MIN_UBUNTU_VERSION=11
 TOR_DEB_REPO="http://deb.torproject.org/torproject.org"
+INSTALL_PT="yes"
 
 url='https://get.ooni.io/'
 
@@ -83,6 +84,54 @@ if [ -z "$lsb_dist" ] && [ -r /etc/redhat-release ]; then
 	lsb_dist='Fedora'
 fi
 
+install_obfs4proxy() {
+
+  if ! command_exists go; then
+    case "$lsb_dist" in
+      Fedora)
+        (
+          set -x
+          $sh_c "yum -y install golang"
+        )
+        ;;
+      Ubuntu|Debian)
+        (
+          set -x
+          $sh_c "apt-get install -y -q golang"
+        )
+        ;;
+    esac
+  fi
+
+  if command_exists go; then
+    (
+      set -x
+      export GOPATH=$(mktmp -d)
+      go get git.torproject.org/pluggable-transports/obfs4.git/obfs4proxy
+      $sh_c "cp $GOPATH/bin/obfs4proxy /usr/local/bin/obfs4proxy"
+      $sh_c "chmod +x /usr/local/bin/obfs4proxy"
+      rm -rf $GOPATH
+    )
+  else
+    echo >&2
+    echo >&2 '  We failed to install go. obfs4proxy will not be installed.'
+    echo >&2 '  Please follow the instructions on this page to install it manually:'
+    echo >&2
+    echo >&2 '    https://github.com/Yawning/obfs4'
+    echo >&2
+  fi
+}
+
+install_pluggable_transports() {
+  if [ -z "$INSTALL_PT" ];then
+    (
+      set -x
+      $sh_c 'pip install obfsproxy fteproxy'
+    )
+    install_obfs4proxy
+  fi
+}
+
 case "$lsb_dist" in
 	Fedora)
 		(
@@ -92,6 +141,7 @@ case "$lsb_dist" in
       $sh_c 'pip install ooniprobe'
 		)
 
+    install_pluggable_transports
     non_root_usage
 		exit 0
 		;;
@@ -133,19 +183,8 @@ case "$lsb_dist" in
         $sh_c 'pip install ooniprobe'
       )
     fi
-
-    # if [ "$lsb_dist" == 'Ubuntu' ];then
-    #   (
-    #     set -x
-    #     $sh_c 'apt-get install -y -q python-virtualenv'
-    #   )
-    # elif [ "$lsb_dist" == 'Debian' ];then
-    #   (
-    #     set -x
-    #     $sh_c 'apt-get install -y -q virtualenvwrapper'
-    #   )
-    # fi
-
+    
+    install_pluggable_transports
     non_root_usage
 		exit 0
 		;;
