@@ -165,13 +165,15 @@ case "$lsb_dist" in
 			fi
 		}
 
-    if [ "$TOR_DEBIAN_REPOSITORY" == "https://*" ];then
-      (
-        set -x
-        $sh_c 'apt-get install -y apt-transport-https'
-      )
-    fi
-    
+    case "$TOR_DEB_REPO" in
+      https*) 
+        (
+          set -x
+          $sh_c 'apt-get install -y apt-transport-https'
+        )
+        ;;
+    esac
+
     (
       set -x
 		  $sh_c 'apt-key adv --keyserver hkp://pool.sks-keyservers.net --recv-keys A3C4F0F979CAA22CDBA8F512EE8CBC9E886DDD89'
