@@ -67,7 +67,7 @@ fi
 if ! (curl $TOR_DEB_REPO | grep "Apache Server at deb.torproject.org");then
   echo '  The Tor Debian repository deb.torproject.org appears to be blocked.'
   echo '  Failing over to using the cloudfronted mirror.'
-  TOR_DEB_REPO="http://d3skbh62gb3f3v.cloudfront.net/torproject.org" 
+  TOR_DEB_REPO="https://d3skbh62gb3f3v.cloudfront.net/torproject.org" 
 fi
 
 # perform some very rudimentary platform detection
@@ -164,6 +164,13 @@ case "$lsb_dist" in
 				did_apt_get_update=1
 			fi
 		}
+
+    if [ "$TOR_DEBIAN_REPOSITORY" == "https://*" ];then
+      (
+        set -x
+        $sh_c 'apt-get install -y apt-transport-https'
+      )
+    fi
     
     (
       set -x
