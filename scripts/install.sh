@@ -64,6 +64,10 @@ elif command_exists busybox && busybox --list-modules | grep -q wget; then
 	curl='busybox wget -qO-'
 fi
 
+if ! (curl $TOR_DEB_REPO | grep "Apache Server at deb.torproject.org");then
+  TOR_DEB_REPO="http://d3skbh62gb3f3v.cloudfront.net/torproject.org" 
+fi
+
 # perform some very rudimentary platform detection
 lsb_dist=''
 if command_exists lsb_release; then
