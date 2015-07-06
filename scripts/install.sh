@@ -20,8 +20,7 @@ MIN_UBUNTU_VERSION=11
 
 url='https://get.ooni.io/'
 
-function usage()
-{
+usage() {
     echo "This is the ooniprobe install script"
     echo ""
     echo "./install.sh"
