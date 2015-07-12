@@ -100,6 +100,13 @@ elif command_exists busybox && busybox --list-modules | grep -q wget; then
 	curl='busybox wget --connect-timeout 20 -qO-'
 fi
 
+mktmp=''
+if command_exists mktmp; then
+	mktmp='mktmp'
+elif command_exists mktemp; then
+	mktmp='mktemp'
+fi
+
 if [ $CLOUDFRONT = "yes" ];then
   echo '  Using the cloudfronted tor mirror.'
   TOR_DEB_REPO="https://d3skbh62gb3f3v.cloudfront.net/torproject.org" 
@@ -136,7 +143,7 @@ install_obfs4proxy() {
   if command_exists go; then
     (
       set -x
-      export GOPATH=$(mktmp -d)
+      export GOPATH=$($mktmp -d)
       go get git.torproject.org/pluggable-transports/obfs4.git/obfs4proxy
       $sh_c "cp $GOPATH/bin/obfs4proxy /usr/local/bin/obfs4proxy"
       $sh_c "chmod +x /usr/local/bin/obfs4proxy"
