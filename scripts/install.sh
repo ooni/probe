@@ -238,7 +238,7 @@ install_pluggable_transports() {
     install_pluggable_transport_deps
     (
       set -x
-      $sh_c 'pip install obfsproxy fteproxy'
+      PYTHONPATH=$PYTHONPATH $sh_c 'pip install obfsproxy fteproxy'
     )
     install_obfs4proxy
     install_meek
@@ -258,7 +258,7 @@ case "$lsb_dist" in
       $sh_c 'yum -y groupinstall "Development tools"'
       $sh_c 'yum -y install zlib-devel bzip2-devel openssl-devel sqlite-devel libpcap-devel libffi-devel libevent-devel libgeoip-devel tor'
       install_pip
-      $sh_c 'pip install ooniprobe'
+      PYTHONPATH=$PYTHONPATH $sh_c 'pip install ooniprobe'
 		)
 
     install_pluggable_transports
@@ -311,7 +311,7 @@ case "$lsb_dist" in
       (
         set -x
         $sh_c 'apt-get install -y -q curl git-core python python-dev python-setuptools build-essential libdumbnet1 python-dumbnet python-libpcap tor tor-geoipdb libgeoip-dev libpcap0.8-dev libssl-dev libffi-dev libdumbnet-dev'
-        $sh_c 'pip install ooniprobe'
+        PYTHONPATH=$PYTHONPATH $sh_c 'pip install ooniprobe'
       )
     fi
     
