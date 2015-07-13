@@ -182,7 +182,7 @@ install_meek() {
 
 
 setup_backports() {
-  echo "deb http://ftp.de.debian.org/ ${distro_codename}-backports main" > /etc/apt/sources.list.d/stable.list
+  echo "deb http://ftp.de.debian.org/debian/ ${distro_codename}-backports main" > /etc/apt/sources.list.d/stable.list
   $sh_c "gpg --keyserver pgpkeys.mit.edu --recv-key A1BD8E9D78F7FE5C3E65D8AF8B48AD6246925553"
   $sh_c "gpg -a --export A1BD8E9D78F7FE5C3E65D8AF8B48AD6246925553 | apt-key add -"
   $sh_c "apt-get update"
