@@ -11,6 +11,7 @@ set -e
 TOR_DEB_REPO="http://deb.torproject.org/torproject.org"
 CLOUDFRONT="no"
 INSTALL_PT="yes"
+PYTHONPATH=$(python -c "import sys; print ':'.join(x for x in sys.path if x)")
 
 # These are the minimum ubuntu and debian version required to use the debian
 # package.
