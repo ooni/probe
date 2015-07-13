@@ -159,27 +159,72 @@ install_obfs4proxy() {
   fi
 }
 
-install_pluggable_transport_deps() {
+install_meek() {
+
+  if command_exists go; then
+    (
+      set -x
+      export GOPATH=$($mktmp -d)
+      go get git.torproject.org/pluggable-transports/meek.git/meek-client
+      $sh_c "cp $GOPATH/bin/meek-client /usr/local/bin/meek-client"
+      $sh_c "chmod +x /usr/local/bin/meek-client"
+      rm -rf $GOPATH
+    )
+  else
+    echo >&2
+    echo >&2 '  We failed to install go. obfs4proxy will not be installed.'
+    echo >&2 '  Please follow the instructions on this page to install it manually:'
+    echo >&2
+    echo >&2 '    https://github.com/Yawning/obfs4'
+    echo >&2
+  fi
+}
+
+
+setup_wheezy_backports() {
+  echo "deb http://ftp.de.debian.org/ wheezy-backports main" > /etc/apt/sources.list.d/stable.list
+  $sh_c "apt-get update"
+}
+
+install_go() {
+  go_version=$(apt-cache policy golang | grep Installed | cut -d ':' -f3)
   case "$lsb_dist" in
     Fedora)
-      if ! command_exists go; then
+      (
+      set -x
+      $sh_c "yum -y install golang"
+      )
+      ;;
+    Ubuntu|Debian)
+      if [ "$lsb_dist" = 'Debian' ] && 
+        [ "$(echo $distro_version | cut -d '.' -f1 )" -lt $MIN_DEBIAN_VERSION ]; then
+        setup_wheezy_backports
         (
         set -x
-        $sh_c "yum -y install golang"
+        $sh_c "apt-get install -y -t wheezy-backports golang"
+        )
+      else 
+        (
+        set -x
+        $sh_c "apt-get install -y -q golang"
         )
       fi
+      ;;
+  esac
+}
+
+install_pluggable_transport_deps() {
+  if ! command_exists go; then
+    install_go
+  fi
+  case "$lsb_dist" in
+    Fedora)
       (
       set -x
       $sh_c "yum -y install gmp-devel"
       )
       ;;
     Ubuntu|Debian)
-      if ! command_exists go; then
-        (
-        set -x
-        $sh_c "apt-get install -y -q golang"
-        )
-      fi
       (
       set -x
       $sh_c "apt-get install -y -q libgmp-dev"
@@ -196,6 +241,7 @@ install_pluggable_transports() {
       $sh_c 'pip install obfsproxy fteproxy'
     )
     install_obfs4proxy
+    install_meek
   fi
 }
 
