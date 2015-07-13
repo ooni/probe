@@ -181,8 +181,10 @@ install_meek() {
 }
 
 
-setup_wheezy_backports() {
-  echo "deb http://ftp.de.debian.org/ wheezy-backports main" > /etc/apt/sources.list.d/stable.list
+setup_backports() {
+  echo "deb http://ftp.de.debian.org/ ${distro_codename}-backports main" > /etc/apt/sources.list.d/stable.list
+  $sh_c "gpg --keyserver pgpkeys.mit.edu --recv-key A1BD8E9D78F7FE5C3E65D8AF8B48AD6246925553"
+  $sh_c "gpg -a --export A1BD8E9D78F7FE5C3E65D8AF8B48AD6246925553 | apt-key add -"
   $sh_c "apt-get update"
 }
 
@@ -198,10 +200,10 @@ install_go() {
     Ubuntu|Debian)
       if [ "$lsb_dist" = 'Debian' ] && 
         [ "$(echo $distro_version | cut -d '.' -f1 )" -lt $MIN_DEBIAN_VERSION ]; then
-        setup_wheezy_backports
+        setup_backports
         (
         set -x
-        $sh_c "apt-get install -y -t wheezy-backports golang"
+        $sh_c "apt-get install -y -t ${distro_codename}-backports golang"
         )
       else 
         (
