@@ -68,7 +68,7 @@ class TrueHeaders(http_headers.Headers):
             except KeyError:
                 pass
 
-        for k, v in itertools.chain(headers_a.getAllRawHeaders(), \
+        for k, v in itertools.chain(headers_a.getAllRawHeaders(),
                                     headers_b.getAllRawHeaders()):
             field_names.append(k)
 
