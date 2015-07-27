@@ -287,8 +287,8 @@ class OONIBReporter(OReporter):
         # do this with some deferred kung foo or instantiate the reporter after
         # tor is started.
 
-        from ooni.utils.hacks import SOCKS5Agent
         from twisted.web.client import Agent
+        from txsocksx.http import SOCKS5Agent
         from twisted.internet import reactor
 
         if self.collectorAddress.startswith('httpo://'):
