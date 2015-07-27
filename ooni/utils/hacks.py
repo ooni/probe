@@ -58,30 +58,3 @@ def patched_reduce_ex(self, proto):
         return copy_reg._reconstructor, args, dict
     else:
         return copy_reg._reconstructor, args
-
-
-class SOCKS5Agent(SOCKS5AgentOriginal):
-    """
-    This is a quick hack to fix:
-    https://github.com/habnabit/txsocksx/issues/9
-    """
-    def _getEndpoint(self, scheme_or_uri, host=None, port=None):
-        if host is not None:
-            scheme = scheme_or_uri
-        else:
-            scheme = scheme_or_uri.scheme
-            host = scheme_or_uri.host
-            port = scheme_or_uri.port
-        if scheme not in ('http', 'https'):
-            raise SchemeNotSupported('unsupported scheme', scheme)
-        endpoint = self.endpointFactory(
-            host, port, self.proxyEndpoint, **self.endpointArgs)
-        if scheme == 'https':
-            if hasattr(self, '_wrapContextFactory'):
-                tlsPolicy = self._wrapContextFactory(host, port)
-            elif hasattr(self, '_policyForHTTPS'):
-                tlsPolicy = self._policyForHTTPS.creatorForNetloc(host, port)
-            else:
-                raise NotImplementedError("can't figure out how to make a context factory")
-            endpoint = self._tlsWrapper(tlsPolicy, endpoint)
-        return endpoint
