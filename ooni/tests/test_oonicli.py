@@ -59,6 +59,8 @@ tor:
 
 
 class TestRunDirector(ConfigTestCase):
+    timeout = 220
+
     def setUp(self):
         super(TestRunDirector, self).setUp()
         if not is_internet_connected():
