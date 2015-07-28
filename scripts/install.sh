@@ -11,7 +11,6 @@ set -e
 TOR_DEB_REPO="http://deb.torproject.org/torproject.org"
 CLOUDFRONT="no"
 INSTALL_PT="yes"
-PYTHONPATH=$(python -c "import sys; print ':'.join(x for x in sys.path if x)")
 
 # These are the minimum ubuntu and debian version required to use the debian
 # package.
@@ -108,6 +107,14 @@ elif command_exists mktemp; then
 	mktmp='mktemp'
 fi
 
+# Fedora 22 introduces the next upcoming major version of Yum DNF
+yum=''
+if command_exists yum; then
+	yum='yum'
+elif command_exists dnf; then
+	yum='dnf'
+fi
+
 if [ $CLOUDFRONT = "yes" ];then
   echo '  Using the cloudfronted tor mirror.'
   TOR_DEB_REPO="https://d3skbh62gb3f3v.cloudfront.net/torproject.org" 
@@ -160,74 +167,27 @@ install_obfs4proxy() {
   fi
 }
 
-install_meek() {
-
-  if command_exists go; then
-    (
-      set -x
-      export GOPATH=$($mktmp -d)
-      go get git.torproject.org/pluggable-transports/meek.git/meek-client
-      $sh_c "cp $GOPATH/bin/meek-client /usr/local/bin/meek-client"
-      $sh_c "chmod +x /usr/local/bin/meek-client"
-      rm -rf $GOPATH
-    )
-  else
-    echo >&2
-    echo >&2 '  We failed to install go. obfs4proxy will not be installed.'
-    echo >&2 '  Please follow the instructions on this page to install it manually:'
-    echo >&2
-    echo >&2 '    https://github.com/Yawning/obfs4'
-    echo >&2
-  fi
-}
-
-
-setup_backports() {
-  echo "deb http://ftp.de.debian.org/debian/ ${distro_codename}-backports main" > /etc/apt/sources.list.d/stable.list
-  $sh_c "gpg --keyserver pgpkeys.mit.edu --recv-key A1BD8E9D78F7FE5C3E65D8AF8B48AD6246925553"
-  $sh_c "gpg -a --export A1BD8E9D78F7FE5C3E65D8AF8B48AD6246925553 | apt-key add -"
-  $sh_c "apt-get update"
-}
-
-install_go() {
-  go_version=$(apt-cache policy golang | grep Installed | cut -d ':' -f3)
+install_pluggable_transport_deps() {
   case "$lsb_dist" in
     Fedora)
+      if ! command_exists go; then
+        (
+        set -x
+        $sh_c "${yum} -y install golang"
+        )
+      fi
       (
       set -x
-      $sh_c "yum -y install golang"
+      $sh_c "${yum} -y install gmp-devel"
       )
       ;;
     Ubuntu|Debian)
-      if [ "$lsb_dist" = 'Debian' ] && 
-        [ "$(echo $distro_version | cut -d '.' -f1 )" -lt $MIN_DEBIAN_VERSION ]; then
-        setup_backports
-        (
-        set -x
-        $sh_c "apt-get install -y -t ${distro_codename}-backports golang"
-        )
-      else 
+      if ! command_exists go; then
         (
         set -x
         $sh_c "apt-get install -y -q golang"
         )
       fi
-      ;;
-  esac
-}
-
-install_pluggable_transport_deps() {
-  if ! command_exists go; then
-    install_go
-  fi
-  case "$lsb_dist" in
-    Fedora)
-      (
-      set -x
-      $sh_c "yum -y install gmp-devel"
-      )
-      ;;
-    Ubuntu|Debian)
       (
       set -x
       $sh_c "apt-get install -y -q libgmp-dev"
@@ -241,10 +201,9 @@ install_pluggable_transports() {
     install_pluggable_transport_deps
     (
       set -x
-      PYTHONPATH=$PYTHONPATH $sh_c 'pip install obfsproxy fteproxy'
+      $sh_c 'pip install obfsproxy fteproxy'
     )
     install_obfs4proxy
-    install_meek
   fi
 }
 
@@ -258,10 +217,10 @@ case "$lsb_dist" in
 	Fedora)
 		(
 			set -x
-      $sh_c 'yum -y groupinstall "Development tools"'
-      $sh_c 'yum -y install zlib-devel bzip2-devel openssl-devel sqlite-devel libpcap-devel libffi-devel libevent-devel libgeoip-devel tor'
+      $sh_c "${yum} -y groupinstall \"Development tools\""
+      $sh_c "${yum} -y install zlib-devel bzip2-devel openssl-devel sqlite-devel libpcap-devel libffi-devel libevent-devel GeoIP-devel tor python-devel libdnet-devel gcc-c++"
       install_pip
-      PYTHONPATH=$PYTHONPATH $sh_c 'pip install ooniprobe'
+      $sh_c 'pip install ooniprobe'
 		)
 
     install_pluggable_transports
@@ -314,7 +273,7 @@ case "$lsb_dist" in
       (
         set -x
         $sh_c 'apt-get install -y -q curl git-core python python-dev python-setuptools build-essential libdumbnet1 python-dumbnet python-libpcap tor tor-geoipdb libgeoip-dev libpcap0.8-dev libssl-dev libffi-dev libdumbnet-dev'
-        PYTHONPATH=$PYTHONPATH $sh_c 'pip install ooniprobe'
+        $sh_c 'pip install ooniprobe'
       )
     fi
     
