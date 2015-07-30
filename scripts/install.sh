@@ -108,6 +108,14 @@ elif command_exists mktemp; then
 	mktmp='mktemp'
 fi
 
+# Fedora 22 introduces the next upcoming major version of Yum DNF
+yum=''
+if command_exists yum; then
+    yum='yum'
+elif command_exists dnf; then
+    yum='dnf'
+fi
+
 if [ $CLOUDFRONT = "yes" ];then
   echo '  Using the cloudfronted tor mirror.'
   TOR_DEB_REPO="https://d3skbh62gb3f3v.cloudfront.net/torproject.org" 
@@ -194,8 +202,8 @@ install_go() {
   case "$lsb_dist" in
     Fedora)
       (
-      set -x
-      $sh_c "yum -y install golang"
+        set -x
+        $sh_c "${yum} -y install golang"
       )
       ;;
     Ubuntu|Debian)
@@ -203,13 +211,13 @@ install_go() {
         [ "$(echo $distro_version | cut -d '.' -f1 )" -lt $MIN_DEBIAN_VERSION ]; then
         setup_backports
         (
-        set -x
-        $sh_c "apt-get install -y -t ${distro_codename}-backports golang"
+          set -x
+          $sh_c "apt-get install -y -t ${distro_codename}-backports golang"
         )
       else 
         (
-        set -x
-        $sh_c "apt-get install -y -q golang"
+          set -x
+          $sh_c "apt-get install -y -q golang"
         )
       fi
       ;;
@@ -223,14 +231,14 @@ install_pluggable_transport_deps() {
   case "$lsb_dist" in
     Fedora)
       (
-      set -x
-      $sh_c "yum -y install gmp-devel"
+        set -x
+        $sh_c "${yum} -y install gmp-devel"
       )
       ;;
     Ubuntu|Debian)
       (
-      set -x
-      $sh_c "apt-get install -y -q libgmp-dev"
+        set -x
+        $sh_c "apt-get install -y -q libgmp-dev"
       )
       ;;
   esac
@@ -257,15 +265,15 @@ install_pip() {
 case "$lsb_dist" in
 	Fedora)
 		(
-			set -x
-      $sh_c 'yum -y groupinstall "Development tools"'
-      $sh_c 'yum -y install zlib-devel bzip2-devel openssl-devel sqlite-devel libpcap-devel libffi-devel libevent-devel libgeoip-devel tor'
-      install_pip
-      PYTHONPATH=$PYTHONPATH $sh_c 'pip install ooniprobe'
+	      set -x
+          $sh_c "${yum} -y groupinstall \"Development tools\""
+          $sh_c "${yum} -y install zlib-devel bzip2-devel openssl-devel sqlite-devel libpcap-devel libffi-devel libevent-devel GeoIP-devel tor python-devel libdnet-devel gcc-c++"
+          install_pip
+          PYTHONPATH=$PYTHONPATH $sh_c 'pip install ooniprobe'
 		)
 
-    install_pluggable_transports
-    non_root_usage
+        install_pluggable_transports
+        non_root_usage
 		exit 0
 		;;
 
@@ -291,8 +299,8 @@ case "$lsb_dist" in
 
     (
       set -x
-		  $sh_c 'apt-key adv --keyserver hkp://pool.sks-keyservers.net --recv-keys A3C4F0F979CAA22CDBA8F512EE8CBC9E886DDD89'
-			$sh_c "echo deb $TOR_DEB_REPO $distro_codename main > /etc/apt/sources.list.d/tor.list"
+	  $sh_c 'apt-key adv --keyserver hkp://pool.sks-keyservers.net --recv-keys A3C4F0F979CAA22CDBA8F512EE8CBC9E886DDD89'
+	  $sh_c "echo deb $TOR_DEB_REPO $distro_codename main > /etc/apt/sources.list.d/tor.list"
       $sh_c 'apt-get update'
     )
 
