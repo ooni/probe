@@ -250,7 +250,7 @@ install_pluggable_transports() {
     install_pluggable_transport_deps
     (
       set -x
-      $sh_c "PYTHONPATH=$(PYTHONPATH) pip install --install-option=\"--prefix=$PYTHON_PREFIX\" obfsproxy fteproxy"
+      $sh_c "PYTHONPATH=$PYTHONPATH pip install --install-option=\"--prefix=$PYTHON_PREFIX\" obfsproxy fteproxy"
     )
     install_obfs4proxy
     install_meek
@@ -270,7 +270,7 @@ case "$lsb_dist" in
           $sh_c "${yum} -y groupinstall \"Development tools\""
           $sh_c "${yum} -y install zlib-devel bzip2-devel openssl-devel sqlite-devel libpcap-devel libffi-devel libevent-devel GeoIP-devel tor python-devel libdnet-devel gcc-c++"
           install_pip
-          $sh_c "PYTHONPATH=$(PYTHONPATH) pip install --install-option=\"--prefix=$PYTHON_PREFIX\" ooniprobe"
+          $sh_c "PYTHONPATH=$PYTHONPATH pip install --install-option=\"--prefix=$PYTHON_PREFIX\" ooniprobe"
 		)
 
         install_pluggable_transports
@@ -323,7 +323,7 @@ case "$lsb_dist" in
       (
         set -x
         $sh_c 'apt-get install -y -q curl git-core python python-dev python-setuptools build-essential libdumbnet1 python-dumbnet python-libpcap tor tor-geoipdb libgeoip-dev libpcap0.8-dev libssl-dev libffi-dev libdumbnet-dev'
-        $sh_c "PYTHONPATH=$(PYTHONPATH) pip install --install-option=\"--prefix=$PYTHON_PREFIX\" ooniprobe"
+        $sh_c "PYTHONPATH=$PYTHONPATH pip install --install-option=\"--prefix=$PYTHON_PREFIX\" ooniprobe"
       )
     fi
     
