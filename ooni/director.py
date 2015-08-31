@@ -132,7 +132,7 @@ class Director(object):
                 yield config.check_tor()
             if config.advanced.start_tor:
                 yield self.startTor()
-            elif config.tor.control_port:
+            elif config.tor.control_port and config.tor_state is None:
                 log.msg("Connecting to Tor Control Port...")
                 yield self.getTorState()
 

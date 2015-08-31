@@ -156,7 +156,7 @@ class install(_st_install):
         prefix = os.path.abspath(self.prefix)
         self.set_data_files(prefix)
         self.do_egg_install()
-        self.ooniresources()
+        #self.ooniresources()
 
 install_requires = []
 dependency_links = []
@@ -204,7 +204,8 @@ setup(
     packages=packages,
     include_package_data=True,
     scripts=["bin/oonideckgen", "bin/ooniprobe",
-             "bin/oonireport", "bin/ooniresources"],
+             "bin/oonireport", "bin/ooniresources",
+			 "bin/ooniprobequeue"],
     dependency_links=dependency_links,
     install_requires=install_requires,
     cmdclass={"install": install},
