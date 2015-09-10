@@ -327,8 +327,7 @@ case "$lsb_dist" in
         # Unistall Twisted and install a version >=12.2.0,<=14.0.0
         # https://trac.torproject.org/projects/tor/ticket/15944
         $sh_c "PYTHONPATH=$PYTHONPATH pip uninstall -y Twisted"
-        $sh_c "PYTHONPATH=$PYTHONPATH pip install
-        --install-option=\"--prefix=$PYTHON_PREFIX\" 'Twisted>=12.2.0,<=14.0.0'"
+        $sh_c "PYTHONPATH=$PYTHONPATH pip install --install-option=\"--prefix=$PYTHON_PREFIX\" 'Twisted>=12.2.0,<=14.0.0'"
       )
     fi
     
