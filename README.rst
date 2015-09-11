@@ -60,6 +60,12 @@ On unix systems::
 
     sudo pip install ooniprobe
 
+**BUG** Note: Twisted version needs to be >=12.2.0 and <=14.0.0
+unistall/downgrage Twisted::
+
+    sudo pip uninstall Twisted
+    sudo pip install 'Twisted>=12.2.0,<=14.0.0'
+
 To install it from the current master run::
 
     sudo pip install https://github.com/TheTorProject/ooni-probe/archive/master.zip
