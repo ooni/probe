@@ -63,6 +63,9 @@ class ProcessDirector(protocol.ProcessProtocol):
     def errReceived(self, data):
         log.debug("STDERR: %s" % data)
         self.stderr += data
+        if self.shouldClose():
+            self.close("condition_met")
+
 
     def inConnectionLost(self):
         log.debug("inConnectionLost")
