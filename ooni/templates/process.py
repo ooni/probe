@@ -19,6 +19,7 @@ class ProcessDirector(protocol.ProcessProtocol):
     def cancelTimer(self):
         if self.timeout and self.timer:
             self.timer.cancel()
+            self.timer = None
 
     def close(self, reason=None):
         self.reason = reason
@@ -26,7 +27,7 @@ class ProcessDirector(protocol.ProcessProtocol):
 
     def resetTimer(self):
         if self.timeout is not None:
-            if self.timer is not None:
+            if self.timer is not None and self.timer.active():
                 self.timer.cancel()
             self.timer = reactor.callLater(self.timeout,
                                            self.close,
