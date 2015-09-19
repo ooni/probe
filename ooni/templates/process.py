@@ -59,12 +59,14 @@ class ProcessDirector(protocol.ProcessProtocol):
         self.stdout += data
         if self.shouldClose():
             self.close("condition_met")
+        self.handleRead(data,  None)
 
     def errReceived(self, data):
         log.debug("STDERR: %s" % data)
         self.stderr += data
         if self.shouldClose():
             self.close("condition_met")
+        self.handlRead(None,  data)
 
 
     def inConnectionLost(self):
@@ -83,6 +85,9 @@ class ProcessDirector(protocol.ProcessProtocol):
     def processEnded(self, reason):
         log.debug("Ended %s" % reason)
         self.finish("process_done")
+
+    def handleRead(self,  stdout,  stderr=None):
+        pass
 
 
 class ProcessTest(NetTestCase):
@@ -110,5 +115,10 @@ class ProcessTest(NetTestCase):
         d = defer.Deferred()
         d.addCallback(self.processEnded, command)
         self.processDirector = ProcessDirector(d, finished, self.timeout)
+        self.processDirector.handleRead = self.handleRead
         reactor.spawnProcess(self.processDirector, command[0], command, env=env, path=path, usePTY=usePTY)
         return d
+
+    # handleRead is not an abstract method to be backwards compatible
+    def handleRead(self,  stdout,  stderr=None):
+        pass
