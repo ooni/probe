@@ -91,6 +91,7 @@ class ProcessTest(NetTestCase):
 
     requiresRoot = False
     timeout = 5
+    processDirector = None
 
     def _setUp(self):
         super(ProcessTest, self)._setUp()
@@ -108,6 +109,6 @@ class ProcessTest(NetTestCase):
     def run(self, command, finished=None, env={}, path=None, usePTY=0):
         d = defer.Deferred()
         d.addCallback(self.processEnded, command)
-        processDirector = ProcessDirector(d, finished, self.timeout)
+        self.processDirector = ProcessDirector(d, finished, self.timeout)
         reactor.spawnProcess(self.processDirector, command[0], command, env=env, path=path, usePTY=usePTY)
         return d
