@@ -2,5 +2,5 @@
 # Developer script for running ooniprobe directly from the repository.
 # We don't automatically add "$PWD" to PYTHONPATH as that is a security risk
 # when run as /usr/bin/ooniprobe on an end user's computer.
-cd "$(realpath "$(dirname "$0")")"
-PYTHONPATH="$PWD" exec ./bin/ooniprobe
+cd "$(realpath "$(dirname "$0")")/.."
+PYTHONPATH="$PWD" exec ./bin/ooniprobe $@
