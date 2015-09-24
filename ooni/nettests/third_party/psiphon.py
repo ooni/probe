@@ -60,7 +60,7 @@ class PsiphonTest(httpt.HTTPTest,  process.ProcessTest):
         else:
             # FIXME: use http://google.com?
             # self.url = 'https://wtfismyip.com/text'
-            self.url = 'https://check.torproject.orggg'
+            self.url = 'https://check.torproject.org'
 
         if self.localOptions['psiphonpath']:
             self.psiphonpath = self.localOptions['psiphonpath']
@@ -112,17 +112,6 @@ connect(False)
                                     path=self.psiphonpath,
                                     usePTY=1)
 
-
-        def addFailureToReport(failure):
-            log.debug("PsiphonTest.test_psiphon.addFailureToReport")
-            log.debug(repr(failure  ))
-            self.report['failure'] = handleAllFailures(failure)
-            self.report['success'] = False
-            log.debug("Adding %s to report" % self.report)
-            # FIXME: these keys are not being wroten in the report
-            # probably because report is being defined in NetTestCase as
-            # a class attribute that is initialized again in NetTescase._setUp
-
         def callDoRequest(_):
             return self.doRequest(self.url)
         self.bootstrapped.addCallback(callDoRequest)
@@ -132,8 +121,7 @@ connect(False)
             self.processDirector.transport.signalProcess('INT')
             os.remove(self.command[0])
             return finished
-            
-        self.bootstrapped.addErrback(addFailureToReport)
+        
         self.bootstrapped.addBoth(cleanup)
         return self.bootstrapped
 
