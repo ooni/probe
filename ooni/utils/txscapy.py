@@ -401,7 +401,7 @@ class MPTraceroute(ScapyProtocol):
             """
             Add a packet into the received packets dictionary,
             typically the key is a tuple of packet fields used
-            to correlate sent packets with recieved packets.
+            to correlate sent packets with received packets.
             """
 
             # Initialize or append to the lists of packets

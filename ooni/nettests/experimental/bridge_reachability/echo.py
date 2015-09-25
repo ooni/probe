@@ -113,7 +113,7 @@ class EchoTest(nettest.NetTestCase):
         def process_response(echo_reply, dest):
             ans, unans = echo_reply
             if ans:
-                log.msg("Recieved echo reply from %s: %s" % (dest, ans))
+                log.msg("Received echo reply from %s: %s" % (dest, ans))
             else:
                 log.msg("No reply was received from %s. Possible censorship event." % dest)
                 log.debug("Unanswered packets: %s" % unans)

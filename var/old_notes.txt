@@ -9,7 +9,7 @@ We should act as a controller with TorCtl to do this, etc
 We should take the Tor consensus file and pass it to plugins such as marco
 
 HTTP Host header comparsion of a vs b
-HTTP Content length header comparision of a vs b
+HTTP Content length header comparison of a vs b
 
 GET request splitting
   "G E T "
