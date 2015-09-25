@@ -58,7 +58,7 @@ class HTTPURLList(httpt.HTTPTest):
         censorship_page = open(self.localOptions['content']).xreadlines()
         response_page = iter(body.split("\n"))
 
-        # We first allign the two pages to the first HTML tag (something
+        # We first align the two pages to the first HTML tag (something
         # starting with <). This is useful so that we can give as input to this
         # test something that comes from the output of curl -kis
         # http://the_page/

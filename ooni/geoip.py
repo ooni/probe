@@ -206,7 +206,7 @@ class ProbeIP(object):
             self.resolveGeodata()
             defer.returnValue(self.address)
         except errors.InsufficientPrivileges:
-            log.debug("Cannot determine the probe IP address with a traceroute, becase of insufficient priviledges")
+            log.debug("Cannot determine the probe IP address with a traceroute, becase of insufficient privileges")
         except:
             log.msg("Unable to lookup the probe IP via traceroute")
 

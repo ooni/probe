@@ -36,7 +36,7 @@
 
  ooni-proxy should provide open access by default with no authentication.
  It should support TLS-PSK[0] if authentication is desired. Key distribution is
- explictly an out of scope problem.
+ explicitly an out of scope problem.
 
 3.0 Services offered
 
