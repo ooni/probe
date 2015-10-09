@@ -2,5 +2,9 @@
 # Developer script for running ooniprobe directly from the repository.
 # We don't automatically add "$PWD" to PYTHONPATH as that is a security risk
 # when run as /usr/bin/ooniprobe on an end user's computer.
-cd "$(realpath "$(dirname "$0")")/.."
-PYTHONPATH="$PWD" exec ./bin/ooniprobe $@
+ROOTDIR=$(cd $(dirname $(dirname $0)) && pwd -P)
+if [ $? -ne 0 ]; then
+    echo "$0: cannot determine toplevel directory" 1>&2
+    exit 1
+fi
+PYTHONPATH="$ROOTDIR" exec ./bin/ooniprobe "$@"
