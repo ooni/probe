@@ -1,6 +1,7 @@
 import tempfile
 import stat
 import os
+import sys
 
 from twisted.internet import defer, reactor
 from twisted.internet.endpoints import TCP4ClientEndpoint
@@ -76,15 +77,14 @@ class PsiphonTest(httpt.HTTPTest,  process.ProcessTest):
                  'psiphon-circumvention-system/pyclient')
             log.debug('psiphon path: %s' % self.psiphonpath)
 
-        x = """#!/usr/bin/env python
+        x = """
 from psi_client import connect
 connect(False)
 """
         f = tempfile.NamedTemporaryFile(delete=False)
         f.write(x)
         f.close()
-        os.chmod(f.name, os.stat(f.name).st_mode | stat.S_IEXEC)
-        self.command = [f.name]
+        self.command = [sys.executable, f.name]
         log.debug('command: %s' % ''.join(self.command))
 
     def handleRead(self, stdout, stderr):
@@ -119,7 +119,7 @@ connect(False)
         def cleanup(_):
             log.debug('PsiphonTest:cleanup')
             self.processDirector.transport.signalProcess('INT')
-            os.remove(self.command[0])
+            os.remove(self.command[1])
             return finished
         
         self.bootstrapped.addBoth(cleanup)
