@@ -380,9 +380,17 @@ that is different from master) with::
 Setting up development environment
 ----------------------------------
 
-On debian based systems this can be done with::
+On Debian based systems a development environment can be setup as follows: (prerequisites include build essentials, python-dev, and tor; for tor see https://www.torproject.org/docs/debian.html.en)::
 
-    sudo apt-get install libgeoip-dev python-virtualenv virtualenvwrapper
-    mkvirtualenv ooniprobe
+
+    sudo apt-get install python-pip python-virtualenv virtualenv virtualenvwrapper
+    sudo apt-get install libgeoip-dev libffi-dev libdumbnet-dev libssl-dev libpcap-dev
+    git clone https://github.com/TheTorProject/ooni-probe
+    cd ooni-probe
+    mkvirtualenv ooniprobe  # . ~/.virtualenvs/ooniprobe/bin/activate to access later
     python setup.py install
+    pip install -r requirements.txt
     pip install -r requirements-dev.txt
+    ooniprobe -s  # if all went well, lists available tests
+
+
