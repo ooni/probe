@@ -388,9 +388,9 @@ On Debian based systems a development environment can be setup as follows: (prer
     git clone https://github.com/TheTorProject/ooni-probe
     cd ooni-probe
     mkvirtualenv ooniprobe  # . ~/.virtualenvs/ooniprobe/bin/activate to access later
-    python setup.py install
     pip install -r requirements.txt
     pip install -r requirements-dev.txt
+    python setup.py install
     ooniprobe -s  # if all went well, lists available tests
 
 
