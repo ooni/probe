@@ -7,4 +7,4 @@ if [ $? -ne 0 ]; then
     echo "$0: cannot determine toplevel directory" 1>&2
     exit 1
 fi
-PYTHONPATH="$ROOTDIR" exec ./bin/ooniprobe "$@"
+PYTHONPATH="$ROOTDIR" exec $ROOTDIR/bin/ooniprobe "$@"
