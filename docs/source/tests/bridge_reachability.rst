@@ -40,7 +40,7 @@ to have failed. The default is 120 seconds.
 Sample report
 =============
 
-`ooniprobe blocking/bridge_reachability.py`
+`ooniprobe blocking/bridge_reachability.py -f bridges.txt`
 
 ::
 
