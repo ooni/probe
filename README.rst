@@ -53,7 +53,7 @@ On debian testing or unstable::
 
 If you are running debian stable you can get it from backports via::
 
-    sudo sh -c 'echo "deb http://http.debian.net/debian wheezy-backports main" >> /etc/apt/sources.list'
+    sudo sh -c 'echo "deb http://http.debian.net/debian jessie-backports main" >> /etc/apt/sources.list'
     sudo apt-get update && sudo apt-get install ooniprobe
 
 On unix systems::
