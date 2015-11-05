@@ -395,6 +395,8 @@ class OONIBReportLog(object):
     def get_report_log(self):
         with open(self.file_name) as f:
             report_log = yaml.safe_load(f)
+        if not report_log:
+            report_log = {}  # consumers expect dictionary structure
         return report_log
 
     @property
