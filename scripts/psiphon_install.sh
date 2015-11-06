@@ -6,9 +6,35 @@ set -ex
 PSIPHON_PATH=$HOME/test
 PSIPHON_PYCLIENT_PATH=$PSIPHON_PATH/psiphon-circumvention-system/pyclient
 
+mkdir -p $PSIPHON_PATH
+
+command_exists() {
+	command -v "$@" > /dev/null 2>&1
+}
+
+user="$(id -un 2>/dev/null || true)"
+
+sh_c='sh -c'
+
+if [ "$user" != 'root' ]; then
+	if command_exists sudo; then
+		sh_c='sudo sh -c -E'
+	elif command_exists su; then
+		sh_c='su -c --preserve-environment'
+	else
+		echo >&2 'Error: this installer needs the ability to run commands as root.'
+		echo >&2 'We are unable to find either "sudo" or "su" available to make this happen.'
+		exit 1
+	fi
+fi
+
 echo "installing dependencies"
-# FIXME: check if hg command exits and if not bail out?
-sudo apt-get install -y mercurial
+$sh_c "apt-get -y install zlib1g-dev libssl-dev"
+
+if [ -z "command_exists hg" ]; then
+    $sh_c "apt-get -y install mercurial"
+fi
+
 echo "cloning psiphon repository"
 cd $PSIPHON_PATH
 hg clone https://bitbucket.org/psiphon/psiphon-circumvention-system
@@ -29,8 +55,9 @@ if [ python -c 'import sys; print hasattr(sys, "real_prefix")'  = "False"];then
     # we are not in a virtualenv
     # create a virtualenv
     # FIXME: assuming debian version will have secure pip/virtualenv
-    sudo apt-get -y install python-virtualenv
-
+    if [ -z "command_exists virtualenv" ]; then
+        $sh_c "apt-get -y install python-virtualenv"
+    fi
     if [ ! -f $HOME/.virtualenvs/ooniprobe/bin/activate ]; then
       # Set up the virtual environment
       mkdir -p $HOME/.virtualenvs
@@ -72,9 +99,12 @@ dat["servers"] = json.load(open('server_list'))['data'].split()
 json.dump(dat, open('psi_client.dat', 'w'))
 EOF
 
-chmod +x psi_generate_dat.py 
+chmod +x psi_generate_dat.py
 ./psi_generate_dat.py
-echo "serers data file created"
+echo "servers data file created"
+chmod +x psi_generate_dat.py
+./psi_generate_dat.py
+echo "servers data file created"
 mv psi_client.dat $PSIPHON_PYCLIENT_PATH
 
 
