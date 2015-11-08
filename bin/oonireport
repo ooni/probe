@@ -14,7 +14,7 @@ def failed(failure):
     r = failure.trap(exceptions.SystemExit,
                      Exception)
     if r != exceptions.SystemExit:
-        log.err("Failed to run oonideckgen")
+        log.err("Failed to run oonireport")
         log.exception(failure)
         exitCode = 127
     else:
