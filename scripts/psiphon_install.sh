@@ -3,13 +3,15 @@
 #FIXME remove x
 set -ex
 
-PSIPHON_PATH=$HOME/test
+PSIPHON_PATH=$HOME
 PSIPHON_PYCLIENT_PATH=$PSIPHON_PATH/psiphon-circumvention-system/pyclient
+PSIPHON_REPO_URL=https://bitbucket.org/psiphon/psiphon-circumvention-system
+OONI_VIRTUALENV_PATH=$HOME/.virtualenvs/ooniprobe
 
 mkdir -p $PSIPHON_PATH
 
 command_exists() {
-	command -v "$@" > /dev/null 2>&1
+  command -v "$@" > /dev/null 2>&1
 }
 
 user="$(id -un 2>/dev/null || true)"
@@ -17,55 +19,59 @@ user="$(id -un 2>/dev/null || true)"
 sh_c='sh -c'
 
 if [ "$user" != 'root' ]; then
-	if command_exists sudo; then
-		sh_c='sudo sh -c -E'
-	elif command_exists su; then
-		sh_c='su -c --preserve-environment'
-	else
-		echo >&2 'Error: this installer needs the ability to run commands as root.'
-		echo >&2 'We are unable to find either "sudo" or "su" available to make this happen.'
-		exit 1
-	fi
+  if command_exists sudo; then
+    sh_c='sudo sh -c -E'
+  elif command_exists su; then
+    sh_c='su -c --preserve-environment'
+  else
+    echo >&2 'Error: this installer needs the ability to run commands as root.'
+    echo >&2 'We are unable to find either "sudo" or "su" available to make this happen.'
+    exit 1
+  fi
 fi
 
 echo "installing dependencies"
 $sh_c "apt-get -y install zlib1g-dev libssl-dev"
 
 if [ -z "command_exists hg" ]; then
-    $sh_c "apt-get -y install mercurial"
+  $sh_c "apt-get -y install mercurial"
 fi
 
 echo "cloning psiphon repository"
 cd $PSIPHON_PATH
-hg clone https://bitbucket.org/psiphon/psiphon-circumvention-system
-echo "psiphon repository cloned"
+if [ ! -d "psiphon-circumvention-system" ]; then
+  hg clone $PSIPHON_REPO_URL
+  echo "psiphon repository cloned"
+fi
 
 # optional, compile their ssh
-echo "compiling psiphon ssh"
-cd psiphon-circumvention-system/Server/3rdParty/openssh-5.9p1/
-./configure
-make
-mv ssh ../../../pyclient/
-make clean
-echo "psiphon ssh compiled"
+if [ ! -f "$PSIPHON_PYCLIENT_PATH/ssh" ]; then
+    echo "compiling psiphon ssh"
+    cd psiphon-circumvention-system/Server/3rdParty/openssh-5.9p1/
+    ./configure
+    make
+    mv ssh ../../../pyclient/
+    make clean
+    echo "psiphon ssh compiled"
+fi
 
 # check if we are in a virtualenv, create it otherwise
 echo "checking virtualenv"
-if [ python -c 'import sys; print hasattr(sys, "real_prefix")'  = "False"];then
-    # we are not in a virtualenv
-    # create a virtualenv
-    # FIXME: assuming debian version will have secure pip/virtualenv
-    if [ -z "command_exists virtualenv" ]; then
-        $sh_c "apt-get -y install python-virtualenv"
-    fi
-    if [ ! -f $HOME/.virtualenvs/ooniprobe/bin/activate ]; then
-      # Set up the virtual environment
-      mkdir -p $HOME/.virtualenvs
-      virtualenv $HOME/.virtualenvs/ooniprobe
-      source $HOME/.virtualenvs/ooniprobe/bin/activate
-    else
-      source $HOME/.virtualenvs/ooniprobe/bin/activate
-    fi
+if [ `python -c 'import sys; print hasattr(sys, "real_prefix")'` = "False" ]; then
+  # not in a virtualenv
+  # create a virtualenv
+  # FIXME: assuming debian version will have secure pip/virtualenv
+  if [ -z "command_exists virtualenv" ]; then
+    $sh_c "apt-get -y install python-virtualenv"
+  fi
+  if [ ! -f $OONI_VIRTUALENV_PATH/bin/activate ]; then
+    # Set up the virtual environment
+    mkdir -p $HOME/.virtualenvs
+    virtualenv $OONI_VIRTUALENV_PATH
+    . $OONI_VIRTUALENV_PATH/bin/activate
+  else
+    . $OONI_VIRTUALENV_PATH/bin/activate
+  fi
 fi
 echo "virtualenv activated"
 
@@ -83,7 +89,7 @@ import json
 
 # Delete 'server_list' if exists
 if os.path.exists("server_list"):
-    # os.remove("server_list")
+   # os.remove("server_list")
     # os.rename("server_list", "server_list")
     pass
 else:
@@ -102,15 +108,8 @@ EOF
 chmod +x psi_generate_dat.py
 ./psi_generate_dat.py
 echo "servers data file created"
-chmod +x psi_generate_dat.py
-./psi_generate_dat.py
-echo "servers data file created"
 mv psi_client.dat $PSIPHON_PYCLIENT_PATH
-
+rm /tmp/psi_generate_dat.py
 
 echo "[+] Installing all of the Python dependency requirements with pip in your virtualenv!";
 pip install -v --timeout 60  jsonpickle pexpect
-
-# run psiphon
-# cd $PSIPHON_PYCLIENT_PATH
-# python psi_client.py
