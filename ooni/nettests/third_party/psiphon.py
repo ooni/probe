@@ -25,10 +25,10 @@ class UsageOptions(usage.Options):
 
 
 class PsiphonTest(httpt.HTTPTest,  process.ProcessTest):
-    
+
     """
     This class tests Psiphon python client
-    
+
     test_psiphon:
       Starts a Psiphon, check if it bootstraps successfully
       (print a line in stdout).
@@ -51,7 +51,7 @@ class PsiphonTest(httpt.HTTPTest,  process.ProcessTest):
         log.debug('PiphonTest._setUp: setting socksproxy')
         self.localOptions['socksproxy'] = '127.0.0.1:1080'
         super(PsiphonTest, self)._setUp()
-        
+
     def setUp(self):
         log.debug('PsiphonTest.setUp')
 
@@ -77,6 +77,8 @@ class PsiphonTest(httpt.HTTPTest,  process.ProcessTest):
                  'psiphon-circumvention-system/pyclient')
             log.debug('psiphon path: %s' % self.psiphonpath)
 
+        # psi_client.py can not be run directly because the paths in the
+        # code are relative, so it'll fail to execute from this test
         x = """
 from psi_client import connect
 connect(False)
@@ -107,6 +109,10 @@ connect(False)
         self.report['psiphon_installed'] = True
         log.debug("Adding %s to report" % self.report)
 
+        # Using pty to see output lines as soon as they get wrotten in the
+        # buffer, otherwise the test might not see lines until the buffer is
+        # full with some block size and therefore the test would
+        # terminate with error
         finished = self.run(self.command,
                                     env=dict(PYTHONPATH=self.psiphonpath), 
                                     path=self.psiphonpath,
@@ -121,7 +127,7 @@ connect(False)
             self.processDirector.transport.signalProcess('INT')
             os.remove(self.command[1])
             return finished
-        
+
         self.bootstrapped.addBoth(cleanup)
         return self.bootstrapped
 
