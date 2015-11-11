@@ -397,9 +397,10 @@ On Debian based systems a development environment can be setup as follows: (prer
 Donate
 -------
 
-Send bitcoins to:
+Send bitcoins to
 
 .. image:: http://i.imgur.com/CIWHb5R.png
     :target: http://www.coindesk.com/information/how-can-i-buy-bitcoins/
 
-    1Ai9d4dhDBjxYVkKKf1pFXptEGfM1vxFBf
+
+1Ai9d4dhDBjxYVkKKf1pFXptEGfM1vxFBf
