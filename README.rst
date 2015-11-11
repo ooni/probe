@@ -394,3 +394,11 @@ On Debian based systems a development environment can be setup as follows: (prer
     ooniprobe -s  # if all went well, lists available tests
 
 
+Donate
+-------
+
+Send bitcoins to:
+![bitcoin address](http://i.imgur.com/CIWHb5R.png)
+```
+1Ai9d4dhDBjxYVkKKf1pFXptEGfM1vxFBf
+```
