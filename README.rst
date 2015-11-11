@@ -398,7 +398,8 @@ Donate
 -------
 
 Send bitcoins to:
-![bitcoin address](http://i.imgur.com/CIWHb5R.png)
-```
-1Ai9d4dhDBjxYVkKKf1pFXptEGfM1vxFBf
-```
+
+.. image:: http://i.imgur.com/CIWHb5R.png
+    :target: http://www.coindesk.com/information/how-can-i-buy-bitcoins/
+
+    1Ai9d4dhDBjxYVkKKf1pFXptEGfM1vxFBf
