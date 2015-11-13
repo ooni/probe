@@ -8,11 +8,12 @@ import itertools
 from copy import copy
 
 from twisted.web import client, _newclient, http_headers
-from twisted.web._newclient import RequestNotSent, RequestGenerationFailed, TransportProxyProducer, STATUS
+from twisted.web._newclient import RequestNotSent, RequestGenerationFailed
+from twisted.web._newclient import TransportProxyProducer, STATUS
 from twisted.internet import reactor
 from twisted.internet.defer import Deferred, fail, maybeDeferred, failure
 
-from ooni.utils.hacks import SOCKS5Agent
+from txsocksx.http import SOCKS5Agent
 from txsocksx.client import SOCKS5ClientFactory
 
 SOCKS5ClientFactory.noisy = False
@@ -67,7 +68,7 @@ class TrueHeaders(http_headers.Headers):
             except KeyError:
                 pass
 
-        for k, v in itertools.chain(headers_a.getAllRawHeaders(), \
+        for k, v in itertools.chain(headers_a.getAllRawHeaders(),
                                     headers_b.getAllRawHeaders()):
             field_names.append(k)
 
