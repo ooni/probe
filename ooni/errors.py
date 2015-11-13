@@ -6,7 +6,7 @@ from twisted.web.error import Error
 from twisted.internet.error import ConnectionRefusedError, TCPTimedOutError
 from twisted.internet.error import DNSLookupError, ConnectError, ConnectionLost
 from twisted.internet.error import TimeoutError as GenericTimeoutError
-from twisted.internet.error import ProcessDone
+from twisted.internet.error import ProcessDone, ConnectionDone
 
 from twisted.python import usage
 
@@ -50,7 +50,8 @@ def handleAllFailures(failure):
         CommandNotSupported,
         ConnectError,
         ConnectionLost,
-        CancelledError)
+        CancelledError, 
+        ConnectionDone)
 
     return failureToString(failure)
 
@@ -147,6 +148,9 @@ def failureToString(failure):
 
     elif isinstance(failure.value, ProcessDone):
         string = 'process_done'
+
+    elif isinstance(failure.value, ConnectionDone):
+        string = 'connection_done'
 
     else:
         # log.err("Unknown failure type: %s" % type(failure.value))
