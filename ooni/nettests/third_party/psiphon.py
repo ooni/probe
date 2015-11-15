@@ -95,12 +95,18 @@ connect(False)
         log.debug('PsiphonTest.test_psiphon')
 
         if not os.path.exists(self.psiphonpath):
-            log.debug('psiphon path does not exists, is it installed?')
+            log.err('psiphon path does not exists, is it installed?')
             self.report['success'] = False
             self.report['psiphon_installed'] = False
             log.debug("Adding %s to report" % self.report)
-            #FIXME: this completes the test but ooni doesn't stop running, why?
-            return defer.succeed(None)
+            # XXX: the original code written by juga0 readed
+            #     > return defer.succeed(None)
+            # but this caused `ooniprobe -ng` to hang forever, so I
+            # rewrote the code to return a deferred and simulate calling
+            # its callback method, to trigger an event.
+            #     -sbs
+            reactor.callLater(0.0, self.bootstrapped.callback, None)
+            return self.bootstrapped
 
         self.report['psiphon_installed'] = True
         log.debug("Adding %s to report" % self.report)
