@@ -59,22 +59,18 @@ class PsiphonTest(httpt.HTTPTest,  process.ProcessTest):
         if self.localOptions['url']:
             self.url = self.localOptions['url']
         else:
-            # FIXME: use http://google.com?
-            # self.url = 'https://wtfismyip.com/text'
             self.url = 'https://check.torproject.org'
 
         if self.localOptions['psiphonpath']:
             self.psiphonpath = self.localOptions['psiphonpath']
         else:
-            # FIXME: search for pyclient path instead of assuming is in the
-            # home?
-            # psiphon is not installable and to run it manually, it has to be 
+            # Psiphon is not installable and to run it manually, it has to be
             # run from the psiphon directory, so it wouldn't make sense to
-            # nstall it in the PATH
-            from os import path,  getenv
+            # install it in the PATH. For now, we assume that Psiphon sources
+            # are in the user's home directory.
+            from os import path, getenv
             self.psiphonpath = path.join(
-                getenv('HOME'), 
-                 'psiphon-circumvention-system/pyclient')
+                getenv('HOME'), 'psiphon-circumvention-system/pyclient')
             log.debug('psiphon path: %s' % self.psiphonpath)
 
         # psi_client.py can not be run directly because the paths in the
@@ -92,7 +88,7 @@ connect(False)
     def handleRead(self, stdout, stderr):
         if 'Press Ctrl-C to terminate.' in self.processDirector.stdout:
             if not self.bootstrapped.called:
-                log.debug("PsiphonTest.test_psiphon: calling bootstrapped.callback")
+                log.debug("PsiphonTest: calling bootstrapped.callback")
                 self.bootstrapped.callback(None)
 
     def test_psiphon(self):
@@ -114,9 +110,9 @@ connect(False)
         # full with some block size and therefore the test would
         # terminate with error
         finished = self.run(self.command,
-                                    env=dict(PYTHONPATH=self.psiphonpath), 
-                                    path=self.psiphonpath,
-                                    usePTY=1)
+                            env=dict(PYTHONPATH=self.psiphonpath),
+                            path=self.psiphonpath,
+                            usePTY=1)
 
         def callDoRequest(_):
             return self.doRequest(self.url)
@@ -130,6 +126,3 @@ connect(False)
 
         self.bootstrapped.addBoth(cleanup)
         return self.bootstrapped
-
-
-
