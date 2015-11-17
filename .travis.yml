@@ -34,3 +34,9 @@ script:
   - sudo $(which coverage) run $(which trial) ooni
 after_success: 
   - coveralls
+notifications:
+  irc:
+    channels:
+      - "irc.oftc.net#ooni"
+    on_success: change
+    on_failure: always
