@@ -33,16 +33,17 @@ fi
 echo "installing dependencies"
 $sh_c "apt-get -y install zlib1g-dev libssl-dev"
 
-if [ -z "command_exists hg" ]; then
+if [ ! "command_exists hg" ]; then
   $sh_c "apt-get -y install mercurial"
 fi
 
-echo "cloning psiphon repository"
 cd $PSIPHON_PATH
 if [ ! -d "psiphon-circumvention-system" ]; then
+  echo "cloning psiphon repository"
   hg clone $PSIPHON_REPO_URL
-  echo "psiphon repository cloned"
 fi
+
+echo "psiphon repository cloned"
 
 # optional, compile their ssh
 if [ ! -f "$PSIPHON_PYCLIENT_PATH/ssh" ]; then
@@ -61,7 +62,7 @@ if [ `python -c 'import sys; print hasattr(sys, "real_prefix")'` = "False" ]; th
   # not in a virtualenv
   # create a virtualenv
   # FIXME: assuming debian version will have secure pip/virtualenv
-  if [ -z "command_exists virtualenv" ]; then
+  if [ ! "command_exists virtualenv" ]; then
     $sh_c "apt-get -y install python-virtualenv"
   fi
   if [ ! -f $OONI_VIRTUALENV_PATH/bin/activate ]; then
