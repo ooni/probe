@@ -1,7 +1,6 @@
 #!/bin/sh
 
-#FIXME remove x
-set -ex
+set -e
 
 PSIPHON_PATH=$HOME
 PSIPHON_PYCLIENT_PATH=$PSIPHON_PATH/psiphon-circumvention-system/pyclient
