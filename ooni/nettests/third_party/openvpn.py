@@ -3,7 +3,7 @@ from twisted.python import usage
 from twisted.web.client import Agent, readBody
 from ooni.templates.process import ProcessTest
 from ooni.utils import log
-from ooni.errors import handleAllFailures
+from ooni.errors import handleAllFailures, failureToString
 
 import distutils.spawn
 import re
@@ -32,7 +32,7 @@ class OpenVPNTest(ProcessTest):
     name = "OpenVPN Client Test"
     description = "Connects to an OpenVPN server and does a HTTP GET for the specified URL"
     author = "srvetus "
-    version = "0.0.1"
+    version = "0.0.2"
     timeout = 20
     usageOptions = UsageOptions
     requiredOptions = ['url', 'openvpn-config']
@@ -56,6 +56,16 @@ class OpenVPNTest(ProcessTest):
             # OpenVPN needs to be sent SIGTERM to end cleanly
             self.processDirector.transport.signalProcess('TERM')
             self.exited = True
+
+    def processExited(self, reason):
+            """Monkeypatch processExited to log failure if the process ends
+            unexpectedly before OpenVPN bootstraps.
+            """
+            log.debug("Exited %s" % handleAllFailures(reason))
+
+            # Process exited before OpenVPN bootstrapped. Add failure to report
+            if not self.bootstrapped.called:
+                self.bootstrapped.errback(Exception("openvpn_exited_unexpectedly"))
 
     def handleRead(self, stdout=None, stderr=None):
         """handleRead is called with each chunk of data from stdout and stderr
@@ -88,8 +98,8 @@ class OpenVPNTest(ProcessTest):
             self.report['success'] = True
 
         def addFailureToReport(failure):
-            log.debug("failed: %s" % handleAllFailures(failure))
-            self.report['failure'] = handleAllFailures(failure)
+            log.debug("Failed: %s" % failureToString(failure))
+            self.report['failure'] = failureToString(failure)
             self.report['success'] = False
 
         def doRequest(noreason):
@@ -105,6 +115,9 @@ class OpenVPNTest(ProcessTest):
 
         log.debug("Spawning OpenVPN")
         self.d = self.run(self.command)
+
+        # Monkeypatch processExited to log when OpenVPN exits early
+        self.processDirector.processExited = self.processExited
 
         # Try to make a request when the OpenVPN connection successfully bootstraps
         self.bootstrapped.addCallback(doRequest)
