@@ -40,7 +40,7 @@ aware of the fact that you are running ooniprobe. This means that if running
 network measurement tests is something considered to be illegal in your country
 then you could be spotted.
 
-Futhermore, ooniprobe takes no precautions to protect the install target machine
+Furthermore, ooniprobe takes no precautions to protect the install target machine
 from forensics analysis.  If the fact that you have installed or used ooni
 probe is a liability for you, please be aware of this risk.
 
@@ -53,12 +53,18 @@ On debian testing or unstable::
 
 If you are running debian stable you can get it from backports via::
 
-    sudo sh -c 'echo "deb http://http.debian.net/debian wheezy-backports main" >> /etc/apt/sources.list'
+    sudo sh -c 'echo "deb http://http.debian.net/debian jessie-backports main" >> /etc/apt/sources.list'
     sudo apt-get update && sudo apt-get install ooniprobe
 
 On unix systems::
 
     sudo pip install ooniprobe
+
+**BUG** Note: Twisted version needs to be >=12.2.0 and <=14.0.0
+unistall/downgrage Twisted::
+
+    sudo pip uninstall Twisted
+    sudo pip install 'Twisted>=12.2.0,<=14.0.0'
 
 To install it from the current master run::
 
@@ -374,9 +380,16 @@ that is different from master) with::
 Setting up development environment
 ----------------------------------
 
-On debian based systems this can be done with::
+On Debian based systems a development environment can be setup as follows: (prerequisites include build essentials, python-dev, and tor; for tor see https://www.torproject.org/docs/debian.html.en)::
 
-    sudo apt-get install libgeoip-dev python-virtualenv virtualenvwrapper
-    mkvirtualenv ooniprobe
-    python setup.py install
+
+    sudo apt-get install python-pip python-virtualenv virtualenv virtualenvwrapper
+    sudo apt-get install libgeoip-dev libffi-dev libdumbnet-dev libssl-dev libpcap-dev
+    git clone https://github.com/TheTorProject/ooni-probe
+    cd ooni-probe
+    mkvirtualenv ooniprobe  # . ~/.virtualenvs/ooniprobe/bin/activate to access later
+    pip install -r requirements.txt
     pip install -r requirements-dev.txt
+    python setup.py install
+    ooniprobe -s  # if all went well, lists available tests
+
