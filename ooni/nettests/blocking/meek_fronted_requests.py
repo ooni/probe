@@ -28,7 +28,8 @@ class meekTest(httpt.HTTPTest):
     a0.awsstatic.com:d2zfqthxsdq309.cloudfront.net
 
     """
-    name = "meek fronted requests test"
+    name = "Meek fronted requests test"
+    description = "This tests for the Meek Tor pluggable transport frontend reachability"
     version = "0.0.1"
 
     usageOptions = UsageOptions
