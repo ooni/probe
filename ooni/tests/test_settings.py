@@ -79,7 +79,7 @@ class TestSettings(ConfigTestCase):
     @defer.inlineCallbacks
     def test_check_tor_correct(self):
         """
-        This test has been disabled because there is a starge concatenation of
+        This test has been disabled because there is a strange concatenation of
         conditions that make it not possible to run it on travis.
         The tests need to be run as root on travis so that the ones that use
         scapy will work properly. When running tor as root, though, it will by

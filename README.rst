@@ -393,4 +393,3 @@ On Debian based systems a development environment can be setup as follows: (prer
     python setup.py install
     ooniprobe -s  # if all went well, lists available tests
 
-
