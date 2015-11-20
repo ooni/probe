@@ -208,6 +208,7 @@ setup(
 			 "bin/ooniprobequeue"],
     dependency_links=dependency_links,
     install_requires=install_requires,
+    zip_safe=False,
     cmdclass={"install": install},
     classifiers=(
         "Development Status :: 5 - Production/Stable",

@@ -1,6 +1,23 @@
 Changelog
 =========
 
+v1.3.2 (Fri, 20 Nov 2015)
+-------------------------
+
+* Implement third party test template
+
+* Add tutorial for using TCP test
+
+* Add tests for censorship resistance
+
+  * Add meek test
+
+  * Add lantern test
+
+* Support for Twisted 15.0
+
+* Various stability and bug fixes
+
 v1.3.1 (Fri, 3 Apr 2015)
 ------------------------
 
