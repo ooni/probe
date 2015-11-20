@@ -8,16 +8,20 @@ import itertools
 from copy import copy
 
 from twisted.web import client, _newclient, http_headers
-from twisted.web._newclient import RequestNotSent, RequestGenerationFailed, TransportProxyProducer, STATUS
+from twisted.web._newclient import RequestNotSent, RequestGenerationFailed
+from twisted.web._newclient import TransportProxyProducer, STATUS
 from twisted.internet import reactor
 from twisted.internet.defer import Deferred, fail, maybeDeferred, failure
 
-from ooni.utils.hacks import SOCKS5Agent
+from txsocksx.http import SOCKS5Agent
 from txsocksx.client import SOCKS5ClientFactory
 
 SOCKS5ClientFactory.noisy = False
 
 from ooni.utils import log
+
+import twisted
+from twisted.python.versions import Version
 
 
 class TrueHeaders(http_headers.Headers):
@@ -67,7 +71,7 @@ class TrueHeaders(http_headers.Headers):
             except KeyError:
                 pass
 
-        for k, v in itertools.chain(headers_a.getAllRawHeaders(), \
+        for k, v in itertools.chain(headers_a.getAllRawHeaders(),
                                     headers_b.getAllRawHeaders()):
             field_names.append(k)
 
@@ -159,7 +163,19 @@ class TrueHeadersAgent(client.Agent):
         self._pool = HTTPConnectionPool(reactor, False)
 
 
+_twisted_15_0 = Version('twisted', 15, 0, 0)
+
+
 class TrueHeadersSOCKS5Agent(SOCKS5Agent):
     def __init__(self, *args, **kw):
         super(TrueHeadersSOCKS5Agent, self).__init__(*args, **kw)
-        self._pool = HTTPConnectionPool(reactor, False)
+        pool = HTTPConnectionPool(reactor, False)
+        #
+        # With Twisted > 15.0 txsocksx wraps the twisted agent using a
+        # wrapper class, hence we must set the _pool attribute in the
+        # inner class rather than into its external wrapper.
+        #
+        if twisted.version >= _twisted_15_0:
+            self._wrappedAgent._pool = pool
+        else:
+            self._pool = pool

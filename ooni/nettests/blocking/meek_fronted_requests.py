@@ -48,7 +48,7 @@ class meekTest(httpt.HTTPTest):
         """
 
         if self.input:
-           if (isinstance(self.input, tuple) or isinstace(self.input, list)):
+           if (isinstance(self.input, tuple) or isinstance(self.input, list)):
                self.domainName, self.header = self.input
            else:
                self.domainName, self.header = self.input.split(':')

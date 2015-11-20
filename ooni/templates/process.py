@@ -19,6 +19,7 @@ class ProcessDirector(protocol.ProcessProtocol):
     def cancelTimer(self):
         if self.timeout and self.timer:
             self.timer.cancel()
+            self.timer = None
 
     def close(self, reason=None):
         self.reason = reason
@@ -26,7 +27,7 @@ class ProcessDirector(protocol.ProcessProtocol):
 
     def resetTimer(self):
         if self.timeout is not None:
-            if self.timer is not None:
+            if self.timer is not None and self.timer.active():
                 self.timer.cancel()
             self.timer = reactor.callLater(self.timeout,
                                            self.close,
@@ -58,10 +59,15 @@ class ProcessDirector(protocol.ProcessProtocol):
         self.stdout += data
         if self.shouldClose():
             self.close("condition_met")
+        self.handleRead(data,  None)
 
     def errReceived(self, data):
         log.debug("STDERR: %s" % data)
         self.stderr += data
+        if self.shouldClose():
+            self.close("condition_met")
+        self.handlRead(None,  data)
+
 
     def inConnectionLost(self):
         log.debug("inConnectionLost")
@@ -80,6 +86,9 @@ class ProcessDirector(protocol.ProcessProtocol):
         log.debug("Ended %s" % reason)
         self.finish("process_done")
 
+    def handleRead(self,  stdout,  stderr=None):
+        pass
+
 
 class ProcessTest(NetTestCase):
     name = "Base Process Test"
@@ -87,6 +96,7 @@ class ProcessTest(NetTestCase):
 
     requiresRoot = False
     timeout = 5
+    processDirector = None
 
     def _setUp(self):
         super(ProcessTest, self)._setUp()
@@ -101,9 +111,14 @@ class ProcessTest(NetTestCase):
         }
         return result
 
-    def run(self, command, finished=None):
+    def run(self, command, finished=None, env={}, path=None, usePTY=0):
         d = defer.Deferred()
         d.addCallback(self.processEnded, command)
-        processDirector = ProcessDirector(d, finished, self.timeout)
-        reactor.spawnProcess(processDirector, command[0], command)
+        self.processDirector = ProcessDirector(d, finished, self.timeout)
+        self.processDirector.handleRead = self.handleRead
+        reactor.spawnProcess(self.processDirector, command[0], command, env=env, path=path, usePTY=usePTY)
         return d
+
+    # handleRead is not an abstract method to be backwards compatible
+    def handleRead(self,  stdout,  stderr=None):
+        pass

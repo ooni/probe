@@ -49,7 +49,7 @@ aware of the fact that you are running ooniprobe. This means that if running
 network measurement tests is something considered to be illegal in your country
 then you could be spotted.
 
-Futhermore, ooniprobe takes no precautions to protect the install target machine
+Furthermore, ooniprobe takes no precautions to protect the install target machine
 from forensics analysis.  If the fact that you have installed or used ooni
 probe is a liability for you, please be aware of this risk.
 

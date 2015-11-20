@@ -60,12 +60,6 @@ On unix systems::
 
     sudo pip install ooniprobe
 
-**BUG** Note: Twisted version needs to be >=12.2.0 and <=14.0.0
-unistall/downgrage Twisted::
-
-    sudo pip uninstall Twisted
-    sudo pip install 'Twisted>=12.2.0,<=14.0.0'
-
 To install it from the current master run::
 
     sudo pip install https://github.com/TheTorProject/ooni-probe/archive/master.zip
@@ -393,3 +387,14 @@ On Debian based systems a development environment can be setup as follows: (prer
     python setup.py install
     ooniprobe -s  # if all went well, lists available tests
 
+
+Donate
+-------
+
+Send bitcoins to
+
+.. image:: http://i.imgur.com/CIWHb5R.png
+    :target: http://www.coindesk.com/information/how-can-i-buy-bitcoins/
+
+
+1Ai9d4dhDBjxYVkKKf1pFXptEGfM1vxFBf

@@ -83,9 +83,9 @@ class TestSettings(ConfigTestCase):
         conditions that make it not possible to run it on travis.
         The tests need to be run as root on travis so that the ones that use
         scapy will work properly. When running tor as root, though, it will by
-        default drop priviledges to a lesser priviledged user (on debian based
+        default drop privileges to a lesser priviledged user (on debian based
         systems debian-tor). The problem is that the datadir will have already
-        been created with the priviledges of root, hence it will fail to use it
+        been created with the privileges of root, hence it will fail to use it
         as a datadir and fail.
         txtorcon addressed this issue in https://github.com/meejah/txtorcon/issues/26
         by chmodding the datadir with what is set as User.

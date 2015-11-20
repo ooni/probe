@@ -30,7 +30,7 @@ apt-get install -y tor deb.torproject.org-keyring
 apt-get install -y build-essential libdumbnet-dev python-dumbnet python-pypcap libpcap-dev python-dev python-pip libgeoip-dev libffi-dev
 cd /ooni
 python setup.py install
-echo "Login using 'vagrant ssh', and dont forget to run ooniprobe as root."
+echo "Login using 'vagrant ssh', and don't forget to run ooniprobe as root."
 echo "First run: 'sudo ooniprobe -i /usr/share/ooni/decks/fast.deck'"
 
 SCRIPT

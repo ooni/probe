@@ -48,7 +48,7 @@ class DNSSpoof(scapyt.ScapyTest):
     def postProcessor(self, measurements):
         """
         This is not tested, but the concept is that if the two responses
-        match up then spoofing is occuring.
+        match up then spoofing is occurring.
         """
         try:
             test_answer = self.report['answered_packets'][0][UDP]

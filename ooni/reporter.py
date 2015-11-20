@@ -287,7 +287,7 @@ class OONIBReporter(OReporter):
         # do this with some deferred kung foo or instantiate the reporter after
         # tor is started.
 
-        from ooni.utils.hacks import SOCKS5Agent
+        from txsocksx.http import SOCKS5Agent
         from twisted.internet import reactor
 
         if self.collectorAddress.startswith('httpo://'):
@@ -395,6 +395,8 @@ class OONIBReportLog(object):
     def get_report_log(self):
         with open(self.file_name) as f:
             report_log = yaml.safe_load(f)
+        if not report_log:
+            report_log = {}  # consumers expect dictionary structure
         return report_log
 
     @property
