@@ -299,8 +299,7 @@ def runTestWithDirector(director, global_options, url=None,
 
             collector = setupCollector(global_options, net_test_loader)
 
-            test_details = net_test_loader.testDetails
-            test_details['annotations'] = global_options['annotations']
+            net_test_loader.annotations = global_options['annotations']
 
             director.startNetTest(net_test_loader,
                                     global_options['reportfile'],
