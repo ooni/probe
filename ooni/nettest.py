@@ -139,6 +139,7 @@ class NetTestLoader(object):
             "(httpo://[a-z0-9]{16}\.onion)/input/([a-z0-9]{64})$")
         self.options = options
         self.testCases = []
+        self.annotations = {}
 
         if test_file:
             self.loadNetTestFile(test_file)
@@ -217,7 +218,8 @@ class NetTestLoader(object):
             'options': options,
             'input_hashes': input_file_hashes,
             'report_id': self.reportID,
-            'test_helpers': self.testHelpers
+            'test_helpers': self.testHelpers,
+            'annotations': self.annotations
         }
         return test_details
 

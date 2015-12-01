@@ -299,8 +299,7 @@ def runWithDirector(logging=True, start_tor=True, check_incoherences=True):
                     and (not (config.tor_state or config.tor.socks_port)):
                 raise errors.TorNotRunning
 
-            test_details = net_test_loader.testDetails
-            test_details['annotations'] = global_options['annotations']
+            net_test_loader.annotations = global_options['annotations']
 
             director.startNetTest(net_test_loader,
                                   global_options['reportfile'],
