@@ -20,39 +20,42 @@ from txsocksx.errors import TTLExpired, CommandNotSupported
 
 from socket import gaierror
 
+known_failures = [
+    (ConnectionRefusedError, 'connection_refused_error'),
+    (ConnectionLost, 'connection_lost_error'),
+    (CancelledError, 'task_timed_out'),
+    (gaierror, 'address_family_not_supported_error'),
+    (DNSLookupError, 'dns_lookup_error'),
+    (TCPTimedOutError, 'tcp_timed_out_error'),
+    (ResponseNeverReceived, 'response_never_received'),
+    (DeferTimeoutError, 'deferred_timeout_error'),
+    (GenericTimeoutError, 'generic_timeout_error'),
+    (MethodsNotAcceptedError, 'socks_methods_not_supported'),
+    (AddressNotSupported, 'socks_address_not_supported'),
+    (NetworkUnreachable, 'socks_network_unreachable'),
+    (ConnectionError, 'socks_connect_error'),
+    (ConnectionLostEarly, 'socks_connection_lost_early'),
+    (ConnectionNotAllowed, 'socks_connection_not_allowed'),
+    (NoAcceptableMethods, 'socks_no_acceptable_methods'),
+    (ServerFailure, 'socks_server_failure'),
+    (HostUnreachable, 'socks_host_unreachable'),
+    (ConnectionRefused, 'socks_connection_refused'),
+    (TTLExpired, 'socks_ttl_expired'),
+    (CommandNotSupported, 'socks_command_not_supported'),
+    (SOCKSError, 'socks_error'),
+    (ProcessDone, 'process_done'),
+    (ConnectionDone, 'connection_done'),
+    (ConnectError, 'connect_error'),
+]
 
 def handleAllFailures(failure):
     """
-    Here we make sure to trap all the failures that are supported by the
-    failureToString function and we return the the string that represents the
-    failure.
+    Trap all the known Failures and we return a string that
+    represents the failure. Any unknown Failures will be reraised and
+    returned by failure.trap().
     """
-    failure.trap(
-        ConnectionRefusedError,
-        gaierror,
-        DNSLookupError,
-        TCPTimedOutError,
-        ResponseNeverReceived,
-        DeferTimeoutError,
-        GenericTimeoutError,
-        SOCKSError,
-        MethodsNotAcceptedError,
-        AddressNotSupported,
-        ConnectionError,
-        NetworkUnreachable,
-        ConnectionLostEarly,
-        ConnectionNotAllowed,
-        NoAcceptableMethods,
-        ServerFailure,
-        HostUnreachable,
-        ConnectionRefused,
-        TTLExpired,
-        CommandNotSupported,
-        ConnectError,
-        ConnectionLost,
-        CancelledError, 
-        ConnectionDone)
 
+    failure.trap(*[failure_type for failure_type, _ in known_failures])
     return failureToString(failure)
 
 
@@ -69,95 +72,14 @@ def failureToString(failure):
 
         A string representing the HTTP response error message.
     """
-    string = None
-    if isinstance(failure.value, ConnectionRefusedError):
-        # log.err("Connection refused.")
-        string = 'connection_refused_error'
 
-    elif isinstance(failure.value, ConnectionLost):
-        # log.err("Connection lost.")
-        string = 'connection_lost_error'
-
-    elif isinstance(failure.value, ConnectError):
-        # log.err("Connect error.")
-        string = 'connect_error'
-
-    elif isinstance(failure.value, gaierror):
-        # log.err("Address family for hostname not supported")
-        string = 'address_family_not_supported_error'
-
-    elif isinstance(failure.value, DNSLookupError):
-        # log.err("DNS lookup failure")
-        string = 'dns_lookup_error'
-
-    elif isinstance(failure.value, TCPTimedOutError):
-        # log.err("TCP Timed Out Error")
-        string = 'tcp_timed_out_error'
-
-    elif isinstance(failure.value, ResponseNeverReceived):
-        # log.err("Response Never Received")
-        string = 'response_never_received'
-
-    elif isinstance(failure.value, DeferTimeoutError):
-        # log.err("Deferred Timeout Error")
-        string = 'deferred_timeout_error'
-
-    elif isinstance(failure.value, GenericTimeoutError):
-        # log.err("Time Out Error")
-        string = 'generic_timeout_error'
-
-    elif isinstance(failure.value, ServerFailure):
-        # log.err("SOCKS error: ServerFailure")
-        string = 'socks_server_failure'
-
-    elif isinstance(failure.value, ConnectionNotAllowed):
-        # log.err("SOCKS error: ConnectionNotAllowed")
-        string = 'socks_connection_not_allowed'
-
-    elif isinstance(failure.value, NetworkUnreachable):
-        # log.err("SOCKS error: NetworkUnreachable")
-        string = 'socks_network_unreachable'
-
-    elif isinstance(failure.value, HostUnreachable):
-        # log.err("SOCKS error: HostUnreachable")
-        string = 'socks_host_unreachable'
-
-    elif isinstance(failure.value, ConnectionRefused):
-        # log.err("SOCKS error: ConnectionRefused")
-        string = 'socks_connection_refused'
-
-    elif isinstance(failure.value, TTLExpired):
-        # log.err("SOCKS error: TTLExpired")
-        string = 'socks_ttl_expired'
-
-    elif isinstance(failure.value, CommandNotSupported):
-        # log.err("SOCKS error: CommandNotSupported")
-        string = 'socks_command_not_supported'
-
-    elif isinstance(failure.value, AddressNotSupported):
-        # log.err("SOCKS error: AddressNotSupported")
-        string = 'socks_address_not_supported'
-
-    elif isinstance(failure.value, SOCKSError):
-        # log.err("Generic SOCKS error")
-        string = 'socks_error'
-
-    elif isinstance(failure.value, CancelledError):
-        # log.err("Task timed out")
-        string = 'task_timed_out'
-
-    elif isinstance(failure.value, ProcessDone):
-        string = 'process_done'
-
-    elif isinstance(failure.value, ConnectionDone):
-        string = 'connection_done'
-
-    else:
-        # log.err("Unknown failure type: %s" % type(failure.value))
-        string = 'unknown_failure %s' % str(failure.value)
-
-    return string
-
+    for failure_type, failure_string in known_failures:
+        if isinstance(failure.value, failure_type):
+            if failure_string:
+                return failure_string
+            else:
+                # Failure without a corresponding failure message
+                return 'unknown_failure %s' % str(failure.value)
 
 class DirectorException(Exception):
     pass
