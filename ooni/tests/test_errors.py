@@ -9,7 +9,7 @@ class TestErrors(unittest.TestCase):
         Verify that more specific Failures are caught first by
         handleAllFailures() and failureToString().
 
-        Fails if a subclass is listed after it's parent Failure.
+        Fails if a subclass is listed after its parent Failure.
         """
 
         # Check each Failure against all subsequent failures
