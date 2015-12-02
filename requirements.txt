@@ -1,5 +1,5 @@
 PyYAML>=3.10
-Twisted>=12.2.0
+Twisted>=12.2.0,<15.5.0
 ipaddr>=2.1.10
 pyOpenSSL>=0.13
 geoip
