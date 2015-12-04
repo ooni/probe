@@ -22,6 +22,7 @@ reports:
     # This is a prefix for each packet capture file (.pcap) per test:
     pcap: null
     collector: null
+    format: yaml
 advanced:
     geoip_data_dir: /usr/share/GeoIP
     debug: false

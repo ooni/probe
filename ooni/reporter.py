@@ -257,22 +257,36 @@ class OONIBReporter(OReporter):
         if not re.match(regexp, self.collectorAddress):
             raise errors.InvalidOONIBCollectorAddress
 
+    def serializeEntry(self, entry):
+        if config.report.format == "json":
+            if isinstance(entry, Measurement):
+                report_entry = entry.testInstance.report
+            elif isinstance(entry, Failure):
+                report_entry = entry.value
+            elif isinstance(entry, dict):
+                report_entry = entry
+            report_entry["record_type"] = "entry"
+            report_entry["report_id"] = self.reportID
+            content = json.dumps(report_entry, ensure_ascii=True) + "\n"
+        else:
+            content = '---\n'
+            if isinstance(entry, Measurement):
+                content += safe_dump(entry.testInstance.report)
+            elif isinstance(entry, Failure):
+                content += entry.value
+            elif isinstance(entry, dict):
+                content += safe_dump(entry)
+            content += '...\n'
+        return content
+
     @defer.inlineCallbacks
     def writeReportEntry(self, entry):
         log.debug("Writing report with OONIB reporter")
-        content = '---\n'
-        if isinstance(entry, Measurement):
-            content += safe_dump(entry.testInstance.report)
-        elif isinstance(entry, Failure):
-            content += entry.value
-        elif isinstance(entry, dict):
-            content += safe_dump(entry)
-        content += '...\n'
 
-        url = self.collectorAddress + '/report'
+        url = self.collectorAddress + '/report/' + self.reportID
 
-        request = {'report_id': self.reportID,
-                   'content': content}
+        request = {'format': config.report.format,
+                   'content': self.serializeEntry(entry)}
 
         log.debug("Updating report with id %s (%s)" % (self.reportID, url))
         request_json = json.dumps(request)
