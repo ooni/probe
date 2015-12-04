@@ -34,7 +34,8 @@ class Options(usage.Options):
 
     optFlags = [["help", "h"],
                 ["resume", "r"],
-                ["no-collector", "n"],
+                ["no-collector", "n", "disable writing to collector"],
+                ["no-yamloo", "N", "disable writing to YAML file"],
                 ["no-geoip", "g"],
                 ["list", "s"],
                 ["printdeck", "p"],
@@ -228,6 +229,9 @@ def setupCollector(global_options, net_test_loader):
 def createDeck(global_options, url=None):
     log.msg("Creating deck for: %s" % (url))
 
+    if global_options['no-yamloo']:
+        log.msg("Will not write to a yamloo report file")
+
     deck = Deck(no_collector=global_options['no-collector'])
     deck.bouncer = global_options['bouncer']
 
@@ -316,8 +320,9 @@ def runTestWithDirector(director, global_options, url=None,
             net_test_loader.annotations = global_options['annotations']
 
             director.startNetTest(net_test_loader,
-                                    global_options['reportfile'],
-                                    collector)
+                                  global_options['reportfile'],
+                                  collector,
+                                  global_options['no-yamloo'])
         return director.allTestsDone
 
     d.addCallback(setup_nettest)

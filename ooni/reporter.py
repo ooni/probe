@@ -554,7 +554,8 @@ class OONIBReportLog(object):
 class Report(object):
 
     def __init__(self, test_details, report_filename,
-                 reportEntryManager, collector_address=None):
+                 reportEntryManager, collector_address=None,
+                 no_yamloo=False):
         """
         This is an abstraction layer on top of all the configured reporters.
 
@@ -574,14 +575,19 @@ class Report(object):
             collector:
                 The address of the oonib collector for this report.
 
+            no_yamloo:
+                If we should disable reporting to disk.
         """
         self.test_details = test_details
         self.collector_address = collector_address
 
         self.report_log = OONIBReportLog()
 
-        self.yaml_reporter = YAMLReporter(test_details, report_filename=report_filename)
-        self.report_filename = self.yaml_reporter.report_path
+        self.yaml_reporter = None
+        self.report_filename = None
+        if not no_yamloo:
+            self.yaml_reporter = YAMLReporter(test_details, report_filename=report_filename)
+            self.report_filename = self.yaml_reporter.report_path
 
         self.oonib_reporter = None
         if collector_address:
@@ -627,11 +633,13 @@ class Report(object):
         if self.oonib_reporter:
             deferreds.append(self.open_oonib_reporter())
         else:
-            deferreds.append(self.report_log.not_created(self.report_filename))
+            if self.yaml_reporter:
+                deferreds.append(self.report_log.not_created(self.report_filename))
 
-        yaml_report_created = \
-            defer.maybeDeferred(self.yaml_reporter.createReport)
-        yaml_report_created.addErrback(yaml_report_failed)
+        if self.yaml_reporter:
+            yaml_report_created = \
+                defer.maybeDeferred(self.yaml_reporter.createReport)
+            yaml_report_created.addErrback(yaml_report_failed)
 
         dl = defer.DeferredList(deferreds)
         dl.addCallback(all_reports_openned)
@@ -666,10 +674,11 @@ class Report(object):
             if not d.called:
                 d.callback(None)
 
-        write_yaml_report = ReportEntry(self.yaml_reporter, measurement)
-        self.reportEntryManager.schedule(write_yaml_report)
-        write_yaml_report.done.addErrback(yaml_report_failed)
-        deferreds.append(write_yaml_report.done)
+        if self.yaml_reporter:
+            write_yaml_report = ReportEntry(self.yaml_reporter, measurement)
+            self.reportEntryManager.schedule(write_yaml_report)
+            write_yaml_report.done.addErrback(yaml_report_failed)
+            deferreds.append(write_yaml_report.done)
 
         if self.oonib_reporter:
             write_oonib_report = ReportEntry(self.oonib_reporter, measurement)
@@ -707,9 +716,10 @@ class Report(object):
             if not d.called:
                 d.callback(None)
 
-        close_yaml = defer.maybeDeferred(self.yaml_reporter.finish)
-        close_yaml.addErrback(yaml_report_failed)
-        deferreds.append(close_yaml)
+        if self.yaml_reporter:
+            close_yaml = defer.maybeDeferred(self.yaml_reporter.finish)
+            close_yaml.addErrback(yaml_report_failed)
+            deferreds.append(close_yaml)
 
         if self.oonib_reporter:
             close_oonib = self.oonib_reporter.finish()

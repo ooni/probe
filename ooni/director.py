@@ -233,7 +233,7 @@ class Director(object):
 
     @defer.inlineCallbacks
     def startNetTest(self, net_test_loader, report_filename,
-                     collector_address=None):
+                     collector_address=None, no_yamloo=False):
         """
         Create the Report for the NetTest and start the report NetTest.
 
@@ -248,7 +248,8 @@ class Director(object):
             self.startSniffing(net_test_loader.testDetails)
 
         report = Report(net_test_loader.testDetails, report_filename,
-                        self.reportEntryManager, collector_address)
+                        self.reportEntryManager, collector_address,
+                        no_yamloo)
 
         net_test = NetTest(net_test_loader, report)
         net_test.director = self

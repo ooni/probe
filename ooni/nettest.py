@@ -131,6 +131,7 @@ def getNetTestInformation(net_test_file):
 class NetTestLoader(object):
     method_prefix = 'test'
     collector = None
+    yamloo = True
     requiresTor = False
     reportID = None
 
