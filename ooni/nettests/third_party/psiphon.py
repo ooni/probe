@@ -1,19 +1,12 @@
 import tempfile
-import stat
 import os
 import sys
 
 from twisted.internet import defer, reactor
-from twisted.internet.endpoints import TCP4ClientEndpoint
-from twisted.web.client import readBody
 from twisted.python import usage
 
-from txsocksx.http import SOCKS5Agent
-
-from ooni.errors import handleAllFailures, TaskTimedOut
 from ooni.utils import log
 from ooni.templates import process, httpt
-from ooni.templates.process import ProcessTest
 
 
 class UsageOptions(usage.Options):
@@ -94,9 +87,9 @@ connect(False)
     def test_psiphon(self):
         log.debug('PsiphonTest.test_psiphon')
 
+        self.report['success'] = None
         if not os.path.exists(self.psiphonpath):
             log.err('psiphon path does not exists, is it installed?')
-            self.report['success'] = False
             self.report['psiphon_installed'] = False
             log.debug("Adding %s to report" % self.report)
             # XXX: the original code written by juga0 readed
@@ -116,7 +109,8 @@ connect(False)
         # full with some block size and therefore the test would
         # terminate with error
         finished = self.run(self.command,
-                            env=dict(PYTHONPATH=self.psiphonpath),
+                            env=dict(PYTHONPATH=os.path.join(self.psiphonpath,
+                                                             'pyclient')),
                             path=self.psiphonpath,
                             usePTY=1)
 
