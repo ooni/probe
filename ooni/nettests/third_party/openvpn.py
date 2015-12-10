@@ -57,6 +57,15 @@ class OpenVPNTest(ProcessTest):
             self.processDirector.transport.signalProcess('TERM')
             self.exited = True
 
+    def inConnectionLost(self):
+            """Monkeypatch inConnectionLost to log failure if the process ends
+            unexpectedly before OpenVPN bootstraps.
+            """
+            log.debug("inConnectionLost")
+
+            if not self.bootstrapped.called:
+                self.bootstrapped.errback(Exception("openvpn_exited_unexpectedly"))
+
     def processExited(self, reason):
             """Monkeypatch processExited to log failure if the process ends
             unexpectedly before OpenVPN bootstraps.
@@ -64,8 +73,10 @@ class OpenVPNTest(ProcessTest):
             log.debug("Exited %s" % handleAllFailures(reason))
 
             # Process exited before OpenVPN bootstrapped. Add failure to report
+            # if it is not added already
             if not self.bootstrapped.called:
                 self.bootstrapped.errback(Exception("openvpn_exited_unexpectedly"))
+
 
     def handleRead(self, stdout=None, stderr=None):
         """handleRead is called with each chunk of data from stdout and stderr
@@ -116,7 +127,8 @@ class OpenVPNTest(ProcessTest):
         log.debug("Spawning OpenVPN")
         self.d = self.run(self.command)
 
-        # Monkeypatch processExited to log when OpenVPN exits early
+        # Monkeypatch inConnectionLost and processExited to log when OpenVPN exits early
+        self.processDirector.inConnectionLost = self.inConnectionLost
         self.processDirector.processExited = self.processExited
 
         # Try to make a request when the OpenVPN connection successfully bootstraps
