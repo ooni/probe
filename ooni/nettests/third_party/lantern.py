@@ -4,7 +4,7 @@ from twisted.python import usage
 from twisted.web.client import ProxyAgent, readBody
 from ooni.templates.process import ProcessTest, ProcessDirector
 from ooni.utils import log
-from ooni.errors import handleAllFailures, TaskTimedOut
+from ooni.errors import handleAllFailures
 import os.path
 from os import getenv
 
@@ -34,7 +34,7 @@ class LanternProcessDirector(ProcessDirector):
     def outReceived(self, data):
         self.stdout += data
         # output received, see if we have bootstrapped
-        if not self.bootstrapped.called and "client (http) proxy at" in self.stdout:
+        if not self.bootstrapped.called and "Connected to proxy on localhost" in self.stdout:
             log.debug("Bootstrap Detected")
             self.cancelTimer()
             self.bootstrapped.callback("bootstrapped")
@@ -62,7 +62,7 @@ class LanternTest(ProcessTest):
     requiredOptions = ['url']
 
     def setUp(self):
-        self.command = ["lantern_linux", "--headless"]
+        self.command = ["lantern", "--headless"]
         self.d = defer.Deferred()
         self.processDirector = LanternProcessDirector(self.d, timeout=self.timeout)
         self.d.addCallback(self.processEnded, self.command)
