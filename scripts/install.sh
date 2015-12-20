@@ -324,10 +324,6 @@ case "$lsb_dist" in
         set -x
         $sh_c 'apt-get install -y -q curl git-core python python-dev python-setuptools build-essential libdumbnet1 python-dumbnet python-libpcap tor tor-geoipdb libgeoip-dev libpcap0.8-dev libssl-dev libffi-dev libdumbnet-dev'
         $sh_c "PYTHONPATH=$PYTHONPATH pip install --install-option=\"--prefix=$PYTHON_PREFIX\" ooniprobe"
-        # Unistall Twisted and install a version >=12.2.0,<=14.0.0
-        # https://trac.torproject.org/projects/tor/ticket/15944
-        $sh_c "PYTHONPATH=$PYTHONPATH pip uninstall -y Twisted"
-        $sh_c "PYTHONPATH=$PYTHONPATH pip install --install-option=\"--prefix=$PYTHON_PREFIX\" 'Twisted>=12.2.0,<=14.0.0'"
       )
     fi
     
