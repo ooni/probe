@@ -88,6 +88,7 @@ connect(False)
         log.debug('PsiphonTest.test_psiphon')
 
         self.report['success'] = None
+		self.report['psiphon_installed'] = None
         if not os.path.exists(self.psiphonpath):
             log.err('psiphon path does not exists, is it installed?')
             self.report['psiphon_installed'] = False
