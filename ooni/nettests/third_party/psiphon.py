@@ -63,7 +63,7 @@ class PsiphonTest(httpt.HTTPTest,  process.ProcessTest):
             # are in the user's home directory.
             from os import path, getenv
             self.psiphonpath = path.join(
-                getenv('HOME'), 'psiphon-circumvention-system/pyclient')
+                getenv('HOME'), 'psiphon-circumvention-system/pyclient/pyclient')
             log.debug('psiphon path: %s' % self.psiphonpath)
 
         # psi_client.py can not be run directly because the paths in the
@@ -91,6 +91,7 @@ connect(False)
 		self.report['psiphon_installed'] = None
         if not os.path.exists(self.psiphonpath):
             log.err('psiphon path does not exists, is it installed?')
+            self.report['success'] = False
             self.report['psiphon_installed'] = False
             log.debug("Adding %s to report" % self.report)
             # XXX: the original code written by juga0 readed
@@ -110,8 +111,7 @@ connect(False)
         # full with some block size and therefore the test would
         # terminate with error
         finished = self.run(self.command,
-                            env=dict(PYTHONPATH=os.path.join(self.psiphonpath,
-                                                             'pyclient')),
+                            env=dict(PYTHONPATH=self.psiphonpath),
                             path=self.psiphonpath,
                             usePTY=1)
 
