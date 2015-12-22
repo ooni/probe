@@ -116,7 +116,19 @@ connect(False)
                             usePTY=1)
 
         def callDoRequest(_):
-            return self.doRequest(self.url)
+            log.debug("PsiphonTest.callDoRequest: %r" %(_,))
+            d = self.doRequest(self.url)
+            def addSuccessToReport(res):
+                log.debug("PsiphonTest.callDoRequest.addSuccessToReport")
+                self.report['success'] = True
+                return res
+            d.addCallback(addSuccessToReport)
+            def addFailureToReport(res):
+                log.debug("PsiphonTest.callDoRequest.addFailureToReport. res=%r" % (res,))
+                self.report['success'] = False
+                return res
+            d.addErrback(addFailureToReport)
+            return d
         self.bootstrapped.addCallback(callDoRequest)
 
         def cleanup(_):
