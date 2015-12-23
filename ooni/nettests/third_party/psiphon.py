@@ -3,6 +3,7 @@ import os
 import sys
 
 from twisted.internet import defer, reactor
+from twisted.internet.error import ProcessExitedAlready
 from twisted.python import usage
 
 from ooni.utils import log
@@ -132,7 +133,10 @@ connect(False)
 
         def cleanup(_):
             log.debug('PsiphonTest:cleanup')
-            self.processDirector.transport.signalProcess('INT')
+            try:
+                self.processDirector.transport.signalProcess('INT')
+            except ProcessExitedAlready:
+                pass
             os.remove(self.command[1])
             return finished
 
