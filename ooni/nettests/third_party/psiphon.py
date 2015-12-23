@@ -91,7 +91,6 @@ connect(False)
         self.report['psiphon_installed'] = None
         if not os.path.exists(self.psiphonpath):
             log.err('psiphon path does not exists, is it installed?')
-            self.report['success'] = False
             self.report['psiphon_installed'] = False
             log.debug("Adding %s to report" % self.report)
             # XXX: the original code written by juga0 readed
