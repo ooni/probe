@@ -103,12 +103,10 @@ class ProcessTest(NetTestCase):
 
     def processEnded(self, result, command):
         log.debug("Finished %s: %s" % (command, result))
-        key = ' '.join(command)
-        self.report[key] = {
-            'stdout': result['stdout'],
-            'stderr': result['stderr'],
-            'exit_reason': result['exit_reason']
-        }
+        self.report['command_name'] = ' '.join(command)
+        self.report['command_stdout'] = result['stdout']
+        self.report['command_stderr'] = result['stderr']
+        self.report['command_exit_reason'] = result['exit_reason']
         return result
 
     def run(self, command, finished=None, env={}, path=None, usePTY=0):
