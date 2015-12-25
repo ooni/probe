@@ -2,12 +2,14 @@
 
 set -e
 
-PSIPHON_PATH=$HOME
-PSIPHON_PYCLIENT_PATH=$PSIPHON_PATH/psiphon-circumvention-system/pyclient
-PSIPHON_REPO_URL=https://bitbucket.org/psiphon/psiphon-circumvention-system
-OONI_VIRTUALENV_PATH=$HOME/.virtualenvs/ooniprobe
+PSIPHON_HOME_PATH=$HOME
+PSIPHON_PYCLIENT_PATH=$PSIPHON_HOME_PATH/psiphon-circumvention-system/pyclient
+PSIPHON_SSH_PATH=$PSIPHON_HOME_PATH/psiphon-circumvention-system/Server/3rdParty/openssh-5.9p1
+PSIPHON_REPO_URL=https://bitbucket.org/psiphon/psiphon-circumvention-system#af438ec2c16c
+VIRTUALENVS_PATH=$HOME/.virtualenvs
+OONI_VIRTUALENV_PATH=$VIRTUALENVS_PATH/ooniprobe
 
-mkdir -p $PSIPHON_PATH
+mkdir -p $PSIPHON_HOME_PATH
 
 command_exists() {
   command -v "$@" > /dev/null 2>&1
@@ -40,7 +42,7 @@ if ! command_exists hg; then
 fi
 echo "[D] mercurial installed"
 
-cd $PSIPHON_PATH
+cd $PSIPHON_HOME_PATH
 if [ ! -d "psiphon-circumvention-system" ]; then
   echo "[D] cloning psiphon repository"
   hg clone $PSIPHON_REPO_URL
@@ -51,10 +53,10 @@ echo "[D] psiphon repository cloned"
 # optional, compile their ssh
 if [ ! -f "$PSIPHON_PYCLIENT_PATH/ssh" ]; then
     echo "[D] compiling psiphon ssh"
-    cd psiphon-circumvention-system/Server/3rdParty/openssh-5.9p1/
+    cd $PSIPHON_SSH_PATH
     ./configure
     make
-    mv ssh ../../../pyclient/pyclient/
+    mv ssh $PSIPHON_PYCLIENT_PATH
     make clean
     echo "[D] psiphon ssh compiled"
 fi
