@@ -15,3 +15,4 @@ pyasn1-modules
 characteristic
 zope.interface
 cryptography
+psutil

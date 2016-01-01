@@ -6,6 +6,7 @@ from ooni import errors as e
 from ooni.settings import config
 from ooni import otime
 
+from psutil import virtual_memory
 
 class BaseTask(object):
     _timer = None
@@ -15,7 +16,8 @@ class BaseTask(object):
     def __init__(self):
         """
         If you want to schedule a task multiple times, remember to create fresh
-        instances of it.
+        instances of it. All subclasses must handle a MemoryError exception
+        raised by self.start().
         """
         self.failures = 0
 
@@ -39,10 +41,14 @@ class BaseTask(object):
         return result
 
     def start(self):
-        self._running = defer.maybeDeferred(self.run)
-        self._running.addErrback(self._failed)
-        self._running.addCallback(self._succeeded)
-        return self._running
+        freeRAM = virtual_memory().available
+        if (freeRAM > config.advanced.critical_ram):
+            self._running = defer.maybeDeferred(self.run)
+            self._running.addErrback(self._failed)
+            self._running.addCallback(self._succeeded)
+            return self._running
+        else:
+           raise MemoryError
 
     def succeeded(self, result):
         """
@@ -66,6 +72,7 @@ class BaseTask(object):
 
 class TaskWithTimeout(BaseTask):
     timeout = 30
+    retry = 20
     # So that we can test the callLater calls
     clock = reactor
 
@@ -89,8 +96,13 @@ class TaskWithTimeout(BaseTask):
 
     def start(self):
         self._timer = self.clock.callLater(self.timeout, self._timedOut)
-        return BaseTask.start(self)
-
+        try:
+            return BaseTask.start(self)
+        except MemoryError:
+            # not enough RAM to start test
+            log.msg("Out of Memory. Retrying later")
+            self._cancelTimer()
+            self.clock.callLater(self.retry, self.start)
 
 class Measurement(TaskWithTimeout):
     def __init__(self, test_instance, test_method, test_input):
