@@ -174,7 +174,7 @@ ooniprobe will be installed in ``/ooni``.
 
 5. You can run tests with::
 
-    ooniprobe blocking/http_requests -f /ooni/example_inputs/alexa-top-1k.txt
+    ooniprobe blocking/http_requests -f /ooni/var/example_inputs/alexa-top-1k.txt
 
 Using ooniprobe
 ===============
