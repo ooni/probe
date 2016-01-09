@@ -162,6 +162,7 @@ On debian/ubuntu::
 3. Open a Terminal and run::
 
     git clone https://git.torproject.org/ooni-probe.git
+    git clone https://github.com/TheTorProject/ooni-backend.git
     cd ooni-probe/
     vagrant up
 
