@@ -508,6 +508,7 @@ More developer documentation
 
     tutorial
     writing_tests
+    writing_test_helpers
     reports
     nettests/modules
     api/*
