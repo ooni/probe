@@ -72,9 +72,9 @@ OONI-backend uses a config file located at `/etc/oonibackend.conf <https://githu
 
 The test-helper will need to be given a unique identifyer so that it can be called from the config file. In this example we use ``tcp-directionality`` as our identifyer.
 
-For a helper to be used in the ooni-backend it needs to be given an identifyer so that it can be called from the config file.::
+For a helper to be used in the ooni-backend it needs to be given an identifyer so that it can be called from the config file::
 
-      tcp-echo:
+      tcp-directionality:
         encoding: rot13
         port: 57009
 
