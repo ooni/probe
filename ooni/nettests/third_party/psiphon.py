@@ -3,6 +3,7 @@ import os
 import sys
 
 from twisted.internet import defer, reactor
+from twisted.internet.error import ProcessExitedAlready
 from twisted.python import usage
 
 from ooni.utils import log
@@ -63,7 +64,7 @@ class PsiphonTest(httpt.HTTPTest,  process.ProcessTest):
             # are in the user's home directory.
             from os import path, getenv
             self.psiphonpath = path.join(
-                getenv('HOME'), 'psiphon-circumvention-system/pyclient')
+                getenv('HOME'), 'psiphon-circumvention-system/pyclient/pyclient')
             log.debug('psiphon path: %s' % self.psiphonpath)
 
         # psi_client.py can not be run directly because the paths in the
@@ -81,16 +82,21 @@ connect(False)
     def handleRead(self, stdout, stderr):
         if 'Press Ctrl-C to terminate.' in self.processDirector.stdout:
             if not self.bootstrapped.called:
+                # here the text 'Press Ctrl-C to terminate.' has been found
+                # and it was to call doRequest
+                self.report['bootstrapped_success'] = True
                 log.debug("PsiphonTest: calling bootstrapped.callback")
                 self.bootstrapped.callback(None)
 
     def test_psiphon(self):
         log.debug('PsiphonTest.test_psiphon')
 
-        self.report['success'] = None
+        self.report['bootstrapped_success'] = None
+        self.report['request_success'] = None
+        self.report['psiphon_found'] = None
         if not os.path.exists(self.psiphonpath):
             log.err('psiphon path does not exists, is it installed?')
-            self.report['psiphon_installed'] = False
+            self.report['psiphon_found'] = False
             log.debug("Adding %s to report" % self.report)
             # XXX: the original code written by juga0 readed
             #     > return defer.succeed(None)
@@ -101,7 +107,7 @@ connect(False)
             reactor.callLater(0.0, self.bootstrapped.callback, None)
             return self.bootstrapped
 
-        self.report['psiphon_installed'] = True
+        self.report['psiphon_found'] = True
         log.debug("Adding %s to report" % self.report)
 
         # Using pty to see output lines as soon as they get wrotten in the
@@ -109,18 +115,36 @@ connect(False)
         # full with some block size and therefore the test would
         # terminate with error
         finished = self.run(self.command,
-                            env=dict(PYTHONPATH=os.path.join(self.psiphonpath,
-                                                             'pyclient')),
+                            env=dict(PYTHONPATH=self.psiphonpath),
                             path=self.psiphonpath,
                             usePTY=1)
+        # here psiphon command has been run, and if it finds the text
+        # 'Press Ctrl-C to terminate' in handleRead it will write to the
+        # report self.report['bootstrapped_success'] = True
+        self.report['bootstrapped_success'] = False
 
         def callDoRequest(_):
-            return self.doRequest(self.url)
+            log.debug("PsiphonTest.callDoRequest: %r" %(_,))
+            d = self.doRequest(self.url)
+            def addSuccessToReport(res):
+                log.debug("PsiphonTest.callDoRequest.addSuccessToReport")
+                self.report['request_success'] = True
+                return res
+            d.addCallback(addSuccessToReport)
+            def addFailureToReport(res):
+                log.debug("PsiphonTest.callDoRequest.addFailureToReport. res=%r" % (res,))
+                self.report['request_success'] = False
+                return res
+            d.addErrback(addFailureToReport)
+            return d
         self.bootstrapped.addCallback(callDoRequest)
 
         def cleanup(_):
             log.debug('PsiphonTest:cleanup')
-            self.processDirector.transport.signalProcess('INT')
+            try:
+                self.processDirector.transport.signalProcess('INT')
+            except ProcessExitedAlready:
+                pass
             os.remove(self.command[1])
             return finished
 
