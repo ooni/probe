@@ -236,6 +236,7 @@ class OONIBReporter(OReporter):
         self.validateCollectorAddress()
 
         self.reportID = None
+        self.supportedFormats = ["yaml"]
 
         if self.collectorAddress.startswith('https://'):
             # not sure if there's something else it needs.  Seems to work.
@@ -257,27 +258,26 @@ class OONIBReporter(OReporter):
         if not re.match(regexp, self.collectorAddress):
             raise errors.InvalidOONIBCollectorAddress
 
-    def serializeEntry(self, entry):
-        if config.report.format == "json":
+    def serializeEntry(self, entry, serialisation_format="yaml"):
+        if serialisation_format == "json":
             if isinstance(entry, Measurement):
                 report_entry = entry.testInstance.report
             elif isinstance(entry, Failure):
-                report_entry = entry.value
+                report_entry = {'failure': entry.value}
             elif isinstance(entry, dict):
                 report_entry = entry
-            report_entry["record_type"] = "entry"
-            report_entry["report_id"] = self.reportID
-            content = json.dumps(report_entry, ensure_ascii=True) + "\n"
+            return report_entry
         else:
             content = '---\n'
             if isinstance(entry, Measurement):
-                content += safe_dump(entry.testInstance.report)
+                report_entry = entry.testInstance.report
             elif isinstance(entry, Failure):
-                content += entry.value
+                report_entry = {'failure': entry.value}
             elif isinstance(entry, dict):
-                content += safe_dump(entry)
+                report_entry = entry
+            content += safe_dump(report_entry)
             content += '...\n'
-        return content
+            return content
 
     @defer.inlineCallbacks
     def writeReportEntry(self, entry):
@@ -285,8 +285,13 @@ class OONIBReporter(OReporter):
 
         url = self.collectorAddress + '/report/' + self.reportID
 
-        request = {'format': config.report.format,
-                   'content': self.serializeEntry(entry)}
+        if "json" in self.supportedFormats:
+            serialisation_format = 'json'
+        else:
+            serialisation_format = 'yaml'
+
+        request = {'format': serialisation_format,
+                   'content': self.serializeEntry(entry, serialisation_format)}
 
         log.debug("Updating report with id %s (%s)" % (self.reportID, url))
         request_json = json.dumps(request)
@@ -295,12 +300,11 @@ class OONIBReporter(OReporter):
         bodyProducer = StringProducer(request_json)
 
         try:
-            yield self.agent.request("PUT", url,
+            yield self.agent.request("PUT", str(url),
                                      bodyProducer=bodyProducer)
-        except:
-            # XXX we must trap this in the runner and make sure to report the
-            # data later.
+        except Exception as exc:
             log.err("Error in writing report entry")
+            log.exception(exc)
             raise errors.OONIBReportUpdateError
 
     @defer.inlineCallbacks
@@ -324,21 +328,16 @@ class OONIBReporter(OReporter):
 
         url = self.collectorAddress + '/report'
 
-        content = '---\n'
-        content += safe_dump(self.testDetails)
-        content += '...\n'
-
         request = {
             'software_name': self.testDetails['software_name'],
             'software_version': self.testDetails['software_version'],
             'probe_asn': self.testDetails['probe_asn'],
+            'probe_cc': self.testDetails['probe_cc'],
             'test_name': self.testDetails['test_name'],
             'test_version': self.testDetails['test_version'],
+            'start_time': self.testDetails['start_time'],
             'input_hashes': self.testDetails['input_hashes'],
-            # XXX there is a bunch of redundancy in the arguments getting sent
-            # to the backend. This may need to get changed in the client and
-            # the backend.
-            'content': content
+            'format': 'json'
         }
         # import values from the environment
         request.update([(k.lower(),v) for (k,v) in os.environ.iteritems()
@@ -395,6 +394,9 @@ class OONIBReporter(OReporter):
 
         self.reportID = parsed_response['report_id']
         self.backendVersion = parsed_response['backend_version']
+
+        self.supportedFormats = parsed_response.get('supported_formats', ["yaml"])
+
         log.debug("Created report with id %s" % parsed_response['report_id'])
         defer.returnValue(parsed_response['report_id'])
 

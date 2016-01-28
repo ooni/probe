@@ -5,6 +5,7 @@ import glob
 import os
 
 import gzip
+from base64 import b64encode
 from zipfile import ZipFile
 
 from ooni import otime
@@ -176,3 +177,9 @@ def gunzip(filename, dst):
 def get_ooni_root():
     script = os.path.join(__file__, '..')
     return os.path.dirname(os.path.realpath(script))
+
+def base64Dict(data):
+    return {
+        'format': 'base64',
+        'data': b64encode(data)
+    }

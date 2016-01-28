@@ -39,7 +39,7 @@ class DNSConsistencyTest(dnst.DNSTest):
     name = "DNS Consistency"
     description = "Checks to see if the DNS responses from a "\
                   "set of DNS resolvers are consistent."
-    version = "0.6"
+    version = "0.7.0"
     authors = "Arturo Filastò, Isis Lovecruft"
 
     inputFile = ['file', 'f', None,
@@ -110,7 +110,11 @@ class DNSConsistencyTest(dnst.DNSTest):
         log.msg("Doing the test lookups on %s" % self.input)
         hostname = self.input
 
-        self.report['tampering'] = {}
+        self.report['successful'] = []
+        self.report['failures'] = []
+        self.report['inconsistent'] = []
+
+        self.report['errors'] = {}
 
         try:
             control_answers = yield self.performALookup(hostname,
@@ -121,11 +125,11 @@ class DNSConsistencyTest(dnst.DNSTest):
                     "Got no response from control DNS server %s:%d, "
                     "perhaps the DNS resolver is down?" %
                     self.control_dns_server)
-                self.report['tampering'][
+                self.report['errors'][
                     "%s:%d" %
                     self.control_dns_server] = 'no_answer'
         except:
-            self.report['tampering'][
+            self.report['errors'][
                 "%s:%d" %
                 self.control_dns_server] = 'error'
             control_answers = None
@@ -139,12 +143,14 @@ class DNSConsistencyTest(dnst.DNSTest):
                                                                test_dns_server)
             except Exception:
                 log.err("Problem performing the DNS lookup")
-                self.report['tampering'][test_resolver] = 'dns_lookup_error'
+                self.report['errors'][test_resolver] = 'dns_lookup_error'
+                self.report['failures'].append(test_resolver)
                 continue
 
             if not experiment_answers:
                 log.err("Got no response, perhaps the DNS resolver is down?")
-                self.report['tampering'][test_resolver] = 'no_answer'
+                self.report['errors'][test_resolver] = 'no_answer'
+                self.report['failures'].append(test_resolver)
                 continue
             else:
                 log.debug(
@@ -165,12 +171,13 @@ class DNSConsistencyTest(dnst.DNSTest):
 
             if not control_answers:
                 log.msg("Skipping control resolver comparison")
-                self.report['tampering'][test_resolver] = None
+                self.report['errors'][test_resolver] = None
 
             elif set(experiment_answers) & set(control_answers):
                 lookup_details()
                 log.msg("tampering: false")
-                self.report['tampering'][test_resolver] = False
+                self.report['errors'][test_resolver] = False
+                self.report['successful'].append(test_resolver)
             else:
                 log.msg("Trying to do reverse lookup")
                 experiment_reverse = yield self.performPTRLookup(experiment_answers[0],
@@ -182,12 +189,14 @@ class DNSConsistencyTest(dnst.DNSTest):
                     log.msg("Further testing has eliminated false positives")
                     lookup_details()
                     log.msg("tampering: reverse_match")
-                    self.report['tampering'][test_resolver] = 'reverse_match'
+                    self.report['errors'][test_resolver] = 'reverse_match'
+                    self.report['successful'].append(test_resolver)
                 else:
                     log.msg("Reverse lookups do not match")
                     lookup_details()
                     log.msg("tampering: true")
-                    self.report['tampering'][test_resolver] = True
+                    self.report['errors'][test_resolver] = True
+                    self.report['inconsistent'].append(test_resolver)
 
     def inputProcessor(self, filename=None):
         """

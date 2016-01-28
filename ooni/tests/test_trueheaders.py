@@ -23,19 +23,15 @@ dummy_headers_dict3 = {
 class TestTrueHeaders(unittest.TestCase):
     def test_names_match(self):
         th = TrueHeaders(dummy_headers_dict)
-        self.assertEqual(th.getDiff(TrueHeaders(dummy_headers_dict)), set())
+        self.assertEqual(th.getDiff(TrueHeaders(dummy_headers_dict)), [])
 
     def test_names_not_match(self):
         th = TrueHeaders(dummy_headers_dict)
-        self.assertEqual(th.getDiff(TrueHeaders(dummy_headers_dict2)), set(['Header3']))
+        self.assertEqual(th.getDiff(TrueHeaders(dummy_headers_dict2)), ['Header3'])
 
         th = TrueHeaders(dummy_headers_dict3)
-        self.assertEqual(th.getDiff(TrueHeaders(dummy_headers_dict2)), set(['Header3', 'Header4']))
+        self.assertEqual(th.getDiff(TrueHeaders(dummy_headers_dict2)), ['Header3', 'Header4'])
 
     def test_names_match_expect_ignore(self):
         th = TrueHeaders(dummy_headers_dict)
-        self.assertEqual(th.getDiff(TrueHeaders(dummy_headers_dict2), ignore=['Header3']), set())
-
-
-
-
+        self.assertEqual(th.getDiff(TrueHeaders(dummy_headers_dict2), ignore=['Header3']), [])
