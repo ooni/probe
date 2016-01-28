@@ -183,6 +183,7 @@ class HTTPTest(NetTestCase):
         session['failure'] = None
         if failure_string:
             session['failure'] = failure_string
+
         self.report['requests'].append(session)
 
     def _processResponseBody(self, response_body, request, response, body_processor):
