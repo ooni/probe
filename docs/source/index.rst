@@ -3,29 +3,19 @@
 OONI: Open Observatory of Network Interference
 ==============================================
 
-OONI, the Open Observatory of Network Interference, is a global observation
-network which aims is to collect high quality data using open methodologies,
-using Free and Open Source Software (FL/OSS) to share observations and data
-about the various types, methods, and amounts of network tampering in the
-world.
+The Open Observatory of Network Interference (OONI) is a global observation
+network which collects high quality data, using open methodologies and Free and Open Source Software (FL/OSS), to share observations about the various types, methods, and amounts of network tampering in the world.
 
 
     "The Net interprets censorship as damage and routes around it."
                 - John Gilmore; TIME magazine (6 December 1993)
 
+Are you interested in testing your network for signs of surveillance and censorship? Do you want to collect data so that you and others can better understand your network? If so, please read this document and we hope that ooniprobe will help you gather network data that will assist you with your endeavors!
+
 ooniprobe
 ---------
 
-ooniprobe is the first program that users run to probe their network and to
-collect data for the OONI project. Are you interested in testing your network
-for signs of surveillance and censorship? Do you want to collect data to share
-with others, so that you and others may better understand your network? If so,
-please read this document and we hope ooniprobe will help you to gather
-network data that will assist you with your endeavors!
-
-ooniprobe allows the user to select what test should be run and what backend
-should be used for storing the test report and/or assisting them in the running
-of the test.
+ooniprobe is a program that users can run to probe their network and to collect network measurement data. ooniprobe also allows users to choose what test should be run and what backend should be used for storing the test report and for assisting them in running the test.
 
 ooniprobe tests are divided into two categories: **Traffic Manipulation** and
 **Content Blocking**.
@@ -35,23 +25,28 @@ tampering with the internet traffic between the probe and a remote test helper
 backend. As such they usually require the selection of a oonib backend
 component for running the test.
 
-**Content Blocking** are aimed at enumerating the kind of content that is
-blocked from the probes network point of view. As such they usually require to
-have specified an input list for running the test.
+**Content Blocking** tests aim to enumerate the kind of content that is
+blocked from the probes network point of view. As such they usually require the specification of an input list for running the test.
 
 Read this before running ooniprobe!
 -----------------------------------
 
-Running ooniprobe is a potentially risky activity. This greatly depends on the
-jurisdiction in which you are in and which test you are running. It is
-technically possible for a person observing your internet connection to be
-aware of the fact that you are running ooniprobe. This means that if running
-network measurement tests is something considered to be illegal in your country
-then you could be spotted.
+Running ooniprobe can potentially be a risky activity. This largely depends on the laws and jurisdiction of the country you are running ooniprobe from, as well as on the type of test you are running. Technically, it is possible for a person observing your internet connection to be aware of the fact that you are running ooniprobe. This means that if running network measurement tests is something that is considered to be illegal in your country then you could be spotted.
 
-Furthermore, ooniprobe takes no precautions to protect the install target machine
-from forensics analysis.  If the fact that you have installed or used ooni
-probe is a liability for you, please be aware of this risk.
+Furthermore, ooniprobe takes no precautions to protect the install target machine from forensics analysis.  If the fact that you have installed or used ooniprobe is a liability for you, please be aware of this risk.
+
+Using ooniprobe
+===============
+
+**Net test** is a set of measurements to assess what kind of internet censorship is occurring.
+
+**Decks** are collections of ooniprobe nettests with some associated inputs.
+
+**Collector** is a service used to report the results of measurements.
+
+**Test helper** is a service used by a probe for successfully performing its measurements.
+
+**Bouncer** is a service used to discover the addresses of test helpers and collectors.
 
 OONI in 5 minutes
 =================
@@ -91,8 +86,7 @@ This should generate the home and allow you to run oonideckgen.
 The output from the last command will tell you how to run ooniprobe to perform
 the measurement.
 
-If you would like to contribute measurements to OONI daily you can also add
-this to your crontab::
+If you would like to contribute measurements to OONI daily you can also add this to your crontab::
 
     @daily ooniprobe $THE_OONI_COMMAND
 
@@ -185,19 +179,6 @@ ooniprobe will be installed in ``/ooni``.
 
     ooniprobe blocking/http_requests -f /ooni/example_inputs/alexa-top-1k.txt
 
-Using ooniprobe
-===============
-
-**Net test** is a set of measurements to assess what kind of internet censorship is occurring.
-
-**Decks** are collections of ooniprobe nettests with some associated inputs.
-
-**Collector** is a service used to report the results of measurements.
-
-**Test helper** is a service used by a probe for successfully performing its measurements.
-
-**Bouncer** is a service used to discover the addresses of test helpers and collectors.
-
 Configuring ooniprobe
 ---------------------
 
@@ -217,10 +198,10 @@ This can be done with::
 
     ooniresources --update-inputs
 
-If you get a permission error, you may have to run the command as root or
+If you get a permission error, you might have to run the command as root or
 change the ooniprobe data directory inside of `ooniprobe.conf`.
 
-On some platforms, for example debian contrib, you will not get all the geoip
+On some platforms, such as debian contrib, you will not get all the geoip
 related files needed. In that case it is possible to manually download them
 with ``ooniresources``::
 
@@ -229,7 +210,7 @@ with ``ooniresources``::
 Generating decks
 ----------------
 
-You can generate decks for your country thanks to the oonideckgen command.
+You can generate decks for your country with the oonideckgen command.
 
 If you wish, for example, to generate a deck to be run in the country of Italy,
 you can do so (be sure to have updated the input resources first) by running::
@@ -238,7 +219,8 @@ you can do so (be sure to have updated the input resources first) by running::
 
 You will now have in your home a folder called `deck-it`, containing the ooni
 deck (ends with .deck) and the inputs.
-Note: that you should not move the `deck-*` directory once it has been
+
+**Note:** You should not move the `deck-*` directory once it has been
 generated as the paths to the inputs referenced by the test in the deck are
 absolute. If you want your deck to live in another directory you must
 regenerated it.
@@ -327,6 +309,7 @@ obfsproxy is installed). The tor.bridges option in ooniprobe.conf sets the path
 to a file that should contain a set of "bridge" lines (of the same format as
 used in torrc, and as returned by https://bridges.torproject.org). If obfsproxy
 bridges are to be used, the path to the obfsproxy binary must be configured.
+
 See option advanced.obfsproxy_binary, in ooniprobe.conf.
 
 (Optional) Install obfsproxy
@@ -371,7 +354,7 @@ https://github.com/TheTorProject/ooni-probe
 
 Read this article to learn how to create a pull request on github (https://help.github.com/articles/creating-a-pull-request).
 
-If you prefer not to use github (or don't have an account), you may also submit
+If you prefer not to use github (or don't have an account), you can also submit
 patches as attachments to tickets.
 
 Be sure to format the patch (given that you are working on a feature branch
@@ -441,7 +424,7 @@ Tests that don't do a measurement but are useful for scanning can be found in:
   * `ooni/nettests/scanning
     <https://gitweb.torproject.org/ooni-probe.git/tree/HEAD:/ooni/nettests/scanning>`_
 
-Tests that involve running third party tools may be found in:
+Tests that involve running third party tools can be found in:
 
   * `ooni/nettests/third_party
     <https://gitweb.torproject.org/ooni-probe.git/tree/HEAD:/ooni/nettests/third_party>`_
@@ -449,7 +432,7 @@ Tests that involve running third party tools may be found in:
 ooni-backend
 ------------
 
-This is the server side component of ooniprobe. It will store that data
+This is the server side component of ooniprobe. It will store data
 collected from ooniprobes and it will run a series of Test Helpers that assist
 `Traffic Manipulation Tests`_ in performing their measurements.
 
@@ -476,7 +459,7 @@ Threat Model
 Our adversary is capable of doing country wide network surveillance and 
 manipulation of network traffic.
 
-The goals of our adversary are:
+The goals of our adversary are to:
 
   * Restrict access to certain content, while not degrading overall quality of 
     the network
@@ -489,14 +472,15 @@ More specifc to the running of network filtering detection tests:
 2. Fool people running such tests into believing that the network is 
    unrestricted
 
-*Note* that while 2) => 1) it is not true that 1) => 2) as the identification of 
+**Note:** While 2) => 1) it is not true that 1) => 2) as the identification of 
 such actors does not necessarily have to happen in real time.
-While our intention is to minimize the risk of users running OONI probe to be 
-identified, this comes with a tradeoff in accuracy. It is therefore necessary in 
-certain tests to trade-off fingerprintability in favour of tests accuracy.
 
-This is why we divide tests based on what risk the user running it can face, 
-allowing the user to freely choose what threat model they wish to adere to.
+While our intention is to minimize the risk of users running OONI probe being 
+identified, this comes with a trade-off in accuracy. It is therefore necessary in 
+certain tests to trade-off fingerprintability in favour of test accuracy.
+
+This is why we divide tests based on what risk the users running them can face, 
+allowing users to freely choose what threat model they wish to adere to.
 
 
 More developer documentation
