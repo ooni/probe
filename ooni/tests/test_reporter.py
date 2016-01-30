@@ -25,11 +25,12 @@ test_details = {
     'software_version': '1.0',
     'input_hashes': [],
     'probe_asn': 'AS0',
+    'probe_cc': 'ZZ',
     'start_time': time.time()
 }
 
 oonib_new_report_message = {
-    'report_id': "2014-01-29T202038Z_AS0_" + "A" * 50,
+    'report_id': "20140129T202038Z_AS0_" + "A" * 50,
     'backend_version': "1.0"
 }
 
@@ -94,6 +95,8 @@ class TestOONIBReporter(unittest.TestCase):
 
     @defer.inlineCallbacks
     def test_write_report_entry(self):
+        self.mock_response = oonib_new_report_message
+        yield self.oonib_reporter.createReport()
         req = {'content': 'something'}
         yield self.oonib_reporter.writeReportEntry(req)
         assert self.oonib_reporter.agent.request.called
