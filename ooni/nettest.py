@@ -330,7 +330,7 @@ class NetTestLoader(object):
         self.testClasses = set([])
         self.testHelpers = {}
 
-        if config.reports.unique_id is True:
+        if config.reports.unique_id is True and not self.reportID:
             self.reportID = randomStr(64)
 
         for test_class, test_method in self.testCases:

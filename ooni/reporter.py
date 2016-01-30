@@ -15,7 +15,6 @@ from twisted.python.util import untilConcludes
 from twisted.internet import defer, reactor
 from twisted.web.client import Agent
 from twisted.internet.error import ConnectionRefusedError
-from twisted.python.failure import Failure
 from twisted.internet.endpoints import TCP4ClientEndpoint
 
 from txsocksx.http import SOCKS5Agent
@@ -190,14 +189,17 @@ class YAMLReporter(OReporter):
 
     def writeReportEntry(self, entry):
         log.debug("Writing report with YAML reporter")
-        self._write('---\n')
+        content = '---\n'
         if isinstance(entry, Measurement):
-            self._write(safe_dump(entry.testInstance.report))
-        elif isinstance(entry, Failure):
-            self._write(entry.value)
+            report_entry = entry.testInstance.report
         elif isinstance(entry, dict):
-            self._write(safe_dump(entry))
-        self._write('...\n')
+            report_entry = entry
+        else:
+            raise Exception("Failed to serialise entry")
+        content += safe_dump(report_entry)
+        content += '...\n'
+        report_entry.update(self.testDetails)
+        self._write(content)
 
     def createReport(self):
         """
@@ -261,20 +263,28 @@ class OONIBReporter(OReporter):
     def serializeEntry(self, entry, serialisation_format="yaml"):
         if serialisation_format == "json":
             if isinstance(entry, Measurement):
-                report_entry = entry.testInstance.report
-            elif isinstance(entry, Failure):
-                report_entry = {'failure': entry.value}
+                report_entry = {
+                    'input': entry.testInstance.report.pop('input', None),
+                    'test_keys': entry.testInstance.report
+                }
             elif isinstance(entry, dict):
-                report_entry = entry
+                report_entry = {
+                    'input': entry.pop('input', None),
+                    'test_keys': entry
+                }
+            else:
+                raise Exception("Failed to serialise entry")
+            report_entry.update(self.testDetails)
             return report_entry
         else:
             content = '---\n'
             if isinstance(entry, Measurement):
                 report_entry = entry.testInstance.report
-            elif isinstance(entry, Failure):
-                report_entry = {'failure': entry.value}
             elif isinstance(entry, dict):
                 report_entry = entry
+            else:
+                raise Exception("Failed to serialise entry")
+            report_entry.update(self.testDetails)
             content += safe_dump(report_entry)
             content += '...\n'
             return content
@@ -290,8 +300,10 @@ class OONIBReporter(OReporter):
         else:
             serialisation_format = 'yaml'
 
-        request = {'format': serialisation_format,
-                   'content': self.serializeEntry(entry, serialisation_format)}
+        request = {
+            'format': serialisation_format,
+            'content': self.serializeEntry(entry, serialisation_format)
+        }
 
         log.debug("Updating report with id %s (%s)" % (self.reportID, url))
         request_json = json.dumps(request)
