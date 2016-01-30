@@ -16,6 +16,7 @@ env:
   - TWISTED=Twisted==15.4.0
   - TWISTED=Twisted
 before_install:
+  - sudo apt-get update
   - sudo apt-get install tor libpcap-dev libgeoip-dev libdumbnet-dev libffi-dev
     libssl-dev
   - sudo /etc/init.d/tor start
