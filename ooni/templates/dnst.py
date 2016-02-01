@@ -180,16 +180,16 @@ class DNSTest(NetTestCase):
             answers = []
             addrs = []
             for answer in msg:
-                if answer.type is dnsType:
-                    if dnsType is dns.SOA:
-                        addr = (answer.name.name,answer.payload.serial)
-                    elif dnsType in [dns.NS,dns.PTR]:
-                        addr = answer.payload.name.name
-                    elif dnsType is dns.A:
-                        addr = answer.payload.dottedQuad()
-                    else:
-                        addr = None
-                        addrs.append(addr)
+                addr = None
+                if answer.type is dns.SOA:
+                    addr = (answer.name.name,answer.payload.serial)
+                elif answer.type in [dns.NS, dns.PTR, dns.CNAME]:
+                    addr = answer.payload.name.name
+                elif answer.type is dns.A:
+                    addr = answer.payload.dottedQuad()
+                else:
+                    log.debug("Unidentified answer %s" % answer)
+                addrs.append(addr)
                 answers.append(representAnswer(answer))
 
             if dns_type == 'SOA':
@@ -225,9 +225,13 @@ class DNSTest(NetTestCase):
     def addToReport(self, query, resolver=None, query_type=None,
                     answers=None, failure=None):
         log.debug("Adding %s to report)" % query)
-        result = {}
-        result['resolver_hostname'] = resolver[0]
-        result['resolver_port'] = resolver[1]
+        result = {
+            'resolver_hostname': None,
+            'resolver_port': None
+        }
+        if resolver is not None and len(resolver) == 2:
+            result['resolver_hostname'] = resolver[0]
+            result['resolver_port'] = resolver[1]
         result['query_type'] = query_type
         result['hostname'] = str(query[0].name)
         result['failure'] = None
