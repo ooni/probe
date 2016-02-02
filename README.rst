@@ -127,7 +127,7 @@ You can install ooniprobe on OSX if you have installed homebrew (http://mxcl.git
 Unix systems (with pip)
 -----------------------
 
-Make sure you have installed the following depedencies:
+Make sure you have installed the following dependencies:
 
   * build-essential
   * python (>=2.7)
@@ -330,7 +330,7 @@ Download Obfsproxy: https://www.torproject.org/projects/obfsproxy.html.en
 Setting capabilities on your virtualenv python binary
 =====================================================
 
-If your distributation supports capabilities you can avoid needing to run OONI as root::
+If your distribution supports capabilities you can avoid needing to run OONI as root::
 
 
     setcap cap_net_admin,cap_net_raw+eip /path/to/your/virtualenv's/python
@@ -339,7 +339,7 @@ If your distributation supports capabilities you can avoid needing to run OONI a
 Reporting bugs
 ==============
 
-You can report bugs and issues you find with ooni-probe on The Tor Projec issue
+You can report bugs and issues you find with ooni-probe on The Tor Project issue
 tracker filing them under the "Ooni" component: https://trac.torproject.org/projects/tor/newticket?component=Ooni.
 
 You can either register an account or use the group account "cypherpunks" with
