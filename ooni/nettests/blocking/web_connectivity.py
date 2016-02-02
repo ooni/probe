@@ -13,7 +13,7 @@ from twisted.python import usage
 from ooni.utils import log
 
 from ooni.utils.net import StringProducer, BodyReceiver
-from ooni.templates import httpt, dnst, tcpt
+from ooni.templates import httpt, dnst
 from ooni.errors import failureToString
 
 class TCPConnectProtocol(Protocol):
@@ -21,6 +21,7 @@ class TCPConnectProtocol(Protocol):
         self.transport.loseConnection()
 
 class TCPConnectFactory(Factory):
+    noisy = False
     def buildProtocol(self, addr):
         return TCPConnectProtocol()
 
@@ -74,6 +75,9 @@ class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
         self.report['accessible'] = None
         self.report['blocking'] = None
 
+        self.report['control_failure'] = None
+        self.report['experiment_failure'] = None
+
         self.report['tcp_connect'] = [
         ]
 
@@ -83,8 +87,10 @@ class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
 
         self.control = {
             'tcp_connect': {},
-            'dns_consistency': [],
-            'http_requests': {
+            'dns': {
+                'ips': []
+            },
+            'http_request': {
                 'body_length': None,
                 'headers': {}
             }
@@ -93,7 +99,7 @@ class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
     def dns_discovery(self):
         return self.performALookup(self.localOptions['dns-discovery'])
 
-    def dns_consistency(self):
+    def experiment_dns_query(self):
         return self.performALookup(self.hostname)
 
     def tcp_connect(self, socket):
@@ -119,6 +125,7 @@ class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
         @d.addErrback
         def eb(failure):
             result['status']['success'] = False
+            result['status']['failure'] = failureToString(failure)
             self.report['tcp_connect'].append(result)
         return d
 
@@ -144,11 +151,7 @@ class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
     def experiment_http_get_request(self):
         return self.doRequest(self.input)
 
-    def compare_control_experiment(self, experiment_http_response,
-                                   experiment_dns_answers):
-
-        blocking = None
-
+    def compare_body_lengths(self, experiment_http_response):
         control_body_length = self.control['http_request']['body_length']
         experiment_body_length = len(experiment_http_response.body)
 
@@ -165,20 +168,22 @@ class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
         self.report['body_proportion'] = rel
         if rel > float(self.factor):
             self.report['body_length_match'] = True
+            return None
         else:
-            blocking = 'http'
             self.report['body_length_match'] = False
+            return 'http'
 
+    def compare_dns_experiments(self, experiment_dns_answers):
         control_ips = set(self.control['dns']['ips'])
         experiment_ips = set(experiment_dns_answers)
 
         if len(control_ips.intersection(experiment_ips)) > 0:
             self.report['dns_consistency'] = 'consistent'
         else:
-            if blocking is not None:
-                blocking = 'dns'
             self.report['dns_consistency'] = 'inconsistent'
 
+    def compare_tcp_experiments(self):
+        blocking = False
         for idx, result in enumerate(self.report['tcp_connect']):
             socket = "%s:%s" % (result['ip'], result['port'])
             control_status = self.control['tcp_connect'][socket]
@@ -189,14 +194,13 @@ class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
                 blocking = 'tcp_ip'
             else:
                 self.report['tcp_connect'][idx]['status']['blocked'] = False
-
-        self.report['blocking'] = blocking
+        return blocking
 
     @defer.inlineCallbacks
     def test_web_connectivity(self):
         results = yield defer.DeferredList([
             self.dns_discovery(),
-            self.dns_consistency()
+            self.experiment_dns_query()
         ])
 
         self.report['client_resolver'] = None
@@ -207,11 +211,29 @@ class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
 
         sockets = map(lambda x: "%s:80" % x, results[1][1])
 
-        dl = [self.control_request(sockets)]
+        control_request = self.control_request(sockets)
+        @control_request.addErrback
+        def control_err(failure):
+            self.report['control_failure'] = failureToString(failure)
+
+        dl = [control_request]
         for socket in sockets:
             dl.append(self.tcp_connect(socket))
-        yield defer.DeferredList(dl)
+        results = yield defer.DeferredList(dl)
 
-        experiment_http_response = yield self.experiment_http_get_request()
-        self.compare_control_experiment(experiment_http_response,
-                                        experiment_dns_answers)
+        experiment_http = self.experiment_http_get_request()
+        @experiment_http.addErrback
+        def experiment_err(failure):
+            self.report['experiment_failure'] = failureToString(failure)
+
+        experiment_http_response = yield experiment_http
+
+        if self.report['control_failure'] is None and \
+                self.report['experiment_failure'] is None:
+            self.compare_body_lenghts(experiment_http_response)
+
+        if self.report['control_failure'] is None:
+            self.compare_dns_experiments(experiment_dns_answers)
+
+        if self.report['control_failure'] is None:
+            self.compare_tcp_experiments()
