@@ -161,6 +161,8 @@ class NetTestLoader(object):
     method_prefix = 'test'
     collector = None
     yamloo = True
+    requiresTor = False
+    reportID = None
 
     def __init__(self, options, test_file=None, test_string=None,
                  annotations={}):
@@ -568,10 +570,12 @@ class NetTest(object):
 
     @defer.inlineCallbacks
     def initializeInputProcessor(self):
-        for test_class, test_method in self.testCases:
+        for test_class, _ in self.testCases:
             test_class.inputs = yield defer.maybeDeferred(
                 test_class().getInputProcessor
             )
+            if not test_class.inputs:
+                test_class.inputs = [None]
 
     def generateMeasurements(self):
         """

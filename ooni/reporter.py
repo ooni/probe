@@ -4,6 +4,8 @@ import json
 import os
 import re
 
+from copy import deepcopy
+
 from datetime import datetime
 from contextlib import contextmanager
 
@@ -192,9 +194,9 @@ class YAMLReporter(OReporter):
         log.debug("Writing report with YAML reporter")
         content = '---\n'
         if isinstance(entry, Measurement):
-            report_entry = entry.testInstance.report
+            report_entry = deepcopy(entry.testInstance.report)
         elif isinstance(entry, dict):
-            report_entry = entry
+            report_entry = deepcopy(entry)
         else:
             raise Exception("Failed to serialise entry")
         content += safe_dump(report_entry)
@@ -576,6 +578,7 @@ class OONIBReportLog(object):
 
 
 class Report(object):
+    reportID = None
 
     def __init__(self, test_details, report_filename,
                  reportEntryManager, collector_address=None,

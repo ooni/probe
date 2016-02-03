@@ -3,6 +3,8 @@
 import json
 from urlparse import urlparse
 
+from ipaddr import IPv4Address, AddressValueError
+
 from twisted.internet import reactor
 from twisted.internet.protocol import Factory, Protocol
 from twisted.internet.endpoints import TCP4ClientEndpoint
@@ -10,6 +12,7 @@ from twisted.internet.endpoints import TCP4ClientEndpoint
 from twisted.internet import defer
 from twisted.python import usage
 
+from ooni import geoip
 from ooni.utils import log
 
 from ooni.utils.net import StringProducer, BodyReceiver
@@ -34,6 +37,16 @@ class UsageOptions(usage.Options):
     ]
 
 
+def is_public_ipv4_address(address):
+    try:
+        ip_address = IPv4Address(address)
+        if not any([ip_address.is_private,
+                    ip_address.is_loopback]):
+            return True
+        return False
+    except AddressValueError:
+        return None
+
 class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
     """
     Web connectivity
@@ -51,8 +64,8 @@ class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
     ]
 
     requiredTestHelpers = {
-        'backend': 'web_connectivity',
-        'dns-discovery': 'dns_discovery'
+        'backend': 'web-connectivity',
+        'dns-discovery': 'dns-discovery'
     }
     requiresRoot = False
     requiresTor = False
@@ -78,8 +91,8 @@ class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
         self.report['control_failure'] = None
         self.report['experiment_failure'] = None
 
-        self.report['tcp_connect'] = [
-        ]
+        self.report['tcp_connect'] = []
+        self.report['control'] = {}
 
         self.hostname = urlparse(self.input).netloc
         if not self.hostname:
@@ -147,6 +160,7 @@ class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
         response.deliverBody(BodyReceiver(finished, content_length))
         body = yield finished
         self.control = json.loads(body)
+        self.report['control'] = self.control
 
     def experiment_http_get_request(self):
         return self.doRequest(self.input)
@@ -168,33 +182,48 @@ class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
         self.report['body_proportion'] = rel
         if rel > float(self.factor):
             self.report['body_length_match'] = True
-            return None
+            return True
         else:
             self.report['body_length_match'] = False
-            return 'http'
+            return False
 
     def compare_dns_experiments(self, experiment_dns_answers):
         control_ips = set(self.control['dns']['ips'])
         experiment_ips = set(experiment_dns_answers)
 
+        for experiment_ip in experiment_ips:
+            if is_public_ipv4_address(experiment_ip) is False:
+                self.report['dns_consistency'] = 'inconsistent'
+                return False
+
         if len(control_ips.intersection(experiment_ips)) > 0:
             self.report['dns_consistency'] = 'consistent'
-        else:
-            self.report['dns_consistency'] = 'inconsistent'
+            return True
+
+        experiment_asns = set(map(lambda x: geoip.IPToLocation(x)['asn'],
+                              experiment_ips))
+        control_asns = set(map(lambda x: geoip.IPToLocation(x)['asn'],
+                           control_ips))
+
+        if len(control_asns.intersection(experiment_asns)) > 0:
+            self.report['dns_consistency'] = 'consistent'
+            return True
+
+        self.report['dns_consistency'] = 'inconsistent'
+        return False
 
     def compare_tcp_experiments(self):
-        blocking = False
+        success = True
         for idx, result in enumerate(self.report['tcp_connect']):
             socket = "%s:%s" % (result['ip'], result['port'])
             control_status = self.control['tcp_connect'][socket]
-            log.debug(str(result))
             if result['status']['success'] == False and \
                     control_status['status'] == True:
                 self.report['tcp_connect'][idx]['status']['blocked'] = True
-                blocking = 'tcp_ip'
+                success = False
             else:
                 self.report['tcp_connect'][idx]['status']['blocked'] = False
-        return blocking
+        return success
 
     @defer.inlineCallbacks
     def test_web_connectivity(self):
@@ -208,8 +237,10 @@ class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
             self.report['client_resolver']  = results[0][1][1]
 
         experiment_dns_answers = results[1][1]
-
-        sockets = map(lambda x: "%s:80" % x, results[1][1])
+        sockets = []
+        for answer in experiment_dns_answers:
+            if is_public_ipv4_address(answer) is True:
+                sockets.append("%s:80" % answer)
 
         control_request = self.control_request(sockets)
         @control_request.addErrback
@@ -228,12 +259,33 @@ class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
 
         experiment_http_response = yield experiment_http
 
+        blocking = None
+        body_length_match = None
+        dns_consistent = None
+        tcp_connect = None
+
         if self.report['control_failure'] is None and \
                 self.report['experiment_failure'] is None:
-            self.compare_body_lenghts(experiment_http_response)
+            body_length_match = self.compare_body_lengths(experiment_http_response)
 
         if self.report['control_failure'] is None:
-            self.compare_dns_experiments(experiment_dns_answers)
+            dns_consistent = self.compare_dns_experiments(experiment_dns_answers)
 
         if self.report['control_failure'] is None:
-            self.compare_tcp_experiments()
+            tcp_connect = self.compare_tcp_experiments()
+
+        if dns_consistent == True and tcp_connect == False:
+            blocking = 'tcp_ip'
+
+        elif dns_consistent == True and \
+                tcp_connect == True and body_length_match == False:
+            blocking = 'http'
+
+        elif dns_consistent == False:
+            blocking = 'dns'
+
+        self.report['blocking'] = blocking
+        if blocking is not None:
+            log.msg("Blocking detected on %s due to %s" % (self.input, blocking))
+        else:
+            log.msg("No blocking detected on %s" % self.input)
