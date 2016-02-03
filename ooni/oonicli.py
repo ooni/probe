@@ -300,6 +300,7 @@ def runTestWithDirector(director, global_options, url=None,
 
     # Wait until director has started up (including bootstrapping Tor)
     # before adding tests
+    @defer.inlineCallbacks
     def post_director_start(_):
         for net_test_loader in deck.netTestLoaders:
             # Decks can specify different collectors
@@ -319,11 +320,10 @@ def runTestWithDirector(director, global_options, url=None,
 
             net_test_loader.annotations = global_options['annotations']
 
-            director.startNetTest(net_test_loader,
-                                  global_options['reportfile'],
-                                  collector,
-                                  global_options['no-yamloo'])
-        return director.allTestsDone
+            yield director.startNetTest(net_test_loader,
+                                        global_options['reportfile'],
+                                        collector,
+                                        global_options['no-yamloo'])
 
     d.addCallback(setup_nettest)
     d.addCallback(post_director_start)
