@@ -220,7 +220,8 @@ class NetTestLoader(object):
             'input_hashes': input_file_hashes,
             'report_id': self.reportID,
             'test_helpers': self.testHelpers,
-            'annotations': self.annotations
+            'annotations': self.annotations,
+            'data_format_version': '0.2.0'
         }
         return test_details
 

@@ -14,7 +14,7 @@ from ooni.oonibclient import OONIBClient
 def upload(report_file, collector=None, bouncer=None):
     oonib_report_log = OONIBReportLog()
 
-    print "Attempting to upload %s" % report_file
+    log.msg("Attempting to upload %s" % report_file)
 
     with open(config.report_log_file) as f:
         report_log = yaml.safe_load(f)
@@ -47,9 +47,9 @@ def upload(report_file, collector=None, bouncer=None):
     oonib_reporter = OONIBReporter(report.header, collector)
     log.msg("Creating report for %s with %s" % (report_file, collector))
     report_id = yield oonib_reporter.createReport()
+    report.header['report_id'] = report_id
     yield oonib_report_log.created(report_file, collector, report_id)
     for entry in report:
-        print "Writing entry"
         yield oonib_reporter.writeReportEntry(entry)
     log.msg("Closing report.")
     yield oonib_reporter.finish()

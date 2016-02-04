@@ -1,3 +1,4 @@
+import uuid
 import yaml
 import json
 import os
@@ -198,7 +199,6 @@ class YAMLReporter(OReporter):
             raise Exception("Failed to serialise entry")
         content += safe_dump(report_entry)
         content += '...\n'
-        report_entry.update(self.testDetails)
         self._write(content)
 
     def createReport(self):
@@ -265,11 +265,17 @@ class OONIBReporter(OReporter):
             if isinstance(entry, Measurement):
                 report_entry = {
                     'input': entry.testInstance.report.pop('input', None),
+                    'id': str(uuid.uuid4()),
+                    'test_start_time': entry.testInstance.report.pop('test_start_time', None),
+                    'test_runtime': entry.testInstance.report.pop('test_runtime', None),
                     'test_keys': entry.testInstance.report
                 }
             elif isinstance(entry, dict):
                 report_entry = {
                     'input': entry.pop('input', None),
+                    'id': str(uuid.uuid4()),
+                    'test_start_time': entry.pop('test_start_time', None),
+                    'test_runtime': entry.pop('test_runtime', None),
                     'test_keys': entry
                 }
             else:
@@ -284,7 +290,6 @@ class OONIBReporter(OReporter):
                 report_entry = entry
             else:
                 raise Exception("Failed to serialise entry")
-            report_entry.update(self.testDetails)
             content += safe_dump(report_entry)
             content += '...\n'
             return content
@@ -312,7 +317,7 @@ class OONIBReporter(OReporter):
         bodyProducer = StringProducer(request_json)
 
         try:
-            yield self.agent.request("PUT", str(url),
+            yield self.agent.request("POST", str(url),
                                      bodyProducer=bodyProducer)
         except Exception as exc:
             log.err("Error in writing report entry")
@@ -349,6 +354,7 @@ class OONIBReporter(OReporter):
             'test_version': self.testDetails['test_version'],
             'start_time': self.testDetails['start_time'],
             'input_hashes': self.testDetails['input_hashes'],
+            'data_format_version': self.testDetails['data_format_version'],
             'format': 'json'
         }
         # import values from the environment
@@ -618,6 +624,8 @@ class Report(object):
                                                    self.collector_address)
 
         def created(report_id):
+            self.reportID = report_id
+            self.test_details['report_id'] = report_id
             if not self.oonib_reporter:
                 return
             return self.report_log.created(self.report_filename,
