@@ -106,6 +106,7 @@ class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
             },
             'http_request': {
                 'body_length': None,
+                'failure': True,
                 'headers': {}
             }
         }
@@ -238,7 +239,8 @@ class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
         tcp_connect = None
 
         if self.report['control_failure'] is None and \
-                self.report['http_experiment_failure'] is None:
+                self.report['http_experiment_failure'] is None and \
+                self.report['control']['http_request']['failure'] is None:
             body_length_match = self.compare_body_lengths(experiment_http_response)
 
         if self.report['control_failure'] is None:

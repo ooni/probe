@@ -201,7 +201,6 @@ class YAMLReporter(OReporter):
             raise Exception("Failed to serialise entry")
         content += safe_dump(report_entry)
         content += '...\n'
-        report_entry.update(self.testDetails)
         self._write(content)
 
     def createReport(self):
@@ -295,7 +294,6 @@ class OONIBReporter(OReporter):
                 report_entry = entry
             else:
                 raise Exception("Failed to serialise entry")
-            report_entry.update(self.testDetails)
             content += safe_dump(report_entry)
             content += '...\n'
             return content
