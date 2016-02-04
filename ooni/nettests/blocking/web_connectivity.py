@@ -89,7 +89,8 @@ class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
         self.report['blocking'] = None
 
         self.report['control_failure'] = None
-        self.report['experiment_failure'] = None
+        self.report['http_experiment_failure'] = None
+        self.report['dns_experiment_failure'] = None
 
         self.report['tcp_connect'] = []
         self.report['control'] = {}
@@ -188,6 +189,11 @@ class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
             return False
 
     def compare_dns_experiments(self, experiment_dns_answers):
+        if self.control['dns']['failure'] is not None and \
+                self.control['dns']['failure'] == self.report['dns_experiment_failure']:
+            self.report['dns_consistency'] = 'consistent'
+            return True
+
         control_ips = set(self.control['dns']['ips'])
         experiment_ips = set(experiment_dns_answers)
 
@@ -225,11 +231,47 @@ class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
                 self.report['tcp_connect'][idx]['status']['blocked'] = False
         return success
 
+    def determine_blocking(self, experiment_http_response, experiment_dns_answers):
+        blocking = None
+        body_length_match = None
+        dns_consistent = None
+        tcp_connect = None
+
+        if self.report['control_failure'] is None and \
+                self.report['http_experiment_failure'] is None:
+            body_length_match = self.compare_body_lengths(experiment_http_response)
+
+        if self.report['control_failure'] is None:
+            dns_consistent = self.compare_dns_experiments(experiment_dns_answers)
+
+        if self.report['control_failure'] is None:
+            tcp_connect = self.compare_tcp_experiments()
+
+        if dns_consistent == True and tcp_connect == False:
+            blocking = 'tcp_ip'
+
+        elif dns_consistent == True and \
+                tcp_connect == True and body_length_match == False:
+            blocking = 'http'
+
+        elif dns_consistent == False:
+            blocking = 'dns'
+
+        return blocking
+
+
     @defer.inlineCallbacks
     def test_web_connectivity(self):
+        experiment_dns = self.experiment_dns_query()
+
+        @experiment_dns.addErrback
+        def dns_experiment_err(failure):
+            self.report['dns_experiment_failure'] = failureToString(failure)
+            return []
+
         results = yield defer.DeferredList([
             self.dns_discovery(),
-            self.experiment_dns_query()
+            experiment_dns
         ])
 
         self.report['client_resolver'] = None
@@ -254,38 +296,25 @@ class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
 
         experiment_http = self.experiment_http_get_request()
         @experiment_http.addErrback
-        def experiment_err(failure):
-            self.report['experiment_failure'] = failureToString(failure)
+        def http_experiment_err(failure):
+            self.report['http_experiment_failure'] = failureToString(failure)
 
         experiment_http_response = yield experiment_http
 
-        blocking = None
-        body_length_match = None
-        dns_consistent = None
-        tcp_connect = None
-
-        if self.report['control_failure'] is None and \
-                self.report['experiment_failure'] is None:
-            body_length_match = self.compare_body_lengths(experiment_http_response)
-
-        if self.report['control_failure'] is None:
-            dns_consistent = self.compare_dns_experiments(experiment_dns_answers)
-
-        if self.report['control_failure'] is None:
-            tcp_connect = self.compare_tcp_experiments()
-
-        if dns_consistent == True and tcp_connect == False:
-            blocking = 'tcp_ip'
-
-        elif dns_consistent == True and \
-                tcp_connect == True and body_length_match == False:
-            blocking = 'http'
-
-        elif dns_consistent == False:
-            blocking = 'dns'
-
+        blocking = self.determine_blocking(experiment_http_response, experiment_dns_answers)
         self.report['blocking'] = blocking
+
         if blocking is not None:
-            log.msg("Blocking detected on %s due to %s" % (self.input, blocking))
+            log.msg("%s: BLOCKING DETECTED due to %s" % (self.input, blocking))
         else:
-            log.msg("No blocking detected on %s" % self.input)
+            log.msg("%s: No blocking detected" % self.input)
+
+        if all(map(lambda x: x == None, [self.report['http_experiment_failure'],
+                                         self.report['dns_experiment_failure'],
+                                         blocking])):
+            log.msg("")
+            self.report['accessible'] = True
+            log.msg("%s: is accessible" % self.input)
+        else:
+            log.msg("%s: is NOT accessible" % self.input)
+            self.report['accessible'] = False
