@@ -5,6 +5,7 @@ from twisted.web.error import Error
 
 from twisted.internet.error import ConnectionRefusedError, TCPTimedOutError
 from twisted.internet.error import DNSLookupError, ConnectError, ConnectionLost
+from twisted.names.error import DNSNameError, DNSServerError
 from twisted.internet.error import TimeoutError as GenericTimeoutError
 from twisted.internet.error import ProcessDone, ConnectionDone
 
@@ -26,6 +27,8 @@ known_failures = [
     (CancelledError, 'task_timed_out'),
     (gaierror, 'address_family_not_supported_error'),
     (DNSLookupError, 'dns_lookup_error'),
+    (DNSNameError, 'dns_name_error'),
+    (DNSServerError, 'dns_server_failure'),
     (TCPTimedOutError, 'tcp_timed_out_error'),
     (ResponseNeverReceived, 'response_never_received'),
     (DeferTimeoutError, 'deferred_timeout_error'),
