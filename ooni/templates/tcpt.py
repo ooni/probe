@@ -44,6 +44,7 @@ class TCPSender(protocol.Protocol):
         self.transport.write(payload)
 
 class TCPSenderFactory(protocol.Factory):
+    noisy = False
     def buildProtocol(self, addr):
         return TCPSender()
 
