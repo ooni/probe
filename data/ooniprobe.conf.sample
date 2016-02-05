@@ -51,6 +51,7 @@ advanced:
     report_log_file: null
     inputs_dir: null
     decks_dir: null
+    insecure_collector: false
 tor:
     #socks_port: 8801
     #control_port: 8802

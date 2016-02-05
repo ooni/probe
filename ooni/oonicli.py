@@ -6,6 +6,8 @@ import yaml
 import random
 import urlparse
 
+from twisted import version as _twisted_version
+from twisted.python.versions import Version
 from twisted.python import usage
 from twisted.python.util import spewer
 from twisted.internet import defer, reactor, protocol
@@ -265,6 +267,20 @@ def createDeck(global_options, url=None):
             log.exception(e)
         log.err(e)
         sys.exit(5)
+
+    if net_test_loader.collector and net_test_loader.collector.startswith('https://'):
+        _twisted_14_0_2_version = Version('twisted', 14, 0, 2)
+        if _twisted_version < _twisted_14_0_2_version:
+            log.err("HTTPS collectors require a twisted version of at least 14.0.2.")
+            sys.exit(6)
+    elif net_test_loader.collector and net_test_loader.collector.startswith('http://'):
+        if config.advanced.insecure_collector is not True:
+            log.err("Attempting to report to an insecure collector.")
+            log.err("To enable reporting to insecure collector set the "
+                    "advanced->insecure_collector option to true in "
+                    "your ooniprobe.conf file.")
+            sys.exit(7)
+
     return deck
 
 
