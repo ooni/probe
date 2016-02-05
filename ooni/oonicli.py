@@ -8,7 +8,7 @@ import urlparse
 
 from twisted.python import usage
 from twisted.python.util import spewer
-from twisted.internet import defer, reactor, protocol, task
+from twisted.internet import defer, reactor, protocol
 
 from ooni import errors, __version__
 
@@ -123,8 +123,7 @@ def director_startup_handled_failures(failure):
 
     if isinstance(failure.value, errors.TorNotRunning):
         log.err("Tor does not appear to be running")
-        log.err("Reporting with the collector %s is not possible" %
-                global_options['collector'])
+        log.err("Reporting with a collector is not possible")
         log.msg(
             "Try with a different collector or disable collector reporting with -n")
 
@@ -226,8 +225,8 @@ def setupCollector(global_options, net_test_loader):
     return collector
 
 
-def createDeck(global_options, url=None, filename=None):
-    log.msg("Creating deck for: %s" % (url or filename,))
+def createDeck(global_options, url=None):
+    log.msg("Creating deck for: %s" % (url))
 
     deck = Deck(no_collector=global_options['no-collector'])
     deck.bouncer = global_options['bouncer']
@@ -240,8 +239,6 @@ def createDeck(global_options, url=None, filename=None):
             test_file = nettest_to_path(global_options['test_file'], True)
             if url is not None:
                 args = ('-u', url)
-            elif filename is not None:
-                args = ('-f', filename)
             else:
                 args = tuple()
             if any(global_options['subargs']):
@@ -271,9 +268,9 @@ def createDeck(global_options, url=None, filename=None):
     return deck
 
 
-def runTestWithDirector(director, global_options, url=None, filename=None,
+def runTestWithDirector(director, global_options, url=None,
                         start_tor=True, check_incoherences=True):
-    deck = createDeck(global_options, url=url, filename=filename)
+    deck = createDeck(global_options, url=url)
 
     start_tor |= deck.requiresTor
 
@@ -343,7 +340,7 @@ def runWithDirector(logging=True, start_tor=True, check_incoherences=True):
         sys.exit(0)
 
     if global_options.get('annotations') is not None:
-        annotations = setupAnnotations(global_options)
+        global_options['annotations'] = setupAnnotations(global_options)
 
     if global_options['no-collector']:
         log.msg("Not reporting using a collector")
@@ -384,7 +381,7 @@ def runWithDaemonDirector(logging=True, start_tor=True, check_incoherences=True)
     director = Director()
 
     if global_options.get('annotations') is not None:
-        annotations = setupAnnotations(global_options)
+        global_options['annotations'] = setupAnnotations(global_options)
 
     if global_options['no-collector']:
         log.msg("Not reporting using a collector")
