@@ -226,8 +226,8 @@ def setupCollector(global_options, net_test_loader):
     return collector
 
 
-def createDeck(global_options,url=None,filename=None):
-    log.msg("Creating deck for: %s" %(url or filename,) )
+def createDeck(global_options, url=None, filename=None):
+    log.msg("Creating deck for: %s" % (url or filename,))
 
     deck = Deck(no_collector=global_options['no-collector'])
     deck.bouncer = global_options['bouncer']
@@ -239,9 +239,9 @@ def createDeck(global_options,url=None,filename=None):
             log.debug("No test deck detected")
             test_file = nettest_to_path(global_options['test_file'], True)
             if url is not None:
-                args = ('-u',url)
+                args = ('-u', url)
             elif filename is not None:
-                args = ('-f',filename)
+                args = ('-f', filename)
             else:
                 args = tuple()
             if any(global_options['subargs']):
@@ -269,6 +269,52 @@ def createDeck(global_options,url=None,filename=None):
         log.err(e)
         sys.exit(5)
     return deck
+
+
+def runTestWithDirector(director, global_options, url=None, filename=None,
+                        start_tor=True, check_incoherences=True):
+    deck = createDeck(global_options, url=url, filename=filename)
+
+    start_tor |= deck.requiresTor
+
+    d = director.start(start_tor=start_tor,
+                       check_incoherences=check_incoherences)
+
+    def setup_nettest(_):
+        try:
+            return deck.setup()
+        except errors.UnableToLoadDeckInput as error:
+            return defer.failure.Failure(error)
+
+
+    # Wait until director has started up (including bootstrapping Tor)
+    # before adding tests
+    def post_director_start(_):
+        for net_test_loader in deck.netTestLoaders:
+            # Decks can specify different collectors
+            # for each net test, so that each NetTest
+            # may be paired with a test_helper and its collector
+            # However, a user can override this behavior by
+            # specifying a collector from the command-line (-c).
+            # If a collector is not specified in the deck, or the
+            # deck is a singleton, the default collector set in
+            # ooniprobe.conf will be used
+
+            collector = setupCollector(global_options, net_test_loader)
+
+            test_details = net_test_loader.testDetails
+            test_details['annotations'] = global_options['annotations']
+
+            director.startNetTest(net_test_loader,
+                                    global_options['reportfile'],
+                                    collector)
+        return director.allTestsDone
+
+    d.addCallback(setup_nettest)
+    d.addCallback(post_director_start)
+    d.addErrback(director_startup_handled_failures)
+    d.addErrback(director_startup_other_failures)
+    return d
 
 def runWithDirector(logging=True, start_tor=True, check_incoherences=True):
     """
@@ -309,50 +355,10 @@ def runWithDirector(logging=True, start_tor=True, check_incoherences=True):
     if global_options['collector']:
         start_tor |= True
 
-    deck = createDeck(global_options)
+    return runTestWithDirector(director=director,
+                               global_options=global_options,
+                               check_incoherences=check_incoherences)
 
-    start_tor |= deck.requiresTor
-    d = director.start(start_tor=start_tor,
-                       check_incoherences=check_incoherences)
-
-    def setup_nettest(_):
-        try:
-            return deck.setup()
-        except errors.UnableToLoadDeckInput as error:
-            return defer.failure.Failure(error)
-
-
-    # Wait until director has started up (including bootstrapping Tor)
-    # before adding tests
-    def post_director_start(_):
-        for net_test_loader in deck.netTestLoaders:
-            # Decks can specify different collectors
-            # for each net test, so that each NetTest
-            # may be paired with a test_helper and its collector
-            # However, a user can override this behavior by
-            # specifying a collector from the command-line (-c).
-            # If a collector is not specified in the deck, or the
-            # deck is a singleton, the default collector set in
-            # ooniprobe.conf will be used
-
-            collector = setupCollector(global_options, net_test_loader)
-
-            test_details = net_test_loader.testDetails
-            test_details['annotations'] = global_options['annotations']
-
-            director.startNetTest(net_test_loader,
-                                  global_options['reportfile'],
-                                  collector)
-        return director.allTestsDone
-
-
-    d.addCallback(setup_nettest)
-    d.addCallback(post_director_start)
-    d.addErrback(director_startup_handled_failures)
-    d.addErrback(director_startup_other_failures)
-    return d
-
-    
 
 # this variant version of runWithDirector splits the process in two,
 # allowing a single director instance to be reused with multiple decks.
@@ -373,7 +379,6 @@ def runWithDaemonDirector(logging=True, start_tor=True, check_incoherences=True)
         sys.exit(7)
 
 
-
     global_options = setupGlobalOptions(logging, start_tor, check_incoherences)
 
     director = Director()
@@ -388,80 +393,40 @@ def runWithDaemonDirector(logging=True, start_tor=True, check_incoherences=True)
     else:
         start_tor = True
 
-
-    def run_test(global_options, url=None, filename=None):
-        assert url is not None or filename is not None
-
-        deck = createDeck(global_options, url=url, filename=filename)
-
-        d = director.start(start_tor=True,
-                           check_incoherences=check_incoherences)
-
-        def setup_nettest(_):
-            try:
-                return deck.setup()
-            except errors.UnableToLoadDeckInput as error:
-                return defer.failure.Failure(error)
-
-
-
-        # Wait until director has started up (including bootstrapping Tor)
-        # before adding tests
-        def post_director_start(_):
-            for net_test_loader in deck.netTestLoaders:
-                # Decks can specify different collectors
-                # for each net test, so that each NetTest
-                # may be paired with a test_helper and its collector
-                # However, a user can override this behavior by
-                # specifying a collector from the command-line (-c).
-                # If a collector is not specified in the deck, or the
-                # deck is a singleton, the default collector set in
-                # ooniprobe.conf will be used
-
-                collector = setupCollector(global_options, net_test_loader)
-
-                test_details = net_test_loader.testDetails
-                test_details['annotations'] = global_options['annotations']
-
-                director.startNetTest(net_test_loader,
-                                      global_options['reportfile'],
-                                      collector)
-            return director.allTestsDone
- 
-        d.addCallback(setup_nettest)
-        d.addCallback(post_director_start)
-        d.addErrback(director_startup_handled_failures)
-        d.addErrback(director_startup_other_failures)
-        return d
-
     finished = defer.Deferred()
 
     @defer.inlineCallbacks
-    def readmsg(_,channel, queue_object, consumer_tag, counter):
+    def readmsg(_, channel, queue_object, consumer_tag, counter):
 
         # Wait for a message and decode it.
         if counter >= lifetime:
+            log.msg("Counter")
             queue_object.close(LifetimeExceeded())
             yield channel.basic_cancel(consumer_tag=consumer_tag)
             finished.callback(None)
 
         else:
             log.msg("Waiting for message")
-            
+
             try:
                 ch, method, properties, body = yield queue_object.get()
                 log.msg("Got message")
                 data = json.loads(body)
                 counter += 1
 
-                log.msg("Received %d/%d: %s" %(counter, lifetime, data['url'],))
+                log.msg("Received %d/%d: %s" % (counter, lifetime, data['url'],))
                 # acknowledge the message
                 ch.basic_ack(delivery_tag=method.delivery_tag)
 
-                d = run_test(global_options, url=data['url'].encode('utf8'))
+                d = runTestWithDirector(director=director,
+                                        global_options=global_options,
+                                        url=data['url'].encode('utf8'),
+                                        check_incoherences=check_incoherences)
                 # When the test has been completed, go back to waiting for a message.
                 d.addCallback(readmsg, channel, queue_object, consumer_tag, counter+1)
             except exceptions.AMQPError,v:
+                log.msg("Error")
+                log.exception(v)
                 finished.errback(v)
 
 
@@ -474,7 +439,7 @@ def runWithDaemonDirector(logging=True, start_tor=True, check_incoherences=True)
         queue_object, consumer_tag = yield channel.basic_consume(
                                                    queue=name,
                                                    no_ack=False)
-        readmsg(None,channel,queue_object,consumer_tag, 0)
+        readmsg(None, channel, queue_object, consumer_tag, 0)
 
 
 
@@ -484,10 +449,9 @@ def runWithDaemonDirector(logging=True, start_tor=True, check_incoherences=True)
     urlargs = dict(urlparse.parse_qsl(urlp.query))
 
     # random lifetime requests counter
-    lifetime = random.randint(820,1032)
+    lifetime = random.randint(820, 1032)
 
     # AMQP connection details are sent through the cmdline parameter '-Q'
-    
     creds = pika.PlainCredentials(urlp.username or 'guest',
                                   urlp.password or 'guest')
     parameters = pika.ConnectionParameters(urlp.hostname,
