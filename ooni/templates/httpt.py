@@ -151,9 +151,13 @@ class HTTPTest(NetTestCase):
             }
         }
         if response:
+            if self.localOptions.get('withoutbody', 0) is 0:
+                response_body = _representBody(response_body)
+            else:
+                response_body = ''
             session['response'] = {
                 'headers': _representHeaders(response.headers),
-                'body': _representBody(response_body),
+                'body': response_body,
                 'code': response.code
         }
         session['failure'] = None
