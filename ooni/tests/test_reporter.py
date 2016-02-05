@@ -26,7 +26,8 @@ test_details = {
     'input_hashes': [],
     'probe_asn': 'AS0',
     'probe_cc': 'ZZ',
-    'start_time': time.time()
+    'start_time': time.time(),
+    'data_format_version': '0.2.0'
 }
 
 oonib_new_report_message = {

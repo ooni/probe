@@ -158,14 +158,7 @@ class TestRunDirector(ConfigTestCase):
             assert 'agent' in entry
             assert 'requests' in entry
             assert 'socksproxy' in entry
-            assert 'tampering' in entry
-            assert 'header_field_name' in entry['tampering']
-            assert 'header_field_number' in entry['tampering']
-            assert 'header_field_value' in entry['tampering']
-            assert 'header_name_capitalization' in entry['tampering']
-            assert 'header_name_diff' in entry['tampering']
-            assert 'request_line_capitalization' in entry['tampering']
-            assert 'total' in entry['tampering']
+            assert 'errors' in entry
 
         yield self.run_helper('manipulation/http_header_field_manipulation',
                               ['-b', 'http://4.15.35.157:80'],
