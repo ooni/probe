@@ -1,10 +1,16 @@
 import sys
-import os
-import yaml
 
+import os
+import json
+import yaml
+import random
+import urlparse
+
+from twisted import version as _twisted_version
+from twisted.python.versions import Version
 from twisted.python import usage
 from twisted.python.util import spewer
-from twisted.internet import defer
+from twisted.internet import defer, reactor, protocol
 
 from ooni import errors, __version__
 
@@ -16,6 +22,9 @@ from ooni.nettest import NetTestLoader
 from ooni.utils import log
 from ooni.utils.net import hasRawSocketPermission
 
+
+
+class LifetimeExceeded(Exception): pass
 
 class Options(usage.Options):
     synopsis = """%s [options] [path to test].py
@@ -49,7 +58,8 @@ class Options(usage.Options):
         ["datadir", "d", None,
          "Specify a path to the ooniprobe data directory"],
         ["annotations", "a", None,
-         "Annotate the report with a key:value[, key:value] format."]]
+         "Annotate the report with a key:value[, key:value] format."],
+        ["queue", "Q", None, "AMQP Queue URL amqp://user:pass@host:port/vhost/queue"]]
 
     compData = usage.Completions(
         extraActions=[usage.CompleteFiles(
@@ -102,11 +112,62 @@ def parseOptions():
     return dict(cmd_line_options)
 
 
-def runWithDirector(logging=True, start_tor=True, check_incoherences=True):
-    """
-    Instance the director, parse command line options and start an ooniprobe
-    test!
-    """
+def director_startup_handled_failures(failure):
+    log.err("Could not start the director")
+    failure.trap(errors.TorNotRunning,
+                 errors.InvalidOONIBCollectorAddress,
+                 errors.UnableToLoadDeckInput,
+                 errors.CouldNotFindTestHelper,
+                 errors.CouldNotFindTestCollector,
+                 errors.ProbeIPUnknown,
+                 errors.InvalidInputFile,
+                 errors.ConfigFileIncoherent)
+
+    if isinstance(failure.value, errors.TorNotRunning):
+        log.err("Tor does not appear to be running")
+        log.err("Reporting with a collector is not possible")
+        log.msg(
+            "Try with a different collector or disable collector reporting with -n")
+
+    elif isinstance(failure.value, errors.InvalidOONIBCollectorAddress):
+        log.err("Invalid format for oonib collector address.")
+        log.msg(
+            "Should be in the format http://<collector_address>:<port>")
+        log.msg("for example: ooniprobe -c httpo://nkvphnp3p6agi5qq.onion")
+
+    elif isinstance(failure.value, errors.UnableToLoadDeckInput):
+        log.err("Unable to fetch the required inputs for the test deck.")
+        log.msg(
+            "Please file a ticket on our issue tracker: https://github.com/thetorproject/ooni-probe/issues")
+
+    elif isinstance(failure.value, errors.CouldNotFindTestHelper):
+        log.err("Unable to obtain the required test helpers.")
+        log.msg(
+            "Try with a different bouncer or check that Tor is running properly.")
+
+    elif isinstance(failure.value, errors.CouldNotFindTestCollector):
+        log.err("Could not find a valid collector.")
+        log.msg(
+            "Try with a different bouncer, specify a collector with -c or disable reporting to a collector with -n.")
+
+    elif isinstance(failure.value, errors.ProbeIPUnknown):
+        log.err("Failed to lookup probe IP address.")
+        log.msg("Check your internet connection.")
+
+    elif isinstance(failure.value, errors.InvalidInputFile):
+        log.err("Invalid input file \"%s\"" % failure.value)
+
+    elif isinstance(failure.value, errors.ConfigFileIncoherent):
+        log.err("Incoherent config file")
+
+    if config.advanced.debug:
+        log.exception(failure)
+
+def director_startup_other_failures(failure):
+    log.err("An unhandled exception occurred while starting the director!")
+    log.exception(failure)
+
+def setupGlobalOptions(logging, start_tor, check_incoherences):
     global_options = parseOptions()
     config.global_options = global_options
     config.set_paths()
@@ -133,49 +194,44 @@ def runWithDirector(logging=True, start_tor=True, check_incoherences=True):
             log.err("Insufficient Privileges to capture packets."
                     " See ooniprobe.conf privacy.includepcap")
             sys.exit(2)
+    return global_options
 
-    director = Director()
-    if global_options['list']:
-        print "# Installed nettests"
-        for net_test_id, net_test in director.getNetTests().items():
-            print "* %s (%s/%s)" % (net_test['name'],
-                                    net_test['category'],
-                                    net_test['id'])
-            print "  %s" % net_test['description']
+def setupAnnotations(global_options):
+    annotations={}
+    for annotation in global_options["annotations"].split(","):
+        pair = annotation.split(":")
+        if len(pair) == 2:
+            key = pair[0].strip()
+            value = pair[1].strip()
+            annotations[key] = value
+        else:
+            log.err("Invalid annotation: %s" % annotation)
+            sys.exit(1)
+    global_options["annotations"] = annotations
+    return annotations
 
-        sys.exit(0)
+def setupCollector(global_options, net_test_loader):
+    collector = None
+    if not global_options['no-collector']:
+        if global_options['collector']:
+            collector = global_options['collector']
+        elif 'collector' in config.reports \
+                and config.reports['collector']:
+            collector = config.reports['collector']
+        elif net_test_loader.collector:
+            collector = net_test_loader.collector
 
-    elif global_options['printdeck']:
-        del global_options['printdeck']
-        print "# Copy and paste the lines below into a test deck to run the specified test with the specified arguments"
-        print yaml.safe_dump([{'options': global_options}]).strip()
+    if collector and collector.startswith('httpo:') \
+            and (not (config.tor_state or config.tor.socks_port)):
+        raise errors.TorNotRunning
+    return collector
 
-        sys.exit(0)
 
-    if global_options.get('annotations') is not None:
-        annotations = {}
-        for annotation in global_options["annotations"].split(","):
-            pair = annotation.split(":")
-            if len(pair) == 2:
-                key = pair[0].strip()
-                value = pair[1].strip()
-                annotations[key] = value
-            else:
-                log.err("Invalid annotation: %s" % annotation)
-                sys.exit(1)
-        global_options["annotations"] = annotations
-
-    if global_options['no-collector']:
-        log.msg("Not reporting using a collector")
-        global_options['collector'] = None
-        start_tor = False
-    else:
-        start_tor = True
+def createDeck(global_options, url=None):
+    log.msg("Creating deck for: %s" % (url))
 
     deck = Deck(no_collector=global_options['no-collector'])
     deck.bouncer = global_options['bouncer']
-    if global_options['collector']:
-        start_tor |= True
 
     try:
         if global_options['testdeck']:
@@ -183,7 +239,13 @@ def runWithDirector(logging=True, start_tor=True, check_incoherences=True):
         else:
             log.debug("No test deck detected")
             test_file = nettest_to_path(global_options['test_file'], True)
-            net_test_loader = NetTestLoader(global_options['subargs'],
+            if url is not None:
+                args = ('-u', url)
+            else:
+                args = tuple()
+            if any(global_options['subargs']):
+                args = global_options['subargs'] + args
+            net_test_loader = NetTestLoader(args,
                                             test_file=test_file)
             if global_options['collector']:
                 net_test_loader.collector = global_options['collector']
@@ -206,7 +268,28 @@ def runWithDirector(logging=True, start_tor=True, check_incoherences=True):
         log.err(e)
         sys.exit(5)
 
+    if net_test_loader.collector and net_test_loader.collector.startswith('https://'):
+        _twisted_14_0_2_version = Version('twisted', 14, 0, 2)
+        if _twisted_version < _twisted_14_0_2_version:
+            log.err("HTTPS collectors require a twisted version of at least 14.0.2.")
+            sys.exit(6)
+    elif net_test_loader.collector and net_test_loader.collector.startswith('http://'):
+        if config.advanced.insecure_collector is not True:
+            log.err("Attempting to report to an insecure collector.")
+            log.err("To enable reporting to insecure collector set the "
+                    "advanced->insecure_collector option to true in "
+                    "your ooniprobe.conf file.")
+            sys.exit(7)
+
+    return deck
+
+
+def runTestWithDirector(director, global_options, url=None,
+                        start_tor=True, check_incoherences=True):
+    deck = createDeck(global_options, url=url)
+
     start_tor |= deck.requiresTor
+
     d = director.start(start_tor=start_tor,
                        check_incoherences=check_incoherences)
 
@@ -216,61 +299,6 @@ def runWithDirector(logging=True, start_tor=True, check_incoherences=True):
         except errors.UnableToLoadDeckInput as error:
             return defer.failure.Failure(error)
 
-    def director_startup_handled_failures(failure):
-        log.err("Could not start the director")
-        failure.trap(errors.TorNotRunning,
-                     errors.InvalidOONIBCollectorAddress,
-                     errors.UnableToLoadDeckInput,
-                     errors.CouldNotFindTestHelper,
-                     errors.CouldNotFindTestCollector,
-                     errors.ProbeIPUnknown,
-                     errors.InvalidInputFile,
-                     errors.ConfigFileIncoherent)
-
-        if isinstance(failure.value, errors.TorNotRunning):
-            log.err("Tor does not appear to be running")
-            log.err("Reporting with the collector %s is not possible" %
-                    global_options['collector'])
-            log.msg(
-                "Try with a different collector or disable collector reporting with -n")
-
-        elif isinstance(failure.value, errors.InvalidOONIBCollectorAddress):
-            log.err("Invalid format for oonib collector address.")
-            log.msg(
-                "Should be in the format http://<collector_address>:<port>")
-            log.msg("for example: ooniprobe -c httpo://nkvphnp3p6agi5qq.onion")
-
-        elif isinstance(failure.value, errors.UnableToLoadDeckInput):
-            log.err("Unable to fetch the required inputs for the test deck.")
-            log.msg(
-                "Please file a ticket on our issue tracker: https://github.com/thetorproject/ooni-probe/issues")
-
-        elif isinstance(failure.value, errors.CouldNotFindTestHelper):
-            log.err("Unable to obtain the required test helpers.")
-            log.msg(
-                "Try with a different bouncer or check that Tor is running properly.")
-
-        elif isinstance(failure.value, errors.CouldNotFindTestCollector):
-            log.err("Could not find a valid collector.")
-            log.msg(
-                "Try with a different bouncer, specify a collector with -c or disable reporting to a collector with -n.")
-
-        elif isinstance(failure.value, errors.ProbeIPUnknown):
-            log.err("Failed to lookup probe IP address.")
-            log.msg("Check your internet connection.")
-
-        elif isinstance(failure.value, errors.InvalidInputFile):
-            log.err("Invalid input file \"%s\"" % failure.value)
-
-        elif isinstance(failure.value, errors.ConfigFileIncoherent):
-            log.err("Incoherent config file")
-
-        if config.advanced.debug:
-            log.exception(failure)
-
-    def director_startup_other_failures(failure):
-        log.err("An unhandled exception occurred while starting the director!")
-        log.exception(failure)
 
     # Wait until director has started up (including bootstrapping Tor)
     # before adding tests
@@ -285,15 +313,7 @@ def runWithDirector(logging=True, start_tor=True, check_incoherences=True):
             # deck is a singleton, the default collector set in
             # ooniprobe.conf will be used
 
-            collector = None
-            if not global_options['no-collector']:
-                if global_options['collector']:
-                    collector = global_options['collector']
-                elif 'collector' in config.reports \
-                        and config.reports['collector']:
-                    collector = config.reports['collector']
-                elif net_test_loader.collector:
-                    collector = net_test_loader.collector
+            collector = setupCollector(global_options, net_test_loader)
 
             if collector and collector.startswith('httpo:') \
                     and (not (config.tor_state or config.tor.socks_port)):
@@ -302,15 +322,166 @@ def runWithDirector(logging=True, start_tor=True, check_incoherences=True):
             net_test_loader.annotations = global_options['annotations']
 
             director.startNetTest(net_test_loader,
-                                  global_options['reportfile'],
-                                  collector)
+                                    global_options['reportfile'],
+                                    collector)
         return director.allTestsDone
 
-    def start():
-        d.addCallback(setup_nettest)
-        d.addCallback(post_director_start)
-        d.addErrback(director_startup_handled_failures)
-        d.addErrback(director_startup_other_failures)
-        return d
+    d.addCallback(setup_nettest)
+    d.addCallback(post_director_start)
+    d.addErrback(director_startup_handled_failures)
+    d.addErrback(director_startup_other_failures)
+    return d
 
-    return start()
+def runWithDirector(logging=True, start_tor=True, check_incoherences=True):
+    """
+    Instance the director, parse command line options and start an ooniprobe
+    test!
+    """
+
+    global_options = setupGlobalOptions(logging, start_tor, check_incoherences)
+
+    director = Director()
+    if global_options['list']:
+        print "# Installed nettests"
+        for net_test_id, net_test in director.getNetTests().items():
+            print "* %s (%s/%s)" % (net_test['name'],
+                                    net_test['category'],
+                                    net_test['id'])
+            print "  %s" % net_test['description']
+
+        sys.exit(0)
+
+    elif global_options['printdeck']:
+        del global_options['printdeck']
+        print "# Copy and paste the lines below into a test deck to run the specified test with the specified arguments"
+        print yaml.safe_dump([{'options': global_options}]).strip()
+
+        sys.exit(0)
+
+    if global_options.get('annotations') is not None:
+        global_options['annotations'] = setupAnnotations(global_options)
+
+    if global_options['no-collector']:
+        log.msg("Not reporting using a collector")
+        global_options['collector'] = None
+        start_tor = False
+    else:
+        start_tor = True
+
+    if global_options['collector']:
+        start_tor |= True
+
+    return runTestWithDirector(director=director,
+                               global_options=global_options,
+                               check_incoherences=check_incoherences)
+
+
+# this variant version of runWithDirector splits the process in two,
+# allowing a single director instance to be reused with multiple decks.
+
+def runWithDaemonDirector(logging=True, start_tor=True, check_incoherences=True):
+    """
+    Instance the director, parse command line options and start an ooniprobe
+    test!
+    """
+
+    try:
+        import pika
+        from pika import exceptions
+        from pika.adapters import twisted_connection
+    except ImportError:
+        print "Pika is required for queue connection."
+        print "Install with \"pip install pika\"."
+        sys.exit(7)
+
+
+    global_options = setupGlobalOptions(logging, start_tor, check_incoherences)
+
+    director = Director()
+
+    if global_options.get('annotations') is not None:
+        global_options['annotations'] = setupAnnotations(global_options)
+
+    if global_options['no-collector']:
+        log.msg("Not reporting using a collector")
+        global_options['collector'] = None
+        start_tor = False
+    else:
+        start_tor = True
+
+    finished = defer.Deferred()
+
+    @defer.inlineCallbacks
+    def readmsg(_, channel, queue_object, consumer_tag, counter):
+
+        # Wait for a message and decode it.
+        if counter >= lifetime:
+            log.msg("Counter")
+            queue_object.close(LifetimeExceeded())
+            yield channel.basic_cancel(consumer_tag=consumer_tag)
+            finished.callback(None)
+
+        else:
+            log.msg("Waiting for message")
+
+            try:
+                ch, method, properties, body = yield queue_object.get()
+                log.msg("Got message")
+                data = json.loads(body)
+                counter += 1
+
+                log.msg("Received %d/%d: %s" % (counter, lifetime, data['url'],))
+                # acknowledge the message
+                ch.basic_ack(delivery_tag=method.delivery_tag)
+
+                d = runTestWithDirector(director=director,
+                                        global_options=global_options,
+                                        url=data['url'].encode('utf8'),
+                                        check_incoherences=check_incoherences)
+                # When the test has been completed, go back to waiting for a message.
+                d.addCallback(readmsg, channel, queue_object, consumer_tag, counter+1)
+            except exceptions.AMQPError,v:
+                log.msg("Error")
+                log.exception(v)
+                finished.errback(v)
+
+
+
+    @defer.inlineCallbacks
+    def runQueue(connection, name, qos):
+        # Set up the queue consumer.  When a message is received, run readmsg
+        channel = yield connection.channel()
+        yield channel.basic_qos(prefetch_count=qos)
+        queue_object, consumer_tag = yield channel.basic_consume(
+                                                   queue=name,
+                                                   no_ack=False)
+        readmsg(None, channel, queue_object, consumer_tag, 0)
+
+
+
+    # Create the AMQP connection.  This could be refactored to allow test URLs
+    # to be submitted through an HTTP server interface or something.
+    urlp = urlparse.urlparse(config.global_options['queue'])
+    urlargs = dict(urlparse.parse_qsl(urlp.query))
+
+    # random lifetime requests counter
+    lifetime = random.randint(820, 1032)
+
+    # AMQP connection details are sent through the cmdline parameter '-Q'
+    creds = pika.PlainCredentials(urlp.username or 'guest',
+                                  urlp.password or 'guest')
+    parameters = pika.ConnectionParameters(urlp.hostname,
+                                           urlp.port or 5672,
+                                           urlp.path.rsplit('/',1)[0] or '/',
+                                           creds,
+                                           heartbeat_interval=120,
+                                           )
+    cc = protocol.ClientCreator(reactor,
+                                twisted_connection.TwistedProtocolConnection,
+                                parameters)
+    d = cc.connectTCP(urlp.hostname, urlp.port or 5672)
+    d.addCallback(lambda protocol: protocol.ready)
+    # start the wait/process sequence.
+    d.addCallback(runQueue, urlp.path.rsplit('/',1)[-1], int(urlargs.get('qos',1)))
+
+    return finished
