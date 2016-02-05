@@ -10,11 +10,15 @@ from yaml.representer import SafeRepresenter
 from yaml.emitter import Emitter
 from yaml.serializer import Serializer
 from yaml.resolver import Resolver
+
 from twisted.python.util import untilConcludes
-from twisted.internet import defer
+from twisted.internet import defer, reactor
+from twisted.web.client import Agent
 from twisted.internet.error import ConnectionRefusedError
 from twisted.python.failure import Failure
 from twisted.internet.endpoints import TCP4ClientEndpoint
+
+from txsocksx.http import SOCKS5Agent
 
 from ooni.utils import log
 from ooni.tasks import Measurement
@@ -233,6 +237,15 @@ class OONIBReporter(OReporter):
 
         self.reportID = None
 
+        if self.collectorAddress.startswith('https://'):
+            # not sure if there's something else it needs.  Seems to work.
+            # Very difficult to get it to work with self-signed certs.
+            self.agent = Agent(reactor)
+
+        elif self.collectorAddress.startswith('http://'):
+            log.msg("Warning using unencrypted collector")
+            self.agent = Agent(reactor)
+
         OReporter.__init__(self, test_details)
 
     def validateCollectorAddress(self):
@@ -287,9 +300,6 @@ class OONIBReporter(OReporter):
         # do this with some deferred kung foo or instantiate the reporter after
         # tor is started.
 
-        from twisted.web.client import Agent
-        from txsocksx.http import SOCKS5Agent
-        from twisted.internet import reactor
 
         if self.collectorAddress.startswith('httpo://'):
             self.collectorAddress = \
@@ -297,15 +307,6 @@ class OONIBReporter(OReporter):
             proxyEndpoint = TCP4ClientEndpoint(reactor, '127.0.0.1',
                                                config.tor.socks_port)
             self.agent = SOCKS5Agent(reactor, proxyEndpoint=proxyEndpoint)
-
-        elif self.collectorAddress.startswith('https://'):
-            # not sure if there's something else it needs.  Seems to work.
-            # Very difficult to get it to work with self-signed certs.
-            self.agent = Agent(reactor)
-
-        elif self.collectorAddress.startswith('http://'):
-            log.msg("Warning using unencrypted collector")
-            self.agent = Agent(reactor)
 
         url = self.collectorAddress + '/report'
 
