@@ -10,6 +10,7 @@ env:
   - TWISTED=Twisted==15.2.1
   - TWISTED=Twisted==15.3.0
   - TWISTED=Twisted==15.4.0
+  - TWISTED=Twisted==15.5.0
   - TWISTED=Twisted
 before_install:
   - sudo apt-get update
