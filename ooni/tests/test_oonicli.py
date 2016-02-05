@@ -8,7 +8,6 @@ from ooni.tests import is_internet_connected
 from ooni.tests.bases import ConfigTestCase
 from ooni.settings import config
 from ooni.oonicli import runWithDirector
-from ooni.errors import InsufficientPrivileges
 from ooni.utils.net import hasRawSocketPermission
 
 
@@ -140,8 +139,11 @@ class TestRunDirector(ConfigTestCase):
         def verify_function(entry):
             assert 'queries' in entry
             assert 'control_resolver' in entry
-            assert 'tampering' in entry
-            assert len(entry['tampering']) == 1
+            assert 'errors' in entry
+            assert 'inconsistent' in entry
+            assert 'failures' in entry
+            assert 'successful' in entry
+            assert len(entry['inconsistent']) == 0
 
         yield self.run_helper('blocking/dns_consistency',
                               ['-b', '8.8.8.8:53',
