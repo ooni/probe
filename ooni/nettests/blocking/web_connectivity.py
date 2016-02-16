@@ -32,7 +32,7 @@ class TCPConnectFactory(Factory):
 class UsageOptions(usage.Options):
     optParameters = [
         ['url', 'u', None, 'Specify a single URL to test'],
-        ['dns-discovery', 'd', None, 'Specify the dns discovery test helper'],
+        ['dns-discovery', 'd', 'whoami.akamai.net', 'Specify the dns discovery test helper'],
         ['backend', 'b', None, 'The web_consistency backend test helper'],
     ]
 
@@ -278,7 +278,7 @@ class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
 
         self.report['client_resolver'] = None
         if results[0][0] == True:
-            self.report['client_resolver']  = results[0][1][1]
+            self.report['client_resolver']  = results[0][1][0]
 
         experiment_dns_answers = results[1][1]
         sockets = []
