@@ -366,6 +366,7 @@ def runWithDirector(logging=True, start_tor=True, check_incoherences=True):
         start_tor |= True
 
     return runTestWithDirector(director=director,
+                               start_tor=start_tor,
                                global_options=global_options,
                                check_incoherences=check_incoherences)
 
@@ -429,6 +430,7 @@ def runWithDaemonDirector(logging=True, start_tor=True, check_incoherences=True)
                 ch.basic_ack(delivery_tag=method.delivery_tag)
 
                 d = runTestWithDirector(director=director,
+                                        start_tor=start_tor,
                                         global_options=global_options,
                                         url=data['url'].encode('utf8'),
                                         check_incoherences=check_incoherences)
