@@ -6,6 +6,9 @@ from ooni.settings import config
 from ooni.utils import log
 from ooni import errors as e
 
+from twisted import version as _twisted_version
+from twisted.python.versions import Version
+
 from twisted.python.filepath import FilePath
 from twisted.internet import defer
 
@@ -158,6 +161,14 @@ class Deck(InputFile):
                 if not has_test_helper(missing_option):
                     raise
             self.requiresTor = True
+
+        if net_test_loader.collector and net_test_loader.collector.startswith('https://'):
+            _twisted_14_0_2_version = Version('twisted', 14, 0, 2)
+            if _twisted_version < _twisted_14_0_2_version:
+                raise e.HTTPCollectorUnsupported
+        elif net_test_loader.collector and net_test_loader.collector.startswith('http://'):
+            if config.advanced.insecure_collector is not True:
+                raise e.InsecureCollector
         self.netTestLoaders.append(net_test_loader)
 
     @defer.inlineCallbacks

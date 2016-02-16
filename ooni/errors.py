@@ -277,3 +277,9 @@ class ProtocolAlreadyRegistered(Exception):
 
 class LibraryNotInstalledError(Exception):
     pass
+
+class InsecureCollector(Exception):
+    pass
+
+class HTTPSCollectorUnsupported(Exception):
+    pass
