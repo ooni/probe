@@ -26,7 +26,7 @@ class ReportLoader(object):
 
     def next(self):
         try:
-            self._yfp.next()
+            return self._yfp.next()
         except StopIteration:
             self.close()
             raise StopIteration
