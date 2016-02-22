@@ -136,9 +136,9 @@ class HTTPTest(NetTestCase):
         if response:
             request_response['response'] = {
                 'headers': list(response.headers.getAllRawHeaders()),
-                'body': response_body if self.localOptions.get('withoutbody',1) == 0 else '',
+                'body': response_body if self.localOptions.get('withoutbody', 0) == 0 else '',
                 'code': response.code
-        }
+            }
         if failure_string:
             request_response['failure'] = failure_string
 
