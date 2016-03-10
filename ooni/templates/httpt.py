@@ -131,11 +131,12 @@ class HTTPTest(NetTestCase):
         def _representBody(body):
             # XXX perhaps add support for decoding gzip in the future.
             try:
-                body.replace('\0', '')
                 body = unicode(body, 'ascii')
+                body = body.replace('\0', '')
             except UnicodeDecodeError:
                 try:
                     body = unicode(body, 'utf-8')
+                    body = body.replace('\0', '')
                 except UnicodeDecodeError:
                     body = base64Dict(body)
 
