@@ -13,9 +13,8 @@ from ooni.templates import process, httpt
 class UsageOptions(usage.Options):
     log.debug("UsageOptions")
     optParameters = [
-        ['url', 'u', None, 'Specify a single URL to test.'],
-        ['psiphonpath', 'p', None, 'Specify psiphon python client path.'],
-        ['socksproxy', 's', None, 'Specify psiphon socks proxy ip:port.'],]
+        ['psiphonpath', 'p', None, 'Specify psiphon python client path.']
+    ]
 
 
 class PsiphonTest(httpt.HTTPTest,  process.ProcessTest):
@@ -33,16 +32,11 @@ class PsiphonTest(httpt.HTTPTest,  process.ProcessTest):
     description = "Bootstraps Psiphon and \
                 does a HTTP GET for the specified URL"
     author = "juga"
-    version = "0.0.1"
-    timeout = 20
+    version = "0.1.0"
+    timeout = 120
     usageOptions = UsageOptions
 
     def _setUp(self):
-        # it is necessary to do this in _setUp instead of setUp
-        # because it needs to happen before HTTPTest's _setUp.
-        # incidentally, setting this option in setUp results in HTTPTest
-        # *saying* it is using this proxy while not actually using it.
-        log.debug('PiphonTest._setUp: setting socksproxy')
         self.localOptions['socksproxy'] = '127.0.0.1:1080'
         super(PsiphonTest, self)._setUp()
 
@@ -50,10 +44,7 @@ class PsiphonTest(httpt.HTTPTest,  process.ProcessTest):
         log.debug('PsiphonTest.setUp')
 
         self.bootstrapped = defer.Deferred()
-        if self.localOptions['url']:
-            self.url = self.localOptions['url']
-        else:
-            self.url = 'https://check.torproject.org'
+        self.url = 'http://www.google.com/humans.txt'
 
         if self.localOptions['psiphonpath']:
             self.psiphonpath = self.localOptions['psiphonpath']
@@ -128,7 +119,11 @@ connect(False)
             d = self.doRequest(self.url)
             def addSuccessToReport(res):
                 log.debug("PsiphonTest.callDoRequest.addSuccessToReport")
-                self.report['request_success'] = True
+                if res.body.startswith('Google is built by a large'):
+                    self.report['request_success'] = True
+                else:
+                    self.report['request_success'] = False
+
                 return res
             d.addCallback(addSuccessToReport)
             def addFailureToReport(res):
