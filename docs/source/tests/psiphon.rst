@@ -32,7 +32,7 @@ To test Psiphon with a different URL run:
 
 To test Psiphon when it is installed in a different path other than the user home:
 
-`ooniprobe blocking/http_requests -p <path to Psiphon repository>`
+`ooniprobe third_party/psiphon -p <path to Psiphon repository>`
 
 How to install Psiphon
 ===================
@@ -49,7 +49,7 @@ To run Psiphon manually, it must be run inside of the proper directory:
 Sample report
 =============
 
-`ooniprobe blocking/http_requests -f example_inputs/url_lists_file.txt`
+`ooniprobe third_party/psiphon -u http://google.com`
 
     ::
 
