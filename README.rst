@@ -346,11 +346,16 @@ Setting up development environment
 On Debian based systems a development environment can be setup as follows: (prerequisites include build essentials, python-dev, and tor; for tor see https://www.torproject.org/docs/debian.html.en)::
 
 
-    sudo apt-get install python-pip python-virtualenv virtualenv virtualenvwrapper
+    sudo apt-get install python-pip python-virtualenv virtualenv
     sudo apt-get install libgeoip-dev libffi-dev libdumbnet-dev libssl-dev libpcap-dev
     git clone https://github.com/TheTorProject/ooni-probe
     cd ooni-probe
-    mkvirtualenv ooniprobe  # . ~/.virtualenvs/ooniprobe/bin/activate to access later
+    virtualenv venv
+`virtualenv venv` will create a folder in the current directory which will
+contain the Python executable files, and a copy of the pip library which you can
+use to install other packages. To begin using the virtual environment, it needs
+to be activated:
+    source venv/bin/activate
     pip install -r requirements.txt
     pip install -r requirements-dev.txt
     python setup.py install
