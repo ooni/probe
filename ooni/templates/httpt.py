@@ -135,7 +135,7 @@ class HTTPTest(NetTestCase):
         }
         if response:
             # Attempt to redact the IP address of the probe from the responses
-            if config.privacy.includeip is False:
+            if config.privacy.includeip is False and config.probe_ip.address is not None:
                 response_body = response_body.replace(config.probe_ip.address, "[REDACTED]")
             request_response['response'] = {
                 'headers': list(response.headers.getAllRawHeaders()),

@@ -108,7 +108,7 @@ class ProcessTest(NetTestCase):
             self.report['commands'] = []
 
         # Attempt to redact the IP address of the probe from the standard output
-        if config.privacy.includeip is False:
+        if config.privacy.includeip is False and config.probe_ip.address is not None:
             result['stdout'] = result['stdout'].replace(config.probe_ip.address, "[REDACTED]")
             result['stderr'] = result['stderr'].replace(config.probe_ip.address, "[REDACTED]")
 
