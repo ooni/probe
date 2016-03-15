@@ -346,7 +346,7 @@ Setting up development environment
 On Debian based systems a development environment can be setup as follows: (prerequisites include build essentials, python-dev, and tor; for tor see https://www.torproject.org/docs/debian.html.en)::
 
 
-    sudo apt-get install python-pip python-virtualenv virtualenv virtualenvwrapper
+    sudo apt-get install python-pip python-virtualenv virtualenv
     sudo apt-get install libgeoip-dev libffi-dev libdumbnet-dev libssl-dev libpcap-dev
     git clone https://github.com/TheTorProject/ooni-probe
     cd ooni-probe
