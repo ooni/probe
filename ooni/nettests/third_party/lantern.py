@@ -10,6 +10,9 @@ from ooni.templates.process import ProcessTest, ProcessDirector
 from ooni.utils import log, net
 from ooni.errors import handleAllFailures
 
+class LanternNotInstalled(Exception):
+    pass
+
 class UsageOptions(usage.Options):
     optParameters = [
         ['url', 'u', net.GOOGLE_HUMANS[0],
@@ -35,6 +38,11 @@ class LanternTest(ProcessTest):
     author = "Aaron Gibson"
     version = "0.1.0"
     timeout = 120
+    usageOptions = UsageOptions
+
+    def requirements(self):
+        if not distutils.spawn.find_executable("lantern"):
+            raise LanternNotInstalled('lantern is not installed')
 
     def setUp(self):
         self.report['body'] = None
