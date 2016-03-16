@@ -58,6 +58,7 @@ class PsiphonTest(httpt.HTTPTest,  process.ProcessTest):
                 getenv('HOME'), 'psiphon-circumvention-system/pyclient/pyclient')
             log.debug('psiphon path: %s' % self.psiphonpath)
 
+    def createCommand(self):
         # psi_client.py can not be run directly because the paths in the
         # code are relative, so it'll fail to execute from this test
         x = """
@@ -68,7 +69,7 @@ connect(False)
         f.write(x)
         f.close()
         self.command = [sys.executable, f.name]
-        log.debug('command: %s' % ''.join(self.command))
+        log.debug('command: %s' % ' '.join(self.command))
 
     def handleRead(self, stdout, stderr):
         if 'Press Ctrl-C to terminate.' in self.processDirector.stdout:
@@ -81,6 +82,7 @@ connect(False)
 
     def test_psiphon(self):
         log.debug('PsiphonTest.test_psiphon')
+        self.createCommand()
 
         self.report['bootstrapped_success'] = None
         self.report['request_success'] = None
