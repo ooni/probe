@@ -6,16 +6,18 @@ from twisted.internet import defer, reactor
 from twisted.internet.error import ProcessExitedAlready
 from twisted.python import usage
 
-from ooni.utils import log
+from ooni.utils import log, net
 from ooni.templates import process, httpt
 
 
 class UsageOptions(usage.Options):
-    log.debug("UsageOptions")
     optParameters = [
-        ['psiphonpath', 'p', None, 'Specify psiphon python client path.']
+        ['psiphonpath', 'p', None, 'Specify psiphon python client path.'],
+        ['url', 'u', net.GOOGLE_HUMANS[0],
+            'Specify the URL to fetch over psiphon (default: http://www.google.com/humans.txt).'],
+        ['expected-body', 'e', net.GOOGLE_HUMANS[1],
+            'Specify the beginning of the expected body in the response (default: ' + net.GOOGLE_HUMANS[1] + ')']
     ]
-
 
 class PsiphonTest(httpt.HTTPTest,  process.ProcessTest):
 
@@ -43,8 +45,19 @@ class PsiphonTest(httpt.HTTPTest,  process.ProcessTest):
     def setUp(self):
         log.debug('PsiphonTest.setUp')
 
+        self.report['bootstrapped_success'] = None
+        self.report['request_success'] = None
+        self.report['psiphon_found'] = None
+        self.report['default_configuration'] = True
+
         self.bootstrapped = defer.Deferred()
-        self.url = 'http://www.google.com/humans.txt'
+        self.url = self.localOptions['url']
+
+        if self.localOptions['url'] != net.GOOGLE_HUMANS[0]:
+            self.report['default_configuration'] = False
+
+        if self.localOptions['expected-body'] != net.GOOGLE_HUMANS[1]:
+            self.report['default_configuration'] = False
 
         if self.localOptions['psiphonpath']:
             self.psiphonpath = self.localOptions['psiphonpath']
@@ -83,10 +96,6 @@ connect(False)
     def test_psiphon(self):
         log.debug('PsiphonTest.test_psiphon')
         self.createCommand()
-
-        self.report['bootstrapped_success'] = None
-        self.report['request_success'] = None
-        self.report['psiphon_found'] = None
         if not os.path.exists(self.psiphonpath):
             log.err('psiphon path does not exists, is it installed?')
             self.report['psiphon_found'] = False
@@ -121,7 +130,7 @@ connect(False)
             d = self.doRequest(self.url)
             def addSuccessToReport(res):
                 log.debug("PsiphonTest.callDoRequest.addSuccessToReport")
-                if res.body.startswith('Google is built by a large'):
+                if res.body.startswith(self.localOptions['expected-body']):
                     self.report['request_success'] = True
                 else:
                     self.report['request_success'] = False

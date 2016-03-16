@@ -1,11 +1,22 @@
 import os
+import distutils.spawn
+
 from twisted.internet import defer, reactor
 from twisted.internet.endpoints import TCP4ClientEndpoint
 from twisted.web.client import ProxyAgent, readBody
+from twisted.python import usage
+
 from ooni.templates.process import ProcessTest, ProcessDirector
-from ooni.utils import log
+from ooni.utils import log, net
 from ooni.errors import handleAllFailures
-import distutils.spawn
+
+class UsageOptions(usage.Options):
+    optParameters = [
+        ['url', 'u', net.GOOGLE_HUMANS[0],
+            'Specify the URL to fetch over lantern (default: http://www.google.com/humans.txt).'],
+        ['expected-body', 'e', net.GOOGLE_HUMANS[1],
+            'Specify the beginning of the expected body in the response (default: ' + net.GOOGLE_HUMANS[1] + ')']
+    ]
 
 class LanternTest(ProcessTest):
     """
@@ -26,10 +37,21 @@ class LanternTest(ProcessTest):
     timeout = 120
 
     def setUp(self):
+        self.report['body'] = None
+        self.report['failure'] = None
+        self.report['success'] = None
+        self.report['default_configuration'] = True
+
         self.command = [distutils.spawn.find_executable("lantern"), "--headless"]
         self.bootstrapped = defer.Deferred()
         self.exited = False
-        self.url = 'http://www.google.com/humans.txt'
+
+        self.url = self.localOptions['url']
+        if self.url != net.GOOGLE_HUMANS[0]:
+            self.report['default_configuration'] = False
+
+        if self.localOptions['expected-body'] != net.GOOGLE_HUMANS[1]:
+            self.report['default_configuration'] = False
 
     def stop(self, reason=None):
         if not self.exited:
@@ -49,7 +71,7 @@ class LanternTest(ProcessTest):
     def test_lantern_circumvent(self):
         def addResultToReport(result):
             self.report['body'] = result
-            if result.startswith('Google is built by a large'):
+            if result.startswith(self.localOptions['expected-body']):
                 log.msg("Got the HTTP response body I expected!")
                 self.report['success'] = True
             else:

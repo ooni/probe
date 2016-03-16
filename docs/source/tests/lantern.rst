@@ -31,6 +31,11 @@ How to run the test
 
 `ooniprobe nettests/third_party/lantern.py`
 
+For advanced usages you may also configure a different URL and expected body
+for the response with the `--url` and `--expected-body` command line options.
+
+`ooniprobe nettests/third_party/lantern.py --url http://www.github.com/humans.txt --expected-body '/* TEAM */'`
+
 Sample report
 =============
 
@@ -55,6 +60,7 @@ test_version: 0.0.1
 ---
 body: "Google is built by a large team of engineers, designers, researchers, robots, and others in many different sites across the globe. It is updated continuously, and built with more tools and technologies than we can shake a stick at. If you'd like to help us out, see google.com/careers."
 bootstrapped: true
+default_configuration: true
 input: null
 lantern --headless: {exit_reason: process_done, stderr: '', stdout: ''}
 ```

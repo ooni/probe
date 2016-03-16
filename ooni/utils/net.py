@@ -46,6 +46,9 @@ PLATFORMS = {'LINUX': sys.platform.startswith("linux"),
              'SOLARIS': sys.platform.startswith("sunos"),
              'WINDOWS': sys.platform.startswith("win32")}
 
+# This is used as a default for checking if we get the expected result when
+# fetching URLs over some proxy.
+GOOGLE_HUMANS = ('http://www.google.com/humans.txt', 'Google is built by a large')
 
 class StringProducer(object):
     implements(IBodyProducer)

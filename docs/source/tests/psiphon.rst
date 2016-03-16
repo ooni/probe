@@ -35,6 +35,12 @@ To test Psiphon when it is installed in a different path other than the user hom
 
 `ooniprobe third_party/psiphon -p <path to Psiphon repository>`
 
+For advanced usages you may also configure a different URL and expected body
+for the response with the `--url` and `--expected-body` command line options.
+
+`ooniprobe third_party/psiphon --url http://www.github.com/humans.txt --expected-body '/* TEAM */'`
+
+
 How to install Psiphon
 ===================
 
@@ -80,6 +86,7 @@ Sample report
     agent: agent
     input: null
     psiphon_installed: true
+    default_configuration: true
     requests:
     - request:
         body: null
