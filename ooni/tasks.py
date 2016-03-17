@@ -116,8 +116,6 @@ class Measurement(TaskWithTimeout):
 
         if 'input' not in self.testInstance.report.keys():
             self.testInstance.report['input'] = test_input
-        if 'measurement_start_time' not in self.testInstance.report.keys():
-            self.testInstance.report['measurement_start_time'] = otime.UTCTimestampNow()
 
         self.testInstance.setUp()
 
@@ -141,6 +139,8 @@ class Measurement(TaskWithTimeout):
         pass
 
     def run(self):
+        if 'measurement_start_time' not in self.testInstance.report.keys():
+            self.testInstance.report['measurement_start_time'] = otime.UTCTimestampNow()
         return self.netTestMethod()
 
 
