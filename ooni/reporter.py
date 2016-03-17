@@ -267,6 +267,7 @@ class OONIBReporter(OReporter):
                     'input': entry.testInstance.report.pop('input', None),
                     'id': str(uuid.uuid4()),
                     'test_start_time': entry.testInstance.report.pop('test_start_time', None),
+                    'measurement_start_time': entry.testInstance.report.pop('measurement_start_time', None),
                     'test_runtime': entry.testInstance.report.pop('test_runtime', None),
                     'test_keys': entry.testInstance.report
                 }
@@ -275,6 +276,7 @@ class OONIBReporter(OReporter):
                     'input': entry.pop('input', None),
                     'id': str(uuid.uuid4()),
                     'test_start_time': entry.pop('test_start_time', None),
+                    'measurement_start_time': entry.testInstance.report.pop('measurement_start_time', None),
                     'test_runtime': entry.pop('test_runtime', None),
                     'test_keys': entry
                 }
@@ -352,7 +354,7 @@ class OONIBReporter(OReporter):
             'probe_cc': self.testDetails['probe_cc'],
             'test_name': self.testDetails['test_name'],
             'test_version': self.testDetails['test_version'],
-            'start_time': self.testDetails['start_time'],
+            'test_start_time': self.testDetails['test_start_time'],
             'input_hashes': self.testDetails['input_hashes'],
             'data_format_version': self.testDetails['data_format_version'],
             'format': 'json'

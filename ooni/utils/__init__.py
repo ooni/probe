@@ -3,12 +3,12 @@ import string
 import random
 import glob
 import os
+from datetime import datetime
 
 import gzip
 from base64 import b64encode
 from zipfile import ZipFile
 
-from ooni import otime
 from ooni import errors
 
 
@@ -122,8 +122,8 @@ def generate_filename(testDetails, prefix=None, extension=None, filename=None):
     extension.
     """
     if filename is None:
-        test_name, start_time = testDetails['test_name'], testDetails['start_time']
-        start_time = otime.epochToTimestamp(start_time)
+        test_name, start_time = testDetails['test_name'], testDetails['test_start_time']
+        start_time = datetime.strptime(start_time, "%Y-%m-%d %H:%M:%S").strftime("%Y-%m-%dT%H%M%SZ")
         suffix = "%s-%s" % (test_name, start_time)
         basename = '%s-%s' % (prefix, suffix) if prefix is not None else suffix
         final_filename = '%s.%s' % (basename, extension) if extension is not None else basename

@@ -26,7 +26,7 @@ test_details = {
     'input_hashes': [],
     'probe_asn': 'AS0',
     'probe_cc': 'ZZ',
-    'start_time': time.time(),
+    'test_start_time': '2016-01-01 22:33:11',
     'data_format_version': '0.2.0'
 }
 

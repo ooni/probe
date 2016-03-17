@@ -1,5 +1,3 @@
-import time
-
 from mock import patch, MagicMock
 
 from ooni.settings import config
@@ -60,7 +58,7 @@ class TestStartSniffing(unittest.TestCase):
         self.director = Director()
         self.testDetails = {
             'test_name': 'foo',
-            'start_time': time.time()
+            'test_start_time': '2016-01-01 12:34:56'
         }
 
         # Each NetTestCase has a name attribute
@@ -85,7 +83,7 @@ class TestStartSniffing(unittest.TestCase):
 
             self.testDetails = {
                 'test_name': 'bar',
-                'start_time': time.time()
+                'test_start_time': '2016-01-01 12:34:56'
             }
             with patch('ooni.utils.txscapy.ScapySniffer') as mock_scapy_sniffer:
                 sniffer = mock_scapy_sniffer.return_value
