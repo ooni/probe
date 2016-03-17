@@ -68,14 +68,12 @@ class HTTPHost(httpt.HTTPTest):
         if not body.startswith("{"):
             log.msg("This does not appear to be JSON")
             self.report['transparent_http_proxy'] = True
-            self.check_for_censorship(body)
             return
         try:
             content = json.loads(body)
         except:
             log.msg("The json does not parse, this is not what we expected")
             self.report['transparent_http_proxy'] = True
-            self.check_for_censorship(body)
             return
 
         # We base the determination of the presence of a transparent HTTP
