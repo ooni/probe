@@ -276,7 +276,7 @@ class OONIBReporter(OReporter):
                     'input': entry.pop('input', None),
                     'id': str(uuid.uuid4()),
                     'test_start_time': entry.pop('test_start_time', None),
-                    'measurement_start_time': entry.testInstance.report.pop('measurement_start_time', None),
+                    'measurement_start_time': entry.pop('measurement_start_time', None),
                     'test_runtime': entry.pop('test_runtime', None),
                     'test_keys': entry
                 }

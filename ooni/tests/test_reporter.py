@@ -32,7 +32,8 @@ test_details = {
 
 oonib_new_report_message = {
     'report_id': "20140129T202038Z_AS0_" + "A" * 50,
-    'backend_version': "1.0"
+    'backend_version': "1.0",
+    'supported_formats': ["yaml", "json"]
 }
 
 oonib_generic_error_message = {
