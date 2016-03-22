@@ -206,7 +206,7 @@ class NetTestLoader(object):
 
         options = sanitize_options(self.options)
         self.testDetails = {
-            'test_start_time': otime.UTCTimestampNow(),
+            'test_start_time': otime.timestampNowLongUTC(),
             'probe_asn': config.probe_ip.geodata['asn'],
             'probe_cc': config.probe_ip.geodata['countrycode'],
             'probe_ip': config.probe_ip.geodata['ip'],

@@ -64,7 +64,7 @@ class OONILogger(object):
 
         txlog.msg("Starting %s on %s (%s UTC)" % (application_name,
                                                   otime.prettyDateNow(),
-                                                  otime.utcPrettyDateNow()))
+                                                  otime.prettyDateNowUTC()))
 
         self.fileObserver = txlog.FileLogObserver(daily_logfile)
         self.stdoutObserver = LogWithNoPrefix(sys.stdout)
