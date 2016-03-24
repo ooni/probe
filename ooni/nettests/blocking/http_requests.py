@@ -11,6 +11,8 @@ from ooni.utils.net import userAgents
 from ooni.templates import httpt
 from ooni.errors import failureToString
 
+class MissingInput(Exception):
+    pass
 
 class UsageOptions(usage.Options):
     optParameters = [
@@ -49,6 +51,12 @@ class HTTPRequestsTest(httpt.HTTPTest):
     # lengths
     control_body_length = None
     experiment_body_length = None
+
+    def requirements(self):
+        if not self.localOptions['url'] and \
+                not self.localOptions['file']:
+            raise MissingInput("You did not specify either a URL with -u "
+                               "or an input file with -f")
 
     def setUp(self):
         """
