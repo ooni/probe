@@ -72,8 +72,8 @@ def representAnswer(answer):
     }
     if answer_type is 'SOA':
         represented_answer['ttl'] = answer.payload.ttl
-        represented_answer['hostname'] = answer.payload.mname
-        represented_answer['responsible_name'] = answer.payload.rname
+        represented_answer['hostname'] = answer.payload.mname.name
+        represented_answer['responsible_name'] = answer.payload.rname.name
         represented_answer['serial_number'] = answer.payload.serial
         represented_answer['refresh_interval'] = answer.payload.refresh
         represented_answer['retry_interval'] = answer.payload.retry
