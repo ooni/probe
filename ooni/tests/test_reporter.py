@@ -36,6 +36,13 @@ oonib_new_report_message = {
     'supported_formats': ["yaml", "json"]
 }
 
+# This is used for testing legacy collectors
+oonib_new_report_yaml_message = {
+    'report_id': "20140129T202038Z_AS0_" + "A" * 50,
+    'backend_version': "1.0"
+}
+
+
 oonib_generic_error_message = {
     'error': 'generic-error'
 }
@@ -103,6 +110,13 @@ class TestOONIBReporter(unittest.TestCase):
         yield self.oonib_reporter.writeReportEntry(req)
         assert self.oonib_reporter.agent.request.called
 
+    @defer.inlineCallbacks
+    def test_write_report_entry_in_yaml(self):
+        self.mock_response = oonib_new_report_yaml_message
+        yield self.oonib_reporter.createReport()
+        req = {'content': 'something'}
+        yield self.oonib_reporter.writeReportEntry(req)
+        assert self.oonib_reporter.agent.request.called
 
 class TestOONIBReportLog(unittest.TestCase):
 
