@@ -209,25 +209,22 @@ def setupAnnotations(global_options):
     global_options["annotations"] = annotations
     return annotations
 
-def setupCollector(global_options, net_test_loader):
-    collector = None
-    if not global_options['no-collector']:
-        if global_options['collector']:
-            collector = global_options['collector']
-        elif 'collector' in config.reports \
-                and config.reports['collector']:
-            collector = config.reports['collector']
-        elif net_test_loader.collector:
-            collector = net_test_loader.collector
+def setupCollector(global_options, collector_address):
+    if global_options['collector']:
+        collector_address = global_options['collector']
+    elif 'collector' in config.reports \
+            and config.reports['collector']:
+        collector_address = config.reports['collector']
 
-    if collector and collector.startswith('httpo:') \
+    if collector_address.startswith('httpo:') \
             and (not (config.tor_state or config.tor.socks_port)):
         raise errors.TorNotRunning
-    return collector
+    return collector_address
 
 
 def createDeck(global_options, url=None):
-    log.msg("Creating deck for: %s" % (url))
+    if url:
+        log.msg("Creating deck for: %s" % (url))
 
     if global_options['no-yamloo']:
         log.msg("Will not write to a yamloo report file")
@@ -311,18 +308,16 @@ def runTestWithDirector(director, global_options, url=None,
             # If a collector is not specified in the deck, or the
             # deck is a singleton, the default collector set in
             # ooniprobe.conf will be used
-
-            collector = setupCollector(global_options, net_test_loader)
-
-            if collector and collector.startswith('httpo:') \
-                    and (not (config.tor_state or config.tor.socks_port)):
-                raise errors.TorNotRunning
+            collector_address = None
+            if not global_options['no-collector']:
+                collector_address = setupCollector(global_options,
+                                                   net_test_loader.collector)
 
             net_test_loader.annotations = global_options['annotations']
 
             yield director.startNetTest(net_test_loader,
                                         global_options['reportfile'],
-                                        collector,
+                                        collector_address,
                                         global_options['no-yamloo'])
 
     d.addCallback(setup_nettest)
