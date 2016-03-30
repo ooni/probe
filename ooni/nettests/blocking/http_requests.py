@@ -68,6 +68,7 @@ class HTTPRequestsTest(httpt.HTTPTest):
             self.url = self.localOptions['url']
         else:
             raise Exception("No input specified")
+        self.report['input'] = self.url
 
         self.factor = self.localOptions['factor']
         self.report['control_failure'] = None
