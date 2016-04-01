@@ -99,25 +99,6 @@ class ListTests(ORequestHandler):
             test_list[test_id].pop('path')
         self.write(test_list)
 
-def get_net_test_loader(test_options, test_file):
-    """
-    Args:
-        test_options: (dict) containing as keys the option names.
-
-        test_file: (string) the path to the test_file to be run.
-    Returns:
-        an instance of :class:`ooni.nettest.NetTestLoader` with the specified
-        test_file and the specified options.
-        """
-    options = []
-    for k, v in test_options.items():
-        options.append('--'+k)
-        options.append(v)
-
-    net_test_loader = NetTestLoader(options,
-            test_file=test_file)
-    return net_test_loader
-
 def get_reporters(net_test_loader):
     """
     Determines which reports are able to run and returns an instance of them.
