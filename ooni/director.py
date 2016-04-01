@@ -134,7 +134,7 @@ class Director(object):
             elif config.tor.control_port and config.tor_state is None:
                 yield connect_to_control_port()
 
-        if config.global_options['no-geoip']:
+        if config.global_options.get('no-geoip'):
             aux = [False]
             if config.global_options.get('annotations') is not None:
                 annotations = [k.lower() for k in config.global_options['annotations'].keys()]
