@@ -525,6 +525,7 @@ class NetTest(object):
             for input in test_class.inputs:
                 measurements = []
                 test_instance = test_class()
+                test_instance._setUp()
                 test_instance.summary = self.summary
                 for method in test_methods:
                     log.debug("Running %s %s" % (test_class, method))
@@ -645,6 +646,7 @@ class NetTestCase(object):
     def _setUp(self):
         """
         This is the internal setup method to be overwritten by templates.
+        It gets called once for every input.
         """
         self.report = {}
         self.inputs = None
@@ -659,6 +661,7 @@ class NetTestCase(object):
     def setUp(self):
         """
         Place here your logic to be executed when the test is being setup.
+        It gets called once every test method + input.
         """
         pass
 
