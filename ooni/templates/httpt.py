@@ -164,7 +164,6 @@ class HTTPTest(NetTestCase):
         session['failure'] = None
         if failure_string:
             session['failure'] = failure_string
-
         self.report['requests'].append(session)
 
     def _processResponseBody(self, response_body, request, response, body_processor):
@@ -338,8 +337,7 @@ class HTTPTest(NetTestCase):
             log.debug("Randomizing user agent")
             self.randomize_useragent(request)
 
-        if 'requests' not in self.report:
-            self.report['requests'] = []
+        self.report['requests'] = self.report.get('requests', [])
 
         # If we have a request body payload, set the request body to such
         # content

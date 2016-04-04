@@ -110,7 +110,6 @@ class Measurement(TaskWithTimeout):
         """
         self.testInstance = test_instance
         self.testInstance.input = test_input
-        self.testInstance._setUp()
         if not hasattr(self.testInstance, '_start_time'):
             self.testInstance._start_time = time.time()
 
