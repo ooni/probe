@@ -40,14 +40,17 @@ class HTTPInvalidRequestLine(tcpt.TCPTest):
     def setUp(self):
         self.port = int(self.localOptions['backendport'])
         self.address = self.localOptions['backend']
-        self.report['tampering'] = False
+        self.report['tampering'] = None
 
     def check_for_manipulation(self, response, payload):
         log.debug("Checking if %s == %s" % (response, payload))
         if response != payload:
+            log.msg("Detected manipulation!")
+            log.msg(response)
             self.report['tampering'] = True
         else:
-            self.report['tampering'] = self.report['tampering'] | False
+            log.msg("No manipulation detected.")
+            self.report['tampering'] = False
 
     def test_random_invalid_method(self):
         """

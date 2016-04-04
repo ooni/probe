@@ -47,6 +47,11 @@ def generate_global_input(dst):
                                            "test-lists-master/lists/"
                                            "global.csv")
 
+    if not input_list:
+        print("Could not find the global input list")
+        print("Perhaps you should run ooniresources --update-inputs")
+        raise Exception("Could not find the global input list")
+
     load_input(input_list, filename)
 
     return filename

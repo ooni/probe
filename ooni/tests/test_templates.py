@@ -1,9 +1,11 @@
-from ooni.templates import httpt
+from ooni.templates import httpt, dnst
 
+from twisted.names import dns
 from twisted.internet.error import DNSLookupError
-from twisted.internet import reactor, defer
+from twisted.internet import reactor, defer, base
 from twisted.trial import unittest
 
+base.DelayedCall.debug = True
 
 class TestHTTPT(unittest.TestCase):
     def setUp(self):
@@ -41,3 +43,41 @@ class TestHTTPT(unittest.TestCase):
         http_test._setUp()
         yield self.assertFailure(http_test.doRequest('http://invaliddomain/'), DNSLookupError)
         assert http_test.report['requests'][0]['failure'] == 'dns_lookup_error'
+
+
+class TestDNST(unittest.TestCase):
+    def test_represent_answer_a(self):
+        a_record = dns.RRHeader(payload=dns.Record_A(address="1.1.1.1"),
+                                type=dns.A)
+        self.assertEqual(dnst.representAnswer(a_record),
+                         {'ipv4': '1.1.1.1', 'answer_type': 'A'})
+
+    def test_represent_answer_ptr(self):
+        ptr_record = dns.RRHeader(payload=dns.Record_PTR(name="example.com"),
+                                  type=dns.PTR)
+        self.assertEqual(dnst.representAnswer(ptr_record),
+                         {'hostname': 'example.com', 'answer_type': 'PTR'})
+
+    def test_represent_answer_soa(self):
+        ptr_record = dns.RRHeader(payload=dns.Record_SOA(mname='example.com',
+                                                         rname='foo.example.com'),
+                                  type=dns.SOA)
+        represented_answer = {}
+        represented_answer['ttl'] = None
+        represented_answer['answer_type'] = 'SOA'
+        represented_answer['hostname'] = 'example.com'
+        represented_answer['responsible_name'] = 'foo.example.com'
+        represented_answer['serial_number'] = 0
+        represented_answer['refresh_interval'] = 0
+        represented_answer['retry_interval'] = 0
+        represented_answer['minimum_ttl'] = 0
+        represented_answer['expiration_limit'] = 0
+        self.assertEqual(dnst.representAnswer(ptr_record),
+                         represented_answer)
+
+    @defer.inlineCallbacks
+    def test_perform_a_lookup(self):
+        dns_test = dnst.DNSTest()
+        dns_test._setUp()
+        result = yield dns_test.performALookup('example.com', dns_server=('8.8.8.8', 53))
+        self.assertEqual(result, ['93.184.216.34'])

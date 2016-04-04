@@ -131,6 +131,7 @@ def getNetTestInformation(net_test_file):
 class NetTestLoader(object):
     method_prefix = 'test'
     collector = None
+    yamloo = True
     requiresTor = False
     reportID = None
 
@@ -196,8 +197,7 @@ class NetTestLoader(object):
 
         return input_files
 
-    @property
-    def testDetails(self):
+    def setTestDetails(self):
         from ooni import __version__ as software_version
 
         input_file_hashes = []
@@ -205,8 +205,8 @@ class NetTestLoader(object):
             input_file_hashes.append(input_file['hash'])
 
         options = sanitize_options(self.options)
-        test_details = {
-            'start_time': otime.epochToUTC(time.time()),
+        self.testDetails = {
+            'test_start_time': otime.timestampNowLongUTC(),
             'probe_asn': config.probe_ip.geodata['asn'],
             'probe_cc': config.probe_ip.geodata['countrycode'],
             'probe_ip': config.probe_ip.geodata['ip'],
@@ -219,9 +219,9 @@ class NetTestLoader(object):
             'input_hashes': input_file_hashes,
             'report_id': self.reportID,
             'test_helpers': self.testHelpers,
-            'annotations': self.annotations
+            'annotations': self.annotations,
+            'data_format_version': '0.2.0'
         }
-        return test_details
 
     def _parseNetTestOptions(self, klass):
         """
@@ -329,7 +329,7 @@ class NetTestLoader(object):
         self.testClasses = set([])
         self.testHelpers = {}
 
-        if config.reports.unique_id is True:
+        if config.reports.unique_id is True and not self.reportID:
             self.reportID = randomStr(64)
 
         for test_class, test_method in self.testCases:
@@ -349,6 +349,9 @@ class NetTestLoader(object):
 
             if options:
                 klass.localOptions = options
+            # XXX this class all needs to be refactored and this is kind of a
+            # hack.
+            self.setTestDetails()
 
             test_instance = klass()
             if test_instance.requiresRoot and not hasRawSocketPermission():

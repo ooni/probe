@@ -1,9 +1,5 @@
 language: python
 env:
-  - TWISTED=Twisted==12.2
-  - TWISTED=Twisted==12.3
-  - TWISTED=Twisted==13.0
-  - TWISTED=Twisted==13.1
   - TWISTED=Twisted==13.2
   - TWISTED=Twisted==14.0
   - TWISTED=Twisted==14.0.1

@@ -11,6 +11,8 @@ from ooni.utils.net import userAgents
 from ooni.templates import httpt
 from ooni.errors import failureToString
 
+class MissingInput(Exception):
+    pass
 
 class UsageOptions(usage.Options):
     optParameters = [
@@ -18,7 +20,7 @@ class UsageOptions(usage.Options):
         ['factor', 'f', 0.8,
          'What factor should be used for triggering censorship (0.8 == 80%)']]
     optFlags = [
-        ["withoutbody","B", "don't include HTTP response body inside of the report"],
+        ["withoutbody", "B", "don't include HTTP response body inside of the report"],
         ]
 
 
@@ -50,6 +52,12 @@ class HTTPRequestsTest(httpt.HTTPTest):
     control_body_length = None
     experiment_body_length = None
 
+    def requirements(self):
+        if not self.localOptions['url'] and \
+                not self.localOptions['file']:
+            raise MissingInput("You did not specify either a URL with -u "
+                               "or an input file with -f")
+
     def setUp(self):
         """
         Check for inputs.
@@ -60,6 +68,7 @@ class HTTPRequestsTest(httpt.HTTPTest):
             self.url = self.localOptions['url']
         else:
             raise Exception("No input specified")
+        self.report['input'] = self.url
 
         self.factor = self.localOptions['factor']
         self.report['control_failure'] = None

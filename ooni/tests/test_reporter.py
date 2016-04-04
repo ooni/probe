@@ -25,13 +25,23 @@ test_details = {
     'software_version': '1.0',
     'input_hashes': [],
     'probe_asn': 'AS0',
-    'start_time': time.time()
+    'probe_cc': 'ZZ',
+    'test_start_time': '2016-01-01 22:33:11',
+    'data_format_version': '0.2.0'
 }
 
 oonib_new_report_message = {
-    'report_id': "2014-01-29T202038Z_AS0_" + "A" * 50,
+    'report_id': "20140129T202038Z_AS0_" + "A" * 50,
+    'backend_version': "1.0",
+    'supported_formats': ["yaml", "json"]
+}
+
+# This is used for testing legacy collectors
+oonib_new_report_yaml_message = {
+    'report_id': "20140129T202038Z_AS0_" + "A" * 50,
     'backend_version': "1.0"
 }
+
 
 oonib_generic_error_message = {
     'error': 'generic-error'
@@ -94,10 +104,19 @@ class TestOONIBReporter(unittest.TestCase):
 
     @defer.inlineCallbacks
     def test_write_report_entry(self):
+        self.mock_response = oonib_new_report_message
+        yield self.oonib_reporter.createReport()
         req = {'content': 'something'}
         yield self.oonib_reporter.writeReportEntry(req)
         assert self.oonib_reporter.agent.request.called
 
+    @defer.inlineCallbacks
+    def test_write_report_entry_in_yaml(self):
+        self.mock_response = oonib_new_report_yaml_message
+        yield self.oonib_reporter.createReport()
+        req = {'content': 'something'}
+        yield self.oonib_reporter.writeReportEntry(req)
+        assert self.oonib_reporter.agent.request.called
 
 class TestOONIBReportLog(unittest.TestCase):
 

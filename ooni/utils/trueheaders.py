@@ -80,7 +80,7 @@ class TrueHeaders(http_headers.Headers):
                 pass
             else:
                 diff.add(name)
-        return diff
+        return list(diff)
 
     def getAllRawHeaders(self):
         for k, v in self._rawHeaders.iteritems():

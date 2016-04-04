@@ -426,7 +426,7 @@ class CaptivePortal(httpt.HTTPTest, dnst.DNSTest):
         gmatch, google_dns_result = yield self.compare_random_hostnames(3, 10)
         ret = {
             'result': gmatch,
-            'addresses': google_dns_result
+            'addresses': list(google_dns_result)
         }
 
         if gmatch:

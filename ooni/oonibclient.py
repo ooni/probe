@@ -81,7 +81,6 @@ class OONIBClient(object):
                 except ValueError:
                     raise e.get_error(None)
                 if 'error' in response:
-                    print "Got this backend error message %s" % response
                     log.err("Got this backend error message %s" % response)
                     raise e.get_error(response['error'])
                 return response
@@ -171,7 +170,6 @@ class OONIBClient(object):
             @d.addErrback
             def err(err):
                 log.err("Failed to get descriptor for deck %s" % deck_hash)
-                print err
                 log.exception(err)
 
             return d
@@ -193,7 +191,6 @@ class OONIBClient(object):
             @d.addErrback
             def err(err):
                 log.err("Failed to download the deck %s" % deck_hash)
-                print err
                 log.exception(err)
 
             return d

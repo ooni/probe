@@ -233,7 +233,7 @@ class Director(object):
 
     @defer.inlineCallbacks
     def startNetTest(self, net_test_loader, report_filename,
-                     collector_address=None):
+                     collector_address=None, no_yamloo=False):
         """
         Create the Report for the NetTest and start the report NetTest.
 
@@ -241,14 +241,19 @@ class Director(object):
             net_test_loader:
                 an instance of :class:ooni.nettest.NetTestLoader
         """
+        # Here we set the test details again since the geoip lookups may
+        # not have already been done and probe_asn and probe_ip
+        # are not set.
+        net_test_loader.setTestDetails()
+
         if self.allTestsDone.called:
             self.allTestsDone = defer.Deferred()
 
         if config.privacy.includepcap:
             self.startSniffing(net_test_loader.testDetails)
-
         report = Report(net_test_loader.testDetails, report_filename,
-                        self.reportEntryManager, collector_address)
+                        self.reportEntryManager, collector_address,
+                        no_yamloo)
 
         net_test = NetTest(net_test_loader, report)
         net_test.director = self

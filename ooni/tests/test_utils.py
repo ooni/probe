@@ -8,7 +8,7 @@ class TestUtils(unittest.TestCase):
     def setUp(self):
         self.test_details = {
             'test_name': 'foo',
-            'start_time': 441763200
+            'test_start_time': '2016-01-01 01:22:22'
         }
         self.extension = 'ext'
         self.prefix = 'prefix'
@@ -46,19 +46,19 @@ class TestUtils(unittest.TestCase):
 
     def test_generate_filename(self):
         filename = generate_filename(self.test_details)
-        self.assertEqual(filename, 'foo-1984-01-01T000000Z')
+        self.assertEqual(filename, 'foo-2016-01-01T012222Z')
 
     def test_generate_filename_with_extension(self):
         filename = generate_filename(self.test_details, extension=self.extension)
-        self.assertEqual(filename, 'foo-1984-01-01T000000Z.ext')
+        self.assertEqual(filename, 'foo-2016-01-01T012222Z.ext')
 
     def test_generate_filename_with_prefix(self):
         filename = generate_filename(self.test_details, prefix=self.prefix)
-        self.assertEqual(filename, 'prefix-foo-1984-01-01T000000Z')
+        self.assertEqual(filename, 'prefix-foo-2016-01-01T012222Z')
 
     def test_generate_filename_with_extension_and_prefix(self):
         filename = generate_filename(self.test_details, prefix=self.prefix, extension=self.extension)
-        self.assertEqual(filename, 'prefix-foo-1984-01-01T000000Z.ext')
+        self.assertEqual(filename, 'prefix-foo-2016-01-01T012222Z.ext')
 
     def test_generate_filename_with_filename(self):
         filename = generate_filename(self.test_details, filename=self.filename)

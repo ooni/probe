@@ -1,17 +1,4 @@
-from datetime import datetime, timedelta, tzinfo
-
-class UTC(tzinfo):
-    """UTC"""
-    ZERO = timedelta(0)
-
-    def utcoffset(self, dt):
-        return self.ZERO
-
-    def tzname(self, dt):
-        return "UTC"
-
-    def dst(self, dt):
-        return self.ZERO
+from datetime import datetime
 
 def prettyDateNow():
     """
@@ -19,69 +6,15 @@ def prettyDateNow():
     """
     return datetime.now().ctime()
 
-def utcPrettyDateNow():
+def prettyDateNowUTC():
     """
     Returns a good looking string for utc time.
     """
     return datetime.utcnow().ctime()
 
-class InvalidTimestampFormat(Exception):
-    pass
-
-def fromTimestamp(s):
+def timestampNowLongUTC():
     """
-    Converts a string that is output from the timestamp function back to a
-    datetime object
-
-    Args:
-        s (str): a ISO8601 formatted string.
-            ex. 1912-06-23T101234Z"
-
-    Note: we currently only support parsing strings that are generated from the
-        timestamp function and have no intention in supporting the full standard.
+    Returns a timestamp in the format of %Y-%m-%d %H:%M:%S in Universal Time
+    Coordinates.
     """
-    try:
-        date_part, time_part = s.split('T')
-        hours, minutes, seconds = time_part[:2], time_part[2:4], time_part[4:6]
-        year, month, day = date_part.split('-')
-    except:
-        raise InvalidTimestampFormat(s)
-
-    return datetime(int(year), int(month), int(day), int(hours), int(minutes),
-            int(seconds))
-
-def timestamp(t=None):
-    """
-    The timestamp for ooni reports follows ISO 8601 in
-    UTC time format.
-    We do not inlcude ':' and include seconds.
-
-    Example:
-
-        if the current date is "10:12:34 AM, June 23 1912" (datetime(1912, 6,
-            23, 10, 12, 34))
-
-        the timestamp will be:
-
-           "1912-06-23T101234Z"
-
-    Args:
-        t (datetime): a datetime object representing the
-            time to be represented (*MUST* be expressed
-            in UTC).
-
-        If not specified will default to the current time
-        in UTC.
-    """
-    if not t:
-        t = datetime.utcnow()
-    ISO8601 = "%Y-%m-%dT%H%M%SZ"
-    return t.strftime(ISO8601)
-
-
-def epochToTimestamp(seconds):
-    return timestamp(datetime.fromtimestamp(seconds, UTC()))
-
-
-def epochToUTC(seconds):
-    return float(datetime.utcfromtimestamp(seconds).strftime("%s"))
+    return datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")

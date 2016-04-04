@@ -9,7 +9,7 @@ from twisted.internet.endpoints import TCP4ClientEndpoint
 from ooni.utils.trueheaders import TrueHeadersAgent, TrueHeadersSOCKS5Agent
 
 from ooni.nettest import NetTestCase
-from ooni.utils import log
+from ooni.utils import log, base64Dict
 from ooni.settings import config
 
 from ooni.utils.net import BodyReceiver, StringProducer, userAgents
@@ -122,11 +122,29 @@ class HTTPTest(NetTestCase):
 
             failure (instance): An instance of :class:twisted.internet.failure.Failure
         """
+        def _representHeaders(headers):
+            represented_headers = {}
+            for name, value in headers.getAllRawHeaders():
+                represented_headers[name] = value[0]
+            return represented_headers
+
+        def _representBody(body):
+            # XXX perhaps add support for decoding gzip in the future.
+            try:
+                body = unicode(body, 'ascii')
+                body = body.replace('\0', '')
+            except UnicodeDecodeError:
+                try:
+                    body = unicode(body, 'utf-8')
+                    body = body.replace('\0', '')
+                except UnicodeDecodeError:
+                    body = base64Dict(body)
+
         log.debug("Adding %s to report" % request)
         request_headers = TrueHeaders(request['headers'])
-        request_response = {
+        session = {
             'request': {
-                'headers': list(request_headers.getAllRawHeaders()),
+                'headers': _representHeaders(request_headers),
                 'body': request['body'],
                 'url': request['url'],
                 'method': request['method'],
@@ -134,14 +152,19 @@ class HTTPTest(NetTestCase):
             }
         }
         if response:
-            request_response['response'] = {
-                'headers': list(response.headers.getAllRawHeaders()),
-                'body': response_body if self.localOptions.get('withoutbody', 0) == 0 else '',
+            if self.localOptions.get('withoutbody', 0) is 0:
+                response_body = _representBody(response_body)
+            else:
+                response_body = ''
+            session['response'] = {
+                'headers': _representHeaders(response.headers),
+                'body': response_body,
                 'code': response.code
-            }
+        }
+        session['failure'] = None
         if failure_string:
-            request_response['failure'] = failure_string
-        self.report['requests'].append(request_response)
+            session['failure'] = failure_string
+        self.report['requests'].append(session)
 
     def _processResponseBody(self, response_body, request, response, body_processor):
         log.debug("Processing response body")
@@ -301,7 +324,10 @@ class HTTPTest(NetTestCase):
         request['url'] = url
         request['headers'] = headers
         request['body'] = body
-        request['tor'] = {}
+        request['tor'] = {
+            'exit_ip': None,
+            'exit_name': None
+        }
         if use_tor:
             request['tor']['is_tor'] = True
         else:
@@ -324,9 +350,9 @@ class HTTPTest(NetTestCase):
 
         def errback(failure, request):
             if request['tor']['is_tor']:
-                log.err("Error performing torified request: %s" % request['url'])
+                log.err("Error performing torified HTTP request: %s" % request['url'])
             else:
-                log.err("Error performing request: %s" % request['url'])
+                log.err("Error performing HTTP request: %s" % request['url'])
             failure_string = handleAllFailures(failure)
             self.addToReport(request, failure_string=failure_string)
             return failure
