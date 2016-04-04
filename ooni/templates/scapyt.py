@@ -1,9 +1,12 @@
+from scapy.all import TCP, UDP
+
 from ooni.nettest import NetTestCase
 from ooni.utils import log
 from ooni.settings import config
 from ooni.utils.net import hasRawSocketPermission
 
 from ooni.utils.txscapy import ScapySender, ScapyFactory
+from ooni.sniffer import Filter
 
 
 class BaseScapyTest(NetTestCase):
@@ -73,6 +76,9 @@ class BaseScapyTest(NetTestCase):
         """
         This gets called when all packets have been sent and received.
         """
+        if self.sniffer is not None:
+            for sniffer_filter in self.__sniffer_filters:
+                self.sniffer.del_filter(sniffer_filter)
         answered, unanswered = packets
 
         for snd, rcv in answered:
@@ -92,12 +98,41 @@ class BaseScapyTest(NetTestCase):
             self.report['answered_packets'].append(received_packet)
         return packets
 
-    def sr(self, packets, timeout=None, *arg, **kw):
+    def add_filters(self, packets):
+        if not isinstance(packets, list):
+            packets = list(packets)
+        self.__sniffer_filters = []
+        for packet in packets:
+            sniffer_filter = Filter()
+            self.sniffer.add_filter(sniffer_filter)
+            self.__sniffer_filters.append(sniffer_filter)
+
+            src = dst = None
+            if 'src' in packet.fields:
+                src = packet.fields['src']
+            if 'dst' in packet.fields:
+                dst = packet.fields['dst']
+            sniffer_filter.add_ip_rule(dst=dst, src=src)
+
+            if 'payload' in dir(packet):
+                sport = dport = None
+                if 'sport' in packet.payload.fields:
+                    sport = packet.payload.fields['sport']
+                if 'dport' in packet.payload.fields:
+                    dport = packet.payload.fields['dport']
+                if isinstance(packet.payload, TCP):
+                    sniffer_filter.add_tcp_rule(dport=dport, sport=sport)
+                elif isinstance(packet.payload, UDP):
+                    sniffer_filter.add_udp_rule(dport=dport, sport=sport)
+
+    def sr(self, packets, *arg, **kw):
         """
         Wrapper around scapy.sendrecv.sr for sending and receiving of packets
         at layer 3.
         """
-        scapySender = ScapySender(timeout=timeout)
+        if self.sniffer is not None:
+            self.add_filters(packets)
+        scapySender = ScapySender()
 
         config.scapyFactory.registerProtocol(scapySender)
         log.debug("Using sending with hash %s" % scapySender.__hash__)
@@ -119,6 +154,8 @@ class BaseScapyTest(NetTestCase):
                 log.err("Got no response...")
                 return packets
 
+        if self.sniffer is not None:
+            self.add_filters(packets)
         scapySender = ScapySender()
         scapySender.expected_answers = 1
 
@@ -135,6 +172,8 @@ class BaseScapyTest(NetTestCase):
         """
         Wrapper around scapy.sendrecv.send for sending of packets at layer 3
         """
+        if self.sniffer is not None:
+            self.add_filters(packets)
         scapySender = ScapySender()
 
         config.scapyFactory.registerProtocol(scapySender)

@@ -11,11 +11,13 @@ from twisted.names.client import Resolver
 from ooni.utils import log
 from ooni.nettest import NetTestCase
 from ooni.errors import failureToString
+from ooni.sniffer import Filter
 
 import socket
 from socket import gaierror
 
 dns.DNSDatagramProtocol.noisy = False
+
 
 def _bindSocket(self):
     """
@@ -33,12 +35,15 @@ def _bindSocket(self):
 
     # Here we remove the logging.
     # log.msg("%s starting on %s" % (
-    #         self._getLogPrefix(self.protocol), self._realPortNumber))
+    # self._getLogPrefix(self.protocol), self._realPortNumber))
 
     self.connected = 1
     self.socket = skt
     self.fileno = self.socket.fileno
+
+
 udp.Port._bindSocket = _bindSocket
+
 
 def connectionLost(self, reason=None):
     """
@@ -55,12 +60,16 @@ def connectionLost(self, reason=None):
     if hasattr(self, "d"):
         self.d.callback(None)
         del self.d
+
+
 udp.Port.connectionLost = connectionLost
+
 
 def representAnswer(answer):
     # We store the resource record and the answer payload in a
     # tuple
     return (repr(answer), repr(answer.payload))
+
 
 class DNSTest(NetTestCase):
     name = "Base DNS Test"
@@ -74,7 +83,7 @@ class DNSTest(NetTestCase):
 
         self.report['queries'] = []
 
-    def performPTRLookup(self, address, dns_server = None):
+    def performPTRLookup(self, address, dns_server=None):
         """
         Does a reverse DNS lookup on the input ip address
 
@@ -88,7 +97,7 @@ class DNSTest(NetTestCase):
         ptr = '.'.join(address.split('.')[::-1]) + '.in-addr.arpa'
         return self.dnsLookup(ptr, 'PTR', dns_server)
 
-    def performALookup(self, hostname, dns_server = None):
+    def performALookup(self, hostname, dns_server=None):
         """
         Performs an A lookup and returns an array containg all the dotted quad
         IP addresses in the response.
@@ -102,7 +111,7 @@ class DNSTest(NetTestCase):
         """
         return self.dnsLookup(hostname, 'A', dns_server)
 
-    def performNSLookup(self, hostname, dns_server = None):
+    def performNSLookup(self, hostname, dns_server=None):
         """
         Performs a NS lookup and returns an array containg all nameservers in
         the response.
@@ -116,7 +125,7 @@ class DNSTest(NetTestCase):
         """
         return self.dnsLookup(hostname, 'NS', dns_server)
 
-    def performSOALookup(self, hostname, dns_server = None):
+    def performSOALookup(self, hostname, dns_server=None):
         """
         Performs a SOA lookup and returns the response (name,serial).
 
@@ -126,9 +135,9 @@ class DNSTest(NetTestCase):
 
                      if None, system dns settings will be used
         """
-        return self.dnsLookup(hostname,'SOA',dns_server)
+        return self.dnsLookup(hostname, 'SOA', dns_server)
 
-    def dnsLookup(self, hostname, dns_type, dns_server = None):
+    def dnsLookup(self, hostname, dns_type, dns_server=None):
         """
         Performs a DNS lookup and returns the response.
 
@@ -137,11 +146,16 @@ class DNSTest(NetTestCase):
         :dns_server: is the dns_server that should be used for the lookup as a
                      tuple of ip port (ex. ("127.0.0.1", 53))
         """
-        types={'NS':dns.NS,'A':dns.A,'SOA':dns.SOA,'PTR':dns.PTR}
-        dnsType=types[dns_type]
+        types = {'NS': dns.NS, 'A': dns.A, 'SOA': dns.SOA, 'PTR': dns.PTR}
+        dnsType = types[dns_type]
         query = [dns.Query(hostname, dnsType, dns.IN)]
+        if self.sniffer is not None:
+            self.__sniffer_filter = Filter()
+            self.__sniffer_filter.add_dns_rule(hostname)
+            self.sniffer.add_filter(self.__sniffer_filter)
+
         def gotResponse(message):
-            log.debug(dns_type+" Lookup successful")
+            log.debug(dns_type + " Lookup successful")
             log.debug(str(message))
             addrs = []
             answers = []
@@ -152,8 +166,8 @@ class DNSTest(NetTestCase):
             for answer in msg:
                 if answer.type is dnsType:
                     if dnsType is dns.SOA:
-                        addr = (answer.name.name,answer.payload.serial)
-                    elif dnsType in [dns.NS,dns.PTR]:
+                        addr = (answer.name.name, answer.payload.serial)
+                    elif dnsType in [dns.NS, dns.PTR]:
                         addr = answer.payload.name.name
                     elif dnsType is dns.A:
                         addr = answer.payload.dottedQuad()
@@ -163,20 +177,25 @@ class DNSTest(NetTestCase):
                 answers.append(representAnswer(answer))
 
             DNSTest.addToReport(self, query, resolver=dns_server, query_type=dns_type,
-                        answers=answers, addrs=addrs)
+                                answers=answers, addrs=addrs)
+            if self.sniffer is not None:
+                self.sniffer.del_filter(self.__sniffer_filter)
             return addrs
 
         def gotError(failure):
             failure.trap(gaierror, TimeoutError)
             DNSTest.addToReport(self, query, resolver=dns_server, query_type=dns_type,
-                        failure=failure)
+                                failure=failure)
+            if self.sniffer is not None:
+                self.sniffer.del_filter(self.__sniffer_filter)
             return failure
 
         if dns_server:
             resolver = Resolver(servers=[dns_server])
             d = resolver.queryUDP(query, timeout=self.queryTimeout)
         else:
-            lookupFunction={'NS':client.lookupNameservers, 'SOA':client.lookupAuthority, 'A':client.lookupAddress, 'PTR':client.lookupPointer}
+            lookupFunction = {'NS': client.lookupNameservers, 'SOA': client.lookupAuthority, 'A': client.lookupAddress,
+                              'PTR': client.lookupPointer}
             d = lookupFunction[dns_type](hostname)
 
         d.addCallback(gotResponse)

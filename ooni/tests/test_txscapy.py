@@ -1,6 +1,10 @@
+import os
+
 from mock import MagicMock
 from twisted.internet import defer
 from twisted.trial import unittest
+
+from scapy.all import IP, TCP
 
 from ooni.utils import txscapy
 
@@ -9,21 +13,17 @@ defer.setDebugging(True)
 
 class TestTxScapy(unittest.TestCase):
     def setUp(self):
-        # if not txscapy.hasRawSocketPermission():
-        # self.skipTest("No raw socket permissions...")
         mock_super_socket = MagicMock()
         mock_super_socket.ins.fileno.return_value = 1
         self.scapy_factory = txscapy.ScapyFactory('foo', mock_super_socket)
+        self.filenames = []
 
     def tearDown(self):
         self.scapy_factory.connectionLost(None)
-
-    def test_pcapdnet_installed(self):
-        assert txscapy.pcapdnet_installed() is True
+        for filename in self.filenames:
+            os.unlink(filename)
 
     def test_send_packet_no_answer(self):
-        from scapy.all import IP, TCP
-
         sender = txscapy.ScapySender()
         self.scapy_factory.registerProtocol(sender)
         packet = IP(dst='8.8.8.8') / TCP(dport=53)
@@ -33,8 +33,6 @@ class TestTxScapy(unittest.TestCase):
 
     @defer.inlineCallbacks
     def test_send_packet_with_answer(self):
-        from scapy.all import IP, TCP
-
         sender = txscapy.ScapySender()
         self.scapy_factory.registerProtocol(sender)
 
@@ -52,3 +50,6 @@ class TestTxScapy(unittest.TestCase):
         assert result[0][0][0] == packet_sent
         assert result[0][0][1] == packet_received
 
+    def test_get_addresses(self):
+        addresses = txscapy.getAddresses()
+        assert isinstance(addresses, list)

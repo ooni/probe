@@ -22,6 +22,7 @@ class OConfig(object):
         self.global_options = {}
         self.reports = Storage()
         self.scapyFactory = None
+        self.snifferFactory = None
         self.tor_state = None
         # This is used to store the probes IP address obtained via Tor
         self.probe_ip = geoip.ProbeIP()

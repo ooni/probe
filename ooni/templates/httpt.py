@@ -11,6 +11,7 @@ from ooni.utils.trueheaders import TrueHeadersAgent, TrueHeadersSOCKS5Agent
 from ooni.nettest import NetTestCase
 from ooni.utils import log
 from ooni.settings import config
+from ooni.sniffer import Filter
 
 from ooni.utils.net import BodyReceiver, StringProducer, userAgents
 from ooni.utils.trueheaders import TrueHeaders
@@ -20,13 +21,13 @@ from ooni.errors import handleAllFailures
 class InvalidSocksProxyOption(Exception):
     pass
 
-class StreamListener(StreamListenerMixin):
 
+class StreamListener(StreamListenerMixin):
     def __init__(self, request):
         self.request = request
 
     def stream_succeeded(self, stream):
-        host=self.request['url'].split('/')[2]
+        host = self.request['url'].split('/')[2]
         try:
             if stream.target_host == host and len(self.request['tor']) == 1:
                 self.request['tor']['exit_ip'] = stream.circuit.path[-1].ip
@@ -34,6 +35,7 @@ class StreamListener(StreamListenerMixin):
                 config.tor_state.stream_listeners.remove(self)
         except:
             log.err("Tor Exit ip detection failed")
+
 
 class HTTPTest(NetTestCase):
     """
@@ -56,7 +58,7 @@ class HTTPTest(NetTestCase):
     followRedirects = False
 
     baseParameters = [['socksproxy', 's', None,
-        'Specify a socks proxy to use for requests (ip:port)']]
+                       'Specify a socks proxy to use for requests (ip:port)']]
 
     def _setUp(self):
         super(HTTPTest, self)._setUp()
@@ -65,11 +67,11 @@ class HTTPTest(NetTestCase):
             import OpenSSL
         except:
             log.err("Warning! pyOpenSSL is not installed. https websites will "
-                     "not work")
+                    "not work")
 
         self.control_agent = TrueHeadersSOCKS5Agent(reactor,
-                proxyEndpoint=TCP4ClientEndpoint(reactor, '127.0.0.1',
-                    config.tor.socks_port))
+                                                    proxyEndpoint=TCP4ClientEndpoint(reactor, '127.0.0.1',
+                                                                                     config.tor.socks_port))
 
         self.report['socksproxy'] = None
         sockshost, socksport = (None, None)
@@ -81,8 +83,8 @@ class HTTPTest(NetTestCase):
                 raise InvalidSocksProxyOption
             socksport = int(socksport)
             self.agent = TrueHeadersSOCKS5Agent(reactor,
-                proxyEndpoint=TCP4ClientEndpoint(reactor, sockshost,
-                    socksport))
+                                                proxyEndpoint=TCP4ClientEndpoint(reactor, sockshost,
+                                                                                 socksport))
         else:
             self.agent = TrueHeadersAgent(reactor)
 
@@ -91,15 +93,17 @@ class HTTPTest(NetTestCase):
         if self.followRedirects:
             try:
                 from twisted.web.client import RedirectAgent
+
                 self.control_agent = RedirectAgent(self.control_agent)
                 self.agent = RedirectAgent(self.agent)
                 self.report['agent'] = 'redirect'
             except:
-                log.err("Warning! You are running an old version of twisted"\
-                        "(<= 10.1). I will not be able to follow redirects."\
+                log.err("Warning! You are running an old version of twisted" \
+                        "(<= 10.1). I will not be able to follow redirects." \
                         "This may make the testing less precise.")
 
         self.processInputs()
+        self.__sniffer_filter = None
         log.debug("Finished test setup")
 
     def randomize_useragent(self, request):
@@ -151,12 +155,16 @@ class HTTPTest(NetTestCase):
         else:
             self.processResponseBody(response_body)
         response.body = response_body
+        if self.__sniffer_filter is not None:
+            self.sniffer.del_filter(self.__sniffer_filter)
         return response
 
     def _processResponseBodyFail(self, failure, request, response):
         failure_string = handleAllFailures(failure)
         HTTPTest.addToReport(self, request, response,
                              failure_string=failure_string)
+        if self.__sniffer_filter is not None:
+            self.sniffer.del_filter(self.__sniffer_filter)
         return response
 
     def processResponseBody(self, body):
@@ -199,7 +207,7 @@ class HTTPTest(NetTestCase):
         pass
 
     def _cbResponse(self, response, request,
-            headers_processor, body_processor):
+                    headers_processor, body_processor):
         """
         This callback is fired once we have gotten a response for our request.
         If we are using a RedirectAgent then this will fire once we have
@@ -246,7 +254,7 @@ class HTTPTest(NetTestCase):
         finished = defer.Deferred()
         response.deliverBody(BodyReceiver(finished, content_length))
         finished.addCallback(self._processResponseBody, request,
-                response, body_processor)
+                             response, body_processor)
         finished.addErrback(self._processResponseBodyFail, request,
                             response)
         return finished
@@ -295,6 +303,10 @@ class HTTPTest(NetTestCase):
             log.debug("Using SOCKS proxy %s for request" % (self.localOptions['socksproxy']))
 
         log.debug("Performing request %s %s %s" % (url, method, headers))
+        if self.sniffer is not None and not use_tor:
+            self.__sniffer_filter = Filter()
+            self.__sniffer_filter.add_http_rule(url)
+            self.sniffer.add_filter(self.__sniffer_filter)
 
         request = {}
         request['method'] = method
@@ -337,8 +349,8 @@ class HTTPTest(NetTestCase):
                 state.add_stream_listener(StreamListener(request))
 
         d = agent.request(request['method'], request['url'], headers,
-                body_producer)
+                          body_producer)
         d.addErrback(errback, request)
         d.addCallback(self._cbResponse, request, headers_processor,
-                body_processor)
+                      body_processor)
         return d

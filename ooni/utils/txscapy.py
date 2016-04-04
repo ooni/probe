@@ -1,81 +1,17 @@
 import sys
 import time
 import random
+
 from twisted.internet import fdesc
 from twisted.internet import reactor
 from twisted.internet import defer, abstract
+
 from scapy.config import conf
 from scapy.all import RandShort, IP, IPerror, ICMP, ICMPerror, TCP, TCPerror, UDP, UDPerror
 
 from ooni.errors import ProtocolNotRegistered, ProtocolAlreadyRegistered, LibraryNotInstalledError
-
 from ooni.utils import log
-
 from ooni.utils.net import getDefaultIface, getAddresses
-from ooni.settings import config
-
-
-def pcapdnet_installed():
-    """
-    Checks to see if libdnet or libpcap are installed and set the according
-    variables.
-
-    Returns:
-
-        True
-            if pypcap and libdnet are installed
-
-        False
-            if one of the two is absent
-    """
-    # In debian libdnet is called dumbnet instead of dnet, but scapy is
-    # expecting "dnet" so we try and import it under such name.
-    try:
-        import dumbnet
-
-        sys.modules['dnet'] = dumbnet
-    except ImportError:
-        pass
-
-    try:
-        conf.use_pcap = True
-        conf.use_dnet = True
-        from scapy.arch import pcapdnet
-
-        config.pcap_dnet = True
-
-    except ImportError as e:
-        log.err(e.message + ". Pypcap or dnet are not properly installed. Certain tests may not work.")
-        config.pcap_dnet = False
-        conf.use_pcap = False
-        conf.use_dnet = False
-
-    # This is required for unix systems that are different than linux (OSX for
-    # example) since scapy explicitly wants pcap and libdnet installed for it
-    # to work.
-    try:
-        from scapy.arch import pcapdnet
-    except ImportError:
-        log.err("Your platform requires having libdnet and libpcap installed.")
-        raise LibraryNotInstalledError
-
-    return config.pcap_dnet
-
-
-if pcapdnet_installed():
-    from scapy.all import PcapWriter
-
-else:
-
-    class DummyPcapWriter:
-        def __init__(self, pcap_filename, *arg, **kw):
-            log.err("Initializing DummyPcapWriter. We will not actually write to a pcapfile")
-
-        @staticmethod
-        def write(self):
-            pass
-
-    PcapWriter = DummyPcapWriter
 
 from scapy.all import Gen, SetGen, MTU
 
@@ -139,6 +75,7 @@ class ScapyFactory(abstract.FileDescriptor):
                 self.loseConnection()
         else:
             raise ProtocolNotRegistered
+
 
 class ScapyProtocol(object):
     factory = None
@@ -234,17 +171,6 @@ class ScapySender(ScapyProtocol):
         return self.d
 
 
-class ScapySniffer(ScapyProtocol):
-    def __init__(self, pcap_filename, *arg, **kw):
-        self.pcapwriter = PcapWriter(pcap_filename, *arg, **kw)
-
-    def packetReceived(self, packet):
-        self.pcapwriter.write(packet)
-
-    def close(self):
-        self.pcapwriter.close()
-
-
 class ParasiticTraceroute(ScapyProtocol):
     def __init__(self):
         self.numHosts = 7
@@ -303,7 +229,6 @@ class ParasiticTraceroute(ScapyProtocol):
             if packet.dst not in self.hosts \
                     and packet.dst not in self.addresses \
                     and isinstance(packet.getlayer(1), TCP):
-
                 self.hosts[packet.dst] = {'ttl': genttl()}
                 log.debug("Tracing to %s" % packet.dst)
                 return
