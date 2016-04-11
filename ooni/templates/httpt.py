@@ -139,6 +139,7 @@ class HTTPTest(NetTestCase):
                     body = body.replace('\0', '')
                 except UnicodeDecodeError:
                     body = base64Dict(body)
+            return body
 
         log.debug("Adding %s to report" % request)
         request_headers = TrueHeaders(request['headers'])
