@@ -92,7 +92,7 @@ class TestOONIBReporter(unittest.TestCase):
     def test_create_report(self):
         self.mock_response = oonib_new_report_message
         yield self.oonib_reporter.createReport()
-        assert self.oonib_reporter.reportID == oonib_new_report_message[
+        assert self.oonib_reporter.reportId == oonib_new_report_message[
             'report_id']
 
     @defer.inlineCallbacks

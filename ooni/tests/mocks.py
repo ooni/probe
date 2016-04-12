@@ -203,3 +203,22 @@ class MockOONIBClient(object):
                 'collector': 'httpo://thirteenchars1234.onion'
             }
         return defer.succeed(ret)
+
+    def lookupTestCollector(self, net_tests):
+        ret = {
+            'net-tests': [
+            ]
+        }
+        for net_test in net_tests:
+            test_helpers ={}
+            for test_helper in net_test['test-helpers']:
+                test_helpers[test_helper] = '127.0.0.1'
+
+            ret['net-tests'].append({
+                'name': net_test['name'],
+                'version': net_test['version'],
+                'input-hashes': net_test['input-hashes'],
+                'collector': 'httpo://thirteenchars1234.onion',
+                'test-helpers': test_helpers
+            })
+        return defer.succeed(ret)

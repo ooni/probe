@@ -115,9 +115,6 @@ class Measurement(TaskWithTimeout):
 
         if 'input' not in self.testInstance.report.keys():
             self.testInstance.report['input'] = test_input
-        if 'test_start_time' not in self.testInstance.report.keys():
-            start_time = otime.epochToNewTimestamp(self.testInstance._start_time)
-            self.testInstance.report['test_start_time'] = start_time
 
         self.testInstance.setUp()
 

@@ -171,10 +171,10 @@ class Deck(InputFile):
 
         if self.bouncer:
             log.msg("Looking up collector and test helpers")
-            yield self.lookupCollector()
+            yield self.lookupCollectorAndTestHelpers()
 
     @defer.inlineCallbacks
-    def lookupCollector(self):
+    def lookupCollectorAndTestHelpers(self):
         self.oonibclient.address = self.bouncer
 
         required_nettests = []
@@ -221,9 +221,9 @@ class Deck(InputFile):
                     net_test_loader.testName)
 
             collector, test_helpers = \
-                find_collector_and_test_helpers(net_test_loader.testName,
-                                                net_test_loader.testVersion,
-                                                net_test_loader.inputFiles)
+                find_collector_and_test_helpers(test_name=net_test_loader.testName,
+                                                test_version=net_test_loader.testVersion,
+                                                input_files=net_test_loader.inputFiles)
 
             for option, name in net_test_loader.missingTestHelpers:
                 test_helper_address = test_helpers[name].encode('utf-8')
@@ -232,48 +232,6 @@ class Deck(InputFile):
 
             if not net_test_loader.collector:
                 net_test_loader.collector = collector.encode('utf-8')
-
-    @defer.inlineCallbacks
-    def lookupTestHelpers(self):
-        self.oonibclient.address = self.bouncer
-
-        required_test_helpers = []
-        requires_collector = []
-        for net_test_loader in self.netTestLoaders:
-            if not net_test_loader.collector and not self.no_collector:
-                requires_collector.append(net_test_loader)
-
-            required_test_helpers += map(lambda x: x[1],
-                                           net_test_loader.missingTestHelpers)
-
-        if not required_test_helpers and not requires_collector:
-            defer.returnValue(None)
-
-        response = yield self.oonibclient.lookupTestHelpers(required_test_helpers)
-
-        for net_test_loader in self.netTestLoaders:
-            log.msg("Setting collector and test helpers for %s" %
-                    net_test_loader.testName)
-
-            # Only set the collector if the no collector has been specified
-            # from the command line or via the test deck.
-            if len(net_test_loader.missingTestHelpers) == 0 and \
-                            net_test_loader in requires_collector:
-                log.msg("Using the default collector: %s" %
-                        response['default']['collector'])
-                net_test_loader.collector = response['default']['collector'].encode('utf-8')
-                continue
-
-            for option, name in net_test_loader.missingTestHelpers:
-                test_helper_address = response[name]['address'].encode('utf-8')
-                test_helper_collector = \
-                    response[name]['collector'].encode('utf-8')
-
-                log.msg("Using this helper: %s" % test_helper_address)
-                net_test_loader.localOptions[option] = test_helper_address
-                net_test_loader.testHelpers[option] = test_helper_address
-                if net_test_loader in requires_collector:
-                    net_test_loader.collector = test_helper_collector
 
     @defer.inlineCallbacks
     def fetchAndVerifyNetTestInput(self, net_test_loader):

@@ -253,15 +253,9 @@ class Director(object):
                         self.reportEntryManager, collector_address,
                         no_yamloo)
 
+        yield report.open()
         net_test = NetTest(test_cases, test_details, report)
         net_test.director = self
-
-        yield net_test.report.open()
-
-        # XXX this needs some serious refactoring
-        net_test_loader.reportID = report.reportID
-        net_test.reportID = report.reportID
-        net_test.testDetails['report_id'] = report.reportID
 
         yield net_test.initializeInputProcessor()
         try:

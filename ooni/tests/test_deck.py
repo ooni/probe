@@ -148,7 +148,7 @@ class TestDeck(BaseTestCase):
         deck.verify()
 
     @defer.inlineCallbacks
-    def test_lookuptest_helpers(self):
+    def test_lookup_test_helpers_and_collector(self):
         deck = Deck(decks_directory=".")
         deck.bouncer = "httpo://foo.onion"
         deck.oonibclient = MockOONIBClient()
@@ -156,7 +156,7 @@ class TestDeck(BaseTestCase):
 
         self.assertEqual(len(deck.netTestLoaders[0].missingTestHelpers), 1)
 
-        yield deck.lookupTestHelpers()
+        yield deck.lookupCollectorAndTestHelpers()
 
         self.assertEqual(deck.netTestLoaders[0].collector,
                          'httpo://thirteenchars1234.onion')

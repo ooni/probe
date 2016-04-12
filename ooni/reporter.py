@@ -163,7 +163,10 @@ class YAMLReporter(OReporter):
         if not os.path.isdir(report_destination):
             raise errors.InvalidDestination
 
-        report_filename = generate_filename(test_details, filename=report_filename, prefix='report', extension='yamloo')
+        report_filename = generate_filename(test_details,
+                                            filename=report_filename,
+                                            prefix='report',
+                                            extension='yamloo')
 
         report_path = os.path.join(self.reportDestination, report_filename)
 
@@ -239,7 +242,7 @@ class OONIBReporter(OReporter):
         self.collectorAddress = collector_address
         self.validateCollectorAddress()
 
-        self.reportID = None
+        self.reportId = None
         self.supportedFormats = ["yaml"]
 
         if self.collectorAddress.startswith('https://'):
@@ -302,7 +305,7 @@ class OONIBReporter(OReporter):
     def writeReportEntry(self, entry):
         log.debug("Writing report with OONIB reporter")
 
-        url = self.collectorAddress + '/report/' + self.reportID
+        url = self.collectorAddress + '/report/' + self.reportId
 
         if "json" in self.supportedFormats:
             serialisation_format = 'json'
@@ -314,7 +317,7 @@ class OONIBReporter(OReporter):
             'content': self.serializeEntry(entry, serialisation_format)
         }
 
-        log.debug("Updating report with id %s (%s)" % (self.reportID, url))
+        log.debug("Updating report with id %s (%s)" % (self.reportId, url))
         request_json = json.dumps(request)
         log.debug("Sending %s" % request_json)
 
@@ -414,7 +417,7 @@ class OONIBReporter(OReporter):
                     "different collector.")
             raise errors.OONIBReportCreationError
 
-        self.reportID = parsed_response['report_id']
+        self.reportId = parsed_response['report_id']
         self.backendVersion = parsed_response['backend_version']
 
         self.supportedFormats = parsed_response.get('supported_formats', ["yaml"])
@@ -423,7 +426,7 @@ class OONIBReporter(OReporter):
         defer.returnValue(parsed_response['report_id'])
 
     def finish(self):
-        url = self.collectorAddress + '/report/' + self.reportID + '/close'
+        url = self.collectorAddress + '/report/' + self.reportId + '/close'
         log.debug("Closing the report %s" % url)
         return self.agent.request("POST", str(url))
 
@@ -538,6 +541,7 @@ class OONIBReportLog(object):
                 'collector': collector_address,
                 'report_id': report_id
             }
+        return report_id
 
     def created(self, report_file, collector_address, report_id):
         return self.run(self._created, report_file,
@@ -576,7 +580,7 @@ class OONIBReportLog(object):
 
 
 class Report(object):
-    reportID = None
+    reportId = None
 
     def __init__(self, test_details, report_filename,
                  reportEntryManager, collector_address=None,
@@ -605,19 +609,13 @@ class Report(object):
         """
         self.test_details = test_details
         self.collector_address = collector_address
+        self.report_filename = report_filename
 
         self.report_log = OONIBReportLog()
 
         self.yaml_reporter = None
-        self.report_filename = None
-        if not no_yamloo:
-            self.yaml_reporter = YAMLReporter(test_details, report_filename=report_filename)
-            self.report_filename = self.yaml_reporter.report_path
-
         self.oonib_reporter = None
-        if collector_address:
-            self.oonib_reporter = OONIBReporter(test_details,
-                                                collector_address)
+        self.no_yamloo = no_yamloo
 
         self.done = defer.Deferred()
         self.reportEntryManager = reportEntryManager
@@ -641,36 +639,26 @@ class Report(object):
         d.addCallback(created)
         return d
 
+    @defer.inlineCallbacks
     def open(self):
         """
         This will create all the reports that need to be created and fires the
         created callback of the reporter whose report got created.
         """
-        d = defer.Deferred()
-        deferreds = []
+        if self.collector_address:
+            self.oonib_reporter = OONIBReporter(self.net_test_details,
+                                                self.collector_address)
+            self.net_test_details['report_id'] = yield self.open_oonib_reporter()
 
-        def yaml_report_failed(failure):
-            d.errback(failure)
+        if not self.no_yamloo:
+            self.yaml_reporter = YAMLReporter(self.net_test_details,
+                                              report_filename=self.report_filename)
+            self.report_filename = self.yaml_reporter.report_path
+            if not self.oonib_reporter:
+                yield self.report_log.not_created(self.report_filename)
+            yield defer.maybeDeferred(self.yaml_reporter.createReport)
 
-        def all_reports_openned(result):
-            if not d.called:
-                d.callback(None)
-
-        if self.oonib_reporter:
-            deferreds.append(self.open_oonib_reporter())
-        else:
-            if self.yaml_reporter:
-                deferreds.append(self.report_log.not_created(self.report_filename))
-
-        if self.yaml_reporter:
-            yaml_report_created = \
-                defer.maybeDeferred(self.yaml_reporter.createReport)
-            yaml_report_created.addErrback(yaml_report_failed)
-
-        dl = defer.DeferredList(deferreds)
-        dl.addCallback(all_reports_openned)
-
-        return d
+        defer.returnValue(self.reportId)
 
     def write(self, measurement):
         """
