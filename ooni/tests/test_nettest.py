@@ -263,8 +263,10 @@ class TestNetTest(unittest.TestCase):
         # XXX: if you use the same test_class twice you will have consumed all
         # of its inputs!
         tested = set([])
-        for test_instance, test_method, inputs in nt.testInstances:
-            self.assertEqual(len(list(inputs)), 10)
+        for test_class, test_method in ntl.getTestCases():
+            if test_class not in tested:
+                tested.update([test_class])
+                self.assertEqual(len(list(test_class.inputs)), 10)
 
     def test_setup_local_options_in_test_cases(self):
         ntl = NetTestLoader(dummyArgs)

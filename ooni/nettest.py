@@ -162,7 +162,6 @@ class NetTestLoader(object):
     collector = None
     yamloo = True
     requiresTor = False
-    reportID = None
 
     def __init__(self, options, test_file=None, test_string=None,
                  annotations={}):
@@ -496,8 +495,6 @@ class NetTest(object):
 
         self.testDetails = test_details
         self.testCases = test_cases
-
-        self.testInstances = []
 
         self.summary = {}
 
