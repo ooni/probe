@@ -23,9 +23,14 @@ class FilenameExists(Exception):
 def check_xsrf(method):
     @functools.wraps(method)
     def wrapper(self, *args, **kw):
-        xsrf_header = self.request.headers.get("X-XSRF-TOKEN")
-        if self.xsrf_token != xsrf_header:
+        xsrf_cookie = self.request.headers.get("Cookie")
+        if (not xsrf_cookie) or (not xsrf_cookie.startswith("XSRF-TOKEN=")):
+            raise web.HTTPError(403, "Missing XSRF token.")
+
+        received_token = xsrf_cookie.split("=")[-1]
+        if received_token != self.xsrf_token:
             raise web.HTTPError(403, "Invalid XSRF token.")
+
         return method(self, *args, **kw)
     return wrapper
 
@@ -77,17 +82,21 @@ class Inputs(ORequestHandler):
         input_file = self.request.files.get("file")[0]
         filename = input_file['filename']
 
-        if not filename or not re.match('(\w.*\.\w.*).*', filename):
-            raise InvalidInputFilename
+        expected_format = "(\w.*\.\w.*).*"
+        if not filename or not re.match(expected_format, filename):
+            raise InvalidInputFilename("File name should match regular "
+                                       "expression: %s" % expected_format)
 
-        if os.path.exists(filename):
-            raise FilenameExists
+        filename = os.path.join(config.inputs_directory, filename)
+        absolute_filename = os.path.abspath(filename)
+
+        if os.path.exists(absolute_filename):
+            raise FilenameExists("File %s already exists." % absolute_filename)
 
         content_type = input_file["content_type"]
         body = input_file["body"]
 
-        fn = os.path.join(config.inputs_directory, filename)
-        with open(os.path.abspath(fn), "w") as fp:
+        with open(absolute_filename, "w") as fp:
             fp.write(body)
 
 class ListTests(ORequestHandler):
@@ -174,8 +183,7 @@ class StartTest(ORequestHandler):
         net_test_loader = get_net_test_loader(test_options, test_file)
         try:
             net_test_loader.checkOptions()
-            d = oonidApplication.director.startNetTest(net_test_loader,
-                                                       get_reporters(net_test_loader))
+            d = oonidApplication.director.startNetTest(net_test_loader, None)
             @d.addBoth
             def cleanup(result):
                 for fd, path in tmp_files:
