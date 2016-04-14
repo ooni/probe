@@ -1,3 +1,4 @@
+import re
 import random
 
 from twisted.internet import defer
@@ -16,6 +17,7 @@ from ooni.utils.net import BodyReceiver, StringProducer, userAgents
 from ooni.utils.trueheaders import TrueHeaders
 from ooni.errors import handleAllFailures
 
+META_CHARSET_REGEXP = re.compile('<meta(?!\s*(?:name|value)\s*=)[^>]*?charset\s*=[\s"\']*([^\s"\'/>]*)')
 
 class InvalidSocksProxyOption(Exception):
     pass
@@ -34,6 +36,30 @@ class StreamListener(StreamListenerMixin):
                 config.tor_state.stream_listeners.remove(self)
         except:
             log.err("Tor Exit ip detection failed")
+
+
+
+def _representBody(body):
+    # XXX perhaps add support for decoding gzip in the future.
+    body = body.replace('\0', '')
+    decoded = False
+    charsets = ['ascii', 'utf-8']
+
+    # If we are able to detect the charset of body from the meta tag
+    # try to decode using that one first
+    charset = META_CHARSET_REGEXP.search(body, re.IGNORECASE)
+    if charset:
+        charsets.insert(0, charset.group(1))
+    for encoding in charsets:
+        try:
+            body = unicode(body, encoding)
+            decoded = True
+            break
+        except UnicodeDecodeError:
+            pass
+    if not decoded:
+        body = base64Dict(body)
+    return body
 
 class HTTPTest(NetTestCase):
     """
@@ -127,19 +153,6 @@ class HTTPTest(NetTestCase):
             for name, value in headers.getAllRawHeaders():
                 represented_headers[name] = value[0]
             return represented_headers
-
-        def _representBody(body):
-            # XXX perhaps add support for decoding gzip in the future.
-            try:
-                body = unicode(body, 'ascii')
-                body = body.replace('\0', '')
-            except UnicodeDecodeError:
-                try:
-                    body = unicode(body, 'utf-8')
-                    body = body.replace('\0', '')
-                except UnicodeDecodeError:
-                    body = base64Dict(body)
-            return body
 
         log.debug("Adding %s to report" % request)
         request_headers = TrueHeaders(request['headers'])

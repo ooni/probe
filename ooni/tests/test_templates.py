@@ -44,6 +44,16 @@ class TestHTTPT(unittest.TestCase):
         yield self.assertFailure(http_test.doRequest('http://invaliddomain/'), DNSLookupError)
         assert http_test.report['requests'][0]['failure'] == 'dns_lookup_error'
 
+    def test_charset_detection(self):
+        no_charset_html = """
+        <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html>
+<head>
+        <title>Foo</title>
+"""
+        with_charset_html = no_charset_html + '\n<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">'
+        self.assertEqual(httpt.META_CHARSET_REGEXP.search(no_charset_html), None)
+        self.assertEqual(httpt.META_CHARSET_REGEXP.search(with_charset_html).group(1), 'iso-8859-1')
 
 class TestDNST(unittest.TestCase):
     def test_represent_answer_a(self):
