@@ -228,6 +228,10 @@ class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
         control_ips = set(self.control['dns']['ips'])
         experiment_ips = set(experiment_dns_answers)
 
+        if control_ips == experiment_ips:
+            self.report['dns_consistency'] = 'consistent'
+            return True
+
         for experiment_ip in experiment_ips:
             if is_public_ipv4_address(experiment_ip) is False:
                 self.report['dns_consistency'] = 'inconsistent'
