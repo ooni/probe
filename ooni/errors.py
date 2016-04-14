@@ -78,11 +78,9 @@ def failureToString(failure):
 
     for failure_type, failure_string in known_failures:
         if isinstance(failure.value, failure_type):
-            if failure_string:
-                return failure_string
-            else:
-                # Failure without a corresponding failure message
-                return 'unknown_failure %s' % str(failure.value)
+            return failure_string
+    # Failure without a corresponding failure message
+    return 'unknown_failure %s' % str(failure.value)
 
 class DirectorException(Exception):
     pass
