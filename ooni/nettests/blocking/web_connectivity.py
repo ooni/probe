@@ -8,6 +8,7 @@ from ipaddr import IPv4Address, AddressValueError
 from twisted.internet import reactor
 from twisted.internet.protocol import Factory, Protocol
 from twisted.internet.endpoints import TCP4ClientEndpoint
+from twisted.names import client, dns
 
 from twisted.internet import defer
 from twisted.python import usage
@@ -18,6 +19,17 @@ from ooni.utils import log
 from ooni.utils.net import StringProducer, BodyReceiver
 from ooni.templates import httpt, dnst
 from ooni.errors import failureToString
+
+REQUEST_HEADERS = {
+    'User-Agent': ['Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, '
+                   'like Gecko) Chrome/47.0.2526.106 Safari/537.36'],
+    'Accept-Language': ['en-US;q=0.8,en;q=0.5'],
+    'Accept': ['text/html,application/xhtml+xml,application/xml;q=0.9,'
+               '*/*;q=0.8']
+}
+
+class InvalidControlResponse(Exception):
+    pass
 
 class TCPConnectProtocol(Protocol):
     def connectionMade(self):
@@ -72,6 +84,21 @@ class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
 
     # Factor used to determine HTTP blockpage detection
     factor = 0.8
+    resolverIp = None
+
+    @classmethod
+    @defer.inlineCallbacks
+    def setUpClass(cls):
+        try:
+            answers = yield client.lookupAddress(
+                cls.localOptions['dns-discovery']
+            )
+            assert len(answers) > 0
+            assert len(answers[0]) > 0
+            cls.resolverIp = answers[0][0].payload.dottedQuad()
+        except Exception as exc:
+            log.exception(exc)
+            log.err("Failed to lookup the resolver IP address")
 
     def setUp(self):
         """
@@ -82,7 +109,7 @@ class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
         if not self.input:
             raise Exception("No input specified")
 
-        self.report['client_resolver'] = None
+        self.report['client_resolver'] = self.resolverIp
         self.report['dns_consistency'] = None
         self.report['body_length_match'] = None
         self.report['accessible'] = None
@@ -110,9 +137,6 @@ class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
                 'headers': {}
             }
         }
-
-    def dns_discovery(self):
-        return self.performALookup(self.localOptions['dns-discovery'])
 
     def experiment_dns_query(self):
         return self.performALookup(self.hostname)
@@ -161,11 +185,17 @@ class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
         finished = defer.Deferred()
         response.deliverBody(BodyReceiver(finished, content_length))
         body = yield finished
-        self.control = json.loads(body)
+        try:
+            self.control = json.loads(body)
+            assert 'http_request' in self.control.keys()
+            assert 'tcp_connect' in self.control.keys()
+            assert 'dns' in self.control.keys()
+        except AssertionError, ValueError:
+            raise InvalidControlResponse(body)
         self.report['control'] = self.control
 
     def experiment_http_get_request(self):
-        return self.doRequest(self.input)
+        return self.doRequest(self.input, headers=REQUEST_HEADERS)
 
     def compare_body_lengths(self, experiment_http_response):
         control_body_length = self.control['http_request']['body_length']
@@ -233,27 +263,23 @@ class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
         return success
 
     def determine_blocking(self, experiment_http_response, experiment_dns_answers):
-        blocking = None
+        blocking = False
         body_length_match = None
         dns_consistent = None
         tcp_connect = None
 
-        if self.report['control_failure'] is None and \
-                self.report['http_experiment_failure'] is None and \
-                self.report['control']['http_request']['failure'] is None:
+        if (self.report['http_experiment_failure'] is None and
+                    self.report['control']['http_request']['failure'] is None):
             body_length_match = self.compare_body_lengths(experiment_http_response)
 
-        if self.report['control_failure'] is None:
-            dns_consistent = self.compare_dns_experiments(experiment_dns_answers)
-
-        if self.report['control_failure'] is None:
-            tcp_connect = self.compare_tcp_experiments()
+        dns_consistent = self.compare_dns_experiments(experiment_dns_answers)
+        tcp_connect = self.compare_tcp_experiments()
 
         if dns_consistent == True and tcp_connect == False:
             blocking = 'tcp_ip'
 
-        elif dns_consistent == True and \
-                tcp_connect == True and body_length_match == False:
+        elif (dns_consistent == True and tcp_connect == True and
+                      body_length_match == False):
             blocking = 'http'
 
         elif dns_consistent == False:
@@ -270,28 +296,15 @@ class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
         def dns_experiment_err(failure):
             self.report['dns_experiment_failure'] = failureToString(failure)
             return []
+        experiment_dns_answers = yield experiment_dns
 
-        results = yield defer.DeferredList([
-            self.dns_discovery(),
-            experiment_dns
-        ])
-
-        self.report['client_resolver'] = None
-        if results[0][0] == True:
-            self.report['client_resolver']  = results[0][1][0]
-
-        experiment_dns_answers = results[1][1]
         sockets = []
         for answer in experiment_dns_answers:
             if is_public_ipv4_address(answer) is True:
                 sockets.append("%s:80" % answer)
 
-        control_request = self.control_request(sockets)
-        @control_request.addErrback
-        def control_err(failure):
-            self.report['control_failure'] = failureToString(failure)
-
-        dl = [control_request]
+        # STEALTH in here we should make changes to make the test more stealth
+        dl = []
         for socket in sockets:
             dl.append(self.tcp_connect(socket))
         results = yield defer.DeferredList(dl)
@@ -303,20 +316,71 @@ class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
 
         experiment_http_response = yield experiment_http
 
-        blocking = self.determine_blocking(experiment_http_response, experiment_dns_answers)
-        self.report['blocking'] = blocking
+        control_request = self.control_request(sockets)
+        @control_request.addErrback
+        def control_err(failure):
+            log.err("Failed to perform control lookup")
+            self.report['control_failure'] = failureToString(failure)
 
-        if blocking is not None:
-            log.msg("%s: BLOCKING DETECTED due to %s" % (self.input, blocking))
+        yield control_request
+
+        if self.report['control_failure'] is None:
+            self.report['blocking'] = self.determine_blocking(experiment_http_response, experiment_dns_answers)
+
+        log.msg("")
+        log.msg("Result for %s" % self.input)
+        log.msg("-----------" + "-"*len(self.input))
+
+        if self.report['blocking'] is None:
+            log.msg("* Could not determine status of blocking due to "
+                    "failing control request")
+        elif self.report['blocking'] is False:
+            log.msg("* No blocking detected")
         else:
-            log.msg("%s: No blocking detected" % self.input)
+            log.msg("* BLOCKING DETECTED due to %s" % (self.report['blocking']))
 
-        if all(map(lambda x: x == None, [self.report['http_experiment_failure'],
-                                         self.report['dns_experiment_failure'],
-                                         blocking])):
-            log.msg("")
+        if (self.report['http_experiment_failure'] == None and
+                self.report['dns_experiment_failure'] == None and
+                self.report['blocking'] in (False, None)):
             self.report['accessible'] = True
-            log.msg("%s: is accessible" % self.input)
+            log.msg("* Is accessible")
         else:
-            log.msg("%s: is NOT accessible" % self.input)
+            log.msg("* Is NOT accessible")
             self.report['accessible'] = False
+
+    def postProcessor(self, measurements):
+        self.summary['accessible'] = self.summary.get('accessible', [])
+        self.summary['not-accessible'] = self.summary.get('not-accessible', [])
+        self.summary['blocked'] = self.summary.get('blocked', [])
+
+        if self.report['blocking'] not in (False, None):
+            self.summary['blocked'].append((self.input,
+                                            self.report['blocking']))
+        if self.report['accessible'] is True:
+            self.summary['accessible'].append(self.input)
+        else:
+            self.summary['not-accessible'].append(self.input)
+        return self.report
+
+    def displaySummary(self, summary):
+
+        if len(summary['accessible']) > 0:
+            log.msg("")
+            log.msg("Accessible URLS")
+            log.msg("---------------")
+            for url in summary['accessible']:
+                log.msg("* {}".format(url))
+
+        if len(summary['not-accessible']) > 0:
+            log.msg("")
+            log.msg("Not accessible URLS")
+            log.msg("---------------")
+            for url in summary['not-accessible']:
+                log.msg("* {}".format(url))
+
+        if len(summary['blocked']) > 0:
+            log.msg("")
+            log.msg("Blocked URLS")
+            log.msg("------------")
+            for url, reason in summary['blocked']:
+                log.msg("* {} due to {}".format(url, reason))
