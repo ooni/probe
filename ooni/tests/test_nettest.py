@@ -253,12 +253,13 @@ class TestNetTest(unittest.TestCase):
         ntl.loadNetTestString(net_test_string_with_required_option)
         self.assertRaises(MissingRequiredOption, ntl.checkOptions)
 
+    @defer.inlineCallbacks
     def test_net_test_inputs(self):
         ntl = NetTestLoader(dummyArgsWithFile)
         ntl.loadNetTestString(net_test_string_with_file)
         ntl.checkOptions()
         nt = NetTest(ntl.getTestCases(), ntl.getTestDetails(), None)
-        nt.initializeInputProcessor()
+        yield nt.initialize()
 
         # XXX: if you use the same test_class twice you will have consumed all
         # of its inputs!
@@ -275,6 +276,7 @@ class TestNetTest(unittest.TestCase):
         ntl.checkOptions()
         self.assertEqual(dict(ntl.localOptions), dummyOptions)
 
+    @defer.inlineCallbacks
     def test_generate_measurements_size(self):
         ntl = NetTestLoader(dummyArgsWithFile)
         ntl.loadNetTestString(net_test_string_with_file)
@@ -282,7 +284,7 @@ class TestNetTest(unittest.TestCase):
 
         net_test = NetTest(ntl.getTestCases(), ntl.getTestDetails(), None)
 
-        net_test.initializeInputProcessor()
+        yield net_test.initialize()
         measurements = list(net_test.generateMeasurements())
         self.assertEqual(len(measurements), 20)
 

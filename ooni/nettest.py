@@ -566,13 +566,19 @@ class NetTest(object):
         return measurement
 
     @defer.inlineCallbacks
-    def initializeInputProcessor(self):
+    def initialize(self):
         for test_class, _ in self.testCases:
+            # Initialize Input Processor
             test_class.inputs = yield defer.maybeDeferred(
                 test_class().getInputProcessor
             )
             if not test_class.inputs:
                 test_class.inputs = [None]
+
+            # Run the setupClass method
+            yield defer.maybeDeferred(
+                test_class.setUpClass
+            )
 
     def generateMeasurements(self):
         """
@@ -700,6 +706,16 @@ class NetTestCase(object):
     requiresTor = False
 
     localOptions = {}
+
+    @classmethod
+    def setUpClass(cls):
+        """
+        You can override this hook with logic that should be run once before
+        any test method in the NetTestCase is run.
+        This can be useful to populate class attribute that should be valid
+        for all the runtime of the NetTest.
+        """
+        pass
 
     def _setUp(self):
         """

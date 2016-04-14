@@ -257,7 +257,7 @@ class Director(object):
         net_test = NetTest(test_cases, test_details, report)
         net_test.director = self
 
-        yield net_test.initializeInputProcessor()
+        yield net_test.initialize()
         try:
             self.activeNetTests.append(net_test)
             self.measurementManager.schedule(net_test.generateMeasurements())
