@@ -103,7 +103,7 @@ class HTTPClientParser(_newclient.HTTPClientParser):
         self._partialHeader = None
 
     def headerReceived(self, name, value):
-        if self.isConnectionControlHeader(name):
+        if self.isConnectionControlHeader(name.lower()):
             headers = self.connHeaders
         else:
             headers = self.headers
