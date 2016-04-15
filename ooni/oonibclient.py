@@ -1,5 +1,7 @@
 import json
 
+from urlparse import urljoin
+
 from twisted.web.client import Agent
 from twisted.internet import defer, reactor
 from twisted.internet.endpoints import TCP4ClientEndpoint
@@ -15,6 +17,15 @@ class OONIBClient(object):
     retries = 3
 
     def __init__(self, address):
+        if address.startswith("https://"):
+            log.err("HTTPS bouncers are currently not supported!")
+            raise e.InvalidOONIBBouncerAddress
+        elif address.startswith("http://"):
+            log.msg("Warning using plaintext bouncer!")
+        elif address.startswith("httpo://"):
+            log.debug("Using Tor hidden service bouncer: {}".format(address))
+        else:
+            raise e.InvalidOONIBBouncerAddress
         self.address = address
 
     def _request(self, method, urn, genReceiver, bodyProducer=None):
@@ -30,7 +41,7 @@ class OONIBClient(object):
             raise e.InvalidOONIBBouncerAddress
 
         elif self.address.startswith('http://'):
-            log.msg("Warning using unencrypted backend")
+            log.msg("Warning using unencrypted bouncer")
             agent = Agent(reactor)
 
         attempts = 0
@@ -38,7 +49,7 @@ class OONIBClient(object):
         finished = defer.Deferred()
 
         def perform_request(attempts):
-            uri = address + urn
+            uri = urljoin(address, urn)
             d = agent.request(method, uri, bodyProducer=bodyProducer)
 
             @d.addCallback

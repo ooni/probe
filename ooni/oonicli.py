@@ -245,8 +245,8 @@ def createDeck(global_options, url=None):
     if global_options['no-yamloo']:
         log.msg("Will not write to a yamloo report file")
 
-    deck = Deck(no_collector=global_options['no-collector'])
-    deck.bouncer = global_options['bouncer']
+    deck = Deck(bouncer=global_options['bouncer'],
+                no_collector=global_options['no-collector'])
 
     try:
         if global_options['testdeck']:

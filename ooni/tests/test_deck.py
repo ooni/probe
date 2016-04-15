@@ -127,14 +127,14 @@ class TestDeck(BaseTestCase):
             os.remove(self.filename)
 
     def test_open_deck(self):
-        deck = Deck(decks_directory=".")
-        deck.bouncer = "httpo://foo.onion"
+        deck = Deck(bouncer="httpo://foo.onion",
+                    decks_directory=".")
         deck.loadDeck(self.deck_file)
         assert len(deck.netTestLoaders) == 1
 
     def test_save_deck_descriptor(self):
-        deck = Deck(decks_directory=".")
-        deck.bouncer = "httpo://foo.onion"
+        deck = Deck(bouncer="httpo://foo.onion",
+                    decks_directory=".")
         deck.loadDeck(self.deck_file)
         deck.load({'name': 'spam',
                    'id': 'spam',
@@ -149,9 +149,9 @@ class TestDeck(BaseTestCase):
 
     @defer.inlineCallbacks
     def test_lookup_test_helpers_and_collector(self):
-        deck = Deck(decks_directory=".")
-        deck.bouncer = "httpo://foo.onion"
-        deck.oonibclient = MockOONIBClient()
+        deck = Deck(bouncer="httpo://foo.onion",
+                    decks_directory=".")
+        deck._OONIBClient = MockOONIBClient
         deck.loadDeck(self.deck_file)
 
         self.assertEqual(len(deck.netTestLoaders[0].missingTestHelpers), 1)

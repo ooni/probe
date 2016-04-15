@@ -95,28 +95,27 @@ def nettest_to_path(path, allow_arbitrary_paths=False):
 
 
 class Deck(InputFile):
+    # this exists so we can mock it out in unittests
+    _OONIBClient = OONIBClient
+
     def __init__(self, deck_hash=None,
-                 deckFile=None,
+                 bouncer=None,
                  decks_directory=config.decks_directory,
                  no_collector=False):
         self.id = deck_hash
-        self.requiresTor = False
         self.no_collector = no_collector
-        self.bouncer = ''
+        self.bouncer = bouncer
+
+        self.requiresTor = False
+
         self.netTestLoaders = []
         self.inputs = []
 
-        self.oonibclient = OONIBClient(self.bouncer)
-
         self.decksDirectory = os.path.abspath(decks_directory)
-        self.deckHash = deck_hash
-
-        if deckFile:
-            self.loadDeck(deckFile)
 
     @property
     def cached_file(self):
-        return os.path.join(self.decksDirectory, self.deckHash)
+        return os.path.join(self.decksDirectory, self.id)
 
     @property
     def cached_descriptor(self):
@@ -124,7 +123,7 @@ class Deck(InputFile):
 
     def loadDeck(self, deckFile):
         with open(deckFile) as f:
-            self.deckHash = sha256(f.read()).hexdigest()
+            self.id = sha256(f.read()).hexdigest()
             f.seek(0)
             test_deck = yaml.safe_load(f)
 
@@ -175,7 +174,7 @@ class Deck(InputFile):
 
     @defer.inlineCallbacks
     def lookupCollectorAndTestHelpers(self):
-        self.oonibclient.address = self.bouncer
+        oonibclient = self._OONIBClient(self.bouncer)
 
         required_nettests = []
 
@@ -201,8 +200,7 @@ class Deck(InputFile):
         if not requires_test_helpers and not requires_collector:
             defer.returnValue(None)
 
-        log.debug("Looking up {}".format(required_nettests))
-        response = yield self.oonibclient.lookupTestCollector(required_nettests)
+        response = yield oonibclient.lookupTestCollector(required_nettests)
         provided_net_tests = response['net-tests']
 
         def find_collector_and_test_helpers(test_name, test_version, input_files):
@@ -240,10 +238,10 @@ class Deck(InputFile):
         for i in net_test_loader.inputFiles:
             if i['url']:
                 log.debug("Downloading %s" % i['url'])
-                self.oonibclient.address = i['address']
+                oonibclient = self._OONIBClient(i['address'])
 
                 try:
-                    input_file = yield self.oonibclient.downloadInput(i['hash'])
+                    input_file = yield oonibclient.downloadInput(i['hash'])
                 except:
                     raise e.UnableToLoadDeckInput
 

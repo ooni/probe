@@ -190,6 +190,9 @@ class MockTaskManager(TaskManager):
 
 
 class MockOONIBClient(object):
+    def __init__(self, *args, **kw):
+        pass
+
     def lookupTestHelpers(self, required_test_helpers):
         ret = {
             'default': {
