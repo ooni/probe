@@ -81,6 +81,7 @@ class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
     }
     requiresRoot = False
     requiresTor = False
+    followRedirects = True
 
     # Factor used to determine HTTP blockpage detection
     factor = 0.8
@@ -112,6 +113,8 @@ class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
         self.report['client_resolver'] = self.resolverIp
         self.report['dns_consistency'] = None
         self.report['body_length_match'] = None
+        self.report['headers_match'] = None
+
         self.report['accessible'] = None
         self.report['blocking'] = None
 
@@ -139,6 +142,7 @@ class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
         }
 
     def experiment_dns_query(self):
+        log.msg("Doing DNS query for {}".format(self.hostname))
         return self.performALookup(self.hostname)
 
     def tcp_connect(self, socket):
@@ -197,6 +201,22 @@ class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
     def experiment_http_get_request(self):
         return self.doRequest(self.input, headers=REQUEST_HEADERS)
 
+    def compare_headers(self, experiment_http_response):
+        count = 0
+        control_headers_lower = {k.lower(): v for k, v in
+                self.report['control']['http_request']['headers'].items()}
+
+        for header_name, header_value in \
+                experiment_http_response.headers.getAllRawHeaders():
+            try:
+                control_headers_lower[header_name.lower()]
+            except KeyError:
+                log.msg("Did not find the key {}".format(header_name))
+                return False
+            count += 1
+
+        return count == len(self.report['control']['http_request']['headers'])
+
     def compare_body_lengths(self, experiment_http_response):
         control_body_length = self.control['http_request']['body_length']
         experiment_body_length = len(experiment_http_response.body)
@@ -213,10 +233,8 @@ class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
 
         self.report['body_proportion'] = rel
         if rel > float(self.factor):
-            self.report['body_length_match'] = True
             return True
         else:
-            self.report['body_length_match'] = False
             return False
 
     def compare_dns_experiments(self, experiment_dns_answers):
@@ -229,16 +247,13 @@ class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
         experiment_ips = set(experiment_dns_answers)
 
         if control_ips == experiment_ips:
-            self.report['dns_consistency'] = 'consistent'
             return True
 
         for experiment_ip in experiment_ips:
             if is_public_ipv4_address(experiment_ip) is False:
-                self.report['dns_consistency'] = 'inconsistent'
                 return False
 
         if len(control_ips.intersection(experiment_ips)) > 0:
-            self.report['dns_consistency'] = 'consistent'
             return True
 
         experiment_asns = set(map(lambda x: geoip.IPToLocation(x)['asn'],
@@ -247,10 +262,8 @@ class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
                            control_ips))
 
         if len(control_asns.intersection(experiment_asns)) > 0:
-            self.report['dns_consistency'] = 'consistent'
             return True
 
-        self.report['dns_consistency'] = 'inconsistent'
         return False
 
     def compare_tcp_experiments(self):
@@ -268,22 +281,26 @@ class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
 
     def determine_blocking(self, experiment_http_response, experiment_dns_answers):
         blocking = False
-        body_length_match = None
-        dns_consistent = None
-        tcp_connect = None
 
         if (self.report['http_experiment_failure'] is None and
                     self.report['control']['http_request']['failure'] is None):
-            body_length_match = self.compare_body_lengths(experiment_http_response)
+            self.report['body_length_match'] = self.compare_body_lengths(
+                experiment_http_response)
+            self.report['headers_match'] = self.compare_headers(
+                experiment_http_response)
 
         dns_consistent = self.compare_dns_experiments(experiment_dns_answers)
+        if dns_consistent is True:
+            self.report['dns_consistency'] = 'consistent'
+        else:
+            self.report['dns_consistency'] = 'inconsistent'
         tcp_connect = self.compare_tcp_experiments()
 
         if dns_consistent == True and tcp_connect == False:
             blocking = 'tcp_ip'
 
         elif (dns_consistent == True and tcp_connect == True and
-                      body_length_match == False):
+                      self.report['body_length_match'] == False):
             blocking = 'http'
 
         elif dns_consistent == False:
@@ -302,10 +319,17 @@ class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
             return []
         experiment_dns_answers = yield experiment_dns
 
+        port = 80
+        parsed_url = urlparse(self.input)
+        if parsed_url.port:
+            port = parsed_url.port
+        elif parsed_url.scheme == 'https':
+            port = 443
+
         sockets = []
-        for answer in experiment_dns_answers:
-            if is_public_ipv4_address(answer) is True:
-                sockets.append("%s:80" % answer)
+        for ip_address in experiment_dns_answers:
+            if is_public_ipv4_address(ip_address) is True:
+                sockets.append("{}:{}".format(ip_address, port))
 
         # STEALTH in here we should make changes to make the test more stealth
         dl = []
