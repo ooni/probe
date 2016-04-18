@@ -7,9 +7,14 @@
 import itertools
 from copy import copy
 
-from twisted.web import client, _newclient, http_headers
+from twisted.python.failure import Failure
+
+from twisted.web import client, _newclient, http_headers, error
+
 from twisted.web._newclient import RequestNotSent, RequestGenerationFailed
 from twisted.web._newclient import TransportProxyProducer, STATUS
+from twisted.web._newclient import ResponseFailed
+
 from twisted.internet import reactor
 from twisted.internet.defer import Deferred, fail, maybeDeferred, failure
 
@@ -179,3 +184,38 @@ class TrueHeadersSOCKS5Agent(SOCKS5Agent):
             self._wrappedAgent._pool = pool
         else:
             self._pool = pool
+
+class FixedRedirectAgent(client.BrowserLikeRedirectAgent):
+    """
+    This is a redirect agent with this patch manually applied:
+    https://twistedmatrix.com/trac/ticket/8265
+    """
+    def _handleRedirect(self, response, method, uri, headers, redirectCount):
+        """
+        Handle a redirect response, checking the number of redirects already
+        followed, and extracting the location header fields.
+
+        This is pathed to fix a bug in infinite redirect loop.
+        """
+        if redirectCount >= self._redirectLimit:
+            err = error.InfiniteRedirection(
+                response.code,
+                b'Infinite redirection detected',
+                location=uri)
+            raise ResponseFailed([Failure(err)], response)
+        locationHeaders = response.headers.getRawHeaders(b'location', [])
+        if not locationHeaders:
+            err = error.RedirectWithNoLocation(
+                response.code, b'No location header field', uri)
+            raise ResponseFailed([Failure(err)], response)
+        location = self._resolveLocation(response.request.absoluteURI, locationHeaders[0])
+        deferred = self._agent.request(method, location, headers)
+
+        def _chainResponse(newResponse):
+            newResponse.setPreviousResponse(response)
+            return newResponse
+
+        deferred.addCallback(_chainResponse)
+        # This is the fix to properly handle redirects
+        return deferred.addCallback(
+            self._handleResponse, method, uri, headers, redirectCount + 1)

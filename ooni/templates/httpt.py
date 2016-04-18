@@ -7,6 +7,7 @@ from twisted.web.client import readBody, PartialDownloadError
 from twisted.internet import reactor
 from twisted.internet.endpoints import TCP4ClientEndpoint
 from ooni.utils.trueheaders import TrueHeadersAgent, TrueHeadersSOCKS5Agent
+from ooni.utils.trueheaders import FixedRedirectAgent
 
 from ooni.nettest import NetTestCase
 from ooni.utils import log, base64Dict
@@ -37,8 +38,15 @@ class StreamListener(StreamListenerMixin):
             log.err("Tor Exit ip detection failed")
 
 
+def _representHeaders(headers):
+    represented_headers = {}
+    for name, value in headers.getAllRawHeaders():
+        represented_headers[name] = value[0]
+    return represented_headers
 
 def _representBody(body):
+    if not body:
+        return body
     # XXX perhaps add support for decoding gzip in the future.
     body = body.replace('\0', '')
     decoded = False
@@ -115,9 +123,8 @@ class HTTPTest(NetTestCase):
 
         if self.followRedirects:
             try:
-                from twisted.web.client import RedirectAgent
-                self.control_agent = RedirectAgent(self.control_agent)
-                self.agent = RedirectAgent(self.agent)
+                self.control_agent = FixedRedirectAgent(self.control_agent)
+                self.agent = FixedRedirectAgent(self.agent)
                 self.report['agent'] = 'redirect'
             except:
                 log.err("Warning! You are running an old version of twisted"\
@@ -147,11 +154,10 @@ class HTTPTest(NetTestCase):
 
             failure (instance): An instance of :class:twisted.internet.failure.Failure
         """
-        def _representHeaders(headers):
-            represented_headers = {}
-            for name, value in headers.getAllRawHeaders():
-                represented_headers[name] = value[0]
-            return represented_headers
+        if response and response.previousResponse:
+            self.addToReport(request, response.previousResponse,
+                             response_body=None,
+                             failure_string=None)
 
         log.debug("Adding %s to report" % request)
         request_headers = TrueHeaders(request['headers'])
