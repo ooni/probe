@@ -84,7 +84,8 @@ class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
     followRedirects = True
 
     # Factor used to determine HTTP blockpage detection
-    factor = 0.8
+    # the factor 0.7 comes from http://www3.cs.stonybrook.edu/~phillipa/papers/JLFG14.pdf
+    factor = 0.7
     resolverIp = None
 
     @classmethod
@@ -296,14 +297,23 @@ class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
             self.report['dns_consistency'] = 'inconsistent'
         tcp_connect = self.compare_tcp_experiments()
 
-        if dns_consistent == True and tcp_connect == False:
+        if (dns_consistent == True and tcp_connect == False and
+                self.report['http_experiment_failure'] is not None):
             blocking = 'tcp_ip'
 
+        # XXX we may want to have different codes for these two types of
+        # blocking
         elif (dns_consistent == True and tcp_connect == True and
                       self.report['body_length_match'] == False):
             blocking = 'http'
+        elif (dns_consistent == True and tcp_connect == True and
+                self.report['http_experiment_failure'] is not None and
+                self.report['control']['http_request']['failure'] != self.report['http_experiment_failure']):
+            blocking = 'http'
 
-        elif dns_consistent == False:
+        elif (dns_consistent == False and
+                  (self.report['http_experiment_failure'] is not None or
+                   self.report['body_length_match'] == False)):
             blocking = 'dns'
 
         return blocking
