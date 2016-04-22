@@ -1,6 +1,22 @@
 Changelog
 =========
 
+v1.4.0 (XXX, XX Apr 2016)
+-------------------------
+
+* Support for reporting using JSON
+
+* Support for running ooniprobe with a message queue providing URLs to test
+
+* Psiphon censorship circumvention test
+
+* OpenVPN censorship circumvention test
+
+* Support for disabling reporting to disk
+
+* Improvements to HTTP response body decoding (includes fix that lead to empty
+  bodies being misrepresented)
+
 v1.3.2 (Fri, 20 Nov 2015)
 -------------------------
 
