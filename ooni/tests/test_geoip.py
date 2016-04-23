@@ -26,7 +26,6 @@ class TestGeoIP(bases.ConfigTestCase):
         version = geoip.database_version()
         assert 'GeoIP' in version.keys()
         assert 'GeoIPASNum' in version.keys()
-        assert 'GeoLiteCity' in version.keys()
 
         assert len(version['GeoIP']['sha256']) == 64
         assert isinstance(version['GeoIP']['timestamp'], float)

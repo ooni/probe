@@ -13,8 +13,9 @@ from ooni.geoip import ProbeIP
 from ooni.settings import config
 
 from ooni.deckgen import __version__
-from ooni.resources import inputs
-
+from ooni.deckgen.processors import citizenlab_test_lists
+from ooni.deckgen.processors import namebench_dns_servers
+from ooni.resources.update import download_resources
 
 class Options(usage.Options):
     synopsis = """%s [options]
@@ -70,11 +71,9 @@ class Deck(object):
 
 
 def generate_deck(options):
-    dns_servers_processor = inputs['namebench-dns-servers.csv']['processor']
-    url_lists_processor = inputs['citizenlab-test-lists.zip']['processor']
 
     try:
-        url_list_country = url_lists_processor.generate_country_input(
+        url_list_country = citizenlab_test_lists.generate_country_input(
             options['country-code'],
             options['output']
         )
@@ -84,10 +83,10 @@ def generate_deck(options):
         print "We will just use the global one."
         url_list_country = None
 
-    url_list_global = url_lists_processor.generate_global_input(
+    url_list_global = citizenlab_test_lists.generate_global_input(
         options['output']
     )
-    dns_servers = dns_servers_processor.generate_country_input(
+    dns_servers = namebench_dns_servers.generate_country_input(
         options['country-code'],
         options['output']
     )
@@ -124,6 +123,20 @@ def get_user_country_code():
     yield probe_ip.lookup()
     defer.returnValue(probe_ip.geodata['countrycode'])
 
+def resources_up_to_date():
+    if config.get_data_file_path("GeoIP/GeoIP.dat") is None:
+        return False
+
+    if config.get_data_file_path("resources/"
+                                 "namebench-dns-servers.csv") is None:
+        return False
+
+    if config.get_data_file_path("resources/"
+                                 "citizenlab-test-lists/"
+                                 "global.csv") is None:
+        return False
+
+    return True
 
 @defer.inlineCallbacks
 def run():
@@ -134,6 +147,11 @@ def run():
         print "%s: %s" % (sys.argv[0], error_message)
         print options
         sys.exit(1)
+
+    if not resources_up_to_date():
+        print("Resources for running ooniprobe are not up to date.")
+        print("Will update them now.")
+        yield download_resources()
 
     if not options['output']:
         options['output'] = os.getcwd()

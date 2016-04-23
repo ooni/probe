@@ -28,10 +28,9 @@ def generate_country_input(country_code, dst):
 
     input_list = config.get_data_file_path("resources/"
                                            "citizenlab-test-lists/"
-                                           "test-lists-master/lists/"
                                            + country_code + ".csv")
 
-    if not os.path.exists(input_list):
+    if not input_list:
         raise Exception("Could not find list for country %s" % country_code)
 
     load_input(input_list, filename)
@@ -44,12 +43,11 @@ def generate_global_input(dst):
 
     input_list = config.get_data_file_path("resources/"
                                            "citizenlab-test-lists/"
-                                           "test-lists-master/lists/"
                                            "global.csv")
 
     if not input_list:
         print("Could not find the global input list")
-        print("Perhaps you should run ooniresources --update-inputs")
+        print("Perhaps you should run ooniresources")
         raise Exception("Could not find the global input list")
 
     load_input(input_list, filename)
