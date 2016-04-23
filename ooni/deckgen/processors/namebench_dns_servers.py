@@ -8,7 +8,6 @@ from ooni.settings import config
 class GeoIPDB(object):
     _borg = {}
     country = None
-    asn = None
 
     def __init__(self):
         self.__dict__ = self._borg
@@ -25,7 +24,7 @@ class GeoIPDB(object):
 def generate_country_input(country_code, dst):
 
     csv_file = config.get_data_file_path("resources/"
-                                           "namebench-dns-servers.csv")
+                                         "namebench-dns-servers.csv")
 
     filename = os.path.join(dst, "dns-server-%s.txt" % country_code)
     fw = open(filename, "w")

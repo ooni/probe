@@ -169,6 +169,7 @@ def director_startup_other_failures(failure):
 
 def setupGlobalOptions(logging, start_tor, check_incoherences):
     global_options = parseOptions()
+
     config.global_options = global_options
     config.set_paths()
     config.initialize_ooni_home()

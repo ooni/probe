@@ -37,9 +37,9 @@ def IPToLocation(ipaddr):
     location = {'city': None, 'countrycode': 'ZZ', 'asn': 'AS0'}
 
     def error():
-        log.err("Could not find GeoIP data file in %s."
-                "Try running ooniresources --update-geoip or"
-                " edit your ooniprobe.conf" % config.advanced.geoip_data_dir)
+        log.err("Could not find GeoIP data file in data directories."
+                "Try running ooniresources or"
+                " edit your ooniprobe.conf")
 
     try:
         country_dat = GeoIP(country_file)

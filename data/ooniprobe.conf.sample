@@ -23,7 +23,6 @@ reports:
     pcap: null
     collector: null
 advanced:
-    geoip_data_dir: /usr/share/GeoIP
     debug: false
     # enable if auto detection fails
     #tor_binary: /usr/sbin/tor

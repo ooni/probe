@@ -39,7 +39,6 @@ reports:
     pcap: null
     collector: null
 advanced:
-    geoip_data_dir: /usr/share/GeoIP
     debug: false
     interface: auto
     start_tor: false
