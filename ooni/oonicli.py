@@ -7,20 +7,11 @@ import random
 import urlparse
 
 from twisted.python import usage
-from twisted.python.util import spewer
-from twisted.internet import defer, reactor, protocol
+from twisted.internet import defer
 
 from ooni import errors, __version__
-
 from ooni.settings import config
-from ooni.director import Director
-from ooni.deck import Deck, nettest_to_path
-from ooni.nettest import NetTestLoader
-
 from ooni.utils import log
-from ooni.utils.net import hasRawSocketPermission
-
-
 
 class LifetimeExceeded(Exception): pass
 
@@ -30,7 +21,7 @@ class Options(usage.Options):
 
     longdesc = ("ooniprobe loads and executes a suite or a set of suites of"
                 " network tests. These are loaded from modules, packages and"
-                " files listed on the command line")
+                " files listed on the command line.")
 
     optFlags = [["help", "h"],
                 ["resume", "r"],
@@ -71,11 +62,21 @@ class Options(usage.Options):
         self['test'] = None
         usage.Options.__init__(self)
 
+    def getUsage(self, width=None):
+        return super(Options, self).getUsage(width) + """
+To get started you may want to run:
+
+$ oonideckgen
+
+This will tell you how to run ooniprobe :)
+"""
+
     def opt_spew(self):
         """
         Print an insanely verbose log of everything that happens.  Useful
         when debugging freezes or locks in complex code.
         """
+        from twisted.python.util import spewer
         sys.settrace(spewer)
 
     def opt_version(self):
@@ -186,6 +187,7 @@ def setupGlobalOptions(logging, start_tor, check_incoherences):
         log.start(global_options['logfile'])
 
     if config.privacy.includepcap:
+        from ooni.utils.net import hasRawSocketPermission
         if hasRawSocketPermission():
             from ooni.utils.txscapy import ScapyFactory
             config.scapyFactory = ScapyFactory(config.advanced.interface)
@@ -223,6 +225,9 @@ def setupCollector(global_options, collector_address):
 
 
 def createDeck(global_options, url=None):
+    from ooni.nettest import NetTestLoader
+    from ooni.deck import Deck, nettest_to_path
+
     if url:
         log.msg("Creating deck for: %s" % (url))
 
@@ -331,9 +336,9 @@ def runWithDirector(logging=True, start_tor=True, check_incoherences=True):
     Instance the director, parse command line options and start an ooniprobe
     test!
     """
-
     global_options = setupGlobalOptions(logging, start_tor, check_incoherences)
 
+    from ooni.director import Director
     director = Director()
     if global_options['list']:
         print "# Installed nettests"
@@ -379,7 +384,8 @@ def runWithDaemonDirector(logging=True, start_tor=True, check_incoherences=True)
     Instance the director, parse command line options and start an ooniprobe
     test!
     """
-
+    from twisted.internet import reactor, protocol
+    from ooni.director import Director
     try:
         import pika
         from pika import exceptions
