@@ -1,4 +1,6 @@
+from __future__ import print_function
 import yaml
+import sys
 
 from twisted.internet import defer
 
@@ -49,9 +51,12 @@ def upload(report_file, collector=None, bouncer=None):
     report_id = yield oonib_reporter.createReport()
     report.header['report_id'] = report_id
     yield oonib_report_log.created(report_file, collector, report_id)
+    log.msg("Writing report entries")
     for entry in report:
         yield oonib_reporter.writeReportEntry(entry)
-    log.msg("Closing report.")
+        sys.stdout.write('.')
+        sys.stdout.flush()
+    log.msg("Closing report")
     yield oonib_reporter.finish()
     yield oonib_report_log.closed(report_file)
 
@@ -68,24 +73,24 @@ def upload_all(collector=None, bouncer=None):
 
 
 def print_report(report_file, value):
-    print "* %s" % report_file
-    print "  %s" % value['created_at']
+    print("* %s" % report_file)
+    print("  %s" % value['created_at'])
 
 
 def status():
     oonib_report_log = OONIBReportLog()
 
-    print "Reports to be uploaded"
-    print "----------------------"
+    print("Reports to be uploaded")
+    print("----------------------")
     for report_file, value in oonib_report_log.reports_to_upload:
         print_report(report_file, value)
 
-    print "Reports in progress"
-    print "-------------------"
+    print("Reports in progress")
+    print("-------------------")
     for report_file, value in oonib_report_log.reports_in_progress:
         print_report(report_file, value)
 
-    print "Incomplete reports"
-    print "------------------"
+    print("Incomplete reports")
+    print("------------------")
     for report_file, value in oonib_report_log.reports_incomplete:
         print_report(report_file, value)

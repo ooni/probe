@@ -148,7 +148,7 @@ class install(_st_install):
     def ooniresources(self):
         ooniresources = find_executable("ooniresources")
         from subprocess import Popen
-        process = Popen([ooniresources, '--update-inputs', '--update-geoip'],
+        process = Popen([ooniresources],
                         stdout=sys.stdout.fileno(), stderr=sys.stderr.fileno())
         process.wait()
 
