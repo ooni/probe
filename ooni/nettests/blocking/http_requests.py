@@ -35,10 +35,10 @@ class HTTPRequestsTest(httpt.HTTPTest):
     lengths match.
     """
     name = "HTTP Requests"
-    description = "Performs a HTTP GET request over Tor and one over the " \
-                  "local network and compares the two results."
+    description = ("Performs a HTTP GET request over Tor and one over the "
+                  "local network and compares the two results.")
     author = "Arturo Filastò"
-    version = "0.2.4"
+    version = "0.2.5"
 
     usageOptions = UsageOptions
 
@@ -78,6 +78,7 @@ class HTTPRequestsTest(httpt.HTTPTest):
         self.report['factor'] = float(self.factor)
         self.report['headers_diff'] = None
         self.report['headers_match'] = None
+        self.report['control_cloudflare'] = None
 
         self.headers = {'User-Agent': [random.choice(userAgents)]}
 
@@ -145,6 +146,11 @@ class HTTPRequestsTest(httpt.HTTPTest):
         if experiment and control:
             if hasattr(experiment, 'body') and hasattr(control, 'body') \
                     and experiment.body and control.body:
+                self.report['control_cloudflare'] = False
+                if 'Attention Required! | CloudFlare' in control.body:
+                    log.msg("The control body contains a blockpage from "
+                            "cloudflare. This will skew our results.")
+                    self.report['control_cloudflare'] = True
                 self.compare_body_lengths(len(control.body),
                                           len(experiment.body))
             if hasattr(experiment, 'headers') and hasattr(control, 'headers') \
