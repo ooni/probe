@@ -33,7 +33,6 @@ privacy:
     includeip: false
     includeasn: true
     includecountry: true
-    includecity: false
     includepcap: true
 reports:
     pcap: null

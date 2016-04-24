@@ -30,8 +30,8 @@ class PsiphonTest(httpt.HTTPTest,  process.ProcessTest):
     """
 
     name = "Psiphon Test"
-    description = "Bootstraps Psiphon and \
-                does a HTTP GET for the specified URL"
+    description = ("Bootstraps Psiphon and"
+                   "does a HTTP GET for the specified URL")
     author = "juga"
     version = "0.0.1"
     timeout = 20

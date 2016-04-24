@@ -4,6 +4,7 @@ import os
 import json
 import yaml
 import random
+import textwrap
 import urlparse
 
 from twisted.python import usage
@@ -24,7 +25,6 @@ class Options(usage.Options):
                 " files listed on the command line.")
 
     optFlags = [["help", "h"],
-                ["resume", "r"],
                 ["no-collector", "n", "disable writing to collector"],
                 ["no-yamloo", "N", "disable writing to YAML file"],
                 ["no-geoip", "g"],
@@ -342,12 +342,28 @@ def runWithDirector(logging=True, start_tor=True, check_incoherences=True):
     from ooni.director import Director
     director = Director()
     if global_options['list']:
-        print "# Installed nettests"
-        for net_test_id, net_test in director.getNetTests().items():
-            print "* %s (%s/%s)" % (net_test['name'],
-                                    net_test['category'],
-                                    net_test['id'])
-            print "  %s" % net_test['description']
+        net_tests = [net_test for net_test in director.getNetTests().items()]
+        print ""
+        print "Installed nettests"
+        print "=================="
+        for net_test_id, net_test in net_tests:
+            optList = []
+            for name, details in net_test['arguments'].items():
+                optList.append({'long': name, 'doc': details['description']})
+
+            desc = ('\n' +
+                    net_test['name'] +
+                    '\n' +
+                    '-'*len(net_test['name']) +
+                    '\n' +
+                    '\n'.join(textwrap.wrap(net_test['description'], 80)) +
+                    '\n\n' +
+                    '$ ooniprobe {}/{}'.format(net_test['category'],
+                                                      net_test['id']) +
+                    '\n\n' +
+                    ''.join(usage.docMakeChunks(optList))
+            )
+            print desc
 
         sys.exit(0)
 

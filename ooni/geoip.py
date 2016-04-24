@@ -171,8 +171,6 @@ class ProbeIP(object):
         self.geodata['ip'] = self.address
         if not config.privacy.includeasn:
             self.geodata['asn'] = 'AS0'
-        if not config.privacy.includecity:
-            self.geodata['city'] = None
         if not config.privacy.includecountry:
             self.geodata['countrycode'] = 'ZZ'
         if not config.privacy.includeip:
@@ -192,16 +190,6 @@ class ProbeIP(object):
                 log.debug("Tor is not running. Skipping IP lookup via Tor.")
             except Exception:
                 log.msg("Unable to lookup the probe IP via Tor.")
-
-            try:
-                yield self.askTraceroute()
-                log.msg("Found your IP via Traceroute %s" % self.address)
-                self.resolveGeodata()
-                defer.returnValue(self.address)
-            except errors.InsufficientPrivileges:
-                log.debug("Cannot determine the probe IP address with a traceroute, becase of insufficient priviledges")
-            except:
-                log.msg("Unable to lookup the probe IP via traceroute")
 
             try:
                 yield self.askGeoIPService()
@@ -229,14 +217,6 @@ class ProbeIP(object):
 
         if not self.address:
             raise errors.ProbeIPUnknown
-
-    def askTraceroute(self):
-        """
-        Perform a UDP traceroute to determine the probes IP address.
-        """
-        if not hasRawSocketPermission():
-            raise errors.InsufficientPrivileges
-        raise NotImplemented
 
     def askTor(self):
         """

@@ -61,7 +61,7 @@ class Director(object):
 
     _scheduledTests = 0
     # Only list NetTests belonging to these categories
-    categories = ['blocking', 'manipulation']
+    categories = ['blocking', 'manipulation', 'third_party']
 
     def __init__(self):
         self.activeNetTests = []

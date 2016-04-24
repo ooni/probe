@@ -52,8 +52,6 @@ class OONILogger(object):
     def start(self, logfile=None, application_name="ooniprobe"):
         from ooni.settings import config
 
-        daily_logfile = None
-
         if not logfile:
             logfile = os.path.expanduser(config.basic.logfile)
 
