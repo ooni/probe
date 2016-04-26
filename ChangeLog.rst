@@ -1,7 +1,7 @@
 Changelog
 =========
 
-v1.4.0 (XXX, XX Apr 2016)
+v1.4.0 (Wed, 27 Apr 2016)
 -------------------------
 
 * Support for reporting using JSON
@@ -12,10 +12,15 @@ v1.4.0 (XXX, XX Apr 2016)
 
 * OpenVPN censorship circumvention test
 
+* Add test for vanilla Tor
+
 * Support for disabling reporting to disk
 
 * Improvements to HTTP response body decoding (includes fix that lead to empty
   bodies being misrepresented)
+
+* Attempt to scrub the probe IP address from the body of HTTP responses
+
 
 v1.3.2 (Fri, 20 Nov 2015)
 -------------------------
