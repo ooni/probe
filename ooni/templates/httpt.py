@@ -163,18 +163,22 @@ class HTTPTest(NetTestCase):
                 'url': request['url'],
                 'method': request['method'],
                 'tor': request['tor']
-            }
+            },
+            'response': None
         }
         if response:
             if self.localOptions.get('withoutbody', 0) is 0:
                 response_body = _representBody(response_body)
             else:
                 response_body = ''
+            # Attempt to redact the IP address of the probe from the responses
+            if config.privacy.includeip is False and config.probe_ip.address is not None:
+                response_body = response_body.replace(config.probe_ip.address, "[REDACTED]")
             session['response'] = {
                 'headers': _representHeaders(response.headers),
                 'body': response_body,
                 'code': response.code
-        }
+            }
         session['failure'] = None
         if failure_string:
             session['failure'] = failure_string
