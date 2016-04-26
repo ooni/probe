@@ -71,17 +71,15 @@ class Deck(object):
 
 
 def generate_deck(options):
-
+    url_list_country = None
     try:
         url_list_country = citizenlab_test_lists.generate_country_input(
             options['country-code'],
             options['output']
         )
-
     except Exception:
         print "Could not generate country specific url list"
         print "We will just use the global one."
-        url_list_country = None
 
     url_list_global = citizenlab_test_lists.generate_global_input(
         options['output']
@@ -92,19 +90,19 @@ def generate_deck(options):
     )
 
     deck = Deck()
-    # deck.add_test('manipulation/http_host', ['-f', 'somefile.txt'])
+    deck.add_test('manipulation/http_invalid_request_line')
+    deck.add_test('manipulation/http_header_field_manipulation')
+
+   if url_list_country is not None:
+        deck.add_test('blocking/http_requests', ['-f', url_list_country])
     deck.add_test('blocking/http_requests', ['-f', url_list_global])
-    deck.add_test('blocking/dns_consistency',
-                  ['-f', url_list_global, '-T', dns_servers])
 
     if url_list_country is not None:
         deck.add_test('blocking/dns_consistency',
                       ['-f', url_list_country, '-T', dns_servers])
-        deck.add_test('blocking/http_requests', ['-f', url_list_country])
+    deck.add_test('blocking/dns_consistency',
+                  ['-f', url_list_global, '-T', dns_servers])
 
-    deck.add_test('manipulation/http_invalid_request_line')
-    deck.add_test('manipulation/http_header_field_manipulation')
-    # deck.add_test('manipulation/traceroute')
     if config.advanced.debug:
         deck.pprint()
     deck_filename = os.path.join(options['output'],
