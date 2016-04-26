@@ -34,7 +34,7 @@ How to run the test
 For advanced usages you may also configure a different URL and expected body
 for the response with the `--url` and `--expected-body` command line options.
 
-`ooniprobe nettests/third_party/lantern.py --url http://www.github.com/humans.txt --expected-body '/* TEAM */'`
+`ooniprobe nettests/third_party/lantern.py --url http://humanstxt.org/humans.txt --expected-body '/* TEAM */'`
 
 Sample report
 =============
