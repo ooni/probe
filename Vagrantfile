@@ -17,11 +17,6 @@ apt-get install -y build-essential libdumbnet-dev libpcap-dev libgeoip-dev libff
 cd /data/ooni-probe
 python setup.py install
 
-echo "Now:"
-echo "1. vagrant ssh probe"
-echo "2. oonideckgen"
-echo "3. ooniprobe -i deck-*/*.deck"
-
 SCRIPT
 
 $setup_oonibackend = <<SCRIPT
@@ -52,12 +47,6 @@ cp oonib.conf.example /etc/oonibackend.conf
 echo "Installing ooni-backend"
 python setup.py install
 
-echo "Now:"
-echo "1. vagrant ssh"
-echo "2. vi /etc/oonibackend.conf  # possibly"
-echo "3. cd /data/ooni-backend"
-echo "4. sudo ./bin/oonib -c /etc/oonibackend.conf"
-
 SCRIPT
 
 Vagrant.configure("2") do |config|
@@ -76,6 +65,22 @@ Vagrant.configure("2") do |config|
       backend.vm.synced_folder "../ooni-backend", "/data/ooni-backend"
       backend.vm.provision :shell, :inline => $setup_oonibackend
     end
+
+    config.vm.provision "shell", inline: <<-EOF
+      echo "To run oonibackend:"
+      echo "1. vagrant ssh backend"
+      echo "2. vi /etc/oonibackend.conf  # possibly"
+      echo "3. cd /data/ooni-backend"
+      echo "4. sudo ./bin/oonib -c /etc/oonibackend.conf"
+    EOF
+
   end
+
+  config.vm.provision "shell", inline: <<-EOF
+    echo "To run ooniprobe:"
+    echo "1. vagrant ssh probe"
+    echo "2. oonideckgen"
+    echo "3. ooniprobe -i deck-*/*.deck"
+  EOF
 
 end
