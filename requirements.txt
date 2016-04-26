@@ -10,7 +10,7 @@ scapy-real>=2.2.0-dev
 pypcap>=1.1
 service-identity
 pydumbnet
-pyasn1
+pyasn1>=0.1.8
 pyasn1-modules
 characteristic
 zope.interface
