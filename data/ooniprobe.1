@@ -1,6 +1,5 @@
-.\" Man page generated from reStructuredText.
 .
-.TH "ooniprobe" "1" "April 29, 2014" "1.0.2" "ooniprobe"
+.TH "ooniprobe" "1" "April 26, 2016" "1.4.0" "ooniprobe"
 .SH NAME
 ooniprobe - a network censorship measurement tool.
 .
@@ -33,7 +32,7 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 
 .SH SYNOPSIS
 .B ooniprobe
-.RB [ \-hnsp ]
+.RB [ \-hnspgN ]
 .RB [ --version ]
 .RB [ --spew ]
 .RB [ \-o
@@ -52,6 +51,8 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .IR configfile ]
 .RB [ \-d
 .IR datadir ]
+.RB [ \-a
+.IR annotations]
 .I "test_name"
 
 .SH DESCRIPTION
@@ -68,6 +69,12 @@ Display this help and exit.
 .TP
 .BR \-\^n " or " \-\-no\-collector
 Disable reporting the net test results to an oonib collector.
+.TP
+.BR \-\^N " or " \-\-no\-yamloo
+Disable writing report file to disk.
+.TP
+.BR \-\^g " or " \-\-no\-geoip
+Disable performing geoip lookup.
 .TP
 .BR \-\^s " or " \-\-list
 List all of the available net tests.
@@ -102,6 +109,9 @@ Specify a path to the ooniprobe configuration file.
 .TP
 .BR \-\^d " or " \-\-datadir
 Specify a path to the ooniprobe data directory
+.TP
+.BR \-\^a " or " \-\-annotations
+Annotate the report with a key:value[, key:value] format.
 .TP
 .BR \-\-spew
 Print an insanely verbose log of everything that happens.
@@ -1096,5 +1106,5 @@ require for a researcher to assess what is the output of a test.
 .SH AUTHOR
 The Tor Project
 .SH COPYRIGHT
-2014, The Tor Project
+2016, The Tor Project
 .

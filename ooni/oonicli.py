@@ -25,31 +25,41 @@ class Options(usage.Options):
                 " files listed on the command line.")
 
     optFlags = [["help", "h"],
-                ["no-collector", "n", "disable writing to collector"],
-                ["no-yamloo", "N", "disable writing to YAML file"],
-                ["no-geoip", "g"],
-                ["list", "s"],
-                ["printdeck", "p"],
-                ["verbose", "v"]
+                ["no-collector", "n", "Disable writing to collector"],
+                ["no-yamloo", "N", "Disable writing to YAML file"],
+                ["no-geoip", "g", "Disable geoip lookup on start"],
+                ["list", "s", "List the currently installed ooniprobe "
+                              "nettests"],
+                ["printdeck", "p", "Print the equivalent deck for the "
+                                   "provided command"],
+                ["verbose", "v", "Show more verbose information"]
                 ]
 
     optParameters = [
-        ["reportfile", "o", None, "report file name"],
-        ["testdeck", "i", None,
-         "Specify as input a test deck: a yaml file containing the tests to run and their arguments"],
-        ["collector", "c", None,
-         "Address of the collector of test results. This option should not be used, but you should always use a bouncer."],
-        ["bouncer", "b", 'httpo://nkvphnp3p6agi5qq.onion',
-         "Address of the bouncer for test helpers."],
-        ["logfile", "l", None, "log file name"],
-        ["pcapfile", "O", None, "pcap file name"],
-        ["configfile", "f", None,
-         "Specify a path to the ooniprobe configuration file"],
-        ["datadir", "d", None,
-         "Specify a path to the ooniprobe data directory"],
-        ["annotations", "a", None,
-         "Annotate the report with a key:value[, key:value] format."],
-        ["queue", "Q", None, "AMQP Queue URL amqp://user:pass@host:port/vhost/queue"]]
+        ["reportfile", "o", None, "Specify the report file name to write to."],
+        ["testdeck", "i", None, "Specify as input a test deck: a yaml file "
+                                "containing the tests to run and their "
+                                "arguments."],
+        ["collector", "c", None, "Specify the address of the collector for "
+                                 "test results. In most cases a user will "
+                                 "prefer to specify a bouncer over this."],
+        ["bouncer", "b", 'httpo://nkvphnp3p6agi5qq.onion', "Specify the "
+                                                           "bouncer used to "
+                                                           "obtain the "
+                                                           "address of the "
+                                                           "collector and "
+                                                           "test helpers."],
+        ["logfile", "l", None, "Write to this logs to this filename."],
+        ["pcapfile", "O", None, "Write a PCAP of the ooniprobe session to "
+                                "this filename."],
+        ["configfile", "f", None, "Specify a path to the ooniprobe "
+                                  "configuration file."],
+        ["datadir", "d", None, "Specify a path to the ooniprobe data "
+                               "directory."],
+        ["annotations", "a", None, "Annotate the report with a key:value[, "
+                                   "key:value] format."],
+        ["queue", "Q", None, "AMQP Queue URL amqp://user:pass@host:port/vhost/queue"]
+    ]
 
     compData = usage.Completions(
         extraActions=[usage.CompleteFiles(

@@ -1,8 +1,8 @@
 .\" Man page generated from reStructuredText.
 .
-.TH "ooniresources" "1" "October 1, 2014" "1.1.4" "ooniresources"
+.TH "ooniresources" "1" "April 26, 2016" "0.2.0" "ooniresources"
 .SH NAME
-ooniresources - tool for generating ooniprobe test decks
+ooniresources - tool for updating resources for OONI tests
 .
 .nr rst2man-indent-level 0
 .
@@ -35,13 +35,14 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .B ooniresources
 .RB [ --version ]
 .RB [ --help ]
-.RB [ --update-inputs ]
-.RB [ --update-geoip ]
 
 .SH DESCRIPTION
 .sp
 ooniresources will update the resources that are needed for the functioning of
 ooniprobe and related tools.
+
+By invoking this command with no arguments the inputs and GeoIP data files
+shall be updated.
 
 .SH OPTIONS
 
@@ -50,11 +51,11 @@ ooniprobe and related tools.
 Display this help and exit.
 .TP
 .BR \-\-update\-inputs
-This will update the inputs that are used for generating test decks with
+(DEPRECATED) This will update the inputs that are used for generating test decks with
 oonideckgen.
 .TP
 .BR \-\-update\-geoip
-This will update the maxmind geoip databases that are used for detecting the
+(DEPRECATED) This will update the maxmind geoip databases that are used for detecting the
 probes country and ASN.
 .TP
 
@@ -63,16 +64,11 @@ probes country and ASN.
 This tools will update the resources needed for running ooniprobe and
 oonideckgen.
 You don't need to run it very often, but it's just sufficient to run it once
-every month of so as the data usually does not update or change that often.
-If you are seeing some errors related to the geoip subsystem not having some
-Maxmind databases, you probably want to run:
-ooniresources --update-geoip.
-If on the other hand you are interested in using oonideckgen, you should run:
-ooniresources --update-inputs.
+every month or so as the data usually does not update or change that often.
 .sp
 
 .SH AUTHOR
 The Tor Project
 .SH COPYRIGHT
-2014, The Tor Project
+2016, The Tor Project
 .

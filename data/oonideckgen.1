@@ -35,6 +35,8 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .B oonideckgen
 .RB [ --version ]
 .RB [ --help ]
+.RB [ --collector
+.IR httpo://collector-address.onion ]
 .RB [ \-c
 .IR country-code]
 .RB [ \-o
@@ -55,6 +57,9 @@ Display this help and exit.
 .TP
 .BR \-\^c " or " \-\-country-code
 Specify the country code for which a test deck should be geneated
+.TP
+.BR \-\-collector
+Specify the address of the collector to use for submitting reports.
 .TP
 .BR \-\^o " or " \-\-output
 Specify in which directory the deck should be written.
@@ -81,5 +86,5 @@ In order to run deckgen you must have first have run ooniresources --update-inpu
 .SH AUTHOR
 The Tor Project
 .SH COPYRIGHT
-2014, The Tor Project
+2016, The Tor Project
 .
