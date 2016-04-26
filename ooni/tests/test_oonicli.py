@@ -7,7 +7,7 @@ from twisted.internet import defer
 from ooni.tests import is_internet_connected
 from ooni.tests.bases import ConfigTestCase
 from ooni.settings import config
-from ooni.oonicli import runWithDirector
+from ooni.oonicli import runWithDirector, setupGlobalOptions
 from ooni.utils.net import hasRawSocketPermission
 
 
@@ -89,7 +89,8 @@ class TestRunDirector(ConfigTestCase):
         sys.argv.extend(ooni_args)
         sys.argv.extend(['-n', '-o', output_file, test_name])
         sys.argv.extend(nettest_args)
-        yield runWithDirector(False, False, False)
+        global_options = setupGlobalOptions(False, False, False)
+        yield runWithDirector(global_options)
         with open(output_file) as f:
             entries = yaml.safe_load_all(f)
             header = entries.next()

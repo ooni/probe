@@ -205,6 +205,7 @@ def setupGlobalOptions(logging, start_tor, check_incoherences):
             log.err("Insufficient Privileges to capture packets."
                     " See ooniprobe.conf privacy.includepcap")
             sys.exit(2)
+    global_options['check_incoherences'] = check_incoherences
     return global_options
 
 def setupAnnotations(global_options):
@@ -294,14 +295,13 @@ def createDeck(global_options, url=None):
     return deck
 
 
-def runTestWithDirector(director, global_options, url=None,
-                        start_tor=True, check_incoherences=True):
+def runTestWithDirector(director, global_options, url=None, start_tor=True):
     deck = createDeck(global_options, url=url)
 
     start_tor |= deck.requiresTor
 
     d = director.start(start_tor=start_tor,
-                       check_incoherences=check_incoherences)
+                       check_incoherences=global_options['check_incoherences'])
 
     def setup_nettest(_):
         try:
@@ -341,13 +341,11 @@ def runTestWithDirector(director, global_options, url=None,
     d.addErrback(director_startup_other_failures)
     return d
 
-def runWithDirector(logging=True, start_tor=True, check_incoherences=True):
+def runWithDirector(global_options):
     """
     Instance the director, parse command line options and start an ooniprobe
     test!
     """
-    global_options = setupGlobalOptions(logging, start_tor, check_incoherences)
-
     from ooni.director import Director
     director = Director()
     if global_options['list']:
@@ -398,14 +396,13 @@ def runWithDirector(logging=True, start_tor=True, check_incoherences=True):
 
     return runTestWithDirector(director=director,
                                start_tor=start_tor,
-                               global_options=global_options,
-                               check_incoherences=check_incoherences)
+                               global_options=global_options)
 
 
 # this variant version of runWithDirector splits the process in two,
 # allowing a single director instance to be reused with multiple decks.
 
-def runWithDaemonDirector(logging=True, start_tor=True, check_incoherences=True):
+def runWithDaemonDirector(global_options):
     """
     Instance the director, parse command line options and start an ooniprobe
     test!
@@ -420,9 +417,6 @@ def runWithDaemonDirector(logging=True, start_tor=True, check_incoherences=True)
         print "Pika is required for queue connection."
         print "Install with \"pip install pika\"."
         sys.exit(7)
-
-
-    global_options = setupGlobalOptions(logging, start_tor, check_incoherences)
 
     director = Director()
 
@@ -464,8 +458,7 @@ def runWithDaemonDirector(logging=True, start_tor=True, check_incoherences=True)
                 d = runTestWithDirector(director=director,
                                         start_tor=start_tor,
                                         global_options=global_options,
-                                        url=data['url'].encode('utf8'),
-                                        check_incoherences=check_incoherences)
+                                        url=data['url'].encode('utf8'))
                 # When the test has been completed, go back to waiting for a message.
                 d.addCallback(readmsg, channel, queue_object, consumer_tag, counter+1)
             except exceptions.AMQPError,v:
