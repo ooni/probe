@@ -6,7 +6,6 @@ import random
 from hashlib import sha256
 
 from twisted.web import client, http_headers
-from ooni.utils.net import hasRawSocketPermission
 
 client._HTTP11ClientFactory.noisy = False
 
@@ -183,7 +182,7 @@ class ProbeIP(object):
         else:
             try:
                 yield self.askTor()
-                log.msg("Found your IP via Tor %s" % self.address)
+                log.msg("Found your IP via Tor")
                 self.resolveGeodata()
                 defer.returnValue(self.address)
             except errors.TorStateNotFound:
@@ -193,7 +192,7 @@ class ProbeIP(object):
 
             try:
                 yield self.askGeoIPService()
-                log.msg("Found your IP via a GeoIP service: %s" % self.address)
+                log.msg("Found your IP via a GeoIP service")
                 self.resolveGeodata()
                 defer.returnValue(self.address)
             except Exception:

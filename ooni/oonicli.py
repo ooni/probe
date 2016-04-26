@@ -59,7 +59,6 @@ class Options(usage.Options):
     tracer = None
 
     def __init__(self):
-        self['test'] = None
         usage.Options.__init__(self)
 
     def getUsage(self, width=None):

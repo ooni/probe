@@ -65,7 +65,9 @@ Vagrant.configure("2") do |config|
       backend.vm.synced_folder "../ooni-backend", "/data/ooni-backend"
       backend.vm.provision :shell, :inline => $setup_oonibackend
     end
+  end
 
+  if File.directory?("../ooni-backend")
     config.vm.provision "shell", inline: <<-EOF
       echo "To run oonibackend:"
       echo "1. vagrant ssh backend"
@@ -73,7 +75,6 @@ Vagrant.configure("2") do |config|
       echo "3. cd /data/ooni-backend"
       echo "4. sudo ./bin/oonib -c /etc/oonibackend.conf"
     EOF
-
   end
 
   config.vm.provision "shell", inline: <<-EOF

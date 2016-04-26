@@ -22,15 +22,13 @@ class Options(usage.Options):
     """ % sys.argv[0]
 
     optParameters = [
-        ["country-code", "c",
-         None,
+        ["country-code", "c", None,
          "Specify the two letter country code for which we should "
-         "generate the deck."
-         ],
-        ["output", "o",
-         None,
-         "Specify the directory where to write output."
-         ]
+         "generate the deck."],
+        ["collector", None, None, "Specify a custom collector to use when "
+                                  "submitting reports"],
+        ["output", "o", None,
+         "Specify the directory where to write output."]
     ]
 
     def opt_version(self):
@@ -41,33 +39,40 @@ class Options(usage.Options):
 class Deck(object):
     _base_entry = {
         "options": {
+            "test_file": None,
+            "subargs": [],
+            "annotations": None,
+
             "collector": None,
-            "help": 0,
-            "logfile": None,
-            "no-default-reporter": 0,
-            "parallelism": None,
-            "pcapfile": None,
+            # XXX setting this is currently not supported
+            "bouncer": None,
+
             "reportfile": None,
-            "resume": 0,
-            "testdeck": None
+
+            "no-collector": 0,
+            "no-geoip": 0,
+            "no-yamloo": 0,
+            "verbose": 0
         }
     }
 
-    def __init__(self):
-        self.deck = []
+    def __init__(self, collector=None):
+        self.deck_entries = []
+        self.collector = collector
 
     def add_test(self, test_file, subargs=[]):
         deck_entry = copy.deepcopy(self._base_entry)
+        deck_entry['options']['collector'] = self.collector
         deck_entry['options']['test_file'] = test_file
         deck_entry['options']['subargs'] = subargs
-        self.deck.append(deck_entry)
+        self.deck_entries.append(deck_entry)
 
     def pprint(self):
-        print yaml.safe_dump(self.deck)
+        print yaml.safe_dump(self.deck_entries)
 
     def write_to_file(self, filename):
         with open(filename, "w+") as f:
-            f.write(yaml.safe_dump(self.deck))
+            f.write(yaml.safe_dump(self.deck_entries))
 
 
 def generate_deck(options):
@@ -89,11 +94,11 @@ def generate_deck(options):
         options['output']
     )
 
-    deck = Deck()
+    deck = Deck(collector=options['collector'])
     deck.add_test('manipulation/http_invalid_request_line')
     deck.add_test('manipulation/http_header_field_manipulation')
 
-   if url_list_country is not None:
+    if url_list_country is not None:
         deck.add_test('blocking/http_requests', ['-f', url_list_country])
     deck.add_test('blocking/http_requests', ['-f', url_list_global])
 
