@@ -1,6 +1,12 @@
 Changelog
 =========
 
+v1.4.1 (Wed, 27 Apr 2016)
+-------------------------
+
+* Fix problem with uploading of release
+
+
 v1.4.0 (Wed, 27 Apr 2016)
 -------------------------
 
