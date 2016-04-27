@@ -10,7 +10,7 @@ ooniprobe: a network interference detection tool
 
 ___________________________________________________________________________
 
-.. image:: https://ooni.torproject.org/theme/img/ooni-logo.png
+.. image:: https://ooni.torproject.org/images/ooni-header-mascot.png
     :target: https:://ooni.torproject.org/
 
 OONI, the Open Observatory of Network Interference, is a global observation
@@ -52,6 +52,13 @@ To install ooniprobe you will need the following dependencies:
     * libssl-dev
     * libffi-dev
     * libdumbnet-dev
+
+
+On debian based systems this can generally be done by running:
+
+.. code:: bash
+
+    sudo apt-get install -y build-essential libdumbnet-dev libpcap-dev libgeoip-dev libffi-dev python-dev python-pip
 
 When you got them run:
 
