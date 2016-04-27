@@ -4,6 +4,8 @@ Changelog
 v1.4.0 (Wed, 27 Apr 2016)
 -------------------------
 
+codename: Under the Sea
+
 * Support for reporting using JSON
 
 * Support for running ooniprobe with a message queue providing URLs to test
