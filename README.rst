@@ -107,9 +107,18 @@ Make sure you have installed the following dependencies:
   * libffi-dev
   * tor (>=0.2.5.1 to run all the tor related tests)
 
+On debian based systems this can generally be done by running::
+
+    sudo apt-get install -y build-essential libdumbnet-dev libpcap-dev libgeoip-dev libffi-dev python-dev python-pip
+
 Then you should be able to install ooniprobe by running::
 
+    sudo pip install ooniprobe
+
+or as a user to install inside a virtualenv::
+
     pip install ooniprobe
+
 
 Other platforms (with Vagrant)
 ------------------------------
