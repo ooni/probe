@@ -1,6 +1,7 @@
 # These are dependencies of ooniprobe depedencies that require specific
 # versions.
 pyasn1>=0.1.8
+setuptools>=11.3
 
 # These are direct dependencies of ooniprobe.
 PyYAML>=3.10
