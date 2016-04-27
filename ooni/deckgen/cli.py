@@ -111,8 +111,7 @@ def generate_deck(options):
     if config.advanced.debug:
         deck.pprint()
     deck_filename = os.path.join(options['output'],
-                                 "%s-%s-user.deck" % (__version__,
-                                                      options['country-code']))
+                                 "default-user.deck")
     deck.write_to_file(deck_filename)
     print "Deck written to %s" % deck_filename
     print "Run ooniprobe like so:"

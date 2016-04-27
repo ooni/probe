@@ -188,7 +188,7 @@ you can do so (be sure to have updated the input resources first) by running::
 
     oonideckgen --country-code IT --output ~/
 
-You will now have in your home a folder called `deck-YOUR_COUNTRY_CODE`, containing the ooni
+You will now have in your home a folder called `deck-it`, containing the ooni
 deck (ends with .deck) and the inputs.
 Note: that you should not move the `deck-*` directory once it has been
 generated as the paths to the inputs referenced by the test in the deck are
