@@ -42,14 +42,15 @@ from ooni.utils import net
 from ooni.utils import log
 
 __plugoo__ = "captiveportal"
-__desc__ = "Captive portal detection test"
+__desc__ = "Captive portal detection test."
 
 
 class UsageOptions(usage.Options):
-    optParameters = [['asset', 'a', None, 'Asset file'],
-                     ['experiment-url', 'e', 'http://google.com/', 'Experiment URL'],
+    optParameters = [['asset', 'a', None, 'Asset file.'],
+                     ['experiment-url', 'e', 'http://google.com/',
+                      'Experiment URL.'],
                      ['user-agent', 'u', random.choice(net.userAgents),
-                      'User agent for HTTP requests']
+                      'User agent for HTTP requests.']
     ]
 
 
@@ -60,7 +61,7 @@ class CaptivePortal(httpt.HTTPTest, dnst.DNSTest):
     """
 
     name = "captiveportal"
-    description = "Captive Portal Test"
+    description = "Captive Portal Test."
     version = '0.3'
     author = "Isis Lovecruft"
     usageOptions = UsageOptions

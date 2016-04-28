@@ -15,10 +15,10 @@ from ooni.utils import log
 class UsageOptions(usage.Options):
     optParameters = [
         ['resolver', 'r', None,
-         'Specify the resolver that should be used for DNS queries (ip:port)'],
-        ['hostname', 'h', None, 'Specify the hostname of a censored site'],
+         'Specify the resolver that should be used for DNS queries (ip:port).'],
+        ['hostname', 'h', None, 'Specify the hostname of a censored site.'],
         ['backend', 'b', None,
-         'Specify the IP address of a good DNS resolver (ip:port)']]
+         'Specify the IP address of a good DNS resolver (ip:port).']]
 
 
 class DNSSpoof(scapyt.ScapyTest):

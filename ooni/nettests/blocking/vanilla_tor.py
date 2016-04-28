@@ -25,7 +25,7 @@ class UsageOptions(usage.Options):
 
 class VanillaTor(nettest.NetTestCase):
     name = "Vanilla Tor"
-    description = "A test for checking if vanilla Tor connections work"
+    description = "A test for checking if vanilla Tor connections work."
     author = "Arturo Filastò"
     version = "0.1.0"
 

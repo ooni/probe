@@ -29,7 +29,8 @@ class meekTest(httpt.HTTPTest):
 
     """
     name = "Meek fronted requests test"
-    description = "This tests for the Meek Tor pluggable transport frontend reachability"
+    description = "This tests for the Meek Tor pluggable transport "\
+                  "frontend reachability."
     version = "0.0.1"
 
     usageOptions = UsageOptions

@@ -18,7 +18,7 @@ class UsageOptions(usage.Options):
         ['url', 'u', net.GOOGLE_HUMANS[0],
             'Specify the URL to fetch over lantern (default: http://www.google.com/humans.txt).'],
         ['expected-body', 'e', net.GOOGLE_HUMANS[1],
-            'Specify the beginning of the expected body in the response (default: ' + net.GOOGLE_HUMANS[1] + ')']
+            'Specify the beginning of the expected body in the response (default: ' + net.GOOGLE_HUMANS[1] + ').']
     ]
 
 class LanternTest(ProcessTest):
@@ -34,7 +34,8 @@ class LanternTest(ProcessTest):
     """
 
     name = "Lantern Circumvention Tool Test"
-    description = "Bootstraps Lantern, connects to a URL and verifies if it contains the expected input"
+    description = "Bootstraps Lantern, connects to a URL and verifies if it "\
+                  "contains the expected input."
     author = "Aaron Gibson"
     version = "0.1.0"
     timeout = 120
