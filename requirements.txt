@@ -11,7 +11,7 @@ pyOpenSSL>=0.13
 geoip
 txtorcon>=0.7
 txsocksx>=0.0.2
-scapy-real>=2.2.0-dev
+scapy>=2.2.0
 pypcap>=1.1
 service-identity
 pydumbnet
