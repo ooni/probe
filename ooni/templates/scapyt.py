@@ -148,7 +148,7 @@ class BaseScapyTest(NetTestCase):
 
         scapySender.stopSending()
         for sent_packet in packets:
-            self.report['sent_packets'].append(sent_packet)
+            self.report['sent_packets'].append(_representPacket(sent_packet))
 
 
 ScapyTest = BaseScapyTest
