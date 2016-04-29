@@ -371,6 +371,8 @@ def runWithDirector(global_options):
                     ''.join(usage.docMakeChunks(optList))
             )
             print desc
+            print "Note: Third party tests require an external "\
+                  "application to run properly."
 
         sys.exit(0)
 
