@@ -11,7 +11,7 @@ class UsageOptions(usage.Options):
         ['backend', 'b', None, 'The OONI backend that runs a TCP echo server.'],
         ['backendport', 'p', 80,
          'Specify the port that the TCP echo server is running '
-         '(should only be set for debugging.)']]
+         '(should only be set for debugging).']]
 
 
 class HTTPInvalidRequestLine(tcpt.TCPTest):

@@ -18,7 +18,8 @@ class UsageOptions(usage.Options):
     optParameters = [
         ['url', 'u', None, 'Specify a single URL to test.'],
         ['factor', 'f', 0.8,
-         'What factor should be used for triggering censorship (0.8 == 80%).']]
+         'What factor should be used for triggering censorship '
+         '(0.8 == 80%).']]
     optFlags = [
         ["withoutbody", "B", "don't include HTTP response body inside of the "
          "report."],

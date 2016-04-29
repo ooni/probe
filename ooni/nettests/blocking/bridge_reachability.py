@@ -36,7 +36,7 @@ class BridgeReachability(nettest.NetTestCase):
     inputFile = ['file', 'f', None,
                  'File containing bridges to test reachability for. '
                  'They should be one per line IP:ORPort or '
-                 'TransportType IP:ORPort (ex. obfs2 127.0.0.1:443)'.]
+                 'TransportType IP:ORPort (ex. obfs2 127.0.0.1:443).']
 
     requiredOptions = ['file']
 

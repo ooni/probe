@@ -20,7 +20,7 @@ class UsageOptions(usage.Options):
     optParameters = [
         ['timeout', 't', 200,
          'Specify the timeout after which to consider '
-         'the Tor bootstrapping process to have failed'], ]
+         'the Tor bootstrapping process to have failed.'], ]
 
 
 class VanillaTor(nettest.NetTestCase):
