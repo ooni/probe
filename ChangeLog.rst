@@ -1,6 +1,14 @@
 Changelog
 =========
 
+v1.4.2 (Fri, 29 Apr 2016)
+-------------------------
+
+* Hotfix for bug in serialising binary response bodies
+
+* Use the most recent scapy version
+
+
 v1.4.1 (Wed, 27 Apr 2016)
 -------------------------
 
