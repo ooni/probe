@@ -18,12 +18,13 @@ from ooni.templates import httpt
 
 
 class UsageOptions(usage.Options):
-    optParameters = [['backend', 'b', None,
-                      'URL of the test backend to use. Should be \
-                              listening on port 80 and be a \
-                        HTTPReturnJSONHeadersHelper (ex. http://1.1.1.1)'],
-                     ['content', 'c', None, 'The file to read \
-                            from containing the content of a block page']]
+    optParameters = [
+        ['backend', 'b', None,
+         'URL of the test backend to use. Should be listening on port 80 '
+         'and be a HTTPReturnJSONHeadersHelper (ex. http://1.1.1.1).'],
+        ['content', 'c', None, 'The file to read from containing the '
+         'content of a block page.']
+        ]
 
 
 class HTTPHost(httpt.HTTPTest):
@@ -38,7 +39,7 @@ class HTTPHost(httpt.HTTPTest):
     strategies will work.
     """
     name = "HTTP Host"
-    description = "Tests a variety of different filter bypassing techniques " \
+    description = "Tests a variety of different filter bypassing techniques "\
                   "based on the HTTP Host header field."
     author = "Arturo Filastò"
     version = "0.2.4"
@@ -47,7 +48,7 @@ class HTTPHost(httpt.HTTPTest):
     usageOptions = UsageOptions
 
     inputFile = ['file', 'f', None,
-                 'List of hostnames to test for censorship']
+                 'List of hostnames to test for censorship.']
 
     requiredTestHelpers = {'backend': 'http-return-json-headers'}
     requiredOptions = ['backend', 'file']

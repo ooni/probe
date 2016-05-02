@@ -9,7 +9,7 @@ from ooni.utils import log
 class UsageOptions(usage.Options):
     optParameters = [ ['expectedBody', 'B',
                          'I’m just a happy little web server.\n',
-                          'Expected body content from GET response'],
+                          'Expected body content from GET response.'],
                       ['domainName', 'D', None,
                         'Specify a single fronted domainName to test.'],
                       ['hostHeader', 'H', None,
@@ -29,7 +29,8 @@ class meekTest(httpt.HTTPTest):
 
     """
     name = "Meek fronted requests test"
-    description = "This tests for the Meek Tor pluggable transport frontend reachability"
+    description = "This tests for the Meek Tor pluggable transport "\
+                  "frontend reachability."
     version = "0.0.1"
 
     usageOptions = UsageOptions

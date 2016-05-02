@@ -26,12 +26,12 @@ class UsageOptions(usage.Options):
     optParameters = [
         ['clipath', 'p', None, 'Specify the path to NetalyzrCLI.jar (can be '
                                'downloaded from '
-                               'http://netalyzr.icsi.berkeley.edu/NetalyzrCLI.jar)']
+                               'http://netalyzr.icsi.berkeley.edu/NetalyzrCLI.jar).']
     ]
 
 class NetalyzrWrapperTest(process.ProcessTest):
     name = "NetalyzrWrapper"
-    description = "A wrapper around the Netalyzr java command line client"
+    description = "A wrapper around the Netalyzr java command line client."
     author = "Jacob Appelbaum <jacob@appelbaum.net>"
 
     requiredOptions = ['clipath']

@@ -23,7 +23,7 @@ class TCPConnectTest(nettest.NetTestCase):
         'file',
         'f',
         None,
-        'File containing the IP:PORT combinations to be tested, one per line']
+        'File containing the IP:PORT combinations to be tested, one per line.']
 
     requiresTor = False
     requiresRoot = False

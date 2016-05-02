@@ -82,8 +82,8 @@ This will tell you how to run ooniprobe :)
 
     def opt_spew(self):
         """
-        Print an insanely verbose log of everything that happens.  Useful
-        when debugging freezes or locks in complex code.
+        Print an insanely verbose log of everything that happens.
+        Useful when debugging freezes or locks in complex code.
         """
         from twisted.python.util import spewer
         sys.settrace(spewer)
@@ -371,6 +371,8 @@ def runWithDirector(global_options):
                     ''.join(usage.docMakeChunks(optList))
             )
             print desc
+            print "Note: Third party tests require an external "\
+                  "application to run properly."
 
         sys.exit(0)
 

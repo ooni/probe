@@ -16,7 +16,7 @@ class UsageOptions(usage.Options):
         ['url', 'u', net.GOOGLE_HUMANS[0],
             'Specify the URL to fetch over psiphon (default: http://www.google.com/humans.txt).'],
         ['expected-body', 'e', net.GOOGLE_HUMANS[1],
-            'Specify the beginning of the expected body in the response (default: ' + net.GOOGLE_HUMANS[1] + ')']
+            'Specify the beginning of the expected body in the response (default: ' + net.GOOGLE_HUMANS[1] + ').']
     ]
 
 class PsiphonTest(httpt.HTTPTest,  process.ProcessTest):
@@ -32,7 +32,7 @@ class PsiphonTest(httpt.HTTPTest,  process.ProcessTest):
 
     name = "Psiphon Test"
     description = ("Bootstraps Psiphon and "
-                   "does a HTTP GET for the specified URL")
+                   "does a HTTP GET for the specified URL.")
     author = "juga"
     version = "0.1.0"
     timeout = 120

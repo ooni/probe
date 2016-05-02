@@ -26,11 +26,11 @@ from ooni.utils import log
 
 class UsageOptions(usage.Options):
     optParameters = [['backend', 'b', None,
-                      'The OONI backend that runs the DNS resolver'],
+                      'The OONI backend that runs the DNS resolver.'],
                      ['testresolvers', 'T', None,
-                      'File containing list of DNS resolvers to test against'],
+                      'File containing list of DNS resolvers to test against.'],
                      ['testresolver', 't', None,
-                         'Specify a single test resolver to use for testing']
+                         'Specify a single test resolver to use for testing.']
                      ]
 
 

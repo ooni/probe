@@ -30,7 +30,8 @@ class OpenVPNTest(ProcessTest):
     """
 
     name = "OpenVPN Client Test"
-    description = "Connects to an OpenVPN server and does a HTTP GET for the specified URL"
+    description = "Connects to an OpenVPN server and does a HTTP GET for the" \
+                  "specified URL."
     author = "srvetus "
     version = "0.0.2"
     timeout = 20
