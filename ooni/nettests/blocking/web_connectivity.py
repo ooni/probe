@@ -1,5 +1,6 @@
 # -*- encoding: utf-8 -*-
 
+import csv
 import json
 from urlparse import urlparse
 
@@ -102,6 +103,43 @@ class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
             log.exception(exc)
             log.err("Failed to lookup the resolver IP address")
 
+
+    def inputProcessor(self, filename):
+        """
+        This is a specialised inputProcessor that also supports taking as
+        input a csv file.
+        """
+        def csv_generator(fh):
+            for row in csv.reader(fh):
+                yield row[0]
+
+        def simple_file_generator(fh):
+            for line in fh:
+                l = line.strip()
+                # Skip empty lines
+                if not l:
+                    continue
+                # Skip comment lines
+                elif l.startswith('#'):
+                    continue
+                yield l
+
+        try:
+            fh = open(filename)
+            line = fh.readline()
+            # Detect the line of the citizenlab input file
+            if line.startswith("url,"):
+                generator = csv_generator(fh)
+            else:
+                fh.seek(0)
+                generator = simple_file_generator(fh)
+            for i in generator:
+                if not i.startswith("http"):
+                    i = "http://{}/".format(i)
+                yield i
+        finally:
+            fh.close()
+
     def setUp(self):
         """
         Check for inputs.
@@ -143,10 +181,11 @@ class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
         }
 
     def experiment_dns_query(self):
-        log.msg("Doing DNS query for {}".format(self.hostname))
+        log.msg("* doing DNS query for {}".format(self.hostname))
         return self.performALookup(self.hostname)
 
     def tcp_connect(self, socket):
+        log.msg("* connecting to {}".format(socket))
         ip_address, port = socket.split(":")
         port = int(port)
         result = {
@@ -212,7 +251,7 @@ class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
             try:
                 control_headers_lower[header_name.lower()]
             except KeyError:
-                log.msg("Did not find the key {}".format(header_name))
+                log.debug("Did not find the key {}".format(header_name))
                 return False
             count += 1
 
@@ -261,6 +300,10 @@ class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
                               experiment_ips))
         control_asns = set(map(lambda x: geoip.IPToLocation(x)['asn'],
                            control_ips))
+
+        # Remove the instance of AS0 when we fail to find the ASN
+        control_asns.discard('AS0')
+        experiment_asns.discard('AS0')
 
         if len(control_asns.intersection(experiment_asns)) > 0:
             return True
@@ -316,11 +359,21 @@ class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
                    self.report['body_length_match'] == False)):
             blocking = 'dns'
 
+        # This happens when the DNS resolution is injected, but the domain
+        # doesn't have a valid record anymore or it resolves to an address
+        # that is only accessible from within the country/network of the probe.
+        elif (dns_consistent == False and
+                  (self.control['dns']['failure'] is not None or
+                   self.control['http_request']['failure'] is not None)):
+            blocking = 'dns'
+
         return blocking
 
 
     @defer.inlineCallbacks
     def test_web_connectivity(self):
+        log.msg("")
+        log.msg("Starting test for {}".format(self.input))
         experiment_dns = self.experiment_dns_query()
 
         @experiment_dns.addErrback
@@ -385,15 +438,20 @@ class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
         else:
             log.msg("* Is NOT accessible")
             self.report['accessible'] = False
+        log.msg("")
 
     def postProcessor(self, measurements):
         self.summary['accessible'] = self.summary.get('accessible', [])
         self.summary['not-accessible'] = self.summary.get('not-accessible', [])
-        self.summary['blocked'] = self.summary.get('blocked', [])
+        self.summary['blocked'] = self.summary.get('blocked', {})
 
         if self.report['blocking'] not in (False, None):
-            self.summary['blocked'].append((self.input,
-                                            self.report['blocking']))
+            self.summary['blocked'][self.report['blocking']] = \
+                self.summary['blocked'].get(self.report['blocking'], [])
+
+            self.summary['blocked'][self.report['blocking']].append(
+                self.input)
+
         if self.report['accessible'] is True:
             self.summary['accessible'].append(self.input)
         else:
@@ -412,13 +470,15 @@ class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
         if len(summary['not-accessible']) > 0:
             log.msg("")
             log.msg("Not accessible URLS")
-            log.msg("---------------")
+            log.msg("-------------------")
             for url in summary['not-accessible']:
                 log.msg("* {}".format(url))
 
         if len(summary['blocked']) > 0:
-            log.msg("")
-            log.msg("Blocked URLS")
-            log.msg("------------")
-            for url, reason in summary['blocked']:
-                log.msg("* {} due to {}".format(url, reason))
+
+            for reason, urls in summary['blocked'].items():
+                log.msg("")
+                log.msg("URLS blocked due to {}".format(reason))
+                log.msg("--------------------"+'-'*len(reason))
+                for url in urls:
+                    log.msg("* {}".format(url))
