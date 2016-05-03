@@ -44,6 +44,32 @@ class BaseTestCase(unittest.TestCase):
             test_file: manipulation/http_invalid_request_line
             testdeck: null
 """
+        self.dummy_deck_content_with_many_tests = """- options:
+            collector: null
+            help: 0
+            logfile: null
+            no-default-reporter: 0
+            parallelism: null
+            pcapfile: null
+            reportfile: null
+            resume: 0
+            subargs: [-b, "1.1.1.1"]
+            test_file: manipulation/http_invalid_request_line
+            testdeck: null
+- options:
+            collector: null
+            help: 0
+            logfile: null
+            no-default-reporter: 0
+            parallelism: null
+            pcapfile: null
+            reportfile: null
+            resume: 0
+            subargs: [-b, "2.2.2.2"]
+            test_file: manipulation/http_invalid_request_line
+            testdeck: null
+"""
+
 
 
 class TestInputFile(BaseTestCase):
@@ -127,10 +153,32 @@ class TestDeck(BaseTestCase):
         deck.bouncer = "httpo://foo.onion"
         deck.oonibclient = MockOONIBClient()
         deck.loadDeck(self.deck_file)
+
+        self.assertEqual(len(deck.netTestLoaders[0].missingTestHelpers), 1)
+
         yield deck.lookupTestHelpers()
 
-        assert deck.netTestLoaders[0].collector == 'httpo://thirteenchars1234.onion'
+        self.assertEqual(deck.netTestLoaders[0].collector,
+                         'httpo://thirteenchars1234.onion')
 
-        required_test_helpers = deck.netTestLoaders[0].requiredTestHelpers
-        assert len(required_test_helpers) == 1
-        assert required_test_helpers[0]['test_class'].localOptions['backend'] == '127.0.0.1'
+        self.assertEqual(deck.netTestLoaders[0].localOptions['backend'],
+                         '127.0.0.1')
+
+
+    def test_deck_with_many_tests(self):
+        os.remove(self.deck_file)
+        deck_hash = sha256(self.dummy_deck_content_with_many_tests).hexdigest()
+        self.deck_file = os.path.join(self.cwd, deck_hash)
+        with open(self.deck_file, 'w+') as f:
+            f.write(self.dummy_deck_content_with_many_tests)
+        deck = Deck(decks_directory=".")
+        deck.loadDeck(self.deck_file)
+
+        self.assertEqual(
+            deck.netTestLoaders[0].localOptions['backend'],
+            '1.1.1.1'
+        )
+        self.assertEqual(
+            deck.netTestLoaders[1].localOptions['backend'],
+            '2.2.2.2'
+        )

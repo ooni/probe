@@ -261,7 +261,8 @@ def createDeck(global_options, url=None):
             if any(global_options['subargs']):
                 args = global_options['subargs'] + args
             net_test_loader = NetTestLoader(args,
-                                            test_file=test_file)
+                                            test_file=test_file,
+                                            annotations=global_options['annotations'])
             if global_options['collector']:
                 net_test_loader.collector = global_options['collector']
             deck.insert(net_test_loader)
@@ -327,8 +328,6 @@ def runTestWithDirector(director, global_options, url=None, start_tor=True):
             if not global_options['no-collector']:
                 collector_address = setupCollector(global_options,
                                                    net_test_loader.collector)
-
-            net_test_loader.annotations = global_options['annotations']
 
             yield director.startNetTest(net_test_loader,
                                         global_options['reportfile'],

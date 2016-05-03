@@ -136,6 +136,7 @@ class Deck(InputFile):
                 log.msg("Skipping...")
                 continue
             net_test_loader = NetTestLoader(test['options']['subargs'],
+                                            annotations=test['options'].get('annotations', {}),
                                             test_file=nettest_path)
             if test['options']['collector']:
                 net_test_loader.collector = test['options']['collector']
@@ -143,23 +144,13 @@ class Deck(InputFile):
 
     def insert(self, net_test_loader):
         """ Add a NetTestLoader to this test deck """
-
-        def has_test_helper(missing_option):
-            for rth in net_test_loader.requiredTestHelpers:
-                if missing_option == rth['option']:
-                    return True
-            return False
-
         try:
             net_test_loader.checkOptions()
             if net_test_loader.requiresTor:
                 self.requiresTor = True
-        except e.MissingRequiredOption as missing_options:
+        except e.MissingTestHelper:
             if not self.bouncer:
                 raise
-            for missing_option in missing_options.message:
-                if not has_test_helper(missing_option):
-                    raise
             self.requiresTor = True
 
         if net_test_loader.collector and net_test_loader.collector.startswith('https://'):
@@ -192,26 +183,25 @@ class Deck(InputFile):
         requires_collector = False
         for net_test_loader in self.netTestLoaders:
             nettest = {
-                'name': net_test_loader.testDetails['test_name'],
-                'version': net_test_loader.testDetails['test_version'],
+                'name': net_test_loader.testName,
+                'version': net_test_loader.testVersion,
                 'test-helpers': [],
                 'input-hashes': [x['hash'] for x in net_test_loader.inputFiles]
             }
             if not net_test_loader.collector and not self.no_collector:
                 requires_collector = True
 
-            for th in net_test_loader.requiredTestHelpers:
-                # {'name':'', 'option':'', 'test_class':''}
-                if th['test_class'].localOptions[th['option']]:
-                    continue
-                nettest['test-helpers'].append(th['name'])
+            if len(net_test_loader.missingTestHelpers) > 0:
                 requires_test_helpers = True
+                nettest['test-helpers'] += map(lambda x: x[1],
+                                               net_test_loader.missingTestHelpers)
 
             required_nettests.append(nettest)
 
         if not requires_test_helpers and not requires_collector:
             defer.returnValue(None)
 
+        log.debug("Looking up {}".format(required_nettests))
         response = yield self.oonibclient.lookupTestCollector(required_nettests)
         provided_net_tests = response['net-tests']
 
@@ -227,17 +217,18 @@ class Deck(InputFile):
                 return net_test['collector'], net_test['test-helpers']
 
         for net_test_loader in self.netTestLoaders:
-            log.msg("Setting collector and test helpers for %s" % net_test_loader.testDetails['test_name'])
+            log.msg("Setting collector and test helpers for %s" %
+                    net_test_loader.testName)
 
             collector, test_helpers = \
-                find_collector_and_test_helpers(net_test_loader.testDetails['test_name'],
-                                                net_test_loader.testDetails['test_version'],
+                find_collector_and_test_helpers(net_test_loader.testName,
+                                                net_test_loader.testVersion,
                                                 net_test_loader.inputFiles)
 
-            for th in net_test_loader.requiredTestHelpers:
-                if not th['test_class'].localOptions[th['option']]:
-                    th['test_class'].localOptions[th['option']] = test_helpers[th['name']].encode('utf-8')
-                net_test_loader.testHelpers[th['option']] = th['test_class'].localOptions[th['option']]
+            for option, name in net_test_loader.missingTestHelpers:
+                test_helper_address = test_helpers[name].encode('utf-8')
+                net_test_loader.localOptions[option] = test_helper_address
+                net_test_loader.testHelpers[option] = test_helper_address
 
             if not net_test_loader.collector:
                 net_test_loader.collector = collector.encode('utf-8')
@@ -252,11 +243,8 @@ class Deck(InputFile):
             if not net_test_loader.collector and not self.no_collector:
                 requires_collector.append(net_test_loader)
 
-            for th in net_test_loader.requiredTestHelpers:
-                # {'name':'', 'option':'', 'test_class':''}
-                if th['test_class'].localOptions[th['option']]:
-                    continue
-                required_test_helpers.append(th['name'])
+            required_test_helpers += map(lambda x: x[1],
+                                           net_test_loader.missingTestHelpers)
 
         if not required_test_helpers and not requires_collector:
             defer.returnValue(None)
@@ -265,33 +253,34 @@ class Deck(InputFile):
 
         for net_test_loader in self.netTestLoaders:
             log.msg("Setting collector and test helpers for %s" %
-                    net_test_loader.testDetails['test_name'])
+                    net_test_loader.testName)
 
             # Only set the collector if the no collector has been specified
             # from the command line or via the test deck.
-            if not net_test_loader.requiredTestHelpers and \
+            if len(net_test_loader.missingTestHelpers) == 0 and \
                             net_test_loader in requires_collector:
                 log.msg("Using the default collector: %s" %
                         response['default']['collector'])
                 net_test_loader.collector = response['default']['collector'].encode('utf-8')
                 continue
 
-            for th in net_test_loader.requiredTestHelpers:
-                # Only set helpers which are not already specified
-                if th['name'] not in required_test_helpers:
-                    continue
-                test_helper = response[th['name']]
-                log.msg("Using this helper: %s" % test_helper)
-                th['test_class'].localOptions[th['option']] = test_helper['address'].encode('utf-8')
+            for option, name in net_test_loader.missingTestHelpers:
+                test_helper_address = response[name]['address'].encode('utf-8')
+                test_helper_collector = \
+                    response[name]['collector'].encode('utf-8')
+
+                log.msg("Using this helper: %s" % test_helper_address)
+                net_test_loader.localOptions[option] = test_helper_address
+                net_test_loader.testHelpers[option] = test_helper_address
                 if net_test_loader in requires_collector:
-                    net_test_loader.collector = test_helper['collector'].encode('utf-8')
+                    net_test_loader.collector = test_helper_collector
 
     @defer.inlineCallbacks
     def fetchAndVerifyNetTestInput(self, net_test_loader):
         """ fetch and verify a single NetTest's inputs """
         log.debug("Fetching and verifying inputs")
         for i in net_test_loader.inputFiles:
-            if 'url' in i:
+            if i['url']:
                 log.debug("Downloading %s" % i['url'])
                 self.oonibclient.address = i['address']
 
@@ -305,4 +294,4 @@ class Deck(InputFile):
                 except AssertionError:
                     raise e.UnableToLoadDeckInput
 
-                i['test_class'].localOptions[i['key']] = input_file.cached_file
+                i['test_options'][i['key']] = input_file.cached_file

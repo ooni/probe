@@ -62,9 +62,7 @@ class TestRunDirector(ConfigTestCase):
         super(TestRunDirector, self).setUp()
         if not is_internet_connected():
             self.skipTest("You must be connected to the internet to run this test")
-        elif not hasRawSocketPermission():
-            self.skipTest("You must run this test as root or have the capabilities "
-            "cap_net_admin,cap_net_raw+eip")
+
         config.tor.socks_port = 9050
         config.tor.control_port = None
         self.filenames = ['example-input.txt']
@@ -165,6 +163,9 @@ class TestRunDirector(ConfigTestCase):
 
     @defer.inlineCallbacks
     def test_sniffing_activated(self):
+        if not hasRawSocketPermission():
+            self.skipTest("You must run this test as root or have the "
+                          "capabilities cap_net_admin,cap_net_raw+eip")
         self.skipTest("Not properly set packet capture?")
         filename = os.path.abspath('test_report.pcap')
         self.filenames.append(filename)

@@ -2,12 +2,38 @@ from mock import patch, MagicMock
 
 from ooni.settings import config
 from ooni.director import Director
+from ooni.nettest import NetTestLoader
 from ooni.tests.bases import ConfigTestCase
 
 from twisted.internet import defer
 from twisted.trial import unittest
 
 from txtorcon import TorControlProtocol
+
+test_failing_twice = """
+from twisted.internet import defer, reactor
+from ooni.nettest import NetTestCase
+
+class TestFailingTwice(NetTestCase):
+    inputs = ["spam-{}".format(idx) for idx in range(50)]
+
+    def setUp(self):
+        self.summary[self.input] = self.summary.get(self.input, 0)
+
+    def test_a(self):
+        run_count = self.summary[self.input]
+        delay = float(self.input.split("-")[1])/1000
+        d = defer.Deferred()
+        def callback():
+            self.summary[self.input] += 1
+            if run_count < 3:
+                d.errback(Exception("Failing"))
+            else:
+                d.callback(self.summary[self.input])
+
+        reactor.callLater(delay, callback)
+        return d
+"""
 
 proto = MagicMock()
 proto.tor_protocol = TorControlProtocol()
@@ -51,6 +77,23 @@ class TestDirector(ConfigTestCase):
             assert config.tor.control_port == 4242
 
         return director_start_tor()
+
+    def test_run_test_fails_twice(self):
+        finished = defer.Deferred()
+
+        def net_test_done(net_test):
+            summary_items = net_test.summary.items()
+            self.assertEqual(len(summary_items), 50)
+            for input_name, run_count in summary_items:
+                self.assertEqual(run_count, 3)
+            finished.callback(None)
+
+        net_test_loader = NetTestLoader(('spam','ham'))
+        net_test_loader.loadNetTestString(test_failing_twice)
+        director = Director()
+        director.netTestDone = net_test_done
+        director.startNetTest(net_test_loader, None, no_yamloo=True)
+        return finished
 
 
 class TestStartSniffing(unittest.TestCase):
