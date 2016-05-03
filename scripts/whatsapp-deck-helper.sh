@@ -44,3 +44,7 @@ sed -i s/^.*m//g whatsapp-ipv4.list
 for p in ${WHATSAPP_PORTS}; do
 	sed s/$/:${p}/g whatsapp-ipv4.list > whatsapp-ipv4-${p}.list
 done
+
+# Hack make this a big fat IP:PORT list bug refernce:
+# https://github.com/TheTorProject/ooni-probe/issues/493
+cat whatsapp-ipv4-* > whatsapp-ipv4-ports.list
