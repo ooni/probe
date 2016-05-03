@@ -52,3 +52,6 @@ done
 # Hack make this a big fat IP:PORT list bug refernce:
 # https://github.com/TheTorProject/ooni-probe/issues/493
 awk '1' whatsapp-ipv4-[0-9]* > whatsapp-ipv4-ports.list
+
+# Generate a random IP:PORTS list for the fast deck
+shuf -n 500 whatsapp-ipv4-ports.list > whatsapp-ipv4-random-ports.list
