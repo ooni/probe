@@ -326,8 +326,15 @@ class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
     def determine_blocking(self, experiment_http_response, experiment_dns_answers):
         blocking = False
 
-        if (self.report['http_experiment_failure'] is None and
-                    self.report['control']['http_request']['failure'] is None):
+        control_http_failure = self.report['control']['http_request']['failure']
+        if control_http_failure is not None:
+            control_http_failure = control_http_failure.split(" ")[0]
+
+        experiment_http_failure = self.report['http_experiment_failure']
+        if experiment_http_failure is not None:
+            experiment_http_failure = experiment_http_failure.split(" ")[0]
+
+        if (experiment_http_failure is None and control_http_failure is None):
             self.report['body_length_match'] = self.compare_body_lengths(
                 experiment_http_response)
             self.report['headers_match'] = self.compare_headers(
@@ -340,8 +347,9 @@ class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
             self.report['dns_consistency'] = 'inconsistent'
         tcp_connect = self.compare_tcp_experiments()
 
+
         if (dns_consistent == True and tcp_connect == False and
-                self.report['http_experiment_failure'] is not None):
+                experiment_http_failure is not None):
             blocking = 'tcp_ip'
 
         # XXX we may want to have different codes for these two types of
@@ -350,12 +358,12 @@ class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
                       self.report['body_length_match'] == False):
             blocking = 'http'
         elif (dns_consistent == True and tcp_connect == True and
-                self.report['http_experiment_failure'] is not None and
-                self.report['control']['http_request']['failure'] != self.report['http_experiment_failure']):
+                experiment_http_failure is not None and
+                control_http_failure is None):
             blocking = 'http'
 
         elif (dns_consistent == False and
-                  (self.report['http_experiment_failure'] is not None or
+                  (experiment_http_failure is not None or
                    self.report['body_length_match'] == False)):
             blocking = 'dns'
 
@@ -364,7 +372,7 @@ class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
         # that is only accessible from within the country/network of the probe.
         elif (dns_consistent == False and
                   (self.control['dns']['failure'] is not None or
-                   self.control['http_request']['failure'] is not None)):
+                   control_http_failure != experiment_http_failure)):
             blocking = 'dns'
 
         return blocking
