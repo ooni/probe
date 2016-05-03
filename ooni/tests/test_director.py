@@ -5,6 +5,8 @@ from ooni.director import Director
 from ooni.nettest import NetTestLoader
 from ooni.tests.bases import ConfigTestCase
 
+from ooni.nettest import NetTestLoader
+
 from twisted.internet import defer
 from twisted.trial import unittest
 
