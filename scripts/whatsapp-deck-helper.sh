@@ -36,8 +36,12 @@ command -V prips torsocks
 torsocks wget -N ${WHATSAPP_CIDR_URL}
 sed '/^.*:.*$/d' cidr.txt > cidr-ipv4.txt
 
+# Remove /32 CIDR blocks to resolve a but in prips version <1
+sed -e '/\/32/w whatsapp-ipv4.list' -e '//d' cidr-ipv4.txt
+sed -i 's/\/32//g' whatsapp-ipv4.list
+
 while read l; do
-	prips $l; done <cidr-ipv4.txt > whatsapp-ipv4.list
+	prips $l; done <cidr-ipv4.txt >> whatsapp-ipv4.list
 
 sed -i s/^.*m//g whatsapp-ipv4.list
 
