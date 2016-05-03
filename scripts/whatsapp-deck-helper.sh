@@ -37,7 +37,7 @@ torsocks wget -N ${WHATSAPP_CIDR_URL}
 sed '/^.*:.*$/d' cidr.txt > cidr-ipv4.txt
 
 # Remove /32 CIDR blocks to resolve a but in prips version <1
-sed -e '/\/32/w whatsapp-ipv4.list' -e '//d' cidr-ipv4.txt
+sed -i -e '/\/32/w whatsapp-ipv4.list' -e '//d' cidr-ipv4.txt
 sed -i 's/\/32//g' whatsapp-ipv4.list
 
 while read l; do
@@ -51,4 +51,4 @@ done
 
 # Hack make this a big fat IP:PORT list bug refernce:
 # https://github.com/TheTorProject/ooni-probe/issues/493
-cat whatsapp-ipv4-* > whatsapp-ipv4-ports.list
+awk '1' whatsapp-ipv4-[0-9]* > whatsapp-ipv4-ports.list
