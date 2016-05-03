@@ -11,11 +11,15 @@ set -e
 WHATSAPP_CIDR_URL="https://www.whatsapp.com/cidr.txt"
 # Known Whatsapp ports
 WHATSAPP_PORTS="80 443 5222 5223 5228 5060 5060 8080"
-# Known Whatsapp URLs
+# Known Whatsapp web URLs
 WHATSAPP_URLS="
 www.whatsapp.com
 web.whatsapp.com
 www.whatsapp.com/cidr.txt
+whatsapp.com
+sro.whatsapp.net/client/iphone/iq.php
+sro.whatsapp.net/client/android/iq.php
+static.reverse.softlayer.com
 "
 # Whatsapp URL list file
 URL_LIST="whatsappurl.list"
