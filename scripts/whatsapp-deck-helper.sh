@@ -54,4 +54,4 @@ done
 awk '1' whatsapp-ipv4-[0-9]* > whatsapp-ipv4-ports.list
 
 # Generate a random IP:PORTS list for the fast deck
-shuf -n 500 whatsapp-ipv4-ports.list > whatsapp-ipv4-random-ports.list
+shuf -n 100 whatsapp-ipv4-ports.list > whatsapp-ipv4-random-ports.list
