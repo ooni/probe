@@ -1,0 +1,121 @@
+- options:
+    collector: null
+    help: 0
+    logfile: null
+    no-default-reporter: 0
+    parallelism: null
+    pcapfile: null
+    reportfile: null
+    resume: 0
+    subargs: [-f, 'whatsappurl.list']
+    test_file: blocking/http_requests
+- options:
+    collector: null
+    help: 0
+    logfile: null
+    no-default-reporter: 0
+    parallelism: null
+    pcapfile: null
+    reportfile: null
+    resume: 0
+    subargs: [-f, 'whatsappurl.list']
+    test_file: blocking/dns_consistency
+- options:
+    collector: null
+    help: 0
+    logfile: null
+    no-default-reporter: 0
+    parallelism: null
+    pcapfile: null
+    reportfile: null
+    resume: 0
+    subargs: [-f, 'whatsapp-ipv4-80.list']
+    test_file: manipulation/http_host
+- options:
+    collector: null
+    help: 0
+    logfile: null
+    no-default-reporter: 0
+    parallelism: null
+    pcapfile: null
+    reportfile: null
+    resume: 0
+    subargs: [-f, 'whatsapp-ipv4-443.list']
+    test_file: manipulation/http_host
+- options:
+    collector: null
+    help: 0
+    logfile: null
+    no-default-reporter: 0
+    parallelism: null
+    pcapfile: null
+    reportfile: null
+    resume: 0
+    subargs: [-f, 'whatsapp-ipv4-5222.list']
+    test_file: manipulation/http_host
+- options:
+    collector: null
+    help: 0
+    logfile: null
+    no-default-reporter: 0
+    parallelism: null
+    pcapfile: null
+    reportfile: null
+    resume: 0
+    subargs: [-f, 'whatsapp-ipv4-5223.list']
+    test_file: manipulation/http_host
+- options:
+    collector: null
+    help: 0
+    logfile: null
+    no-default-reporter: 0
+    parallelism: null
+    pcapfile: null
+    reportfile: null
+    resume: 0
+    subargs: [-f, 'whatsapp-ipv4-5228.list']
+    test_file: manipulation/http_host
+- options:
+    collector: null
+    help: 0
+    logfile: null
+    no-default-reporter: 0
+    parallelism: null
+    pcapfile: null
+    reportfile: null
+    resume: 0
+    subargs: [-f, 'whatsapp-ipv4-5060.list']
+    test_file: manipulation/http_host
+- options:
+    collector: null
+    help: 0
+    logfile: null
+    no-default-reporter: 0
+    parallelism: null
+    pcapfile: null
+    reportfile: null
+    resume: 0
+    subargs: [-f, 'whatsapp-ipv4-8080.list']
+    test_file: manipulation/http_host
+- options:
+    collector: null
+    help: 0
+    logfile: null
+    no-default-reporter: 0
+    parallelism: null
+    pcapfile: null
+    reportfile: null
+    resume: 0
+    subargs: []
+    test_file: manipulation/http_invalid_request_line
+- options:
+    collector: null
+    help: 0
+    logfile: null
+    no-default-reporter: 0
+    parallelism: null
+    pcapfile: null
+    reportfile: null
+    resume: 0
+    subargs: []
+    test_file: manipulation/http_header_field_manipulation
