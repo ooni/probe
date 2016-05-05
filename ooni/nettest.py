@@ -572,8 +572,6 @@ class NetTest(object):
             test_class.inputs = yield defer.maybeDeferred(
                 test_class().getInputProcessor
             )
-            if not test_class.inputs:
-                test_class.inputs = [None]
 
             # Run the setupClass method
             yield defer.maybeDeferred(

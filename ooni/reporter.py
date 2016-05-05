@@ -646,12 +646,12 @@ class Report(object):
         created callback of the reporter whose report got created.
         """
         if self.collector_address:
-            self.oonib_reporter = OONIBReporter(self.net_test_details,
+            self.oonib_reporter = OONIBReporter(self.test_details,
                                                 self.collector_address)
-            self.net_test_details['report_id'] = yield self.open_oonib_reporter()
+            self.test_details['report_id'] = yield self.open_oonib_reporter()
 
         if not self.no_yamloo:
-            self.yaml_reporter = YAMLReporter(self.net_test_details,
+            self.yaml_reporter = YAMLReporter(self.test_details,
                                               report_filename=self.report_filename)
             self.report_filename = self.yaml_reporter.report_path
             if not self.oonib_reporter:
