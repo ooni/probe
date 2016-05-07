@@ -4,10 +4,14 @@ import yaml
 
 from twisted.internet import defer
 
+import exceptions
+from ooni import errors
 from ooni.tests import is_internet_connected
 from ooni.tests.bases import ConfigTestCase
 from ooni.settings import config
 from ooni.oonicli import runWithDirector, setupGlobalOptions
+from ooni.oonicli import setupAnnotations, setupCollector
+from ooni.oonicli import createDeck
 from ooni.utils.net import hasRawSocketPermission
 
 
@@ -181,3 +185,41 @@ class TestRunDirector(ConfigTestCase):
                               ['-f', 'example-input.txt'],
                               verify_function, ooni_args=['-f', conf_file])
         config.scapyFactory.connectionLost('')
+
+
+class TestOoniCli(ConfigTestCase):
+    def test_create_deck_not_found(self):
+        global_options = {
+            'no-yamloo': True,
+            'subargs': [],
+            'annotations': {},
+            'collector': None,
+            'bouncer': None,
+            'no-collector': False,
+            'test_file': 'invalid/path',
+            'testdeck': None
+        }
+        exc = None
+        try:
+            createDeck(global_options)
+        except exceptions.SystemExit as exc:
+            exc = exc
+        self.assertIsNotNone(exc)
+        self.assertEqual(exc.code, 3)
+
+    def test_setup_annotations(self):
+        global_options = {
+            "annotations": "key1:value1,key2:value2"
+        }
+        annotations = setupAnnotations(global_options)
+        self.assertEqual(annotations,
+                         {'key1': 'value1', 'key2': 'value2'})
+
+    def test_setup_collector(self):
+        collector1 = 'https://example.com'
+        collector2 = 'httpo://thirteenchars321.onion'
+        global_options = {
+            'collector': collector1
+        }
+        collector_address = setupCollector(global_options, collector2)
+        self.assertEqual(collector_address, collector1)
