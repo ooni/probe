@@ -162,11 +162,6 @@ class HTTPTest(NetTestCase):
 
             failure (instance): An instance of :class:twisted.internet.failure.Failure
         """
-        if response and response.previousResponse:
-            self.addToReport(request, response.previousResponse,
-                             response_body=None,
-                             failure_string=None)
-
         log.debug("Adding %s to report" % request)
         request_headers = TrueHeaders(request['headers'])
         session = {
@@ -198,6 +193,12 @@ class HTTPTest(NetTestCase):
             session['failure'] = failure_string
 
         self.report['requests'].append(session)
+
+        if response and response.previousResponse:
+            self.addToReport(request, response.previousResponse,
+                             response_body=None,
+                             failure_string=None)
+
 
     def _processResponseBody(self, response_body, request, response, body_processor):
         log.debug("Processing response body")
