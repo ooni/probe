@@ -303,7 +303,7 @@ Setting capabilities on your virtualenv python binary
 If your distribution supports capabilities you can avoid needing to run OONI as root::
 
 
-    setcap cap_net_admin,cap_net_raw+eip /path/to/your/virtualenv's/python
+    setcap cap_net_admin,cap_net_raw+eip /path/to/your/virtualenv's/python2
 
 
 Reporting bugs
@@ -353,10 +353,13 @@ On Debian based systems a development environment can be setup as follows: (prer
     git clone https://github.com/TheTorProject/ooni-probe
     cd ooni-probe
     virtualenv venv
+
 `virtualenv venv` will create a folder in the current directory which will
 contain the Python executable files, and a copy of the pip library which you can
 use to install other packages. To begin using the virtual environment, it needs
 to be activated:
+
+
     source venv/bin/activate
     pip install -r requirements.txt
     pip install -r requirements-dev.txt
