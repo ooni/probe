@@ -37,4 +37,8 @@ notifications:
     channels:
       - "irc.oftc.net#ooni"
     on_success: change
-    on_failure: always
+    on_failure: change
+    skip_join: true
+    template:
+      - "%{repository} (%{commit}) : %{message} Diff:%{compare_url},
+        Build %{build_url}"
