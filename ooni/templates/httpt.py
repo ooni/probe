@@ -1,4 +1,5 @@
 import re
+import codecs
 import random
 
 from txtorcon.interface import StreamListenerMixin
@@ -17,7 +18,7 @@ from ooni.utils.net import StringProducer, userAgents
 from ooni.utils.trueheaders import TrueHeaders
 from ooni.errors import handleAllFailures
 
-META_CHARSET_REGEXP = re.compile('<meta(?!\s*(?:name|value)\s*=)[^>]*?charset\s*=[\s"\']*([^\s"\'/>]+)')
+META_CHARSET_REGEXP = re.compile('<meta(?!\s*(?:name|value)\s*=)[^>]*?charset\s*=[\s"\']*([^\s"\'/>!;]+)')
 
 class InvalidSocksProxyOption(Exception):
     pass
@@ -56,7 +57,14 @@ def _representBody(body):
     # try to decode using that one first
     charset = META_CHARSET_REGEXP.search(body, re.IGNORECASE)
     if charset:
-        charsets.insert(0, charset.group(1))
+        try:
+            encoding = charset.group(1).lower()
+            codecs.lookup(encoding)
+            charsets.insert(0, encoding)
+        except (LookupError, IndexError):
+            # Skip invalid codecs and partial regexp match
+            pass
+
     for encoding in charsets:
         try:
             body = unicode(body, encoding)

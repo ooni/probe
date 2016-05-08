@@ -55,8 +55,11 @@ class TestHTTPT(unittest.TestCase):
 """
         with_charset_html = no_charset_html + '\n<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">'
         with_empty_charset = no_charset_html + '\n<meta http-equiv="Content-Type" content="text/html; charset=">'
+        with_two_charsets = no_charset_html + '\n<meta http-equiv="Content-Type" content="text/html; charset=UTF-8;charset=utf-8">'
         self.assertEqual(httpt.META_CHARSET_REGEXP.search(no_charset_html), None)
         self.assertEqual(httpt.META_CHARSET_REGEXP.search(with_charset_html).group(1), 'iso-8859-1')
+        self.assertEqual(httpt.META_CHARSET_REGEXP.search(
+            with_two_charsets).group(1), 'UTF-8')
         self.assertEqual(httpt.META_CHARSET_REGEXP.search(with_empty_charset), None)
 
 class TestDNST(unittest.TestCase):
