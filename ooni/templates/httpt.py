@@ -17,7 +17,7 @@ from ooni.utils.net import StringProducer, userAgents
 from ooni.utils.trueheaders import TrueHeaders
 from ooni.errors import handleAllFailures
 
-META_CHARSET_REGEXP = re.compile('<meta(?!\s*(?:name|value)\s*=)[^>]*?charset\s*=[\s"\']*([^\s"\'/>]*)')
+META_CHARSET_REGEXP = re.compile('<meta(?!\s*(?:name|value)\s*=)[^>]*?charset\s*=[\s"\']*([^\s"\'/>]+)')
 
 class InvalidSocksProxyOption(Exception):
     pass
