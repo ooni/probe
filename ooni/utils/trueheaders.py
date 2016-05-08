@@ -115,6 +115,26 @@ class HTTPClientParser(_newclient.HTTPClientParser):
         headers.addRawHeader(name, value)
 
 
+    def statusReceived(self, status):
+        parts = status.split(b' ', 2)
+        if len(parts) != 3:
+            # Here we add the extra missing part.
+            parts.append("XXX")
+
+        try:
+            statusCode = int(parts[1])
+        except ValueError:
+            raise _newclient.ParseError(u"non-integer status code", status)
+
+        self.response = _newclient.Response._construct(
+            self.parseVersion(parts[0]),
+            statusCode,
+            parts[2],
+            self.headers,
+            self.transport,
+            self.request)
+
+
 class HTTP11ClientProtocol(_newclient.HTTP11ClientProtocol):
     def request(self, request):
         if self._state != 'QUIESCENT':
