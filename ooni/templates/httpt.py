@@ -113,7 +113,6 @@ class HTTPTest(NetTestCase):
                     config.tor.socks_port))
 
         self.report['socksproxy'] = None
-        sockshost, socksport = (None, None)
         if self.localOptions['socksproxy']:
             try:
                 sockshost, socksport = self.localOptions['socksproxy'].split(':')
