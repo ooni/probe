@@ -347,6 +347,8 @@ class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
             self.report['dns_consistency'] = 'inconsistent'
         tcp_connect = self.compare_tcp_experiments()
 
+        got_expected_web_page = (self.report['body_length_match'] or
+                                 self.report['headers_match'])
 
         if (dns_consistent == True and tcp_connect == False and
                 experiment_http_failure is not None):
@@ -354,23 +356,30 @@ class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
 
         # XXX we may want to have different codes for these two types of
         # blocking
-        elif (dns_consistent == True and tcp_connect == True and
-                      self.report['body_length_match'] == False):
-            blocking = 'http'
-        elif (dns_consistent == True and tcp_connect == True and
-                experiment_http_failure is not None and
-                control_http_failure is None):
+        elif (dns_consistent == True and
+              tcp_connect == True and
+              got_expected_web_page == False):
             blocking = 'http'
 
+        elif (dns_consistent == True and
+              tcp_connect == True and
+              experiment_http_failure is not None and
+              control_http_failure is None):
+            if experiment_http_failure == 'dns_lookup_error':
+                blocking = 'dns'
+            else:
+                blocking = 'http'
+
         elif (dns_consistent == False and
-                  (experiment_http_failure is not None or
-                   self.report['body_length_match'] == False)):
+                  (got_expected_web_page == False or
+                    experiment_http_failure is not None)):
             blocking = 'dns'
 
         # This happens when the DNS resolution is injected, but the domain
         # doesn't have a valid record anymore or it resolves to an address
         # that is only accessible from within the country/network of the probe.
         elif (dns_consistent == False and
+              got_expected_web_page == False and
                   (self.control['dns']['failure'] is not None or
                    control_http_failure != experiment_http_failure)):
             blocking = 'dns'
