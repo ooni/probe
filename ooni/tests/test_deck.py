@@ -5,7 +5,7 @@ from twisted.trial import unittest
 
 from hashlib import sha256
 from ooni.deck import InputFile, Deck
-from ooni.tests.mocks import MockOONIBClient
+from ooni.tests.mocks import MockBouncerClient, MockCollectorClient
 
 net_test_string = """
 from twisted.python import usage
@@ -151,15 +151,16 @@ class TestDeck(BaseTestCase):
     def test_lookup_test_helpers_and_collector(self):
         deck = Deck(bouncer="httpo://foo.onion",
                     decks_directory=".")
-        deck._OONIBClient = MockOONIBClient
+        deck._BouncerClient = MockBouncerClient
+        deck._CollectorClient = MockCollectorClient
         deck.loadDeck(self.deck_file)
 
         self.assertEqual(len(deck.netTestLoaders[0].missingTestHelpers), 1)
 
         yield deck.lookupCollectorAndTestHelpers()
 
-        self.assertEqual(deck.netTestLoaders[0].collector,
-                         'httpo://thirteenchars1234.onion')
+        self.assertEqual(deck.netTestLoaders[0].collector.settings['address'],
+                         'http://thirteenchars1234.onion')
 
         self.assertEqual(deck.netTestLoaders[0].localOptions['backend'],
                          '127.0.0.1')

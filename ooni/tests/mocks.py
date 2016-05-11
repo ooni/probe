@@ -3,7 +3,7 @@ from twisted.internet import defer
 
 from ooni.tasks import BaseTask, TaskWithTimeout
 from ooni.managers import TaskManager
-
+from ooni.backend_client import CollectorClient
 
 class MockMeasurementFailOnce(BaseTask):
     def run(self):
@@ -189,7 +189,7 @@ class MockTaskManager(TaskManager):
         self.successes.append((result, task))
 
 
-class MockOONIBClient(object):
+class MockBouncerClient(object):
     def __init__(self, *args, **kw):
         pass
 
@@ -225,3 +225,11 @@ class MockOONIBClient(object):
                 'test-helpers': test_helpers
             })
         return defer.succeed(ret)
+
+
+class MockCollectorClient(CollectorClient):
+    def isSupported(self):
+        return True
+
+    def isReachable(self):
+        return defer.succeed(True)

@@ -233,7 +233,7 @@ class Director(object):
 
     @defer.inlineCallbacks
     def startNetTest(self, net_test_loader, report_filename,
-                     collector_address=None, no_yamloo=False):
+                     collector_client=None, no_yamloo=False):
         """
         Create the Report for the NetTest and start the report NetTest.
 
@@ -250,7 +250,8 @@ class Director(object):
         if config.privacy.includepcap:
             self.startSniffing(test_details)
         report = Report(test_details, report_filename,
-                        self.reportEntryManager, collector_address,
+                        self.reportEntryManager,
+                        collector_client,
                         no_yamloo)
 
         yield report.open()
@@ -267,7 +268,7 @@ class Director(object):
         finally:
             self.netTestDone(net_test)
 
-    def startSniffing(self, testDetails):
+    def startSniffing(self, test_details):
         """ Start sniffing with Scapy. Exits if required privileges (root) are not
         available.
         """
@@ -276,12 +277,17 @@ class Director(object):
         if config.scapyFactory is None:
             config.scapyFactory = ScapyFactory(config.advanced.interface)
 
-        if not config.reports.pcap:
+        # XXX this is dumb option to have in the ooniprobe.conf. Drop it in
+        # the future.
+        prefix = config.reports.pcap
+        if prefix is None:
             prefix = 'report'
-        else:
-            prefix = config.reports.pcap
-        filename = config.global_options['reportfile'] if 'reportfile' in config.global_options.keys() else None
-        filename_pcap = generate_filename(testDetails, filename=filename, prefix=prefix, extension='pcap')
+
+        filename_pcap = config.global_options.get('pcapfile', None)
+        if filename_pcap is None:
+            filename_pcap = generate_filename(test_details,
+                                              prefix=prefix,
+                                              extension='pcap')
         if len(self.sniffers) > 0:
             pcap_filenames = set(sniffer.pcapwriter.filename for sniffer in self.sniffers.values())
             pcap_filenames.add(filename_pcap)
@@ -289,7 +295,7 @@ class Director(object):
                     ','.join(pcap_filenames))
 
         sniffer = ScapySniffer(filename_pcap)
-        self.sniffers[testDetails['test_name']] = sniffer
+        self.sniffers[test_details['test_name']] = sniffer
         config.scapyFactory.registerProtocol(sniffer)
         log.msg("Starting packet capture to: %s" % filename_pcap)
 

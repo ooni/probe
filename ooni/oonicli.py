@@ -13,6 +13,7 @@ from twisted.internet import defer
 from ooni import errors, __version__
 from ooni.settings import config
 from ooni.utils import log
+from backend_client import CollectorClient
 
 class LifetimeExceeded(Exception): pass
 
@@ -222,18 +223,14 @@ def setupAnnotations(global_options):
     global_options["annotations"] = annotations
     return annotations
 
-def setupCollector(global_options, collector_address):
+def setupCollector(global_options, collector_client):
     if global_options['collector']:
-        collector_address = global_options['collector']
-    elif 'collector' in config.reports \
-            and config.reports['collector']:
-        collector_address = config.reports['collector']
-
-    if collector_address.startswith('httpo:') \
-            and (not (config.tor_state or config.tor.socks_port)):
-        raise errors.TorNotRunning
-    return collector_address
-
+        collector_client = CollectorClient(global_options['collector'])
+    elif config.reports.get('collector', None) is not None:
+        collector_client = CollectorClient(config.reports['collector'])
+    if not collector_client.isSupported():
+        raise errors.CollectorUnsupported
+    return collector_client
 
 def createDeck(global_options, url=None):
     from ooni.nettest import NetTestLoader
@@ -264,7 +261,8 @@ def createDeck(global_options, url=None):
                                             test_file=test_file,
                                             annotations=global_options['annotations'])
             if global_options['collector']:
-                net_test_loader.collector = global_options['collector']
+                net_test_loader.collector = \
+                    CollectorClient(global_options['collector'])
             deck.insert(net_test_loader)
     except errors.MissingRequiredOption as option_name:
         log.err('Missing required option: "%s"' % option_name)
@@ -309,7 +307,10 @@ def runTestWithDirector(director, global_options, url=None, start_tor=True):
             return deck.setup()
         except errors.UnableToLoadDeckInput as error:
             return defer.failure.Failure(error)
-
+        except errors.NoReachableTestHelpers as error:
+            return defer.failure.Failure(error)
+        except errors.NoReachableCollectors as error:
+            return defer.failure.Failure(error)
 
     # Wait until director has started up (including bootstrapping Tor)
     # before adding tests
@@ -324,14 +325,14 @@ def runTestWithDirector(director, global_options, url=None, start_tor=True):
             # If a collector is not specified in the deck, or the
             # deck is a singleton, the default collector set in
             # ooniprobe.conf will be used
-            collector_address = None
+            collector_client = None
             if not global_options['no-collector']:
-                collector_address = setupCollector(global_options,
-                                                   net_test_loader.collector)
+                collector_client = setupCollector(global_options,
+                                                  net_test_loader.collector)
 
             yield director.startNetTest(net_test_loader,
                                         global_options['reportfile'],
-                                        collector_address,
+                                        collector_client,
                                         global_options['no-yamloo'])
 
     d.addCallback(setup_nettest)

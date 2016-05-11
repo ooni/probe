@@ -9,7 +9,7 @@ from ooni.reporter import OONIBReporter, OONIBReportLog
 from ooni.utils import log
 from ooni.report import parser
 from ooni.settings import config
-from ooni.oonibclient import OONIBClient
+from ooni.backend_client import BouncerClient
 
 
 @defer.inlineCallbacks
@@ -23,7 +23,7 @@ def upload(report_file, collector=None, bouncer=None):
 
     report = parser.ReportLoader(report_file)
     if bouncer and not collector:
-        oonib_client = OONIBClient(bouncer)
+        oonib_client = BouncerClient(bouncer)
         net_tests = [{
             'test-helpers': [],
             'input-hashes': report.header['input_hashes'],

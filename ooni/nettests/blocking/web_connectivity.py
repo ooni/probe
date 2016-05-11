@@ -17,6 +17,8 @@ from twisted.python import usage
 from ooni import geoip
 from ooni.utils import log
 
+from ooni.backend_client import WebConnectivityClient
+
 from ooni.utils.net import StringProducer, BodyReceiver
 from ooni.templates import httpt, dnst
 from ooni.errors import failureToString
@@ -179,6 +181,14 @@ class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
                 'headers': {}
             }
         }
+        if isinstance(self.localOptions['backend'], dict):
+            self.web_connectivity_client = WebConnectivityClient(
+                settings=self.localOptions['backend']
+            )
+        else:
+            self.web_connectivity_client = WebConnectivityClient(
+                self.localOptions['backend']
+            )
 
     def experiment_dns_query(self):
         log.msg("* doing DNS query for {}".format(self.hostname))
@@ -214,28 +224,10 @@ class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
 
     @defer.inlineCallbacks
     def control_request(self, sockets):
-        bodyProducer = StringProducer(json.dumps({
-            'http_request': self.input,
-            'tcp_connect': sockets
-        }))
-        response = yield self.agent.request("POST",
-                                            str(self.localOptions['backend']),
-                                            bodyProducer=bodyProducer)
-        try:
-            content_length = int(response.headers.getRawHeaders('content-length')[0])
-        except Exception:
-            content_length = None
-
-        finished = defer.Deferred()
-        response.deliverBody(BodyReceiver(finished, content_length))
-        body = yield finished
-        try:
-            self.control = json.loads(body)
-            assert 'http_request' in self.control.keys()
-            assert 'tcp_connect' in self.control.keys()
-            assert 'dns' in self.control.keys()
-        except AssertionError, ValueError:
-            raise InvalidControlResponse(body)
+        self.control = yield self.web_connectivity_client.control(
+            http_request=self.input,
+            tcp_connect=sockets
+        )
         self.report['control'] = self.control
 
     def experiment_http_get_request(self):

@@ -7,7 +7,7 @@ from twisted.web import error
 
 from ooni import errors as e
 from ooni.settings import config
-from ooni.oonibclient import OONIBClient
+from ooni.backend_client import CollectorClient, BouncerClient
 from ooni.tests.bases import ConfigTestCase
 
 input_id = '37e60e13536f6afe47a830bfb6b371b5cf65da66d7ad65137344679b24fdccd1'
@@ -34,79 +34,81 @@ class TestOONIBClient(ConfigTestCase):
             os.mkdir(os.path.join(data_dir, 'decks'))
         except Exception:
             self.skipTest("OONIB must be listening on port 8888 to run this test (tor_hidden_service: false)")
-        self.oonibclient = OONIBClient('http://' + host + ':' + str(port))
+        self.collector_client = CollectorClient('http://' + host + ':' + str(port))
 
     @defer.inlineCallbacks
     def test_query(self):
-        res = yield self.oonibclient.queryBackend('GET', '/policy/input')
+        res = yield self.collector_client.queryBackend('GET', '/policy/input')
         self.assertTrue(isinstance(res, list))
 
     @defer.inlineCallbacks
     def test_get_input_list(self):
-        input_list = yield self.oonibclient.getInputList()
+        input_list = yield self.collector_client.getInputList()
         self.assertTrue(isinstance(input_list, list))
 
     @defer.inlineCallbacks
     def test_get_input_descriptor(self):
-        input_descriptor = yield self.oonibclient.getInput(input_id)
+        input_descriptor = yield self.collector_client.getInput(input_id)
         for key in ['name', 'description',
                     'version', 'author', 'date', 'id']:
             self.assertTrue(hasattr(input_descriptor, key))
 
     @defer.inlineCallbacks
     def test_download_input(self):
-        yield self.oonibclient.downloadInput(input_id)
+        yield self.collector_client.downloadInput(input_id)
 
     @defer.inlineCallbacks
     def test_get_deck_list(self):
-        deck_list = yield self.oonibclient.getDeckList()
+        deck_list = yield self.collector_client.getDeckList()
         self.assertTrue(isinstance(deck_list, list))
 
     @defer.inlineCallbacks
     def test_get_deck_descriptor(self):
-        deck_descriptor = yield self.oonibclient.getDeck(deck_id)
+        deck_descriptor = yield self.collector_client.getDeck(deck_id)
         for key in ['name', 'description',
                     'version', 'author', 'date', 'id']:
             self.assertTrue(hasattr(deck_descriptor, key))
 
     @defer.inlineCallbacks
     def test_download_deck(self):
-        yield self.oonibclient.downloadDeck(deck_id)
+        yield self.collector_client.downloadDeck(deck_id)
 
     def test_lookup_invalid_helpers(self):
-        self.oonibclient.address = 'http://127.0.0.1:8888'
+        bouncer_client = BouncerClient('http://127.0.0.1:8888')
         return self.failUnlessFailure(
-            self.oonibclient.lookupTestHelpers([
+            bouncer_client.lookupTestHelpers([
                 'sdadsadsa', 'dns'
             ]), e.CouldNotFindTestHelper)
 
     @defer.inlineCallbacks
     def test_lookup_no_test_helpers(self):
-        self.oonibclient.address = 'http://127.0.0.1:8888'
+        bouncer_client = BouncerClient('http://127.0.0.1:8888')
         required_helpers = []
-        helpers = yield self.oonibclient.lookupTestHelpers(required_helpers)
+        helpers = yield bouncer_client.lookupTestHelpers(required_helpers)
         self.assertTrue('default' in helpers.keys())
 
     @defer.inlineCallbacks
     def test_lookup_test_helpers(self):
-        self.oonibclient.address = 'http://127.0.0.1:8888'
+        bouncer_client = BouncerClient('http://127.0.0.1:8888')
         required_helpers = [u'http-return-json-headers', u'dns']
-        helpers = yield self.oonibclient.lookupTestHelpers(required_helpers)
+        helpers = yield bouncer_client.lookupTestHelpers(required_helpers)
         self.assertEqual(set(helpers.keys()), set(required_helpers + [u'default']))
         self.assertTrue(helpers['http-return-json-headers']['address'].startswith('http'))
         self.assertTrue(int(helpers['dns']['address'].split('.')[0]))
 
     @defer.inlineCallbacks
     def test_input_descriptor_not_found(self):
-        yield self.assertFailure(self.oonibclient.queryBackend('GET', '/input/' + 'a'*64), e.OONIBInputDescriptorNotFound)
+        yield self.assertFailure(self.collector_client.queryBackend('GET',
+                                                             '/input/' + 'a'*64), e.OONIBInputDescriptorNotFound)
 
     @defer.inlineCallbacks
     def test_http_errors(self):
-        yield self.assertFailure(self.oonibclient.queryBackend('PUT', '/policy/input'), error.Error)
+        yield self.assertFailure(self.collector_client.queryBackend('PUT',
+                                                     '/policy/input'), error.Error)
 
     @defer.inlineCallbacks
     def test_create_report(self):
-        res = yield self.oonibclient.queryBackend('POST', '/report', {
+        res = yield self.collector_client.queryBackend('POST', '/report', {
             'software_name': 'spam',
             'software_version': '2.0',
             'probe_asn': 'AS0',
@@ -119,7 +121,7 @@ class TestOONIBClient(ConfigTestCase):
 
     @defer.inlineCallbacks
     def test_report_lifecycle(self):
-        res = yield self.oonibclient.queryBackend('POST', '/report', {
+        res = yield self.collector_client.queryBackend('POST', '/report', {
             'software_name': 'spam',
             'software_version': '2.0',
             'probe_asn': 'AS0',
@@ -130,12 +132,13 @@ class TestOONIBClient(ConfigTestCase):
         })
         report_id = str(res['report_id'])
 
-        res = yield self.oonibclient.queryBackend('POST', '/report/' + report_id, {
+        res = yield self.collector_client.queryBackend('POST', '/report/' + report_id, {
             'content': '---\nspam: ham\n...\n'
         })
 
-        res = yield self.oonibclient.queryBackend('POST', '/report/' + report_id, {
+        res = yield self.collector_client.queryBackend('POST', '/report/' + report_id, {
             'content': '---\nspam: ham\n...\n'
         })
 
-        res = yield self.oonibclient.queryBackend('POST', '/report/' + report_id + '/close')
+        res = yield self.collector_client.queryBackend('POST', '/report/' + report_id +
+                                        '/close')

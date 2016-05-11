@@ -8,6 +8,7 @@ from twisted.internet import defer
 from twisted.trial import unittest
 
 from ooni import errors as e
+from ooni.tests.mocks import MockCollectorClient
 from ooni.reporter import YAMLReporter, OONIBReporter, OONIBReportLog
 
 
@@ -58,7 +59,7 @@ class TestYAMLReporter(unittest.TestCase):
             os.remove(self.filename)
 
     def test_write_report(self):
-        y_reporter = YAMLReporter(test_details)
+        y_reporter = YAMLReporter(test_details, 'dummy-report.yaml')
         y_reporter.createReport()
         with open(y_reporter.report_path) as f:
             self.filename = y_reporter.report_path
@@ -72,33 +73,30 @@ class TestOONIBReporter(unittest.TestCase):
 
     def setUp(self):
         self.mock_response = {}
-        self.collector_address = 'http://example.com'
+
+        def mockRequest(method, urn, genReceiver, *args, **kw):
+            receiver = genReceiver(None, None)
+            return defer.maybeDeferred(receiver.body_processor,
+                                       json.dumps(self.mock_response))
+
+        mock_collector_client = MockCollectorClient('http://example.com')
+        mock_collector_client._request = mockRequest
 
         self.oonib_reporter = OONIBReporter(
             test_details,
-            self.collector_address)
-        self.oonib_reporter.agent = MagicMock()
-        self.mock_agent_response = MagicMock()
-
-        def deliverBody(body_receiver):
-            body_receiver.dataReceived(json.dumps(self.mock_response))
-            body_receiver.connectionLost(None)
-
-        self.mock_agent_response.deliverBody = deliverBody
-        self.oonib_reporter.agent.request.return_value = defer.succeed(
-            self.mock_agent_response)
+            mock_collector_client
+        )
 
     @defer.inlineCallbacks
     def test_create_report(self):
         self.mock_response = oonib_new_report_message
         yield self.oonib_reporter.createReport()
-        assert self.oonib_reporter.reportId == oonib_new_report_message[
-            'report_id']
+        self.assertEqual(self.oonib_reporter.reportId,
+                         oonib_new_report_message['report_id'])
 
     @defer.inlineCallbacks
     def test_create_report_failure(self):
         self.mock_response = oonib_generic_error_message
-        self.mock_agent_response.code = 406
         yield self.assertFailure(self.oonib_reporter.createReport(),
                                  e.OONIBReportCreationError)
 
@@ -108,7 +106,6 @@ class TestOONIBReporter(unittest.TestCase):
         yield self.oonib_reporter.createReport()
         req = {'content': 'something'}
         yield self.oonib_reporter.writeReportEntry(req)
-        assert self.oonib_reporter.agent.request.called
 
     @defer.inlineCallbacks
     def test_write_report_entry_in_yaml(self):
@@ -116,7 +113,6 @@ class TestOONIBReporter(unittest.TestCase):
         yield self.oonib_reporter.createReport()
         req = {'content': 'something'}
         yield self.oonib_reporter.writeReportEntry(req)
-        assert self.oonib_reporter.agent.request.called
 
 class TestOONIBReportLog(unittest.TestCase):
 
