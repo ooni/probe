@@ -345,11 +345,13 @@ class Director(object):
             log.msg("%d%%: %s" % (prog, summary))
 
         tor_config = TorConfig()
-        if config.tor.control_port:
-            tor_config.ControlPort = config.tor.control_port
+        if config.tor.control_port is None:
+            config.tor.control_port = int(randomFreePort())
+        if config.tor.socks_port is None:
+            config.tor.socks_port = int(randomFreePort())
 
-        if config.tor.socks_port:
-            tor_config.SocksPort = config.tor.socks_port
+        tor_config.ControlPort = config.tor.control_port
+        tor_config.SocksPort = config.tor.socks_port
 
         if config.tor.data_dir:
             data_dir = os.path.expanduser(config.tor.data_dir)
@@ -382,18 +384,6 @@ class Director(object):
 
         if os.geteuid() == 0:
             tor_config.User = pwd.getpwuid(os.geteuid()).pw_name
-
-        tor_config.save()
-
-        if not hasattr(tor_config, 'ControlPort'):
-            control_port = int(randomFreePort())
-            tor_config.ControlPort = control_port
-            config.tor.control_port = control_port
-
-        if not hasattr(tor_config, 'SocksPort'):
-            socks_port = int(randomFreePort())
-            tor_config.SocksPort = socks_port
-            config.tor.socks_port = socks_port
 
         tor_config.save()
         log.debug("Setting control port as %s" % tor_config.ControlPort)
