@@ -626,10 +626,9 @@ class Report(object):
                                                    self.collector_address)
 
         def created(report_id):
-            self.reportID = report_id
-            self.test_details['report_id'] = report_id
             if not self.oonib_reporter:
                 return
+            self.test_details['report_id'] = report_id
             return self.report_log.created(self.report_filename,
                                            self.collector_address,
                                            report_id)

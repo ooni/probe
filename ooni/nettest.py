@@ -8,6 +8,7 @@ from twisted.internet import defer
 from twisted.trial.runner import filenameToModule
 from twisted.python import usage, reflect
 
+from ooni import __version__ as ooniprobe_version
 from ooni import otime
 from ooni.tasks import Measurement
 from ooni.utils import log, sanitize_options, randomStr
@@ -128,140 +129,198 @@ def getNetTestInformation(net_test_file):
     return information
 
 
+def usageOptionsFactory(test_name, test_version):
+
+    class UsageOptions(usage.Options):
+        optParameters = []
+        optFlags = []
+
+        synopsis = "{} {} [options]".format(
+            os.path.basename(sys.argv[0]),
+            test_name
+        )
+
+        def opt_version(self):
+            """
+            Display the net_test version and exit.
+            """
+            print "{} version: {}".format(test_name, test_version)
+            sys.exit(0)
+
+    return UsageOptions
+
+def netTestCaseFactory(test_class, local_options):
+    class NetTestCaseWithLocalOptions(test_class):
+        localOptions = local_options
+    return NetTestCaseWithLocalOptions
+
+ONION_INPUT_REGEXP = re.compile("(httpo://[a-z0-9]{16}\.onion)/input/(["
+                                "a-z0-9]{64})$")
+
 class NetTestLoader(object):
     method_prefix = 'test'
     collector = None
     yamloo = True
-    requiresTor = False
-    reportID = None
 
-    def __init__(self, options, test_file=None, test_string=None):
-        self.onionInputRegex = re.compile(
-            "(httpo://[a-z0-9]{16}\.onion)/input/([a-z0-9]{64})$")
+    def __init__(self, options, test_file=None, test_string=None,
+                 annotations={}):
         self.options = options
-        self.testCases = []
-        self.annotations = {}
+        self.annotations = annotations
+
+        self.requiresTor = False
+
+        self.testName = ""
+        self.testVersion = ""
+        self.reportId = None
+
+        self.testHelpers = {}
+        self.missingTestHelpers = []
+        self.usageOptions = None
+        self.inputFiles = []
+
+        self._testCases = []
+        self.localOptions = None
 
         if test_file:
             self.loadNetTestFile(test_file)
         elif test_string:
             self.loadNetTestString(test_string)
 
-    @property
-    def requiredTestHelpers(self):
-        required_test_helpers = []
-        if not self.testCases:
-            return required_test_helpers
-
-        for test_class, test_methods in self.testCases:
-            for option, name in test_class.requiredTestHelpers.items():
-                required_test_helpers.append({
-                    'name': name,
-                    'option': option,
-                    'test_class': test_class
-                })
-        return required_test_helpers
-
-    @property
-    def inputFiles(self):
-        input_files = []
-        if not self.testCases:
-            return input_files
-
-        for test_class, test_methods in self.testCases:
-            if test_class.inputFile:
-                key = test_class.inputFile[0]
-                filename = test_class.localOptions[key]
-                if not filename:
-                    continue
-                input_file = {
-                    'key': key,
-                    'test_class': test_class
-                }
-                m = self.onionInputRegex.match(filename)
-                if m:
-                    input_file['url'] = filename
-                    input_file['address'] = m.group(1)
-                    input_file['hash'] = m.group(2)
-                else:
-                    input_file['filename'] = filename
-                    try:
-                        with open(filename) as f:
-                            h = sha256()
-                            for l in f:
-                                h.update(l)
-                    except:
-                        raise e.InvalidInputFile(filename)
-                    input_file['hash'] = h.hexdigest()
-                input_files.append(input_file)
-
-        return input_files
-
-    def setTestDetails(self):
-        from ooni import __version__ as software_version
-
-        input_file_hashes = []
-        for input_file in self.inputFiles:
-            input_file_hashes.append(input_file['hash'])
-
-        options = sanitize_options(self.options)
-        self.testDetails = {
-            'test_start_time': otime.timestampNowLongUTC(),
+    def getTestDetails(self):
+        return {
             'probe_asn': config.probe_ip.geodata['asn'],
             'probe_cc': config.probe_ip.geodata['countrycode'],
             'probe_ip': config.probe_ip.geodata['ip'],
             'probe_city': config.probe_ip.geodata['city'],
+            'software_name': 'ooniprobe',
+            'software_version': ooniprobe_version,
+            'options': sanitize_options(self.options),
+            'annotations': self.annotations,
+            'data_format_version': '0.2.0',
             'test_name': self.testName,
             'test_version': self.testVersion,
-            'software_name': 'ooniprobe',
-            'software_version': software_version,
-            'options': options,
-            'input_hashes': input_file_hashes,
-            'report_id': self.reportID,
             'test_helpers': self.testHelpers,
-            'annotations': self.annotations,
-            'data_format_version': '0.2.0'
+            'test_start_time': otime.timestampNowLongUTC(),
+            'input_hashes': [input_file['hash']
+                             for input_file in self.inputFiles],
+            'report_id': self.reportId
         }
 
-    def _parseNetTestOptions(self, klass):
+    def getTestCases(self):
         """
-        Helper method to assemble the options into a single UsageOptions object
+        Specialises the test_classes to include the local options.
+        :return:
         """
-        usage_options = klass.usageOptions
+        test_cases = []
+        for test_class, test_method in self._testCases:
+            test_cases.append((netTestCaseFactory(test_class,
+                                                  self.localOptions),
+                               test_method))
+        return test_cases
 
-        if not hasattr(usage_options, 'optParameters'):
-            usage_options.optParameters = []
+    def _accumulateInputFiles(self, test_class):
+        if not test_class.inputFile:
+            return
+
+        key = test_class.inputFile[0]
+        filename = self.localOptions[key]
+        if not filename:
+            return
+
+        input_file = {
+            'key': key,
+            'test_options': self.localOptions,
+            'hash': None,
+
+            'url': None,
+            'address': None,
+
+            'filename': None
+        }
+        m = ONION_INPUT_REGEXP.match(filename)
+        if m:
+            input_file['url'] = filename
+            input_file['address'] = m.group(1)
+            input_file['hash'] = m.group(2)
         else:
-            for parameter in usage_options.optParameters:
+            input_file['filename'] = filename
+            try:
+                with open(filename) as f:
+                    h = sha256()
+                    for l in f:
+                        h.update(l)
+            except:
+                raise e.InvalidInputFile(filename)
+            input_file['hash'] = h.hexdigest()
+        self.inputFiles.append(input_file)
+
+    def _accumulateTestOptions(self, test_class):
+        """
+        Accumulate the optParameters and optFlags for the NetTestCase class
+        into the usageOptions of the NetTestLoader.
+        """
+        if getattr(test_class.usageOptions, 'optParameters', None):
+            for parameter in test_class.usageOptions.optParameters:
+                # XXX should look into if this is still necessary, seems like
+                # something left over from a bug in some nettest.
+                # In theory optParameters should always have a length of 4.
                 if len(parameter) == 5:
                     parameter.pop()
+                self.usageOptions.optParameters.append(parameter)
 
-        if klass.inputFile:
-            usage_options.optParameters.append(klass.inputFile)
+        if getattr(test_class, 'inputFile', None):
+            self.usageOptions.optParameters.append(test_class.inputFile)
 
-        if klass.baseParameters:
-            for parameter in klass.baseParameters:
-                usage_options.optParameters.append(parameter)
+        if getattr(test_class, 'baseParameters', None):
+            for parameter in test_class.baseParameters:
+                self.usageOptions.optParameters.append(parameter)
 
-        if klass.baseFlags:
-            if not hasattr(usage_options, 'optFlags'):
-                usage_options.optFlags = []
-            for flag in klass.baseFlags:
-                usage_options.optFlags.append(flag)
+        if getattr(test_class, 'baseFlags', None):
+            for flag in test_class.baseFlags:
+                self.usageOptions.optFlags.append(flag)
 
-        return usage_options
+    def parseLocalOptions(self):
+        """
+        Parses the localOptions for the NetTestLoader.
+        """
+        self.localOptions = self.usageOptions()
+        try:
+            self.localOptions.parseOptions(self.options)
+        except usage.UsageError:
+            tb = sys.exc_info()[2]
+            raise e.OONIUsageError(self), None, tb
 
-    @property
-    def usageOptions(self):
-        usage_options = None
-        for test_class, test_method in self.testCases:
-            if not usage_options:
-                usage_options = self._parseNetTestOptions(test_class)
-            else:
-                if usage_options != test_class.usageOptions:
-                    raise e.IncoherentOptions(usage_options.__name__,
-                                              test_class.usageOptions.__name__)
-        return usage_options
+    def _checkTestClassOptions(self, test_class):
+        if test_class.requiresRoot and not hasRawSocketPermission():
+            raise e.InsufficientPrivileges
+        if test_class.requiresTor:
+            self.requiresTor = True
+        self._checkRequiredOptions(test_class)
+        self._setTestHelpers(test_class)
+        test_instance = netTestCaseFactory(test_class, self.localOptions)()
+        test_instance.requirements()
+
+    def _setTestHelpers(self, test_class):
+        for option, name in test_class.requiredTestHelpers.items():
+            if self.localOptions.get(option, None):
+                self.testHelpers[option] = self.localOptions[option]
+
+    def _checkRequiredOptions(self, test_class):
+        missing_options = []
+        for required_option in test_class.requiredOptions:
+            log.debug("Checking if %s is present" % required_option)
+            if required_option not in self.localOptions or \
+                    self.localOptions[required_option] is None:
+                missing_options.append(required_option)
+        missing_test_helpers = [opt in test_class.requiredTestHelpers.keys()
+                                for opt in missing_options]
+        if len(missing_test_helpers) and all(missing_test_helpers):
+            self.missingTestHelpers = map(lambda x:
+                                            (x, test_class.requiredTestHelpers[x]),
+                                          missing_options)
+            raise e.MissingTestHelper(missing_options, test_class)
+        elif missing_options:
+            raise e.MissingRequiredOption(missing_options, test_class)
 
     def loadNetTestString(self, net_test_string):
         """
@@ -280,12 +339,12 @@ class NetTestLoader(object):
         test_cases = []
         exec net_test_file_object.read() in ns
         for item in ns.itervalues():
-            test_cases.extend(self._get_test_methods(item))
+            test_cases.extend(self._getTestMethods(item))
 
         if not test_cases:
             raise e.NoTestCasesFound
 
-        self.setupTestCases(test_cases)
+        self._setupTestCases(test_cases)
 
     def loadNetTestFile(self, net_test_file):
         """
@@ -294,27 +353,26 @@ class NetTestLoader(object):
         test_cases = []
         module = filenameToModule(net_test_file)
         for __, item in getmembers(module):
-            test_cases.extend(self._get_test_methods(item))
+            test_cases.extend(self._getTestMethods(item))
 
         if not test_cases:
             raise e.NoTestCasesFound
 
-        self.setupTestCases(test_cases)
+        self._setupTestCases(test_cases)
 
-    def setupTestCases(self, test_cases):
+    def _setupTestCases(self, test_cases):
         """
         Creates all the necessary test_cases (a list of tuples containing the
         NetTestCase (test_class, test_method))
 
         example:
-            [(test_classA, test_method1),
-            (test_classA, test_method2),
-            (test_classA, test_method3),
-            (test_classA, test_method4),
-            (test_classA, test_method5),
-
-            (test_classB, test_method1),
-            (test_classB, test_method2)]
+            [(test_classA, [test_method1,
+                            test_method2,
+                            test_method3,
+                            test_method4,
+                            test_method5]),
+            (test_classB, [test_method1,
+                           test_method2])]
 
         Note: the inputs must be valid for test_classA and test_classB.
 
@@ -323,46 +381,37 @@ class NetTestLoader(object):
             generate the test_cases.
         """
         test_class, _ = test_cases[0]
-        self.testVersion = test_class.version
         self.testName = test_class_name_to_name(test_class.name)
-        self.testCases = test_cases
-        self.testClasses = set([])
-        self.testHelpers = {}
+        self.testVersion = test_class.version
+        self._testCases = test_cases
 
-        if config.reports.unique_id is True and not self.reportID:
-            self.reportID = randomStr(64)
+        self.usageOptions = usageOptionsFactory(self.testName,
+                                                self.testVersion)
 
-        for test_class, test_method in self.testCases:
-            self.testClasses.add(test_class)
+        if config.reports.unique_id is True:
+            self.reportId = randomStr(64)
+
+        for test_class, test_methods in self._testCases:
+            self._accumulateTestOptions(test_class)
 
     def checkOptions(self):
-        """
-        Call processTest and processOptions methods of each NetTestCase
-        """
-        for klass in self.testClasses:
-            options = self.usageOptions()
+        self.parseLocalOptions()
+        test_options_exc = None
+        usage_options = self._testCases[0][0].usageOptions
+        for test_class, test_methods in self._testCases:
             try:
-                options.parseOptions(self.options)
-            except usage.UsageError:
-                tb = sys.exc_info()[2]
-                raise e.OONIUsageError(self), None, tb
+                self._accumulateInputFiles(test_class)
+                self._checkTestClassOptions(test_class)
+                if usage_options != test_class.usageOptions:
+                    raise e.IncoherentOptions(usage_options.__name__,
+                                              test_class.usageOptions.__name__)
+            except Exception as exc:
+                test_options_exc = exc
 
-            if options:
-                klass.localOptions = options
-            # XXX this class all needs to be refactored and this is kind of a
-            # hack.
-            self.setTestDetails()
+        if test_options_exc is not None:
+            raise test_options_exc
 
-            test_instance = klass()
-            if test_instance.requiresRoot and not hasRawSocketPermission():
-                raise e.InsufficientPrivileges
-            if test_instance.requiresTor:
-                self.requiresTor = True
-            test_instance.requirements()
-            test_instance._checkRequiredOptions()
-            test_instance._checkValidOptions()
-
-    def _get_test_methods(self, item):
+    def _getTestMethods(self, item):
         """
         Look for test_ methods in subclasses of NetTestCase
         """
@@ -432,7 +481,7 @@ class NetTestState(object):
 class NetTest(object):
     director = None
 
-    def __init__(self, net_test_loader, report):
+    def __init__(self, test_cases, test_details, report):
         """
         net_test_loader:
              an instance of :class:ooni.nettest.NetTestLoader containing
@@ -442,9 +491,11 @@ class NetTest(object):
             an instance of :class:ooni.reporter.Reporter
         """
         self.report = report
-        self.testCases = net_test_loader.testCases
-        self.testClasses = net_test_loader.testClasses
-        self.testDetails = net_test_loader.testDetails
+
+        self.testDetails = test_details
+        self.testCases = test_cases
+
+        self.testInstances = []
 
         self.summary = {}
 
@@ -459,11 +510,18 @@ class NetTest(object):
     def __str__(self):
         return ' '.join(tc.name for tc, _ in self.testCases)
 
+    def uniqueClasses(self):
+        classes = []
+        for test_class, test_method in self.testCases:
+            if test_class not in classes:
+                classes.append(test_class)
+        return classes
+
     def doneNetTest(self, result):
         if self.summary:
             print "Summary for %s" % self.testDetails['test_name']
             print "------------" + "-"*len(self.testDetails['test_name'])
-            for test_class in self.testClasses:
+            for test_class in self.uniqueClasses():
                 test_instance = test_class()
                 test_instance.displaySummary(self.summary)
         if self.testDetails["report_id"]:
@@ -510,12 +568,10 @@ class NetTest(object):
 
     @defer.inlineCallbacks
     def initializeInputProcessor(self):
-        for test_class, _ in self.testCases:
+        for test_class, test_method in self.testCases:
             test_class.inputs = yield defer.maybeDeferred(
                 test_class().getInputProcessor
             )
-            if not test_class.inputs:
-                test_class.inputs = [None]
 
     def generateMeasurements(self):
         """
@@ -531,7 +587,7 @@ class NetTest(object):
                 test_instance._setUp()
                 test_instance.summary = self.summary
                 for method in test_methods:
-                    log.debug("Running %s %s" % (test_class, method))
+                    log.debug("Running %s %s" % (test_instance, method))
                     measurement = self.makeMeasurement(
                         test_instance,
                         method,
@@ -630,8 +686,6 @@ class NetTestCase(object):
     inputs = None
     inputFile = None
     inputFilename = None
-
-    report = {}
 
     usageOptions = usage.Options
 
@@ -766,23 +820,7 @@ class NetTestCase(object):
         if self.inputs:
             return self.inputs
 
-        return None
-
-    def _checkValidOptions(self):
-        for option in self.localOptions:
-            if option not in self.usageOptions():
-                if not self.inputFile or option not in self.inputFile:
-                    raise e.InvalidOption
-
-    def _checkRequiredOptions(self):
-        missing_options = []
-        for required_option in self.requiredOptions:
-            log.debug("Checking if %s is present" % required_option)
-            if required_option not in self.localOptions or \
-                    self.localOptions[required_option] is None:
-                missing_options.append(required_option)
-        if missing_options:
-            raise e.MissingRequiredOption(missing_options, self)
+        return [None]
 
     def __repr__(self):
         return "<%s inputs=%s>" % (self.__class__, self.inputs)

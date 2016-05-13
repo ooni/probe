@@ -186,13 +186,6 @@ class TestNetTest(unittest.TestCase):
                 uniq_test_methods.add(test_method)
         self.assertEqual(set(['test_a', 'test_b']), uniq_test_methods)
 
-    def verifyClasses(self, test_cases, control_classes):
-        actual_classes = set()
-        for test_class, test_methods in test_cases:
-            actual_classes.add(test_class.__name__)
-
-        self.assertEqual(actual_classes, control_classes)
-
     def test_load_net_test_from_file(self):
         """
         Given a file verify that the net test cases are properly
@@ -206,7 +199,7 @@ class TestNetTest(unittest.TestCase):
         ntl = NetTestLoader(dummyArgs)
         ntl.loadNetTestFile(net_test_file)
 
-        self.verifyMethods(ntl.testCases)
+        self.verifyMethods(ntl.getTestCases())
         os.unlink(net_test_file)
 
     def test_load_net_test_from_str(self):
@@ -217,24 +210,21 @@ class TestNetTest(unittest.TestCase):
         ntl = NetTestLoader(dummyArgs)
         ntl.loadNetTestString(net_test_string)
 
-        self.verifyMethods(ntl.testCases)
+        self.verifyMethods(ntl.getTestCases())
 
     def test_load_net_test_multiple(self):
         ntl = NetTestLoader(dummyArgs)
         ntl.loadNetTestString(double_net_test_string)
-
-        self.verifyMethods(ntl.testCases)
-        self.verifyClasses(ntl.testCases, set(('DummyTestCaseA', 'DummyTestCaseB')))
-
+        test_cases = ntl.getTestCases()
+        self.verifyMethods(test_cases)
         ntl.checkOptions()
 
     def test_load_net_test_multiple_different_options(self):
         ntl = NetTestLoader(dummyArgs)
         ntl.loadNetTestString(double_different_options_net_test_string)
 
-        self.verifyMethods(ntl.testCases)
-        self.verifyClasses(ntl.testCases, set(('DummyTestCaseA', 'DummyTestCaseB')))
-
+        test_cases = ntl.getTestCases()
+        self.verifyMethods(test_cases)
         self.assertRaises(IncoherentOptions, ntl.checkOptions)
 
     def test_load_with_option(self):
@@ -242,7 +232,7 @@ class TestNetTest(unittest.TestCase):
         ntl.loadNetTestString(net_test_string)
 
         self.assertIsInstance(ntl, NetTestLoader)
-        for test_klass, test_meth in ntl.testCases:
+        for test_klass, test_meth in ntl.getTestCases():
             for option in dummyOptions.keys():
                 self.assertIn(option, test_klass.usageOptions())
 
@@ -266,34 +256,29 @@ class TestNetTest(unittest.TestCase):
     def test_net_test_inputs(self):
         ntl = NetTestLoader(dummyArgsWithFile)
         ntl.loadNetTestString(net_test_string_with_file)
-
         ntl.checkOptions()
-        nt = NetTest(ntl, None)
+        nt = NetTest(ntl.getTestCases(), ntl.getTestDetails(), None)
         nt.initializeInputProcessor()
 
         # XXX: if you use the same test_class twice you will have consumed all
         # of its inputs!
         tested = set([])
-        for test_class, test_method in ntl.testCases:
-            if test_class not in tested:
-                tested.update([test_class])
-                self.assertEqual(len(list(test_class.inputs)), 10)
+        for test_instance, test_method, inputs in nt.testInstances:
+            self.assertEqual(len(list(inputs)), 10)
 
     def test_setup_local_options_in_test_cases(self):
         ntl = NetTestLoader(dummyArgs)
         ntl.loadNetTestString(net_test_string)
 
         ntl.checkOptions()
-
-        for test_class, test_method in ntl.testCases:
-            self.assertEqual(test_class.localOptions, dummyOptions)
+        self.assertEqual(dict(ntl.localOptions), dummyOptions)
 
     def test_generate_measurements_size(self):
         ntl = NetTestLoader(dummyArgsWithFile)
         ntl.loadNetTestString(net_test_string_with_file)
-
         ntl.checkOptions()
-        net_test = NetTest(ntl, None)
+
+        net_test = NetTest(ntl.getTestCases(), ntl.getTestDetails(), None)
 
         net_test.initializeInputProcessor()
         measurements = list(net_test.generateMeasurements())
@@ -321,7 +306,7 @@ class TestNetTest(unittest.TestCase):
         ntl = NetTestLoader(dummyArgs)
         ntl.loadNetTestString(net_test_root_required)
 
-        for test_class, method in ntl.testCases:
+        for test_class, methods in ntl.getTestCases():
             self.assertTrue(test_class.requiresRoot)
 
 

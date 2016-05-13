@@ -195,6 +195,8 @@ class MissingRequiredOption(Exception):
     def __str__(self):
         return ','.join(self.message)
 
+class MissingTestHelper(MissingRequiredOption):
+    pass
 
 class OONIUsageError(usage.UsageError):
     def __init__(self, net_test_loader):
