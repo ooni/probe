@@ -82,6 +82,7 @@ class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
         'backend': 'web-connectivity',
         'dns-discovery': 'dns-discovery'
     }
+    requiredOptions = ['backend', 'dns-discovery']
     requiresRoot = False
     requiresTor = False
     followRedirects = True

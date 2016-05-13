@@ -296,9 +296,8 @@ class LibraryNotInstalledError(Exception):
     pass
 
 
-class InsecureCollector(Exception):
+class InsecureBackend(Exception):
     pass
-
 
 class CollectorUnsupported(Exception):
     pass
@@ -307,19 +306,11 @@ class HTTPSCollectorUnsupported(CollectorUnsupported):
     pass
 
 
-class CollectorUnreachable(Exception):
-    pass
-
-
 class BackendNotSupported(Exception):
     pass
 
 
 class NoReachableCollectors(Exception):
-    pass
-
-
-class TestHelperUnreachable(Exception):
     pass
 
 

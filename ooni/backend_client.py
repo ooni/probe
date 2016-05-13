@@ -23,7 +23,7 @@ class OONIBClient(object):
     def __init__(self, address=None, settings={}):
         self.base_headers = {}
         self.backend_type = settings.get('type', None)
-        self.base_address = settings.get('address', address).encode('ascii')
+        self.base_address = settings.get('address', address)
 
         if self.backend_type is None:
             self._guessBackendType()
@@ -62,6 +62,7 @@ class OONIBClient(object):
             self.base_address = ("http://%s" % parsed_address.netloc)
         elif self.backend_type in ('https', 'cloudfront'):
             self.base_address = ("https://%s" % parsed_address.netloc)
+        self.base_address = self.base_address.encode('ascii')
 
     def isSupported(self):
         if self.backend_type in ("https", "cloudfront"):
@@ -70,10 +71,10 @@ class OONIBClient(object):
                         "twisted > 14.0.2.")
                 return False
         elif self.backend_type == "http":
-            if config.advanced.insecure_collector is not True:
+            if config.advanced.insecure_backend is not True:
                 log.err("Plaintext backends are not supported. To "
                         "enable at your own risk set "
-                        "advanced->insecure_collector to true")
+                        "advanced->insecure_backend to true")
                 return False
         elif self.backend_type == "onion":
             # XXX add an extra check to ensure tor is running
@@ -159,7 +160,7 @@ class OONIBClient(object):
 
 class BouncerClient(OONIBClient):
     def isReachable(self):
-        pass
+        return defer.succeed(True)
 
     @defer.inlineCallbacks
     def lookupTestCollector(self, net_tests):
@@ -197,14 +198,14 @@ class CollectorClient(OONIBClient):
         def cb(_):
             # We should never be getting an acceptable response for a
             # request to an invalid path.
-            raise e.CollectorUnreachable
+            return False
 
         @d.addErrback
         def err(failure):
             failure.trap(Error)
             if failure.value.status == '404':
                 return True
-            raise e.CollectorUnreachable
+            return False
 
         return d
 
@@ -346,13 +347,13 @@ class WebConnectivityClient(OONIBClient):
 
         @d.addCallback
         def cb(result):
-            if result.get("status", None) is not "ok":
-                raise e.TestHelperUnreachable
+            if result.get("status", None) != "ok":
+                return False
             return True
 
         @d.addErrback
         def err(_):
-            raise e.TestHelperUnreachable
+            return False
 
         return d
 
@@ -361,4 +362,4 @@ class WebConnectivityClient(OONIBClient):
             'http_request': http_request,
             'tcp_connect': tcp_connect
         }
-        self.queryBackend('POST', '/', query=request)
+        return self.queryBackend('POST', '/', query=request)

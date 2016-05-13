@@ -279,10 +279,10 @@ def createDeck(global_options, url=None):
     except errors.HTTPSCollectorUnsupported:
         log.err("HTTPS collectors require a twisted version of at least 14.0.2.")
         sys.exit(6)
-    except errors.InsecureCollector:
+    except errors.InsecureBackend:
         log.err("Attempting to report to an insecure collector.")
         log.err("To enable reporting to insecure collector set the "
-                "advanced->insecure_collector option to true in "
+                "advanced->insecure_backend option to true in "
                 "your ooniprobe.conf file.")
         sys.exit(7)
     except Exception as e:

@@ -184,11 +184,10 @@ class Deck(InputFile):
                 'type': 'https'
             }
         elif priority_address.startswith('http://'):
-            if config.advanced.insecure_collector is True:
-                priority_address = {
-                    'address': priority_address,
-                    'type': 'http'
-                }
+            priority_address = {
+                'address': priority_address,
+                'type': 'http'
+            }
         else:
             raise e.InvalidOONIBCollectorAddress
 
@@ -200,13 +199,13 @@ class Deck(InputFile):
         cloudfront_addresses += filter_by_type(alternate_addresses,
                                                 'cloudfront')
 
-        if config.advanced.insecure_collector is True:
-            plaintext_addresses += filter_by_type(alternate_addresses, 'http')
+        plaintext_addresses += filter_by_type(alternate_addresses, 'http')
 
         return ([priority_address] +
                 onion_addresses +
                 https_addresses +
-                cloudfront_addresses)
+                cloudfront_addresses +
+                plaintext_addresses)
 
     @defer.inlineCallbacks
     def getReachableCollector(self, collector_address, collector_alternate):
@@ -214,24 +213,19 @@ class Deck(InputFile):
         # collectors to plaintext collectors
         for collector_settings in self.sortAddressesByPriority(collector_address,
                                                                collector_alternate):
-            try:
-                collector = self._CollectorClient(settings=collector_settings)
-                if not collector.isSupported():
-                    log.err("Unsupported %s collector %s" % (
-                                collector_settings['type'],
-                                collector_settings['address']))
-                    continue
-                reachable = yield collector.isReachable()
-                if not reachable:
-                    log.err("Unreachable %s collector %s" % (
-                                collector_settings['type'],
-                                collector_settings['address']))
-                    continue
-                defer.returnValue(collector)
-            except e.CollectorUnreachable:
-                log.msg("Could not reach %s collector %s" % (
+            collector = self._CollectorClient(settings=collector_settings)
+            if not collector.isSupported():
+                log.err("Unsupported %s collector %s" % (
                             collector_settings['type'],
                             collector_settings['address']))
+                continue
+            reachable = yield collector.isReachable()
+            if not reachable:
+                log.err("Unreachable %s collector %s" % (
+                            collector_settings['type'],
+                            collector_settings['address']))
+                continue
+            defer.returnValue(collector)
 
         raise e.NoReachableCollectors
 
@@ -240,32 +234,26 @@ class Deck(InputFile):
                                test_helper_alternate):
         # For the moment we look for alternate addresses only of
         # web_connectivity test helpers.
-        if test_helper_name is 'web_connectivity':
+        if test_helper_name == 'web-connectivity':
             for web_connectivity_settings in self.sortAddressesByPriority(
                     test_helper_address, test_helper_alternate):
-                try:
-                    web_connectivity_test_helper = WebConnectivityClient(web_connectivity_settings)
-                    if not web_connectivity_test_helper.isSupported():
-                        log.err("Unsupported %s web_connectivity test_helper "
-                                "%s" % (
-                                web_connectivity_settings['type'],
-                                web_connectivity_settings['address']
-                        ))
-                        continue
-                    reachable = yield web_connectivity_test_helper.isReachable()
-                    if not reachable:
-                        log.err("Unreachable %s web_connectivity test helper %s" % (
+                web_connectivity_test_helper = WebConnectivityClient(
+                    settings=web_connectivity_settings)
+                if not web_connectivity_test_helper.isSupported():
+                    log.err("Unsupported %s web_connectivity test_helper "
+                            "%s" % (
                             web_connectivity_settings['type'],
                             web_connectivity_settings['address']
-                        ))
-                        continue
-                    defer.returnValue(web_connectivity_settings)
-                except e.TestHelperUnreachable:
+                    ))
+                    continue
+                reachable = yield web_connectivity_test_helper.isReachable()
+                if not reachable:
                     log.err("Unreachable %s web_connectivity test helper %s" % (
                         web_connectivity_settings['type'],
                         web_connectivity_settings['address']
                     ))
                     continue
+                defer.returnValue(web_connectivity_settings)
             raise e.NoReachableTestHelpers
         else:
             defer.returnValue(test_helper_address.encode('ascii'))
