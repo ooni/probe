@@ -143,7 +143,7 @@ class OONIBClient(object):
                 except ValueError:
                     raise e.get_error(None)
                 if 'error' in response:
-                    log.err("Got this backend error message %s" % response)
+                    log.debug("Got this backend error message %s" % response)
                     raise e.get_error(response['error'])
                 return response
 

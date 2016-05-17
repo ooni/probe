@@ -3,21 +3,21 @@ import socket
 from random import randint
 
 from zope.interface import implements
-from twisted.internet import protocol, defer
+from twisted.internet import defer
+from twisted.internet.protocol import Factory, Protocol
 from twisted.web.iweb import IBodyProducer
 
 from scapy.config import conf
 
 from ooni.errors import IfaceError
 
-try:
-    from twisted.internet.endpoints import connectProtocol
-except ImportError:
-    def connectProtocol(endpoint, protocol):
-            class OneShotFactory(protocol.Factory):
-                def buildProtocol(self, addr):
-                    return protocol
-            return endpoint.connect(OneShotFactory())
+# This is our own connectProtocol to avoid noisy twisted cluttering our logs
+def connectProtocol(endpoint, protocol):
+    class OneShotFactory(Factory):
+        noisy = False
+        def buildProtocol(self, addr):
+            return protocol
+    return endpoint.connect(OneShotFactory())
 
 # if sys.platform.system() == 'Windows':
 # import _winreg as winreg
@@ -68,7 +68,7 @@ class StringProducer(object):
         pass
 
 
-class BodyReceiver(protocol.Protocol):
+class BodyReceiver(Protocol):
     def __init__(self, finished, content_length=None, body_processor=None):
         self.finished = finished
         self.data = ""
@@ -92,7 +92,7 @@ class BodyReceiver(protocol.Protocol):
             self.finished.errback(exc)
 
 
-class Downloader(protocol.Protocol):
+class Downloader(Protocol):
     def __init__(self, download_path,
                  finished, content_length=None):
         self.finished = finished
@@ -113,7 +113,7 @@ class Downloader(protocol.Protocol):
         self.finished.callback(None)
 
 
-class ConnectAndCloseProtocol(protocol.Protocol):
+class ConnectAndCloseProtocol(Protocol):
     def connectionMade(self):
         self.transport.loseConnection()
 
