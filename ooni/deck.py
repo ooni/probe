@@ -136,10 +136,12 @@ class Deck(InputFile):
             net_test_loader = NetTestLoader(test['options']['subargs'],
                                             annotations=test['options'].get('annotations', {}),
                                             test_file=nettest_path)
-            if test['options']['collector']:
+            if test['options']['collector'] is not None:
                 net_test_loader.collector = CollectorClient(
                     test['options']['collector']
                 )
+            if test['options']['bouncer'] is not None:
+                self.bouncer = test['options']['bouncer']
             self.insert(net_test_loader)
 
     def insert(self, net_test_loader):

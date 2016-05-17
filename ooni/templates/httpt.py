@@ -42,7 +42,7 @@ class StreamListener(StreamListenerMixin):
 def _representHeaders(headers):
     represented_headers = {}
     for name, value in headers.getAllRawHeaders():
-        represented_headers[name] = value[0]
+        represented_headers[name] = unicode(value[0], errors='ignore')
     return represented_headers
 
 def _representBody(body):

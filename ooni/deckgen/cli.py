@@ -27,6 +27,7 @@ class Options(usage.Options):
          "generate the deck."],
         ["collector", None, None, "Specify a custom collector to use when "
                                   "submitting reports"],
+        ["bouncer", None, None, "Specify a custom bouncer to use"],
         ["output", "o", None,
          "Specify the directory where to write output."]
     ]
@@ -44,7 +45,6 @@ class Deck(object):
             "annotations": None,
 
             "collector": None,
-            # XXX setting this is currently not supported
             "bouncer": None,
 
             "reportfile": None,
@@ -56,13 +56,15 @@ class Deck(object):
         }
     }
 
-    def __init__(self, collector=None):
+    def __init__(self, collector=None, bouncer=None):
         self.deck_entries = []
         self.collector = collector
+        self.bouncer = bouncer
 
     def add_test(self, test_file, subargs=[]):
         deck_entry = copy.deepcopy(self._base_entry)
         deck_entry['options']['collector'] = self.collector
+        deck_entry['options']['bouncer'] = self.bouncer
         deck_entry['options']['test_file'] = test_file
         deck_entry['options']['subargs'] = subargs
         self.deck_entries.append(deck_entry)
@@ -89,24 +91,14 @@ def generate_deck(options):
     url_list_global = citizenlab_test_lists.generate_global_input(
         options['output']
     )
-    dns_servers = namebench_dns_servers.generate_country_input(
-        options['country-code'],
-        options['output']
-    )
 
-    deck = Deck(collector=options['collector'])
+    deck = Deck(collector=options['collector'], bouncer=options['bouncer'])
     deck.add_test('manipulation/http_invalid_request_line')
     deck.add_test('manipulation/http_header_field_manipulation')
 
     if url_list_country is not None:
-        deck.add_test('blocking/http_requests', ['-f', url_list_country])
-    deck.add_test('blocking/http_requests', ['-f', url_list_global])
-
-    if url_list_country is not None:
-        deck.add_test('blocking/dns_consistency',
-                      ['-f', url_list_country, '-T', dns_servers])
-    deck.add_test('blocking/dns_consistency',
-                  ['-f', url_list_global, '-T', dns_servers])
+        deck.add_test('blocking/web_connectivity', ['-f', url_list_country])
+    deck.add_test('blocking/web_connectivity', ['-f', url_list_global])
 
     if config.advanced.debug:
         deck.pprint()

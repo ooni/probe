@@ -454,7 +454,8 @@ class OONIBReportLog(object):
 
     def _closed(self, report_file):
         with self.edit_log() as report:
-            if report[report_file]['status'] != "created":
+            rs = report[report_file]['status']
+            if  rs != "created" and rs != "incomplete":
                 raise errors.ReportNotCreated()
             del report[report_file]
 

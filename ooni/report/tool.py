@@ -9,12 +9,15 @@ from ooni.reporter import OONIBReporter, OONIBReportLog
 from ooni.utils import log
 from ooni.report import parser
 from ooni.settings import config
-from ooni.backend_client import BouncerClient
+from ooni.backend_client import BouncerClient, CollectorClient
 
 
 @defer.inlineCallbacks
 def upload(report_file, collector=None, bouncer=None):
     oonib_report_log = OONIBReportLog()
+    collector_client = None
+    if collector:
+        collector_client = CollectorClient(address=collector)
 
     log.msg("Attempting to upload %s" % report_file)
 
@@ -22,7 +25,7 @@ def upload(report_file, collector=None, bouncer=None):
         report_log = yaml.safe_load(f)
 
     report = parser.ReportLoader(report_file)
-    if bouncer and not collector:
+    if bouncer and collector_client is None:
         oonib_client = BouncerClient(bouncer)
         net_tests = [{
             'test-helpers': [],
@@ -33,24 +36,33 @@ def upload(report_file, collector=None, bouncer=None):
         result = yield oonib_client.lookupTestCollector(
             net_tests
         )
-        collector = str(result['net-tests'][0]['collector'])
+        collector_client = CollectorClient(
+            address=result['net-tests'][0]['collector']
+        )
 
-    if collector is None:
+    if collector_client is None:
         try:
-            collector = report_log[report_file]['collector']
-            if collector is None:
+            collector_settings = report_log[report_file]['collector']
+            if collector_settings is None:
                 raise KeyError
+            elif isinstance(collector_settings, dict):
+                collector_client = CollectorClient(settings=collector_settings)
+            elif isinstance(collector_settings, str):
+                collector_client = CollectorClient(address=collector_settings)
         except KeyError:
             raise Exception(
                 "No collector or bouncer specified"
                 " and collector not in report log."
             )
 
-    oonib_reporter = OONIBReporter(report.header, collector)
-    log.msg("Creating report for %s with %s" % (report_file, collector))
+    oonib_reporter = OONIBReporter(report.header, collector_client)
+    log.msg("Creating report for %s with %s" % (report_file,
+                                                collector_client.settings))
     report_id = yield oonib_reporter.createReport()
     report.header['report_id'] = report_id
-    yield oonib_report_log.created(report_file, collector, report_id)
+    yield oonib_report_log.created(report_file,
+                                   collector_client.settings,
+                                   report_id)
     log.msg("Writing report entries")
     for entry in report:
         yield oonib_reporter.writeReportEntry(entry)
