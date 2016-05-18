@@ -1,5 +1,6 @@
 from ooni.templates import httpt, dnst
 
+from ooni.tests import is_internet_connected
 from twisted.names import dns
 from twisted.internet.error import DNSLookupError
 from twisted.internet import reactor, defer, base
@@ -56,6 +57,10 @@ class TestHTTPT(unittest.TestCase):
         self.assertEqual(httpt.META_CHARSET_REGEXP.search(with_charset_html).group(1), 'iso-8859-1')
 
 class TestDNST(unittest.TestCase):
+    def setUp(self):
+        if not is_internet_connected():
+            self.skipTest("You must be connected to the internet to run this test")
+
     def test_represent_answer_a(self):
         a_record = dns.RRHeader(payload=dns.Record_A(address="1.1.1.1"),
                                 type=dns.A)
