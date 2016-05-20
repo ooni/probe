@@ -58,8 +58,8 @@ tor:
     # This should be set to something to avoid having Tor download each time
     # the descriptors and consensus data.
     #data_dir: ~/.tor/
-    torrc:
-        #HTTPProxy: host:port
-        #HTTPProxyAuthenticator: user:password
-        #HTTPSProxy: host:port
-        #HTTPSProxyAuthenticator: user:password
+torrc:
+    #HTTPProxy: host:port
+    #HTTPProxyAuthenticator: user:password
+    #HTTPSProxy: host:port
+    #HTTPSProxyAuthenticator: user:password
