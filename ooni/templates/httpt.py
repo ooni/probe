@@ -30,7 +30,7 @@ class StreamListener(StreamListenerMixin):
     def stream_succeeded(self, stream):
         host=self.request['url'].split('/')[2]
         try:
-            if stream.target_host == host and len(self.request['tor']) == 1:
+            if stream.target_host == host and self.request['tor']['exit_ip'] is None:
                 self.request['tor']['exit_ip'] = stream.circuit.path[-1].ip
                 self.request['tor']['exit_name'] = stream.circuit.path[-1].name
                 config.tor_state.stream_listeners.remove(self)
