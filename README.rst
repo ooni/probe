@@ -109,7 +109,7 @@ Make sure you have installed the following dependencies:
 
 On debian based systems this can generally be done by running::
 
-    sudo apt-get install -y build-essential libdumbnet-dev libpcap-dev libgeoip-dev libffi-dev python-dev python-pip
+    sudo apt-get install -y build-essential libdumbnet-dev libpcap-dev libgeoip-dev libffi-dev python-dev python-pip tor
 
 Then you should be able to install ooniprobe by running::
 
