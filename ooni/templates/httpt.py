@@ -5,8 +5,11 @@ import random
 from txtorcon.interface import StreamListenerMixin
 
 from twisted.web.client import readBody, PartialDownloadError
+from twisted.web.client import ContentDecoderAgent
+
 from twisted.internet import reactor
 from twisted.internet.endpoints import TCP4ClientEndpoint
+
 from ooni.utils.trueheaders import TrueHeadersAgent, TrueHeadersSOCKS5Agent
 from ooni.utils.trueheaders import FixedRedirectAgent
 
@@ -96,6 +99,12 @@ class HTTPTest(NetTestCase):
     randomizeUA = False
     followRedirects = False
 
+    # You can specify a list of tuples in the format of (CONTENT_TYPE,
+    # DECODER)
+    # For example to support Gzip decoding you should specify
+    # contentDecoders = [('gzip', GzipDecoder)]
+    contentDecoders = []
+
     baseParameters = [['socksproxy', 's', None,
         'Specify a socks proxy to use for requests (ip:port)']]
 
@@ -138,6 +147,11 @@ class HTTPTest(NetTestCase):
                         "(<= 10.1). I will not be able to follow redirects."\
                         "This may make the testing less precise.")
 
+        if len(self.contentDecoders) > 0:
+            self.control_agent = ContentDecoderAgent(self.control_agent,
+                                                     self.contentDecoders)
+            self.agent = ContentDecoderAgent(self.agent,
+                                             self.contentDecoders)
         self.processInputs()
         log.debug("Finished test setup")
 

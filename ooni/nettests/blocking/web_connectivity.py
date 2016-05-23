@@ -6,6 +6,7 @@ from urlparse import urlparse
 
 from ipaddr import IPv4Address, AddressValueError
 
+from twisted.web.client import GzipDecoder
 from twisted.internet import reactor
 from twisted.internet.protocol import Factory, Protocol
 from twisted.internet.endpoints import TCP4ClientEndpoint
@@ -71,6 +72,8 @@ class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
                   "local network and compares the two results.")
     author = "Arturo Filastò"
     version = "0.1.0"
+
+    contentDecoders = [('gzip', GzipDecoder)]
 
     usageOptions = UsageOptions
 
@@ -156,6 +159,7 @@ class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
         self.report['dns_consistency'] = None
         self.report['body_length_match'] = None
         self.report['headers_match'] = None
+        self.report['status_code_match'] = None
 
         self.report['accessible'] = None
         self.report['blocking'] = None
@@ -177,8 +181,9 @@ class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
                 'ips': []
             },
             'http_request': {
-                'body_length': None,
-                'failure': True,
+                'body_length': -1,
+                'failure': None,
+                'status_code': -1,
                 'headers': {}
             }
         }
@@ -270,6 +275,19 @@ class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
         else:
             return False
 
+    def compare_http_experiments(self, experiment_http_response):
+
+        self.report['body_length_match'] = \
+            self.compare_body_lengths(experiment_http_response)
+
+        self.report['headers_match'] = \
+            self.compare_headers(experiment_http_response)
+
+        self.report['status_code_match'] = (
+            experiment_http_response.code ==
+            self.control['http_request']['status_code']
+        )
+
     def compare_dns_experiments(self, experiment_dns_answers):
         if self.control['dns']['failure'] is not None and \
                 self.control['dns']['failure'] == self.report['dns_experiment_failure']:
@@ -319,7 +337,7 @@ class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
     def determine_blocking(self, experiment_http_response, experiment_dns_answers):
         blocking = False
 
-        control_http_failure = self.report['control']['http_request']['failure']
+        control_http_failure = self.control['http_request']['failure']
         if control_http_failure is not None:
             control_http_failure = control_http_failure.split(" ")[0]
 
@@ -328,10 +346,7 @@ class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
             experiment_http_failure = experiment_http_failure.split(" ")[0]
 
         if (experiment_http_failure is None and control_http_failure is None):
-            self.report['body_length_match'] = self.compare_body_lengths(
-                experiment_http_response)
-            self.report['headers_match'] = self.compare_headers(
-                experiment_http_response)
+            self.compare_http_experiments(experiment_http_response)
 
         dns_consistent = self.compare_dns_experiments(experiment_dns_answers)
         if dns_consistent is True:
@@ -341,7 +356,8 @@ class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
         tcp_connect = self.compare_tcp_experiments()
 
         got_expected_web_page = (self.report['body_length_match'] or
-                                 self.report['headers_match'])
+                                 self.report['headers_match']) and \
+                                self.report['status_code_match']
 
         if (dns_consistent == True and tcp_connect == False and
                 experiment_http_failure is not None):
@@ -488,7 +504,7 @@ class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
 
             for reason, urls in summary['blocked'].items():
                 log.msg("")
-                log.msg("URLS blocked due to {}".format(reason))
-                log.msg("--------------------"+'-'*len(reason))
+                log.msg("URLS possibly blocked due to {}".format(reason))
+                log.msg("-----------------------------"+'-'*len(reason))
                 for url in urls:
                     log.msg("* {}".format(url))
