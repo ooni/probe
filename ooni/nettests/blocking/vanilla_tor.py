@@ -18,7 +18,7 @@ class TorIsNotInstalled(Exception):
 
 class UsageOptions(usage.Options):
     optParameters = [
-        ['timeout', 't', 200,
+        ['timeout', 't', 300,
          'Specify the timeout after which to consider '
          'the Tor bootstrapping process to have failed.'], ]
 
