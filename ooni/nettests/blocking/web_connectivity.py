@@ -355,9 +355,11 @@ class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
             self.report['dns_consistency'] = 'inconsistent'
         tcp_connect = self.compare_tcp_experiments()
 
-        got_expected_web_page = (self.report['body_length_match'] or
-                                 self.report['headers_match']) and \
-                                self.report['status_code_match']
+        got_expected_web_page = (
+            (self.report['body_length_match'] is True or
+             self.report['headers_match'] is True)
+            and self.report['status_code_match'] is True
+        )
 
         if (dns_consistent == True and tcp_connect == False and
                 experiment_http_failure is not None):
