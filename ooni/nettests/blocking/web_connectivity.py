@@ -68,8 +68,10 @@ class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
     Web connectivity
     """
     name = "Web connectivity"
-    description = ("Performs a HTTP GET request over Tor and one over the "
-                  "local network and compares the two results.")
+    description = ("Identifies the reason for blocking of a given URL by "
+                   "performing DNS resolution of the hostname, doing a TCP "
+                   "connect to the resolved IPs and then fetching the page "
+                   "and comparing all these results with those of a control.")
     author = "Arturo Filastò"
     version = "0.1.0"
 
@@ -126,12 +128,12 @@ class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
                 if not l:
                     continue
                 # Skip comment lines
-                elif l.startswith('#'):
+                if l.startswith('#'):
                     continue
                 yield l
 
+        fh = open(filename)
         try:
-            fh = open(filename)
             line = fh.readline()
             # Detect the line of the citizenlab input file
             if line.startswith("url,"):
@@ -140,7 +142,8 @@ class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
                 fh.seek(0)
                 generator = simple_file_generator(fh)
             for i in generator:
-                if not i.startswith("http"):
+                if (not i.startswith("http://") and
+                        not i.startswith("https://")):
                     i = "http://{}/".format(i)
                 yield i
         finally:
@@ -200,7 +203,7 @@ class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
         log.msg("* doing DNS query for {}".format(self.hostname))
         return self.performALookup(self.hostname)
 
-    def tcp_connect(self, socket):
+    def experiment_tcp_connect(self, socket):
         log.msg("* connecting to {}".format(socket))
         ip_address, port = socket.split(":")
         port = int(port)
@@ -365,12 +368,10 @@ class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
                 experiment_http_failure is not None):
             blocking = 'tcp_ip'
 
-        # XXX we may want to have different codes for these two types of
-        # blocking
         elif (dns_consistent == True and
               tcp_connect == True and
               got_expected_web_page == False):
-            blocking = 'http'
+            blocking = 'http-diff'
 
         elif (dns_consistent == True and
               tcp_connect == True and
@@ -379,7 +380,7 @@ class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
             if experiment_http_failure == 'dns_lookup_error':
                 blocking = 'dns'
             else:
-                blocking = 'http'
+                blocking = 'http-failure'
 
         elif (dns_consistent == False and
                   (got_expected_web_page == False or
@@ -425,7 +426,7 @@ class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
         # STEALTH in here we should make changes to make the test more stealth
         dl = []
         for socket in sockets:
-            dl.append(self.tcp_connect(socket))
+            dl.append(self.experiment_tcp_connect(socket))
         results = yield defer.DeferredList(dl)
 
         experiment_http = self.experiment_http_get_request()
