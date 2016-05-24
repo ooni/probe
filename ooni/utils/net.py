@@ -1,3 +1,4 @@
+import re
 import sys
 import socket
 from random import randint
@@ -46,9 +47,47 @@ PLATFORMS = {'LINUX': sys.platform.startswith("linux"),
              'SOLARIS': sys.platform.startswith("sunos"),
              'WINDOWS': sys.platform.startswith("win32")}
 
+# These are the 25 most common server headers for the sites in the
+# citizenlab global testing list.
+COMMON_SERVER_HEADERS = (
+    "date",
+    "content-type",
+    "server",
+    "cache-control",
+    "vary",
+    "set-cookie",
+    "location",
+    "expires",
+    "x-powered-by",
+    "content-encoding",
+    "last-modified",
+    "accept-ranges",
+    "pragma",
+    "x-frame-options",
+    "etag",
+    "x-content-type-options",
+    "age",
+    "via",
+    "p3p",
+    "x-xss-protection",
+    "content-language",
+    "cf-ray",
+    "strict-transport-security",
+    "link",
+    "x-varnish"
+)
+
 # This is used as a default for checking if we get the expected result when
 # fetching URLs over some proxy.
 GOOGLE_HUMANS = ('http://www.google.com/humans.txt', 'Google is built by a large')
+
+TITLE_REGEXP = re.compile("<title>(.*?)</title>", re.IGNORECASE | re.DOTALL)
+
+def extract_title(body):
+    m = TITLE_REGEXP.search(body)
+    if m:
+        return m.group(1)
+    return ''
 
 class StringProducer(object):
     implements(IBodyProducer)

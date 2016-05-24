@@ -1,7 +1,6 @@
 # -*- encoding: utf-8 -*-
 
 import csv
-import json
 from urlparse import urlparse
 
 from ipaddr import IPv4Address, AddressValueError
@@ -20,7 +19,7 @@ from ooni.utils import log
 
 from ooni.backend_client import WebConnectivityClient
 
-from ooni.utils.net import StringProducer, BodyReceiver
+from ooni.utils.net import COMMON_SERVER_HEADERS, extract_title
 from ooni.templates import httpt, dnst
 from ooni.errors import failureToString
 
@@ -50,6 +49,7 @@ class UsageOptions(usage.Options):
         ['url', 'u', None, 'Specify a single URL to test'],
         ['dns-discovery', 'd', 'whoami.akamai.net', 'Specify the dns discovery test helper'],
         ['backend', 'b', None, 'The web_consistency backend test helper'],
+        ['retries', 'r', 1, 'Number of retries for the HTTP request'],
     ]
 
 
@@ -158,6 +158,12 @@ class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
         if not self.input:
             raise Exception("No input specified")
 
+        try:
+            self.localOptions['retries'] = int(self.localOptions['retries'])
+        except ValueError:
+            self.localOptions['retries'] = 2
+
+        self.report['retries'] = self.localOptions['retries']
         self.report['client_resolver'] = self.resolverIp
         self.report['dns_consistency'] = None
         self.report['body_length_match'] = None
@@ -188,7 +194,8 @@ class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
                 'body_length': -1,
                 'failure': None,
                 'status_code': -1,
-                'headers': {}
+                'headers': {},
+                'title': ''
             }
         }
         if isinstance(self.localOptions['backend'], dict):
@@ -240,24 +247,36 @@ class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
         )
         self.report['control'] = self.control
 
+    @defer.inlineCallbacks
     def experiment_http_get_request(self):
-        return self.doRequest(self.input, headers=REQUEST_HEADERS)
+        retries = 0
+        while True:
+            try:
+                result = yield self.doRequest(self.input,
+                                              headers=REQUEST_HEADERS)
+                break
+            except:
+                if self.localOptions['retries'] > retries:
+                    raise
+                retries += 1
+
+        defer.returnValue(result)
 
     def compare_headers(self, experiment_http_response):
-        count = 0
         control_headers_lower = {k.lower(): v for k, v in
-                self.report['control']['http_request']['headers'].items()}
+                self.report['control']['http_request']['headers'].items()
+        }
+        experiment_headers_lower = {k.lower(): v for k, v in
+            experiment_http_response.headers.getAllRawHeaders()
+        }
 
-        for header_name, header_value in \
-                experiment_http_response.headers.getAllRawHeaders():
-            try:
-                control_headers_lower[header_name.lower()]
-            except KeyError:
-                log.debug("Did not find the key {}".format(header_name))
-                return False
-            count += 1
+        uncommon_ctrl_headers = (set(control_headers_lower.keys()) -
+                                 set(COMMON_SERVER_HEADERS))
+        uncommon_exp_headers = (set(experiment_headers_lower.keys()) -
+                                set(COMMON_SERVER_HEADERS))
 
-        return count == len(self.report['control']['http_request']['headers'])
+        return len(uncommon_ctrl_headers.intersection(
+                            uncommon_exp_headers)) > 0
 
     def compare_body_lengths(self, experiment_http_response):
         control_body_length = self.control['http_request']['body_length']
@@ -279,6 +298,17 @@ class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
         else:
             return False
 
+    def compare_titles(self, experiment_http_response):
+        experiment_title = extract_title(experiment_http_response.body).strip()
+        control_title = self.control['http_request']['title'].strip()
+        first_exp_word = experiment_title.split(' ')[0]
+        first_ctrl_word = control_title.split(' ')[0]
+        if len(first_exp_word) < 5:
+            # We don't consider to match words that are shorter than 5
+            # characters (5 is the average word length for english)
+            return False
+        return (first_ctrl_word.lower() == first_exp_word.lower())
+
     def compare_http_experiments(self, experiment_http_response):
 
         self.report['body_length_match'] = \
@@ -291,6 +321,8 @@ class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
             experiment_http_response.code ==
             self.control['http_request']['status_code']
         )
+
+        self.report['title_match'] = self.compare_titles(experiment_http_response)
 
     def compare_dns_experiments(self, experiment_dns_answers):
         if self.control['dns']['failure'] is not None and \
@@ -359,11 +391,15 @@ class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
             self.report['dns_consistency'] = 'inconsistent'
         tcp_connect = self.compare_tcp_experiments()
 
-        got_expected_web_page = (
-            (self.report['body_length_match'] is True or
-             self.report['headers_match'] is True)
-            and self.report['status_code_match'] is True
-        )
+        got_expected_web_page = None
+        if (experiment_http_failure is None and
+                    control_http_failure is None):
+            got_expected_web_page = (
+                (self.report['body_length_match'] is True or
+                 self.report['headers_match'] is True or
+                 self.report['title_match'])
+                and self.report['status_code_match'] is True
+            )
 
         if (dns_consistent == True and tcp_connect == False and
                 experiment_http_failure is not None):
