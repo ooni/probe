@@ -197,13 +197,13 @@ class MockBouncerClient(object):
         ret = {
             'default': {
                 'address': '127.0.0.1',
-                'collector': 'httpo://thirteenchars1234.onion'
+                'collector': 'httpo://thirteenchars123.onion'
             }
         }
         for required_test_helper in required_test_helpers:
             ret[required_test_helper] = {
                 'address': '127.0.0.1',
-                'collector': 'httpo://thirteenchars1234.onion'
+                'collector': 'httpo://thirteenchars123.onion'
             }
         return defer.succeed(ret)
 
@@ -221,7 +221,7 @@ class MockBouncerClient(object):
                 'name': net_test['name'],
                 'version': net_test['version'],
                 'input-hashes': net_test['input-hashes'],
-                'collector': 'httpo://thirteenchars1234.onion',
+                'collector': 'httpo://thirteenchars123.onion',
                 'test-helpers': test_helpers
             })
         return defer.succeed(ret)

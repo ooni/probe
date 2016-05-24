@@ -1,3 +1,4 @@
+import re
 import string
 import subprocess
 from distutils.spawn import find_executable
@@ -7,6 +8,8 @@ from txtorcon.util import find_tor_binary as tx_find_tor_binary
 
 from ooni.settings import config
 
+ONION_ADDRESS_REGEXP = re.compile("^((httpo|http|https)://)?"
+                                  "[a-z0-9]{16}\.onion")
 
 class TorVersion(LooseVersion):
     pass
@@ -63,6 +66,11 @@ def transport_name(address):
         return transport_name
     else:
         return None
+
+
+def is_onion_address(address):
+    return ONION_ADDRESS_REGEXP.match(address) != None
+
 
 
 tor_details = {

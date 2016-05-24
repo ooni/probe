@@ -160,7 +160,7 @@ class TestDeck(BaseTestCase):
         yield deck.lookupCollectorAndTestHelpers()
 
         self.assertEqual(deck.netTestLoaders[0].collector.settings['address'],
-                         'http://thirteenchars1234.onion')
+                         'http://thirteenchars123.onion')
 
         self.assertEqual(deck.netTestLoaders[0].localOptions['backend'],
                          '127.0.0.1')

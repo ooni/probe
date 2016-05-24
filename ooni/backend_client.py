@@ -14,7 +14,7 @@ _twisted_14_0_2_version = Version('twisted', 14, 0, 2)
 
 from ooni import errors as e
 from ooni.settings import config
-from ooni.utils import log
+from ooni.utils import log, onion
 from ooni.utils.net import BodyReceiver, StringProducer, Downloader
 from ooni.utils.trueheaders import TrueHeadersSOCKS5Agent
 
@@ -42,10 +42,10 @@ class OONIBClient(object):
     def _guessBackendType(self):
         if self.base_address is None:
             raise e.InvalidAddress
-        if self.base_address.startswith('https://'):
-            self.backend_type = 'https'
-        elif self.base_address.startswith('httpo://'):
+        if onion.is_onion_address(self.base_address):
             self.backend_type = 'onion'
+        elif self.base_address.startswith('https://'):
+            self.backend_type = 'https'
         elif self.base_address.startswith('http://'):
             self.backend_type = 'http'
         else:
@@ -54,10 +54,14 @@ class OONIBClient(object):
     def _setupBaseAddress(self):
         parsed_address = urlparse(self.base_address)
         if self.backend_type == 'onion':
-            if not parsed_address.netloc.endswith(".onion"):
+            if not onion.is_onion_address(self.base_address):
                 log.err("Invalid onion address.")
                 raise e.InvalidAddress(self.base_address)
-            self.base_address = ("http://%s" % parsed_address.netloc)
+            if parsed_address.scheme in ('http', 'httpo'):
+                self.base_address = ("http://%s" % parsed_address.netloc)
+            else:
+                self.base_address = ("%s://%s" % (parsed_address.scheme,
+                                                  parsed_address.netloc))
         elif self.backend_type == 'http':
             self.base_address = ("http://%s" % parsed_address.netloc)
         elif self.backend_type in ('https', 'cloudfront'):

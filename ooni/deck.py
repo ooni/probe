@@ -4,7 +4,7 @@ from ooni.backend_client import CollectorClient, BouncerClient
 from ooni.backend_client import WebConnectivityClient
 from ooni.nettest import NetTestLoader
 from ooni.settings import config
-from ooni.utils import log
+from ooni.utils import log, onion
 from ooni import errors as e
 
 from twisted.python.filepath import FilePath
@@ -175,7 +175,7 @@ class Deck(InputFile):
         https_addresses = []
         plaintext_addresses = []
 
-        if priority_address.startswith('httpo://'):
+        if onion.is_onion_address(priority_address):
             priority_address = {
                 'address': priority_address,
                 'type': 'onion'
