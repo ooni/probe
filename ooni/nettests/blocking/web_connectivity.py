@@ -181,7 +181,8 @@ class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
         self.control = {
             'tcp_connect': {},
             'dns': {
-                'ips': []
+                'addrs': [],
+                'failure': None,
             },
             'http_request': {
                 'body_length': -1,
@@ -297,23 +298,23 @@ class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
             self.report['dns_consistency'] = 'consistent'
             return True
 
-        control_ips = set(self.control['dns']['ips'])
-        experiment_ips = set(experiment_dns_answers)
+        control_addrs = set(self.control['dns']['addrs'])
+        experiment_addrs = set(experiment_dns_answers)
 
-        if control_ips == experiment_ips:
+        if control_addrs == experiment_addrs:
             return True
 
-        for experiment_ip in experiment_ips:
-            if is_public_ipv4_address(experiment_ip) is False:
+        for experiment_addr in experiment_addrs:
+            if is_public_ipv4_address(experiment_addr) is False:
                 return False
 
-        if len(control_ips.intersection(experiment_ips)) > 0:
+        if len(control_addrs.intersection(experiment_addrs)) > 0:
             return True
 
         experiment_asns = set(map(lambda x: geoip.IPToLocation(x)['asn'],
-                              experiment_ips))
+                              experiment_addrs))
         control_asns = set(map(lambda x: geoip.IPToLocation(x)['asn'],
-                           control_ips))
+                           control_addrs))
 
         # Remove the instance of AS0 when we fail to find the ASN
         control_asns.discard('AS0')
