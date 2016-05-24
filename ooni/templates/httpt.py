@@ -196,6 +196,9 @@ class HTTPTest(NetTestCase):
             if (config.privacy.includeip is False and config.probe_ip.address is not None and
                     (isinstance(response_body, str) or isinstance(response_body, unicode))):
                 response_body = response_body.replace(config.probe_ip.address, "[REDACTED]")
+            if (getattr(response, 'request', None) and
+                    getattr(response.request, 'absoluteURI', None)):
+                session['request']['url'] = response.request.absoluteURI
             session['response'] = {
                 'headers': _representHeaders(response.headers),
                 'body': response_body,
