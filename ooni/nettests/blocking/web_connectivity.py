@@ -317,10 +317,11 @@ class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
         self.report['headers_match'] = \
             self.compare_headers(experiment_http_response)
 
-        self.report['status_code_match'] = (
-            experiment_http_response.code ==
-            self.control['http_request']['status_code']
-        )
+        if str(self.control['http_request']['status_code'])[0] != '5':
+            self.report['status_code_match'] =  (
+                self.control['http_request']['status_code'] ==
+                experiment_http_response.code
+            )
 
         self.report['title_match'] = self.compare_titles(experiment_http_response)
 
@@ -397,8 +398,8 @@ class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
             got_expected_web_page = (
                 (self.report['body_length_match'] is True or
                  self.report['headers_match'] is True or
-                 self.report['title_match'])
-                and self.report['status_code_match'] is True
+                 self.report['title_match'] is True)
+                and self.report['status_code_match'] is not False
             )
 
         if (dns_consistent == True and tcp_connect == False and
