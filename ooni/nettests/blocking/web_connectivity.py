@@ -50,6 +50,7 @@ class UsageOptions(usage.Options):
         ['dns-discovery', 'd', 'whoami.akamai.net', 'Specify the dns discovery test helper'],
         ['backend', 'b', None, 'The web_consistency backend test helper'],
         ['retries', 'r', 1, 'Number of retries for the HTTP request'],
+        ['timeout', 't', 240, 'Total timeout for this test'],
     ]
 
 
@@ -163,6 +164,8 @@ class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
         except ValueError:
             self.localOptions['retries'] = 2
 
+        self.timeout = int(self.localOptions['timeout'])
+
         self.report['retries'] = self.localOptions['retries']
         self.report['client_resolver'] = self.resolverIp
         self.report['dns_consistency'] = None
@@ -237,6 +240,7 @@ class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
             result['status']['success'] = False
             result['status']['failure'] = failureToString(failure)
             self.report['tcp_connect'].append(result)
+
         return d
 
     @defer.inlineCallbacks
@@ -249,6 +253,7 @@ class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
 
     @defer.inlineCallbacks
     def experiment_http_get_request(self):
+        log.msg("* doing HTTP(s) request {}".format(self.input))
         retries = 0
         while True:
             try:
@@ -256,8 +261,10 @@ class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
                                               headers=REQUEST_HEADERS)
                 break
             except:
-                if self.localOptions['retries'] > retries:
+                if retries > self.localOptions['retries']:
+                    log.debug("Finished all the allowed retries")
                     raise
+                log.debug("Re-running HTTP request")
                 retries += 1
 
         defer.returnValue(result)
@@ -470,15 +477,18 @@ class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
         experiment_http = self.experiment_http_get_request()
         @experiment_http.addErrback
         def http_experiment_err(failure):
-            self.report['http_experiment_failure'] = failureToString(failure)
+            failure_string = failureToString(failure)
+            log.err("Failed to perform HTTP request %s" % failure_string)
+            self.report['http_experiment_failure'] = failure_string
 
         experiment_http_response = yield experiment_http
 
         control_request = self.control_request(sockets)
         @control_request.addErrback
         def control_err(failure):
-            log.err("Failed to perform control lookup")
-            self.report['control_failure'] = failureToString(failure)
+            failure_string = failureToString(failure)
+            log.err("Failed to perform control lookup: %s" % failure_string)
+            self.report['control_failure'] = failure_string
 
         yield control_request
 
