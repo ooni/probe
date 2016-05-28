@@ -7,7 +7,6 @@ from ipaddr import IPv4Address, AddressValueError
 
 from twisted.web.client import GzipDecoder
 from twisted.internet import reactor
-from twisted.internet.protocol import Factory, Protocol
 from twisted.internet.endpoints import TCP4ClientEndpoint
 from twisted.names import client, dns
 
@@ -19,30 +18,16 @@ from ooni.utils import log
 
 from ooni.backend_client import WebConnectivityClient
 
-from ooni.utils.net import COMMON_SERVER_HEADERS, extract_title
+from ooni.common.http_utils import extractTitle
+from ooni.utils.net import COMMON_SERVER_HEADERS
 from ooni.templates import httpt, dnst
 from ooni.errors import failureToString
 
-REQUEST_HEADERS = {
-    'User-Agent': ['Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, '
-                   'like Gecko) Chrome/47.0.2526.106 Safari/537.36'],
-    'Accept-Language': ['en-US;q=0.8,en;q=0.5'],
-    'Accept': ['text/html,application/xhtml+xml,application/xml;q=0.9,'
-               '*/*;q=0.8']
-}
+from ooni.common.tcp_utils import TCPConnectFactory
+from ooni.common.http_utils import REQUEST_HEADERS
 
 class InvalidControlResponse(Exception):
     pass
-
-class TCPConnectProtocol(Protocol):
-    def connectionMade(self):
-        self.transport.loseConnection()
-
-class TCPConnectFactory(Factory):
-    noisy = False
-    def buildProtocol(self, addr):
-        return TCPConnectProtocol()
-
 
 class UsageOptions(usage.Options):
     optParameters = [
@@ -306,7 +291,7 @@ class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
             return False
 
     def compare_titles(self, experiment_http_response):
-        experiment_title = extract_title(experiment_http_response.body).strip()
+        experiment_title = extractTitle(experiment_http_response.body).strip()
         control_title = self.control['http_request']['title'].strip()
         first_exp_word = experiment_title.split(' ')[0]
         first_ctrl_word = control_title.split(' ')[0]

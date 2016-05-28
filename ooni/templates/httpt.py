@@ -10,15 +10,16 @@ from twisted.web.client import ContentDecoderAgent
 from twisted.internet import reactor
 from twisted.internet.endpoints import TCP4ClientEndpoint
 
-from ooni.utils.trueheaders import TrueHeadersAgent, TrueHeadersSOCKS5Agent
-from ooni.utils.trueheaders import FixedRedirectAgent
+from ooni.utils.socks import TrueHeadersSOCKS5Agent
 
 from ooni.nettest import NetTestCase
-from ooni.utils import log, base64Dict
+from ooni.utils import log
 from ooni.settings import config
 
 from ooni.utils.net import StringProducer, userAgents
-from ooni.utils.trueheaders import TrueHeaders
+from ooni.common.txextra import TrueHeaders
+from ooni.common.txextra import FixedRedirectAgent, TrueHeadersAgent
+from ooni.common.http_utils import representBody
 from ooni.errors import handleAllFailures
 
 META_CHARSET_REGEXP = re.compile('<meta(?!\s*(?:name|value)\s*=)[^>]*?charset\s*=[\s"\']*([^\s"\'/>!;]+)')
@@ -47,37 +48,6 @@ def _representHeaders(headers):
     for name, value in headers.getAllRawHeaders():
         represented_headers[name] = unicode(value[0], errors='ignore')
     return represented_headers
-
-def _representBody(body):
-    if not body:
-        return body
-    # XXX perhaps add support for decoding gzip in the future.
-    body = body.replace('\0', '')
-    decoded = False
-    charsets = ['ascii', 'utf-8']
-
-    # If we are able to detect the charset of body from the meta tag
-    # try to decode using that one first
-    charset = META_CHARSET_REGEXP.search(body, re.IGNORECASE)
-    if charset:
-        try:
-            encoding = charset.group(1).lower()
-            codecs.lookup(encoding)
-            charsets.insert(0, encoding)
-        except (LookupError, IndexError):
-            # Skip invalid codecs and partial regexp match
-            pass
-
-    for encoding in charsets:
-        try:
-            body = unicode(body, encoding)
-            decoded = True
-            break
-        except UnicodeDecodeError:
-            pass
-    if not decoded:
-        body = base64Dict(body)
-    return body
 
 class HTTPTest(NetTestCase):
     """
@@ -189,7 +159,7 @@ class HTTPTest(NetTestCase):
         }
         if response:
             if self.localOptions.get('withoutbody', 0) is 0:
-                response_body = _representBody(response_body)
+                response_body = representBody(response_body)
             else:
                 response_body = ''
             # Attempt to redact the IP address of the probe from the responses

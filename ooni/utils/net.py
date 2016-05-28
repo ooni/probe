@@ -81,14 +81,6 @@ COMMON_SERVER_HEADERS = (
 # fetching URLs over some proxy.
 GOOGLE_HUMANS = ('http://www.google.com/humans.txt', 'Google is built by a large')
 
-TITLE_REGEXP = re.compile("<title>(.*?)</title>", re.IGNORECASE | re.DOTALL)
-
-def extract_title(body):
-    m = TITLE_REGEXP.search(body)
-    if m:
-        return m.group(1)
-    return ''
-
 class StringProducer(object):
     implements(IBodyProducer)
 

@@ -16,7 +16,7 @@ from ooni import errors as e
 from ooni.settings import config
 from ooni.utils import log, onion
 from ooni.utils.net import BodyReceiver, StringProducer, Downloader
-from ooni.utils.trueheaders import TrueHeadersSOCKS5Agent
+from ooni.utils.socks import TrueHeadersSOCKS5Agent
 
 
 class OONIBClient(object):

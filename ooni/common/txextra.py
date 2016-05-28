@@ -1,43 +1,31 @@
-# :authors: Giovanni Pellerano
-# :licence: see LICENSE
-#
-# Here we make sure that the HTTP Headers sent and received are True. By this
-# we mean that they are not normalized and that the ordering is maintained.
-
 import itertools
 from copy import copy
 
+from twisted.web.http_headers import Headers
+from twisted.web import error
+
+from twisted.web.client import BrowserLikeRedirectAgent
+from twisted.web._newclient import ResponseFailed
+from twisted.web._newclient import HTTPClientParser, ParseError
 from twisted.python.failure import Failure
 
-from twisted.web import client, _newclient, http_headers, error
+from twisted.web import client, _newclient
 
 from twisted.web._newclient import RequestNotSent, RequestGenerationFailed
 from twisted.web._newclient import TransportProxyProducer, STATUS
-from twisted.web._newclient import ResponseFailed
 
 from twisted.internet import reactor
 from twisted.internet.defer import Deferred, fail, maybeDeferred, failure
 
-from txsocksx.http import SOCKS5Agent
-from txsocksx.client import SOCKS5ClientFactory
+from twisted.python import log
 
-SOCKS5ClientFactory.noisy = False
-
-from ooni.utils import log
-
-import twisted
-from twisted.python.versions import Version
-
-
-class TrueHeaders(http_headers.Headers):
+class TrueHeaders(Headers):
     def __init__(self, rawHeaders=None):
         self._rawHeaders = dict()
         if rawHeaders is not None:
             for name, values in rawHeaders.iteritems():
                 if type(values) is list:
                     self.setRawHeaders(name, values[:])
-                elif type(values) is dict:
-                    self._rawHeaders[name.lower()] = values
                 elif type(values) is str:
                     self.setRawHeaders(name, values)
 
@@ -46,6 +34,16 @@ class TrueHeaders(http_headers.Headers):
             self._rawHeaders[name.lower()] = dict()
         self._rawHeaders[name.lower()]['name'] = name
         self._rawHeaders[name.lower()]['values'] = values
+
+    def getAllRawHeaders(self):
+        for _, v in self._rawHeaders.iteritems():
+            yield v['name'], v['values']
+
+    def getRawHeaders(self, name, default=None):
+        if name.lower() in self._rawHeaders:
+            return self._rawHeaders[name.lower()]['values']
+        return default
+
 
     def getDiff(self, headers, ignore=[]):
         """
@@ -87,16 +85,6 @@ class TrueHeaders(http_headers.Headers):
                 diff.add(name)
         return list(diff)
 
-    def getAllRawHeaders(self):
-        for k, v in self._rawHeaders.iteritems():
-            yield v['name'], v['values']
-
-    def getRawHeaders(self, name, default=None):
-        if name.lower() in self._rawHeaders:
-            return self._rawHeaders[name.lower()]['values']
-        return default
-
-
 class HTTPClientParser(_newclient.HTTPClientParser):
     def logPrefix(self):
         return 'HTTPClientParser'
@@ -114,26 +102,15 @@ class HTTPClientParser(_newclient.HTTPClientParser):
             headers = self.headers
         headers.addRawHeader(name, value)
 
-
     def statusReceived(self, status):
-        parts = status.split(b' ', 2)
-        if len(parts) != 3:
-            # Here we add the extra missing part.
-            parts.append("XXX")
-
+        # This is a fix for invalid number of parts
         try:
-            statusCode = int(parts[1])
-        except ValueError:
-            raise _newclient.ParseError(u"non-integer status code", status)
-
-        self.response = _newclient.Response._construct(
-            self.parseVersion(parts[0]),
-            statusCode,
-            parts[2],
-            self.headers,
-            self.transport,
-            self.request)
-
+            return _newclient.HTTPClientParser.statusReceived(self, status)
+        except ParseError as exc:
+            if exc.args[0] == 'wrong number of parts':
+                return _newclient.HTTPClientParser.statusReceived(self,
+                                                                  status + " XXX")
+            raise
 
 class HTTP11ClientProtocol(_newclient.HTTP11ClientProtocol):
     def request(self, request):
@@ -181,31 +158,12 @@ class _HTTP11ClientFactory(client._HTTP11ClientFactory):
 class HTTPConnectionPool(client.HTTPConnectionPool):
     _factory = _HTTP11ClientFactory
 
-
 class TrueHeadersAgent(client.Agent):
     def __init__(self, *args, **kw):
         super(TrueHeadersAgent, self).__init__(*args, **kw)
         self._pool = HTTPConnectionPool(reactor, False)
 
-
-_twisted_15_0 = Version('twisted', 15, 0, 0)
-
-
-class TrueHeadersSOCKS5Agent(SOCKS5Agent):
-    def __init__(self, *args, **kw):
-        super(TrueHeadersSOCKS5Agent, self).__init__(*args, **kw)
-        pool = HTTPConnectionPool(reactor, False)
-        #
-        # With Twisted > 15.0 txsocksx wraps the twisted agent using a
-        # wrapper class, hence we must set the _pool attribute in the
-        # inner class rather than into its external wrapper.
-        #
-        if twisted.version >= _twisted_15_0:
-            self._wrappedAgent._pool = pool
-        else:
-            self._pool = pool
-
-class FixedRedirectAgent(client.BrowserLikeRedirectAgent):
+class FixedRedirectAgent(BrowserLikeRedirectAgent):
     """
     This is a redirect agent with this patch manually applied:
     https://twistedmatrix.com/trac/ticket/8265
@@ -215,7 +173,7 @@ class FixedRedirectAgent(client.BrowserLikeRedirectAgent):
         Handle a redirect response, checking the number of redirects already
         followed, and extracting the location header fields.
 
-        This is pathed to fix a bug in infinite redirect loop.
+        This is patched to fix a bug in infinite redirect loop.
         """
         if redirectCount >= self._redirectLimit:
             err = error.InfiniteRedirection(
@@ -228,7 +186,11 @@ class FixedRedirectAgent(client.BrowserLikeRedirectAgent):
             err = error.RedirectWithNoLocation(
                 response.code, b'No location header field', uri)
             raise ResponseFailed([Failure(err)], response)
-        location = self._resolveLocation(response.request.absoluteURI, locationHeaders[0])
+        location = self._resolveLocation(
+            # This is the fix to properly handle redirects
+            response.request.absoluteURI,
+            locationHeaders[0]
+        )
         deferred = self._agent.request(method, location, headers)
 
         def _chainResponse(newResponse):
@@ -236,6 +198,5 @@ class FixedRedirectAgent(client.BrowserLikeRedirectAgent):
             return newResponse
 
         deferred.addCallback(_chainResponse)
-        # This is the fix to properly handle redirects
         return deferred.addCallback(
             self._handleResponse, method, uri, headers, redirectCount + 1)
