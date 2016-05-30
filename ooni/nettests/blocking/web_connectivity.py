@@ -8,7 +8,7 @@ from ipaddr import IPv4Address, AddressValueError
 from twisted.web.client import GzipDecoder
 from twisted.internet import reactor
 from twisted.internet.endpoints import TCP4ClientEndpoint
-from twisted.names import client, dns
+from twisted.names import client
 
 from twisted.internet import defer
 from twisted.python import usage
@@ -299,7 +299,7 @@ class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
         control_title = self.control['http_request']['title'].strip()
 
         control_words = control_title.split(' ')
-        for exp_word, idx in enumerate(experiment_title.split(' ')):
+        for idx, exp_word in enumerate(experiment_title.split(' ')):
             # We don't consider to match words that are shorter than 5
             # characters (5 is the average word length for english)
             if len(exp_word) < 5:
