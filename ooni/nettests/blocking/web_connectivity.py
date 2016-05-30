@@ -229,6 +229,7 @@ class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
 
     @defer.inlineCallbacks
     def control_request(self, sockets):
+        log.msg("* performing control request with backend")
         self.control = yield self.web_connectivity_client.control(
             http_request=self.input,
             tcp_connect=sockets
@@ -260,6 +261,10 @@ class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
         experiment_headers_lower = {k.lower(): v for k, v in
             experiment_http_response.headers.getAllRawHeaders()
         }
+
+        if (set(control_headers_lower.keys()) ==
+                set(experiment_headers_lower.keys())):
+            return True
 
         uncommon_ctrl_headers = (set(control_headers_lower.keys()) -
                                  set(COMMON_SERVER_HEADERS))
