@@ -58,7 +58,7 @@ class OConfig(object):
     @property
     def data_directory_candidates(self):
         dirs = [
-            os.path.join(expanduser('~'+self.current_user), '.ooni'),
+            self.ooni_home,
             self.var_lib_path,
             self.usr_share_path,
             os.path.join(get_ooni_root(), '..', 'data'),

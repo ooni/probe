@@ -1,5 +1,6 @@
+from base64 import b64encode
 from ooni.nettest import NetTestCase
-from ooni.utils import log, base64Dict
+from ooni.utils import log
 from ooni.settings import config
 from ooni.utils.net import hasRawSocketPermission
 
@@ -8,7 +9,10 @@ from ooni.utils.txscapy import ScapySender, ScapyFactory
 
 def _representPacket(packet):
     return {
-        "raw_packet": base64Dict(str(packet)),
+        "raw_packet": {
+            'data': b64encode(str(packet)),
+            'format': 'base64'
+        },
         "summary": repr(packet)
     }
 

@@ -1,13 +1,11 @@
 # -*- coding: utf-8 -*-
 
-from ooni.oonibclient import OONIBClient
+from ooni.backend_client import CollectorClient, BouncerClient
+from ooni.backend_client import WebConnectivityClient
 from ooni.nettest import NetTestLoader
 from ooni.settings import config
-from ooni.utils import log
+from ooni.utils import log, onion
 from ooni import errors as e
-
-from twisted import version as _twisted_version
-from twisted.python.versions import Version
 
 from twisted.python.filepath import FilePath
 from twisted.internet import defer
@@ -95,28 +93,28 @@ def nettest_to_path(path, allow_arbitrary_paths=False):
 
 
 class Deck(InputFile):
+    # this exists so we can mock it out in unittests
+    _BouncerClient = BouncerClient
+    _CollectorClient = CollectorClient
+
     def __init__(self, deck_hash=None,
-                 deckFile=None,
+                 bouncer=None,
                  decks_directory=config.decks_directory,
                  no_collector=False):
         self.id = deck_hash
-        self.requiresTor = False
         self.no_collector = no_collector
-        self.bouncer = ''
+        self.bouncer = bouncer
+
+        self.requiresTor = False
+
         self.netTestLoaders = []
         self.inputs = []
 
-        self.oonibclient = OONIBClient(self.bouncer)
-
         self.decksDirectory = os.path.abspath(decks_directory)
-        self.deckHash = deck_hash
-
-        if deckFile:
-            self.loadDeck(deckFile)
 
     @property
     def cached_file(self):
-        return os.path.join(self.decksDirectory, self.deckHash)
+        return os.path.join(self.decksDirectory, self.id)
 
     @property
     def cached_descriptor(self):
@@ -124,7 +122,7 @@ class Deck(InputFile):
 
     def loadDeck(self, deckFile):
         with open(deckFile) as f:
-            self.deckHash = sha256(f.read()).hexdigest()
+            self.id = sha256(f.read()).hexdigest()
             f.seek(0)
             test_deck = yaml.safe_load(f)
 
@@ -138,8 +136,12 @@ class Deck(InputFile):
             net_test_loader = NetTestLoader(test['options']['subargs'],
                                             annotations=test['options'].get('annotations', {}),
                                             test_file=nettest_path)
-            if test['options']['collector']:
-                net_test_loader.collector = test['options']['collector']
+            if test['options'].get('collector', None) is not None:
+                net_test_loader.collector = CollectorClient(
+                    test['options']['collector']
+                )
+            if test['options'].get('bouncer', None) is not None:
+                self.bouncer = test['options']['bouncer']
             self.insert(net_test_loader)
 
     def insert(self, net_test_loader):
@@ -153,13 +155,6 @@ class Deck(InputFile):
                 raise
             self.requiresTor = True
 
-        if net_test_loader.collector and net_test_loader.collector.startswith('https://'):
-            _twisted_14_0_2_version = Version('twisted', 14, 0, 2)
-            if _twisted_version < _twisted_14_0_2_version:
-                raise e.HTTPCollectorUnsupported
-        elif net_test_loader.collector and net_test_loader.collector.startswith('http://'):
-            if config.advanced.insecure_collector is not True:
-                raise e.InsecureCollector
         self.netTestLoaders.append(net_test_loader)
 
     @defer.inlineCallbacks
@@ -171,11 +166,122 @@ class Deck(InputFile):
 
         if self.bouncer:
             log.msg("Looking up collector and test helpers")
-            yield self.lookupCollector()
+            yield self.lookupCollectorAndTestHelpers()
+
+
+    def sortAddressesByPriority(self, priority_address, alternate_addresses):
+        onion_addresses= []
+        cloudfront_addresses= []
+        https_addresses = []
+        plaintext_addresses = []
+
+        if onion.is_onion_address(priority_address):
+            priority_address = {
+                'address': priority_address,
+                'type': 'onion'
+            }
+        elif priority_address.startswith('https://'):
+            priority_address = {
+                'address': priority_address,
+                'type': 'https'
+            }
+        elif priority_address.startswith('http://'):
+            priority_address = {
+                'address': priority_address,
+                'type': 'http'
+            }
+        else:
+            raise e.InvalidOONIBCollectorAddress
+
+        def filter_by_type(collectors, collector_type):
+            return filter(lambda x: x['type'] == collector_type,
+                          collectors)
+        onion_addresses += filter_by_type(alternate_addresses, 'onion')
+        https_addresses += filter_by_type(alternate_addresses, 'https')
+        cloudfront_addresses += filter_by_type(alternate_addresses,
+                                                'cloudfront')
+
+        plaintext_addresses += filter_by_type(alternate_addresses, 'http')
+
+        return ([priority_address] +
+                onion_addresses +
+                https_addresses +
+                cloudfront_addresses +
+                plaintext_addresses)
 
     @defer.inlineCallbacks
-    def lookupCollector(self):
-        self.oonibclient.address = self.bouncer
+    def getReachableCollector(self, collector_address, collector_alternate):
+        # We prefer onion collector to https collector to cloudfront
+        # collectors to plaintext collectors
+        for collector_settings in self.sortAddressesByPriority(collector_address,
+                                                               collector_alternate):
+            collector = self._CollectorClient(settings=collector_settings)
+            if not collector.isSupported():
+                log.err("Unsupported %s collector %s" % (
+                            collector_settings['type'],
+                            collector_settings['address']))
+                continue
+            reachable = yield collector.isReachable()
+            if not reachable:
+                log.err("Unreachable %s collector %s" % (
+                            collector_settings['type'],
+                            collector_settings['address']))
+                continue
+            defer.returnValue(collector)
+
+        raise e.NoReachableCollectors
+
+    @defer.inlineCallbacks
+    def getReachableTestHelper(self, test_helper_name, test_helper_address,
+                               test_helper_alternate):
+        # For the moment we look for alternate addresses only of
+        # web_connectivity test helpers.
+        if test_helper_name == 'web-connectivity':
+            for web_connectivity_settings in self.sortAddressesByPriority(
+                    test_helper_address, test_helper_alternate):
+                web_connectivity_test_helper = WebConnectivityClient(
+                    settings=web_connectivity_settings)
+                if not web_connectivity_test_helper.isSupported():
+                    log.err("Unsupported %s web_connectivity test_helper "
+                            "%s" % (
+                            web_connectivity_settings['type'],
+                            web_connectivity_settings['address']
+                    ))
+                    continue
+                reachable = yield web_connectivity_test_helper.isReachable()
+                if not reachable:
+                    log.err("Unreachable %s web_connectivity test helper %s" % (
+                        web_connectivity_settings['type'],
+                        web_connectivity_settings['address']
+                    ))
+                    continue
+                defer.returnValue(web_connectivity_settings)
+            raise e.NoReachableTestHelpers
+        else:
+            defer.returnValue(test_helper_address.encode('ascii'))
+
+    @defer.inlineCallbacks
+    def getReachableTestHelpersAndCollectors(self, net_tests):
+        for net_test in net_tests:
+            net_test['collector'] = yield self.getReachableCollector(
+                        net_test['collector'],
+                        net_test.get('collector-alternate', [])
+            )
+
+            for test_helper_name, test_helper_address in net_test['test-helpers'].items():
+                 test_helper_alternate = \
+                     net_test.get('test-helpers-alternate', {}).get(test_helper_name, [])
+                 net_test['test-helpers'][test_helper_name] = \
+                            yield self.getReachableTestHelper(
+                                test_helper_name,
+                                test_helper_address,
+                                test_helper_alternate)
+
+        defer.returnValue(net_tests)
+
+    @defer.inlineCallbacks
+    def lookupCollectorAndTestHelpers(self):
+        oonibclient = self._BouncerClient(self.bouncer)
 
         required_nettests = []
 
@@ -201,9 +307,15 @@ class Deck(InputFile):
         if not requires_test_helpers and not requires_collector:
             defer.returnValue(None)
 
-        log.debug("Looking up {}".format(required_nettests))
-        response = yield self.oonibclient.lookupTestCollector(required_nettests)
-        provided_net_tests = response['net-tests']
+        response = yield oonibclient.lookupTestCollector(required_nettests)
+        try:
+            provided_net_tests = yield self.getReachableTestHelpersAndCollectors(response['net-tests'])
+        except e.NoReachableCollectors:
+            log.err("Could not find any reachable collector")
+            raise
+        except e.NoReachableTestHelpers:
+            log.err("Could not find any reachable test helpers")
+            raise
 
         def find_collector_and_test_helpers(test_name, test_version, input_files):
             input_files = [u""+x['hash'] for x in input_files]
@@ -221,59 +333,17 @@ class Deck(InputFile):
                     net_test_loader.testName)
 
             collector, test_helpers = \
-                find_collector_and_test_helpers(net_test_loader.testName,
-                                                net_test_loader.testVersion,
-                                                net_test_loader.inputFiles)
+                find_collector_and_test_helpers(test_name=net_test_loader.testName,
+                                                test_version=net_test_loader.testVersion,
+                                                input_files=net_test_loader.inputFiles)
 
             for option, name in net_test_loader.missingTestHelpers:
-                test_helper_address = test_helpers[name].encode('utf-8')
-                net_test_loader.localOptions[option] = test_helper_address
-                net_test_loader.testHelpers[option] = test_helper_address
+                test_helper_address_or_settings = test_helpers[name]
+                net_test_loader.localOptions[option] = test_helper_address_or_settings
+                net_test_loader.testHelpers[option] = test_helper_address_or_settings
 
             if not net_test_loader.collector:
-                net_test_loader.collector = collector.encode('utf-8')
-
-    @defer.inlineCallbacks
-    def lookupTestHelpers(self):
-        self.oonibclient.address = self.bouncer
-
-        required_test_helpers = []
-        requires_collector = []
-        for net_test_loader in self.netTestLoaders:
-            if not net_test_loader.collector and not self.no_collector:
-                requires_collector.append(net_test_loader)
-
-            required_test_helpers += map(lambda x: x[1],
-                                           net_test_loader.missingTestHelpers)
-
-        if not required_test_helpers and not requires_collector:
-            defer.returnValue(None)
-
-        response = yield self.oonibclient.lookupTestHelpers(required_test_helpers)
-
-        for net_test_loader in self.netTestLoaders:
-            log.msg("Setting collector and test helpers for %s" %
-                    net_test_loader.testName)
-
-            # Only set the collector if the no collector has been specified
-            # from the command line or via the test deck.
-            if len(net_test_loader.missingTestHelpers) == 0 and \
-                            net_test_loader in requires_collector:
-                log.msg("Using the default collector: %s" %
-                        response['default']['collector'])
-                net_test_loader.collector = response['default']['collector'].encode('utf-8')
-                continue
-
-            for option, name in net_test_loader.missingTestHelpers:
-                test_helper_address = response[name]['address'].encode('utf-8')
-                test_helper_collector = \
-                    response[name]['collector'].encode('utf-8')
-
-                log.msg("Using this helper: %s" % test_helper_address)
-                net_test_loader.localOptions[option] = test_helper_address
-                net_test_loader.testHelpers[option] = test_helper_address
-                if net_test_loader in requires_collector:
-                    net_test_loader.collector = test_helper_collector
+                net_test_loader.collector = collector
 
     @defer.inlineCallbacks
     def fetchAndVerifyNetTestInput(self, net_test_loader):
@@ -282,10 +352,10 @@ class Deck(InputFile):
         for i in net_test_loader.inputFiles:
             if i['url']:
                 log.debug("Downloading %s" % i['url'])
-                self.oonibclient.address = i['address']
+                oonibclient = self._CollectorClient(i['address'])
 
                 try:
-                    input_file = yield self.oonibclient.downloadInput(i['hash'])
+                    input_file = yield oonibclient.downloadInput(i['hash'])
                 except:
                     raise e.UnableToLoadDeckInput
 

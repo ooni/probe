@@ -14,8 +14,8 @@ def failed(failure):
     r = failure.trap(exceptions.SystemExit,
                      Exception)
     if r != exceptions.SystemExit:
-        log.err("Failed to run oonireport")
         log.exception(failure)
+        log.err("Failed to run oonireport")
         exitCode = 127
     else:
         exitCode = failure.value.code

@@ -34,25 +34,22 @@ def IPToLocation(ipaddr):
     asn_file = config.get_data_file_path('GeoIP/GeoIPASNum.dat')
 
     location = {'city': None, 'countrycode': 'ZZ', 'asn': 'AS0'}
-
-    def error():
+    if not asn_file or not country_file:
         log.err("Could not find GeoIP data file in data directories."
                 "Try running ooniresources or"
                 " edit your ooniprobe.conf")
+        return location
 
-    try:
-        country_dat = GeoIP(country_file)
-        location['countrycode'] = country_dat.country_code_by_addr(ipaddr)
-        if not location['countrycode']:
-            location['countrycode'] = 'ZZ'
-    except IOError:
-        error()
+    country_dat = GeoIP(country_file)
+    asn_dat = GeoIP(asn_file)
 
-    try:
-        asn_dat = GeoIP(asn_file)
-        location['asn'] = asn_dat.org_by_addr(ipaddr).split(' ')[0]
-    except:
-        error()
+    country_code = country_dat.country_code_by_addr(ipaddr)
+    if country_code is not None:
+        location['countrycode'] =  country_code
+
+    asn = asn_dat.org_by_addr(ipaddr)
+    if asn is not None:
+        location['asn'] = asn.split(' ')[0]
 
     return location
 

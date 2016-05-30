@@ -113,10 +113,9 @@ class Measurement(TaskWithTimeout):
         if not hasattr(self.testInstance, '_start_time'):
             self.testInstance._start_time = time.time()
 
-        if 'input' not in self.testInstance.report.keys():
-            self.testInstance.report['input'] = test_input
-
         self.testInstance.setUp()
+        if 'input' not in self.testInstance.report.keys():
+            self.testInstance.report['input'] = self.testInstance.input
 
         self.netTestMethod = getattr(self.testInstance, test_method)
 

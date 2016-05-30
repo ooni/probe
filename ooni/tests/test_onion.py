@@ -48,3 +48,19 @@ class TestOnion(unittest.TestCase):
                 {'version': onion.TorVersion('0.2.3.20')}):
             self.assertRaises(onion.OutdatedTor,
                 onion.bridge_line, 'fte', '/log.txt')
+
+    def test_is_onion_address(self):
+        self.assertEqual(onion.is_onion_address(
+            'httpo://thirteenchars123.onion'), True)
+
+        self.assertEqual(onion.is_onion_address(
+            'thirteenchars123.onion'), True)
+
+        self.assertEqual(onion.is_onion_address(
+            'http://thirteenchars123.onion'), True)
+
+        self.assertEqual(onion.is_onion_address(
+            'https://thirteenchars123.onion'), True)
+
+        self.assertEqual(onion.is_onion_address(
+            'http://thirteenchars123.com'), False)

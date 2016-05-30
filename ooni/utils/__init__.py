@@ -1,12 +1,10 @@
 import shutil
 import string
 import random
-import glob
 import os
 from datetime import datetime
 
 import gzip
-from base64 import b64encode
 from zipfile import ZipFile
 
 from ooni import errors
@@ -91,51 +89,29 @@ def randomStr(length, num=True):
         chars += string.digits
     return ''.join(random.choice(chars) for x in range(length))
 
-
-def pushFilenameStack(filename):
-    """
-    Takes as input a target filename and checks to see if a file by such name
-    already exists. If it does exist then it will attempt to rename it to .1,
-    if .1 exists it will rename .1 to .2 if .2 exists then it will rename it to
-    .3, etc.
-    This is similar to pushing into a LIFO stack.
-
-    Args:
-        filename (str): the path to filename that you wish to create.
-    """
-    stack = glob.glob(filename + ".*")
-    stack.sort(key=lambda x: int(x.split('.')[-1]))
-    for f in reversed(stack):
-        c_idx = f.split(".")[-1]
-        c_filename = '.'.join(f.split(".")[:-1])
-        new_idx = int(c_idx) + 1
-        new_filename = "%s.%s" % (c_filename, new_idx)
-        os.rename(f, new_filename)
-    os.rename(filename, filename + ".1")
-
-
-def generate_filename(testDetails, prefix=None, extension=None, filename=None):
+def generate_filename(test_details, prefix=None, extension=None):
     """
     Returns a filename for every test execution.
 
     It's used to assure that all files of a certain test have a common basename but different
     extension.
     """
-    if filename is None:
-        test_name, start_time = testDetails['test_name'], testDetails['test_start_time']
-        start_time = datetime.strptime(start_time, "%Y-%m-%d %H:%M:%S").strftime("%Y-%m-%dT%H%M%SZ")
-        suffix = "%s-%s" % (test_name, start_time)
-        basename = '%s-%s' % (prefix, suffix) if prefix is not None else suffix
-        final_filename = '%s.%s' % (basename, extension) if extension is not None else basename
-    else:
-        if extension is not None:
-            basename = filename.split('.')[0] if '.' in filename else filename
-            final_filename = '%s.%s' % (basename, extension)
-        else:
-            final_filename = filename
+    LONG_DATE = "%Y-%m-%d %H:%M:%S"
+    SHORT_DATE = "%Y-%m-%dT%H%M%SZ"
 
-    return final_filename
-
+    kwargs = {}
+    filename_format = ""
+    if prefix is not None:
+        kwargs["prefix"] = prefix
+        filename_format += "{prefix}-"
+    filename_format += "{test_name}-{timestamp}"
+    if extension is not None:
+        kwargs["extension"] = extension
+        filename_format += ".{extension}"
+    kwargs['test_name']  = test_details['test_name']
+    kwargs['timestamp'] = datetime.strptime(test_details['test_start_time'],
+                                            LONG_DATE).strftime(SHORT_DATE)
+    return filename_format.format(**kwargs)
 
 def sanitize_options(options):
     """
@@ -177,9 +153,3 @@ def gunzip(filename, dst):
 def get_ooni_root():
     script = os.path.join(__file__, '..')
     return os.path.dirname(os.path.realpath(script))
-
-def base64Dict(data):
-    return {
-        'format': 'base64',
-        'data': b64encode(data)
-    }

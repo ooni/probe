@@ -221,5 +221,11 @@ class TestOoniCli(ConfigTestCase):
         global_options = {
             'collector': collector1
         }
-        collector_address = setupCollector(global_options, collector2)
-        self.assertEqual(collector_address, collector1)
+        try:
+            collector_client = setupCollector(global_options, collector2)
+            self.assertEqual(collector_client.settings['address'], collector1)
+            self.assertEqual(collector_client.settings['type'], 'https')
+        except errors.CollectorUnsupported:
+            # Older versions of twisted will raise this. We could be more
+            # strict and do a check for older twisted versions in here.
+            pass

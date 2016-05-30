@@ -11,7 +11,7 @@ from twisted.python import usage
 
 from ooni.utils import log, net, randomStr
 from ooni.templates import httpt
-from ooni.utils.trueheaders import TrueHeaders
+from ooni.common.txextra import TrueHeaders
 
 
 def random_capitalization(string):

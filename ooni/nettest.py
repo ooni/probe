@@ -161,6 +161,7 @@ class NetTestLoader(object):
     method_prefix = 'test'
     collector = None
     yamloo = True
+    requiresTor = False
 
     def __init__(self, options, test_file=None, test_string=None,
                  annotations={}):
@@ -495,8 +496,6 @@ class NetTest(object):
         self.testDetails = test_details
         self.testCases = test_cases
 
-        self.testInstances = []
-
         self.summary = {}
 
         # This will fire when all the measurements have been completed and
@@ -567,10 +566,16 @@ class NetTest(object):
         return measurement
 
     @defer.inlineCallbacks
-    def initializeInputProcessor(self):
-        for test_class, test_method in self.testCases:
+    def initialize(self):
+        for test_class, _ in self.testCases:
+            # Initialize Input Processor
             test_class.inputs = yield defer.maybeDeferred(
                 test_class().getInputProcessor
+            )
+
+            # Run the setupClass method
+            yield defer.maybeDeferred(
+                test_class.setUpClass
             )
 
     def generateMeasurements(self):
@@ -699,6 +704,16 @@ class NetTestCase(object):
     requiresTor = False
 
     localOptions = {}
+
+    @classmethod
+    def setUpClass(cls):
+        """
+        You can override this hook with logic that should be run once before
+        any test method in the NetTestCase is run.
+        This can be useful to populate class attribute that should be valid
+        for all the runtime of the NetTest.
+        """
+        pass
 
     def _setUp(self):
         """
