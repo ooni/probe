@@ -1,6 +1,16 @@
 Changelog
 =========
 
+v1.5.0 (Mon, 30 May 2016)
+-------------------------
+codename: The Big Wave
+
+* Implement web_connectivity test that measures for both DNS and HTTP
+  censorship.
+
+* Fix a regression bug that lead to Tor exit ip address not being included in
+  reports.
+
 v1.4.2 (Fri, 29 Apr 2016)
 -------------------------
 
