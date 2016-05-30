@@ -1,4 +1,3 @@
-import re
 import sys
 import socket
 from random import randint

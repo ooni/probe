@@ -1,5 +1,3 @@
-import re
-import codecs
 import random
 
 from txtorcon.interface import StreamListenerMixin
@@ -21,8 +19,6 @@ from ooni.common.txextra import TrueHeaders
 from ooni.common.txextra import FixedRedirectAgent, TrueHeadersAgent
 from ooni.common.http_utils import representBody
 from ooni.errors import handleAllFailures
-
-META_CHARSET_REGEXP = re.compile('<meta(?!\s*(?:name|value)\s*=)[^>]*?charset\s*=[\s"\']*([^\s"\'/>!;]+)')
 
 class InvalidSocksProxyOption(Exception):
     pass

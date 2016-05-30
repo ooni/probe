@@ -171,6 +171,7 @@ data_files = []
 packages = [
     'ooni',
     'ooni.api',
+    'ooni.common',
     'ooni.deckgen',
     'ooni.deckgen.processors',
     'ooni.kit',

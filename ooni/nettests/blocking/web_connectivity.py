@@ -42,10 +42,9 @@ class UsageOptions(usage.Options):
 def is_public_ipv4_address(address):
     try:
         ip_address = IPv4Address(address)
-        if not any([ip_address.is_private,
-                    ip_address.is_loopback]):
-            return True
-        return False
+        return not any(
+            [ip_address.is_private, ip_address.is_loopback]
+        )
     except AddressValueError:
         return None
 
@@ -293,13 +292,17 @@ class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
     def compare_titles(self, experiment_http_response):
         experiment_title = extractTitle(experiment_http_response.body).strip()
         control_title = self.control['http_request']['title'].strip()
-        first_exp_word = experiment_title.split(' ')[0]
-        first_ctrl_word = control_title.split(' ')[0]
-        if len(first_exp_word) < 5:
+
+        control_words = control_title.split(' ')
+        for exp_word, idx in enumerate(experiment_title.split(' ')):
             # We don't consider to match words that are shorter than 5
             # characters (5 is the average word length for english)
-            return False
-        return (first_ctrl_word.lower() == first_exp_word.lower())
+            if len(exp_word) < 5:
+                continue
+            try:
+                return control_words[idx].lower() == exp_word.lower()
+            except IndexError:
+                return False
 
     def compare_http_experiments(self, experiment_http_response):
 

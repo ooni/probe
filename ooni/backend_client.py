@@ -207,9 +207,7 @@ class CollectorClient(OONIBClient):
         @d.addErrback
         def err(failure):
             failure.trap(Error)
-            if failure.value.status == '404':
-                return True
-            return False
+            return failure.value.status == '404'
 
         return d
 
@@ -345,8 +343,6 @@ class CollectorClient(OONIBClient):
 
 class WebConnectivityClient(OONIBClient):
     def isReachable(self):
-        # XXX maybe in the future we can have a dedicated API endpoint to
-        # test the reachability of the collector.
         d = self.queryBackend('GET', '/status')
 
         @d.addCallback

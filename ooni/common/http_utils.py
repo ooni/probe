@@ -2,7 +2,7 @@ import re
 import codecs
 from base64 import b64encode
 
-META_CHARSET_REGEXP = re.compile('<meta(?!\s*(?:name|value)\s*=)[^>]*?charset\s*=[\s"\']*([^\s"\'/>]*)')
+META_CHARSET_REGEXP = re.compile('<meta(?!\s*(?:name|value)\s*=)[^>]*?charset\s*=[\s"\']*([^\s"\'/>!;]+)')
 
 def representBody(body):
     if not body:
