@@ -4,6 +4,7 @@ import sys
 
 from twisted.internet import defer
 
+from ooni import canonical_bouncer
 from ooni.reporter import OONIBReporter, OONIBReportLog
 
 from ooni.utils import log
@@ -11,6 +12,22 @@ from ooni.report import parser
 from ooni.settings import config
 from ooni.backend_client import BouncerClient, CollectorClient
 
+@defer.inlineCallbacks
+def lookup_collector_client(report_header, bouncer):
+    oonib_client = BouncerClient(bouncer)
+    net_tests = [{
+        'test-helpers': [],
+        'input-hashes': report_header['input_hashes'],
+        'name': report_header['test_name'],
+        'version': report_header['test_version'],
+    }]
+    result = yield oonib_client.lookupTestCollector(
+        net_tests
+    )
+    collector_client = CollectorClient(
+        address=result['net-tests'][0]['collector']
+    )
+    defer.returnValue(collector_client)
 
 @defer.inlineCallbacks
 def upload(report_file, collector=None, bouncer=None):
@@ -26,34 +43,26 @@ def upload(report_file, collector=None, bouncer=None):
 
     report = parser.ReportLoader(report_file)
     if bouncer and collector_client is None:
-        oonib_client = BouncerClient(bouncer)
-        net_tests = [{
-            'test-helpers': [],
-            'input-hashes': report.header['input_hashes'],
-            'name': report.header['test_name'],
-            'version': report.header['test_version'],
-        }]
-        result = yield oonib_client.lookupTestCollector(
-            net_tests
-        )
-        collector_client = CollectorClient(
-            address=result['net-tests'][0]['collector']
-        )
+        collector_client = yield lookup_collector_client(report.header,
+                                                         bouncer)
 
     if collector_client is None:
         try:
             collector_settings = report_log[report_file]['collector']
             if collector_settings is None:
-                raise KeyError
+                log.msg("Skipping uploading of %s since this measurement "
+                        "was run by specifying no collector." %
+                        report_file)
+                defer.returnValue(None)
             elif isinstance(collector_settings, dict):
                 collector_client = CollectorClient(settings=collector_settings)
             elif isinstance(collector_settings, str):
                 collector_client = CollectorClient(address=collector_settings)
         except KeyError:
-            raise Exception(
-                "No collector or bouncer specified"
-                " and collector not in report log."
-            )
+            log.msg("Could not find %s in reporting.yaml. Looking up "
+                    "collector with canonical bouncer." % report_file)
+            collector_client = yield lookup_collector_client(report.header,
+                                                             canonical_bouncer)
 
     oonib_reporter = OONIBReporter(report.header, collector_client)
     log.msg("Creating report for %s with %s" % (report_file,

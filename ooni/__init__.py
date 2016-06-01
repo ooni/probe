@@ -5,7 +5,15 @@ __version__ = "1.5.1.dev0"
 # This is the version number of resources to be downloaded
 # when a release is made it should be aligned to __version__
 __resources_version__ = "1.4.2"
+canonical_bouncer = 'httpo://nkvphnp3p6agi5qq.onion'
 
-__all__ = ['config', 'inputunit', 'kit',
-           'lib', 'nettest', 'oonicli', 'report', 'reporter',
-           'templates', 'utils']
+
+__all__ = [
+    'common',
+    'deckgen',
+    'nettest',
+    'report',
+    'resources',
+    'templates',
+    'utils'
+]

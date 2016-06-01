@@ -10,7 +10,7 @@ import urlparse
 from twisted.python import usage
 from twisted.internet import defer
 
-from ooni import errors, __version__
+from ooni import errors, __version__, canonical_bouncer
 from ooni.settings import config
 from ooni.utils import log
 from backend_client import CollectorClient
@@ -44,12 +44,9 @@ class Options(usage.Options):
         ["collector", "c", None, "Specify the address of the collector for "
                                  "test results. In most cases a user will "
                                  "prefer to specify a bouncer over this."],
-        ["bouncer", "b", 'httpo://nkvphnp3p6agi5qq.onion', "Specify the "
-                                                           "bouncer used to "
-                                                           "obtain the "
-                                                           "address of the "
-                                                           "collector and "
-                                                           "test helpers."],
+        ["bouncer", "b", canonical_bouncer, "Specify the bouncer used to "
+                                            "obtain the address of the "
+                                            "collector and test helpers."],
         ["logfile", "l", None, "Write to this logs to this filename."],
         ["pcapfile", "O", None, "Write a PCAP of the ooniprobe session to "
                                 "this filename."],

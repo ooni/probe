@@ -3,6 +3,7 @@ from __future__ import print_function
 import os
 import sys
 
+from ooni import canonical_bouncer
 from ooni.report import __version__
 from ooni.report import tool
 from ooni.settings import config
@@ -14,6 +15,12 @@ class Options(usage.Options):
 
     synopsis = """%s [options] upload | status
 """ % (os.path.basename(sys.argv[0]),)
+
+    optFlags = [
+        ["default-collector", "d", "Upload the reports to the default "
+                                   "collector that is looked up with the "
+                                   "canonical bouncer."]
+    ]
 
     optParameters = [
         ["configfile", "f", None,
@@ -64,6 +71,10 @@ def run():
     config.global_options = dict(options)
     config.set_paths()
     config.read_config_file()
+
+    if options['default-collector']:
+        options['bouncer'] = canonical_bouncer
+
     if options['command'] == "upload" and options['report_file']:
         tor_check()
         return tool.upload(options['report_file'],
