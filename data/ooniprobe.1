@@ -1,7 +1,7 @@
 .
-.TH "ooniprobe" "1" "April 26, 2016" "1.4.0" "ooniprobe"
+.TH "OONIPROBE" "1" "April 26, 2016" "1.4.0" "ooniprobe"
 .SH NAME
-ooniprobe - a network censorship measurement tool.
+ooniprobe \- a network censorship measurement tool.
 .
 .nr rst2man-indent-level 0
 .
@@ -57,8 +57,8 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 
 .SH DESCRIPTION
 .sp
-ooniprobe is tool for performing internet censorship measurements. Our goal is
-to achieve a common data format and set of methodologies for conducting
+\fBooniprobe\fP is the tool for performing internet censorship measurements. Our
+goal is to achieve a common data format and set of methodologies for conducting
 censorship related research.
 
 .SH OPTIONS
@@ -137,7 +137,7 @@ tampering with the internet traffic between the probe and a remote test helper
 backend. As such they usually require the selection of a oonib backend
 component for running the test.
 .sp
-\fBContent Blocking\fP are aimed at enumerating the kind of content that is
+\fBContent Blocking\fP is aimed at enumerating the kind of content that is
 blocked from the probes network point of view. As such they usually require to
 have specified an input list for running the test.
 .SS Threat Model
@@ -171,7 +171,7 @@ unrestricted
 .sp
 \fINote\fP that while 2) => 1) it is not true that 1) => 2) as the identification of
 such actors does not necessarily have to happen in real time.
-While our intention is to minimize the risk of users running OONI probe to be
+While our intention is to minimize the risk of users running ooniprobe to be
 identified, this comes with a tradeoff in accuracy. It is therefore necessary in
 certain tests to trade\-off fingerprintability in favour of tests accuracy.
 .sp
