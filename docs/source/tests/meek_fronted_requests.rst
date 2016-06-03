@@ -138,39 +138,3 @@ success: true
 test_runtime: 0.4580512046813965
 test_start_time: 1444932097.0
 ...
----
-agent: agent
-input: [www.google.com, meek-reflect.appspot.com]
-requests:
-- request:
-    body: null
-    headers:
-    - - Host
-      - [meek-reflect.appspot.com]
-    method: GET
-    tor: {is_tor: false}
-    url: https://www.google.com
-  response:
-    body: "I\u2019m just a happy little web server.\n"
-    code: 200
-    headers:
-    - - Alternate-Protocol
-      - ['443:quic,p=1']
-    - - Content-Length
-      - ['38']
-    - - Server
-      - [Google Frontend]
-    - - Connection
-      - [close]
-    - - Date
-      - ['Thu, 15 Oct 2015 20:01:38 GMT']
-    - - Alt-Svc
-      - ['quic=":443"; p="1"; ma=604800']
-    - - Content-Type
-      - [text/plain; charset=utf-8]
-socksproxy: null
-success: true
-test_runtime: 0.5862560272216797
-test_start_time: 1444932097.0
-...
-    ...
