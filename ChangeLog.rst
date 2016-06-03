@@ -1,6 +1,14 @@
 Changelog
 =========
 
+v1.5.1 (Fri, 3 Jun 2016)
+-------------------------
+codename: The Big Wave
+
+* Add --default-collector option to oonireport
+
+* Fix critical bug in web_connectivity test
+
 v1.5.0 (Mon, 30 May 2016)
 -------------------------
 codename: The Big Wave
