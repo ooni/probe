@@ -585,10 +585,13 @@ class NetTest(object):
         """
 
         for test_class, test_methods in self.testCases:
-            # load the input processor as late as possible
-            for input in test_class.inputs:
+            # load a singular input processor for all instances
+            all_inputs = test_class.inputs
+            for test_input in all_inputs:
                 measurements = []
                 test_instance = test_class()
+                # Set each instances inputs to a singular input processor
+                test_instance.inputs = all_inputs
                 test_instance._setUp()
                 test_instance.summary = self.summary
                 for method in test_methods:
@@ -596,7 +599,7 @@ class NetTest(object):
                     measurement = self.makeMeasurement(
                         test_instance,
                         method,
-                        input)
+                        test_input)
                     measurements.append(measurement.done)
                     self.state.taskCreated()
                     yield measurement
@@ -721,7 +724,6 @@ class NetTestCase(object):
         It gets called once for every input.
         """
         self.report = {}
-        self.inputs = None
 
     def requirements(self):
         """
