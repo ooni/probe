@@ -47,6 +47,16 @@ probe is a liability for you, please be aware of this risk.
 OONI in 5 minutes
 =================
 
+On Debian testing or unstable::
+
+    sudo apt-get install ooniprobe
+
+On Ubuntu 16.04 (xenial), 15.10 (wily) or 14.04 (trusty)::
+
+    sudo add-apt-repository ppa:irl/ooni
+    sudo apt-get update
+    sudo apt-get install ooniprobe
+
 On unix systems::
 
     sudo pip install ooniprobe
@@ -60,26 +70,15 @@ Then run::
     mkdir my_decks
     oonideckgen -o my_decks/
 
-**BUG** Note:
-ooniprobe version 1.2.2 when installed from the debian repository will not
-properly create the ooni home folder and if you run into an error in accessing
-`~/.ooni/` run::
-
-    ooniprobe -n blocking/http_requests -u http://google.com/
-
-This should generate the home and allow you to run oonideckgen.
-
-The output from the last command will tell you how to run ooniprobe to perform
-the measurement.
-
-If you would like to contribute measurements to OONI daily you can also add
-this to your crontab::
+If you're using the Debian package, you will be asked when installing whether
+you would like to run OONI daily. On other platforms, if you would like to
+contribute measurements to OONI daily you can also add this to your crontab::
 
     @daily ooniprobe $THE_OONI_COMMAND
 
 Run this command to automatically update your crontab:: 
 
-      (crontab -l 2>/dev/null; echo "@daily ooniprobe $THE_OONI_COMMAND") | crontab -
+    (crontab -l 2>/dev/null; echo "@daily ooniprobe $THE_OONI_COMMAND") | crontab -
 
 Installation
 ============
