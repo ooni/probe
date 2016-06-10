@@ -120,7 +120,7 @@ class Deck(InputFile):
     def cached_descriptor(self):
         return self.cached_file + '.desc'
 
-    def loadDeck(self, deckFile):
+    def loadDeck(self, deckFile, global_options={}):
         with open(deckFile) as f:
             self.id = sha256(f.read()).hexdigest()
             f.seek(0)
@@ -133,12 +133,21 @@ class Deck(InputFile):
                 log.err("Could not find %s" % test['options']['test_file'])
                 log.msg("Skipping...")
                 continue
+
+            annotations = test['options'].get('annotations', {})
+            if global_options.get('annotations') is not None:
+                annotations = global_options["annotations"]
+
+            collector_address = test['options'].get('collector', None)
+            if global_options.get('collector') is not None:
+                collector_address = global_options['collector']
+
             net_test_loader = NetTestLoader(test['options']['subargs'],
-                                            annotations=test['options'].get('annotations', {}),
+                                            annotations=annotations,
                                             test_file=nettest_path)
-            if test['options'].get('collector', None) is not None:
+            if collector_address is not None:
                 net_test_loader.collector = CollectorClient(
-                    test['options']['collector']
+                    collector_address
                 )
             if test['options'].get('bouncer', None) is not None:
                 self.bouncer = test['options']['bouncer']

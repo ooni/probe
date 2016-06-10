@@ -244,7 +244,7 @@ def createDeck(global_options, url=None):
 
     try:
         if global_options['testdeck']:
-            deck.loadDeck(global_options['testdeck'])
+            deck.loadDeck(global_options['testdeck'], global_options)
         else:
             log.debug("No test deck detected")
             test_file = nettest_to_path(global_options['test_file'], True)
