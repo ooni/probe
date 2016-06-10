@@ -51,6 +51,12 @@ On Debian testing or unstable::
 
     sudo apt-get install ooniprobe
 
+On Debian stable (jessie)::
+
+    echo 'deb http://ftp.debian.org/debian jessie-backports main' | sudo tee -a /etc/apt/sources.list
+    sudo apt-get update
+    sudo apt-get install ooniprobe
+
 On Ubuntu 16.04 (xenial), 15.10 (wily) or 14.04 (trusty)::
 
     sudo add-apt-repository ppa:irl/ooni
