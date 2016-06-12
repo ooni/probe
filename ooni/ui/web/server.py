@@ -197,4 +197,7 @@ class WebUIAPI(object):
         path = rpath("build")
         print(path)
         return static.File(path)
+<<<<<<< acda284b56fa3a75acbe7d000fbdefb643839948
 
+=======
+>>>>>>> [Web UI] Refactoring of web UI
