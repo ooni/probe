@@ -91,6 +91,7 @@ from __future__ import print_function
 from ooni import __version__, __author__
 import os
 import sys
+import glob
 import shutil
 import tempfile
 import subprocess
@@ -300,6 +301,47 @@ class CreateOoniResources(Command):
         print("Written ooniresources to {0}".format(dst_path))
 
 
+
+class GenerateComponent(Command):
+    description = ("Generate a new component for the web ui")
+    user_options = []
+
+    def initialize_options(self):
+        pass
+    def finalize_options(self):
+        pass
+    def run(self):
+        from jinja2 import Template
+        context = os.path.abspath(os.path.dirname(__file__))
+        component_dir = os.path.join(context, "ooni", "ui", "web", "client",
+                                     "app", "components")
+        component_name = raw_input("Enter component name: ")
+        lower_name = component_name.lower().replace(" ", "-")
+        upper_name = lower_name[0].upper() + lower_name[1:]
+        dst_dir = os.path.join(component_dir, lower_name)
+        os.mkdir(dst_dir)
+        for template_file in glob.glob("data/component-template/*"):
+            target_filename = os.path.basename(template_file).replace("templ",
+                                                                      lower_name)
+            target_path = os.path.join(dst_dir, target_filename)
+            template = Template(open(template_file).read())
+            with open(target_path, "w+") as fw:
+                fw.write(template.render(name=lower_name,
+                                         nameUpper=upper_name))
+                fw.write("\n")
+            print("Written %s" % target_path)
+        print("Component \"%s\" created!" % component_name)
+        print("You should now edit "
+              "\"ooni/ui/web/client/app/components/components.js\" "
+              "to require the newly create component like so:")
+        print("""
+var {upper_name} = require("{lower_name}/{lower_name}");
+var componentsModule = angular.module("app.components", [
+    // In here are the other components
+    {upper_name}
+]).name;
+""".format(lower_name=lower_name, upper_name=upper_name))
+
 install_requires = []
 dependency_links = []
 data_files = []
@@ -353,7 +395,8 @@ setup(
     zip_safe=False,
     cmdclass={
         "install": OoniInstall,
-        "create_ooniresources": CreateOoniResources
+        "create_ooniresources": CreateOoniResources,
+        "generate_component": GenerateComponent
     },
     classifiers=(
         "Development Status :: 5 - Production/Stable",
