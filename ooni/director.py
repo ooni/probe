@@ -8,7 +8,7 @@ from ooni.utils.net import randomFreePort
 from ooni.nettest import NetTest, getNetTestInformation
 from ooni.settings import config
 from ooni import errors
-from ooni.nettest import normaliseTestName
+from ooni.nettest import normalizeTestName
 
 from ooni.utils.onion import start_tor, connect_to_control_port
 
@@ -196,7 +196,7 @@ class Director(object):
         self.totalMeasurementRuntime += measurement.runtime
         self.successfulMeasurements += 1
         measurement.result = result
-        test_name = normaliseTestName(measurement.testInstance.name)
+        test_name = normalizeTestName(measurement.testInstance.name)
         if test_name in self.sniffers:
             sniffer = self.sniffers[test_name]
             config.scapyFactory.unRegisterProtocol(sniffer)

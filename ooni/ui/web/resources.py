@@ -1,10 +1,10 @@
 import json
+
 from twisted.web import resource
 from twisted.python import usage
 
 from ooni import errors
 from ooni.nettest import NetTestLoader
-
 
 class WuiResource(resource.Resource):
     isLeaf = True
@@ -112,7 +112,14 @@ class TestsStart(WuiResource):
                 'error_code': 500,
                 'error_message': 'Could not find the specified test'
             }
-        test_options = json.load(request.content)
+        try:
+            test_options = json.load(request.content)
+        except ValueError:
+            return {
+                'error_code': 500,
+                'error_message': 'Invalid JSON message recevied'
+            }
+
         net_test_loader = getNetTestLoader(test_options, net_test['path'])
         try:
             net_test_loader.checkOptions()
@@ -154,12 +161,18 @@ class TestsStop(WuiResource):
 
 
 class TestsStatus(WuiResource):
-    def __init__(self, director, test_id):
+    def __init__(self, director, test_name):
         WuiResource.__init__(self, director)
-        self.test_id = test_id
+        self.test_name = test_name
 
     def render_GET(self, request):
-        return {"deck": "list"}
+        try:
+            return self.test_name[self.test_name]
+        except KeyError:
+            return {
+                'error_code': 404,
+                'error_message': 'Could not find test with such name'
+            }
 
 
 class TestsList(WuiResource):

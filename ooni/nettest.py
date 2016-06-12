@@ -99,7 +99,7 @@ def getArguments(test_class):
     return arguments
 
 
-def test_class_name_to_name(test_class_name):
+def normalizeTestName(test_class_name):
     return test_class_name.lower().replace(' ', '_')
 
 
@@ -382,7 +382,7 @@ class NetTestLoader(object):
             generate the test_cases.
         """
         test_class, _ = test_cases[0]
-        self.testName = test_class_name_to_name(test_class.name)
+        self.testName = normalizeTestName(test_class.name)
         self.testVersion = test_class.version
         self._testCases = test_cases
 

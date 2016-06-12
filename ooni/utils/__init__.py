@@ -121,7 +121,8 @@ def sanitize_options(options):
     """
     sanitized_options = []
     for option in options:
-        option = os.path.basename(option)
+        if isinstance(option, str):
+            option = os.path.basename(option)
         sanitized_options.append(option)
     return sanitized_options
 

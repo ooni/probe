@@ -24,4 +24,3 @@ angular.module('ooniprobe.services', ['ngResource']).
     function($resource) {
     return $resource('/status');
 }]);
-
