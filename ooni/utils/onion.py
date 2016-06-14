@@ -214,16 +214,11 @@ def get_client_transport(transport):
 
 
 class TorLauncherWithRetries(object):
-<<<<<<< 970cb5191f77b1da0d656e6441d77d42d53afb95
     def __init__(self, tor_config, timeout=config.tor.timeout):
-=======
-    def __init__(self, tor_config, timeout=200):
->>>>>>> Implementing bridge failover in ooniprobe
         self.retry_with = ["obfs4", "meek"]
         self.started = defer.Deferred()
         self.tor_output = StringIO.StringIO()
         self.tor_config = tor_config
-<<<<<<< 970cb5191f77b1da0d656e6441d77d42d53afb95
         if timeout is None:
             # XXX we will want to move setting the default inside of the
             # config object.
@@ -243,10 +238,6 @@ class TorLauncherWithRetries(object):
             setattr(new_tor_config, key, getattr(self.tor_config, key))
         self.tor_config = new_tor_config
 
-=======
-        self.timeout = timeout
-
->>>>>>> Implementing bridge failover in ooniprobe
     def _progress_updates(self, prog, tag, summary):
         log.msg("%d%%: %s" % (prog, summary))
 
