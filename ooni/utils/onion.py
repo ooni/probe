@@ -237,6 +237,7 @@ class TorLauncherWithRetries(object):
                 continue
             setattr(new_tor_config, key, getattr(self.tor_config, key))
         self.tor_config = new_tor_config
+        self.timeout = timeout
 
     def _progress_updates(self, prog, tag, summary):
         log.msg("%d%%: %s" % (prog, summary))
