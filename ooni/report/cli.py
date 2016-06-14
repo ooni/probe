@@ -3,7 +3,7 @@ from __future__ import print_function
 import os
 import sys
 
-from ooni import canonical_bouncer
+from ooni.constants import CANONICAL_BOUNCER_ONION
 from ooni.report import __version__
 from ooni.report import tool
 from ooni.settings import config
@@ -73,7 +73,7 @@ def run(args=sys.argv[1:]):
     config.read_config_file()
 
     if options['default-collector']:
-        options['bouncer'] = canonical_bouncer
+        options['bouncer'] = CANONICAL_BOUNCER_ONION
 
     if options['command'] == "upload" and options['report_file']:
         tor_check()

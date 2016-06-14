@@ -7,13 +7,11 @@ from ooni.utils import log, generate_filename
 from ooni.utils.net import randomFreePort
 from ooni.nettest import NetTest, getNetTestInformation
 from ooni.settings import config
-from ooni import errors
 from ooni.nettest import test_class_name_to_name
 
-from txtorcon import TorConfig, TorState, launch_tor, build_tor_connection
+from ooni.utils.onion import start_tor, connect_to_control_port
 
-from twisted.internet import defer, reactor
-from twisted.internet.endpoints import TCP4ClientEndpoint
+from twisted.internet import defer
 
 
 class Director(object):
@@ -133,8 +131,7 @@ class Director(object):
             if config.advanced.start_tor and config.tor_state is None:
                 yield self.startTor()
             elif config.tor.control_port and config.tor_state is None:
-                log.msg("Connecting to Tor Control Port...")
-                yield self.getTorState()
+                yield connect_to_control_port()
 
         if config.global_options['no-geoip']:
             aux = [False]
@@ -299,11 +296,6 @@ class Director(object):
         config.scapyFactory.registerProtocol(sniffer)
         log.msg("Starting packet capture to: %s" % filename_pcap)
 
-    @defer.inlineCallbacks
-    def getTorState(self):
-        connection = TCP4ClientEndpoint(reactor, '127.0.0.1',
-                                        config.tor.control_port)
-        config.tor_state = yield build_tor_connection(connection)
 
     def startTor(self):
         """ Starts Tor
@@ -312,37 +304,7 @@ class Director(object):
         """
         log.msg("Starting Tor...")
 
-        @defer.inlineCallbacks
-        def state_complete(state):
-            config.tor_state = state
-            log.msg("Successfully bootstrapped Tor")
-            log.debug("We now have the following circuits: ")
-            for circuit in state.circuits.values():
-                log.debug(" * %s" % circuit)
-
-            socks_port = yield state.protocol.get_conf("SocksPort")
-            control_port = yield state.protocol.get_conf("ControlPort")
-
-            config.tor.socks_port = int(socks_port.values()[0])
-            config.tor.control_port = int(control_port.values()[0])
-
-        def setup_failed(failure):
-            log.exception(failure)
-            raise errors.UnableToStartTor
-
-        def setup_complete(proto):
-            """
-            Called when we read from stdout that Tor has reached 100%.
-            """
-            log.debug("Building a TorState")
-            config.tor.protocol = proto
-            state = TorState(proto.tor_protocol)
-            state.post_bootstrap.addCallback(state_complete)
-            state.post_bootstrap.addErrback(setup_failed)
-            return state.post_bootstrap
-
-        def updates(prog, tag, summary):
-            log.msg("%d%%: %s" % (prog, summary))
+        from txtorcon import TorConfig
 
         tor_config = TorConfig()
         if config.tor.control_port is None:
@@ -388,14 +350,4 @@ class Director(object):
         tor_config.save()
         log.debug("Setting control port as %s" % tor_config.ControlPort)
         log.debug("Setting SOCKS port as %s" % tor_config.SocksPort)
-
-        if config.advanced.tor_binary:
-            d = launch_tor(tor_config, reactor,
-                           tor_binary=config.advanced.tor_binary,
-                           progress_updates=updates)
-        else:
-            d = launch_tor(tor_config, reactor,
-                           progress_updates=updates)
-        d.addCallback(setup_complete)
-        d.addErrback(setup_failed)
-        return d
+        return start_tor(tor_config)
