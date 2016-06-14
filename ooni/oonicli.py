@@ -44,9 +44,9 @@ class Options(usage.Options):
         ["collector", "c", None, "Specify the address of the collector for "
                                  "test results. In most cases a user will "
                                  "prefer to specify a bouncer over this."],
-        ["bouncer", "b", None, "Specify the bouncer used to "
-                               "obtain the address of the "
-                               "collector and test helpers."],
+        ["bouncer", "b", CANONICAL_BOUNCER_ONION, "Specify the bouncer used to "
+                                            "obtain the address of the "
+                                            "collector and test helpers."],
         ["logfile", "l", None, "Write to this logs to this filename."],
         ["pcapfile", "O", None, "Write a PCAP of the ooniprobe session to "
                                 "this filename."],
