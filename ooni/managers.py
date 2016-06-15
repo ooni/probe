@@ -1,4 +1,5 @@
 import itertools
+from twisted.internet import defer
 
 from ooni.utils import log
 from ooni.settings import config
@@ -24,6 +25,7 @@ class TaskManager(object):
         self._tasks = iter(())
         self._active_tasks = []
         self.failures = 0
+        self.task_lock = defer.DeferredLock()
 
     def _failed(self, failure, task):
         """
@@ -55,17 +57,17 @@ class TaskManager(object):
         Called on test completion and schedules measurements to be run for the
         available slots.
         """
+        d = self.task_lock.acquire()
+        d.addCallback(lambda _: self._scheduleNextTask())
+
+    def _scheduleNextTask(self):
         for _ in range(self.availableSlots):
             try:
-                task = self._tasks.next()
+                task = next(self._tasks)
                 self._run(task)
             except StopIteration:
                 break
-            except ValueError:
-                # XXX this is a workaround the race condition that leads the
-                # _tasks generator to throw the exception
-                # ValueError: generator already called.
-                continue
+        self.task_lock.release()
 
     def _run(self, task):
         """
