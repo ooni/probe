@@ -57,13 +57,70 @@ this::
             yield x.strip()
         fp.close()
 
-For example, if you wanted to modify inputProcessor to read enteries from a CSV file, you could use::
-            
+For example, if you wanted to modify inputProcessor to read entries from a CSV file, you could use::
+
     def inputProcessor(self, filename):
         with open(filename) as csvFile:
             reader = DictReader(csvFile)
             for entry in reader:
                 yield entry
+
+
+The ``inputs`` iterator is unique per ``NetTestCase`` and shared by all its measurement tests. This provides opportunities for each measurement test in a ``NetTestCase`` to communicate with the iterator to do things such as adding additional values to be passed to measurement tests as a later ``input``.
+
+.. note :: Deleting/removing the current item from the ``inputs`` iterator will not stop other measurement tests from operating on that ``input``. When a ``NetTestCase`` is run a single ``input`` is taken from the ``inputs`` iterator by the OONI test loader and run against all of the individual measurement tests within that ``NetTestCase``. Removing an ``input`` from the ``inputs`` iterator during a measurement will not stop that input from being called on all other measurement tests within the NetTestCase.
+
+Here is one example of how you can take advantage of shared ``inputs`` iterator when writing your own OONI tests. If you have a list of urls and you want to make sure that you always test the HTTP equivalent of any HTTPS urls provided you can ``send`` values back to a custom generator in your ``postProcessor``.
+
+To do this the first thing you would need to create is a URL generator that can accept values sent to it.
+
+::
+  class UrlGeneratorWithSend(object):
+      def __init__(self):
+          """Create initial list and set generator state."""
+          self.urls = ["http://www.torproject.org",
+                       "https://ooni.torproject.org"]
+          self.current = 0
+
+      def __iter__(self):
+          return self
+
+      def __next__(self):
+          try:
+              cur = self.urls[self.current]
+              self.current += 1
+              return cur
+          except IndexError:
+              raise StopIteration
+
+      # Python 2 & 3 generator compatibility
+      next = __next__
+
+      def send(self, returned):
+          """Appends a value to self.urls when activated"""
+          if returned is not None:
+              print("Value {0} sent to generator".format(returned))
+              self.urls.append(returned)
+
+With this generator created you can now assign it as the ``inputs`` to a ``NetTestCase`` and ``send`` values back to it.
+
+::
+  class TestUrlList(nettest.NetTestCase):
+
+      # Adding custom generator here
+      inputs = UrlGeneratorWithSend()
+
+      def postProcessor(self, measurements):
+          """If any HTTPS url's are passed send back an HTTP url."""
+          if re.match("^https", self.input):
+              http_version = re.sub("https", "http", self.input, 1)
+              self.inputs.send(http_version)
+          return self.report
+
+      def test_url(self):
+          self.report['tested'] = [self.input]
+          return defer.succeed(1)
+
 
 Setup and command line passing
 ------------------------------
