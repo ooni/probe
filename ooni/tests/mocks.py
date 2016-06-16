@@ -222,6 +222,15 @@ class MockBouncerClient(object):
                 'version': net_test['version'],
                 'input-hashes': net_test['input-hashes'],
                 'collector': 'httpo://thirteenchars123.onion',
+                'collector-alternate': [
+                    {'type': 'https', 'address': 'https://collector.ooni.io'},
+                    {'type': 'http', 'address': 'http://collector.ooni.io'},
+                    {
+                        'type': 'cloudfront',
+                        'address': 'https://address.cloudfront.net',
+                        'front': 'https://front.cloudfront.net'
+                    },
+                ],
                 'test-helpers': test_helpers
             })
         return defer.succeed(ret)

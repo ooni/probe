@@ -48,7 +48,10 @@ advanced:
     report_log_file: null
     inputs_dir: null
     decks_dir: null
+    # If we should support communicating to plaintext backends (via HTTP)
     insecure_backend: false
+    # The preferred backend type, can be one of onion, https or cloudfront
+    preferred_backend: onion
 tor:
     #socks_port: 8801
     #control_port: 8802
