@@ -60,10 +60,10 @@ def tor_check():
         sys.exit(1)
 
 
-def run():
+def run(args=sys.argv):
     options = Options()
     try:
-        options.parseOptions()
+        options.parseOptions(args)
     except Exception as exc:
         print("Error: %s" % exc)
         print(options)
