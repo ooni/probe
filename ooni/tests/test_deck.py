@@ -33,6 +33,7 @@ class BaseTestCase(unittest.TestCase):
         self.cwd = os.getcwd()
         self.dummy_deck_content = """- options:
             collector: null
+            annotations: null
             help: 0
             logfile: null
             no-default-reporter: 0
@@ -131,6 +132,24 @@ class TestDeck(BaseTestCase):
                     decks_directory=".")
         deck.loadDeck(self.deck_file)
         assert len(deck.netTestLoaders) == 1
+
+    def test_load_deck_with_global_options(self):
+        global_options = {
+            "annotations": {"spam": "ham"},
+            "collector": "httpo://thirteenchars123.onion"
+        }
+        deck = Deck(bouncer="httpo://foo.onion",
+                    decks_directory=".")
+        deck.loadDeck(self.deck_file,
+                      global_options=global_options)
+        self.assertEqual(
+            deck.netTestLoaders[0].annotations,
+            global_options['annotations']
+        )
+        self.assertEqual(
+            deck.netTestLoaders[0].collector.base_address,
+            global_options['collector'].replace("httpo://", "http://")
+        )
 
     def test_save_deck_descriptor(self):
         deck = Deck(bouncer="httpo://foo.onion",
