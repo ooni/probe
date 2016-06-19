@@ -60,7 +60,7 @@ def tor_check():
         sys.exit(1)
 
 
-def run(args=sys.argv):
+def run(args=None):
     options = Options()
     try:
         options.parseOptions(args)
