@@ -219,7 +219,7 @@ dummyInputFile = 'dummyInputFile.txt'
 
 
 
-class TestNetTest(unittest.TestCase):
+class TestNetTest(ConfigTestCase):
     timeout = 1
 
     def setUp(self):
@@ -227,11 +227,13 @@ class TestNetTest(unittest.TestCase):
         with open(dummyInputFile, 'w') as f:
             for i in range(10):
                 f.write("%s\n" % i)
+        super(TestNetTest, self).setUp()
 
     def tearDown(self):
         os.remove(dummyInputFile)
         if self.filename != "":
             os.remove(self.filename)
+        super(TestNetTest, self).tearDown()
 
     def assertCallable(self, thing):
         self.assertIn('__call__', dir(thing))
