@@ -88,12 +88,7 @@ def nettest_to_path(path, allow_arbitrary_paths=False):
     if allow_arbitrary_paths and os.path.exists(path):
         return path
 
-    p = path.split("/")
-    test_name = p[0]
-    if len(p) > 1:
-        test_categories = [p[0]]
-        test_name = p[1]
-
+    test_name = path.rsplit("/", 1)[-1]
     test_categories = [
         "blocking",
         "experimental",
