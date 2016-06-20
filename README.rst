@@ -63,8 +63,11 @@ On Ubuntu 16.04 (xenial), 15.10 (wily) or 14.04 (trusty)::
     sudo apt-get update
     sudo apt-get install ooniprobe
 
-(You'll need to swap out $RELEASE for either "xenial", "wily", or "trusty". This
-will not happen automatically.
+*You'll need to swap out ``$RELEASE`` for either ``xenial``, ``wily``, or
+``trusty``. This will not happen automatically. You will also need to ensure
+that you have the ``universe`` repository enabled. The ``universe`` repository
+is enabled by default in a standard Ubuntu installation but may not be on some
+minimal on not standard installations.*
 
 On unix systems::
 
