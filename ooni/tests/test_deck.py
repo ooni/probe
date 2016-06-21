@@ -4,7 +4,8 @@ from twisted.internet import defer
 from twisted.trial import unittest
 
 from hashlib import sha256
-from ooni.deck import InputFile, Deck
+from ooni import errors
+from ooni.deck import InputFile, Deck, nettest_to_path
 from ooni.tests.mocks import MockBouncerClient, MockCollectorClient
 
 net_test_string = """
@@ -202,3 +203,11 @@ class TestDeck(BaseTestCase):
             deck.netTestLoaders[1].localOptions['backend'],
             '2.2.2.2'
         )
+
+    def test_nettest_to_path(self):
+        path_a = nettest_to_path("blocking/http_requests")
+        path_b = nettest_to_path("http_requests")
+        self.assertEqual(path_a, path_b)
+        self.assertRaises(errors.NetTestNotFound,
+                          nettest_to_path,
+                          "invalid_test")
