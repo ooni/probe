@@ -345,6 +345,7 @@ def runWithDirector(global_options):
     test!
     """
     from ooni.director import Director
+    start_tor = False
     director = Director()
     if global_options['list']:
         net_tests = [net_test for net_test in director.getNetTests().items()]

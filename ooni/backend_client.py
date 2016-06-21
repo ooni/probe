@@ -36,19 +36,17 @@ class OONIBClient(object):
         self.base_headers = {}
         self.backend_type = settings.get('type', None)
         self.base_address = settings.get('address', address)
+        self.front = settings.get('front', '').encode('ascii')
 
         if self.backend_type is None:
             self.backend_type = guess_backend_type(self.base_address)
         self.backend_type = self.backend_type.encode('ascii')
 
-        if self.backend_type == 'cloudfront':
-            self.base_headers['Host'] = settings['front'].encode('ascii')
-
         self._setupBaseAddress()
         self.settings = {
             'type': self.backend_type,
             'address': self.base_address,
-            'front': settings.get('front', '').encode('ascii')
+            'front': self.front
         }
 
     def _setupBaseAddress(self):
@@ -64,8 +62,11 @@ class OONIBClient(object):
                                                   parsed_address.netloc))
         elif self.backend_type == 'http':
             self.base_address = ("http://%s" % parsed_address.netloc)
-        elif self.backend_type in ('https', 'cloudfront'):
+        elif self.backend_type == 'https':
             self.base_address = ("https://%s" % parsed_address.netloc)
+        elif self.backend_type == 'cloudfront':
+            self.base_headers['Host'] = [parsed_address.netloc]
+            self.base_address = ("https://%s" % self.front)
         self.base_address = self.base_address.encode('ascii')
 
     def isSupported(self):

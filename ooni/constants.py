@@ -1,8 +1,8 @@
 CANONICAL_BOUNCER_ONION = 'httpo://nkvphnp3p6agi5qq.onion'
 CANONICAL_BOUNCER_HTTPS = 'https://bouncer.ooni.io'
 CANONICAL_BOUNCER_CLOUDFRONT = (
-    'XXXX.cloudfront.net',
-    'https://a0.awsstatic.com/'
+    'https://XXXX.cloudfront.net/',
+    'a0.awsstatic.com'
 )
 
 MEEK_BRIDGES = [

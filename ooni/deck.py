@@ -219,7 +219,8 @@ class Deck(InputFile):
             yield self.fetchAndVerifyNetTestInput(net_test_loader)
 
         if self.bouncer:
-            log.msg("Looking up collector and test helpers")
+            log.msg("Looking up collector and test helpers with {0}".format(
+                self.bouncer.base_address))
             yield self.lookupCollectorAndTestHelpers()
 
 
