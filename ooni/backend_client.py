@@ -42,12 +42,12 @@ class OONIBClient(object):
             self.backend_type = guess_backend_type(self.base_address)
         self.backend_type = self.backend_type.encode('ascii')
 
-        self._setupBaseAddress()
         self.settings = {
             'type': self.backend_type,
             'address': self.base_address,
             'front': self.front
         }
+        self._setupBaseAddress()
 
     def _setupBaseAddress(self):
         parsed_address = urlparse(self.base_address)

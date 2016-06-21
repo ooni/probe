@@ -185,7 +185,7 @@ class TestDeck(BaseTestCase, ConfigTestCase):
         yield deck.lookupCollectorAndTestHelpers()
 
         self.assertEqual(deck.netTestLoaders[0].collector.settings['address'],
-                         'http://thirteenchars123.onion')
+                         'httpo://thirteenchars123.onion')
 
         self.assertEqual(deck.netTestLoaders[0].localOptions['backend'],
                          '127.0.0.1')
@@ -237,7 +237,7 @@ class TestDeck(BaseTestCase, ConfigTestCase):
         )
         self.assertEqual(
             deck.netTestLoaders[0].collector.settings['front'],
-            'https://front.cloudfront.net'
+            'front.cloudfront.net'
         )
 
         self.assertEqual(
