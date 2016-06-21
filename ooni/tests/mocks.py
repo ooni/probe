@@ -228,7 +228,7 @@ class MockBouncerClient(object):
                     {
                         'type': 'cloudfront',
                         'address': 'https://address.cloudfront.net',
-                        'front': 'https://front.cloudfront.net'
+                        'front': 'front.cloudfront.net'
                     },
                 ],
                 'test-helpers': test_helpers
