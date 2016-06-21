@@ -7,7 +7,7 @@ setuptools>=11.3
 PyYAML>=3.10
 Twisted>=13.2.0
 ipaddr>=2.1.10
-pyOpenSSL>=0.13
+pyOpenSSL>=0.15.1
 geoip
 txtorcon>=0.7
 txsocksx>=0.0.2
