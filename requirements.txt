@@ -16,3 +16,4 @@ pypcap>=1.1
 service-identity
 pydumbnet
 zope.interface
+certifi

@@ -1,7 +1,9 @@
 CANONICAL_BOUNCER_ONION = 'httpo://nkvphnp3p6agi5qq.onion'
-CANONICAL_BOUNCER_HTTPS = 'https://bouncer.ooni.io'
+# XXX Change these two to the production ones once the release is made.
+# CANONICAL_BOUNCER_HTTPS = 'https://bouncer.ooni.io'
+CANONICAL_BOUNCER_HTTPS = 'https://bouncer.test.ooni.io'
 CANONICAL_BOUNCER_CLOUDFRONT = (
-    'https://XXXX.cloudfront.net/',
+    'https://d47sqwfs8741k.cloudfront.net/',
     'a0.awsstatic.com'
 )
 
