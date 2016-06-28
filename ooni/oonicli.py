@@ -13,7 +13,6 @@ from twisted.internet import defer
 from ooni import errors, __version__, canonical_bouncer
 from ooni.settings import config
 from ooni.utils import log
-from backend_client import CollectorClient
 
 class LifetimeExceeded(Exception): pass
 
@@ -221,6 +220,8 @@ def setupAnnotations(global_options):
     return annotations
 
 def setupCollector(global_options, collector_client):
+    from backend_client import CollectorClient
+
     if global_options['collector']:
         collector_client = CollectorClient(global_options['collector'])
     elif config.reports.get('collector', None) is not None:
@@ -232,6 +233,7 @@ def setupCollector(global_options, collector_client):
 def createDeck(global_options, url=None):
     from ooni.nettest import NetTestLoader
     from ooni.deck import Deck, nettest_to_path
+    from backend_client import CollectorClient
 
     if url:
         log.msg("Creating deck for: %s" % (url))
