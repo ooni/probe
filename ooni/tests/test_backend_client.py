@@ -8,15 +8,18 @@ from twisted.web import error
 from ooni import errors as e
 from ooni.settings import config
 from ooni.backend_client import CollectorClient, BouncerClient
+from ooni.backend_client import WebConnectivityClient
 from ooni.tests.bases import ConfigTestCase
+
+from mock import MagicMock
 
 input_id = '37e60e13536f6afe47a830bfb6b371b5cf65da66d7ad65137344679b24fdccd1'
 deck_id = 'd4ae40ecfb3c1b943748cce503ab8233efce7823f3e391058fc0f87829c644ed'
 
 
-class TestOONIBClient(ConfigTestCase):
+class TestEnd2EndBackendClient(ConfigTestCase):
     def setUp(self):
-        super(TestOONIBClient, self).setUp()
+        super(TestEnd2EndBackendClient, self).setUp()
         host = '127.0.0.1'
         port = 8889
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -142,3 +145,73 @@ class TestOONIBClient(ConfigTestCase):
 
         res = yield self.collector_client.queryBackend('POST', '/report/' + report_id +
                                         '/close')
+
+
+class TestBackendClient(ConfigTestCase):
+    @defer.inlineCallbacks
+    def test_web_connectivity_client_is_reachable(self):
+        wcc = WebConnectivityClient(
+            'https://web-connectivity.th.ooni.io')
+        wcc.queryBackend = MagicMock()
+        wcc.queryBackend.return_value = defer.succeed({"status": "ok"})
+        result = yield wcc.isReachable()
+        self.assertEqual(result, True)
+
+    @defer.inlineCallbacks
+    def test_web_connectivity_client_is_not_reachable(self):
+        wcc = WebConnectivityClient(
+            'https://web-connectivity.th.ooni.io')
+        wcc.queryBackend = MagicMock()
+        wcc.queryBackend.return_value = defer.fail(Exception())
+        result = yield wcc.isReachable()
+        self.assertEqual(result, False)
+
+
+    @defer.inlineCallbacks
+    def test_web_connectivity_client_control(self):
+        wcc = WebConnectivityClient(
+            'https://web-connectivity.th.ooni.io')
+        wcc.queryBackend = MagicMock()
+        wcc.queryBackend.return_value = defer.succeed({})
+        yield wcc.control("http://example.com/", ["127.0.0.1:8080",
+                                                  "127.0.0.1:8082"])
+        wcc.queryBackend.assert_called_with(
+            'POST', '/',
+            query={
+                "http_request": "http://example.com/",
+                "tcp_connect": ["127.0.0.1:8080", "127.0.0.1:8082"]
+            })
+
+
+    @defer.inlineCallbacks
+    def test_bouncer_client_lookup_collector(self):
+        bcc = BouncerClient('https://bouncer.ooni.io')
+        bcc.queryBackend = MagicMock()
+        bcc.queryBackend.return_value = defer.succeed({})
+        yield bcc.lookupTestCollector(["foo"])
+        bcc.queryBackend.assert_called_with("POST",
+                                            "/bouncer/net-tests",
+                                            query={'net-tests': ["foo"]})
+
+
+    @defer.inlineCallbacks
+    def test_bouncer_client_lookup_test_helpers(self):
+        bcc = BouncerClient('https://bouncer.ooni.io')
+        bcc.queryBackend = MagicMock()
+        bcc.queryBackend.return_value = defer.succeed({'spam': 'ham'})
+        yield bcc.lookupTestHelpers(["foo"])
+        bcc.queryBackend.assert_called_with("POST",
+                                            "/bouncer/test-helpers",
+                                            query={'test-helpers': ["foo"]})
+
+
+    def test_backend_client_validates_url(self):
+        raised = False
+        try:
+            cc = CollectorClient(settings={
+                "type": "onion", "address": "http://invalid.onion"
+            })
+        except Exception as exc:
+            raised = True
+            self.assertIsInstance(exc, e.InvalidAddress)
+        self.assertTrue(raised)
