@@ -214,12 +214,29 @@ def get_client_transport(transport):
 
 
 class TorLauncherWithRetries(object):
-    def __init__(self, tor_config, timeout=200):
+    def __init__(self, tor_config, timeout=config.tor.timeout):
         self.retry_with = ["obfs4", "meek"]
         self.started = defer.Deferred()
         self.tor_output = StringIO.StringIO()
         self.tor_config = tor_config
+        if timeout is None:
+            # XXX we will want to move setting the default inside of the
+            # config object.
+            timeout = 200
         self.timeout = timeout
+
+    def _reset_tor_config(self):
+        """
+        This is used to reset the Tor configuration to before launch_tor
+        modified it. This is in particular used to force the regeneration of the
+        DataDirectory.
+        """
+        new_tor_config = TorConfig()
+        for key in self.tor_config:
+            if config.tor.data_dir is None and key == "DataDirectory":
+                continue
+            setattr(new_tor_config, key, getattr(self.tor_config, key))
+        self.tor_config = new_tor_config
 
     def _progress_updates(self, prog, tag, summary):
         log.msg("%d%%: %s" % (prog, summary))
@@ -249,6 +266,7 @@ class TorLauncherWithRetries(object):
             return
 
         while len(self.retry_with) > 0:
+            self._reset_tor_config()
             self.tor_config.UseBridges = 1
             transport = self.retry_with.pop(0)
             log.msg("Failed to start Tor. Retrying with {0}".format(transport))
