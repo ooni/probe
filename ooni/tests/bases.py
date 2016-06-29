@@ -1,5 +1,6 @@
 import os
 import shutil
+
 from twisted.trial import unittest
 
 from ooni.settings import config
