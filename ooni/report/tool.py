@@ -4,7 +4,7 @@ import sys
 
 from twisted.internet import defer
 
-from ooni import canonical_bouncer
+from ooni.constants import CANONICAL_BOUNCER_ONION
 from ooni.reporter import OONIBReporter, OONIBReportLog
 
 from ooni.utils import log
@@ -62,7 +62,7 @@ def upload(report_file, collector=None, bouncer=None):
             log.msg("Could not find %s in reporting.yaml. Looking up "
                     "collector with canonical bouncer." % report_file)
             collector_client = yield lookup_collector_client(report.header,
-                                                             canonical_bouncer)
+                                                             CANONICAL_BOUNCER_ONION)
 
     oonib_reporter = OONIBReporter(report.header, collector_client)
     log.msg("Creating report for %s with %s" % (report_file,

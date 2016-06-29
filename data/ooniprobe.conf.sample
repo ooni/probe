@@ -58,6 +58,10 @@ tor:
     # This should be set to something to avoid having Tor download each time
     # the descriptors and consensus data.
     #data_dir: ~/.tor/
+    #
+    # This is the timeout after which we consider to to not have
+    # bootstrapped properly.
+    timeout: 200
     torrc:
         #HTTPProxy: host:port
         #HTTPProxyAuthenticator: user:password

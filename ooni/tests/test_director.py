@@ -68,8 +68,8 @@ class TestDirector(ConfigTestCase):
         assert 'http_header_field_manipulation' in nettests
         assert 'traceroute' in nettests
 
-    @patch('ooni.director.TorState', mock_TorState)
-    @patch('ooni.director.launch_tor', mock_launch_tor)
+    @patch('ooni.utils.onion.TorState', mock_TorState)
+    @patch('ooni.utils.onion.launch_tor', mock_launch_tor)
     def test_start_tor(self):
         @defer.inlineCallbacks
         def director_start_tor():
