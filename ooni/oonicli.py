@@ -57,6 +57,11 @@ class Options(usage.Options):
                                "directory."],
         ["annotations", "a", None, "Annotate the report with a key:value[, "
                                    "key:value] format."],
+        ["preferred-backend", "p", None, "Set the preferred backend to use "
+                                         "when submitting results and/or "
+                                         "communicating with test helpers. "
+                                         "Can be either onion, "
+                                         "https or cloudfront"],
         ["queue", "Q", None, "AMQP Queue URL amqp://user:pass@host:port/vhost/queue"]
     ]
 
@@ -384,6 +389,9 @@ def runWithDirector(global_options):
 
     if global_options.get('annotations') is not None:
         global_options['annotations'] = setupAnnotations(global_options)
+
+    if global_options.get('preferred-backend') is not None:
+        config.advanced.preferred_backend = global_options['preferred-backend']
 
     if global_options['no-collector']:
         log.msg("Not reporting using a collector")
