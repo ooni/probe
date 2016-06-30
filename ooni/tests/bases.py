@@ -1,3 +1,5 @@
+import shutil
+
 from twisted.trial import unittest
 
 from ooni.settings import config
@@ -5,11 +7,13 @@ from ooni.settings import config
 
 class ConfigTestCase(unittest.TestCase):
     def setUp(self):
-        config.initialize_ooni_home("ooni_home")
+        self.config = config
+        self.config.initialize_ooni_home("ooni_home")
 
     def skipTest(self, reason):
         raise unittest.SkipTest(reason)
 
     def tearDown(self):
-        config.set_paths()
-        config.read_config_file()
+        self.config.set_paths()
+        self.config.read_config_file()
+        shutil.rmtree(self.config.ooni_home)

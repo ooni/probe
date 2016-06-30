@@ -219,16 +219,18 @@ dummyInputFile = 'dummyInputFile.txt'
 
 
 
-class TestNetTest(unittest.TestCase):
+class TestNetTest(ConfigTestCase):
     timeout = 1
 
     def setUp(self):
+        super(TestNetTest, self).setUp()
         self.filename = ""
         with open(dummyInputFile, 'w') as f:
             for i in range(10):
                 f.write("%s\n" % i)
 
     def tearDown(self):
+        super(TestNetTest, self).tearDown()
         os.remove(dummyInputFile)
         if self.filename != "":
             os.remove(self.filename)
