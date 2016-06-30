@@ -57,7 +57,7 @@ class Options(usage.Options):
                                "directory."],
         ["annotations", "a", None, "Annotate the report with a key:value[, "
                                    "key:value] format."],
-        ["preferred-backend", "p", None, "Set the preferred backend to use "
+        ["preferred-backend", "P", None, "Set the preferred backend to use "
                                          "when submitting results and/or "
                                          "communicating with test helpers. "
                                          "Can be either onion, "
