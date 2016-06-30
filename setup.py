@@ -336,7 +336,7 @@ setup(
     name="ooniprobe",
     version=__version__,
     author=__author__,
-    author_email="ooni-dev@lists.torproject.org",
+    author_email="contact@openobservatory.org",
     description="Network measurement tool for"
                 "identifying traffic manipulation and blocking.",
     long_description=__doc__,
