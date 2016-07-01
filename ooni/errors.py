@@ -316,3 +316,7 @@ class NoReachableCollectors(Exception):
 
 class NoReachableTestHelpers(Exception):
     pass
+
+
+class InvalidPreferredBackend(Exception):
+    pass

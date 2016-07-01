@@ -2,7 +2,6 @@ from mock import patch, MagicMock
 
 from ooni.settings import config
 from ooni.director import Director
-from ooni.nettest import NetTestLoader
 from ooni.tests.bases import ConfigTestCase
 
 from ooni.nettest import NetTestLoader

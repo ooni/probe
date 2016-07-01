@@ -19,37 +19,35 @@ from ooni.utils.net import BodyReceiver, StringProducer, Downloader
 from ooni.utils.socks import TrueHeadersSOCKS5Agent
 
 
+def guess_backend_type(address):
+    if address is None:
+        raise e.InvalidAddress
+    if onion.is_onion_address(address):
+        return 'onion'
+    elif address.startswith('https://'):
+        return 'https'
+    elif address.startswith('http://'):
+        return 'http'
+    else:
+        raise e.InvalidAddress
+
 class OONIBClient(object):
     def __init__(self, address=None, settings={}):
         self.base_headers = {}
         self.backend_type = settings.get('type', None)
         self.base_address = settings.get('address', address)
+        self.front = settings.get('front', '').encode('ascii')
 
         if self.backend_type is None:
-            self._guessBackendType()
+            self.backend_type = guess_backend_type(self.base_address)
         self.backend_type = self.backend_type.encode('ascii')
 
-        if self.backend_type == 'cloudfront':
-            self.base_headers['Host'] = settings['front'].encode('ascii')
-
-        self._setupBaseAddress()
         self.settings = {
             'type': self.backend_type,
             'address': self.base_address,
-            'front': settings.get('front', '').encode('ascii')
+            'front': self.front
         }
-
-    def _guessBackendType(self):
-        if self.base_address is None:
-            raise e.InvalidAddress
-        if onion.is_onion_address(self.base_address):
-            self.backend_type = 'onion'
-        elif self.base_address.startswith('https://'):
-            self.backend_type = 'https'
-        elif self.base_address.startswith('http://'):
-            self.backend_type = 'http'
-        else:
-            raise e.InvalidAddress
+        self._setupBaseAddress()
 
     def _setupBaseAddress(self):
         parsed_address = urlparse(self.base_address)
@@ -64,8 +62,11 @@ class OONIBClient(object):
                                                   parsed_address.netloc))
         elif self.backend_type == 'http':
             self.base_address = ("http://%s" % parsed_address.netloc)
-        elif self.backend_type in ('https', 'cloudfront'):
+        elif self.backend_type == 'https':
             self.base_address = ("https://%s" % parsed_address.netloc)
+        elif self.backend_type == 'cloudfront':
+            self.base_headers['Host'] = [parsed_address.netloc]
+            self.base_address = ("https://%s" % self.front)
         self.base_address = self.base_address.encode('ascii')
 
     def isSupported(self):

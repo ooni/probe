@@ -44,9 +44,9 @@ class Options(usage.Options):
         ["collector", "c", None, "Specify the address of the collector for "
                                  "test results. In most cases a user will "
                                  "prefer to specify a bouncer over this."],
-        ["bouncer", "b", CANONICAL_BOUNCER_ONION, "Specify the bouncer used to "
-                                            "obtain the address of the "
-                                            "collector and test helpers."],
+        ["bouncer", "b", None, "Specify the bouncer used to "
+                               "obtain the address of the "
+                               "collector and test helpers."],
         ["logfile", "l", None, "Write to this logs to this filename."],
         ["pcapfile", "O", None, "Write a PCAP of the ooniprobe session to "
                                 "this filename."],
@@ -56,6 +56,11 @@ class Options(usage.Options):
                                "directory."],
         ["annotations", "a", None, "Annotate the report with a key:value[, "
                                    "key:value] format."],
+        ["preferred-backend", "P", None, "Set the preferred backend to use "
+                                         "when submitting results and/or "
+                                         "communicating with test helpers. "
+                                         "Can be either onion, "
+                                         "https or cloudfront"],
         ["queue", "Q", None, "AMQP Queue URL amqp://user:pass@host:port/vhost/queue"]
     ]
 
@@ -347,6 +352,7 @@ def runWithDirector(global_options):
     test!
     """
     from ooni.director import Director
+    start_tor = False
     director = Director()
     if global_options['list']:
         net_tests = [net_test for net_test in director.getNetTests().items()]
@@ -386,14 +392,18 @@ def runWithDirector(global_options):
     if global_options.get('annotations') is not None:
         global_options['annotations'] = setupAnnotations(global_options)
 
+    if global_options.get('preferred-backend') is not None:
+        config.advanced.preferred_backend = global_options['preferred-backend']
+
     if global_options['no-collector']:
         log.msg("Not reporting using a collector")
         global_options['collector'] = None
         start_tor = False
-    else:
+    elif config.advanced.get("preferred_backend", "onion") == "onion":
         start_tor = True
 
-    if global_options['collector']:
+    if (global_options['collector'] and
+            config.advanced.get("preferred_backend", "onion") == "onion"):
         start_tor |= True
 
     return runTestWithDirector(director=director,

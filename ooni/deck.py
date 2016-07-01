@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 
 from ooni.backend_client import CollectorClient, BouncerClient
-from ooni.backend_client import WebConnectivityClient
+from ooni.backend_client import WebConnectivityClient, guess_backend_type
 from ooni.nettest import NetTestLoader
 from ooni.settings import config
 from ooni.utils import log, onion
+from ooni import constants
 from ooni import errors as e
 
 from twisted.python.filepath import FilePath
@@ -120,7 +121,29 @@ class Deck(InputFile):
                  no_collector=False):
         self.id = deck_hash
         self.no_collector = no_collector
-        self.bouncer = bouncer
+
+        self.preferred_backend = config.advanced.get(
+            "preferred_backend", "onion"
+        )
+        if self.preferred_backend not in ["onion", "https", "cloudfront"]:
+            raise e.InvalidPreferredBackend
+
+        if bouncer is None:
+            bouncer_address = getattr(
+                constants, "CANONICAL_BOUNCER_{0}".format(
+                    self.preferred_backend.upper()
+                )
+            )
+            if self.preferred_backend == "cloudfront":
+                self.bouncer = self._BouncerClient(settings={
+                    'address': bouncer_address[0],
+                    'front': bouncer_address[1],
+                    'type': 'cloudfront'
+                })
+            else:
+                self.bouncer = self._BouncerClient(bouncer_address)
+        else:
+            self.bouncer = self._BouncerClient(bouncer)
 
         self.requiresTor = False
 
@@ -167,19 +190,23 @@ class Deck(InputFile):
                     collector_address
                 )
             if test['options'].get('bouncer', None) is not None:
-                self.bouncer = test['options']['bouncer']
+                self.bouncer = self._BouncerClient(test['options']['bouncer'])
+                if self.bouncer.backend_type is "onion":
+                    self.requiresTor = True
             self.insert(net_test_loader)
 
     def insert(self, net_test_loader):
         """ Add a NetTestLoader to this test deck """
+        if (net_test_loader.collector is not None
+                and net_test_loader.collector.backend_type is "onion"):
+            self.requiresTor = True
         try:
             net_test_loader.checkOptions()
             if net_test_loader.requiresTor:
                 self.requiresTor = True
         except e.MissingTestHelper:
-            if not self.bouncer:
-                raise
-            self.requiresTor = True
+            if self.preferred_backend is "onion":
+                self.requiresTor = True
 
         self.netTestLoaders.append(net_test_loader)
 
@@ -188,52 +215,44 @@ class Deck(InputFile):
         """ fetch and verify inputs for all NetTests in the deck """
         log.msg("Fetching required net test inputs...")
         for net_test_loader in self.netTestLoaders:
+            # XXX figure out if we want to keep this or drop this.
             yield self.fetchAndVerifyNetTestInput(net_test_loader)
 
         if self.bouncer:
-            log.msg("Looking up collector and test helpers")
+            log.msg("Looking up collector and test helpers with {0}".format(
+                self.bouncer.base_address))
             yield self.lookupCollectorAndTestHelpers()
 
 
     def sortAddressesByPriority(self, priority_address, alternate_addresses):
-        onion_addresses= []
-        cloudfront_addresses= []
-        https_addresses = []
-        plaintext_addresses = []
+        prioritised_addresses = []
 
-        if onion.is_onion_address(priority_address):
-            priority_address = {
-                'address': priority_address,
-                'type': 'onion'
-            }
-        elif priority_address.startswith('https://'):
-            priority_address = {
-                'address': priority_address,
-                'type': 'https'
-            }
-        elif priority_address.startswith('http://'):
-            priority_address = {
-                'address': priority_address,
-                'type': 'http'
-            }
-        else:
-            raise e.InvalidOONIBCollectorAddress
+        backend_type = guess_backend_type(priority_address)
+        priority_address = {
+            'address': priority_address,
+            'type': backend_type
+        }
+        address_priority = ['onion', 'https', 'cloudfront', 'http']
+        address_priority.remove(self.preferred_backend)
+        address_priority.insert(0, self.preferred_backend)
 
         def filter_by_type(collectors, collector_type):
-            return filter(lambda x: x['type'] == collector_type,
-                          collectors)
-        onion_addresses += filter_by_type(alternate_addresses, 'onion')
-        https_addresses += filter_by_type(alternate_addresses, 'https')
-        cloudfront_addresses += filter_by_type(alternate_addresses,
-                                                'cloudfront')
+            return filter(lambda x: x['type'] == collector_type, collectors)
 
-        plaintext_addresses += filter_by_type(alternate_addresses, 'http')
+        if (priority_address['type'] != self.preferred_backend):
+            valid_alternatives = filter_by_type(alternate_addresses,
+                                                self.preferred_backend)
+            if len(valid_alternatives) > 0:
+                alternate_addresses += [priority_address]
+                priority_address = valid_alternatives[0]
+                alternate_addresses.remove(priority_address)
 
-        return ([priority_address] +
-                onion_addresses +
-                https_addresses +
-                cloudfront_addresses +
-                plaintext_addresses)
+        prioritised_addresses += [priority_address]
+        for address_type in address_priority:
+            prioritised_addresses += filter_by_type(alternate_addresses,
+                                                    address_type)
+
+        return prioritised_addresses
 
     @defer.inlineCallbacks
     def getReachableCollector(self, collector_address, collector_alternate):
@@ -289,9 +308,12 @@ class Deck(InputFile):
     @defer.inlineCallbacks
     def getReachableTestHelpersAndCollectors(self, net_tests):
         for net_test in net_tests:
+
+            primary_address = net_test['collector']
+            alternate_addresses = net_test.get('collector-alternate', [])
             net_test['collector'] = yield self.getReachableCollector(
-                        net_test['collector'],
-                        net_test.get('collector-alternate', [])
+                        primary_address,
+                        alternate_addresses
             )
 
             for test_helper_name, test_helper_address in net_test['test-helpers'].items():
@@ -307,8 +329,6 @@ class Deck(InputFile):
 
     @defer.inlineCallbacks
     def lookupCollectorAndTestHelpers(self):
-        oonibclient = self._BouncerClient(self.bouncer)
-
         required_nettests = []
 
         requires_test_helpers = False
@@ -333,7 +353,7 @@ class Deck(InputFile):
         if not requires_test_helpers and not requires_collector:
             defer.returnValue(None)
 
-        response = yield oonibclient.lookupTestCollector(required_nettests)
+        response = yield self.bouncer.lookupTestCollector(required_nettests)
         try:
             provided_net_tests = yield self.getReachableTestHelpersAndCollectors(response['net-tests'])
         except e.NoReachableCollectors:

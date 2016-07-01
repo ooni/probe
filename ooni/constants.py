@@ -1,4 +1,11 @@
 CANONICAL_BOUNCER_ONION = 'httpo://nkvphnp3p6agi5qq.onion'
+# XXX Change these two to the production ones once the release is made.
+# CANONICAL_BOUNCER_HTTPS = 'https://bouncer.ooni.io'
+CANONICAL_BOUNCER_HTTPS = 'https://bouncer.test.ooni.io'
+CANONICAL_BOUNCER_CLOUDFRONT = (
+    'https://d47sqwfs8741k.cloudfront.net/',
+    'a0.awsstatic.com'
+)
 
 MEEK_BRIDGES = [
     ("meek 0.0.2.0:2 B9E7141C594AF25699E0079C1F0146F409495296 "
