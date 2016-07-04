@@ -199,7 +199,7 @@ def setupGlobalOptions(logging, start_tor, check_incoherences):
     if logging:
         log.start(global_options['logfile'])
 
-    if config.privacy.includepcap:
+    if config.privacy.includepcap or global_options['pcapfile']:
         from ooni.utils.net import hasRawSocketPermission
         if hasRawSocketPermission():
             from ooni.utils.txscapy import ScapyFactory

@@ -244,7 +244,7 @@ class Director(object):
         if self.allTestsDone.called:
             self.allTestsDone = defer.Deferred()
 
-        if config.privacy.includepcap:
+        if config.privacy.includepcap or config.global_options.get('pcapfile', None):
             self.startSniffing(test_details)
         report = Report(test_details, report_filename,
                         self.reportEntryManager,
