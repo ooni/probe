@@ -89,15 +89,31 @@ Have fun!
 from ooni import __version__, __author__
 import os
 import sys
+import shutil
 import tempfile
+import subprocess
 from ConfigParser import SafeConfigParser
 
 from os.path import join as pj
-from setuptools import setup
-from setuptools.command.install import install as _st_install
+from setuptools import setup, Command
+from setuptools.command.install import install
 from distutils.spawn import find_executable
 
-class install(_st_install):
+GEOIP_ASN_URL = "https://download.maxmind.com/download/geoip/database/asnum/GeoIPASNum.dat.gz"
+GEOIP_URL = "https://geolite.maxmind.com/download/geoip/database/GeoLiteCountry/GeoIP.dat.gz"
+TEST_LISTS_URL = "https://github.com/citizenlab/test-lists/archive/master.zip"
+
+def run_command(args, cwd=None):
+    try:
+        p = subprocess.Popen(args, stdout=subprocess.PIPE, cwd=cwd)
+    except EnvironmentError as e:
+        return None
+    stdout = p.communicate()[0].strip()
+    if p.returncode != 0:
+        return None
+    return stdout
+
+class OoniInstall(install):
     def gen_config(self, share_path):
         config_file = pj(tempfile.mkdtemp(), "ooniprobe.conf.sample")
         o = open(config_file, "w+")
@@ -154,9 +170,9 @@ class install(_st_install):
 
     def ooniresources(self):
         ooniresources = find_executable("ooniresources")
-        from subprocess import Popen
-        process = Popen([ooniresources],
-                        stdout=sys.stdout.fileno(), stderr=sys.stderr.fileno())
+        process = subprocess.Popen([ooniresources],
+                                   stdout=sys.stdout.fileno(),
+                                   stderr=sys.stderr.fileno())
         process.wait()
 
     def run(self):
@@ -164,6 +180,107 @@ class install(_st_install):
         self.set_data_files(prefix)
         self.do_egg_install()
         self.ooniresources()
+
+class ExecutableNotFound(Exception):
+    pass
+
+class CreateOoniResources(Command):
+    description = ("Create ooni-resources.tar.gz containing test-lists and "
+                   "GeoIP data files")
+    user_options = []
+
+    def initialize_options(self):
+        pass
+    def finalize_options(self):
+        pass
+    def download(self, url, directory, filename):
+        dst_path = pj(directory, filename)
+        args = [
+            self.wget,
+            "-O",
+            dst_path,
+            url
+        ]
+        out = run_command(args)
+        if out is None:
+            raise Exception("Failed to download {0}".format(url))
+        return dst_path
+
+    def find_executables(self):
+        self.wget = find_executable("wget")
+        if not self.wget:
+            raise ExecutableNotFound("wget")
+        self.tar = find_executable("tar")
+        if not self.tar:
+            raise ExecutableNotFound("tar")
+        self.unzip = find_executable("unzip")
+        if not self.unzip:
+            raise ExecutableNotFound("unzip")
+        self.gunzip = find_executable("gunzip")
+        if not self.gunzip:
+            raise ExecutableNotFound("gunzip")
+
+    def run(self):
+        dst_path = "dist/ooni-resources.tar.gz"
+
+        try:
+            self.find_executables()
+        except ExecutableNotFound as enf:
+            print("Could not find '{0}'".format(enf.message))
+            return
+
+        tmp_dir = tempfile.mkdtemp()
+        pkg_dir = tempfile.mkdtemp()
+
+        os.mkdir(pj(pkg_dir, "resources"))
+        os.mkdir(pj(pkg_dir, "GeoIP"))
+
+        try:
+            geoip_asn_path = self.download(GEOIP_ASN_URL, tmp_dir, "GeoIPASNum.dat.gz")
+        except Exception as exc:
+            print(exc.message)
+            return
+        try:
+            geoip_path = self.download(GEOIP_URL, tmp_dir, "GeoIP.dat.gz")
+        except Exception as exc:
+            print(exc.message)
+            return
+        try:
+            test_lists_path = self.download(TEST_LISTS_URL, tmp_dir, "master.zip")
+        except Exception as exc:
+            print(exc.message)
+            return
+
+        run_command([self.gunzip, geoip_asn_path])
+        run_command([self.gunzip, geoip_path])
+        run_command([self.unzip, "-d", tmp_dir, test_lists_path])
+
+        shutil.move(pj(tmp_dir, "GeoIP.dat"),
+                    pj(pkg_dir, "GeoIP", "GeoIP.dat"))
+        shutil.move(pj(tmp_dir, "GeoIPASNum.dat"),
+                    pj(pkg_dir, "GeoIP", "GeoIPASNum.dat"))
+        shutil.move(pj(tmp_dir, "test-lists-master", "lists"),
+                    pj(pkg_dir, "resources", "citizenlab-test-lists"))
+        # Don't include services and official lists
+        shutil.rmtree(
+            pj(pkg_dir,
+               "resources",
+               "citizenlab-test-lists",
+               "services"),
+            ignore_errors=True)
+        shutil.rmtree(
+            pj(pkg_dir,
+               "resources",
+               "citizenlab-test-lists",
+               "official"),
+            ignore_errors=True)
+        run_command([self.tar, "cvzf", dst_path, "-C", pkg_dir, "."])
+
+        # Cleanup
+        shutil.rmtree(pkg_dir, ignore_errors=True)
+        shutil.rmtree(tmp_dir, ignore_errors=True)
+        print("Written ooniresources to {0}".format(dst_path))
+
 
 install_requires = []
 dependency_links = []
@@ -216,7 +333,10 @@ setup(
     dependency_links=dependency_links,
     install_requires=install_requires,
     zip_safe=False,
-    cmdclass={"install": install},
+    cmdclass={
+        "install": OoniInstall,
+        "create_ooniresources": CreateOoniResources
+    },
     classifiers=(
         "Development Status :: 5 - Production/Stable",
         "Environment :: Console",
