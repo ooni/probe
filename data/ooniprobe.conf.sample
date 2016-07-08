@@ -33,17 +33,17 @@ advanced:
     # explicitly set the control port and SOCKS port
     start_tor: true
     # After how many seconds we should give up on a particular measurement
-    measurement_timeout: 60
+    measurement_timeout: 120
     # After how many retries we should give up on a measurement
     measurement_retries: 2
     # How many measurements to perform concurrently
-    measurement_concurrency: 10
+    measurement_concurrency: 4
     # After how may seconds we should give up reporting
-    reporting_timeout: 80
+    reporting_timeout: 360
     # After how many retries to give up on reporting
-    reporting_retries: 3
+    reporting_retries: 5
     # How many reports to perform concurrently
-    reporting_concurrency: 15
+    reporting_concurrency: 7
     oonid_api_port: 8042
     report_log_file: null
     inputs_dir: null

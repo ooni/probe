@@ -86,6 +86,8 @@ To setup a daily cronjob run this:
 Have fun!
 """
 
+from __future__ import print_function
+
 from ooni import __version__, __author__
 import os
 import sys
@@ -106,12 +108,17 @@ TEST_LISTS_URL = "https://github.com/citizenlab/test-lists/archive/master.zip"
 def run_command(args, cwd=None):
     try:
         p = subprocess.Popen(args, stdout=subprocess.PIPE, cwd=cwd)
-    except EnvironmentError as e:
+    except EnvironmentError:
         return None
     stdout = p.communicate()[0].strip()
     if p.returncode != 0:
         return None
     return stdout
+
+def is_lepidopter():
+    if os.path.exists("/etc/default/lepidopter"):
+        return True
+    return False
 
 class OoniInstall(install):
     def gen_config(self, share_path):
@@ -175,11 +182,22 @@ class OoniInstall(install):
                                    stderr=sys.stderr.fileno())
         process.wait()
 
+    def update_lepidopter_config(self):
+        try:
+            shutil.copyfile("data/configs/lepidopter-ooniprobe.conf",
+                            "/etc/ooniprobe/ooniprobe.conf")
+            shutil.copyfile("data/configs/lepidopter-oonireport.conf",
+                            "/etc/ooniprobe/oonireport.conf")
+        except Exception:
+            print("ERR: Failed to copy configuration files to /etc/ooniprobe/")
+
     def run(self):
         prefix = os.path.abspath(self.prefix)
         self.set_data_files(prefix)
         self.do_egg_install()
         self.ooniresources()
+        if is_lepidopter():
+            self.update_lepidopter_config()
 
 class ExecutableNotFound(Exception):
     pass
@@ -226,7 +244,7 @@ class CreateOoniResources(Command):
         try:
             self.find_executables()
         except ExecutableNotFound as enf:
-            print("Could not find '{0}'".format(enf.message))
+            print("ERR: Could not find '{0}'".format(enf.message))
             return
 
         tmp_dir = tempfile.mkdtemp()
