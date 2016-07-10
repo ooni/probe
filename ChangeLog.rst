@@ -1,6 +1,32 @@
 Changelog
 =========
 
+v1.6.0 (Sun, 10 Jul 2016)
+-------------------------
+codename: Shells and Seaweed
+
+* Add support for cloudfrontend and HTTPS collector
+https://github.com/TheTorProject/ooni-probe/issues/530
+
+* Add bisection logic to inputProcessor (big thanks to @seamustuohy for the
+  patch):
+  https://github.com/TheTorProject/ooni-probe/issues/503
+
+* Add bridge failover support:
+  https://github.com/TheTorProject/ooni-probe/issues/538
+
+* Make it possible to run tests without specifying the test type
+  https://github.com/TheTorProject/ooni-probe/issues/483
+
+Bug fixes:
+
+* Silently ignores '--pcapfile' flag (thanks to @willscott for the patch!):
+  https://github.com/TheTorProject/ooni-probe/issues/521
+
+* The options specified on the command line should have priority over the deck
+  options.
+  https://github.com/TheTorProject/ooni-probe/issues/529
+
 v1.5.1 (Fri, 3 Jun 2016)
 -------------------------
 codename: The Big Wave
