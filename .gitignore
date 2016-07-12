@@ -45,3 +45,5 @@ cover/*
 ooni_home/*
 
 ooni/settings.ini
+
+node_modules/

@@ -10,9 +10,9 @@ from ooni.settings import config
 from ooni.director import Director
 from ooni.utils import log
 
-from .server import TopLevel
+from .server import WebUIAPI
 
-class WebUI(service.MultiService):
+class WebUIService(service.MultiService):
     portNum = 8822
     def startService(self):
         service.MultiService.startService(self)
@@ -21,12 +21,13 @@ class WebUI(service.MultiService):
         config.read_config_file()
         def _started(res):
             log.msg("Director started")
-            root = server.Site(TopLevel(config, director))
+            root = server.Site(WebUIAPI(config, director).app.resource())
             self._port = reactor.listenTCP(self.portNum, root)
         director = Director()
-        d = director.start()
-        d.addCallback(_started)
-        d.addErrback(self._startupFailed)
+        #d = director.start()
+        #d.addCallback(_started)
+        #d.addErrback(self._startupFailed)
+        _started(None)
 
     def _startupFailed(self, err):
         log.err("Failed to start the director")
@@ -40,7 +41,7 @@ class WebUI(service.MultiService):
 class StartOoniprobeWebUIPlugin:
     tapname = "ooniprobe"
     def makeService(self, so):
-        return WebUI()
+        return WebUIService()
 
 class OoniprobeTwistdConfig(twistd.ServerOptions):
     subCommands = [("StartOoniprobeWebUI", None, usage.Options, "ooniprobe web ui")]
