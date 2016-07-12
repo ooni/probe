@@ -4,12 +4,15 @@ import os
 import json
 
 from twisted.python import usage
+from twisted.python.filepath import FilePath, InsecurePath
 from twisted.web import static
 
 from klein import Klein
 
+from ooni.settings import config
 from ooni import errors
 from ooni.nettest import NetTestLoader
+from ooni.measurements import GenerateResults
 
 class RouteNotFound(Exception):
     def __init__(self, path, method):
@@ -148,8 +151,45 @@ class WebUIAPI(object):
     def test_list(self, request):
         return self.render_json(self.director.netTests, request)
 
-    @app.route('/api/results', methods=["GET"])
-    def test_results(self, request):
+    @app.route('/api/measurement', methods=["GET"])
+    def measurement_list(self, request):
+        measurement_ids = os.listdir(os.path.join(config.ooni_home,
+                                                  "measurements"))
+        measurements = []
+        for measurement_id in measurement_ids:
+            test_start_time, country_code, asn, test_name = \
+                measurement_id.split("-")[:4]
+            measurements.append({
+                "test_name": test_name,
+                "country_code": country_code,
+                "asn": asn,
+                "test_start_time": test_start_time,
+                "id": measurement_id
+            })
+        return self.render_json({"measurements": measurements}, request)
+
+    @app.route('/api/measurement/<string:measurement_id>', methods=["GET"])
+    def measurement_summary(self, request, measurement_id):
+        measurement_path = FilePath(config.ooni_home).child("measurements")
+        try:
+            measurement_dir = measurement_path.child(measurement_id)
+        except InsecurePath:
+            return self.render_json({"error": "invalid measurement id"})
+
+        summary = measurement_dir.child("summary.json")
+        measurements = measurement_dir.child("measurements.njson")
+        if not summary.exists():
+            gr = GenerateResults(measurements.path)
+            gr.output(summary.path)
+
+        with summary.open("r") as f:
+            r = json.load(f)
+
+        return self.render_json(r, request)
+
+    @app.route('/api/measurement/<string:measurement_id>/<int:idx>',
+               methods=["GET"])
+    def measurement_open(self, request, measurement_id, idx):
         return self.render_json({"command": "results"}, request)
 
     @app.route('/client/', branch=True)

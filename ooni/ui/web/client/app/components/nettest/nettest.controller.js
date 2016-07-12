@@ -29,7 +29,6 @@ function NettestController($stateParams, $scope, $http,  $window) {
       }
     });
 
-    console.log(options);
     $http
       .post(
         '/api/net-tests/'+$scope.selectedNetTest.id+'/start',

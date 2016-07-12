@@ -1,0 +1,9 @@
+<h3>Measurement list</h3>
+<div class="row" ng-repeat="measurement in measurements">
+  <a href="{{measurement.id}}">
+    <span>{{measurement.test_start_time}}</span> -
+    <span>{{measurement.asn}}</span> -
+    <span>{{measurement.country_code}}</span> -
+    <span>{{measurement.test_name}}</span>
+  </a>
+</div>

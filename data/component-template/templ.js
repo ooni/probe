@@ -7,8 +7,6 @@ var {{name}}Module = angular.module("{{name}}", [
 ])
 .config(function($stateProvider, $urlRouterProvider){
 
-  $urlRouterProvider.otherwise('/');
-
   $stateProvider.state('{{name}}', {
     url: '/{{name}}',
     template: '<{{name}}></{{name}}>'

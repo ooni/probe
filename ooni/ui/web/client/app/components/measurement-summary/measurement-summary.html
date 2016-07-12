@@ -1,0 +1,25 @@
+<div class="row">
+  <h2>{{measurements.test_name}}</h2>
+  <span>{{measurements.country_code}}</span> -
+  <span>{{measurements.asn}}</span> -
+</div>
+<table class="table table-hover">
+  <thead>
+    <tr>
+      <th>Result</th>
+      <th>URL</th>
+    </tr>
+  </thead>
+  <tbody>
+  <tr ng-repeat="anomaly in measurements.anomalies" >
+
+    <td ng-if="anomaly.result == true" class="danger">
+      Anomaly detected
+    </td>
+    <td ng-if="anomaly.result == false">
+      No anomaly detected
+    </td>
+    <td>{{anomaly.url}}</td>
+  </tr>
+  </tbody>
+</table>
