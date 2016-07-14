@@ -47,3 +47,4 @@ ooni_home/*
 ooni/settings.ini
 
 node_modules/
+ooni/ui/web/client/
