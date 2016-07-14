@@ -106,7 +106,8 @@ class OConfig(object):
         else:
             self.decks_directory = os.path.join(self.ooni_home, 'decks')
 
-        self.reports_directory = os.path.join(self.ooni_home, 'reports')
+        self.measurements_directory = os.path.join(self.ooni_home,
+                                                   'measurements')
         self.resources_directory = os.path.join(self.data_directory,
                                                 "resources")
         if self.advanced.report_log_file:

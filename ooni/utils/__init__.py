@@ -97,18 +97,20 @@ def generate_filename(test_details, prefix=None, extension=None):
     extension.
     """
     LONG_DATE = "%Y-%m-%d %H:%M:%S"
-    SHORT_DATE = "%Y-%m-%dT%H%M%SZ"
+    SHORT_DATE = "%Y%m%dT%H%M%SZ"
 
     kwargs = {}
     filename_format = ""
     if prefix is not None:
         kwargs["prefix"] = prefix
         filename_format += "{prefix}-"
-    filename_format += "{test_name}-{timestamp}"
+    filename_format += "{timestamp}-{probe_cc}-{probe_asn}-{test_name}"
     if extension is not None:
         kwargs["extension"] = extension
         filename_format += ".{extension}"
     kwargs['test_name']  = test_details['test_name']
+    kwargs['probe_cc']  = test_details['probe_cc']
+    kwargs['probe_asn']  = test_details['probe_asn']
     kwargs['timestamp'] = datetime.strptime(test_details['test_start_time'],
                                             LONG_DATE).strftime(SHORT_DATE)
     return filename_format.format(**kwargs)

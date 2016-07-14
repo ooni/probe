@@ -24,10 +24,9 @@ class WebUIService(service.MultiService):
             root = server.Site(WebUIAPI(config, director).app.resource())
             self._port = reactor.listenTCP(self.portNum, root)
         director = Director()
-        #d = director.start()
-        #d.addCallback(_started)
-        #d.addErrback(self._startupFailed)
-        _started(None)
+        d = director.start()
+        d.addCallback(_started)
+        d.addErrback(self._startupFailed)
 
     def _startupFailed(self, err):
         log.err("Failed to start the director")
