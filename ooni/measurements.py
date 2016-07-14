@@ -9,26 +9,27 @@ class GenerateResults(object):
         self.input_file = input_file
 
     def process_web_connectivity(self, entry):
-        anomaly = {}
-        anomaly['result'] = False
+        result = {}
+        result['anomaly'] = False
         if entry['test_keys']['blocking'] is not False:
-            anomaly['result'] = True
-        anomaly['url'] = entry['input']
-        return anomaly
+            result['anomaly'] = True
+        result['url'] = entry['input']
+        return result
 
     def output(self, output_file):
         results = {}
         with open(self.input_file) as in_file:
-            for line in in_file:
+            for idx, line in enumerate(in_file):
                 entry = json.loads(line.strip())
                 if entry['test_name'] not in self.supported_tests:
                     raise Exception("Unsupported test")
-                anomaly = getattr(self, 'process_'+entry['test_name'])(entry)
+                result = getattr(self, 'process_'+entry['test_name'])(entry)
+                result['idx'] = idx
                 results['test_name'] = entry['test_name']
                 results['country_code'] = entry['probe_cc']
                 results['asn'] = entry['probe_asn']
-                results['anomalies'] = results.get('anomalies', [])
-                results['anomalies'].append(anomaly)
+                results['results'] = results.get('results', [])
+                results['results'].append(result)
 
         with open(output_file, "w") as fw:
             json.dump(results, fw)

@@ -3,34 +3,20 @@ from __future__ import print_function
 import os
 import json
 
+from twisted.internet import defer
 from twisted.python import usage
 from twisted.python.filepath import FilePath, InsecurePath
 from twisted.web import static
 
 from klein import Klein
+from werkzeug.exceptions import NotFound
 
-from ooni.settings import config
 from ooni import errors
+from ooni.deck import Deck
+from ooni.settings import config
 from ooni.nettest import NetTestLoader
 from ooni.measurements import GenerateResults
-
-class RouteNotFound(Exception):
-    def __init__(self, path, method):
-        self._path = path
-        self._method = method
-
-    def __repr__(self):
-        return "<RouteNotFound {0} {1}>".format(self._path,
-                                                self._method)
-
-def _resolvePath(request):
-    path = b''
-    if request.postpath:
-        path = b'/'.join(request.postpath)
-
-        if not path.startswith(b'/'):
-            path = b'/' + path
-    return path
+from ooni.utils import generate_filename
 
 def rpath(*path):
     context = os.path.abspath(os.path.dirname(__file__))
@@ -48,6 +34,9 @@ def getNetTestLoader(test_options, test_file):
         """
     options = []
     for k, v in test_options.items():
+        if v is None:
+            print("Skipping %s because none" % k)
+            continue
         options.append('--'+k)
         options.append(v)
 
@@ -61,6 +50,11 @@ class WebUIAPI(object):
     def __init__(self, config, director):
         self.director = director
         self.config = config
+        self.active_measurements = {}
+
+    @app.handle_errors(NotFound)
+    def not_found(self, request, _):
+        request.redirect('/client/')
 
     def render_json(self, obj, request):
         json_string = json.dumps(obj) + "\n"
@@ -68,28 +62,43 @@ class WebUIAPI(object):
         request.setHeader('Content-Length', len(json_string))
         return json_string
 
-    @app.route('/api/decks/generate', methods=["GET"])
-    def generate_decks(self, request):
+    @app.route('/api/deck/generate', methods=["GET"])
+    def api_deck_generate(self, request):
         return self.render_json({"generate": "deck"}, request)
 
-    @app.route('/api/decks/<string:deck_name>/start', methods=["POST"])
-    def start_deck(self, request, deck_name):
+    @app.route('/api/deck/<string:deck_name>/start', methods=["POST"])
+    def api_deck_start(self, request, deck_name):
         return self.render_json({"start": deck_name}, request)
 
-    @app.route('/api/decks/<string:deck_name>/stop', methods=["POST"])
-    def stop_deck(self, request, deck_name):
-        return self.render_json({"stop": deck_name}, request)
-
-    @app.route('/api/decks/<string:deck_name>', methods=["GET"])
-    def deck_status(self, request, deck_name):
-        return self.render_json({"status": deck_name}, request)
-
-    @app.route('/api/decks', methods=["GET"])
-    def deck_list(self, request):
+    @app.route('/api/deck', methods=["GET"])
+    def api_deck_list(self, request):
         return self.render_json({"command": "deck-list"}, request)
 
-    @app.route('/api/net-tests/<string:test_name>/start', methods=["POST"])
-    def test_start(self, request, test_name):
+    @defer.inlineCallbacks
+    def run_deck(self, deck):
+        yield deck.setup()
+        measurement_ids = []
+        for net_test_loader in deck.netTestLoaders:
+            # XXX synchronize this with startNetTest
+            test_details = net_test_loader.getTestDetails()
+            measurement_id = generate_filename(test_details)
+
+            measurement_dir = os.path.join(
+                config.measurements_directory,
+                measurement_id
+            )
+            os.mkdir(measurement_dir)
+            report_filename = os.path.join(measurement_dir,
+                                           "measurements.njson")
+            measurement_ids.append(measurement_id)
+            self.active_measurements[measurement_id] = {
+                'test_name': test_details['test_name'],
+                'test_start_time': test_details['test_start_time']
+            }
+            self.director.startNetTest(net_test_loader, report_filename)
+
+    @app.route('/api/nettest/<string:test_name>/start', methods=["POST"])
+    def api_nettest_start(self, request, test_name):
         try:
             net_test = self.director.netTests[test_name]
         except KeyError:
@@ -99,21 +108,19 @@ class WebUIAPI(object):
                 'error_message': 'Could not find the specified test'
             }, request)
         try:
-            test_options = json.load(request.content.read())
+            test_options = json.load(request.content)
         except ValueError:
             return self.render_json({
                 'error_code': 500,
                 'error_message': 'Invalid JSON message recevied'
             }, request)
 
+        deck = Deck(no_collector=True) # XXX remove no_collector
         net_test_loader = getNetTestLoader(test_options, net_test['path'])
         try:
-            net_test_loader.checkOptions()
-            # XXX we actually want to generate the report_filename in a smart
-            # way so that we can know where it is located and learn the results
-            # of the measurement.
-            report_filename = None
-            self.director.startNetTest(net_test_loader, report_filename)
+            deck.insert(net_test_loader)
+            self.run_deck(deck)
+
         except errors.MissingRequiredOption, option_name:
             request.setResponseCode(500)
             return self.render_json({
@@ -134,25 +141,18 @@ class WebUIAPI(object):
                 'error_message': 'Insufficient priviledges'
             }, request)
 
-        return self.render_json({"deck": "list"}, request)
+        return self.render_json({"status": "started"}, request)
 
-    @app.route('/api/net-tests/<string:test_name>/start', methods=["POST"])
-    def test_stop(self, request, test_name):
-        return self.render_json({
-            "command": "test-stop",
-            "test-name": test_name
-        }, request)
-
-    @app.route('/api/net-tests/<string:test_name>', methods=["GET"])
-    def test_status(self, request, test_name):
-        return self.render_json({"command": "test-stop"}, request)
-
-    @app.route('/api/net-tests', methods=["GET"])
-    def test_list(self, request):
+    @app.route('/api/nettest', methods=["GET"])
+    def api_nettest_list(self, request):
         return self.render_json(self.director.netTests, request)
 
+    @app.route('/api/status', methods=["GET"])
+    def api_status(self):
+        return self.render_json()
+
     @app.route('/api/measurement', methods=["GET"])
-    def measurement_list(self, request):
+    def api_measurement_list(self, request):
         measurement_ids = os.listdir(os.path.join(config.ooni_home,
                                                   "measurements"))
         measurements = []
@@ -169,8 +169,8 @@ class WebUIAPI(object):
         return self.render_json({"measurements": measurements}, request)
 
     @app.route('/api/measurement/<string:measurement_id>', methods=["GET"])
-    def measurement_summary(self, request, measurement_id):
-        measurement_path = FilePath(config.ooni_home).child("measurements")
+    def api_measurement_summary(self, request, measurement_id):
+        measurement_path = FilePath(config.measurements_directory)
         try:
             measurement_dir = measurement_path.child(measurement_id)
         except InsecurePath:
@@ -189,12 +189,28 @@ class WebUIAPI(object):
 
     @app.route('/api/measurement/<string:measurement_id>/<int:idx>',
                methods=["GET"])
-    def measurement_open(self, request, measurement_id, idx):
-        return self.render_json({"command": "results"}, request)
+    def api_measurement_view(self, request, measurement_id, idx):
+        measurement_path = FilePath(config.measurements_directory)
+        try:
+            measurement_dir = measurement_path.child(measurement_id)
+        except InsecurePath:
+            return self.render_json({"error": "invalid measurement id"})
+        measurements = measurement_dir.child("measurements.njson")
+
+        # XXX maybe implement some caching here
+        with measurements.open("r") as f:
+            r = None
+            for f_idx, line in enumerate(f):
+                if f_idx == idx:
+                    r = json.loads(line)
+                    break
+            if r is None:
+                return self.render_json({"error": "Could not find measurement "
+                                                  "with this idx"}, request)
+        return self.render_json(r, request)
 
     @app.route('/client/', branch=True)
     def static(self, request):
-        path = rpath("build")
-        print(path)
+        path = rpath("client")
         return static.File(path)
 
