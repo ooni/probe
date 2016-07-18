@@ -19,19 +19,11 @@ class WebUIService(service.MultiService):
         config.set_paths()
         config.initialize_ooni_home()
         config.read_config_file()
-        def _started(res):
-            log.msg("Director started")
-            root = server.Site(WebUIAPI(config, director).app.resource())
-            self._port = reactor.listenTCP(self.portNum, root)
         director = Director()
+        web_ui_api = WebUIAPI(config, director)
+        root = server.Site(web_ui_api.app.resource())
+        self._port = reactor.listenTCP(self.portNum, root)
         d = director.start()
-        d.addCallback(_started)
-        d.addErrback(self._startupFailed)
-
-    def _startupFailed(self, err):
-        log.err("Failed to start the director")
-        log.exception(err)
-        os.abort()
 
     def stopService(self):
         if self._port:
