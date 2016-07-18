@@ -94,11 +94,10 @@ class WebUIAPI(object):
 
     def failed_measurement(self, measurement_id, failure):
         del self.status['active_measurements'][measurement_id]
-        self.add_failure(failure)
+        self.add_failure(str(failure))
 
     @app.route('/api/status', methods=["GET"])
     def api_status(self, request):
-        print("Rendering status...")
         return self.render_json(self.status, request)
 
     @app.route('/api/status/update', methods=["GET"])
