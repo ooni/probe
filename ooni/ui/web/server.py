@@ -3,7 +3,7 @@ from __future__ import print_function
 import os
 import json
 
-from twisted.internet import defer
+from twisted.internet import defer, task, reactor
 from twisted.python import usage
 from twisted.python.filepath import FilePath, InsecurePath
 from twisted.web import static
@@ -11,6 +11,7 @@ from twisted.web import static
 from klein import Klein
 from werkzeug.exceptions import NotFound
 
+from ooni import __version__ as ooniprobe_version
 from ooni import errors
 from ooni.deck import Deck
 from ooni.settings import config
@@ -46,11 +47,74 @@ def getNetTestLoader(test_options, test_file):
 
 class WebUIAPI(object):
     app = Klein()
+    # Maximum number in seconds after which to return a result even if not
+    # change happenned.
+    _long_polling_timeout = 5
+    _reactor = reactor
 
     def __init__(self, config, director):
         self.director = director
         self.config = config
-        self.active_measurements = {}
+        self.status = {
+            "software_version": ooniprobe_version,
+            "software_name": "ooniprobe",
+            "asn": config.probe_ip.geodata['asn'],
+            "country_code": config.probe_ip.geodata['countrycode'],
+            "active_measurements": {},
+            "completed_measurements": [],
+            "director_started": False,
+            "failures": []
+        }
+        self.status_updates = []
+        d = self.director.start(start_tor=True)
+
+        d.addCallback(self.director_started)
+        d.addErrback(self.director_startup_failed)
+        d.addBoth(lambda _: self.broadcast_status_update())
+
+    def add_failure(self, failure):
+        self.status['failures'].append(failure)
+
+    def director_started(self, _):
+        self.status['director_started'] = True
+        self.status["asn"] = config.probe_ip.geodata['asn']
+        self.status["country_code"] = config.probe_ip.geodata['countrycode']
+
+    def director_startup_failed(self, failure):
+        self.add_failure(failure)
+
+    def broadcast_status_update(self):
+        for su in self.status_updates:
+            if not su.called:
+                su.callback(None)
+
+    def completed_measurement(self, measurement_id):
+        del self.status['active_measurements'][measurement_id]
+        self.status['completed_measurements'].append(measurement_id)
+
+    def failed_measurement(self, measurement_id, failure):
+        del self.status['active_measurements'][measurement_id]
+        self.add_failure(failure)
+
+    @app.route('/api/status', methods=["GET"])
+    def api_status(self, request):
+        print("Rendering status...")
+        return self.render_json(self.status, request)
+
+    @app.route('/api/status/update', methods=["GET"])
+    def api_status_update(self, request):
+        status_update = defer.Deferred()
+        status_update.addCallback(lambda _:
+                                  self.status_updates.remove(status_update))
+        status_update.addCallback(lambda _: self.api_status(request))
+
+        self.status_updates.append(status_update)
+
+        # After long_polling_timeout we fire the callback
+        task.deferLater(self._reactor, self._long_polling_timeout,
+                        status_update.callback, None)
+
+        return status_update
 
     @app.handle_errors(NotFound)
     def not_found(self, request, _):
@@ -91,11 +155,15 @@ class WebUIAPI(object):
             report_filename = os.path.join(measurement_dir,
                                            "measurements.njson")
             measurement_ids.append(measurement_id)
-            self.active_measurements[measurement_id] = {
+            self.status['active_measurements'][measurement_id] = {
                 'test_name': test_details['test_name'],
                 'test_start_time': test_details['test_start_time']
             }
-            self.director.startNetTest(net_test_loader, report_filename)
+            self.broadcast_status_update()
+            d = self.director.startNetTest(net_test_loader, report_filename)
+            d.addCallback(lambda _: self.completed_measurement(measurement_id))
+            d.addErrback(lambda failure:
+                         self.failed_measurement(measurement_id, failure))
 
     @app.route('/api/nettest/<string:test_name>/start', methods=["POST"])
     def api_nettest_start(self, request, test_name):
@@ -146,10 +214,6 @@ class WebUIAPI(object):
     @app.route('/api/nettest', methods=["GET"])
     def api_nettest_list(self, request):
         return self.render_json(self.director.netTests, request)
-
-    @app.route('/api/status', methods=["GET"])
-    def api_status(self):
-        return self.render_json()
 
     @app.route('/api/measurement', methods=["GET"])
     def api_measurement_list(self, request):
