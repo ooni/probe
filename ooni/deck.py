@@ -205,7 +205,7 @@ class Deck(InputFile):
             if net_test_loader.requiresTor:
                 self.requiresTor = True
         except e.MissingTestHelper:
-            if self.preferred_backend is "onion":
+            if self.preferred_backend == "onion":
                 self.requiresTor = True
 
         self.netTestLoaders.append(net_test_loader)
