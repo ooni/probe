@@ -223,6 +223,7 @@ class TestNetTest(ConfigTestCase):
     timeout = 1
 
     def setUp(self):
+        super(TestNetTest, self).setUp()
         self.filename = ""
         with open(dummyInputFile, 'w') as f:
             for i in range(10):
@@ -230,6 +231,7 @@ class TestNetTest(ConfigTestCase):
         super(TestNetTest, self).setUp()
 
     def tearDown(self):
+        super(TestNetTest, self).tearDown()
         os.remove(dummyInputFile)
         if self.filename != "":
             os.remove(self.filename)
