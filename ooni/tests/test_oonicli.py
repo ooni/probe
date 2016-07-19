@@ -1,17 +1,17 @@
+import exceptions
 import os
 import sys
-import yaml
 
+import yaml
 from twisted.internet import defer
 
-import exceptions
 from ooni import errors
+from ooni.settings import config
 from ooni.tests import is_internet_connected
 from ooni.tests.bases import ConfigTestCase
-from ooni.settings import config
-from ooni.oonicli import runWithDirector, setupGlobalOptions
-from ooni.oonicli import setupAnnotations, setupCollector
-from ooni.oonicli import createDeck
+from ooni.ui.cli import createDeck
+from ooni.ui.cli import runWithDirector, setupGlobalOptions
+from ooni.ui.cli import setupAnnotations, setupCollector
 from ooni.utils.net import hasRawSocketPermission
 
 

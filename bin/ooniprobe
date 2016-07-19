@@ -3,8 +3,8 @@ import sys
 
 from twisted.internet import reactor
 
-from ooni.oonicli import setupGlobalOptions
-from ooni.oonicli import runWithDaemonDirector, runWithDirector
+from ooni.ui.cli import runWithDaemonDirector, runWithDirector
+from ooni.ui.cli import setupGlobalOptions
 
 exit_code=0
 
