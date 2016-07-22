@@ -1,20 +1,26 @@
 # -*- coding: utf-8 -*-
+import csv
+import os
+import yaml
+import json
 
+from hashlib import sha256
+from datetime import datetime
 from ooni.backend_client import CollectorClient, BouncerClient
 from ooni.backend_client import WebConnectivityClient, guess_backend_type
 from ooni.nettest import NetTestLoader
 from ooni.settings import config
-from ooni.utils import log, onion
+
+from ooni.otime import timestampNowISO8601UTC
+
+from ooni.resources.update import check_for_update
+
+from ooni.utils import log
 from ooni import constants
 from ooni import errors as e
 
 from twisted.python.filepath import FilePath
 from twisted.internet import defer
-
-import os
-import yaml
-import json
-from hashlib import sha256
 
 
 class InputFile(object):
@@ -411,3 +417,94 @@ class Deck(InputFile):
                     raise e.UnableToLoadDeckInput
 
                 i['test_options'][i['key']] = input_file.cached_file
+
+
+class InputStore(object):
+    def __init__(self):
+        self.path = FilePath(config.inputs_directory)
+        self.resources = FilePath(config.resources_directory)
+
+    @defer.inlineCallbacks
+    def update_url_lists(self, country_code):
+        countries = ["global"]
+        if country_code == "ZZ":
+            country_code = None
+        else:
+            countries.append(country_code)
+
+        for cc in countries:
+            in_file = self.resources.child("citizenlab-test-lists").child("{0}.csv".format(cc))
+            if not in_file.exists():
+                yield check_for_update(country_code)
+
+            if not in_file.exists():
+                continue
+
+            # XXX maybe move this to some utility function.
+            # It's duplicated in oonideckgen.
+            data_fname = "citizenlab-test-lists_{0}.txt".format(cc)
+            desc_fname = "citizenlab-test-lists_{0}.desc".format(cc)
+
+            out_file = self.path.child("data").child(data_fname)
+            out_fh = out_file.open('w')
+            with in_file.open('r') as in_fh:
+                csvreader = csv.reader(in_fh)
+                csvreader.next()
+                for row in csvreader:
+                    out_fh.write("%s\n" % row[0])
+            out_fh.close()
+
+            desc_file = self.path.child("descriptors").child(desc_fname)
+            with desc_file.open('w') as out_fh:
+                if cc == "global":
+                    name = "List of globally accessed websites"
+                else:
+                    # XXX resolve this to a human readable country name
+                    country_name = cc
+                    name = "List of websites for {0}".format(country_name)
+                json.dump({
+                    "name": name,
+                    "filepath": out_file.path,
+                    "last_updated": timestampNowISO8601UTC(),
+                    "id": "citizenlab_test_lists_{0}_txt".format(cc),
+                    "type": "file/url"
+                }, out_fh)
+
+    @defer.inlineCallbacks
+    def create(self, country_code=None):
+        self.path.child("descriptors").makedirs(ignoreExistingDirectory=True)
+        self.path.child("data").makedirs(ignoreExistingDirectory=True)
+        yield self.update_url_lists(country_code)
+
+    @defer.inlineCallbacks
+    def update(self, country_code=None):
+        yield self.update_url_lists(country_code)
+
+    def list(self):
+        inputs = []
+        descs = self.path.child("descriptors")
+        if not descs.exists():
+            return inputs
+
+        for fn in descs.listdir():
+            with descs.child(fn).open("r") as in_fh:
+                inputs.append(json.load(in_fh))
+        return inputs
+
+class DeckStore(object):
+    def __init__(self):
+        self.path = FilePath(config.decks_directory)
+
+    def update(self):
+        pass
+
+    def get(self):
+        pass
+
+class NGInput(object):
+    def __init__(self, input_name):
+        pass
+
+class NGDeck(object):
+    def __init__(self, deck_path):
+        pass

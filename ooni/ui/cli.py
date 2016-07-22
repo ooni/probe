@@ -11,7 +11,6 @@ from twisted.python import usage
 from twisted.internet import defer
 
 from ooni import errors, __version__
-from ooni.constants import CANONICAL_BOUNCER_ONION
 from ooni.settings import config
 from ooni.utils import log
 

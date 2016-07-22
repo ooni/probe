@@ -18,3 +18,10 @@ def timestampNowLongUTC():
     Coordinates.
     """
     return datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+
+def timestampNowISO8601UTC():
+    """
+    Returns a timestamp in the format of %Y-%m-%d %H:%M:%S in Universal Time
+    Coordinates.
+    """
+    return datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
