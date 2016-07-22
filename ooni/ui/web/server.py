@@ -45,6 +45,12 @@ def getNetTestLoader(test_options, test_file):
             test_file=test_file)
     return net_test_loader
 
+
+class WebUIError(Exception):
+    def __init__(self, code, message):
+        self.code = code
+        self.message = message
+
 class WebUIAPI(object):
     app = Klein()
     # Maximum number in seconds after which to return a result even if not
@@ -55,6 +61,9 @@ class WebUIAPI(object):
     def __init__(self, config, director):
         self.director = director
         self.config = config
+        self.measurement_path = FilePath(config.measurements_directory)
+        self.decks_path = FilePath(config.decks_directory)
+
         self.status = {
             "software_version": ooniprobe_version,
             "software_name": "ooniprobe",
@@ -73,7 +82,7 @@ class WebUIAPI(object):
         d.addBoth(lambda _: self.broadcast_status_update())
 
     def add_failure(self, failure):
-        self.status['failures'].append(failure)
+        self.status['failures'].append(str(failure))
 
     def director_started(self, _):
         self.status['director_started'] = True
@@ -91,10 +100,38 @@ class WebUIAPI(object):
     def completed_measurement(self, measurement_id):
         del self.status['active_measurements'][measurement_id]
         self.status['completed_measurements'].append(measurement_id)
+        measurement_dir = self.measurement_path.child(measurement_id)
+
+        measurement = measurement_dir.child('measurements.njson.progress')
+
+        # Generate the summary.json file
+        summary = measurement_dir.child('summary.json')
+        gr = GenerateResults(measurement.path)
+        gr.output(summary.path)
+
+        measurement.moveTo(measurement_dir.child('measurements.njson'))
 
     def failed_measurement(self, measurement_id, failure):
         del self.status['active_measurements'][measurement_id]
         self.add_failure(str(failure))
+
+    @app.handle_errors(NotFound)
+    def not_found(self, request, _):
+        request.redirect('/client/')
+
+    @app.handle_error(WebUIError)
+    def web_ui_error(self, request, error):
+        request.setResponseCode(error.code)
+        return self.render_json({
+            "error_code": error.code,
+            "error_message": error.message
+        }, request)
+
+    def render_json(self, obj, request):
+        json_string = json.dumps(obj) + "\n"
+        request.setHeader('Content-Type', 'application/json')
+        request.setHeader('Content-Length', len(json_string))
+        return json_string
 
     @app.route('/api/status', methods=["GET"])
     def api_status(self, request):
@@ -115,16 +152,6 @@ class WebUIAPI(object):
 
         return status_update
 
-    @app.handle_errors(NotFound)
-    def not_found(self, request, _):
-        request.redirect('/client/')
-
-    def render_json(self, obj, request):
-        json_string = json.dumps(obj) + "\n"
-        request.setHeader('Content-Type', 'application/json')
-        request.setHeader('Content-Length', len(json_string))
-        return json_string
-
     @app.route('/api/deck/generate', methods=["GET"])
     def api_deck_generate(self, request):
         return self.render_json({"generate": "deck"}, request)
@@ -135,6 +162,9 @@ class WebUIAPI(object):
 
     @app.route('/api/deck', methods=["GET"])
     def api_deck_list(self, request):
+        for deck_id in self.decks_path.listdir():
+            pass
+
         return self.render_json({"command": "deck-list"}, request)
 
     @defer.inlineCallbacks
@@ -146,13 +176,12 @@ class WebUIAPI(object):
             test_details = net_test_loader.getTestDetails()
             measurement_id = generate_filename(test_details)
 
-            measurement_dir = os.path.join(
-                config.measurements_directory,
-                measurement_id
-            )
-            os.mkdir(measurement_dir)
-            report_filename = os.path.join(measurement_dir,
-                                           "measurements.njson")
+            measurement_dir = self.measurement_path.child(measurement_id)
+            measurement_dir.createDirectory()
+
+            report_filename = measurement_dir.child(
+                "measurements.njson.progress").path
+
             measurement_ids.append(measurement_id)
             self.status['active_measurements'][measurement_id] = {
                 'test_name': test_details['test_name'],
@@ -160,7 +189,8 @@ class WebUIAPI(object):
             }
             self.broadcast_status_update()
             d = self.director.startNetTest(net_test_loader, report_filename)
-            d.addCallback(lambda _: self.completed_measurement(measurement_id))
+            d.addCallback(lambda _:
+                          self.completed_measurement(measurement_id))
             d.addErrback(lambda failure:
                          self.failed_measurement(measurement_id, failure))
 
@@ -169,18 +199,12 @@ class WebUIAPI(object):
         try:
             net_test = self.director.netTests[test_name]
         except KeyError:
-            request.setResponseCode(500)
-            return self.render_json({
-                'error_code': 500,
-                'error_message': 'Could not find the specified test'
-            }, request)
+            raise WebUIError(500, 'Could not find the specified test')
+
         try:
             test_options = json.load(request.content)
         except ValueError:
-            return self.render_json({
-                'error_code': 500,
-                'error_message': 'Invalid JSON message recevied'
-            }, request)
+            raise WebUIError(500, 'Invalid JSON message recevied')
 
         deck = Deck(no_collector=True) # XXX remove no_collector
         net_test_loader = getNetTestLoader(test_options, net_test['path'])
@@ -189,24 +213,19 @@ class WebUIAPI(object):
             self.run_deck(deck)
 
         except errors.MissingRequiredOption, option_name:
-            request.setResponseCode(500)
-            return self.render_json({
-                'error_code': 501,
-                'error_message': ('Missing required option: '
-                                  '\'{}\''.format(option_name))
-            }, request)
+            raise WebUIError(
+                501, 'Missing required option: "{}"'.format(option_name)
+            )
+
         except usage.UsageError:
-            request.setResponseCode(500)
-            return self.render_json({
-                'error_code': 502,
-                'error_message': 'Error in parsing options'
-            }, request)
+            raise WebUIError(
+                502, 'Error in parsing options'
+            )
+
         except errors.InsufficientPrivileges:
-            request.setResponseCode(500)
-            return self.render_json({
-                'error_code': 503,
-                'error_message': 'Insufficient priviledges'
-            }, request)
+            raise WebUIError(
+                502, 'Insufficient priviledges'
+            )
 
         return self.render_json({"status": "started"}, request)
 
@@ -214,12 +233,18 @@ class WebUIAPI(object):
     def api_nettest_list(self, request):
         return self.render_json(self.director.netTests, request)
 
+    @app.route('/api/input', methods=["GET"])
+    def api_input_list(self, request):
+        return self.render_json(self.director.input_store.list(), request)
+
     @app.route('/api/measurement', methods=["GET"])
     def api_measurement_list(self, request):
-        measurement_ids = os.listdir(os.path.join(config.ooni_home,
-                                                  "measurements"))
         measurements = []
-        for measurement_id in measurement_ids:
+        for measurement_id in self.measurement_path.listdir():
+            measurement = self.measurement_path.child(measurement_id)
+            completed = True
+            if measurement.child("measurement.njson.progress").exists():
+                completed = False
             test_start_time, country_code, asn, test_name = \
                 measurement_id.split("-")[:4]
             measurements.append({
@@ -227,24 +252,22 @@ class WebUIAPI(object):
                 "country_code": country_code,
                 "asn": asn,
                 "test_start_time": test_start_time,
-                "id": measurement_id
+                "id": measurement_id,
+                "completed": completed
             })
         return self.render_json({"measurements": measurements}, request)
 
     @app.route('/api/measurement/<string:measurement_id>', methods=["GET"])
     def api_measurement_summary(self, request, measurement_id):
-        measurement_path = FilePath(config.measurements_directory)
         try:
-            measurement_dir = measurement_path.child(measurement_id)
+            measurement_dir = self.measurement_path.child(measurement_id)
         except InsecurePath:
-            return self.render_json({"error": "invalid measurement id"})
+            raise WebUIError(500, "invalid measurement id")
+
+        if measurement_dir.child("measurements.njson.progress").exists():
+            raise WebUIError(400, "measurement in progress")
 
         summary = measurement_dir.child("summary.json")
-        measurements = measurement_dir.child("measurements.njson")
-        if not summary.exists():
-            gr = GenerateResults(measurements.path)
-            gr.output(summary.path)
-
         with summary.open("r") as f:
             r = json.load(f)
 
@@ -253,13 +276,14 @@ class WebUIAPI(object):
     @app.route('/api/measurement/<string:measurement_id>/<int:idx>',
                methods=["GET"])
     def api_measurement_view(self, request, measurement_id, idx):
-        measurement_path = FilePath(config.measurements_directory)
         try:
-            measurement_dir = measurement_path.child(measurement_id)
+            measurement_dir = self.measurement_path.child(measurement_id)
         except InsecurePath:
-            return self.render_json({"error": "invalid measurement id"})
+            raise WebUIError(500, "Invalid measurement id")
+
         measurements = measurement_dir.child("measurements.njson")
 
+        # This gets the line idx of the measurement file.
         # XXX maybe implement some caching here
         with measurements.open("r") as f:
             r = None
@@ -268,8 +292,7 @@ class WebUIAPI(object):
                     r = json.loads(line)
                     break
             if r is None:
-                return self.render_json({"error": "Could not find measurement "
-                                                  "with this idx"}, request)
+                raise WebUIError(404, "Could not find measurement with this idx")
         return self.render_json(r, request)
 
     @app.route('/client/', branch=True)
