@@ -67,10 +67,12 @@ def getOption(opt_parameter, required_options, type='text'):
     else:
         required = False
 
-    return {'description': description,
-            'value': default, 'required': required,
-            'type': type
-            }
+    return {
+        'description': description,
+        'value': default,
+        'required': required,
+        'type': type
+    }
 
 
 def getArguments(test_class):
@@ -119,13 +121,15 @@ def getNetTestInformation(net_test_file):
     test_class = getTestClassFromFile(net_test_file)
 
     test_id = os.path.basename(net_test_file).replace('.py', '')
-    information = {'id': test_id,
-                   'name': test_class.name,
-                   'description': test_class.description,
-                   'version': test_class.version,
-                   'arguments': getArguments(test_class),
-                   'path': net_test_file,
-                   }
+    information = {
+        'id': test_id,
+        'name': test_class.name,
+        'description': test_class.description,
+        'version': test_class.version,
+        'arguments': getArguments(test_class),
+        'simple_options': test_class.simpleOptions,
+        'path': net_test_file
+    }
     return information
 
 
@@ -454,7 +458,11 @@ class NetTestState(object):
                   (self.doneTasks, self.tasks))
         if self.completedScheduling and \
                 self.doneTasks == self.tasks:
-            self.allTasksDone.callback(self.doneTasks)
+            if self.allTasksDone.called:
+                log.err("allTasksDone was already called. This is probably a bug.")
+            else:
+                self.allTasksDone.callback(self.doneTasks)
+
 
     def taskDone(self):
         """
@@ -705,6 +713,8 @@ class NetTestCase(object):
     requiredOptions = []
     requiresRoot = False
     requiresTor = False
+
+    simpleOptions = {}
 
     localOptions = {}
 

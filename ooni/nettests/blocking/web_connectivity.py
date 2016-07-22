@@ -77,6 +77,12 @@ class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
     requiresTor = False
     followRedirects = True
 
+    # These are the options to be shown on the GUI
+    simpleOptions = [
+        {"name": "url", "type": "text"},
+        {"name": "file", "type": "file/url"}
+    ]
+
     # Factor used to determine HTTP blockpage detection
     # the factor 0.7 comes from http://www3.cs.stonybrook.edu/~phillipa/papers/JLFG14.pdf
     factor = 0.7

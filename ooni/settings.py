@@ -108,7 +108,7 @@ class OConfig(object):
 
         self.measurements_directory = os.path.join(self.ooni_home,
                                                    'measurements')
-        self.resources_directory = os.path.join(self.data_directory,
+        self.resources_directory = os.path.join(self.ooni_home,
                                                 "resources")
         if self.advanced.report_log_file:
             self.report_log_file = self.advanced.report_log_file

@@ -9,6 +9,7 @@ from ooni.nettest import NetTest, getNetTestInformation
 from ooni.settings import config
 from ooni import errors
 from ooni.nettest import normalizeTestName
+from ooni.deck import InputStore
 
 from ooni.utils.onion import start_tor, connect_to_control_port
 
@@ -92,6 +93,8 @@ class Director(object):
         self.allTestsDone = defer.Deferred()
         self.sniffers = {}
 
+        self.input_store = InputStore()
+
     def getNetTests(self):
         nettests = {}
 
@@ -143,6 +146,8 @@ class Director(object):
                 log.msg("You should add annotations for the country, city and ASN")
         else:
             yield config.probe_ip.lookup()
+
+        yield self.input_store.create(config.probe_ip.geodata["countrycode"])
 
     @property
     def measurementSuccessRatio(self):
