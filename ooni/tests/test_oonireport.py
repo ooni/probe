@@ -5,8 +5,6 @@ from mock import patch, MagicMock
 from twisted.internet import defer
 from ooni.tests.bases import ConfigTestCase
 
-from ooni.report import tool
-
 mock_tor_check = MagicMock(return_value=True)
 
 class TestOONIReport(ConfigTestCase):
@@ -51,9 +49,9 @@ class TestOONIReport(ConfigTestCase):
             cli.run(["upload"])
             self.assertTrue(mock_tool.upload_all.called)
 
-    @patch('ooni.report.tool.CollectorClient')
-    @patch('ooni.report.tool.OONIBReportLog')
-    @patch('ooni.report.tool.OONIBReporter')
+    @patch('ooni.report.cli.CollectorClient')
+    @patch('ooni.report.cli.OONIBReportLog')
+    @patch('ooni.report.cli.OONIBReporter')
     def test_tool_upload(self, mock_oonib_reporter, mock_oonib_report_log,
                          mock_collector_client):
 
@@ -70,7 +68,7 @@ class TestOONIReport(ConfigTestCase):
         self._create_reporting_yaml(report_name)
         self._write_dummy_report(report_name)
 
-        d = tool.upload(report_name)
+        d = cli.upload(report_name)
         @d.addCallback
         def cb(result):
             mock_oonib_reporter_i.writeReportEntry.assert_called_with(
@@ -78,9 +76,9 @@ class TestOONIReport(ConfigTestCase):
             )
         return d
 
-    @patch('ooni.report.tool.CollectorClient')
-    @patch('ooni.report.tool.OONIBReportLog')
-    @patch('ooni.report.tool.OONIBReporter')
+    @patch('ooni.report.cli.CollectorClient')
+    @patch('ooni.report.cli.OONIBReportLog')
+    @patch('ooni.report.cli.OONIBReporter')
     def test_tool_upload_all(self, mock_oonib_reporter, mock_oonib_report_log,
                          mock_collector_client):
 
@@ -98,7 +96,7 @@ class TestOONIReport(ConfigTestCase):
         self._create_reporting_yaml(report_name)
         self._write_dummy_report(report_name)
 
-        d = tool.upload_all()
+        d = cli.upload_all()
         @d.addCallback
         def cb(result):
             mock_oonib_reporter_i.writeReportEntry.assert_called_with(

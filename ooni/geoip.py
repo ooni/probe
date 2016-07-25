@@ -136,11 +136,11 @@ class UbuntuGeoIP(HTTPGeoIPLookupper):
         probe_ip = m.group(1)
         return probe_ip
 
-class TorProjectGeoIP(HTTPGeoIPLookupper):
-    url = "https://check.torproject.org/"
+class DuckDuckGoGeoIP(HTTPGeoIPLookupper):
+    url = "https://duckduckgo.com/?q=ip&ia=answer"
 
     def parseResponse(self, response_body):
-        regexp = "Your IP address appears to be:  <strong>((\d+\.)+(\d+))"
+        regexp = "Your IP address is (.*) in "
         probe_ip = re.search(regexp, response_body).group(1)
         return probe_ip
 
@@ -151,7 +151,7 @@ class ProbeIP(object):
     def __init__(self):
         self.geoIPServices = {
             'ubuntu': UbuntuGeoIP,
-            'torproject': TorProjectGeoIP
+            'duckduckgo': DuckDuckGoGeoIP
         }
         self.geodata = {
             'asn': 'AS0',

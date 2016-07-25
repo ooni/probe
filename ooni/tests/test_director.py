@@ -73,7 +73,7 @@ class TestDirector(ConfigTestCase):
         @defer.inlineCallbacks
         def director_start_tor():
             director = Director()
-            yield director.startTor()
+            yield director.start_tor()
             assert config.tor.socks_port == 4242
             assert config.tor.control_port == 4242
 
@@ -93,7 +93,7 @@ class TestDirector(ConfigTestCase):
         net_test_loader.loadNetTestString(test_failing_twice)
         director = Director()
         director.netTestDone = net_test_done
-        director.startNetTest(net_test_loader, None, no_yamloo=True)
+        director.start_net_test_loader(net_test_loader, None, no_yamloo=True)
         return finished
 
 
@@ -113,7 +113,7 @@ class TestStartSniffing(unittest.TestCase):
     def test_start_sniffing_once(self):
         with patch('ooni.settings.config.scapyFactory') as mock_scapy_factory:
             with patch('ooni.utils.txscapy.ScapySniffer') as mock_scapy_sniffer:
-                self.director.startSniffing(self.testDetails)
+                self.director.start_sniffing(self.testDetails)
                 sniffer = mock_scapy_sniffer.return_value
                 mock_scapy_factory.registerProtocol.assert_called_once_with(sniffer)
 
@@ -122,7 +122,7 @@ class TestStartSniffing(unittest.TestCase):
             with patch('ooni.utils.txscapy.ScapySniffer') as mock_scapy_sniffer:
                 sniffer = mock_scapy_sniffer.return_value
                 sniffer.pcapwriter.filename = 'foo1_filename'
-                self.director.startSniffing(self.testDetails)
+                self.director.start_sniffing(self.testDetails)
                 self.assertEqual(len(self.director.sniffers), 1)
 
             self.testDetails = {
@@ -132,13 +132,13 @@ class TestStartSniffing(unittest.TestCase):
             with patch('ooni.utils.txscapy.ScapySniffer') as mock_scapy_sniffer:
                 sniffer = mock_scapy_sniffer.return_value
                 sniffer.pcapwriter.filename = 'foo2_filename'
-                self.director.startSniffing(self.testDetails)
+                self.director.start_sniffing(self.testDetails)
                 self.assertEqual(len(self.director.sniffers), 2)
 
     def test_measurement_succeeded(self):
         with patch('ooni.settings.config.scapyFactory') as mock_scapy_factory:
             with patch('ooni.utils.txscapy.ScapySniffer') as mock_scapy_sniffer:
-                self.director.startSniffing(self.testDetails)
+                self.director.start_sniffing(self.testDetails)
                 self.assertEqual(len(self.director.sniffers), 1)
                 measurement = MagicMock()
                 measurement.testInstance = self.FooTestCase()
