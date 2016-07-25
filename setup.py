@@ -88,7 +88,6 @@ Have fun!
 
 from __future__ import print_function
 
-from ooni import __version__, __author__
 import os
 import sys
 import glob
@@ -101,6 +100,9 @@ from os.path import join as pj
 from setuptools import setup, Command
 from setuptools.command.install import install
 from distutils.spawn import find_executable
+
+from ooni import __version__, __author__
+from ooni.scripts import ooniresources
 
 GEOIP_ASN_URL = "https://download.maxmind.com/download/geoip/database/asnum/GeoIPASNum.dat.gz"
 GEOIP_URL = "https://geolite.maxmind.com/download/geoip/database/GeoLiteCountry/GeoIP.dat.gz"
@@ -393,6 +395,16 @@ setup(
     dependency_links=dependency_links,
     install_requires=install_requires,
     zip_safe=False,
+    entry_points={
+        'console_scripts': [
+            'ooniresources = ooni.scripts.ooniresources:run', # This is deprecated
+            'oonideckgen = ooni.scripts.oonideckgen:run', # This is deprecated
+
+            'ooniprobe = ooni.scripts.ooniprobe:run',
+            'oonireport = ooni.scripts.oonireport:run',
+            'ooniprobe-agent = ooni.scripts.ooniprobe_agent:run'
+        ]
+    },
     cmdclass={
         "install": OoniInstall,
         "create_ooniresources": CreateOoniResources,
