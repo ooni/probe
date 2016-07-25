@@ -334,10 +334,10 @@ def runTestWithDirector(director, global_options, url=None, start_tor=True):
                 collector_client = setupCollector(global_options,
                                                   net_test_loader.collector)
 
-            yield director.startNetTest(net_test_loader,
-                                        global_options['reportfile'],
-                                        collector_client,
-                                        global_options['no-yamloo'])
+            yield director.start_net_test_loader(net_test_loader,
+                                                 global_options['reportfile'],
+                                                 collector_client,
+                                                 global_options['no-yamloo'])
 
     d.addCallback(setup_nettest)
     d.addCallback(post_director_start)

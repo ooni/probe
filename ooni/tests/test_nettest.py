@@ -355,7 +355,7 @@ class TestNetTest(ConfigTestCase):
         director = Director()
 
         self.filename = 'dummy_report.yamloo'
-        d = director.startNetTest(ntl, self.filename)
+        d = director.start_net_test_loader(ntl, self.filename)
 
         @d.addCallback
         def complete(result):
@@ -382,7 +382,7 @@ class TestNetTest(ConfigTestCase):
 
         director = Director()
         self.filename = 'dummy_report.yamloo'
-        d = director.startNetTest(ntl, self.filename)
+        d = director.start_net_test_loader(ntl, self.filename)
 
         @d.addCallback
         def complete(result):
@@ -410,7 +410,7 @@ class TestNetTest(ConfigTestCase):
 
         director = Director()
         self.filename = 'dummy_report.yamloo'
-        d = director.startNetTest(ntl, self.filename)
+        d = director.start_net_test_loader(ntl, self.filename)
 
         @d.addCallback
         def complete(result):
@@ -469,7 +469,7 @@ class TestNettestTimeout(ConfigTestCase):
         director = Director()
 
         self.filename = 'dummy_report.yamloo'
-        d = director.startNetTest(ntl, self.filename)
+        d = director.start_net_test_loader(ntl, self.filename)
 
         @d.addCallback
         def complete(result):

@@ -1,10 +1,11 @@
 import os
-import yaml
 import tempfile
 
+import yaml
+
+from ooni.scripts import oonideckgen
 from .bases import ConfigTestCase
 
-from ooni.deckgen import cli
 
 class TestOONIDeckgen(ConfigTestCase):
     def setUp(self):
@@ -25,7 +26,7 @@ class TestOONIDeckgen(ConfigTestCase):
 
     def test_generate_deck(self):
         temp_dir = tempfile.mkdtemp()
-        cli.generate_deck({
+        oonideckgen.generate_deck({
             "country-code": "it",
             "output": temp_dir,
             "collector": None,

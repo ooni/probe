@@ -1,11 +1,15 @@
 import os
 
+from copy import deepcopy
+
 from twisted.internet import defer
 from twisted.trial import unittest
 
 from hashlib import sha256
 from ooni import errors
-from ooni.deck import InputFile, Deck, nettest_to_path
+from ooni.deck import input_store, lookup_collector_and_test_helpers
+from ooni.nettest import NetTestLoader
+from ooni.deck import InputFile, Deck, nettest_to_path, DeckTask, NGDeck
 from ooni.tests.bases import ConfigTestCase
 from ooni.tests.mocks import MockBouncerClient, MockCollectorClient
 
@@ -182,7 +186,8 @@ class TestDeck(BaseTestCase, ConfigTestCase):
 
         self.assertEqual(len(deck.netTestLoaders[0].missingTestHelpers), 1)
 
-        yield deck.lookupCollectorAndTestHelpers()
+        yield lookup_collector_and_test_helpers(deck.preferred_backend,
+                                                deck.netTestLoaders)
 
         self.assertEqual(deck.netTestLoaders[0].collector.settings['address'],
                          'httpo://thirteenchars123.onion')
@@ -229,7 +234,8 @@ class TestDeck(BaseTestCase, ConfigTestCase):
 
         self.assertEqual(len(deck.netTestLoaders[0].missingTestHelpers), 1)
 
-        yield deck.lookupCollectorAndTestHelpers()
+        yield lookup_collector_and_test_helpers(deck.preferred_backend,
+                                                deck.netTestLoaders)
 
         self.assertEqual(
             deck.netTestLoaders[0].collector.settings['address'],
@@ -258,7 +264,8 @@ class TestDeck(BaseTestCase, ConfigTestCase):
 
         self.assertEqual(len(deck.netTestLoaders[0].missingTestHelpers), 1)
 
-        yield deck.lookupCollectorAndTestHelpers()
+        yield lookup_collector_and_test_helpers(deck.preferred_backend,
+                                                deck.netTestLoaders)
 
         self.assertEqual(
             deck.netTestLoaders[0].collector.settings['address'],
@@ -269,3 +276,45 @@ class TestDeck(BaseTestCase, ConfigTestCase):
             deck.netTestLoaders[0].localOptions['backend'],
             '127.0.0.1'
         )
+
+class TestInputStore(ConfigTestCase):
+    @defer.inlineCallbacks
+    def test_update_input_store(self):
+        self.skipTest("antani")
+        yield input_store.update("ZZ")
+        print os.listdir(os.path.join(
+            self.config.resources_directory, "citizenlab-test-lists"))
+        print os.listdir(os.path.join(self.config.inputs_directory))
+
+TASK_DATA = {
+    "name": "Some Task",
+    "ooni": {
+        "test_name": "web_connectivity",
+        "file": "$citizen_lab_global_urls"
+    }
+}
+
+DECK_DATA = {
+    "name": "My deck",
+    "description": "Something",
+    "tasks": [
+        deepcopy(TASK_DATA)
+    ]
+}
+class TestNGDeck(ConfigTestCase):
+    skip = True
+    def test_deck_task(self):
+        if self.skip:
+            self.skipTest("Skip is set to true")
+        yield input_store.update("ZZ")
+        deck_task = DeckTask(TASK_DATA)
+        self.assertIsInstance(deck_task.ooni["net_test_loader"],
+                              NetTestLoader)
+
+    @defer.inlineCallbacks
+    def test_deck_load(self):
+        if self.skip:
+            self.skipTest("Skip is set to true")
+        yield input_store.update("ZZ")
+        deck = NGDeck(deck_data=DECK_DATA)
+        self.assertEqual(len(deck.tasks), 1)

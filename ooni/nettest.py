@@ -254,7 +254,8 @@ class NetTestLoader(object):
                     h = sha256()
                     for l in f:
                         h.update(l)
-            except:
+            except Exception as exc:
+                log.exception(exc)
                 raise e.InvalidInputFile(filename)
             input_file['hash'] = h.hexdigest()
         self.inputFiles.append(input_file)

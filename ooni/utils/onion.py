@@ -237,20 +237,6 @@ class TorLauncherWithRetries(object):
                 continue
             setattr(new_tor_config, key, getattr(self.tor_config, key))
         self.tor_config = new_tor_config
-        self.timeout = timeout
-
-    def _reset_tor_config(self):
-        """
-        This is used to reset the Tor configuration to before launch_tor
-        modified it. This is in particular used to force the regeneration of the
-        DataDirectory.
-        """
-        new_tor_config = TorConfig()
-        for key in self.tor_config:
-            if config.tor.data_dir is None and key == "DataDirectory":
-                continue
-            setattr(new_tor_config, key, getattr(self.tor_config, key))
-        self.tor_config = new_tor_config
 
     def _progress_updates(self, prog, tag, summary):
         log.msg("%d%%: %s" % (prog, summary))
