@@ -1,7 +1,4 @@
-import os
 import json
-import tarfile
-import tempfile
 
 from twisted.python.filepath import FilePath
 from twisted.internet import defer
@@ -9,11 +6,21 @@ from twisted.web.client import downloadPage, getPage
 
 from ooni.utils import log
 from ooni.settings import config
-from ooni.resources import ooni_resources_url, get_download_url
-from ooni.resources import get_current_version
 
 class UpdateFailure(Exception):
     pass
+
+def get_download_url(tag_name, filename):
+    return ("https://github.com/OpenObservatory/ooni-resources/releases"
+            "/download/{0}/{1}".format(tag_name, filename))
+
+def get_current_version():
+    manifest = FilePath(config.resources_directory).child("manifest.json")
+    if not manifest.exists():
+        return 0
+    with manifest.open("r") as f:
+        manifest = json.load(f)
+    return int(manifest["version"])
 
 @defer.inlineCallbacks
 def get_latest_version():
@@ -49,7 +56,9 @@ def get_out_of_date_resources(current_manifest, new_manifest,
                 info["country_code"] != "ALL" and
                 info["country_code"] != country_code):
             continue
-        if current_res[path]["version"] < info["version"]:
+        if current_res.get(path, None) is None:
+            paths_to_update.append(info)
+        elif current_res[path]["version"] < info["version"]:
             paths_to_update.append(info)
         else:
             pre_path, filename = info["path"].split("/")
@@ -103,12 +112,15 @@ def check_for_update(country_code=None):
 
     new_manifest_data = json.loads(new_manifest.getContent())
 
-    to_update = new_manifest_data["resources"]
-    to_delete = []
     if current_manifest.exists():
         with current_manifest.open("r") as f:
             current_manifest_data = json.loads(f)
-        to_update, to_delete = get_out_of_date_resources(
+    else:
+        current_manifest_data = {
+            "resources": []
+        }
+
+    to_update, to_delete = get_out_of_date_resources(
             current_manifest_data, new_manifest_data, country_code)
 
     try:
@@ -138,50 +150,3 @@ def check_for_update(country_code=None):
     for resource in to_delete:
         log.msg("Deleting old resources")
         resources_dir.child(resource["path"]).remove()
-
-@defer.inlineCallbacks
-def download_resources():
-    if os.access(config.var_lib_path, os.W_OK):
-        dst_directory = FilePath(config.var_lib_path)
-    else:
-        dst_directory = FilePath(config.ooni_home)
-
-    print("Downloading {} to {}".format(ooni_resources_url,
-                                        dst_directory.path))
-    tmp_download_directory = FilePath(tempfile.mkdtemp())
-    tmp_download_filename = tmp_download_directory.temporarySibling()
-
-
-    try:
-        yield downloadPage(ooni_resources_url, tmp_download_filename.path)
-        ooni_resources_tar_gz = tarfile.open(tmp_download_filename.path)
-        ooni_resources_tar_gz.extractall(tmp_download_directory.path)
-
-        if not tmp_download_directory.child('GeoIP').exists():
-            raise Exception("Could not find GeoIP data files in downloaded "
-                            "tar.")
-
-        if not tmp_download_directory.child('resources').exists():
-            raise Exception("Could not find resources data files in "
-                            "downloaded tar.")
-
-        geoip_dir = dst_directory.child('GeoIP')
-        resources_dir = dst_directory.child('resources')
-
-        if geoip_dir.exists():
-            geoip_dir.remove()
-        tmp_download_directory.child('GeoIP').moveTo(geoip_dir)
-
-        if resources_dir.exists():
-            resources_dir.remove()
-        tmp_download_directory.child('resources').moveTo(resources_dir)
-
-        print("Written GeoIP files to {}".format(geoip_dir.path))
-        print("Written resources files to {}".format(resources_dir.path))
-
-    except Exception as exc:
-        print("Failed to download resources!")
-        raise exc
-
-    finally:
-        tmp_download_directory.remove()

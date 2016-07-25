@@ -1,18 +1,11 @@
 import sys
 
-from twisted.internet import defer
 from twisted.python import usage
-
-from ooni.resources import __version__
-from ooni.resources import update
-
 
 class Options(usage.Options):
     synopsis = """%s
-    This is used to update the resources required to run oonideckgen and
-    ooniprobe.
-    You just run this script with no arguments and it will update the
-    resources.
+    [DEPRECATED] Usage of this script is deprecated and it will be deleted
+    in future versions of ooniprobe.
     """ % sys.argv[0]
 
     optFlags = [
@@ -24,11 +17,10 @@ class Options(usage.Options):
     optParameters = []
 
     def opt_version(self):
-        print("ooniresources version: %s" % __version__)
+        print("ooniresources version: 0.2.0")
         sys.exit(0)
 
 
-@defer.inlineCallbacks
 def run():
     options = Options()
     try:
@@ -38,7 +30,5 @@ def run():
         print "%s: Try --help for usage details." % (sys.argv[0])
         sys.exit(1)
 
-    if options['update-inputs'] or options['update-geoip']:
-        print("WARNING: Passing command line arguments is deprecated")
-
-    yield update.download_resources()
+    print("WARNING: Usage of this script is deprecated.")
+    sys.exit(0)
