@@ -12,6 +12,7 @@ build/*
 package/*
 dist/
 packages/*
+*.egg-info/
 
 assets/*
 proxy-lists/ip-cc.txt
