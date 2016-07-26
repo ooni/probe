@@ -23,6 +23,7 @@ def generate_summary(input_file, output_file):
                 result = getattr(Process, entry['test_name'])(entry)
             result['idx'] = idx
             results['test_name'] = entry['test_name']
+            results['test_start_time'] = entry['test_start_time']
             results['country_code'] = entry['probe_cc']
             results['asn'] = entry['probe_asn']
             results['results'] = results.get('results', [])
