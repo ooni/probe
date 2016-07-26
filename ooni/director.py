@@ -181,7 +181,7 @@ class Director(object):
         return nettests
 
     @defer.inlineCallbacks
-    def _start(self, start_tor, check_incoherences):
+    def _start(self, start_tor, check_incoherences, create_input_store):
         self.netTests = self.getNetTests()
 
         if start_tor:
@@ -199,15 +199,17 @@ class Director(object):
             self.notify(DirectorEvent("success",
                                       "Looked up Probe IP"))
 
-        yield self.input_store.create(config.probe_ip.geodata["countrycode"])
-        self.notify(DirectorEvent("success",
-                                  "Created input store"))
+        if create_input_store:
+            yield self.input_store.create(config.probe_ip.geodata["countrycode"])
+            self.notify(DirectorEvent("success",
+                                      "Created input store"))
 
     @defer.inlineCallbacks
-    def start(self, start_tor=False, check_incoherences=True):
+    def start(self, start_tor=False, check_incoherences=True,
+              create_input_store=True):
         self._director_state = 'starting'
         try:
-            yield self._start(start_tor, check_incoherences)
+            yield self._start(start_tor, check_incoherences, create_input_store)
             self._director_starting.callback(self._director_state)
         except Exception as exc:
             self._director_starting.errback(Failure(exc))

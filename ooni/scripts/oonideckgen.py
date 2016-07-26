@@ -68,14 +68,14 @@ def generate_deck(options):
             }
         ]
     }
-    if options["collector"]:
+    if options["collector"] is not None:
         deck_data["collector"] = options['collector']
 
-    if options["bouncer"]:
+    if options["bouncer"] is not None:
         deck_data["bouncer"] = options['bouncer']
 
     deck = NGDeck(deck_data=deck_data)
-    with open(options['output']) as fw:
+    with open(options['output'], 'w+') as fw:
         deck.write(fw)
 
     print("Deck written to {0}".format(options['output']))

@@ -32,6 +32,7 @@ SAMPLE_NEW_MANIFEST = {
 }
 class TestResourceUpdate(ConfigTestCase):
     def test_check_for_updates(self):
+        self.skipTest("Too long without mocks...")
         return check_for_update()
 
     def test_resources_out_of_date(self):

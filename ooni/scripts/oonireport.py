@@ -5,7 +5,7 @@ import sys
 import yaml
 
 from twisted.python import usage
-from twisted.internet import defer, task
+from twisted.internet import defer, task, reactor
 
 from ooni.constants import CANONICAL_BOUNCER_ONION
 from ooni.reporter import OONIBReporter, OONIBReportLog
@@ -202,10 +202,10 @@ def tor_check():
         sys.exit(1)
 
 
-def oonireport(reactor, args=sys.argv[1:]):
+def oonireport(_reactor=reactor, _args=sys.argv[1:]):
     options = Options()
     try:
-        options.parseOptions(args)
+        options.parseOptions(_args)
     except Exception as exc:
         print("Error: %s" % exc)
         print(options)
