@@ -5,8 +5,8 @@ from __future__ import absolute_import, print_function
 import re
 from time import time
 import datetime
-from dateutil.relativedelta import relativedelta
-from dateutil.tz import tzutc
+from .dateutil.relativedelta import relativedelta
+from .dateutil.tz import tzutc
 
 search_re = re.compile(r'^([^-]+)-([^-/]+)(/(.*))?$')
 only_int_re = re.compile(r'^\d+$')
