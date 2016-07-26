@@ -92,7 +92,7 @@ def get_user_country_code():
 
 
 @defer.inlineCallbacks
-def oonideckgen():
+def oonideckgen(reactor):
     options = Options()
     try:
         options.parseOptions()

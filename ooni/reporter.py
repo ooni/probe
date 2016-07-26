@@ -534,7 +534,7 @@ class Report(object):
             collector:
                 The address of the oonib collector for this report.
 
-            no_yamloo:
+            no_njson:
                 If we should disable reporting to disk.
         """
         self.test_details = test_details

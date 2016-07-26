@@ -96,4 +96,3 @@ class TCPTest(NetTestCase):
         d2.addCallback(connected)
         d2.addErrback(errback)
         return d1
-

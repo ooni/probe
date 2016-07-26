@@ -424,9 +424,7 @@ class Director(object):
             log.debug("Setting SOCKS port as %s" % tor_config.SocksPort)
             try:
                 yield start_tor(tor_config)
-                log.err("Calling tor callback")
                 self._tor_starting.callback(self._tor_state)
-                log.err("called")
             except Exception as exc:
                 log.err("Failed to start tor")
                 log.exc(exc)

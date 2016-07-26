@@ -26,19 +26,18 @@ class Options(usage.Options):
 
     optFlags = [["help", "h"],
                 ["no-collector", "n", "Disable writing to collector"],
-                ["no-yamloo", "N", "Disable writing to YAML file"],
+                ["no-njson", "N", "Disable writing to disk"],
                 ["no-geoip", "g", "Disable geoip lookup on start"],
                 ["list", "s", "List the currently installed ooniprobe "
                               "nettests"],
-                ["printdeck", "p", "Print the equivalent deck for the "
-                                   "provided command"],
                 ["verbose", "v", "Show more verbose information"]
                 ]
 
     optParameters = [
-        ["reportfile", "o", None, "Specify the report file name to write to."],
+        ["reportfile", "o", None, "Specify the report file name to write "
+                                  "to."],
         ["testdeck", "i", None, "Specify as input a test deck: a yaml file "
-                                "containing the tests to run and their "
+                                 "containing the tests to run and their "
                                 "arguments."],
         ["collector", "c", None, "Specify the address of the collector for "
                                  "test results. In most cases a user will "
@@ -132,7 +131,8 @@ def director_startup_handled_failures(failure):
                  errors.CouldNotFindTestCollector,
                  errors.ProbeIPUnknown,
                  errors.InvalidInputFile,
-                 errors.ConfigFileIncoherent)
+                 errors.ConfigFileIncoherent,
+                 SystemExit)
 
     if isinstance(failure.value, errors.TorNotRunning):
         log.err("Tor does not appear to be running")
@@ -236,64 +236,71 @@ def setupCollector(global_options, collector_client):
     return collector_client
 
 def createDeck(global_options, url=None):
-    from ooni.nettest import NetTestLoader
-    from ooni.deck import Deck, nettest_to_path
-    from ooni.backend_client import CollectorClient
+    from ooni.deck import NGDeck, subargs_to_options
 
     if url:
         log.msg("Creating deck for: %s" % (url))
 
-    if global_options['no-yamloo']:
-        log.msg("Will not write to a yamloo report file")
-
-    deck = Deck(bouncer=global_options['bouncer'],
-                no_collector=global_options['no-collector'])
-
+    test_deck_path = global_options.pop('testdeck', None)
+    test_name = global_options.pop('test_file', None)
+    no_collector = global_options.pop('no-collector', False)
     try:
-        if global_options['testdeck']:
-            deck.loadDeck(global_options['testdeck'], global_options)
+        if test_deck_path is not None:
+            deck = NGDeck(
+                global_options=global_options,
+                no_collector=no_collector
+            )
+            deck.open(test_deck_path)
         else:
+            deck = NGDeck(
+                global_options=global_options,
+                no_collector=no_collector,
+                arbitrary_paths=True
+            )
             log.debug("No test deck detected")
-            test_file = nettest_to_path(global_options['test_file'], True)
             if url is not None:
                 args = ('-u', url)
             else:
                 args = tuple()
             if any(global_options['subargs']):
                 args = global_options['subargs'] + args
-            net_test_loader = NetTestLoader(args,
-                                            test_file=test_file,
-                                            annotations=global_options['annotations'])
-            if global_options['collector']:
-                net_test_loader.collector = \
-                    CollectorClient(global_options['collector'])
-            deck.insert(net_test_loader)
+
+            test_options = subargs_to_options(args)
+            test_options['test_name'] = test_name
+            deck.load({
+                "tasks": [
+                    {"ooni": test_options}
+                ]
+            })
     except errors.MissingRequiredOption as option_name:
         log.err('Missing required option: "%s"' % option_name)
         incomplete_net_test_loader = option_name.net_test_loader
         print incomplete_net_test_loader.usageOptions().getUsage()
-        sys.exit(2)
+        raise SystemExit(2)
+
     except errors.NetTestNotFound as path:
         log.err('Requested NetTest file not found (%s)' % path)
-        sys.exit(3)
+        raise SystemExit(3)
+
     except errors.OONIUsageError as e:
         log.err(e)
         print e.net_test_loader.usageOptions().getUsage()
-        sys.exit(4)
+        raise SystemExit(4)
+
     except errors.HTTPSCollectorUnsupported:
         log.err("HTTPS collectors require a twisted version of at least 14.0.2.")
-        sys.exit(6)
+        raise SystemExit(6)
     except errors.InsecureBackend:
         log.err("Attempting to report to an insecure collector.")
         log.err("To enable reporting to insecure collector set the "
                 "advanced->insecure_backend option to true in "
                 "your ooniprobe.conf file.")
-        sys.exit(7)
+        raise SystemExit(7)
     except Exception as e:
         if config.advanced.debug:
             log.exception(e)
         log.err(e)
-        sys.exit(5)
+        raise SystemExit(5)
 
     return deck
 
@@ -301,45 +308,21 @@ def createDeck(global_options, url=None):
 def runTestWithDirector(director, global_options, url=None, start_tor=True):
     deck = createDeck(global_options, url=url)
 
-    start_tor |= deck.requiresTor
-
-    d = director.start(start_tor=start_tor,
-                       check_incoherences=global_options['check_incoherences'])
-
-    def setup_nettest(_):
-        try:
-            return deck.setup()
-        except errors.UnableToLoadDeckInput as error:
-            return defer.failure.Failure(error)
-        except errors.NoReachableTestHelpers as error:
-            return defer.failure.Failure(error)
-        except errors.NoReachableCollectors as error:
-            return defer.failure.Failure(error)
-
-    # Wait until director has started up (including bootstrapping Tor)
-    # before adding tests
+    d = director.start()
     @defer.inlineCallbacks
     def post_director_start(_):
-        for net_test_loader in deck.netTestLoaders:
-            # Decks can specify different collectors
-            # for each net test, so that each NetTest
-            # may be paired with a test_helper and its collector
-            # However, a user can override this behavior by
-            # specifying a collector from the command-line (-c).
-            # If a collector is not specified in the deck, or the
-            # deck is a singleton, the default collector set in
-            # ooniprobe.conf will be used
-            collector_client = None
-            if not global_options['no-collector']:
-                collector_client = setupCollector(global_options,
-                                                  net_test_loader.collector)
+        try:
+            deck.setup()
+            yield deck.run(director)
+        except errors.UnableToLoadDeckInput as error:
+            raise defer.failure.Failure(error)
+        except errors.NoReachableTestHelpers as error:
+            raise defer.failure.Failure(error)
+        except errors.NoReachableCollectors as error:
+            raise defer.failure.Failure(error)
+        except SystemExit as error:
+            raise error
 
-            yield director.start_net_test_loader(net_test_loader,
-                                                 global_options['reportfile'],
-                                                 collector_client,
-                                                 global_options['no-yamloo'])
-
-    d.addCallback(setup_nettest)
     d.addCallback(post_director_start)
     d.addErrback(director_startup_handled_failures)
     d.addErrback(director_startup_other_failures)
@@ -379,14 +362,7 @@ def runWithDirector(global_options):
             print "Note: Third party tests require an external "\
                   "application to run properly."
 
-        sys.exit(0)
-
-    elif global_options['printdeck']:
-        del global_options['printdeck']
-        print "# Copy and paste the lines below into a test deck to run the specified test with the specified arguments"
-        print yaml.safe_dump([{'options': global_options}]).strip()
-
-        sys.exit(0)
+        raise SystemExit(0)
 
     if global_options.get('annotations') is not None:
         global_options['annotations'] = setupAnnotations(global_options)
@@ -427,7 +403,7 @@ def runWithDaemonDirector(global_options):
     except ImportError:
         print "Pika is required for queue connection."
         print "Install with \"pip install pika\"."
-        sys.exit(7)
+        raise SystemExit(7)
 
     director = Director()
 

@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 import re
 import os
+import json
 import random
 
 from hashlib import sha256
@@ -137,11 +138,12 @@ class UbuntuGeoIP(HTTPGeoIPLookupper):
         return probe_ip
 
 class DuckDuckGoGeoIP(HTTPGeoIPLookupper):
-    url = "https://duckduckgo.com/?q=ip&ia=answer"
+    url = "https://api.duckduckgo.com/?q=ip&format=json"
 
     def parseResponse(self, response_body):
+        j = json.loads(response_body)
         regexp = "Your IP address is (.*) in "
-        probe_ip = re.search(regexp, response_body).group(1)
+        probe_ip = re.search(regexp, j['Answer']).group(1)
         return probe_ip
 
 class ProbeIP(object):
