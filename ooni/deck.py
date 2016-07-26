@@ -191,14 +191,14 @@ class Deck(InputFile):
                 )
             if test['options'].get('bouncer', None) is not None:
                 self.bouncer = self._BouncerClient(test['options']['bouncer'])
-                if self.bouncer.backend_type is "onion":
+                if self.bouncer.backend_type == "onion":
                     self.requiresTor = True
             self.insert(net_test_loader)
 
     def insert(self, net_test_loader):
         """ Add a NetTestLoader to this test deck """
         if (net_test_loader.collector is not None
-                and net_test_loader.collector.backend_type is "onion"):
+                and net_test_loader.collector.backend_type == "onion"):
             self.requiresTor = True
         try:
             net_test_loader.checkOptions()
