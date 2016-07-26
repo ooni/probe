@@ -1,6 +1,13 @@
 Changelog
 =========
 
+v1.6.1 (Tue, 26 Jul 2016)
+-------------------------
+
+* Fix #569
+
+* Fix #573
+
 v1.6.0 (Sun, 10 Jul 2016)
 -------------------------
 codename: Shells and Seaweed
