@@ -2,7 +2,6 @@ import sys
 
 import os
 import json
-import yaml
 import random
 import textwrap
 import urlparse
