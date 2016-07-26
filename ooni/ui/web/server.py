@@ -84,10 +84,7 @@ class WebUIAPI(object):
             "software_name": "ooniprobe",
             "asn": config.probe_ip.geodata['asn'],
             "country_code": config.probe_ip.geodata['countrycode'],
-            "active_measurements": {},
-            "completed_measurements": [],
-            "director_started": False,
-            "failures": []
+            "director_started": False
         }
 
         self.status_poller = LongPoller(
@@ -103,32 +100,16 @@ class WebUIAPI(object):
         d = self.director.start()
 
         d.addCallback(self.director_started)
-        d.addErrback(self.director_startup_failed)
         d.addBoth(lambda _: self.status_poller.notify())
 
     def handle_director_event(self, event):
         log.msg("Handling event {0}".format(event.type))
         self.director_event_poller.notify(event)
 
-    def add_failure(self, failure):
-        self.status['failures'].append(str(failure))
-
     def director_started(self, _):
         self.status['director_started'] = True
         self.status["asn"] = config.probe_ip.geodata['asn']
         self.status["country_code"] = config.probe_ip.geodata['countrycode']
-
-    def director_startup_failed(self, failure):
-        self.add_failure(failure)
-
-    def completed_measurement(self, measurement_id):
-        del self.status['active_measurements'][measurement_id]
-        self.status['completed_measurements'].append(measurement_id)
-
-    def failed_measurement(self, measurement_id, failure):
-        log.exception(failure)
-        del self.status['active_measurements'][measurement_id]
-        self.add_failure(str(failure))
 
     @app.handle_errors(NotFound)
     def not_found(self, request, _):
@@ -188,18 +169,9 @@ class WebUIAPI(object):
         return self.render_json({"command": "deck-list"}, request)
 
     def run_deck(self, deck):
-        for task_id in deck.task_ids:
-            self.status['active_measurements'][task_id] = {
-                'test_name': 'foobar',
-                'test_start_time': 'some start time'
-            }
-        self.status_poller.notify()
         deck.setup()
-        d = deck.run(self.director)
-        d.addCallback(lambda _:
-                      self.completed_measurement(task_id))
-        d.addErrback(lambda failure:
-                     self.failed_measurement(task_id, failure))
+        # Here there is a dangling deferred
+        deck.run(self.director)
 
     @app.route('/api/nettest/<string:test_name>/start', methods=["POST"])
     def api_nettest_start(self, request, test_name):

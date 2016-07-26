@@ -1,5 +1,9 @@
+import os
+import gzip
 import json
+import shutil
 
+from twisted.python.runtime import platform
 from twisted.python.filepath import FilePath
 from twisted.internet import defer
 from twisted.web.client import downloadPage, getPage
@@ -66,10 +70,26 @@ def get_out_of_date_resources(current_manifest, new_manifest,
             #  the manifest claims we have a more up to date version.
             # This happens if an update by country_code happened and a new
             # country code is now required.
+            if filename.endswith(".gz"):
+                filename = filename[:-3]
             if not _resources.child(pre_path).child(filename).exists():
                 paths_to_update.append(info)
 
     return paths_to_update, paths_to_delete
+
+def gunzip(file_path):
+    tmp_location = FilePath(file_path).temporarySibling()
+    in_file = gzip.open(file_path)
+    with tmp_location.open('w') as out_file:
+        shutil.copyfileobj(in_file, out_file)
+    in_file.close()
+    rename(tmp_location.path, file_path)
+
+def rename(src, dst):
+    # Best effort atomic renaming
+    if platform.isWindows() and os.path.exists(dst):
+        os.unlink(dst)
+    os.rename(src, dst)
 
 @defer.inlineCallbacks
 def check_for_update(country_code=None):
@@ -88,44 +108,48 @@ def check_for_update(country_code=None):
     current_version = get_current_version()
     latest_version = yield get_latest_version()
 
-    # We are already at the latest version
-    if current_version == latest_version:
-        defer.returnValue(latest_version)
-
     resources_dir = FilePath(config.resources_directory)
     resources_dir.makedirs(ignoreExistingDirectory=True)
     current_manifest = resources_dir.child("manifest.json")
 
-    new_manifest = current_manifest.temporarySibling()
-    new_manifest.alwaysCreate = 0
-
-    temporary_files.append((current_manifest, new_manifest))
-
-    try:
-        yield downloadPage(
-            get_download_url(latest_version, "manifest.json"),
-            new_manifest.path
-        )
-    except:
-        cleanup()
-        raise UpdateFailure("Failed to download manifest")
-
-    new_manifest_data = json.loads(new_manifest.getContent())
-
     if current_manifest.exists():
         with current_manifest.open("r") as f:
-            current_manifest_data = json.loads(f)
+            current_manifest_data = json.load(f)
     else:
         current_manifest_data = {
             "resources": []
         }
+
+    # We should download a newer manifest
+    if current_version < latest_version:
+        new_manifest = current_manifest.temporarySibling()
+        new_manifest.alwaysCreate = 0
+
+        temporary_files.append((current_manifest, new_manifest))
+
+        try:
+            yield downloadPage(
+                get_download_url(latest_version, "manifest.json"),
+                new_manifest.path
+            )
+        except:
+            cleanup()
+            raise UpdateFailure("Failed to download manifest")
+
+        new_manifest_data = json.loads(new_manifest.getContent())
+    else:
+        new_manifest_data = current_manifest_data
 
     to_update, to_delete = get_out_of_date_resources(
             current_manifest_data, new_manifest_data, country_code)
 
     try:
         for resource in to_update:
+            gzipped = False
             pre_path, filename = resource["path"].split("/")
+            if filename.endswith(".gz"):
+                filename = filename[:-3]
+                gzipped = True
             dst_file = resources_dir.child(pre_path).child(filename)
             dst_file.parent().makedirs(ignoreExistingDirectory=True)
             src_file = dst_file.temporarySibling()
@@ -135,8 +159,9 @@ def check_for_update(country_code=None):
             # The paths for the download require replacing "/" with "."
             download_url = get_download_url(latest_version,
                                             resource["path"].replace("/", "."))
-            print("Downloading {0}".format(download_url))
             yield downloadPage(download_url, src_file.path)
+            if gzipped:
+                gunzip(src_file.path)
     except Exception as exc:
         cleanup()
         log.exception(exc)
@@ -145,7 +170,7 @@ def check_for_update(country_code=None):
     for dst_file, src_file in temporary_files:
         log.msg("Moving {0} to {1}".format(src_file.path,
                                            dst_file.path))
-        src_file.moveTo(dst_file)
+        rename(src_file.path, dst_file.path)
 
     for resource in to_delete:
         log.msg("Deleting old resources")

@@ -31,8 +31,12 @@ class GeoIPDataFilesNotFound(Exception):
 def IPToLocation(ipaddr):
     from ooni.settings import config
 
-    country_file = config.get_data_file_path('GeoIP/GeoIP.dat')
-    asn_file = config.get_data_file_path('GeoIP/GeoIPASNum.dat')
+    country_file = config.get_data_file_path(
+        'resources/maxmind-geoip/GeoIP.dat'
+    )
+    asn_file = config.get_data_file_path(
+        'resources/maxmind-geoip/GeoIPASNum.dat'
+    )
 
     location = {'city': None, 'countrycode': 'ZZ', 'asn': 'AS0'}
     if not asn_file or not country_file:
@@ -69,7 +73,9 @@ def database_version():
     }
 
     for key in version.keys():
-        geoip_file = config.get_data_file_path("GeoIP/" + key + ".dat")
+        geoip_file = config.get_data_file_path(
+            "resources/maxmind-geoip/" + key + ".dat"
+        )
         if not geoip_file or not os.path.isfile(geoip_file):
             continue
         timestamp = os.stat(geoip_file).st_mtime

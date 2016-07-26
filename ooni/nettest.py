@@ -2,7 +2,6 @@ import os
 import re
 import time
 import sys
-from hashlib import sha256
 
 from twisted.internet import defer
 from twisted.trial.runner import filenameToModule
@@ -199,6 +198,7 @@ class NetTestLoader(object):
             'probe_city': config.probe_ip.geodata['city'],
             'software_name': 'ooniprobe',
             'software_version': ooniprobe_version,
+            # XXX only sanitize the input files
             'options': sanitize_options(self.options),
             'annotations': self.annotations,
             'data_format_version': '0.2.0',
@@ -206,8 +206,8 @@ class NetTestLoader(object):
             'test_version': self.testVersion,
             'test_helpers': self.testHelpers,
             'test_start_time': otime.timestampNowLongUTC(),
-            'input_hashes': [input_file['hash']
-                             for input_file in self.inputFiles],
+            # XXX We should deprecate this key very soon
+            'input_hashes': [],
             'report_id': self.reportId
         }
 
@@ -235,29 +235,14 @@ class NetTestLoader(object):
         input_file = {
             'key': key,
             'test_options': self.localOptions,
-            'hash': None,
-
-            'url': None,
-            'address': None,
-
             'filename': None
         }
         m = ONION_INPUT_REGEXP.match(filename)
         if m:
-            input_file['url'] = filename
-            input_file['address'] = m.group(1)
-            input_file['hash'] = m.group(2)
+            raise e.InvalidInputFile("Input files hosted on hidden services "
+                                     "are not longer supported")
         else:
             input_file['filename'] = filename
-            try:
-                with open(filename) as f:
-                    h = sha256()
-                    for l in f:
-                        h.update(l)
-            except Exception as exc:
-                log.exception(exc)
-                raise e.InvalidInputFile(filename)
-            input_file['hash'] = h.hexdigest()
         self.inputFiles.append(input_file)
 
     def _accumulateTestOptions(self, test_class):

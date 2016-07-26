@@ -49,6 +49,15 @@ class croniter(object):
         {},
     )
 
+    ALIASES = {
+        '@yearly':  '0 0 1 1 *',
+        '@annually':  '0 0 1 1 *',
+        '@monthly': '0 0 1 * *',
+        '@weekly':  '0 0 * * 0',
+        '@daily':   '0 0 * * *',
+        '@hourly':  '0 * * * *',
+    }
+
     bad_length = 'Exactly 5 or 6 columns has to be specified for iterator' \
                  'expression.'
 
@@ -63,6 +72,8 @@ class croniter(object):
             start_time = self._datetime_to_timestamp(start_time)
 
         self.cur = start_time
+        if expr_format in self.ALIASES:
+            expr_format = self.ALIASES[expr_format]
         self.exprs = expr_format.split()
 
         if len(self.exprs) != 5 and len(self.exprs) != 6:
