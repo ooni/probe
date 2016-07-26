@@ -305,7 +305,8 @@ def createDeck(global_options, url=None):
     return deck
 
 
-def runTestWithDirector(director, global_options, url=None, start_tor=True,
+def runTestWithDirector(director, global_options, url=None,
+                        start_tor=True,
                         create_input_store=True):
     deck = createDeck(global_options, url=url)
 

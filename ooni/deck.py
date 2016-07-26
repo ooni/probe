@@ -4,7 +4,6 @@ import csv
 import json
 
 from copy import deepcopy
-from hashlib import sha256
 
 import yaml
 
@@ -236,7 +235,8 @@ def lookup_collector_and_test_helpers(net_test_loaders,
             'name': net_test_loader.testName,
             'version': net_test_loader.testVersion,
             'test-helpers': [],
-            'input-hashes': [x['hash'] for x in net_test_loader.inputFiles]
+            # XXX deprecate this very soon
+            'input-hashes': []
         }
         if not net_test_loader.collector and not no_collector:
             requires_collector = True
@@ -262,15 +262,16 @@ def lookup_collector_and_test_helpers(net_test_loaders,
         log.err("Could not find any reachable test helpers")
         raise
 
-    def find_collector_and_test_helpers(test_name, test_version, input_files):
-        input_files = [u""+x['hash'] for x in input_files]
+    def find_collector_and_test_helpers(test_name, test_version):
+        # input_files = [u""+x['hash'] for x in input_files]
         for net_test in provided_net_tests:
             if net_test['name'] != test_name:
                 continue
             if net_test['version'] != test_version:
                 continue
-            if set(net_test['input-hashes']) != set(input_files):
-                continue
+            # XXX remove the notion of policies based on input file hashes
+            # if set(net_test['input-hashes']) != set(input_files):
+            #    continue
             return net_test['collector'], net_test['test-helpers']
 
     for net_test_loader in net_test_loaders:
@@ -280,8 +281,8 @@ def lookup_collector_and_test_helpers(net_test_loaders,
         collector, test_helpers = \
             find_collector_and_test_helpers(
                 test_name=net_test_loader.testName,
-                test_version=net_test_loader.testVersion,
-                input_files=net_test_loader.inputFiles
+                test_version=net_test_loader.testVersion
+                # input_files=net_test_loader.inputFiles
             )
 
         for option, name in net_test_loader.missingTestHelpers:
@@ -455,6 +456,7 @@ class InputStore(object):
                     "id": "citizenlab_{0}_urls".format(cc),
                     "type": "file/url"
                 }, out_fh)
+        self._cache_stale = True
 
     @defer.inlineCallbacks
     def create(self, country_code=None):
@@ -523,13 +525,11 @@ def resolve_file_path(v, prepath=None):
         return FilePath(prepath).preauthChild(v).path
     return v
 
-def options_to_args(options, prepath=None):
+def options_to_args(options):
     args = []
     for k, v in options.items():
         if v is None:
             continue
-        if k == "file":
-            v = resolve_file_path(v, prepath)
         if v == False or v == 0:
             continue
         if (len(k)) == 1:
@@ -625,7 +625,7 @@ class DeckTask(object):
             collector_address = None
 
         net_test_loader = NetTestLoader(
-            options_to_args(task_data, self.cwd),
+            options_to_args(task_data),
             annotations=annotations,
             test_file=nettest_path
         )
@@ -653,6 +653,9 @@ class DeckTask(object):
         self.ooni['net_test_loader'] = net_test_loader
 
     def _setup_ooni(self):
+        for input_file in self.ooni['net_test_loader'].inputFiles:
+            file_path = resolve_file_path(input_file['filename'], self.cwd)
+            input_file['test_options'][input_file['key']] = file_path
         self.ooni['test_details'] = self.ooni['net_test_loader'].getTestDetails()
         self.id = generate_filename(self.ooni['test_details'])
 
@@ -670,15 +673,8 @@ class DeckTask(object):
         if task_type not in self._supported_tasks:
             raise UnknownTaskKey(task_type)
         self.type = task_type
-        try:
-            getattr(self, "_load_"+task_type)(task_data)
-        except InputNotFound:
-            log.debug(
-                "Will skip running this test because I can't find the input"
-            )
-            self._skip = True
-
-        assert len(data) == 0
+        getattr(self, "_load_"+task_type)(task_data)
+        assert len(data) == 0, "Got an unidentified key"
 
 class NotAnOption(Exception):
     pass

@@ -101,6 +101,8 @@ class OConfig(object):
         else:
             self.inputs_directory = os.path.join(self.ooni_home, 'inputs')
 
+        self.scheduler_directory = os.path.join(self.ooni_home, 'scheduler')
+
         if self.advanced.decks_dir:
             self.decks_directory = self.advanced.decks_dir
         else:

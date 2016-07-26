@@ -13,6 +13,7 @@ from ooni.settings import config
 from ooni.nettest import normalizeTestName
 from ooni.deck import InputStore
 
+from ooni.agent.scheduler import run_system_tasks
 from ooni.utils.onion import start_tor, connect_to_control_port
 
 class DirectorEvent(object):
@@ -139,12 +140,15 @@ class Director(object):
         self._tor_starting.addCallback(self._tor_startup_success)
 
     def _tor_startup_failure(self, failure):
+        log.msg("Failed to start tor")
+        log.exception(failure)
         self._reset_tor_state()
         self.notify(DirectorEvent("error",
                                   "Failed to start Tor"))
         return failure
 
     def _tor_startup_success(self, result):
+        log.msg("Tor has started")
         self._tor_state = 'running'
         self.notify(DirectorEvent("success",
                                   "Successfully started Tor"))
@@ -187,22 +191,21 @@ class Director(object):
         if start_tor:
             yield self.start_tor(check_incoherences)
 
-        if config.global_options.get('no-geoip'):
+        no_geoip = config.global_options.get('no-geoip', False)
+        if no_geoip:
             aux = [False]
             if config.global_options.get('annotations') is not None:
                 annotations = [k.lower() for k in config.global_options['annotations'].keys()]
                 aux = map(lambda x: x in annotations, ["city", "country", "asn"])
             if not all(aux):
                 log.msg("You should add annotations for the country, city and ASN")
-        else:
-            yield config.probe_ip.lookup()
-            self.notify(DirectorEvent("success",
-                                      "Looked up Probe IP"))
 
-        if create_input_store:
-            yield self.input_store.create(config.probe_ip.geodata["countrycode"])
-            self.notify(DirectorEvent("success",
-                                      "Created input store"))
+        self.notify(DirectorEvent("success",
+                                  "Running system tasks"))
+        yield run_system_tasks(no_geoip=no_geoip,
+                               no_input_store=not create_input_store)
+        self.notify(DirectorEvent("success",
+                                  "Ran system tasks"))
 
     @defer.inlineCallbacks
     def start(self, start_tor=False, check_incoherences=True,
@@ -284,7 +287,8 @@ class Director(object):
 
     def netTestDone(self, net_test):
         self.notify(DirectorEvent("success",
-                                  "Successfully ran net_test"))
+                                  "Successfully ran test {0}".format(
+                                      net_test.testDetails['test_name'])))
         self.activeNetTests.remove(net_test)
         if len(self.activeNetTests) == 0:
             self.allTestsDone.callback(None)
@@ -371,13 +375,18 @@ class Director(object):
             log.debug("Tor is already running")
             defer.returnValue(self._tor_state)
         elif self._tor_state == 'starting':
+            log.debug("Tor is starting")
             yield self._tor_starting
             defer.returnValue(self._tor_state)
 
         log.msg("Starting Tor...")
         self._tor_state = 'starting'
         if check_incoherences:
-            yield config.check_tor()
+            try:
+                yield config.check_tor()
+            except Exception as exc:
+                self._tor_starting.errback(Failure(exc))
+                raise exc
 
         if config.advanced.start_tor and config.tor_state is None:
             tor_config = TorConfig()
@@ -438,3 +447,7 @@ class Director(object):
                 self._tor_starting.callback(self._tor_state)
             except Exception as exc:
                 self._tor_starting.errback(Failure(exc))
+        else:
+            # This happens when we require tor to not be started and the
+            # socks port is set.
+            self._tor_starting.callback(self._tor_state)
