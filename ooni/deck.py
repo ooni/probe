@@ -435,6 +435,8 @@ class DeckTask(object):
         self.cwd = cwd
         self.data = deepcopy(data)
 
+        self._skip = False
+
         self.id = ""
 
         self.type = None
@@ -473,7 +475,7 @@ class DeckTask(object):
                                        self._arbitrary_paths)
 
         annotations = self._get_option('annotations', task_data, {})
-        collector_address = self._get_option('collector', task_data, {})
+        collector_address = self._get_option('collector', task_data, None)
 
         try:
             self.output_path = self.global_options['reportfile']
@@ -529,7 +531,13 @@ class DeckTask(object):
         if task_type not in self._supported_tasks:
             raise UnknownTaskKey(task_type)
         self.type = task_type
-        getattr(self, "_load_"+task_type)(task_data)
+        try:
+            getattr(self, "_load_"+task_type)(task_data)
+        except InputNotFound:
+            log.debug(
+                "Will skip running this test because I can't find the input"
+            )
+            self._skip = True
 
         assert len(data) == 0
 
@@ -791,6 +799,9 @@ class NGDeck(object):
             yield director.start_tor()
         yield self.query_bouncer()
         for task in self._tasks:
+            if task._skip is True:
+                log.msg("Skipping running {0}".format(task.name))
+                continue
             if task.type == "ooni":
                 yield self._run_ooni_task(task, director)
         self._is_setup = False

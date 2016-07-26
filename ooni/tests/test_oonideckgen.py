@@ -28,9 +28,10 @@ class TestOONIDeckgen(ConfigTestCase):
         temp_dir = tempfile.mkdtemp()
         oonideckgen.generate_deck({
             "country-code": "it",
-            "output": temp_dir,
+            "output": os.path.join(temp_dir, 'default-deck.yaml'),
             "collector": None,
             "bouncer": None
         })
-        with open(os.path.join(temp_dir, "default-user.deck")) as f:
-            self.assertEqual(len(yaml.safe_load(f)), 3)
+        with open(os.path.join(temp_dir, "default-deck.yaml")) as f:
+            deck_data = yaml.safe_load(f)
+            self.assertEqual(len(deck_data['tasks']), 4)

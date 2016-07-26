@@ -305,10 +305,11 @@ def createDeck(global_options, url=None):
     return deck
 
 
-def runTestWithDirector(director, global_options, url=None, start_tor=True):
+def runTestWithDirector(director, global_options, url=None, start_tor=True,
+                        create_input_store=True):
     deck = createDeck(global_options, url=url)
 
-    d = director.start()
+    d = director.start(create_input_store=create_input_store)
     @defer.inlineCallbacks
     def post_director_start(_):
         try:
@@ -328,7 +329,7 @@ def runTestWithDirector(director, global_options, url=None, start_tor=True):
     d.addErrback(director_startup_other_failures)
     return d
 
-def runWithDirector(global_options):
+def runWithDirector(global_options, create_input_store=True):
     """
     Instance the director, parse command line options and start an ooniprobe
     test!
@@ -381,9 +382,12 @@ def runWithDirector(global_options):
             config.advanced.get("preferred_backend", "onion") == "onion"):
         start_tor |= True
 
-    return runTestWithDirector(director=director,
-                               start_tor=start_tor,
-                               global_options=global_options)
+    return runTestWithDirector(
+        director=director,
+        start_tor=start_tor,
+        global_options=global_options,
+        create_input_store=create_input_store
+    )
 
 
 # this variant version of runWithDirector splits the process in two,
