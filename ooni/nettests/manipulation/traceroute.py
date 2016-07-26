@@ -31,6 +31,7 @@ class Traceroute(scapyt.BaseScapyTest):
                   "set to 0, 22, 23, 53, 80, 123, 443, 8080 and 65535."
 
     requiredTestHelpers = {'backend': 'traceroute'}
+    requiredOptions = ['backend']
     requiresRoot = True
     requiresTor = False
 
@@ -63,9 +64,9 @@ class Traceroute(scapyt.BaseScapyTest):
         st.stopListening()
         st.matchResponses()
         for packet in st.sent_packets:
-            self.report['sent_packets'].append(packet)
+            self.report['sent_packets'].append(scapyt.representPacket(packet))
         for packet in st.matched_packets.values():
-            self.report['answered_packets'].extend(packet)
+            self.report['answered_packets'].append(scapyt.representPacket(packet))
 
         for ttl in xrange(st.ttl_min, st.ttl_max):
             matchedPackets = filter(
