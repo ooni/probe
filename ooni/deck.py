@@ -24,59 +24,6 @@ from ooni.utils import log
 
 from ooni.results import generate_summary
 
-class InputFile(object):
-    def __init__(self, input_hash, base_path=config.inputs_directory):
-        self.id = input_hash
-        cache_path = os.path.join(os.path.abspath(base_path), input_hash)
-        self.cached_file = cache_path
-        self.cached_descriptor = cache_path + '.desc'
-
-    @property
-    def descriptorCached(self):
-        if os.path.exists(self.cached_descriptor):
-            with open(self.cached_descriptor) as f:
-                descriptor = json.load(f)
-                self.load(descriptor)
-            return True
-        return False
-
-    @property
-    def fileCached(self):
-        if os.path.exists(self.cached_file):
-            try:
-                self.verify()
-            except AssertionError:
-                log.err("The input %s failed validation."
-                        "Going to consider it not cached." % self.id)
-                return False
-            return True
-        return False
-
-    def save(self):
-        with open(self.cached_descriptor, 'w+') as f:
-            json.dump({
-                'name': self.name,
-                'id': self.id,
-                'version': self.version,
-                'author': self.author,
-                'date': self.date,
-                'description': self.description
-            }, f)
-
-    def load(self, descriptor):
-        self.name = descriptor['name']
-        self.version = descriptor['version']
-        self.author = descriptor['author']
-        self.date = descriptor['date']
-        self.description = descriptor['description']
-
-    def verify(self):
-        digest = os.path.basename(self.cached_file)
-        with open(self.cached_file) as f:
-            file_hash = sha256(f.read())
-            assert file_hash.hexdigest() == digest
-
-
 def nettest_to_path(path, allow_arbitrary_paths=False):
     """
     Takes as input either a path or a nettest name.
@@ -136,144 +83,7 @@ def get_preferred_bouncer():
     else:
         return BouncerClient(bouncer_address)
 
-class Deck(InputFile):
-    # this exists so we can mock it out in unittests
-    _BouncerClient = BouncerClient
-    _CollectorClient = CollectorClient
-
-    def __init__(self, deck_hash=None,
-                 bouncer=None,
-                 decks_directory=config.decks_directory,
-                 no_collector=False):
-        self.id = deck_hash
-        self.no_collector = no_collector
-
-        self.preferred_backend = config.advanced.get(
-            "preferred_backend", "onion"
-        )
-        if self.preferred_backend not in ["onion", "https", "cloudfront"]:
-            raise e.InvalidPreferredBackend
-
-        if bouncer is None:
-            bouncer_address = getattr(
-                constants, "CANONICAL_BOUNCER_{0}".format(
-                    self.preferred_backend.upper()
-                )
-            )
-            if self.preferred_backend == "cloudfront":
-                self.bouncer = self._BouncerClient(settings={
-                    'address': bouncer_address[0],
-                    'front': bouncer_address[1],
-                    'type': 'cloudfront'
-                })
-            else:
-                self.bouncer = self._BouncerClient(bouncer_address)
-        else:
-            self.bouncer = self._BouncerClient(bouncer)
-
-        self.requiresTor = False
-
-        self.netTestLoaders = []
-        self.inputs = []
-
-        self.decksDirectory = os.path.abspath(decks_directory)
-
-    @property
-    def cached_file(self):
-        return os.path.join(self.decksDirectory, self.id)
-
-    @property
-    def cached_descriptor(self):
-        return self.cached_file + '.desc'
-
-    def loadDeck(self, deckFile, global_options={}):
-        with open(deckFile) as f:
-            self.id = sha256(f.read()).hexdigest()
-            f.seek(0)
-            test_deck = yaml.safe_load(f)
-
-        for test in test_deck:
-            try:
-                nettest_path = nettest_to_path(test['options']['test_file'])
-            except e.NetTestNotFound:
-                log.err("Could not find %s" % test['options']['test_file'])
-                log.msg("Skipping...")
-                continue
-
-            annotations = test['options'].get('annotations', {})
-            if global_options.get('annotations') is not None:
-                annotations = global_options["annotations"]
-
-            collector_address = test['options'].get('collector', None)
-            if global_options.get('collector') is not None:
-                collector_address = global_options['collector']
-
-            net_test_loader = NetTestLoader(test['options']['subargs'],
-                                            annotations=annotations,
-                                            test_file=nettest_path)
-            if collector_address is not None:
-                net_test_loader.collector = CollectorClient(
-                    collector_address
-                )
-            if test['options'].get('bouncer', None) is not None:
-                self.bouncer = self._BouncerClient(test['options']['bouncer'])
-                if self.bouncer.backend_type is "onion":
-                    self.requiresTor = True
-            self.insert(net_test_loader)
-
-    def insert(self, net_test_loader):
-        """ Add a NetTestLoader to this test deck """
-        if (net_test_loader.collector is not None
-                and net_test_loader.collector.backend_type is "onion"):
-            self.requiresTor = True
-        try:
-            net_test_loader.checkOptions()
-            if net_test_loader.requiresTor:
-                self.requiresTor = True
-        except e.MissingTestHelper:
-            if self.preferred_backend is "onion":
-                self.requiresTor = True
-
-        self.netTestLoaders.append(net_test_loader)
-
-    @defer.inlineCallbacks
-    def setup(self):
-        """ fetch and verify inputs for all NetTests in the deck """
-        log.msg("Fetching required net test inputs...")
-        for net_test_loader in self.netTestLoaders:
-            # XXX figure out if we want to keep this or drop this.
-            yield self.fetchAndVerifyNetTestInput(net_test_loader)
-
-        if self.bouncer:
-            log.msg("Looking up collector and test helpers with {0}".format(
-                self.bouncer.base_address))
-            yield lookup_collector_and_test_helpers(self.netTestLoaders,
-                                                    self.bouncer,
-                                                    self.preferred_backend,
-                                                    self.no_collector)
-
-    @defer.inlineCallbacks
-    def fetchAndVerifyNetTestInput(self, net_test_loader):
-        """ fetch and verify a single NetTest's inputs """
-        log.debug("Fetching and verifying inputs")
-        for i in net_test_loader.inputFiles:
-            if i['url']:
-                log.debug("Downloading %s" % i['url'])
-                oonibclient = self._CollectorClient(i['address'])
-
-                try:
-                    input_file = yield oonibclient.downloadInput(i['hash'])
-                except:
-                    raise e.UnableToLoadDeckInput
-
-                try:
-                    input_file.verify()
-                except AssertionError:
-                    raise e.UnableToLoadDeckInput
-
-                i['test_options'][i['key']] = input_file.cached_file
-
-
+@defer.inlineCallbacks
 def lookup_collector_and_test_helpers(net_test_loaders,
                                       bouncer,
                                       preferred_backend,
@@ -329,18 +139,20 @@ def lookup_collector_and_test_helpers(net_test_loaders,
                 net_test_loader.testName)
 
         collector, test_helpers = \
-            find_collector_and_test_helpers(test_name=net_test_loader.testName,
-                                            test_version=net_test_loader.testVersion,
-                                            input_files=net_test_loader.inputFiles)
+            find_collector_and_test_helpers(
+                test_name=net_test_loader.testName,
+                test_version=net_test_loader.testVersion,
+                input_files=net_test_loader.inputFiles
+            )
 
         for option, name in net_test_loader.missingTestHelpers:
             test_helper_address_or_settings = test_helpers[name]
             net_test_loader.localOptions[option] = test_helper_address_or_settings
             net_test_loader.testHelpers[option] = test_helper_address_or_settings
 
-        if not net_test_loader.collector:
+        if not net_test_loader.collector and not no_collector:
+            log.debug("Using collector {0}".format(collector))
             net_test_loader.collector = collector
-
 
 @defer.inlineCallbacks
 def get_reachable_test_helpers_and_collectors(net_tests, preferred_backend):
@@ -579,9 +391,28 @@ def options_to_args(options, prepath=None):
             continue
         if k == "file":
             v = resolve_file_path(v, prepath)
-        args.append('--'+k)
+        if v == False or v == 0:
+            continue
+        if (len(k)) == 1:
+            args.append('-'+k)
+        else:
+            args.append('--'+k)
+        if isinstance(v, bool) or isinstance(v, int):
+            continue
         args.append(v)
     return args
+
+def normalize_options(options):
+    """
+    Takes some options that have a mixture of - and _ and returns the
+    equivalent options with only '_'.
+    """
+    normalized_opts = {}
+    for k, v in options.items():
+        normalized_key = k.replace('-', '_')
+        assert normalized_key not in normalized_opts, "The key {0} cannot be normalized".format(k)
+        normalized_opts[normalized_key] = v
+    return normalized_opts
 
 class UnknownTaskKey(Exception):
     pass
@@ -593,8 +424,14 @@ class DeckTask(object):
     _metadata_keys = ["name"]
     _supported_tasks = ["ooni"]
 
-    def __init__(self, data, parent_metadata={}, cwd=None):
-        self.parent_metadata = parent_metadata
+    def __init__(self, data,
+                 parent_metadata={},
+                 global_options={},
+                 cwd=None,
+                 arbitrary_paths=False):
+
+        self.parent_metadata = normalize_options(parent_metadata)
+        self.global_options = global_options
         self.cwd = cwd
         self.data = deepcopy(data)
 
@@ -605,10 +442,16 @@ class DeckTask(object):
         self.requires_tor = False
         self.requires_bouncer = False
 
+        # If this is set to true a deck can specify any path. It should only
+        #  be run against trusted decks or when you create a deck
+        # programmaticaly to a run test specified from the command line.
+        self._arbitrary_paths = arbitrary_paths
+
         self.ooni = {
             'bouncer_client': None,
             'test_details': {}
         }
+        self.output_path = None
 
         self._load(data)
 
@@ -619,7 +462,8 @@ class DeckTask(object):
                 raise MissingTaskDataKey(required_key)
 
         # This raises e.NetTestNotFound, we let it go onto the caller
-        nettest_path = nettest_to_path(task_data.pop("test_name"))
+        nettest_path = nettest_to_path(task_data.pop("test_name"),
+                                       self._arbitrary_paths)
 
         try:
             annotations = task_data.pop('annotations')
@@ -631,8 +475,16 @@ class DeckTask(object):
         except KeyError:
             collector_address = self.parent_metadata.get('collector', None)
 
+        try:
+            self.output_path = task_data.pop('reportfile')
+        except KeyError:
+            self.output_path = self.global_options.get('reportfile', None)
+
+        if task_data.get('no-collector', False):
+            collector_address = None
+
         net_test_loader = NetTestLoader(
-            options_to_args(task_data),
+            options_to_args(task_data, self.cwd),
             annotations=annotations,
             test_file=nettest_path
         )
@@ -658,10 +510,13 @@ class DeckTask(object):
             self.requires_bouncer = True
 
         self.ooni['net_test_loader'] = net_test_loader
-        # Need to ensure that this is called only once we have looked up the
-        #  probe IP address and have geoip data.
-        self.ooni['test_details'] = net_test_loader.getTestDetails()
+
+    def _setup_ooni(self):
+        self.ooni['test_details'] = self.ooni['net_test_loader'].getTestDetails()
         self.id = generate_filename(self.ooni['test_details'])
+
+    def setup(self):
+        getattr(self, "_setup_"+self.type)()
 
     def _load(self, data):
         for key in self._metadata_keys:
@@ -678,11 +533,81 @@ class DeckTask(object):
 
         assert len(data) == 0
 
+class NotAnOption(Exception):
+    pass
+
+def subargs_to_options(subargs):
+    options = {}
+
+    def parse_option_name(arg):
+        if arg.startswith("--"):
+            return arg[2:]
+        elif arg.startswith("-"):
+            return arg[1:]
+        raise NotAnOption
+
+    subargs = iter(reversed(subargs))
+    for subarg in subargs:
+        try:
+            value = subarg
+            name = parse_option_name(subarg)
+            options[name] = True
+        except NotAnOption:
+            try:
+                name = parse_option_name(subargs.next())
+                options[name] = value
+            except StopIteration:
+                break
+
+    return options
+
+def convert_legacy_deck(deck_data):
+    """
+    I take a legacy deck list and convert it to the new deck format.
+
+    :param deck_data: in the legacy format
+    :return: deck_data in the new format
+    """
+    assert isinstance(deck_data, list), "Legacy decks are lists"
+    new_deck_data = {}
+    new_deck_data["name"] = "Legacy deck"
+    new_deck_data["description"] = "This is a legacy deck converted to the " \
+                                   "new format"
+    new_deck_data["bouncer"] = None
+    new_deck_data["tasks"] = []
+    for deck_item in deck_data:
+        deck_task = {"ooni": {}}
+
+        options = deck_item["options"]
+        deck_task["ooni"]["test_name"] = options.pop("test_file")
+        deck_task["ooni"]["annotations"] = options.pop("annotations", {})
+        deck_task["ooni"]["collector"] = options.pop("collector", None)
+
+        # XXX here we end up picking only the last not none bouncer_address
+        bouncer_address = options.pop("bouncer", None)
+        if bouncer_address is not None:
+            new_deck_data["bouncer"] = bouncer_address
+
+        subargs = options.pop("subargs", [])
+        for name, value in subargs_to_options(subargs).items():
+            deck_task["ooni"][name] = value
+
+        for name, value in options.items():
+            deck_task["ooni"][name] = value
+
+        new_deck_data["tasks"].append(deck_task)
+
+    return new_deck_data
+
 class NGDeck(object):
-    def __init__(self, deck_data=None,
-                 deck_path=None, no_collector=False):
+    def __init__(self,
+                 deck_data=None,
+                 deck_path=None,
+                 global_options={},
+                 no_collector=False,
+                 arbitrary_paths=False):
         # Used to resolve relative paths inside of decks.
-        self.deck_directory = None
+        self.deck_directory = os.getcwd()
         self.requires_tor = False
         self.no_collector = no_collector
         self.name = ""
@@ -690,7 +615,11 @@ class NGDeck(object):
         self.schedule = None
 
         self.metadata = {}
+        self.global_options = normalize_options(global_options)
         self.bouncer = None
+
+        self._arbitrary_paths = arbitrary_paths
+        self._is_setup = False
 
         self._measurement_path = FilePath(config.measurements_directory)
         self._tasks = []
@@ -701,10 +630,62 @@ class NGDeck(object):
         elif deck_data is not None:
             self.load(deck_data)
 
-    def open(self, deck_path):
+    def open(self, deck_path, global_options=None):
         with open(deck_path) as fh:
             deck_data = yaml.safe_load(fh)
-        self.load(deck_data)
+        self.deck_directory = os.path.abspath(os.path.dirname(deck_path))
+        self.load(deck_data, global_options)
+
+    def load(self, deck_data, global_options=None):
+        if global_options is not None:
+            self.global_options = global_options
+
+        if isinstance(deck_data, list):
+            deck_data = convert_legacy_deck(deck_data)
+
+        self.name = deck_data.pop("name", "Un-named Deck")
+        self.description = deck_data.pop("description", "No description")
+
+        bouncer_address = self.global_options.get('bouncer',
+                                                  deck_data.pop("bouncer", None))
+        if bouncer_address is None:
+            self.bouncer = get_preferred_bouncer()
+        elif isinstance(bouncer_address, dict):
+            self.bouncer = BouncerClient(settings=bouncer_address)
+        else:
+            self.bouncer = BouncerClient(bouncer_address)
+
+        self.schedule = deck_data.pop("schedule", None)
+
+        tasks_data = deck_data.pop("tasks", [])
+        for key, metadata in deck_data.items():
+            self.metadata[key] = metadata
+
+        # We override the task metadata with the global options if present
+        self.metadata.update(self.global_options)
+
+        for task_data in tasks_data:
+            deck_task = DeckTask(
+                data=task_data,
+                parent_metadata=self.metadata,
+                global_options=self.global_options,
+                cwd=self.deck_directory,
+                arbitrary_paths=self._arbitrary_paths
+            )
+            if deck_task.requires_tor:
+                self.requires_tor = True
+            if (deck_task.requires_bouncer and
+                    self.bouncer.backend_type == "onion"):
+                self.requires_tor = True
+            self._tasks.append(deck_task)
+            self.task_ids.append(deck_task.id)
+
+        if self.metadata.get('no_collector', False):
+            self.no_collector = True
+
+    @property
+    def tasks(self):
+        return self._tasks
 
     def write(self, fh):
         """
@@ -725,34 +706,6 @@ class NGDeck(object):
         fh.write("---\n")
         yaml.safe_dump(deck_data, fh, default_flow_style=False)
 
-    def load(self, deck_data):
-        self.name = deck_data.pop("name", "Un-named Deck")
-        self.description = deck_data.pop("description", "No description")
-
-        bouncer_address = deck_data.pop("bouncer", None)
-        if bouncer_address is None:
-            self.bouncer = get_preferred_bouncer()
-        elif isinstance(bouncer_address, dict):
-            self.bouncer = BouncerClient(settings=bouncer_address)
-        else:
-            self.bouncer = BouncerClient(bouncer_address)
-
-        self.schedule = deck_data.pop("schedule", None)
-
-        tasks_data = deck_data.pop("tasks", [])
-        for key, metadata in deck_data.items():
-            self.metadata[key] = metadata
-
-        for task_data in tasks_data:
-            deck_task = DeckTask(task_data, self.metadata, self.deck_directory)
-            if deck_task.requires_tor:
-                self.requires_tor = True
-            if (deck_task.requires_bouncer and
-                    self.bouncer.backend_type == "onion"):
-                self.requires_tor = True
-            self._tasks.append(deck_task)
-            self.task_ids.append(deck_task.id)
-
     @defer.inlineCallbacks
     def query_bouncer(self):
         preferred_backend = config.advanced.get(
@@ -772,60 +725,74 @@ class NGDeck(object):
             preferred_backend,
             self.no_collector
         )
+        defer.returnValue(net_test_loaders)
 
-    def _measurement_completed(self, result, measurement_id):
-        log.msg("{0}".format(result))
-        measurement_dir = self._measurement_path.child(measurement_id)
-        measurement_dir.child("measurements.njson.progress").moveTo(
-            measurement_dir.child("measurements.njson")
-        )
-        generate_summary(
-            measurement_dir.child("measurements.njson").path,
-            measurement_dir.child("summary.json").path
-        )
-        measurement_dir.child("running.pid").remove()
+    def _measurement_completed(self, result, task):
+        if not task.output_path:
+            measurement_id = task.id
+            measurement_dir = self._measurement_path.child(measurement_id)
+            measurement_dir.child("measurements.njson.progress").moveTo(
+                measurement_dir.child("measurements.njson")
+            )
+            generate_summary(
+                measurement_dir.child("measurements.njson").path,
+                measurement_dir.child("summary.json").path
+            )
+            measurement_dir.child("running.pid").remove()
 
-    def _measurement_failed(self, failure, measurement_id):
-        measurement_dir = self._measurement_path.child(measurement_id)
-        measurement_dir.child("running.pid").remove()
-        # XXX do we also want to delete measurements.njson.progress?
+    def _measurement_failed(self, failure, task):
+        if not task.output_path:
+            # XXX do we also want to delete measurements.njson.progress?
+            measurement_id = task.id
+            measurement_dir = self._measurement_path.child(measurement_id)
+            measurement_dir.child("running.pid").remove()
         return failure
 
     def _run_ooni_task(self, task, director):
         net_test_loader = task.ooni["net_test_loader"]
         test_details = task.ooni["test_details"]
-        measurement_id = task.id
 
-        measurement_dir = self._measurement_path.child(measurement_id)
-        measurement_dir.createDirectory()
+        report_filename = task.output_path
+        if not task.output_path:
+            measurement_id = task.id
 
-        report_filename = measurement_dir.child("measurements.njson.progress").path
-        pid_file = measurement_dir.child("running.pid")
+            measurement_dir = self._measurement_path.child(measurement_id)
+            measurement_dir.createDirectory()
 
-        with pid_file.open('w') as out_file:
-            out_file.write("{0}".format(os.getpid()))
+            report_filename = measurement_dir.child("measurements.njson.progress").path
+            pid_file = measurement_dir.child("running.pid")
+
+            with pid_file.open('w') as out_file:
+                out_file.write("{0}".format(os.getpid()))
 
         d = director.start_net_test_loader(
             net_test_loader,
             report_filename,
+            collector_client=net_test_loader.collector,
             test_details=test_details
         )
-        d.addCallback(self._measurement_completed, measurement_id)
-        d.addErrback(self._measurement_failed, measurement_id)
+        d.addCallback(self._measurement_completed, task)
+        d.addErrback(self._measurement_failed, task)
         return d
+
+    def setup(self):
+        """
+        This method needs to be called before you are able to run a deck.
+        """
+        for task in self._tasks:
+            task.setup()
+        self._is_setup = True
 
     @defer.inlineCallbacks
     def run(self, director):
-        tasks = []
-        preferred_backend = config.advanced.get("preferred_backend", "onion")
+        assert self._is_setup, "You must call setup() before you can run a " \
+                               "deck"
+        if self.requires_tor:
+            yield director.start_tor()
         yield self.query_bouncer()
         for task in self._tasks:
-            if task.requires_tor:
-                yield director.start_tor()
-            elif task.requires_bouncer and preferred_backend == "onion":
-                yield director.start_tor()
             if task.type == "ooni":
-                tasks.append(self._run_ooni_task(task, director))
-        defer.returnValue(tasks)
+                yield self._run_ooni_task(task, director)
+        self._is_setup = False
 
 input_store = InputStore()

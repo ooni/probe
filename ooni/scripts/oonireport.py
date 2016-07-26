@@ -202,7 +202,7 @@ def tor_check():
         sys.exit(1)
 
 
-def oonireport(args=sys.argv[1:]):
+def oonireport(reactor, args=sys.argv[1:]):
     options = Options()
     try:
         options.parseOptions(args)
