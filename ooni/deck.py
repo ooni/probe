@@ -455,6 +455,13 @@ class DeckTask(object):
 
         self._load(data)
 
+    def _get_option(self, name, task_data, default=None):
+        try:
+            return self.global_options[name]
+        except KeyError:
+            return task_data.pop(name,
+                                 self.parent_metadata.get(name, default))
+
     def _load_ooni(self, task_data):
         required_keys = ["test_name"]
         for required_key in required_keys:
@@ -465,20 +472,13 @@ class DeckTask(object):
         nettest_path = nettest_to_path(task_data.pop("test_name"),
                                        self._arbitrary_paths)
 
-        try:
-            annotations = task_data.pop('annotations')
-        except KeyError:
-            annotations = self.parent_metadata.get('annotations', {})
+        annotations = self._get_option('annotations', task_data, {})
+        collector_address = self._get_option('collector', task_data, {})
 
         try:
-            collector_address = task_data.pop('collector')
+            self.output_path = self.global_options['reportfile']
         except KeyError:
-            collector_address = self.parent_metadata.get('collector', None)
-
-        try:
-            self.output_path = task_data.pop('reportfile')
-        except KeyError:
-            self.output_path = self.global_options.get('reportfile', None)
+            self.output_path = task_data.pop('reportfile', None)
 
         if task_data.get('no-collector', False):
             collector_address = None
@@ -638,7 +638,7 @@ class NGDeck(object):
 
     def load(self, deck_data, global_options=None):
         if global_options is not None:
-            self.global_options = global_options
+            self.global_options = normalize_options(global_options)
 
         if isinstance(deck_data, list):
             deck_data = convert_legacy_deck(deck_data)

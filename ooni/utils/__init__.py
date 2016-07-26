@@ -109,8 +109,8 @@ def generate_filename(test_details, prefix=None, extension=None):
         kwargs["extension"] = extension
         filename_format += ".{extension}"
     kwargs['test_name']  = test_details['test_name']
-    kwargs['probe_cc']  = test_details['probe_cc']
-    kwargs['probe_asn']  = test_details['probe_asn']
+    kwargs['probe_cc']  = test_details.get('probe_cc', 'ZZ')
+    kwargs['probe_asn']  = test_details.get('probe_asn', 'AS0')
     kwargs['timestamp'] = datetime.strptime(test_details['test_start_time'],
                                             LONG_DATE).strftime(SHORT_DATE)
     return filename_format.format(**kwargs)

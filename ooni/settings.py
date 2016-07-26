@@ -131,10 +131,11 @@ class OConfig(object):
             self._custom_home = custom_home
             self.set_paths()
 
-        if not os.path.isdir(self.ooni_home):
+        ooni_home = self.ooni_home
+        if not os.path.isdir(ooni_home):
             print "Ooni home directory does not exist."
-            print "Creating it in '%s'." % self.ooni_home
-            os.mkdir(self.ooni_home)
+            print "Creating it in '%s'." % ooni_home
+            os.mkdir(ooni_home)
             os.mkdir(self.inputs_directory)
             os.mkdir(self.decks_directory)
 

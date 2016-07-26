@@ -105,7 +105,7 @@ class TestDeck(BaseTestCase, ConfigTestCase):
     def test_open_deck(self):
         deck = NGDeck()
         deck.open(self.deck_file)
-        assert len(deck.tasks.ooni['net_test_loaders']) == 1
+        assert len(deck.tasks) == 1
 
     def test_load_deck_with_global_options(self):
         global_options = {
@@ -115,11 +115,11 @@ class TestDeck(BaseTestCase, ConfigTestCase):
         deck = NGDeck(global_options=global_options)
         deck.open(self.deck_file)
         self.assertEqual(
-            deck.tasks.ooni['net_test_loaders'][0].annotations,
+            deck.tasks[0].ooni['net_test_loader'].annotations,
             global_options['annotations']
         )
         self.assertEqual(
-            deck.tasks.ooni['net_test_loaders'][0].collector.base_address,
+            deck.tasks[0].ooni['net_test_loader'].collector.base_address,
             global_options['collector'].replace("httpo://", "http://")
         )
 
@@ -132,21 +132,25 @@ class TestDeck(BaseTestCase, ConfigTestCase):
         deck.open(self.deck_file)
 
         self.assertEqual(
-            len(deck.tasks.ooni['net_test_loaders'][0].missingTestHelpers), 1)
+            len(deck.tasks[0].ooni['net_test_loader'].missingTestHelpers),
+            1
+        )
 
         yield lookup_collector_and_test_helpers(
-            net_test_loaders=deck.netTestLoaders,
-            preferred_backend=deck.preferred_backend,
+            net_test_loaders=[deck.tasks[0].ooni['net_test_loader']],
+            preferred_backend='onion',
             bouncer=deck.bouncer
         )
 
         self.assertEqual(
-            deck.tasks.ooni['net_test_loaders'][0].collector.settings['address'],
+            deck.tasks[0].ooni['net_test_loader'].collector.settings['address'],
             'httpo://thirteenchars123.onion'
         )
 
-        self.assertEqual(deck.netTestLoaders[0].localOptions['backend'],
-                         '127.0.0.1')
+        self.assertEqual(
+            deck.tasks[0].ooni['net_test_loader'].localOptions['backend'],
+            '127.0.0.1'
+        )
 
 
     def test_deck_with_many_tests(self):

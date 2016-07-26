@@ -17,6 +17,7 @@ from ooni.deck import NGDeck
 from ooni.settings import config
 from ooni.utils import log
 from ooni.director import DirectorEvent
+from ooni.results import generate_summary
 
 config.advanced.debug = True
 
@@ -193,6 +194,7 @@ class WebUIAPI(object):
                 'test_start_time': 'some start time'
             }
         self.status_poller.notify()
+        deck.setup()
         d = deck.run(self.director)
         d.addCallback(lambda _:
                       self.completed_measurement(task_id))
@@ -288,6 +290,14 @@ class WebUIAPI(object):
             raise WebUIError(500, "invalid measurement id")
 
         if measurement_dir.child("measurements.njson.progress").exists():
+            raise WebUIError(400, "measurement in progress")
+
+        if not measurement_dir.child("summary.json").exists():
+            # XXX we can perhaps remove this.
+            generate_summary(
+                measurement_dir.child("measurements.njson").path,
+                measurement_dir.child("summary.json").path
+            )
             raise WebUIError(400, "measurement in progress")
 
         summary = measurement_dir.child("summary.json")
