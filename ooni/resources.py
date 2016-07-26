@@ -1,14 +1,12 @@
-import os
 import gzip
 import json
 import shutil
 
-from twisted.python.runtime import platform
 from twisted.python.filepath import FilePath
 from twisted.internet import defer
 from twisted.web.client import downloadPage, getPage
 
-from ooni.utils import log
+from ooni.utils import log, gunzip, rename
 from ooni.settings import config
 
 class UpdateFailure(Exception):
@@ -84,12 +82,6 @@ def gunzip(file_path):
         shutil.copyfileobj(in_file, out_file)
     in_file.close()
     rename(tmp_location.path, file_path)
-
-def rename(src, dst):
-    # Best effort atomic renaming
-    if platform.isWindows() and os.path.exists(dst):
-        os.unlink(dst)
-    os.rename(src, dst)
 
 @defer.inlineCallbacks
 def check_for_update(country_code=None):

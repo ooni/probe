@@ -137,11 +137,11 @@ class SchedulerService(service.MultiService):
         self._scheduled_tasks.append(task)
 
     def _task_failed(self, failure, task):
-        log.msg("Failed to run {0}".format(task.identifier))
+        log.debug("Failed to run {0}".format(task.identifier))
         log.exception(failure)
 
     def _task_success(self, result, task):
-        log.msg("Ran {0}".format(task.identifier))
+        log.debug("Ran {0}".format(task.identifier))
 
     def _should_run(self):
         """

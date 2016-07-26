@@ -1,11 +1,14 @@
 import shutil
 import string
 import random
-import os
-from datetime import datetime
-
 import gzip
+import os
+
+from datetime import datetime
 from zipfile import ZipFile
+
+from twisted.python.filepath import FilePath
+from twisted.python.runtime import platform
 
 from ooni import errors
 
@@ -128,6 +131,11 @@ def sanitize_options(options):
         sanitized_options.append(option)
     return sanitized_options
 
+def rename(src, dst):
+    # Best effort atomic renaming
+    if platform.isWindows() and os.path.exists(dst):
+        os.unlink(dst)
+    os.rename(src, dst)
 
 def unzip(filename, dst):
     assert filename.endswith('.zip')
@@ -141,17 +149,16 @@ def unzip(filename, dst):
     return dst_path
 
 
-def gunzip(filename, dst):
-    assert filename.endswith(".gz")
-    dst_path = os.path.join(
-        dst,
-        os.path.basename(filename).replace(".gz", "")
-    )
-    with open(dst_path, "w+") as fw:
-        gzip_file = gzip.open(filename)
-        shutil.copyfileobj(gzip_file, fw)
-        gzip_file.close()
-
+def gunzip(file_path):
+    """
+    gunzip a file in place.
+    """
+    tmp_location = FilePath(file_path).temporarySibling()
+    in_file = gzip.open(file_path)
+    with tmp_location.open('w') as out_file:
+        shutil.copyfileobj(in_file, out_file)
+    in_file.close()
+    rename(tmp_location.path, file_path)
 
 def get_ooni_root():
     script = os.path.join(__file__, '..')
