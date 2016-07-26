@@ -90,7 +90,6 @@ from __future__ import print_function
 
 import os
 import sys
-import glob
 import shutil
 import tempfile
 import subprocess
@@ -102,7 +101,6 @@ from setuptools.command.install import install
 from distutils.spawn import find_executable
 
 from ooni import __version__, __author__
-from ooni.scripts import ooniresources
 
 GEOIP_ASN_URL = "https://download.maxmind.com/download/geoip/database/asnum/GeoIPASNum.dat.gz"
 GEOIP_URL = "https://geolite.maxmind.com/download/geoip/database/GeoLiteCountry/GeoIP.dat.gz"
@@ -302,57 +300,13 @@ class CreateOoniResources(Command):
         shutil.rmtree(tmp_dir, ignore_errors=True)
         print("Written ooniresources to {0}".format(dst_path))
 
-
-
-class GenerateComponent(Command):
-    description = ("Generate a new component for the web ui")
-    user_options = []
-
-    def initialize_options(self):
-        pass
-    def finalize_options(self):
-        pass
-    def run(self):
-        from jinja2 import Template
-        context = os.path.abspath(os.path.dirname(__file__))
-        component_dir = os.path.join(context, "ooni", "ui", "web", "client",
-                                     "app", "components")
-        component_name = raw_input("Enter component name: ")
-        lower_name = component_name.lower().replace(" ", "-")
-        upper_name = lower_name[0].upper() + lower_name[1:]
-        dst_dir = os.path.join(component_dir, lower_name)
-        os.mkdir(dst_dir)
-        for template_file in glob.glob("data/component-template/*"):
-            target_filename = os.path.basename(template_file).replace("templ",
-                                                                      lower_name)
-            target_path = os.path.join(dst_dir, target_filename)
-            template = Template(open(template_file).read())
-            with open(target_path, "w+") as fw:
-                fw.write(template.render(name=lower_name,
-                                         nameUpper=upper_name))
-                fw.write("\n")
-            print("Written %s" % target_path)
-        print("Component \"%s\" created!" % component_name)
-        print("You should now edit "
-              "\"ooni/ui/web/client/app/components/components.js\" "
-              "to require the newly create component like so:")
-        print("""
-var {upper_name} = require("{lower_name}/{lower_name}");
-var componentsModule = angular.module("app.components", [
-    // In here are the other components
-    {upper_name}
-]).name;
-""".format(lower_name=lower_name, upper_name=upper_name))
-
 install_requires = []
 dependency_links = []
 data_files = []
 packages = [
     'ooni',
-    'ooni.api',
+    'ooni.agent',
     'ooni.common',
-    'ooni.deckgen',
-    'ooni.deckgen.processors',
     'ooni.kit',
     'ooni.nettests',
     'ooni.nettests.manipulation',
@@ -360,10 +314,11 @@ packages = [
     'ooni.nettests.scanning',
     'ooni.nettests.blocking',
     'ooni.nettests.third_party',
-    'ooni.report',
-    'ooni.resources',
+    'ooni.scripts',
     'ooni.templates',
     'ooni.tests',
+    'ooni.ui',
+    'ooni.ui.web',
     'ooni.utils'
 ]
 
@@ -390,8 +345,6 @@ setup(
     data_files=data_files,
     packages=packages,
     include_package_data=True,
-    scripts=["bin/oonideckgen", "bin/ooniprobe",
-             "bin/oonireport", "bin/ooniresources"],
     dependency_links=dependency_links,
     install_requires=install_requires,
     zip_safe=False,
@@ -407,8 +360,7 @@ setup(
     },
     cmdclass={
         "install": OoniInstall,
-        "create_ooniresources": CreateOoniResources,
-        "generate_component": GenerateComponent
+        "create_ooniresources": CreateOoniResources
     },
     classifiers=(
         "Development Status :: 5 - Production/Stable",
