@@ -9,6 +9,7 @@ from ooni.utils import log
 from ooni.deck import input_store
 from ooni.settings import config
 from ooni.contrib import croniter
+from ooni.geoip import probe_ip
 
 class ScheduledTask(object):
     _time_format = "%Y-%m-%dT%H:%M:%SZ"
@@ -73,19 +74,9 @@ class UpdateInputsAndResources(ScheduledTask):
     @defer.inlineCallbacks
     def task(self):
         log.debug("Updating the inputs")
-        yield resources.check_for_update(config.probe_ip.geodata['countrycode'])
-        yield input_store.update(config.probe_ip.geodata['countrycode'])
-
-class UpdateProbeIp(ScheduledTask):
-    identifier = "ooni-update-probe-ip"
-    schedule = "@hourly"
-    # XXX we need to ensure this is always run the first time ooniprobe or
-    # ooniprobe-agent is started or implement on disk caching of the users
-    # IP address.
-
-    def task(self):
-        log.debug("Updating the probe IP")
-        return config.probe_ip.lookup()
+        yield probe_ip.lookup()
+        yield resources.check_for_update(probe_ip.geodata['countrycode'])
+        yield input_store.update(probe_ip.geodata['countrycode'])
 
 class CleanupInProgressReports(ScheduledTask):
     identifier = 'ooni-cleanup-reports'
@@ -97,17 +88,12 @@ class UploadMissingReports(ScheduledTask):
 
 # Order mattters
 SYSTEM_TASKS = [
-    UpdateProbeIp,
     UpdateInputsAndResources
 ]
 
 @defer.inlineCallbacks
-def run_system_tasks(no_geoip=False, no_input_store=False):
+def run_system_tasks(no_input_store=False):
     task_classes = SYSTEM_TASKS[:]
-
-    if no_geoip:
-        log.debug("Not updating probe IP")
-        task_classes.pop(UpdateProbeIp)
 
     if no_input_store:
         log.debug("Not updating the inputs")
@@ -157,7 +143,6 @@ class SchedulerService(service.MultiService):
     def startService(self):
         service.MultiService.startService(self)
 
-        self.schedule(UpdateProbeIp())
         self.schedule(UpdateInputsAndResources())
 
         self._looping_call.start(self.interval)

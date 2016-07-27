@@ -313,7 +313,7 @@ def runTestWithDirector(director, global_options, url=None,
     @defer.inlineCallbacks
     def post_director_start(_):
         try:
-            deck.setup()
+            yield deck.setup()
             yield deck.run(director)
         except errors.UnableToLoadDeckInput as error:
             raise defer.failure.Failure(error)
