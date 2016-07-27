@@ -342,9 +342,12 @@ class OONIBReporter(OReporter):
             log.msg("Try running a different test or try reporting to a "
                     "different collector.")
             raise errors.OONIBReportCreationError
-        except Exception, e:
+        except errors.OONIBError:
             log.err("Failed to connect to reporter backend")
-            log.exception(e)
+            raise errors.OONIBReportCreationError
+        except Exception as exc:
+            log.err("Failed to connect to reporter backend")
+            log.exception(exc)
             raise errors.OONIBReportCreationError
 
         self.reportId = response['report_id'].encode('ascii')

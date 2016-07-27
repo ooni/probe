@@ -97,7 +97,7 @@ def run_system_tasks(no_input_store=False):
 
     if no_input_store:
         log.debug("Not updating the inputs")
-        task_classes.pop(UpdateInputsAndResources)
+        task_classes.remove(UpdateInputsAndResources)
 
     for task_class in task_classes:
         task = task_class()

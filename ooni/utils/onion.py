@@ -244,7 +244,6 @@ class TorLauncherWithRetries(object):
     @defer.inlineCallbacks
     def _state_complete(self, state):
         config.tor_state = state
-        log.msg("Successfully bootstrapped Tor")
         log.debug("We now have the following circuits: ")
         for circuit in state.circuits.values():
             log.debug(" * %s" % circuit)

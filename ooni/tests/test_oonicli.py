@@ -55,7 +55,6 @@ advanced:
     oonid_api_port: 8042
 tor:
     socks_port: 9050
-
 """ % config.data_directory
 
 
@@ -149,8 +148,8 @@ class TestRunDirector(ConfigTestCase):
 
         yield self.run_helper('blocking/dns_consistency',
                               ['-b', '8.8.8.8:53',
-                               '-t', '8.8.8.8',
-                               '-f', 'example-input.txt'],
+                              '-t', '8.8.8.8',
+                              '-f', 'example-input.txt'],
                               verify_function)
 
     @defer.inlineCallbacks
