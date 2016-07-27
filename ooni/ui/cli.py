@@ -339,9 +339,9 @@ def runWithDirector(global_options, create_input_store=True):
     director = Director()
     if global_options['list']:
         net_tests = [net_test for net_test in director.getNetTests().items()]
-        print ""
-        print "Installed nettests"
-        print "=================="
+        log.msg("")
+        log.msg("Installed nettests")
+        log.msg("==================")
         for net_test_id, net_test in net_tests:
             optList = []
             for name, details in net_test['arguments'].items():
@@ -359,9 +359,9 @@ def runWithDirector(global_options, create_input_store=True):
                     '\n\n' +
                     ''.join(usage.docMakeChunks(optList))
             )
-            print desc
-            print "Note: Third party tests require an external "\
-                  "application to run properly."
+            map(log.msg, desc.split("\n"))
+            log.msg("Note: Third party tests require an external "
+                    "application to run properly.")
 
         raise SystemExit(0)
 

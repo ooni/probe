@@ -148,7 +148,7 @@ def usageOptionsFactory(test_name, test_version):
             """
             Display the net_test version and exit.
             """
-            print "{} version: {}".format(test_name, test_version)
+            log.msg("{} version: {}".format(test_name, test_version))
             sys.exit(0)
 
     return UsageOptions
@@ -513,13 +513,13 @@ class NetTest(object):
 
     def doneNetTest(self, result):
         if self.summary:
-            print "Summary for %s" % self.testDetails['test_name']
-            print "------------" + "-"*len(self.testDetails['test_name'])
+            log.msg("Summary for %s" % self.testDetails['test_name'])
+            log.msg("------------" + "-"*len(self.testDetails['test_name']))
             for test_class in self.uniqueClasses():
                 test_instance = test_class()
                 test_instance.displaySummary(self.summary)
         if self.testDetails["report_id"]:
-            print "Report ID: %s" % self.testDetails["report_id"]
+            log.msg("Report ID: %s" % self.testDetails["report_id"])
 
     def doneReport(self, report_results):
         """
