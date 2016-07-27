@@ -492,7 +492,7 @@ class InputStore(object):
     def list(self):
         if self._cache_stale:
             self._update_cache()
-        return self._cache
+        return deepcopy(self._cache)
 
     def get(self, input_id):
         if self._cache_stale:
