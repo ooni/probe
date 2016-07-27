@@ -2,6 +2,9 @@ from __future__ import print_function
 
 import os
 import json
+import string
+from functools import wraps
+from random import SystemRandom
 
 from twisted.internet import defer, task, reactor
 from twisted.python import usage
@@ -26,10 +29,51 @@ def rpath(*path):
     context = os.path.abspath(os.path.dirname(__file__))
     return os.path.join(context, *path)
 
+
 class WebUIError(Exception):
     def __init__(self, code, message):
         self.code = code
         self.message = message
+
+
+def xsrf_protect(check=True):
+    """
+    This is a decorator that implements double submit token CSRF protection.
+
+    Basically we set a cookie and ensure that every request contains the
+    same value inside of the cookie and the request header.
+
+    It's based on the assumption that an attacker cannot read the cookie
+    that is set by the server (since it would be violating the SOP) and hence
+    is not possible to make a browser trigger requests that contain the
+    cookie value inside of the requests it sends.
+
+    If you wish to disable checking of the token set the value check to False.
+    This will still lead to the cookie being set.
+
+    This decorator needs to be applied after the decorator that registers
+    the routes.
+    """
+    def deco(f):
+
+        @wraps(f)
+        def wrapper(instance, request, *a, **kw):
+            should_check = check and instance._enable_xsrf_protection
+            token_cookie = request.getCookie(u'XSRF-TOKEN')
+            token_header = request.getHeader(b"X-XSRF-TOKEN")
+            if (token_cookie != instance._xsrf_token and
+                    instance._enable_xsrf_protection):
+                request.addCookie(u'XSRF-TOKEN',
+                                  instance._xsrf_token)
+            if should_check and token_cookie != token_header:
+                raise WebUIError(404, "Invalid XSRF token")
+            return f(instance, request, *a, **kw)
+
+        return wrapper
+
+    return deco
+
+
 
 class LongPoller(object):
     def __init__(self, timeout, _reactor=reactor):
@@ -73,12 +117,19 @@ class WebUIAPI(object):
     # change happenned.
     _long_polling_timeout = 5
     _reactor = reactor
+    _enable_xsrf_protection = True
 
     def __init__(self, config, director, _reactor=reactor):
         self.director = director
         self.config = config
         self.measurement_path = FilePath(config.measurements_directory)
         self.decks_path = FilePath(config.decks_directory)
+
+        # We use a double submit token to protect against XSRF
+        rng = SystemRandom()
+        token_space = string.letters+string.digits
+        self._xsrf_token = ''.join([rng.choice(token_space)
+                                    for _ in range(30)])
 
         self.status = {
             "software_version": ooniprobe_version,
@@ -113,10 +164,12 @@ class WebUIAPI(object):
         self.status["country_code"] = probe_ip.geodata['countrycode']
 
     @app.handle_errors(NotFound)
+    @xsrf_protect(check=False)
     def not_found(self, request, _):
         request.redirect('/client/')
 
     @app.handle_errors(WebUIError)
+    @xsrf_protect(check=False)
     def web_ui_error(self, request, failure):
         error = failure.value
         request.setResponseCode(error.code)
@@ -132,6 +185,7 @@ class WebUIAPI(object):
         return json_string
 
     @app.route('/api/notify', methods=["GET"])
+    @xsrf_protect(check=False)
     def api_notify(self, request):
         def got_director_event(event):
             return self.render_json({
@@ -143,10 +197,12 @@ class WebUIAPI(object):
         return d
 
     @app.route('/api/status', methods=["GET"])
+    @xsrf_protect(check=False)
     def api_status(self, request):
         return self.render_json(self.status, request)
 
     @app.route('/api/status/update', methods=["GET"])
+    @xsrf_protect(check=False)
     def api_status_update(self, request):
         def got_status_update(event):
             return self.api_status(request)
@@ -155,14 +211,17 @@ class WebUIAPI(object):
         return d
 
     @app.route('/api/deck/generate', methods=["GET"])
+    @xsrf_protect(check=False)
     def api_deck_generate(self, request):
         return self.render_json({"generate": "deck"}, request)
 
     @app.route('/api/deck/<string:deck_name>/start', methods=["POST"])
+    @xsrf_protect(check=True)
     def api_deck_start(self, request, deck_name):
         return self.render_json({"start": deck_name}, request)
 
     @app.route('/api/deck', methods=["GET"])
+    @xsrf_protect(check=False)
     def api_deck_list(self, request):
         for deck_id in self.decks_path.listdir():
             pass
@@ -180,6 +239,7 @@ class WebUIAPI(object):
                                                             "Failed to start deck"))
 
     @app.route('/api/nettest/<string:test_name>/start', methods=["POST"])
+    @xsrf_protect(check=True)
     def api_nettest_start(self, request, test_name):
         try:
             _ = self.director.netTests[test_name]
@@ -220,10 +280,12 @@ class WebUIAPI(object):
         return self.render_json({"status": "started"}, request)
 
     @app.route('/api/nettest', methods=["GET"])
+    @xsrf_protect(check=False)
     def api_nettest_list(self, request):
         return self.render_json(self.director.netTests, request)
 
     @app.route('/api/input', methods=["GET"])
+    @xsrf_protect(check=False)
     def api_input_list(self, request):
         input_store_list = self.director.input_store.list()
         for key, value in input_store_list.items():
@@ -231,6 +293,7 @@ class WebUIAPI(object):
         return self.render_json(input_store_list, request)
 
     @app.route('/api/input/<string:input_id>/content', methods=["GET"])
+    @xsrf_protect(check=False)
     def api_input_content(self, request, input_id):
         content = self.director.input_store.getContent(input_id)
         request.setHeader('Content-Type', 'text/plain')
@@ -238,12 +301,14 @@ class WebUIAPI(object):
         return content
 
     @app.route('/api/input/<string:input_id>', methods=["GET"])
+    @xsrf_protect(check=False)
     def api_input_details(self, request, input_id):
         return self.render_json(
             self.director.input_store.get(input_id), request
         )
 
     @app.route('/api/measurement', methods=["GET"])
+    @xsrf_protect(check=False)
     def api_measurement_list(self, request):
         measurements = []
         for measurement_id in self.measurement_path.listdir():
@@ -264,6 +329,7 @@ class WebUIAPI(object):
         return self.render_json({"measurements": measurements}, request)
 
     @app.route('/api/measurement/<string:measurement_id>', methods=["GET"])
+    @xsrf_protect(check=False)
     def api_measurement_summary(self, request, measurement_id):
         try:
             measurement_dir = self.measurement_path.child(measurement_id)
@@ -289,6 +355,7 @@ class WebUIAPI(object):
 
     @app.route('/api/measurement/<string:measurement_id>/<int:idx>',
                methods=["GET"])
+    @xsrf_protect(check=False)
     def api_measurement_view(self, request, measurement_id, idx):
         try:
             measurement_dir = self.measurement_path.child(measurement_id)
@@ -310,6 +377,7 @@ class WebUIAPI(object):
         return self.render_json(r, request)
 
     @app.route('/client/', branch=True)
+    @xsrf_protect(check=False)
     def static(self, request):
         path = rpath("client")
         return static.File(path)
