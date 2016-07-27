@@ -9,7 +9,6 @@ from twisted.internet.endpoints import TCP4ClientEndpoint
 from os.path import abspath, expanduser
 
 from ooni.utils.net import ConnectAndCloseProtocol, connectProtocol
-from ooni import geoip
 from ooni.utils import Storage, log, get_ooni_root
 from ooni import errors
 
@@ -101,8 +100,6 @@ class OConfig(object):
             self.inputs_directory = os.path.join(self.ooni_home, 'inputs')
 
         self.scheduler_directory = os.path.join(self.ooni_home, 'scheduler')
-        if not os.path.exists(self.scheduler_directory):
-            os.mkdir(self.scheduler_directory)
 
         if self.advanced.decks_dir:
             self.decks_directory = self.advanced.decks_dir
@@ -136,11 +133,25 @@ class OConfig(object):
 
         ooni_home = self.ooni_home
         if not os.path.isdir(ooni_home):
-            print "Ooni home directory does not exist."
-            print "Creating it in '%s'." % ooni_home
+            log.msg("Ooni home directory does not exist")
+            log.msg("Creating it in '%s'" % ooni_home)
             os.mkdir(ooni_home)
-            os.mkdir(self.inputs_directory)
-            os.mkdir(self.decks_directory)
+
+        # also ensure the subdirectories exist
+        sub_directories = [
+            self.inputs_directory,
+            self.decks_directory,
+            self.scheduler_directory,
+            self.measurements_directory,
+            self.resources_directory
+        ]
+        for path in sub_directories:
+            try:
+                os.mkdir(path)
+            except OSError as exc:
+                if exc.errno != 17:
+                    raise
+
 
     def _create_config_file(self):
         target_config_file = self.config_file
