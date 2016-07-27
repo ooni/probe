@@ -4,7 +4,10 @@ import shutil
 
 from twisted.python.filepath import FilePath
 from twisted.internet import defer
-from twisted.web.client import downloadPage, getPage
+from twisted.web.client import downloadPage, getPage, HTTPClientFactory
+
+# Disable logs of HTTPClientFactory
+HTTPClientFactory.noisy = False
 
 from ooni.utils import log, gunzip, rename
 from ooni.settings import config

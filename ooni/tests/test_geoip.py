@@ -7,7 +7,7 @@ from ooni import geoip
 
 class TestGeoIP(bases.ConfigTestCase):
     def test_ip_to_location(self):
-        location = geoip.IPToLocation('8.8.8.8')
+        location = geoip.ip_to_location('8.8.8.8')
         assert 'countrycode' in location
         assert 'asn' in location
         assert 'city' in location

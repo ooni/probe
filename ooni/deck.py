@@ -20,6 +20,7 @@ from ooni.resources import check_for_update
 from ooni.settings import config
 from ooni.utils import generate_filename
 from ooni.utils import log
+from ooni.geoip import probe_ip
 
 from ooni.results import generate_summary
 
@@ -513,7 +514,9 @@ class DeckTask(object):
 
         self.ooni['net_test_loader'] = net_test_loader
 
+    @defer.inlineCallbacks
     def _setup_ooni(self):
+        yield probe_ip.lookup()
         for input_file in self.ooni['net_test_loader'].inputFiles:
             file_path = resolve_file_path(input_file['filename'], self.cwd)
             input_file['test_options'][input_file['key']] = file_path
@@ -521,7 +524,7 @@ class DeckTask(object):
         self.id = generate_filename(self.ooni['test_details'])
 
     def setup(self):
-        getattr(self, "_setup_"+self.type)()
+        return getattr(self, "_setup_"+self.type)()
 
     def _load(self, data):
         for key in self._metadata_keys:
@@ -779,12 +782,13 @@ class NGDeck(object):
         d.addErrback(self._measurement_failed, task)
         return d
 
+    @defer.inlineCallbacks
     def setup(self):
         """
         This method needs to be called before you are able to run a deck.
         """
         for task in self._tasks:
-            task.setup()
+            yield task.setup()
         self._is_setup = True
 
     @defer.inlineCallbacks

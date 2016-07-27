@@ -350,10 +350,10 @@ class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
         if len(control_addrs.intersection(experiment_addrs)) > 0:
             return True
 
-        experiment_asns = set(map(lambda x: geoip.IPToLocation(x)['asn'],
-                              experiment_addrs))
-        control_asns = set(map(lambda x: geoip.IPToLocation(x)['asn'],
-                           control_addrs))
+        experiment_asns = set(map(lambda x: geoip.ip_to_location(x)['asn'],
+                                  experiment_addrs))
+        control_asns = set(map(lambda x: geoip.ip_to_location(x)['asn'],
+                               control_addrs))
 
         # Remove the instance of AS0 when we fail to find the ASN
         control_asns.discard('AS0')

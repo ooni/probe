@@ -10,7 +10,7 @@ from twisted.python import usage
 
 from ooni.otime import prettyDateNowUTC
 from ooni import errors
-from ooni.geoip import ProbeIP
+from ooni.geoip import probe_ip
 from ooni.resources import check_for_update
 from ooni.settings import config
 from ooni.deck import NGDeck
@@ -86,7 +86,6 @@ def generate_deck(options):
 @defer.inlineCallbacks
 def get_user_country_code():
     config.privacy.includecountry = True
-    probe_ip = ProbeIP()
     yield probe_ip.lookup()
     defer.returnValue(probe_ip.geodata['countrycode'])
 

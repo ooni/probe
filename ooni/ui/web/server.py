@@ -18,6 +18,7 @@ from ooni.settings import config
 from ooni.utils import log
 from ooni.director import DirectorEvent
 from ooni.results import generate_summary
+from ooni.geoip import probe_ip
 
 config.advanced.debug = True
 
@@ -82,8 +83,8 @@ class WebUIAPI(object):
         self.status = {
             "software_version": ooniprobe_version,
             "software_name": "ooniprobe",
-            "asn": config.probe_ip.geodata['asn'],
-            "country_code": config.probe_ip.geodata['countrycode'],
+            "asn": probe_ip.geodata['asn'],
+            "country_code": probe_ip.geodata['countrycode'],
             "director_started": False
         }
 
@@ -108,8 +109,8 @@ class WebUIAPI(object):
 
     def director_started(self, _):
         self.status['director_started'] = True
-        self.status["asn"] = config.probe_ip.geodata['asn']
-        self.status["country_code"] = config.probe_ip.geodata['countrycode']
+        self.status["asn"] = probe_ip.geodata['asn']
+        self.status["country_code"] = probe_ip.geodata['countrycode']
 
     @app.handle_errors(NotFound)
     def not_found(self, request, _):
@@ -168,10 +169,15 @@ class WebUIAPI(object):
 
         return self.render_json({"command": "deck-list"}, request)
 
+    @defer.inlineCallbacks
     def run_deck(self, deck):
-        deck.setup()
-        # Here there is a dangling deferred
-        deck.run(self.director)
+        # These are dangling deferreds
+        try:
+            yield deck.setup()
+            yield deck.run(self.director)
+        except:
+            self.director_event_poller.notify(DirectorEvent("error",
+                                                            "Failed to start deck"))
 
     @app.route('/api/nettest/<string:test_name>/start', methods=["POST"])
     def api_nettest_start(self, request, test_name):
@@ -219,7 +225,10 @@ class WebUIAPI(object):
 
     @app.route('/api/input', methods=["GET"])
     def api_input_list(self, request):
-        return self.render_json(self.director.input_store.list(), request)
+        input_store_list = self.director.input_store.list()
+        for key, value in input_store_list.items():
+            value.pop('filepath')
+        return self.render_json(input_store_list, request)
 
     @app.route('/api/input/<string:input_id>/content', methods=["GET"])
     def api_input_content(self, request, input_id):

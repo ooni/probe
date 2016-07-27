@@ -12,6 +12,7 @@ from ooni.nettest import NetTest, getNetTestInformation
 from ooni.settings import config
 from ooni.nettest import normalizeTestName
 from ooni.deck import InputStore
+from ooni.geoip import probe_ip
 
 from ooni.agent.scheduler import run_system_tasks
 from ooni.utils.onion import start_tor, connect_to_control_port
@@ -199,11 +200,13 @@ class Director(object):
                 aux = map(lambda x: x in annotations, ["city", "country", "asn"])
             if not all(aux):
                 log.msg("You should add annotations for the country, city and ASN")
+        else:
+            yield probe_ip.lookup()
+            self.notify(DirectorEvent("success", "Looked up probe IP"))
 
         self.notify(DirectorEvent("success",
                                   "Running system tasks"))
-        yield run_system_tasks(no_geoip=no_geoip,
-                               no_input_store=not create_input_store)
+        yield run_system_tasks(no_input_store=not create_input_store)
         self.notify(DirectorEvent("success",
                                   "Ran system tasks"))
 

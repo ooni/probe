@@ -13,6 +13,7 @@ from ooni.tasks import Measurement
 from ooni.utils import log, sanitize_options, randomStr
 from ooni.utils.net import hasRawSocketPermission
 from ooni.settings import config
+from ooni.geoip import probe_ip
 
 from ooni import errors as e
 
@@ -192,10 +193,10 @@ class NetTestLoader(object):
 
     def getTestDetails(self):
         return {
-            'probe_asn': config.probe_ip.geodata['asn'],
-            'probe_cc': config.probe_ip.geodata['countrycode'],
-            'probe_ip': config.probe_ip.geodata['ip'],
-            'probe_city': config.probe_ip.geodata['city'],
+            'probe_asn': probe_ip.geodata['asn'],
+            'probe_cc': probe_ip.geodata['countrycode'],
+            'probe_ip': probe_ip.geodata['ip'],
+            'probe_city': probe_ip.geodata['city'],
             'software_name': 'ooniprobe',
             'software_version': ooniprobe_version,
             # XXX only sanitize the input files
