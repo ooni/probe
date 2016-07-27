@@ -141,7 +141,7 @@ class Director(object):
         self._tor_starting.addCallback(self._tor_startup_success)
 
     def _tor_startup_failure(self, failure):
-        log.msg("Failed to start tor")
+        log.err("Failed to start tor")
         log.exception(failure)
         self._reset_tor_state()
         self.notify(DirectorEvent("error",
@@ -382,7 +382,7 @@ class Director(object):
             yield self._tor_starting
             defer.returnValue(self._tor_state)
 
-        log.msg("Starting Tor...")
+        log.msg("Starting Tor")
         self._tor_state = 'starting'
         if check_incoherences:
             try:
@@ -405,7 +405,7 @@ class Director(object):
                 data_dir = os.path.expanduser(config.tor.data_dir)
 
                 if not os.path.exists(data_dir):
-                    log.msg("%s does not exist. Creating it." % data_dir)
+                    log.debug("%s does not exist. Creating it." % data_dir)
                     os.makedirs(data_dir)
                 tor_config.DataDirectory = data_dir
 

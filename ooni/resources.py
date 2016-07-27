@@ -1,23 +1,24 @@
-import gzip
 import json
-import shutil
 
 from twisted.python.filepath import FilePath
 from twisted.internet import defer
 from twisted.web.client import downloadPage, getPage, HTTPClientFactory
 
+from ooni.utils import log, gunzip, rename
+from ooni.settings import config
+
 # Disable logs of HTTPClientFactory
 HTTPClientFactory.noisy = False
 
-from ooni.utils import log, gunzip, rename
-from ooni.settings import config
 
 class UpdateFailure(Exception):
     pass
 
+
 def get_download_url(tag_name, filename):
     return ("https://github.com/OpenObservatory/ooni-resources/releases"
             "/download/{0}/{1}".format(tag_name, filename))
+
 
 def get_current_version():
     manifest = FilePath(config.resources_directory).child("manifest.json")
@@ -26,6 +27,7 @@ def get_current_version():
     with manifest.open("r") as f:
         manifest = json.load(f)
     return int(manifest["version"])
+
 
 @defer.inlineCallbacks
 def get_latest_version():
@@ -41,7 +43,8 @@ def get_latest_version():
 
 
 def get_out_of_date_resources(current_manifest, new_manifest,
-                              country_code=None):
+                              country_code=None,
+                              resources_directory=config.resources_directory):
     current_res = {}
     new_res = {}
     for r in current_manifest["resources"]:
@@ -51,11 +54,13 @@ def get_out_of_date_resources(current_manifest, new_manifest,
         new_res[r["path"]] = r
 
     paths_to_delete = [
-        current_res[path] for path in list(set(current_res.keys()) -
-                                           set(new_res.keys()))
-        ]
+        current_res[path] for path in list(
+                set(current_res.keys()) -
+                set(new_res.keys())
+            )
+    ]
     paths_to_update = []
-    _resources = FilePath(config.resources_directory)
+    _resources = FilePath(resources_directory)
     for path, info in new_res.items():
         if (country_code is not None and
                 info["country_code"] != "ALL" and
@@ -78,13 +83,6 @@ def get_out_of_date_resources(current_manifest, new_manifest,
 
     return paths_to_update, paths_to_delete
 
-def gunzip(file_path):
-    tmp_location = FilePath(file_path).temporarySibling()
-    in_file = gzip.open(file_path)
-    with tmp_location.open('w') as out_file:
-        shutil.copyfileobj(in_file, out_file)
-    in_file.close()
-    rename(tmp_location.path, file_path)
 
 @defer.inlineCallbacks
 def check_for_update(country_code=None):

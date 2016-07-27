@@ -1,4 +1,5 @@
-
+import os
+import shutil
 from twisted.internet import defer
 
 from ooni.tests import is_internet_connected, bases
@@ -23,6 +24,17 @@ class TestGeoIP(bases.ConfigTestCase):
         assert len(res.split('.')) == 4
 
     def test_geoip_database_version(self):
+        maxmind_dir = os.path.join(self.config.resources_directory,
+                                   'maxmind-geoip')
+        try:
+            os.mkdir(maxmind_dir)
+        except OSError:
+            pass
+        with open(os.path.join(maxmind_dir, 'GeoIP.dat'), 'w+') as f:
+            f.write("XXX")
+        with open(os.path.join(maxmind_dir, 'GeoIPASNum.dat'), 'w+') as f:
+            f.write("XXX")
+
         version = geoip.database_version()
         assert 'GeoIP' in version.keys()
         assert 'GeoIPASNum' in version.keys()
@@ -31,3 +43,5 @@ class TestGeoIP(bases.ConfigTestCase):
         assert isinstance(version['GeoIP']['timestamp'], float)
         assert len(version['GeoIPASNum']['sha256']) == 64
         assert isinstance(version['GeoIPASNum']['timestamp'], float)
+
+        shutil.rmtree(maxmind_dir)
