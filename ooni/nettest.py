@@ -4,10 +4,11 @@ import time
 import sys
 
 from twisted.internet import defer
+from twisted.python.filepath import FilePath
 from twisted.trial.runner import filenameToModule
 from twisted.python import usage, reflect
 
-from ooni import __version__ as ooniprobe_version
+from ooni import __version__ as ooniprobe_version, errors
 from ooni import otime
 from ooni.tasks import Measurement
 from ooni.utils import log, sanitize_options, randomStr
@@ -838,3 +839,43 @@ class NetTestCase(object):
 
     def __repr__(self):
         return "<%s inputs=%s>" % (self.__class__, self.inputs)
+
+
+def nettest_to_path(path, allow_arbitrary_paths=False):
+    """
+    Takes as input either a path or a nettest name.
+
+    The nettest name may either be prefixed by the category of the nettest (
+    blocking, experimental, manipulation or third_party) or not.
+
+    Args:
+
+        allow_arbitrary_paths:
+            allow also paths that are not relative to the nettest_directory.
+
+    Returns:
+
+        full path to the nettest file.
+    """
+    if allow_arbitrary_paths and os.path.exists(path):
+        return path
+
+    test_name = path.rsplit("/", 1)[-1]
+    test_categories = [
+        "blocking",
+        "experimental",
+        "manipulation",
+        "third_party"
+    ]
+    nettest_dir = FilePath(config.nettest_directory)
+    found_path = None
+    for category in test_categories:
+        p = nettest_dir.preauthChild(os.path.join(category, test_name) + '.py')
+        if p.exists():
+            if found_path is not None:
+                raise Exception("Found two tests named %s" % test_name)
+            found_path = p.path
+
+    if not found_path:
+        raise e.NetTestNotFound(path)
+    return found_path

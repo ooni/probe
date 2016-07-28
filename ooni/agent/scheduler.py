@@ -6,7 +6,7 @@ from twisted.python.filepath import FilePath
 
 from ooni import resources
 from ooni.utils import log
-from ooni.deck import input_store
+from ooni.deck.store import input_store
 from ooni.settings import config
 from ooni.contrib import croniter
 from ooni.geoip import probe_ip
