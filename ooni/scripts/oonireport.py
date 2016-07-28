@@ -2,6 +2,7 @@ from __future__ import print_function
 
 import os
 import sys
+import json
 import yaml
 
 from twisted.python import usage
@@ -21,7 +22,7 @@ def lookup_collector_client(report_header, bouncer):
     oonib_client = BouncerClient(bouncer)
     net_tests = [{
         'test-helpers': [],
-        'input-hashes': report_header['input_hashes'],
+        'input-hashes': [],
         'name': report_header['test_name'],
         'version': report_header['test_version'],
     }]
@@ -33,36 +34,57 @@ def lookup_collector_client(report_header, bouncer):
     )
     defer.returnValue(collector_client)
 
+class NoIDFound(Exception):
+    pass
+
+def report_path_to_id(report_file):
+    measurement_dir = os.path.dirname(report_file)
+    measurement_id = os.path.basename(measurement_dir)
+    if os.path.dirname(measurement_dir) != config.measurements_directory:
+        raise NoIDFound
+    return measurement_id
+
 @defer.inlineCallbacks
-def upload(report_file, collector=None, bouncer=None):
+def upload(report_file, collector=None, bouncer=None, measurement_id=None):
     oonib_report_log = OONIBReportLog()
     collector_client = None
     if collector:
         collector_client = CollectorClient(address=collector)
 
+    try:
+        # Try to guess the measurement_id from the file path
+        measurement_id = report_path_to_id(report_file)
+    except NoIDFound:
+        pass
+
     log.msg("Attempting to upload %s" % report_file)
 
-    with open(config.report_log_file) as f:
-        report_log = yaml.safe_load(f)
+    if report_file.endswith(".njson"):
+        report = NJSONReportLoader(report_file)
+    else:
+        log.warn("Uploading of YAML formatted reports will be dropped in "
+                 "future versions")
+        report = YAMLReportLoader(report_file)
 
-    report = ReportLoader(report_file)
     if bouncer and collector_client is None:
         collector_client = yield lookup_collector_client(report.header,
                                                          bouncer)
 
     if collector_client is None:
-        try:
-            collector_settings = report_log[report_file]['collector']
-            if collector_settings is None:
-                log.msg("Skipping uploading of %s since this measurement "
-                        "was run by specifying no collector." %
-                        report_file)
+        if measurement_id:
+            report_log = yield oonib_report_log.get_report_log(measurement_id)
+            collector_settings = report_log['collector']
+            print(collector_settings)
+            if collector_settings is None or len(collector_settings) == 0:
+                log.warn("Skipping uploading of %s since this measurement "
+                         "was run by specifying no collector." %
+                          report_file)
                 defer.returnValue(None)
             elif isinstance(collector_settings, dict):
                 collector_client = CollectorClient(settings=collector_settings)
             elif isinstance(collector_settings, str):
                 collector_client = CollectorClient(address=collector_settings)
-        except KeyError:
+        else:
             log.msg("Could not find %s in reporting.yaml. Looking up "
                     "collector with canonical bouncer." % report_file)
             collector_client = yield lookup_collector_client(report.header,
@@ -73,51 +95,59 @@ def upload(report_file, collector=None, bouncer=None):
                                                 collector_client.settings))
     report_id = yield oonib_reporter.createReport()
     report.header['report_id'] = report_id
-    yield oonib_report_log.created(report_file,
-                                   collector_client.settings,
-                                   report_id)
+    if measurement_id:
+        log.debug("Marking it as created")
+        yield oonib_report_log.created(measurement_id,
+                                       collector_client.settings)
     log.msg("Writing report entries")
     for entry in report:
         yield oonib_reporter.writeReportEntry(entry)
-        sys.stdout.write('.')
-        sys.stdout.flush()
+        log.msg("Written entry")
     log.msg("Closing report")
     yield oonib_reporter.finish()
-    yield oonib_report_log.closed(report_file)
+    if measurement_id:
+        log.debug("Closing log")
+        yield oonib_report_log.closed(measurement_id)
 
 
 @defer.inlineCallbacks
-def upload_all(collector=None, bouncer=None):
+def upload_all(collector=None, bouncer=None, upload_incomplete=False):
     oonib_report_log = OONIBReportLog()
 
-    for report_file, value in oonib_report_log.reports_to_upload:
+    reports_to_upload = yield oonib_report_log.get_to_upload()
+    for report_file, value in reports_to_upload:
         try:
-            yield upload(report_file, collector, bouncer)
+            yield upload(report_file, collector, bouncer,
+                         value['measurement_id'])
         except Exception as exc:
             log.exception(exc)
 
 
 def print_report(report_file, value):
     print("* %s" % report_file)
-    print("  %s" % value['created_at'])
+    print("  %s" % value['last_update'])
 
 
+@defer.inlineCallbacks
 def status():
     oonib_report_log = OONIBReportLog()
 
+    reports_to_upload = yield oonib_report_log.get_to_upload()
     print("Reports to be uploaded")
     print("----------------------")
-    for report_file, value in oonib_report_log.reports_to_upload:
+    for report_file, value in reports_to_upload:
         print_report(report_file, value)
 
+    reports_in_progress = yield oonib_report_log.get_in_progress()
     print("Reports in progress")
     print("-------------------")
-    for report_file, value in oonib_report_log.reports_in_progress:
+    for report_file, value in reports_in_progress:
         print_report(report_file, value)
 
+    reports_incomplete = yield oonib_report_log.get_incomplete()
     print("Incomplete reports")
     print("------------------")
-    for report_file, value in oonib_report_log.reports_incomplete:
+    for report_file, value in reports_incomplete:
         print_report(report_file, value)
 
 class ReportLoader(object):
@@ -125,23 +155,33 @@ class ReportLoader(object):
         'probe_asn',
         'probe_cc',
         'probe_ip',
-        'start_time',
+        'probe_city',
+        'test_start_time',
         'test_name',
         'test_version',
         'options',
         'input_hashes',
         'software_name',
-        'software_version'
+        'software_version',
+        'data_format_version',
+        'report_id',
+        'test_helpers',
+        'annotations',
+        'id'
     )
 
+    def __iter__(self):
+        return self
+
+    def close(self):
+        self._fp.close()
+
+class YAMLReportLoader(ReportLoader):
     def __init__(self, report_filename):
         self._fp = open(report_filename)
         self._yfp = yaml.safe_load_all(self._fp)
 
         self.header = self._yfp.next()
-
-    def __iter__(self):
-        return self
 
     def next(self):
         try:
@@ -150,8 +190,30 @@ class ReportLoader(object):
             self.close()
             raise StopIteration
 
-    def close(self):
-        self._fp.close()
+class NJSONReportLoader(ReportLoader):
+    def __init__(self, report_filename):
+        self._fp = open(report_filename)
+        self.header = self._peek_header()
+
+    def _peek_header(self):
+        header = {}
+        first_entry = json.loads(next(self._fp))
+        for key in self._header_keys:
+            header[key] = first_entry.get(key, None)
+        self._fp.seek(0)
+        return header
+
+    def next(self):
+        try:
+            entry = json.loads(next(self._fp))
+            for key in self._header_keys:
+                entry.pop(key, None)
+            test_keys = entry.pop('test_keys')
+            entry.update(test_keys)
+            return entry
+        except StopIteration:
+            self.close()
+            raise StopIteration
 
 class Options(usage.Options):
 
@@ -218,11 +280,13 @@ def oonireport(_reactor=reactor, _args=sys.argv[1:]):
         options['bouncer'] = CANONICAL_BOUNCER_ONION
 
     if options['command'] == "upload" and options['report_file']:
+        log.start()
         tor_check()
         return upload(options['report_file'],
                       options['collector'],
                       options['bouncer'])
     elif options['command'] == "upload":
+        log.start()
         tor_check()
         return upload_all(options['collector'],
                           options['bouncer'])

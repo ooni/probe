@@ -114,7 +114,7 @@ class OONILogger(object):
         else:
             tw_log.err(msg, source="ooni")
 
-    def warn(self, *arg, **kw):
+    def warn(self, msg, *arg, **kw):
         text = log_encode(msg)
         tw_log.msg(text, log_level=levels['WARNING'], source="ooni")
 
@@ -165,3 +165,5 @@ stop = oonilogger.stop
 msg = oonilogger.msg
 debug = oonilogger.debug
 err = oonilogger.err
+warn = oonilogger.warn
+exception = oonilogger.exception

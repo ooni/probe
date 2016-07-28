@@ -1,4 +1,3 @@
-import pwd
 import os
 
 from twisted.internet import defer
@@ -7,7 +6,6 @@ from twisted.python.failure import Failure
 from ooni.managers import ReportEntryManager, MeasurementManager
 from ooni.reporter import Report
 from ooni.utils import log, generate_filename
-from ooni.utils.net import randomFreePort
 from ooni.nettest import NetTest, getNetTestInformation
 from ooni.settings import config
 from ooni.nettest import normalizeTestName
@@ -15,7 +13,7 @@ from ooni.deck.store import InputStore
 from ooni.geoip import probe_ip
 
 from ooni.agent.scheduler import run_system_tasks
-from ooni.utils.onion import start_tor, connect_to_control_port
+from ooni.utils.onion import start_tor, connect_to_control_port, get_tor_config
 
 class DirectorEvent(object):
     def __init__(self, type="update", message=""):
@@ -299,7 +297,7 @@ class Director(object):
     @defer.inlineCallbacks
     def start_net_test_loader(self, net_test_loader, report_filename,
                               collector_client=None, no_yamloo=False,
-                              test_details=None):
+                              test_details=None, measurement_id=None):
         """
         Create the Report for the NetTest and start the report NetTest.
 
@@ -319,7 +317,8 @@ class Director(object):
         report = Report(test_details, report_filename,
                         self.reportEntryManager,
                         collector_client,
-                        no_yamloo)
+                        no_yamloo,
+                        measurement_id)
 
         yield report.open()
         net_test = NetTest(test_cases, test_details, report)
@@ -392,50 +391,8 @@ class Director(object):
                 raise exc
 
         if config.advanced.start_tor and config.tor_state is None:
-            tor_config = TorConfig()
-            if config.tor.control_port is None:
-                config.tor.control_port = int(randomFreePort())
-            if config.tor.socks_port is None:
-                config.tor.socks_port = int(randomFreePort())
+            tor_config = get_tor_config()
 
-            tor_config.ControlPort = config.tor.control_port
-            tor_config.SocksPort = config.tor.socks_port
-
-            if config.tor.data_dir:
-                data_dir = os.path.expanduser(config.tor.data_dir)
-
-                if not os.path.exists(data_dir):
-                    log.debug("%s does not exist. Creating it." % data_dir)
-                    os.makedirs(data_dir)
-                tor_config.DataDirectory = data_dir
-
-            if config.tor.bridges:
-                tor_config.UseBridges = 1
-                if config.advanced.obfsproxy_binary:
-                    tor_config.ClientTransportPlugin = (
-                        'obfs2,obfs3 exec %s managed' %
-                        config.advanced.obfsproxy_binary
-                    )
-                bridges = []
-                with open(config.tor.bridges) as f:
-                    for bridge in f:
-                        if 'obfs' in bridge:
-                            if config.advanced.obfsproxy_binary:
-                                bridges.append(bridge.strip())
-                        else:
-                            bridges.append(bridge.strip())
-                tor_config.Bridge = bridges
-
-            if config.tor.torrc:
-                for i in config.tor.torrc.keys():
-                    setattr(tor_config, i, config.tor.torrc[i])
-
-            if os.geteuid() == 0:
-                tor_config.User = pwd.getpwuid(os.geteuid()).pw_name
-
-            tor_config.save()
-            log.debug("Setting control port as %s" % tor_config.ControlPort)
-            log.debug("Setting SOCKS port as %s" % tor_config.SocksPort)
             try:
                 yield start_tor(tor_config)
                 self._tor_starting.callback(self._tor_state)
