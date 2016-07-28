@@ -11,7 +11,7 @@ from ooni.utils.net import randomFreePort
 from ooni.nettest import NetTest, getNetTestInformation
 from ooni.settings import config
 from ooni.nettest import normalizeTestName
-from ooni.deck import InputStore
+from ooni.deck.store import InputStore
 from ooni.geoip import probe_ip
 
 from ooni.agent.scheduler import run_system_tasks

@@ -235,7 +235,8 @@ def setupCollector(global_options, collector_client):
     return collector_client
 
 def createDeck(global_options, url=None):
-    from ooni.deck import NGDeck, subargs_to_options
+    from ooni.deck import NGDeck
+    from ooni.deck.legacy import subargs_to_options
 
     if url:
         log.msg("Creating deck for: %s" % (url))

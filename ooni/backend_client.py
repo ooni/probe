@@ -12,7 +12,7 @@ from twisted.python.versions import Version
 from twisted import version as _twisted_version
 _twisted_14_0_2_version = Version('twisted', 14, 0, 2)
 
-from ooni import errors as e
+from ooni import errors as e, constants
 from ooni.settings import config
 from ooni.utils import log, onion
 from ooni.utils.net import BodyReceiver, StringProducer, Downloader
@@ -273,3 +273,23 @@ class WebConnectivityClient(OONIBClient):
             'tcp_connect': tcp_connect
         }
         return self.queryBackend('POST', '/', query=request)
+
+
+def get_preferred_bouncer():
+    preferred_backend = config.advanced.get(
+        "preferred_backend", "onion"
+    )
+    bouncer_address = getattr(
+        constants, "CANONICAL_BOUNCER_{0}".format(
+            preferred_backend.upper()
+        )
+    )
+    if preferred_backend == "cloudfront":
+        return BouncerClient(
+            settings={
+                'address': bouncer_address[0],
+                'front': bouncer_address[1],
+                'type': 'cloudfront'
+        })
+    else:
+        return BouncerClient(bouncer_address)

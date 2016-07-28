@@ -5,16 +5,17 @@ from copy import deepcopy
 
 import yaml
 
-from mock import patch, MagicMock
+from mock import patch
 
 from twisted.internet import defer
 from twisted.trial import unittest
 
 from hashlib import sha256
 from ooni import errors
-from ooni.deck import input_store, lookup_collector_and_test_helpers
-from ooni.deck import nettest_to_path, NGDeck
-from ooni.deck import convert_legacy_deck
+from ooni.deck.store import input_store
+from ooni.deck.backend import lookup_collector_and_test_helpers
+from ooni.deck.deck import nettest_to_path, NGDeck
+from ooni.deck.legacy import convert_legacy_deck
 from ooni.tests.bases import ConfigTestCase
 from ooni.tests.mocks import MockBouncerClient, MockCollectorClient
 
@@ -123,12 +124,12 @@ class TestDeck(BaseTestCase, ConfigTestCase):
             global_options['collector'].replace("httpo://", "http://")
         )
 
-    @patch('ooni.deck.BouncerClient', MockBouncerClient)
-    @patch('ooni.deck.CollectorClient', MockCollectorClient)
+    @patch('ooni.deck.deck.BouncerClient', MockBouncerClient)
+    @patch('ooni.deck.deck.CollectorClient', MockCollectorClient)
+    @patch('ooni.deck.backend.CollectorClient', MockCollectorClient)
     @defer.inlineCallbacks
     def test_lookup_test_helpers_and_collector(self):
         deck = NGDeck()
-        deck.bouncer = MockBouncerClient(FAKE_BOUNCER_ADDRESS)
         deck.open(self.deck_file)
 
         self.assertEqual(
@@ -139,7 +140,7 @@ class TestDeck(BaseTestCase, ConfigTestCase):
         yield lookup_collector_and_test_helpers(
             net_test_loaders=[deck.tasks[0].ooni['net_test_loader']],
             preferred_backend='onion',
-            bouncer=deck.bouncer
+            bouncer=MockBouncerClient()
         )
 
         self.assertEqual(
@@ -179,8 +180,9 @@ class TestDeck(BaseTestCase, ConfigTestCase):
                           nettest_to_path,
                           "invalid_test")
 
-    @patch('ooni.deck.BouncerClient', MockBouncerClient)
-    @patch('ooni.deck.CollectorClient', MockCollectorClient)
+    @patch('ooni.deck.deck.BouncerClient', MockBouncerClient)
+    @patch('ooni.deck.deck.CollectorClient', MockCollectorClient)
+    @patch('ooni.deck.backend.CollectorClient', MockCollectorClient)
     @defer.inlineCallbacks
     def test_lookup_test_helpers_and_collector_cloudfront(self):
         self.config.advanced.preferred_backend = "cloudfront"
@@ -194,7 +196,7 @@ class TestDeck(BaseTestCase, ConfigTestCase):
         yield lookup_collector_and_test_helpers(
             net_test_loaders=net_test_loaders ,
             preferred_backend='cloudfront',
-            bouncer=deck.bouncer
+            bouncer=MockBouncerClient()
         )
 
         self.assertEqual(
@@ -211,8 +213,9 @@ class TestDeck(BaseTestCase, ConfigTestCase):
             '127.0.0.1'
         )
 
-    @patch('ooni.deck.BouncerClient', MockBouncerClient)
-    @patch('ooni.deck.CollectorClient', MockCollectorClient)
+    @patch('ooni.deck.deck.BouncerClient', MockBouncerClient)
+    @patch('ooni.deck.deck.CollectorClient', MockCollectorClient)
+    @patch('ooni.deck.backend.CollectorClient', MockCollectorClient)
     @defer.inlineCallbacks
     def test_lookup_test_helpers_and_collector_https(self):
         self.config.advanced.preferred_backend = "https"
@@ -228,7 +231,7 @@ class TestDeck(BaseTestCase, ConfigTestCase):
         yield lookup_collector_and_test_helpers(
             net_test_loaders=net_test_loaders,
             preferred_backend='https',
-            bouncer=deck.bouncer
+            bouncer=MockBouncerClient()
         )
 
         self.assertEqual(
