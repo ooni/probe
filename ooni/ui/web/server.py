@@ -20,7 +20,7 @@ from ooni.deck import NGDeck
 from ooni.settings import config
 from ooni.utils import log
 from ooni.director import DirectorEvent
-from ooni.results import generate_summary
+from ooni.measurements import generate_summary
 from ooni.geoip import probe_ip
 
 config.advanced.debug = True
@@ -64,7 +64,8 @@ def xsrf_protect(check=True):
             if (token_cookie != instance._xsrf_token and
                     instance._enable_xsrf_protection):
                 request.addCookie(u'XSRF-TOKEN',
-                                  instance._xsrf_token)
+                                  instance._xsrf_token,
+                                  path=u'/')
             if should_check and token_cookie != token_header:
                 raise WebUIError(404, "Invalid XSRF token")
             return f(instance, request, *a, **kw)
@@ -352,6 +353,41 @@ class WebUIAPI(object):
             r = json.load(f)
 
         return self.render_json(r, request)
+
+    @app.route('/api/measurement/<string:measurement_id>', methods=["DELETE"])
+    @xsrf_protect(check=True)
+    def api_measurement_delete(self, request, measurement_id):
+        try:
+            measurement_dir = self.measurement_path.child(measurement_id)
+        except InsecurePath:
+            raise WebUIError(500, "invalid measurement id")
+
+        if measurement_dir.child("measurements.njson.progress").exists():
+            raise WebUIError(400, "measurement in progress")
+
+        try:
+            measurement_dir.remove()
+        except:
+            raise WebUIError(400, "Failed to delete report")
+
+        return self.render_json({"result": "ok"}, request)
+
+    @app.route('/api/measurement/<string:measurement_id>/keep', methods=["POST"])
+    @xsrf_protect(check=True)
+    def api_measurement_keep(self, request, measurement_id):
+        try:
+            measurement_dir = self.measurement_path.child(measurement_id)
+        except InsecurePath:
+            raise WebUIError(500, "invalid measurement id")
+
+        if measurement_dir.child("measurements.njson.progress").exists():
+            raise WebUIError(400, "measurement in progress")
+
+        summary = measurement_dir.child("keep")
+        with summary.open("w+") as f:
+            pass
+
+        return self.render_json({"result": "ok"}, request)
 
     @app.route('/api/measurement/<string:measurement_id>/<int:idx>',
                methods=["GET"])

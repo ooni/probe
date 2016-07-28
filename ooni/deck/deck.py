@@ -13,7 +13,7 @@ from ooni.deck.legacy import convert_legacy_deck
 from ooni.deck.store import input_store
 from ooni.geoip import probe_ip
 from ooni.nettest import NetTestLoader, nettest_to_path
-from ooni.results import generate_summary
+from ooni.measurements import generate_summary
 from ooni.settings import config
 from ooni.utils import log, generate_filename
 

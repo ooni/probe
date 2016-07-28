@@ -92,6 +92,9 @@ def randomStr(length, num=True):
         chars += string.digits
     return ''.join(random.choice(chars) for x in range(length))
 
+LONG_DATE = "%Y-%m-%d %H:%M:%S"
+SHORT_DATE = "%Y%m%dT%H%M%SZ"
+
 def generate_filename(test_details, prefix=None, extension=None):
     """
     Returns a filename for every test execution.
@@ -99,9 +102,6 @@ def generate_filename(test_details, prefix=None, extension=None):
     It's used to assure that all files of a certain test have a common basename but different
     extension.
     """
-    LONG_DATE = "%Y-%m-%d %H:%M:%S"
-    SHORT_DATE = "%Y%m%dT%H%M%SZ"
-
     kwargs = {}
     filename_format = ""
     if prefix is not None:

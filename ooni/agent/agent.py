@@ -1,6 +1,7 @@
 from twisted.application import service
 from ooni.director import Director
 from ooni.settings import config
+from ooni.utils import log
 
 from ooni.ui.web.web import WebUIService
 from ooni.agent.scheduler import SchedulerService
@@ -19,3 +20,13 @@ class AgentService(service.MultiService):
 
         self.scheduler_service = SchedulerService(director)
         self.scheduler_service.setServiceParent(self)
+
+    def startService(self):
+        service.MultiService.startService(self)
+
+        log.start()
+
+    def stopService(self):
+        service.MultiService.stopService(self)
+
+        log.stop()

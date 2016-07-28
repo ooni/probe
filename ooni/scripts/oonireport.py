@@ -122,6 +122,14 @@ def upload_all(collector=None, bouncer=None, upload_incomplete=False):
         except Exception as exc:
             log.exception(exc)
 
+    if upload_incomplete:
+        reports_to_upload = yield oonib_report_log.get_incomplete()
+        for report_file, value in reports_to_upload:
+            try:
+                yield upload(report_file, collector, bouncer,
+                             value['measurement_id'])
+            except Exception as exc:
+                log.exception(exc)
 
 def print_report(report_file, value):
     print("* %s" % report_file)

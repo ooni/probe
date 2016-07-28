@@ -4,12 +4,17 @@ from twisted.application import service
 from twisted.internet import task, defer
 from twisted.python.filepath import FilePath
 
+from ooni.scripts import oonireport
 from ooni import resources
-from ooni.utils import log
+from ooni.utils import log, SHORT_DATE
 from ooni.deck.store import input_store
 from ooni.settings import config
 from ooni.contrib import croniter
 from ooni.geoip import probe_ip
+from ooni.measurements import list_measurements
+
+class DidNotRun(Exception):
+    pass
 
 class ScheduledTask(object):
     _time_format = "%Y-%m-%dT%H:%M:%SZ"
@@ -58,7 +63,7 @@ class ScheduledTask(object):
         yield self._last_run_lock.deferUntilLocked()
         if not self.should_run:
             self._last_run_lock.unlock()
-            defer.returnValue(None)
+            raise DidNotRun
         try:
             yield self.task()
             self._update_last_run()
@@ -68,7 +73,7 @@ class ScheduledTask(object):
             self._last_run_lock.unlock()
 
 class UpdateInputsAndResources(ScheduledTask):
-    identifier = "ooni-update-inputs"
+    identifier = "update-inputs"
     schedule = "@daily"
 
     @defer.inlineCallbacks
@@ -78,13 +83,50 @@ class UpdateInputsAndResources(ScheduledTask):
         yield resources.check_for_update(probe_ip.geodata['countrycode'])
         yield input_store.update(probe_ip.geodata['countrycode'])
 
-class CleanupInProgressReports(ScheduledTask):
-    identifier = 'ooni-cleanup-reports'
+
+class UploadReports(ScheduledTask):
+    """
+    This task is used to submit to the collector reports that have not been
+    submitted and those that have been partially uploaded.
+    """
+    identifier = 'upload-reports'
+    schedule = '@hourly'
+
+    @defer.inlineCallbacks
+    def task(self):
+        yield oonireport.upload_all(upload_incomplete=True)
+
+
+class DeleteOldReports(ScheduledTask):
+    """
+    This task is used to delete reports that are older than a week.
+    """
+    identifier = 'delete-old-reports'
     schedule = '@daily'
 
-class UploadMissingReports(ScheduledTask):
-    identifier = 'ooni-cleanup-reports'
-    schedule = '@weekly'
+    def task(self):
+        measurement_path = FilePath(config.measurements_directory)
+        for measurement in list_measurements():
+            if measurement['keep'] is True:
+                continue
+            delta = datetime.utcnow() - \
+                    datetime.strptime(measurement['test_start_time'],
+                                      SHORT_DATE)
+            if delta.days >= 7:
+                log.debug("Deleting old report {0}".format(measurement["id"]))
+                measurement_path.child(measurement['id']).remove()
+
+class SendHeartBeat(ScheduledTask):
+    """
+    This task is used to send a heartbeat that the probe is still alive and
+    well.
+    """
+    identifier = 'send-heartbeat'
+    schedule = '@hourly'
+
+    def task(self):
+        # XXX implement this
+        pass
 
 # Order mattters
 SYSTEM_TASKS = [
@@ -122,8 +164,12 @@ class SchedulerService(service.MultiService):
     def schedule(self, task):
         self._scheduled_tasks.append(task)
 
+    def _task_did_not_run(self, failure, task):
+        failure.trap(DidNotRun)
+        log.debug("Did not run {0}".format(task.identifier))
+
     def _task_failed(self, failure, task):
-        log.debug("Failed to run {0}".format(task.identifier))
+        log.err("Failed to run {0}".format(task.identifier))
         log.exception(failure)
 
     def _task_success(self, result, task):
@@ -137,13 +183,16 @@ class SchedulerService(service.MultiService):
         for task in self._scheduled_tasks:
             log.debug("Running task {0}".format(task.identifier))
             d = task.run()
-            d.addErrback(self._task_failed, task)
+            d.addErrback(self._task_did_not_run, task)
             d.addCallback(self._task_success, task)
+            d.addErrback(self._task_failed, task)
 
     def startService(self):
         service.MultiService.startService(self)
 
         self.schedule(UpdateInputsAndResources())
+        self.schedule(UploadReports())
+        self.schedule(DeleteOldReports())
 
         self._looping_call.start(self.interval)
 
