@@ -1,5 +1,6 @@
 import os
 import re
+import pwd
 import string
 import StringIO
 import subprocess
@@ -12,6 +13,7 @@ from twisted.internet.endpoints import TCP4ClientEndpoint
 from txtorcon import TorConfig, TorState, launch_tor, build_tor_connection
 from txtorcon.util import find_tor_binary as tx_find_tor_binary
 
+from ooni.utils.net import randomFreePort
 from ooni import constants
 from ooni import errors
 from ooni.utils import log
@@ -212,6 +214,53 @@ def get_client_transport(transport):
 
     raise UninstalledTransport
 
+
+def get_tor_config():
+    tor_config = TorConfig()
+    if config.tor.control_port is None:
+        config.tor.control_port = int(randomFreePort())
+    if config.tor.socks_port is None:
+        config.tor.socks_port = int(randomFreePort())
+
+    tor_config.ControlPort = config.tor.control_port
+    tor_config.SocksPort = config.tor.socks_port
+
+    if config.tor.data_dir:
+        data_dir = os.path.expanduser(config.tor.data_dir)
+
+        if not os.path.exists(data_dir):
+            log.debug("%s does not exist. Creating it." % data_dir)
+            os.makedirs(data_dir)
+        tor_config.DataDirectory = data_dir
+
+    if config.tor.bridges:
+        tor_config.UseBridges = 1
+        if config.advanced.obfsproxy_binary:
+            tor_config.ClientTransportPlugin = (
+                'obfs2,obfs3 exec %s managed' %
+                config.advanced.obfsproxy_binary
+            )
+        bridges = []
+        with open(config.tor.bridges) as f:
+            for bridge in f:
+                if 'obfs' in bridge:
+                    if config.advanced.obfsproxy_binary:
+                        bridges.append(bridge.strip())
+                else:
+                    bridges.append(bridge.strip())
+        tor_config.Bridge = bridges
+
+    if config.tor.torrc:
+        for i in config.tor.torrc.keys():
+            setattr(tor_config, i, config.tor.torrc[i])
+
+    if os.geteuid() == 0:
+        tor_config.User = pwd.getpwuid(os.geteuid()).pw_name
+
+    tor_config.save()
+    log.debug("Setting control port as %s" % tor_config.ControlPort)
+    log.debug("Setting SOCKS port as %s" % tor_config.SocksPort)
+    return tor_config
 
 class TorLauncherWithRetries(object):
     def __init__(self, tor_config, timeout=config.tor.timeout):

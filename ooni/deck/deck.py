@@ -218,6 +218,7 @@ class NGDeck(object):
         net_test_loader = task.ooni["net_test_loader"]
         test_details = task.ooni["test_details"]
 
+        measurement_id = None
         report_filename = task.output_path
         if not task.output_path:
             measurement_id = task.id
@@ -235,7 +236,8 @@ class NGDeck(object):
             net_test_loader,
             report_filename,
             collector_client=net_test_loader.collector,
-            test_details=test_details
+            test_details=test_details,
+            measurement_id=measurement_id
         )
         d.addCallback(self._measurement_completed, task)
         d.addErrback(self._measurement_failed, task)
