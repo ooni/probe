@@ -131,7 +131,7 @@ class OConfig(object):
 
     def set_paths(self):
         self.nettest_directory = os.path.join(get_ooni_root(), 'nettests')
-        self.web_ui_directory = os.path.join(get_ooni_root(), 'web', 'client')
+        self.web_ui_directory = os.path.join(get_ooni_root(), 'ui', 'web', 'client')
 
         self.inputs_directory = os.path.join(self.running_path, 'inputs')
         self.scheduler_directory = os.path.join(self.running_path, 'scheduler')
