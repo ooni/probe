@@ -26,11 +26,6 @@ from ooni.geoip import probe_ip
 
 config.advanced.debug = True
 
-def rpath(*path):
-    context = os.path.abspath(os.path.dirname(__file__))
-    return os.path.join(context, *path)
-
-
 class WebUIError(Exception):
     def __init__(self, code, message):
         self.code = code
@@ -392,5 +387,4 @@ class WebUIAPI(object):
     @app.route('/client/', branch=True)
     @xsrf_protect(check=False)
     def static(self, request):
-        path = rpath("client")
-        return static.File(path)
+        return static.File(config.web_ui_directory)

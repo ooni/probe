@@ -7,6 +7,7 @@ import signal
 from twisted.scripts import twistd
 from twisted.python import usage
 
+from ooni.utils import log
 from ooni.settings import config
 from ooni.agent.agent import AgentService
 
@@ -48,8 +49,15 @@ class AgentOptions(usage.Options):
         self.twistd_args = []
 
 def start_agent(options=None):
-    os.chdir(config.ooni_home)
-    twistd_args = []
+    config.set_paths()
+    config.initialize_ooni_home()
+    config.read_config_file()
+
+    os.chdir(config.running_path)
+
+    # Since we are starting the logger below ourselves we make twistd log to
+    #  a null log observer
+    twistd_args = ['--logger', 'ooni.utils.log.ooniloggerNull']
     twistd_config = OoniprobeTwistdConfig()
     if options is not None:
         twistd_args.extend(options.twistd_args)
@@ -63,12 +71,13 @@ def start_agent(options=None):
     }
     print("Starting ooniprobe agent.")
     print("To view the GUI go to %s" % WEB_UI_URL)
+    log.start()
     twistd.runApp(twistd_config)
     return 0
 
 def status_agent():
     pidfile = os.path.join(
-        config.ooni_home,
+        config.running_path,
         'twistd.pid'
     )
     if not os.path.exists(pidfile):
@@ -88,7 +97,7 @@ def status_agent():
 def stop_agent():
     # This function is borrowed from tahoe
     pidfile = os.path.join(
-        config.ooni_home,
+        config.running_path,
         'twistd.pid'
     )
     if not os.path.exists(pidfile):

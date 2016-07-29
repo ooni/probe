@@ -7,7 +7,7 @@ from twisted.python.filepath import FilePath
 from ooni.scripts import oonireport
 from ooni import resources
 from ooni.utils import log, SHORT_DATE
-from ooni.deck.store import input_store
+from ooni.deck.store import input_store, deck_store
 from ooni.settings import config
 from ooni.contrib import croniter
 from ooni.geoip import probe_ip
@@ -116,6 +116,25 @@ class DeleteOldReports(ScheduledTask):
                 log.debug("Deleting old report {0}".format(measurement["id"]))
                 measurement_path.child(measurement['id']).remove()
 
+
+class RunDecks(ScheduledTask):
+    """
+    This will run the decks that have been configured on the system as the
+    decks to run by default.
+    """
+    schedule = '@daily'
+    identifier = 'run-decks'
+
+    def __init__(self, director, schedule=None):
+        super(RunDecks, self).__init__(schedule)
+        self.director = director
+
+    @defer.inlineCallbacks
+    def task(self):
+        for deck_id, deck in deck_store.list():
+            yield deck.setup()
+            yield deck.run(self.director)
+
 class SendHeartBeat(ScheduledTask):
     """
     This task is used to send a heartbeat that the probe is still alive and
@@ -193,6 +212,7 @@ class SchedulerService(service.MultiService):
         self.schedule(UpdateInputsAndResources())
         self.schedule(UploadReports())
         self.schedule(DeleteOldReports())
+        self.schedule(RunDecks(self.director))
 
         self._looping_call.start(self.interval)
 
