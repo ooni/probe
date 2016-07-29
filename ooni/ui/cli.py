@@ -29,7 +29,8 @@ class Options(usage.Options):
                 ["no-geoip", "g", "Disable geoip lookup on start"],
                 ["list", "s", "List the currently installed ooniprobe "
                               "nettests"],
-                ["verbose", "v", "Show more verbose information"]
+                ["verbose", "v", "Show more verbose information"],
+                ["web-ui", "w", "Start the web UI"]
                 ]
 
     optParameters = [
@@ -96,7 +97,7 @@ This will tell you how to run ooniprobe :)
         sys.exit(0)
 
     def parseArgs(self, *args):
-        if self['testdeck'] or self['list']:
+        if self['testdeck'] or self['list'] or self['web-ui']:
             return
         try:
             self['test_file'] = args[0]

@@ -7,7 +7,7 @@ from ooni.ui.web.web import WebUIService
 from ooni.agent.scheduler import SchedulerService
 
 class AgentService(service.MultiService):
-    def __init__(self):
+    def __init__(self, web_ui_port):
         service.MultiService.__init__(self)
 
         director = Director()
@@ -15,7 +15,7 @@ class AgentService(service.MultiService):
         config.initialize_ooni_home()
         config.read_config_file()
 
-        self.web_ui_service = WebUIService(director)
+        self.web_ui_service = WebUIService(director, web_ui_port)
         self.web_ui_service.setServiceParent(self)
 
         self.scheduler_service = SchedulerService(director)

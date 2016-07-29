@@ -6,7 +6,6 @@ import os
 from copy import deepcopy
 
 from datetime import datetime
-from contextlib import contextmanager
 
 from yaml.representer import SafeRepresenter
 from yaml.emitter import Emitter
@@ -36,6 +35,7 @@ from ooni.utils import generate_filename
 from ooni.settings import config
 
 from ooni.tasks import ReportEntry
+from ooni.measurements import list_measurements
 
 
 def createPacketReport(packet_list):
@@ -413,9 +413,10 @@ class OONIBReportLog(object):
     @defer.inlineCallbacks
     def get_report_log_entries(self):
         entries = []
-        for measurement_id in self.measurement_dir.listdir():
+        for measurement in list_measurements():
             try:
-                entry = yield self.get_report_log(measurement_id)
+                entry = yield self.get_report_log(measurement['id'])
+                entry['completed'] = measurement['completed']
                 entries.append(entry)
             except NoReportLog:
                 continue
@@ -453,6 +454,9 @@ class OONIBReportLog(object):
         incomplete_reports = []
         all_entries = yield self.get_report_log_entries()
         for entry in all_entries[:]:
+            # This means that the measurement itself is incomplete
+            if entry['completed'] is False:
+                continue
             if entry['status'] in ('created',):
                 try:
                     os.kill(entry['pid'], 0)
@@ -486,6 +490,9 @@ class OONIBReportLog(object):
         to_upload_reports = []
         all_entries = yield self.get_report_log_entries()
         for entry in all_entries[:]:
+            # This means that the measurement itself is incomplete
+            if entry['completed'] is False:
+                continue
             if entry['status'] in ('creation-failed', 'not-created'):
                 to_upload_reports.append(
                     (entry['measurements_path'], entry)
