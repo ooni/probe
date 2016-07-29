@@ -158,6 +158,8 @@ class OONILogger(object):
         self.fileObserver.stop()
 
 oonilogger = OONILogger()
+# This is a mock of a LoggerObserverFactory to be supplied to twistd.
+ooniloggerNull = lambda: lambda eventDict: None
 
 start = oonilogger.start
 stop = oonilogger.stop

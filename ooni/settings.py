@@ -1,4 +1,5 @@
 import os
+import sys
 import yaml
 import getpass
 from ConfigParser import SafeConfigParser
@@ -11,7 +12,6 @@ from os.path import abspath, expanduser
 from ooni.utils.net import ConnectAndCloseProtocol, connectProtocol
 from ooni.utils import Storage, log, get_ooni_root
 from ooni import errors
-
 
 class OConfig(object):
     _custom_home = None
@@ -41,17 +41,55 @@ class OConfig(object):
 
     @property
     def var_lib_path(self):
+        if hasattr(sys, 'real_prefix'):
+            # We are in a virtualenv use the /usr/share in the virtualenv
+            return os.path.join(
+                os.path.abspath(sys.prefix),
+                'var', 'lib', 'ooni'
+            )
         var_lib_path = self.embedded_settings("directories", "var_lib")
         if var_lib_path:
             return os.path.abspath(var_lib_path)
         return "/var/lib/ooni"
 
     @property
+    def running_path(self):
+        """
+        This is the directory used to store state application data.
+        It defaults to /var/lib/ooni, but if that is not writeable we will
+        use the ooni_home.
+        """
+        var_lib_path = self.var_lib_path
+        if os.access(var_lib_path, os.W_OK):
+            return var_lib_path
+        return self.ooni_home
+
+    @property
     def usr_share_path(self):
+        if hasattr(sys, 'real_prefix'):
+            # We are in a virtualenv use the /usr/share in the virtualenv
+            return os.path.join(
+                os.path.abspath(sys.prefix),
+                'usr', 'share', 'ooni'
+            )
         usr_share_path = self.embedded_settings("directories", "usr_share")
         if usr_share_path:
             return os.path.abspath(usr_share_path)
         return "/usr/share/ooni"
+
+
+    @property
+    def etc_path(self):
+        if hasattr(sys, 'real_prefix'):
+            # We are in a virtualenv use the /usr/share in the virtualenv
+            return os.path.join(
+                os.path.abspath(sys.prefix),
+                'usr', 'share', 'ooni'
+            )
+        etc_path = self.embedded_settings("directories", "etc")
+        if etc_path:
+            return os.path.abspath(etc_path)
+        return "/etc"
 
     @property
     def data_directory_candidates(self):
@@ -93,28 +131,15 @@ class OConfig(object):
 
     def set_paths(self):
         self.nettest_directory = os.path.join(get_ooni_root(), 'nettests')
+        self.web_ui_directory = os.path.join(get_ooni_root(), 'web', 'client')
 
-        if self.advanced.inputs_dir:
-            self.inputs_directory = self.advanced.inputs_dir
-        else:
-            self.inputs_directory = os.path.join(self.ooni_home, 'inputs')
+        self.inputs_directory = os.path.join(self.running_path, 'inputs')
+        self.scheduler_directory = os.path.join(self.running_path, 'scheduler')
+        self.decks_directory = os.path.join(self.running_path, 'decks')
+        self.resources_directory = os.path.join(self.running_path, 'resources')
 
-        self.scheduler_directory = os.path.join(self.ooni_home, 'scheduler')
-
-        if self.advanced.decks_dir:
-            self.decks_directory = self.advanced.decks_dir
-        else:
-            self.decks_directory = os.path.join(self.ooni_home, 'decks')
-
-        self.measurements_directory = os.path.join(self.ooni_home,
+        self.measurements_directory = os.path.join(self.running_path,
                                                    'measurements')
-        self.resources_directory = os.path.join(self.ooni_home,
-                                                "resources")
-        if self.advanced.report_log_file:
-            self.report_log_file = self.advanced.report_log_file
-        else:
-            self.report_log_file = os.path.join(self.ooni_home,
-                                                'reporting.yml')
 
         if self.global_options.get('configfile'):
             config_file = self.global_options['configfile']
@@ -123,8 +148,9 @@ class OConfig(object):
             self.config_file = os.path.join(self.ooni_home, 'ooniprobe.conf')
 
         if 'logfile' in self.basic:
-            self.basic.logfile = expanduser(self.basic.logfile.replace(
-                '~', '~'+self.current_user))
+            self.basic.logfile = expanduser(
+                self.basic.logfile.replace('~', '~'+self.current_user)
+            )
 
     def initialize_ooni_home(self, custom_home=None):
         if custom_home:
@@ -147,7 +173,7 @@ class OConfig(object):
         ]
         for path in sub_directories:
             try:
-                os.mkdir(path)
+                os.makedirs(path)
             except OSError as exc:
                 if exc.errno != 17:
                     raise

@@ -1,5 +1,6 @@
 import os
 from copy import deepcopy
+from string import Template
 
 import yaml
 from twisted.internet import defer
@@ -10,7 +11,6 @@ from ooni.backend_client import BouncerClient, CollectorClient
 from ooni.backend_client import get_preferred_bouncer
 from ooni.deck.backend import lookup_collector_and_test_helpers
 from ooni.deck.legacy import convert_legacy_deck
-from ooni.deck.store import input_store
 from ooni.geoip import probe_ip
 from ooni.nettest import NetTestLoader, nettest_to_path
 from ooni.measurements import generate_summary
@@ -19,6 +19,7 @@ from ooni.utils import log, generate_filename
 
 
 def resolve_file_path(v, prepath=None):
+    from ooni.deck.store import input_store
     if v.startswith("$"):
         # This raises InputNotFound and we let it carry onto the caller
         return input_store.get(v[1:])["filepath"]
@@ -248,8 +249,13 @@ class NGDeck(object):
         """
         This method needs to be called before you are able to run a deck.
         """
+        from ooni.deck.store import InputNotFound
         for task in self._tasks:
-            yield task.setup()
+            try:
+                yield task.setup()
+            except InputNotFound:
+                log.msg("Skipping this task because the input cannot be found")
+                self._skip = True
         self._is_setup = True
 
     @defer.inlineCallbacks
@@ -365,7 +371,10 @@ class DeckTask(object):
     def _setup_ooni(self):
         yield probe_ip.lookup()
         for input_file in self.ooni['net_test_loader'].inputFiles:
-            file_path = resolve_file_path(input_file['filename'], self.cwd)
+            filename = Template(input_file['filename']).safe_substitute(
+                probe_cc=probe_ip.geodata['countrycode'].lower()
+            )
+            file_path = resolve_file_path(filename, self.cwd)
             input_file['test_options'][input_file['key']] = file_path
         self.ooni['test_details'] = self.ooni['net_test_loader'].getTestDetails()
         self.id = generate_filename(self.ooni['test_details'])
