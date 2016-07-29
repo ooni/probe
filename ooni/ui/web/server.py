@@ -20,7 +20,8 @@ from ooni.deck import NGDeck
 from ooni.settings import config
 from ooni.utils import log
 from ooni.director import DirectorEvent
-from ooni.measurements import generate_summary
+from ooni.measurements import get_summary, get_measurement
+from ooni.measurements import list_measurements, MeasurementNotFound
 from ooni.geoip import probe_ip
 
 config.advanced.debug = True
@@ -311,61 +312,40 @@ class WebUIAPI(object):
     @app.route('/api/measurement', methods=["GET"])
     @xsrf_protect(check=False)
     def api_measurement_list(self, request):
-        measurements = []
-        for measurement_id in self.measurement_path.listdir():
-            measurement = self.measurement_path.child(measurement_id)
-            completed = True
-            if measurement.child("measurement.njson.progress").exists():
-                completed = False
-            test_start_time, country_code, asn, test_name = \
-                measurement_id.split("-")[:4]
-            measurements.append({
-                "test_name": test_name,
-                "country_code": country_code,
-                "asn": asn,
-                "test_start_time": test_start_time,
-                "id": measurement_id,
-                "completed": completed
-            })
+        measurements = list_measurements()
         return self.render_json({"measurements": measurements}, request)
 
     @app.route('/api/measurement/<string:measurement_id>', methods=["GET"])
     @xsrf_protect(check=False)
     def api_measurement_summary(self, request, measurement_id):
         try:
-            measurement_dir = self.measurement_path.child(measurement_id)
+            measurement = get_measurement(measurement_id)
         except InsecurePath:
             raise WebUIError(500, "invalid measurement id")
+        except MeasurementNotFound:
+            raise WebUIError(404, "measurement not found")
 
-        if measurement_dir.child("measurements.njson.progress").exists():
+        if measurement['completed'] is False:
             raise WebUIError(400, "measurement in progress")
 
-        if not measurement_dir.child("summary.json").exists():
-            # XXX we can perhaps remove this.
-            generate_summary(
-                measurement_dir.child("measurements.njson").path,
-                measurement_dir.child("summary.json").path
-            )
-            raise WebUIError(400, "measurement in progress")
-
-        summary = measurement_dir.child("summary.json")
-        with summary.open("r") as f:
-            r = json.load(f)
-
-        return self.render_json(r, request)
+        summary = get_summary(measurement_id)
+        return self.render_json(summary, request)
 
     @app.route('/api/measurement/<string:measurement_id>', methods=["DELETE"])
     @xsrf_protect(check=True)
     def api_measurement_delete(self, request, measurement_id):
         try:
-            measurement_dir = self.measurement_path.child(measurement_id)
+            measurement = get_measurement(measurement_id)
         except InsecurePath:
             raise WebUIError(500, "invalid measurement id")
+        except MeasurementNotFound:
+            raise WebUIError(404, "measurement not found")
 
-        if measurement_dir.child("measurements.njson.progress").exists():
-            raise WebUIError(400, "measurement in progress")
+        if measurement['running'] is True:
+            raise WebUIError(400, "Measurement running")
 
         try:
+            measurement_dir = self.measurement_path.child(measurement_id)
             measurement_dir.remove()
         except:
             raise WebUIError(400, "Failed to delete report")
@@ -379,9 +359,6 @@ class WebUIAPI(object):
             measurement_dir = self.measurement_path.child(measurement_id)
         except InsecurePath:
             raise WebUIError(500, "invalid measurement id")
-
-        if measurement_dir.child("measurements.njson.progress").exists():
-            raise WebUIError(400, "measurement in progress")
 
         summary = measurement_dir.child("keep")
         with summary.open("w+") as f:

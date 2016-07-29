@@ -17,3 +17,4 @@ service-identity
 pydumbnet
 zope.interface
 certifi
+klein
