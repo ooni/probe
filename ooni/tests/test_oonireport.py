@@ -1,5 +1,3 @@
-import yaml
-
 from mock import patch, MagicMock
 
 from twisted.internet import defer
@@ -8,15 +6,6 @@ from ooni.tests.bases import ConfigTestCase
 mock_tor_check = MagicMock(return_value=True)
 
 class TestOONIReport(ConfigTestCase):
-
-    def _create_reporting_yaml(self, filename):
-        from ooni.settings import config
-        with open(config.report_log_file, 'w+') as f:
-            yaml.dump({
-                filename: {
-                    "collector": "httpo://thirteenchars123.onion"
-                }
-            }, f)
 
     def _write_dummy_report(self, filename):
         from ooni.reporter import YAMLReporter
@@ -65,10 +54,9 @@ class TestOONIReport(ConfigTestCase):
         mock_oonib_report_log_i.closed.return_value = defer.succeed(True)
 
         report_name = "dummy_report.yaml"
-        self._create_reporting_yaml(report_name)
         self._write_dummy_report(report_name)
         from ooni.scripts import oonireport
-        d = oonireport.upload(report_name)
+        d = oonireport.upload(report_name, collector='httpo://thirteenchars123.onion')
         @d.addCallback
         def cb(result):
             mock_oonib_reporter_i.writeReportEntry.assert_called_with(
@@ -90,14 +78,13 @@ class TestOONIReport(ConfigTestCase):
         mock_oonib_report_log_i = mock_oonib_report_log.return_value
         mock_oonib_report_log_i.created.return_value = defer.succeed(True)
         mock_oonib_report_log_i.closed.return_value = defer.succeed(True)
-        mock_oonib_report_log_i.reports_to_upload = [("dummy_report.yaml", None)]
+        mock_oonib_report_log_i.get_to_upload.return_value = defer.succeed([("dummy_report.yaml", {'measurement_id': 'XX'})])
 
         report_name = "dummy_report.yaml"
-        self._create_reporting_yaml(report_name)
         self._write_dummy_report(report_name)
 
         from ooni.scripts import oonireport
-        d = oonireport.upload_all()
+        d = oonireport.upload_all(collector='httpo://thirteenchars123.onion')
         @d.addCallback
         def cb(result):
             mock_oonib_reporter_i.writeReportEntry.assert_called_with(
