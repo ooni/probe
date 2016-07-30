@@ -1,7 +1,8 @@
 from datetime import datetime
 
 from twisted.application import service
-from twisted.internet import task, defer
+from twisted.internet import defer
+from twisted.internet.task import LoopingCall
 from twisted.python.filepath import FilePath
 
 from ooni.scripts import oonireport
@@ -71,6 +72,7 @@ class ScheduledTask(object):
             raise
         finally:
             self._last_run_lock.unlock()
+
 
 class UpdateInputsAndResources(ScheduledTask):
     identifier = "update-inputs"
@@ -177,7 +179,7 @@ class SchedulerService(service.MultiService):
         service.MultiService.__init__(self)
         self.director = director
         self.interval = interval
-        self._looping_call = task.LoopingCall(self._should_run)
+        self._looping_call = LoopingCall(self._should_run)
         self._scheduled_tasks = []
 
     def schedule(self, task):

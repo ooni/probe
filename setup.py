@@ -89,16 +89,14 @@ Have fun!
 from __future__ import print_function
 
 import os
-import sys
 import shutil
 import tempfile
 import subprocess
 from ConfigParser import SafeConfigParser
 
 from os.path import join as pj
-from setuptools import setup, Command
+from setuptools import setup
 from setuptools.command.install import install
-from distutils.spawn import find_executable
 
 from ooni import __version__, __author__
 
@@ -177,11 +175,9 @@ class OoniInstall(install):
             pass
 
     def ooniresources(self):
-        ooniresources = find_executable("ooniresources")
-        process = subprocess.Popen([ooniresources],
-                                   stdout=sys.stdout.fileno(),
-                                   stderr=sys.stderr.fileno())
-        process.wait()
+        from ooni.resources import check_for_update
+        from twisted.internet import task
+        task.react(lambda _: check_for_update())
 
     def update_lepidopter_config(self):
         try:
@@ -200,105 +196,6 @@ class OoniInstall(install):
         if is_lepidopter():
             self.update_lepidopter_config()
 
-class ExecutableNotFound(Exception):
-    pass
-
-class CreateOoniResources(Command):
-    description = ("Create ooni-resources.tar.gz containing test-lists and "
-                   "GeoIP data files")
-    user_options = []
-
-    def initialize_options(self):
-        pass
-    def finalize_options(self):
-        pass
-    def download(self, url, directory, filename):
-        dst_path = pj(directory, filename)
-        args = [
-            self.wget,
-            "-O",
-            dst_path,
-            url
-        ]
-        out = run_command(args)
-        if out is None:
-            raise Exception("Failed to download {0}".format(url))
-        return dst_path
-
-    def find_executables(self):
-        self.wget = find_executable("wget")
-        if not self.wget:
-            raise ExecutableNotFound("wget")
-        self.tar = find_executable("tar")
-        if not self.tar:
-            raise ExecutableNotFound("tar")
-        self.unzip = find_executable("unzip")
-        if not self.unzip:
-            raise ExecutableNotFound("unzip")
-        self.gunzip = find_executable("gunzip")
-        if not self.gunzip:
-            raise ExecutableNotFound("gunzip")
-
-    def run(self):
-        dst_path = "dist/ooni-resources.tar.gz"
-
-        try:
-            self.find_executables()
-        except ExecutableNotFound as enf:
-            print("ERR: Could not find '{0}'".format(enf.message))
-            return
-
-        tmp_dir = tempfile.mkdtemp()
-        pkg_dir = tempfile.mkdtemp()
-
-        os.mkdir(pj(pkg_dir, "resources"))
-        os.mkdir(pj(pkg_dir, "GeoIP"))
-
-        try:
-            geoip_asn_path = self.download(GEOIP_ASN_URL, tmp_dir, "GeoIPASNum.dat.gz")
-        except Exception as exc:
-            print(exc.message)
-            return
-        try:
-            geoip_path = self.download(GEOIP_URL, tmp_dir, "GeoIP.dat.gz")
-        except Exception as exc:
-            print(exc.message)
-            return
-        try:
-            test_lists_path = self.download(TEST_LISTS_URL, tmp_dir, "master.zip")
-        except Exception as exc:
-            print(exc.message)
-            return
-
-        run_command([self.gunzip, geoip_asn_path])
-        run_command([self.gunzip, geoip_path])
-        run_command([self.unzip, "-d", tmp_dir, test_lists_path])
-
-        shutil.move(pj(tmp_dir, "GeoIP.dat"),
-                    pj(pkg_dir, "GeoIP", "GeoIP.dat"))
-        shutil.move(pj(tmp_dir, "GeoIPASNum.dat"),
-                    pj(pkg_dir, "GeoIP", "GeoIPASNum.dat"))
-        shutil.move(pj(tmp_dir, "test-lists-master", "lists"),
-                    pj(pkg_dir, "resources", "citizenlab-test-lists"))
-        # Don't include services and official lists
-        shutil.rmtree(
-            pj(pkg_dir,
-               "resources",
-               "citizenlab-test-lists",
-               "services"),
-            ignore_errors=True)
-        shutil.rmtree(
-            pj(pkg_dir,
-               "resources",
-               "citizenlab-test-lists",
-               "official"),
-            ignore_errors=True)
-        run_command([self.tar, "cvzf", dst_path, "-C", pkg_dir, "."])
-
-        # Cleanup
-        shutil.rmtree(pkg_dir, ignore_errors=True)
-        shutil.rmtree(tmp_dir, ignore_errors=True)
-        print("Written ooniresources to {0}".format(dst_path))
 
 install_requires = []
 dependency_links = []
@@ -363,8 +260,7 @@ setup(
         ]
     },
     cmdclass={
-        "install": OoniInstall,
-        "create_ooniresources": CreateOoniResources
+        "install": OoniInstall
     },
     classifiers=(
         "Development Status :: 5 - Production/Stable",
