@@ -5,6 +5,9 @@ import signal
 from twisted.python.filepath import FilePath
 from ooni.settings import config
 
+class MeasurementInProgress(Exception):
+    pass
+
 class Process():
     supported_tests = [
         "web_connectivity",
@@ -66,7 +69,7 @@ def get_measurement(measurement_id):
     running = False
     completed = True
     keep = False
-    if measurement.child("measurement.njson.progress").exists():
+    if measurement.child("measurements.njson.progress").exists():
         completed = False
         # XXX this is done quite often around the code, probably should
         # be moved into some utility function.
@@ -97,10 +100,14 @@ def get_measurement(measurement_id):
 def get_summary(measurement_id):
     measurement_path = FilePath(config.measurements_directory)
     measurement = measurement_path.child(measurement_id)
+
+    if measurement.child("measurements.njson.progress").exists():
+        raise MeasurementInProgress
+
     summary = measurement.child("summary.json")
     if not summary.exists():
         generate_summary(
-            measurement.child("measurement.njson").path,
+            measurement.child("measurements.njson").path,
             summary.path
         )
 

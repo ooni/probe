@@ -9,7 +9,7 @@ from ooni.utils import log, generate_filename
 from ooni.nettest import NetTest, getNetTestInformation
 from ooni.settings import config
 from ooni.nettest import normalizeTestName
-from ooni.deck.store import InputStore
+from ooni.deck.store import input_store, deck_store
 from ooni.geoip import probe_ip
 
 from ooni.agent.scheduler import run_system_tasks
@@ -96,7 +96,8 @@ class Director(object):
         self.allTestsDone = defer.Deferred()
         self.sniffers = {}
 
-        self.input_store = InputStore()
+        self.input_store = input_store
+        self.deck_store = deck_store
 
         self._reset_director_state()
         self._reset_tor_state()

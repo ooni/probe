@@ -131,7 +131,7 @@ class RunDecks(ScheduledTask):
 
     @defer.inlineCallbacks
     def task(self):
-        for deck_id, deck in deck_store.list():
+        for deck_id, deck in deck_store.list_enabled():
             yield deck.setup()
             yield deck.run(self.director)
 
