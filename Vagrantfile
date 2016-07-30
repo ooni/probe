@@ -13,7 +13,7 @@ apt-get update
 apt-get install -y tor deb.torproject.org-keyring
 
 # Setup for sniffer subsystem
-apt-get install -y build-essential libdumbnet-dev libpcap-dev libgeoip-dev libffi-dev python-dev python-pip
+apt-get install -y build-essential libdumbnet-dev libpcap-dev libgeoip-dev libffi-dev python-dev python-pip libssl-dev
 cd /data/ooni-probe
 python setup.py install
 
