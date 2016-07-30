@@ -135,8 +135,12 @@ class OConfig(object):
 
         self.inputs_directory = os.path.join(self.running_path, 'inputs')
         self.scheduler_directory = os.path.join(self.running_path, 'scheduler')
-        self.decks_directory = os.path.join(self.running_path, 'decks')
         self.resources_directory = os.path.join(self.running_path, 'resources')
+
+        self.decks_available_directory = os.path.join(self.running_path,
+                                                      'decks-available')
+        self.decks_enabled_directory = os.path.join(self.running_path,
+                                                    'decks-enabled')
 
         self.measurements_directory = os.path.join(self.running_path,
                                                    'measurements')
@@ -166,7 +170,8 @@ class OConfig(object):
         # also ensure the subdirectories exist
         sub_directories = [
             self.inputs_directory,
-            self.decks_directory,
+            self.decks_enabled_directory,
+            self.decks_available_directory,
             self.scheduler_directory,
             self.measurements_directory,
             self.resources_directory

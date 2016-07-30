@@ -1,6 +1,5 @@
 from __future__ import print_function
 
-import os
 import json
 import string
 from functools import wraps
@@ -17,11 +16,12 @@ from werkzeug.exceptions import NotFound
 from ooni import __version__ as ooniprobe_version
 from ooni import errors
 from ooni.deck import NGDeck
+from ooni.deck.store import DeckNotFound, InputNotFound
 from ooni.settings import config
 from ooni.utils import log
 from ooni.director import DirectorEvent
-from ooni.measurements import get_summary, get_measurement
-from ooni.measurements import list_measurements, MeasurementNotFound
+from ooni.measurements import get_summary, get_measurement, list_measurements
+from ooni.measurements import MeasurementNotFound, MeasurementInProgress
 from ooni.geoip import probe_ip
 
 config.advanced.debug = True
@@ -120,7 +120,6 @@ class WebUIAPI(object):
         self.director = director
         self.config = config
         self.measurement_path = FilePath(config.measurements_directory)
-        self.decks_path = FilePath(config.decks_directory)
 
         # We use a double submit token to protect against XSRF
         rng = SystemRandom()
@@ -207,23 +206,61 @@ class WebUIAPI(object):
         d.addCallback(got_status_update)
         return d
 
-    @app.route('/api/deck/generate', methods=["GET"])
-    @xsrf_protect(check=False)
-    def api_deck_generate(self, request):
-        return self.render_json({"generate": "deck"}, request)
-
-    @app.route('/api/deck/<string:deck_name>/start', methods=["POST"])
+    @app.route('/api/deck/<string:deck_id>/start', methods=["POST"])
     @xsrf_protect(check=True)
-    def api_deck_start(self, request, deck_name):
-        return self.render_json({"start": deck_name}, request)
+    def api_deck_start(self, request, deck_id):
+        try:
+            deck = self.director.deck_store.get(deck_id)
+        except DeckNotFound:
+            raise WebUIError(404, "Deck not found")
+
+        try:
+            self.run_deck(deck)
+        except:
+            raise WebUIError(500, "Failed to start deck")
+
+        return self.render_json({"status": "started " + deck.name}, request)
 
     @app.route('/api/deck', methods=["GET"])
     @xsrf_protect(check=False)
     def api_deck_list(self, request):
-        for deck_id in self.decks_path.listdir():
-            pass
+        deck_list = {
+            'available': {},
+            'enabled': {}
+        }
+        for deck_id, deck in self.director.deck_store.list():
+            deck_list['available'][deck_id] = {
+                'name': deck.name,
+                'description': deck.description
+            }
 
-        return self.render_json({"command": "deck-list"}, request)
+        for deck_id, deck in self.director.deck_store.list_enabled():
+            deck_list['enabled'][deck_id] = {
+                'name': deck.name,
+                'description': deck.description
+            }
+
+        return self.render_json(deck_list, request)
+
+    @app.route('/api/deck/<string:deck_id>/enable', methods=["POST"])
+    @xsrf_protect(check=True)
+    def api_deck_enable(self, request, deck_id):
+        try:
+            self.director.deck_store.enable(deck_id)
+        except DeckNotFound:
+            raise WebUIError(404, "Deck not found")
+
+        return self.render_json({"status": "enabled"}, request)
+
+    @app.route('/api/deck/<string:deck_id>/disable', methods=["POST"])
+    @xsrf_protect(check=True)
+    def api_deck_disable(self, request, deck_id):
+        try:
+            self.director.deck_store.disable(deck_id)
+        except DeckNotFound:
+            raise WebUIError(404, "Deck not found")
+
+        return self.render_json({"status": "disabled"}, request)
 
     @defer.inlineCallbacks
     def run_deck(self, deck):
@@ -261,17 +298,21 @@ class WebUIAPI(object):
 
         except errors.MissingRequiredOption, option_name:
             raise WebUIError(
-                501, 'Missing required option: "{}"'.format(option_name)
+                400, 'Missing required option: "{}"'.format(option_name)
             )
 
         except usage.UsageError:
             raise WebUIError(
-                502, 'Error in parsing options'
+                400, 'Error in parsing options'
             )
 
         except errors.InsufficientPrivileges:
             raise WebUIError(
-                502, 'Insufficient priviledges'
+                400, 'Insufficient priviledges'
+            )
+        except:
+            raise WebUIError(
+                500, 'Failed to start nettest'
             )
 
         return self.render_json({"status": "started"}, request)
@@ -319,6 +360,8 @@ class WebUIAPI(object):
             raise WebUIError(500, "invalid measurement id")
         except MeasurementNotFound:
             raise WebUIError(404, "measurement not found")
+        except MeasurementInProgress:
+            raise WebUIError(400, "measurement in progress")
 
         if measurement['completed'] is False:
             raise WebUIError(400, "measurement in progress")
@@ -359,7 +402,7 @@ class WebUIAPI(object):
         with summary.open("w+") as f:
             pass
 
-        return self.render_json({"result": "ok"}, request)
+        return self.render_json({"status": "ok"}, request)
 
     @app.route('/api/measurement/<string:measurement_id>/<int:idx>',
                methods=["GET"])

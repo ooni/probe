@@ -9,7 +9,6 @@ from ooni.deck.deck import NGDeck
 from ooni.otime import timestampNowISO8601UTC
 from ooni.resources import check_for_update
 from ooni.settings import config
-from ooni.utils import log
 
 class InputNotFound(Exception):
     pass
@@ -121,25 +120,54 @@ class InputStore(object):
 
 class DeckStore(object):
     def __init__(self):
-        self.path = FilePath(config.decks_directory)
+        self.enabled_directory = FilePath(config.decks_enabled_directory)
+        self.available_directory = FilePath(config.decks_available_directory)
         self._cache = {}
         self._cache_stale = True
 
-    def list(self):
-        decks = []
+    def _list(self):
         if self._cache_stale:
             self._update_cache()
         for deck_id, deck in self._cache.iteritems():
+            yield (deck_id, deck)
+
+    def list(self):
+        decks = []
+        for deck_id, deck in self._list():
             decks.append((deck_id, deck))
         return decks
 
+    def list_enabled(self):
+        decks = []
+        for deck_id, deck in self._list():
+            if self.is_enabled(deck_id):
+                continue
+            decks.append((deck_id, deck))
+        return decks
+
+    def is_enabled(self, deck_id):
+        return self.enabled_directory.child(deck_id + '.yaml').exists()
+
+    def enable(self, deck_id):
+        deck_path = self.available_directory.child(deck_id + '.yaml')
+        if not deck_path.exists():
+            raise DeckNotFound(deck_id)
+        deck_enabled_path = self.enabled_directory.child(deck_id + '.yaml')
+        deck_enabled_path.linkTo(deck_path)
+
+    def disable(self, deck_id):
+        deck_enabled_path = self.enabled_directory.child(deck_id + '.yaml')
+        if not deck_enabled_path.exists():
+            raise DeckNotFound(deck_id)
+        deck_enabled_path.remove()
+
     def _update_cache(self):
-        for deck_path in self.path.listdir():
+        for deck_path in self.available_directory.listdir():
             if not deck_path.endswith('.yaml'):
                 continue
             deck_id = deck_path[:-1*len('.yaml')]
             deck = NGDeck(
-                deck_path=self.path.child(deck_path).path
+                deck_path=self.available_directory.child(deck_path).path
             )
             self._cache[deck_id] = deck
 
