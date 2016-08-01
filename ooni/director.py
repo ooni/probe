@@ -1,17 +1,24 @@
-import pwd
 import os
+
+from twisted.internet import defer
+from twisted.python.failure import Failure
 
 from ooni.managers import ReportEntryManager, MeasurementManager
 from ooni.reporter import Report
 from ooni.utils import log, generate_filename
-from ooni.utils.net import randomFreePort
 from ooni.nettest import NetTest, getNetTestInformation
 from ooni.settings import config
-from ooni.nettest import test_class_name_to_name
+from ooni.nettest import normalizeTestName
+from ooni.deck.store import input_store, deck_store
+from ooni.geoip import probe_ip
 
-from ooni.utils.onion import start_tor, connect_to_control_port
+from ooni.agent.scheduler import run_system_tasks
+from ooni.utils.onion import start_tor, connect_to_control_port, get_tor_config
 
-from twisted.internet import defer
+class DirectorEvent(object):
+    def __init__(self, type="update", message=""):
+        self.type = type
+        self.message = message
 
 
 class Director(object):
@@ -84,12 +91,68 @@ class Director(object):
 
         self.failures = []
 
-        self.torControlProtocol = None
-
         # This deferred is fired once all the measurements and their reporting
         # tasks are completed.
         self.allTestsDone = defer.Deferred()
         self.sniffers = {}
+
+        self.input_store = input_store
+        self.deck_store = deck_store
+
+        self._reset_director_state()
+        self._reset_tor_state()
+
+        self._subscribers = []
+
+    def subscribe(self, handler):
+        self._subscribers.append(handler)
+
+    def unsubscribe(self, handler):
+        self._subscribers.remove(handler)
+
+    def notify(self, event):
+        for handler in self._subscribers:
+            handler(event)
+
+    def _reset_director_state(self):
+        self._director_state = 'not-running'
+        self._director_starting = defer.Deferred()
+        self._director_starting.addErrback(self._director_startup_failure)
+        self._director_starting.addCallback(self._director_startup_success)
+
+    def _director_startup_failure(self, failure):
+        self._reset_director_state()
+        self.notify(DirectorEvent("error",
+                                  "Failed to start the director"))
+        return failure
+
+    def _director_startup_success(self, result):
+        self._director_state = 'running'
+        self.notify(DirectorEvent("success",
+                                  "Successfully started the director"))
+        return result
+
+    def _reset_tor_state(self):
+        # This can be either 'not-running', 'starting' or 'running'
+        self._tor_state = 'not-running'
+        self._tor_starting = defer.Deferred()
+        self._tor_starting.addErrback(self._tor_startup_failure)
+        self._tor_starting.addCallback(self._tor_startup_success)
+
+    def _tor_startup_failure(self, failure):
+        log.err("Failed to start tor")
+        log.exception(failure)
+        self._reset_tor_state()
+        self.notify(DirectorEvent("error",
+                                  "Failed to start Tor"))
+        return failure
+
+    def _tor_startup_success(self, result):
+        log.msg("Tor has started")
+        self._tor_state = 'running'
+        self.notify(DirectorEvent("success",
+                                  "Successfully started Tor"))
+        return result
 
     def getNetTests(self):
         nettests = {}
@@ -122,18 +185,14 @@ class Director(object):
         return nettests
 
     @defer.inlineCallbacks
-    def start(self, start_tor=False, check_incoherences=True):
+    def _start(self, start_tor, check_incoherences, create_input_store):
         self.netTests = self.getNetTests()
 
         if start_tor:
-            if check_incoherences:
-                yield config.check_tor()
-            if config.advanced.start_tor and config.tor_state is None:
-                yield self.startTor()
-            elif config.tor.control_port and config.tor_state is None:
-                yield connect_to_control_port()
+            yield self.start_tor(check_incoherences)
 
-        if config.global_options['no-geoip']:
+        no_geoip = config.global_options.get('no-geoip', False)
+        if no_geoip:
             aux = [False]
             if config.global_options.get('annotations') is not None:
                 annotations = [k.lower() for k in config.global_options['annotations'].keys()]
@@ -141,7 +200,24 @@ class Director(object):
             if not all(aux):
                 log.msg("You should add annotations for the country, city and ASN")
         else:
-            yield config.probe_ip.lookup()
+            yield probe_ip.lookup()
+            self.notify(DirectorEvent("success", "Looked up probe IP"))
+
+        self.notify(DirectorEvent("success",
+                                  "Running system tasks"))
+        yield run_system_tasks(no_input_store=not create_input_store)
+        self.notify(DirectorEvent("success",
+                                  "Ran system tasks"))
+
+    @defer.inlineCallbacks
+    def start(self, start_tor=False, check_incoherences=True,
+              create_input_store=True):
+        self._director_state = 'starting'
+        try:
+            yield self._start(start_tor, check_incoherences, create_input_store)
+            self._director_starting.callback(self._director_state)
+        except Exception as exc:
+            self._director_starting.errback(Failure(exc))
 
     @property
     def measurementSuccessRatio(self):
@@ -195,7 +271,7 @@ class Director(object):
         self.totalMeasurementRuntime += measurement.runtime
         self.successfulMeasurements += 1
         measurement.result = result
-        test_name = test_class_name_to_name(measurement.testInstance.name)
+        test_name = normalizeTestName(measurement.testInstance.name)
         if test_name in self.sniffers:
             sniffer = self.sniffers[test_name]
             config.scapyFactory.unRegisterProtocol(sniffer)
@@ -211,26 +287,18 @@ class Director(object):
         measurement.result = failure
         return measurement
 
-    def reporterFailed(self, failure, net_test):
-        """
-        This gets called every time a reporter is failing and has been removed
-        from the reporters of a NetTest.
-        Once a report has failed to be created that net_test will never use the
-        reporter again.
-
-        XXX hook some logic here.
-        note: failure contains an extra attribute called failure.reporter
-        """
-        pass
-
     def netTestDone(self, net_test):
+        self.notify(DirectorEvent("success",
+                                  "Successfully ran test {0}".format(
+                                      net_test.testDetails['test_name'])))
         self.activeNetTests.remove(net_test)
         if len(self.activeNetTests) == 0:
             self.allTestsDone.callback(None)
 
     @defer.inlineCallbacks
-    def startNetTest(self, net_test_loader, report_filename,
-                     collector_client=None, no_yamloo=False):
+    def start_net_test_loader(self, net_test_loader, report_filename,
+                              collector_client=None, no_yamloo=False,
+                              test_details=None, measurement_id=None):
         """
         Create the Report for the NetTest and start the report NetTest.
 
@@ -238,18 +306,20 @@ class Director(object):
             net_test_loader:
                 an instance of :class:ooni.nettest.NetTestLoader
         """
-        test_details = net_test_loader.getTestDetails()
+        if test_details is None:
+            test_details = net_test_loader.getTestDetails()
         test_cases = net_test_loader.getTestCases()
 
         if self.allTestsDone.called:
             self.allTestsDone = defer.Deferred()
 
         if config.privacy.includepcap or config.global_options.get('pcapfile', None):
-            self.startSniffing(test_details)
+            self.start_sniffing(test_details)
         report = Report(test_details, report_filename,
                         self.reportEntryManager,
                         collector_client,
-                        no_yamloo)
+                        no_yamloo,
+                        measurement_id)
 
         yield report.open()
         net_test = NetTest(test_cases, test_details, report)
@@ -265,7 +335,7 @@ class Director(object):
         finally:
             self.netTestDone(net_test)
 
-    def startSniffing(self, test_details):
+    def start_sniffing(self, test_details):
         """ Start sniffing with Scapy. Exits if required privileges (root) are not
         available.
         """
@@ -297,57 +367,48 @@ class Director(object):
         log.msg("Starting packet capture to: %s" % filename_pcap)
 
 
-    def startTor(self):
+    @defer.inlineCallbacks
+    def start_tor(self, check_incoherences=False):
         """ Starts Tor
         Launches a Tor with :param: socks_port :param: control_port
         :param: tor_binary set in ooniprobe.conf
         """
-        log.msg("Starting Tor...")
-
         from txtorcon import TorConfig
+        if self._tor_state == 'running':
+            log.debug("Tor is already running")
+            defer.returnValue(self._tor_state)
+        elif self._tor_state == 'starting':
+            log.debug("Tor is starting")
+            yield self._tor_starting
+            defer.returnValue(self._tor_state)
 
-        tor_config = TorConfig()
-        if config.tor.control_port is None:
-            config.tor.control_port = int(randomFreePort())
-        if config.tor.socks_port is None:
-            config.tor.socks_port = int(randomFreePort())
+        log.msg("Starting Tor")
+        self._tor_state = 'starting'
+        if check_incoherences:
+            try:
+                yield config.check_tor()
+            except Exception as exc:
+                self._tor_starting.errback(Failure(exc))
+                raise exc
 
-        tor_config.ControlPort = config.tor.control_port
-        tor_config.SocksPort = config.tor.socks_port
+        if config.advanced.start_tor and config.tor_state is None:
+            tor_config = get_tor_config()
 
-        if config.tor.data_dir:
-            data_dir = os.path.expanduser(config.tor.data_dir)
+            try:
+                yield start_tor(tor_config)
+                self._tor_starting.callback(self._tor_state)
+            except Exception as exc:
+                log.err("Failed to start tor")
+                log.exc(exc)
+                self._tor_starting.errback(Failure(exc))
 
-            if not os.path.exists(data_dir):
-                log.msg("%s does not exist. Creating it." % data_dir)
-                os.makedirs(data_dir)
-            tor_config.DataDirectory = data_dir
-
-        if config.tor.bridges:
-            tor_config.UseBridges = 1
-            if config.advanced.obfsproxy_binary:
-                tor_config.ClientTransportPlugin = (
-                    'obfs2,obfs3 exec %s managed' %
-                    config.advanced.obfsproxy_binary
-                )
-            bridges = []
-            with open(config.tor.bridges) as f:
-                for bridge in f:
-                    if 'obfs' in bridge:
-                        if config.advanced.obfsproxy_binary:
-                            bridges.append(bridge.strip())
-                    else:
-                        bridges.append(bridge.strip())
-            tor_config.Bridge = bridges
-
-        if config.tor.torrc:
-            for i in config.tor.torrc.keys():
-                setattr(tor_config, i, config.tor.torrc[i])
-
-        if os.geteuid() == 0:
-            tor_config.User = pwd.getpwuid(os.geteuid()).pw_name
-
-        tor_config.save()
-        log.debug("Setting control port as %s" % tor_config.ControlPort)
-        log.debug("Setting SOCKS port as %s" % tor_config.SocksPort)
-        return start_tor(tor_config)
+        elif config.tor.control_port and config.tor_state is None:
+            try:
+                yield connect_to_control_port()
+                self._tor_starting.callback(self._tor_state)
+            except Exception as exc:
+                self._tor_starting.errback(Failure(exc))
+        else:
+            # This happens when we require tor to not be started and the
+            # socks port is set.
+            self._tor_starting.callback(self._tor_state)

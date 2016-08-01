@@ -191,7 +191,7 @@ class MockTaskManager(TaskManager):
 
 class MockBouncerClient(object):
     def __init__(self, *args, **kw):
-        pass
+        self.backend_type = "onion"
 
     def lookupTestHelpers(self, required_test_helpers):
         ret = {

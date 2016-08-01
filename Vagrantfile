@@ -13,7 +13,7 @@ apt-get update
 apt-get install -y tor deb.torproject.org-keyring
 
 # Setup for sniffer subsystem
-apt-get install -y build-essential libdumbnet-dev libpcap-dev libgeoip-dev libffi-dev python-dev python-pip
+apt-get install -y build-essential libdumbnet-dev libpcap-dev libgeoip-dev libffi-dev python-dev python-pip libssl-dev
 cd /data/ooni-probe
 python setup.py install
 
@@ -54,6 +54,7 @@ Vagrant.configure("2") do |config|
   config.vm.box = "debian/contrib-jessie64"
 
   config.vm.define "probe" do |probe|
+    probe.vm.network "forwarded_port", guest: 8842, host: 8042
     probe.vm.synced_folder ".", "/data/ooni-probe"
     probe.vm.provision :shell, :inline => $setup_ooniprobe
   end

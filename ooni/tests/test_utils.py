@@ -26,19 +26,19 @@ class TestUtils(unittest.TestCase):
 
     def test_generate_filename(self):
         filename = generate_filename(self.test_details)
-        self.assertEqual(filename, 'foo-2016-01-01T012222Z')
+        self.assertEqual(filename, '20160101T012222Z-ZZ-AS0-foo')
 
     def test_generate_filename_with_extension(self):
         filename = generate_filename(self.test_details, extension=self.extension)
-        self.assertEqual(filename, 'foo-2016-01-01T012222Z.ext')
+        self.assertEqual(filename, '20160101T012222Z-ZZ-AS0-foo.ext')
 
     def test_generate_filename_with_prefix(self):
         filename = generate_filename(self.test_details, prefix=self.prefix)
-        self.assertEqual(filename, 'prefix-foo-2016-01-01T012222Z')
+        self.assertEqual(filename, 'prefix-20160101T012222Z-ZZ-AS0-foo')
 
     def test_generate_filename_with_extension_and_prefix(self):
         filename = generate_filename(self.test_details, prefix=self.prefix, extension=self.extension)
-        self.assertEqual(filename, 'prefix-foo-2016-01-01T012222Z.ext')
+        self.assertEqual(filename, 'prefix-20160101T012222Z-ZZ-AS0-foo.ext')
 
     def test_get_addresses(self):
         addresses = net.getAddresses()

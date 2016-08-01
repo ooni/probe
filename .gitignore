@@ -12,6 +12,7 @@ build/*
 package/*
 dist/
 packages/*
+*.egg-info/
 
 assets/*
 proxy-lists/ip-cc.txt
@@ -45,3 +46,6 @@ cover/*
 ooni_home/*
 
 ooni/settings.ini
+
+node_modules/
+ooni/ui/web/client/

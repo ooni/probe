@@ -1,4 +1,5 @@
 import os
+import sys
 import yaml
 import getpass
 from ConfigParser import SafeConfigParser
@@ -9,10 +10,8 @@ from twisted.internet.endpoints import TCP4ClientEndpoint
 from os.path import abspath, expanduser
 
 from ooni.utils.net import ConnectAndCloseProtocol, connectProtocol
-from ooni import geoip
 from ooni.utils import Storage, log, get_ooni_root
 from ooni import errors
-
 
 class OConfig(object):
     _custom_home = None
@@ -23,8 +22,7 @@ class OConfig(object):
         self.reports = Storage()
         self.scapyFactory = None
         self.tor_state = None
-        # This is used to store the probes IP address obtained via Tor
-        self.probe_ip = geoip.ProbeIP()
+
         self.logging = True
         self.basic = Storage()
         self.advanced = Storage()
@@ -43,17 +41,55 @@ class OConfig(object):
 
     @property
     def var_lib_path(self):
+        if hasattr(sys, 'real_prefix'):
+            # We are in a virtualenv use the /usr/share in the virtualenv
+            return os.path.join(
+                os.path.abspath(sys.prefix),
+                'var', 'lib', 'ooni'
+            )
         var_lib_path = self.embedded_settings("directories", "var_lib")
         if var_lib_path:
             return os.path.abspath(var_lib_path)
         return "/var/lib/ooni"
 
     @property
+    def running_path(self):
+        """
+        This is the directory used to store state application data.
+        It defaults to /var/lib/ooni, but if that is not writeable we will
+        use the ooni_home.
+        """
+        var_lib_path = self.var_lib_path
+        if os.access(var_lib_path, os.W_OK):
+            return var_lib_path
+        return self.ooni_home
+
+    @property
     def usr_share_path(self):
+        if hasattr(sys, 'real_prefix'):
+            # We are in a virtualenv use the /usr/share in the virtualenv
+            return os.path.join(
+                os.path.abspath(sys.prefix),
+                'usr', 'share', 'ooni'
+            )
         usr_share_path = self.embedded_settings("directories", "usr_share")
         if usr_share_path:
             return os.path.abspath(usr_share_path)
         return "/usr/share/ooni"
+
+
+    @property
+    def etc_path(self):
+        if hasattr(sys, 'real_prefix'):
+            # We are in a virtualenv use the /usr/share in the virtualenv
+            return os.path.join(
+                os.path.abspath(sys.prefix),
+                'usr', 'share', 'ooni'
+            )
+        etc_path = self.embedded_settings("directories", "etc")
+        if etc_path:
+            return os.path.abspath(etc_path)
+        return "/etc"
 
     @property
     def data_directory_candidates(self):
@@ -95,25 +131,19 @@ class OConfig(object):
 
     def set_paths(self):
         self.nettest_directory = os.path.join(get_ooni_root(), 'nettests')
+        self.web_ui_directory = os.path.join(get_ooni_root(), 'ui', 'web', 'client')
 
-        if self.advanced.inputs_dir:
-            self.inputs_directory = self.advanced.inputs_dir
-        else:
-            self.inputs_directory = os.path.join(self.ooni_home, 'inputs')
+        self.inputs_directory = os.path.join(self.running_path, 'inputs')
+        self.scheduler_directory = os.path.join(self.running_path, 'scheduler')
+        self.resources_directory = os.path.join(self.running_path, 'resources')
 
-        if self.advanced.decks_dir:
-            self.decks_directory = self.advanced.decks_dir
-        else:
-            self.decks_directory = os.path.join(self.ooni_home, 'decks')
+        self.decks_available_directory = os.path.join(self.running_path,
+                                                      'decks-available')
+        self.decks_enabled_directory = os.path.join(self.running_path,
+                                                    'decks-enabled')
 
-        self.reports_directory = os.path.join(self.ooni_home, 'reports')
-        self.resources_directory = os.path.join(self.data_directory,
-                                                "resources")
-        if self.advanced.report_log_file:
-            self.report_log_file = self.advanced.report_log_file
-        else:
-            self.report_log_file = os.path.join(self.ooni_home,
-                                                'reporting.yml')
+        self.measurements_directory = os.path.join(self.running_path,
+                                                   'measurements')
 
         if self.global_options.get('configfile'):
             config_file = self.global_options['configfile']
@@ -122,20 +152,37 @@ class OConfig(object):
             self.config_file = os.path.join(self.ooni_home, 'ooniprobe.conf')
 
         if 'logfile' in self.basic:
-            self.basic.logfile = expanduser(self.basic.logfile.replace(
-                '~', '~'+self.current_user))
+            self.basic.logfile = expanduser(
+                self.basic.logfile.replace('~', '~'+self.current_user)
+            )
 
     def initialize_ooni_home(self, custom_home=None):
         if custom_home:
             self._custom_home = custom_home
             self.set_paths()
 
-        if not os.path.isdir(self.ooni_home):
-            print "Ooni home directory does not exist."
-            print "Creating it in '%s'." % self.ooni_home
-            os.mkdir(self.ooni_home)
-            os.mkdir(self.inputs_directory)
-            os.mkdir(self.decks_directory)
+        ooni_home = self.ooni_home
+        if not os.path.isdir(ooni_home):
+            log.msg("Ooni home directory does not exist")
+            log.msg("Creating it in '%s'" % ooni_home)
+            os.mkdir(ooni_home)
+
+        # also ensure the subdirectories exist
+        sub_directories = [
+            self.inputs_directory,
+            self.decks_enabled_directory,
+            self.decks_available_directory,
+            self.scheduler_directory,
+            self.measurements_directory,
+            self.resources_directory
+        ]
+        for path in sub_directories:
+            try:
+                os.makedirs(path)
+            except OSError as exc:
+                if exc.errno != 17:
+                    raise
+
 
     def _create_config_file(self):
         target_config_file = self.config_file

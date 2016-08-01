@@ -1,5 +1,6 @@
 import os
 import yaml
+import json
 from tempfile import mkstemp
 
 from twisted.trial import unittest
@@ -223,6 +224,7 @@ class TestNetTest(ConfigTestCase):
     timeout = 1
 
     def setUp(self):
+        super(TestNetTest, self).setUp()
         self.filename = ""
         with open(dummyInputFile, 'w') as f:
             for i in range(10):
@@ -353,7 +355,7 @@ class TestNetTest(ConfigTestCase):
         director = Director()
 
         self.filename = 'dummy_report.yamloo'
-        d = director.startNetTest(ntl, self.filename)
+        d = director.start_net_test_loader(ntl, self.filename)
 
         @d.addCallback
         def complete(result):
@@ -379,17 +381,16 @@ class TestNetTest(ConfigTestCase):
         ntl.checkOptions()
 
         director = Director()
-        self.filename = 'dummy_report.yamloo'
-        d = director.startNetTest(ntl, self.filename)
+        self.filename = 'dummy_report.njson'
+        d = director.start_net_test_loader(ntl, self.filename)
 
         @d.addCallback
         def complete(result):
             with open(self.filename) as report_file:
-                all_report_entries = yaml.safe_load_all(report_file)
-                header = all_report_entries.next()
-                results_case_a = all_report_entries.next()
+                all_report_entries = map(json.loads, report_file)
+                results_case_a = all_report_entries[0]['test_keys']
                 aa_test, ab_test, ac_test = results_case_a.get('results', [])
-                results_case_b = all_report_entries.next()
+                results_case_b = all_report_entries[1]['test_keys']
                 ba_test = results_case_b.get('results', [])[0]
             # Within a NetTestCase an inputs object will be consistent
             self.assertEqual(aa_test, ab_test, ac_test)
@@ -407,14 +408,13 @@ class TestNetTest(ConfigTestCase):
         ntl.checkOptions()
 
         director = Director()
-        self.filename = 'dummy_report.yamloo'
-        d = director.startNetTest(ntl, self.filename)
+        self.filename = 'dummy_report.njson'
+        d = director.start_net_test_loader(ntl, self.filename)
 
         @d.addCallback
         def complete(result):
             with open(self.filename) as report_file:
-                all_report_entries = yaml.safe_load_all(report_file)
-                header = all_report_entries.next()
+                all_report_entries = map(json.loads, report_file)
                 results = [x['input'] for x in all_report_entries]
             self.assertEqual(results, [9, 8, 7, 6, 5, 5, 3, 2, 1, 0])
 
@@ -467,7 +467,7 @@ class TestNettestTimeout(ConfigTestCase):
         director = Director()
 
         self.filename = 'dummy_report.yamloo'
-        d = director.startNetTest(ntl, self.filename)
+        d = director.start_net_test_loader(ntl, self.filename)
 
         @d.addCallback
         def complete(result):
