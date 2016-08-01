@@ -84,6 +84,7 @@ class UpdateInputsAndResources(ScheduledTask):
         yield probe_ip.lookup()
         yield resources.check_for_update(probe_ip.geodata['countrycode'])
         yield input_store.update(probe_ip.geodata['countrycode'])
+        yield probe_ip.resolveGeodata()
 
 
 class UploadReports(ScheduledTask):
