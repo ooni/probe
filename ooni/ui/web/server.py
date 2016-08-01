@@ -127,13 +127,7 @@ class WebUIAPI(object):
         self._xsrf_token = ''.join([rng.choice(token_space)
                                     for _ in range(30)])
 
-        self.status = {
-            "software_version": ooniprobe_version,
-            "software_name": "ooniprobe",
-            "asn": probe_ip.geodata['asn'],
-            "country_code": probe_ip.geodata['countrycode'],
-            "director_started": False
-        }
+        self._director_started = False
 
         self.status_poller = LongPoller(
             self._long_polling_timeout, _reactor)
@@ -150,14 +144,22 @@ class WebUIAPI(object):
         d.addCallback(self.director_started)
         d.addBoth(lambda _: self.status_poller.notify())
 
+    @property
+    def status(self):
+        return {
+            "software_version": ooniprobe_version,
+            "software_name": "ooniprobe",
+            "asn": probe_ip.geodata['asn'],
+            "country_code": probe_ip.geodata['countrycode'],
+            "director_started": self._director_started
+        }
+
     def handle_director_event(self, event):
         log.msg("Handling event {0}".format(event.type))
         self.director_event_poller.notify(event)
 
     def director_started(self, _):
-        self.status['director_started'] = True
-        self.status["asn"] = probe_ip.geodata['asn']
-        self.status["country_code"] = probe_ip.geodata['countrycode']
+        self._director_started = True
 
     @app.handle_errors(NotFound)
     @xsrf_protect(check=False)
