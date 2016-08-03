@@ -334,6 +334,8 @@ class WhatsappTest(httpt.HTTPTest, dnst.DNSTest):
             result['status']['failure'] = failureToString(failure)
             self.report['tcp_connect'].append(result)
 
+        return d
+
     @defer.inlineCallbacks
     def _test_connect(self, address):
         possible_ports = [443, 5222]
@@ -342,12 +344,12 @@ class WhatsappTest(httpt.HTTPTest, dnst.DNSTest):
         for port in possible_ports:
             try:
                 yield self._test_connect_to_port(address, port)
-                connected = False
+                connected = True
             except Exception as exc:
                 pass
 
         if connected == False:
-            raise DidNotConnect()
+            raise DidNotConnect
 
     @defer.inlineCallbacks
     def _test_endpoint(self, hostname, whatsapp_network):
@@ -381,10 +383,11 @@ class WhatsappTest(httpt.HTTPTest, dnst.DNSTest):
                 tcp_blocked = True
 
         if tcp_blocked == True:
-            log.msg("%s is blocked based on TCP")
+            log.msg("%s is blocked based on TCP" % hostname)
             self.report['whatsapp_endpoints_blocked'].append(hostname)
             self.report['whatsapp_endpoints_status'] = 'blocked'
         else:
+            log.msg("No blocking detected via TCP on %s" % hostname)
             self.report['whatsapp_endpoints_status'] = 'ok'
 
 
@@ -393,7 +396,7 @@ class WhatsappTest(httpt.HTTPTest, dnst.DNSTest):
         possible_endpoints = map(lambda x: "e%s.whatsapp.net" % x, range(1, 16))
         whatsapp_network = WhatsAppNetwork()
         to_test_endpoints = []
-        if self.localOptions['all-endpoints']:
+        if self.localOptions.get('all-endpoints', False):
             to_test_endpoints += possible_endpoints
         else:
             to_test_endpoints += [random.choice(possible_endpoints)]
