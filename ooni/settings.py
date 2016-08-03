@@ -13,6 +13,125 @@ from ooni.utils.net import ConnectAndCloseProtocol, connectProtocol
 from ooni.utils import Storage, log, get_ooni_root
 from ooni import errors
 
+
+CONFIG_FILE_TEMPLATE = """\
+# This is the configuration file for OONIProbe
+# This file follows the YAML markup format: http://yaml.org/spec/1.2/spec.html
+# Keep in mind that indentation matters.
+
+basic:
+    # Where OONIProbe should be writing it's log file
+    logfile: {logfile}
+    loglevel: WARNING
+privacy:
+    # Should we include the IP address of the probe in the report?
+    includeip: {include_ip}
+    # Should we include the ASN of the probe in the report?
+    includeasn: {include_asn}
+    # Should we include the country as reported by GeoIP in the report?
+    includecountry: {include_country}
+    # Should we collect a full packet capture on the client?
+    #includepcap: false
+reports:
+    # Should we place a unique ID inside of every report
+    #unique_id: true
+    # This is a prefix for each packet capture file (.pcap) per test:
+    #pcap: null
+    #collector: null
+    # Should we be uploading reports to the collector by default?
+    upload: {should_upload}
+advanced:
+    #debug: false
+    # enable if auto detection fails
+    #tor_binary: /usr/sbin/tor
+    #obfsproxy_binary: /usr/bin/obfsproxy
+    # For auto detection
+    # interface: auto
+    # Of specify a specific interface
+    # interface: wlan0
+    # If you do not specify start_tor, you will have to have Tor running and
+    # explicitly set the control port and SOCKS port
+    #start_tor: true
+    # After how many seconds we should give up on a particular measurement
+    #measurement_timeout: 120
+    # After how many retries we should give up on a measurement
+    #measurement_retries: 2
+    # How many measurements to perform concurrently
+    #measurement_concurrency: 4
+    # After how may seconds we should give up reporting
+    #reporting_timeout: 360
+    # After how many retries to give up on reporting
+    #reporting_retries: 5
+    # How many reports to perform concurrently
+    #reporting_concurrency: 7
+    # If we should support communicating to plaintext backends (via HTTP)
+    # insecure_backend: false
+    # The preferred backend type, can be one of onion, https or cloudfront
+    preferred_backend: {preferred_backend}
+tor:
+    #socks_port: 8801
+    #control_port: 8802
+    # Specify the absolute path to the Tor bridges to use for testing
+    #bridges: bridges.list
+    # Specify path of the tor datadirectory.
+    # This should be set to something to avoid having Tor download each time
+    # the descriptors and consensus data.
+    #data_dir: ~/.tor/
+    #
+    # This is the timeout after which we consider to to not have
+    # bootstrapped properly.
+    #timeout: 200
+    torrc:
+        #HTTPProxy: host:port
+        #HTTPProxyAuthenticator: user:password
+        #HTTPSProxy: host:port
+        #HTTPSProxyAuthenticator: user:password
+        #UseBridges: 1
+        #Bridge:
+        #- "meek_lite 0.0.2.0:1 url=https://meek-reflect.appspot.com/ front=www.google.com"
+        #- "meek_lite 0.0.2.0:2 url=https://d2zfqthxsdq309.cloudfront.net/ front=a0.awsstatic.com"
+        #- "meek_lite 0.0.2.0:3 url=https://az786092.vo.msecnd.net/ front=ajax.aspnetcdn.com"
+        #ClientTransportPlugin: "meek_lite exec /usr/bin/obfs4proxy"
+"""
+
+defaults = {
+    "basic": {
+        "loglevel": "WARNING",
+        "logfile": "ooniprobe.log"
+    },
+    "privacy": {
+        "includeip": False,
+        "includeasn": True,
+        "includecountry": True,
+        "includepcap": False
+    },
+    "reports": {
+        "unique_id": True,
+        "pcap": None,
+        "collector": None,
+        "upload": True
+    },
+    "advanced": {
+        "debug": False,
+        "tor_binary": None,
+        "obfsproxy_binary": None,
+        "interface": "auto",
+        "start_tor": True,
+        "measurement_timeout": 120,
+        "measurement_retries": 2,
+        "measurement_concurrency": 4,
+        "reporting_timeout": 360,
+        "reporting_retries": 5,
+        "reporting_concurrency": 7,
+        "insecure_backend": False,
+        "preferred_backend": "onion"
+    },
+    "tor": {
+        "timeout": 200,
+        "torrc": {}
+    }
+}
+
 class OConfig(object):
     _custom_home = None
 
@@ -38,6 +157,17 @@ class OConfig(object):
                 settings.readfp(fp)
             return settings.get(category, option)
         return None
+
+    def is_initialized(self):
+        # When this is false it means that the user has not gone
+        # through the steps of acquiring informed consent and
+        # initializing this ooniprobe installation.
+        initialized_path = os.path.join(self.running_path, 'initialized')
+        return os.path.exists(initialized_path)
+
+    def set_initialized(self):
+        initialized_path = os.path.join(self.running_path, 'initialized')
+        with open(initialized_path, 'w+'): pass
 
     @property
     def var_lib_path(self):
@@ -149,7 +279,8 @@ class OConfig(object):
             config_file = self.global_options['configfile']
             self.config_file = expanduser(config_file)
         else:
-            self.config_file = os.path.join(self.ooni_home, 'ooniprobe.conf')
+            self.config_file = os.path.join(self.running_path,
+                                            'ooniprobe.conf')
 
         if 'logfile' in self.basic:
             self.basic.logfile = expanduser(
@@ -183,6 +314,33 @@ class OConfig(object):
                 if exc.errno != 17:
                     raise
 
+    def create_config_file(self, include_ip=False, include_asn=True,
+                           include_country=True, should_upload=True,
+                           preferred_backend="onion"):
+        def _bool_to_yaml(value):
+            if value is True:
+                return 'true'
+            elif value is False:
+                return 'false'
+            else:
+                return 'null'
+        # Convert the boolean value to their YAML string representation
+        include_ip = _bool_to_yaml(include_ip )
+        include_asn = _bool_to_yaml(include_asn)
+        include_country = _bool_to_yaml(include_country)
+        should_upload = _bool_to_yaml(should_upload)
+
+        logfile = os.path.join(self.running_path, 'ooniprobe.log')
+        with open(self.config_file, 'w+') as out_file:
+            out_file.write(
+                    CONFIG_FILE_TEMPLATE.format(logfile=logfile,
+                                    include_ip=include_ip,
+                                    include_asn=include_asn,
+                                    include_country=include_country,
+                                    should_upload=should_upload,
+                                    preferred_backend=preferred_backend)
+            )
+        self.read_config_file()
 
     def _create_config_file(self):
         target_config_file = self.config_file
@@ -200,19 +358,24 @@ class OConfig(object):
                         w.write(line)
 
     def read_config_file(self, check_incoherences=False):
-        if not os.path.isfile(self.config_file):
-            print "Configuration file does not exist."
-            self._create_config_file()
-            self.read_config_file()
+        #if not os.path.isfile(self.config_file):
+        #    print "Configuration file does not exist."
+        #    self._create_config_file()
+        #    self.read_config_file()
 
-        with open(self.config_file) as f:
-            config_file_contents = '\n'.join(f.readlines())
-            configuration = yaml.safe_load(config_file_contents)
+        configuration = {}
+        if os.path.isfile(self.config_file):
+            with open(self.config_file) as f:
+                config_file_contents = '\n'.join(f.readlines())
+                configuration = yaml.safe_load(config_file_contents)
 
-        for setting in configuration.keys():
-            if setting in dir(self) and configuration[setting] is not None:
-                for k, v in configuration[setting].items():
-                    getattr(self, setting)[k] = v
+        for category in defaults.keys():
+            for k, v in defaults[category].items():
+                try:
+                    value = configuration.get(category, {})[k]
+                except KeyError:
+                    value = v
+                getattr(self, category)[k] = value
 
         self.set_paths()
         if check_incoherences:

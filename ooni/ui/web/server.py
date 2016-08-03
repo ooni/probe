@@ -71,6 +71,39 @@ def xsrf_protect(check=True):
     return deco
 
 
+def _requires_value(value, attrs=[]):
+
+    def deco(f):
+
+        @wraps(f)
+        def wrapper(instance, request, *a, **kw):
+            for attr in attrs:
+                attr_value = getattr(instance, attr)
+                if attr_value is not value:
+                    raise WebUIError(400, "{0} must be {1}".format(attr,
+                                                                   value))
+            return f(instance, request, *a, **kw)
+
+        return wrapper
+
+    return deco
+
+def requires_true(attrs=[]):
+    """
+    This decorator is used to require that a certain set of class attributes are
+    set to True.
+    Otherwise it will trigger a WebUIError.
+    """
+    return _requires_value(True, attrs)
+
+def requires_false(attrs=[]):
+    """
+    This decorator is used to require that a certain set of class attributes are
+    set to False.
+    Otherwise it will trigger a WebUIError.
+    """
+    return _requires_value(False, attrs)
+
 
 class LongPoller(object):
     def __init__(self, timeout, _reactor=reactor):
@@ -128,6 +161,7 @@ class WebUIAPI(object):
                                     for _ in range(30)])
 
         self._director_started = False
+        self._is_initialized = config.is_initialized()
 
         self.status_poller = LongPoller(
             self._long_polling_timeout, _reactor)
@@ -139,6 +173,10 @@ class WebUIAPI(object):
         self.status_poller.start()
 
         self.director.subscribe(self.handle_director_event)
+        if self._is_initialized:
+            self.start_director()
+
+    def start_director(self):
         d = self.director.start()
 
         d.addCallback(self.director_started)
@@ -151,7 +189,8 @@ class WebUIAPI(object):
             "software_name": "ooniprobe",
             "asn": probe_ip.geodata['asn'],
             "country_code": probe_ip.geodata['countrycode'],
-            "director_started": self._director_started
+            "director_started": self._director_started,
+            "initialized": self._is_initialized
         }
 
     def handle_director_event(self, event):
@@ -208,8 +247,36 @@ class WebUIAPI(object):
         d.addCallback(got_status_update)
         return d
 
+    @app.route('/api/initialize', methods=["POST"])
+    @xsrf_protect(check=True)
+    @requires_false(attrs=['_is_initialized'])
+    def api_initialize(self, request):
+        try:
+            initial_configuration = json.load(request.content)
+        except ValueError:
+            raise WebUIError(400, 'Invalid JSON message recevied')
+
+        required_keys = ['include_ip', 'include_asn', 'include_country',
+                         'should_upload', 'preferred_backend']
+        options = {}
+        for required_key in required_keys:
+            try:
+                options[required_key] = initial_configuration[required_key]
+            except KeyError:
+                raise WebUIError(400, 'Missing required key {0}'.format(
+                    required_key))
+        config.create_config_file(**options)
+        config.set_initialized()
+
+        self._is_initialized = True
+
+        self.status_poller.notify()
+        self.start_director()
+        return self.render_json({"result": "ok"}, request)
+
     @app.route('/api/deck/<string:deck_id>/start', methods=["POST"])
     @xsrf_protect(check=True)
+    @requires_true(attrs=['_director_started', '_is_initialized'])
     def api_deck_start(self, request, deck_id):
         try:
             deck = self.director.deck_store.get(deck_id)
@@ -225,6 +292,7 @@ class WebUIAPI(object):
 
     @app.route('/api/deck', methods=["GET"])
     @xsrf_protect(check=False)
+    @requires_true(attrs=['_director_started', '_is_initialized'])
     def api_deck_list(self, request):
         deck_list = {
             'available': {},
@@ -246,6 +314,7 @@ class WebUIAPI(object):
 
     @app.route('/api/deck/<string:deck_id>/enable', methods=["POST"])
     @xsrf_protect(check=True)
+    @requires_true(attrs=['_director_started', '_is_initialized'])
     def api_deck_enable(self, request, deck_id):
         try:
             self.director.deck_store.enable(deck_id)
@@ -256,6 +325,7 @@ class WebUIAPI(object):
 
     @app.route('/api/deck/<string:deck_id>/disable', methods=["POST"])
     @xsrf_protect(check=True)
+    @requires_true(attrs=['_director_started', '_is_initialized'])
     def api_deck_disable(self, request, deck_id):
         try:
             self.director.deck_store.disable(deck_id)
@@ -276,6 +346,7 @@ class WebUIAPI(object):
 
     @app.route('/api/nettest/<string:test_name>/start', methods=["POST"])
     @xsrf_protect(check=True)
+    @requires_true(attrs=['_director_started', '_is_initialized'])
     def api_nettest_start(self, request, test_name):
         try:
             _ = self.director.netTests[test_name]
@@ -321,11 +392,13 @@ class WebUIAPI(object):
 
     @app.route('/api/nettest', methods=["GET"])
     @xsrf_protect(check=False)
+    @requires_true(attrs=['_director_started', '_is_initialized'])
     def api_nettest_list(self, request):
         return self.render_json(self.director.netTests, request)
 
     @app.route('/api/input', methods=["GET"])
     @xsrf_protect(check=False)
+    @requires_true(attrs=['_is_initialized'])
     def api_input_list(self, request):
         input_store_list = self.director.input_store.list()
         for key, value in input_store_list.items():
@@ -334,6 +407,7 @@ class WebUIAPI(object):
 
     @app.route('/api/input/<string:input_id>/content', methods=["GET"])
     @xsrf_protect(check=False)
+    @requires_true(attrs=['_is_initialized'])
     def api_input_content(self, request, input_id):
         content = self.director.input_store.getContent(input_id)
         request.setHeader('Content-Type', 'text/plain')
@@ -342,6 +416,7 @@ class WebUIAPI(object):
 
     @app.route('/api/input/<string:input_id>', methods=["GET"])
     @xsrf_protect(check=False)
+    @requires_true(attrs=['_is_initialized'])
     def api_input_details(self, request, input_id):
         return self.render_json(
             self.director.input_store.get(input_id), request
@@ -349,12 +424,14 @@ class WebUIAPI(object):
 
     @app.route('/api/measurement', methods=["GET"])
     @xsrf_protect(check=False)
+    @requires_true(attrs=['_is_initialized'])
     def api_measurement_list(self, request):
         measurements = list_measurements()
         return self.render_json({"measurements": measurements}, request)
 
     @app.route('/api/measurement/<string:measurement_id>', methods=["GET"])
     @xsrf_protect(check=False)
+    @requires_true(attrs=['_is_initialized'])
     def api_measurement_summary(self, request, measurement_id):
         try:
             measurement = get_measurement(measurement_id)
@@ -373,6 +450,7 @@ class WebUIAPI(object):
 
     @app.route('/api/measurement/<string:measurement_id>', methods=["DELETE"])
     @xsrf_protect(check=True)
+    @requires_true(attrs=['_is_initialized'])
     def api_measurement_delete(self, request, measurement_id):
         try:
             measurement = get_measurement(measurement_id)
@@ -394,6 +472,7 @@ class WebUIAPI(object):
 
     @app.route('/api/measurement/<string:measurement_id>/keep', methods=["POST"])
     @xsrf_protect(check=True)
+    @requires_true(attrs=['_is_initialized'])
     def api_measurement_keep(self, request, measurement_id):
         try:
             measurement_dir = self.measurement_path.child(measurement_id)
@@ -409,6 +488,7 @@ class WebUIAPI(object):
     @app.route('/api/measurement/<string:measurement_id>/<int:idx>',
                methods=["GET"])
     @xsrf_protect(check=False)
+    @requires_true(attrs=['_is_initialized'])
     def api_measurement_view(self, request, measurement_id, idx):
         try:
             measurement_dir = self.measurement_path.child(measurement_id)

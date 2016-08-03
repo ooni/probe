@@ -6,12 +6,14 @@ from twisted.internet import task, defer
 
 def ooniprobe(reactor):
     from ooni.ui.cli import runWithDaemonDirector, runWithDirector
-    from ooni.ui.cli import setupGlobalOptions
+    from ooni.ui.cli import setupGlobalOptions, initializeOoniprobe
 
     global_options = setupGlobalOptions(logging=True, start_tor=True,
                                         check_incoherences=True)
     if global_options['queue']:
         return runWithDaemonDirector(global_options)
+    elif global_options['initialize']:
+        return initializeOoniprobe(global_options)
     elif global_options['web-ui']:
         from ooni.scripts.ooniprobe_agent import WEB_UI_URL
         from ooni.scripts.ooniprobe_agent import status_agent, start_agent

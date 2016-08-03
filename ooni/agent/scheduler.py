@@ -22,9 +22,11 @@ class ScheduledTask(object):
     schedule = None
     identifier = None
 
-    def __init__(self, schedule=None):
+    def __init__(self, schedule=None, identifier=None):
         if schedule is not None:
             self.schedule = schedule
+        if identifier is not None:
+            self.identifier = identifier
 
         assert self.identifier is not None, "self.identifier must be set"
         assert self.schedule is not None, "self.schedule must be set"
@@ -120,23 +122,23 @@ class DeleteOldReports(ScheduledTask):
                 measurement_path.child(measurement['id']).remove()
 
 
-class RunDecks(ScheduledTask):
+class RunDeck(ScheduledTask):
     """
     This will run the decks that have been configured on the system as the
     decks to run by default.
     """
-    schedule = '@daily'
-    identifier = 'run-decks'
 
-    def __init__(self, director, schedule=None):
-        super(RunDecks, self).__init__(schedule)
+    def __init__(self, director, deck_id, schedule):
+        self.deck_id = deck_id
         self.director = director
+        identifier = 'run-deck-' + deck_id
+        super(RunDeck, self).__init__(schedule, identifier)
 
     @defer.inlineCallbacks
     def task(self):
-        for deck_id, deck in deck_store.list_enabled():
-            yield deck.setup()
-            yield deck.run(self.director)
+        deck = deck_store.get(self.deck_id)
+        yield deck.setup()
+        yield deck.run(self.director)
 
 class SendHeartBeat(ScheduledTask):
     """
@@ -215,7 +217,10 @@ class SchedulerService(service.MultiService):
         self.schedule(UpdateInputsAndResources())
         self.schedule(UploadReports())
         self.schedule(DeleteOldReports())
-        self.schedule(RunDecks(self.director))
+        for deck_id, deck in deck_store.list_enabled():
+            if deck.schedule is None:
+                continue
+            self.schedule(RunDeck(self.director, deck_id, deck.schedule))
 
         self._looping_call.start(self.interval)
 

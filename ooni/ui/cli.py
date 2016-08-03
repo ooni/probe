@@ -30,7 +30,9 @@ class Options(usage.Options):
                 ["list", "s", "List the currently installed ooniprobe "
                               "nettests"],
                 ["verbose", "v", "Show more verbose information"],
-                ["web-ui", "w", "Start the web UI"]
+                ["web-ui", "w", "Start the web UI"],
+                ["initialize", "z", "Initialize ooniprobe to begin running "
+                                    "it"],
                 ]
 
     optParameters = [
@@ -178,10 +180,58 @@ def director_startup_other_failures(failure):
     log.err("An unhandled exception occurred while starting the director!")
     log.exception(failure)
 
+
+def initializeOoniprobe(global_options):
+    # XXX print here the informed consent documentation.
+    answer = raw_input('Should we upload measurements to a collector? (Y/n) ')
+    should_upload = True
+    if answer.lower().startswith("n"):
+        should_upload = False
+
+    answer = raw_input('Should we include your IP in measurements? (y/N) ')
+    include_ip = False
+    if answer.lower().startswith("y"):
+        include_ip = True
+
+    answer = raw_input('Should we include your ASN (your network) in '
+                       'measurements? (Y/n) ')
+    include_asn = False
+    if answer.lower().startswith("n"):
+        include_asn = True
+
+    answer = raw_input('Should we include your Country in '
+                       'measurements? (Y/n) ')
+    include_country = False
+    if answer.lower().startswith("n"):
+        include_country = True
+
+    answer = raw_input('How would you like reports to be uploaded? (onion, '
+                       'https, cloudfronted) ')
+
+    preferred_backend = 'onion'
+    if answer.lower().startswith("https"):
+        preferred_backend = 'https'
+    elif answer.lower().startswith("cloudfronted"):
+        preferred_backend = 'cloudfronted'
+
+    config.create_config_file(include_ip=include_ip,
+                              include_asn=include_asn,
+                              include_country=include_country,
+                              should_upload=should_upload,
+                              preferred_backend=preferred_backend)
+    config.set_initialized()
+
 def setupGlobalOptions(logging, start_tor, check_incoherences):
     global_options = parseOptions()
 
     config.global_options = global_options
+
+    if not config.is_initialized():
+        log.err("You first need to agree to the informed consent and setup "
+                "ooniprobe to run it.")
+        global_options['initialize'] = True
+        return
+
     config.set_paths()
     config.initialize_ooni_home()
     try:

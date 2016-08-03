@@ -56,7 +56,6 @@ class Storage(dict):
         for (k, v) in value.items():
             self[k] = v
 
-
 def checkForRoot():
     if os.getuid() != 0:
         raise errors.InsufficientPrivileges
