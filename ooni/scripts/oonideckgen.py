@@ -2,7 +2,6 @@ from __future__ import print_function
 
 import errno
 import os
-import shutil
 import sys
 
 from twisted.internet import defer, task
@@ -29,7 +28,7 @@ class Options(usage.Options):
                                   "submitting reports"],
         ["bouncer", None, None, "Specify a custom bouncer to use"],
         ["output", "o", None,
-         "Specify the directory where to write output."]
+         "Specify the path where we should be writing the deck to."]
     ]
 
     def opt_version(self):
@@ -119,24 +118,13 @@ def oonideckgen(reactor):
         print("%s: --country-code must be 2 characters" % sys.argv[0])
         sys.exit(2)
 
-    if not os.path.isdir(options['output']):
-        print("%s: %s is not a directory" % (sys.argv[0],
-                                             options['output']))
-        sys.exit(3)
+    if os.path.isdir(options['output']):
+        options['output'] = os.path.join(options['output'], 'web-full.yaml')
 
     options['country-code'] = options['country-code'].lower()
 
-    output_dir = os.path.abspath(options['output'])
-    output_dir = os.path.join(output_dir, "deck")
-
-    if os.path.isdir(output_dir):
-        print("Found previous deck deleting content of it")
-        shutil.rmtree(output_dir)
-
-    options['output'] = output_dir
-
     try:
-        os.makedirs(options['output'])
+        os.makedirs(os.path.dirname(options['output']))
     except OSError as exception:
         if exception.errno != errno.EEXIST:
             raise

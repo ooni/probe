@@ -14,6 +14,29 @@ from ooni.contrib import croniter
 from ooni.geoip import probe_ip
 from ooni.measurements import list_measurements
 
+class FileSystemlockAndMutex(object):
+    """
+    This is a lock that is both a mutex lock and also on filesystem.
+    When you acquire it, it will first block on the mutex lock and then
+    once that is released it will attempt to acquire the lock on the
+    filesystem.
+
+    It's a way to support concurrent usage of the DeferredFilesystemLock
+    without races.
+    """
+    def __init__(self, file_path):
+        self._fs_lock = defer.DeferredFilesystemLock(file_path)
+        self._mutex = defer.DeferredLock()
+
+    @defer.inlineCallbacks
+    def acquire(self):
+        yield self._mutex.acquire()
+        yield self._fs_lock.deferUntilLocked()
+
+    def release(self):
+        self._fs_lock.unlock()
+        self._mutex.release()
+
 class DidNotRun(Exception):
     pass
 
@@ -33,7 +56,7 @@ class ScheduledTask(object):
         scheduler_directory = config.scheduler_directory
 
         self._last_run = FilePath(scheduler_directory).child(self.identifier)
-        self._last_run_lock = defer.DeferredFilesystemLock(
+        self._last_run_lock = FileSystemlockAndMutex(
             FilePath(scheduler_directory).child(self.identifier + ".lock").path
         )
 
@@ -63,9 +86,9 @@ class ScheduledTask(object):
 
     @defer.inlineCallbacks
     def run(self):
-        yield self._last_run_lock.deferUntilLocked()
+        yield self._last_run_lock.acquire()
         if not self.should_run:
-            self._last_run_lock.unlock()
+            self._last_run_lock.release()
             raise DidNotRun
         try:
             yield self.task()
@@ -73,7 +96,7 @@ class ScheduledTask(object):
         except:
             raise
         finally:
-            self._last_run_lock.unlock()
+            self._last_run_lock.release()
 
 
 class UpdateInputsAndResources(ScheduledTask):
@@ -140,6 +163,21 @@ class RunDeck(ScheduledTask):
         yield deck.setup()
         yield deck.run(self.director)
 
+
+class RefreshDeckList(ScheduledTask):
+    """
+    This task is configured to refresh the list of decks that are enabled.
+    """
+    identifier = 'refresh-deck-list'
+    schedule = '@hourly'
+
+    def __init__(self, scheduler, schedule=None, identifier=None):
+        self.scheduler = scheduler
+        super(RefreshDeckList, self).__init__(schedule, identifier)
+
+    def task(self):
+        self.scheduler.refresh_deck_list()
+
 class SendHeartBeat(ScheduledTask):
     """
     This task is used to send a heartbeat that the probe is still alive and
@@ -188,6 +226,18 @@ class SchedulerService(service.MultiService):
     def schedule(self, task):
         self._scheduled_tasks.append(task)
 
+    def refresh_deck_list(self):
+        # Deletes all the RunDeck tasks and reschedules only the ones that
+        # are enabled.
+        for scheduled_task in self._scheduled_tasks[:]:
+            if isinstance(scheduled_task, RunDeck):
+                self._scheduled_tasks.remove(scheduled_task)
+
+        for deck_id, deck in deck_store.list_enabled():
+            if deck.schedule is None:
+                continue
+            self.schedule(RunDeck(self.director, deck_id, deck.schedule))
+
     def _task_did_not_run(self, failure, task):
         failure.trap(DidNotRun)
         log.debug("Did not run {0}".format(task.identifier))
@@ -214,13 +264,11 @@ class SchedulerService(service.MultiService):
     def startService(self):
         service.MultiService.startService(self)
 
+        self.refresh_deck_list()
         self.schedule(UpdateInputsAndResources())
         self.schedule(UploadReports())
         self.schedule(DeleteOldReports())
-        for deck_id, deck in deck_store.list_enabled():
-            if deck.schedule is None:
-                continue
-            self.schedule(RunDeck(self.director, deck_id, deck.schedule))
+        self.schedule(RefreshDeckList(self))
 
         self._looping_call.start(self.interval)
 

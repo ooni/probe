@@ -225,7 +225,12 @@ class NGDeck(object):
             measurement_id = task.id
 
             measurement_dir = self._measurement_path.child(measurement_id)
-            measurement_dir.createDirectory()
+            try:
+                measurement_dir.createDirectory()
+            except OSError as ose:
+                # Ignore 'File Exists'
+                if ose.errno != 17:
+                    raise
 
             report_filename = measurement_dir.child("measurements.njson.progress").path
             pid_file = measurement_dir.child("running.pid")
@@ -337,6 +342,8 @@ class DeckTask(object):
             self.output_path = task_data.pop('reportfile', None)
 
         if task_data.get('no-collector', False):
+            collector_address = None
+        elif config.reports.upload is False:
             collector_address = None
 
         net_test_loader = NetTestLoader(

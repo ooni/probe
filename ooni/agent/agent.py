@@ -11,11 +11,14 @@ class AgentService(service.MultiService):
 
         director = Director()
 
-        self.web_ui_service = WebUIService(director, web_ui_port)
-        self.web_ui_service.setServiceParent(self)
-
         self.scheduler_service = SchedulerService(director)
         self.scheduler_service.setServiceParent(self)
+
+        self.web_ui_service = WebUIService(director,
+                                           self.scheduler_service,
+                                           web_ui_port)
+        self.web_ui_service.setServiceParent(self)
+
 
     def startService(self):
         service.MultiService.startService(self)

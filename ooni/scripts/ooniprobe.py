@@ -13,7 +13,8 @@ def ooniprobe(reactor):
     if global_options['queue']:
         return runWithDaemonDirector(global_options)
     elif global_options['initialize']:
-        return initializeOoniprobe(global_options)
+        initializeOoniprobe(global_options)
+        return defer.succeed(None)
     elif global_options['web-ui']:
         from ooni.scripts.ooniprobe_agent import WEB_UI_URL
         from ooni.scripts.ooniprobe_agent import status_agent, start_agent

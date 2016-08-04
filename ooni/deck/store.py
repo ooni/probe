@@ -140,7 +140,7 @@ class DeckStore(object):
     def list_enabled(self):
         decks = []
         for deck_id, deck in self._list():
-            if self.is_enabled(deck_id):
+            if not self.is_enabled(deck_id):
                 continue
             decks.append((deck_id, deck))
         return decks
@@ -153,7 +153,7 @@ class DeckStore(object):
         if not deck_path.exists():
             raise DeckNotFound(deck_id)
         deck_enabled_path = self.enabled_directory.child(deck_id + '.yaml')
-        deck_enabled_path.linkTo(deck_path)
+        deck_path.linkTo(deck_enabled_path)
 
     def disable(self, deck_id):
         deck_enabled_path = self.enabled_directory.child(deck_id + '.yaml')

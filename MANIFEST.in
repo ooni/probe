@@ -9,3 +9,4 @@ include data/ooniprobe.conf.sample
 include data/configs/lepidopter-ooniprobe.conf
 include data/configs/lepidopter-oonireport.conf
 include ooni/settings.ini
+include ooni/ui/consent-form.md

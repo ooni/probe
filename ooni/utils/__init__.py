@@ -10,9 +10,6 @@ from zipfile import ZipFile
 from twisted.python.filepath import FilePath
 from twisted.python.runtime import platform
 
-from ooni import errors
-
-
 class Storage(dict):
     """
     A Storage object is like a dictionary except `obj.foo` can be used
@@ -57,6 +54,7 @@ class Storage(dict):
             self[k] = v
 
 def checkForRoot():
+    from ooni import errors
     if os.getuid() != 0:
         raise errors.InsufficientPrivileges
 

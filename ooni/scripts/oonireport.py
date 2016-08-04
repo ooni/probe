@@ -85,8 +85,7 @@ def upload(report_file, collector=None, bouncer=None, measurement_id=None):
             elif isinstance(collector_settings, str):
                 collector_client = CollectorClient(address=collector_settings)
         else:
-            log.msg("Could not find %s in reporting.yaml. Looking up "
-                    "collector with canonical bouncer." % report_file)
+            log.msg("Looking up collector with canonical bouncer." % report_file)
             collector_client = yield lookup_collector_client(report.header,
                                                              CANONICAL_BOUNCER_ONION)
 
@@ -267,8 +266,8 @@ class Options(usage.Options):
 
 def tor_check():
     if not config.tor.socks_port:
-        print("Currently oonireport requires that you start Tor yourself "
-              "and set the socks_port inside of ooniprobe.conf")
+        log.err("Currently oonireport requires that you start Tor yourself "
+                "and set the socks_port inside of ooniprobe.conf")
         sys.exit(1)
 
 

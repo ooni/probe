@@ -1,5 +1,5 @@
 ---
-name: Web related ooniprobe tests
+name: Full Web test deck
 description: This deck runs HTTP Header Field Manipulation, HTTP Invalid
     Request and the Web Connectivity test
 schedule: "@daily"

@@ -13,7 +13,6 @@ from ooni.utils.net import ConnectAndCloseProtocol, connectProtocol
 from ooni.utils import Storage, log, get_ooni_root
 from ooni import errors
 
-
 CONFIG_FILE_TEMPLATE = """\
 # This is the configuration file for OONIProbe
 # This file follows the YAML markup format: http://yaml.org/spec/1.2/spec.html
@@ -127,36 +126,81 @@ defaults = {
         "preferred_backend": "onion"
     },
     "tor": {
+        "socks_port": None,
+        "control_port": None,
+        "bridges": None,
+        "data_dir": None,
         "timeout": 200,
         "torrc": {}
     }
 }
+
+# This is the root of the ooniprobe source code tree
+OONIPROBE_ROOT = get_ooni_root()
+
+IS_VIRTUALENV = False
+if hasattr(sys, 'real_prefix'):
+    IS_VIRTUALENV = True
+
+# These are the the embedded settings
+_SETTINGS_INI = os.path.join(OONIPROBE_ROOT, 'settings.ini')
+
+USR_SHARE_PATH = '/var/lib/ooni'
+VAR_LIB_PATH = '/usr/share/ooni'
+ETC_PATH = '/etc'
+
+if IS_VIRTUALENV:
+    _PREFIX = os.path.abspath(sys.prefix)
+    VAR_LIB_PATH = os.path.join(
+        _PREFIX,
+        'var', 'lib', 'ooni'
+    )
+    USR_SHARE_PATH = os.path.join(
+        _PREFIX,
+        'usr', 'share', 'ooni'
+    )
+    ETC_PATH = os.path.join(
+        _PREFIX,
+        'etc'
+    )
+elif os.path.isfile(_SETTINGS_INI):
+    settings = SafeConfigParser()
+    with open(_SETTINGS_INI) as fp:
+        settings.readfp(fp)
+
+    _USR_SHARE_PATH = settings.get('directories', 'usr_share')
+    if _USR_SHARE_PATH is not None:
+        USR_SHARE_PATH = _USR_SHARE_PATH
+
+    _VAR_LIB_PATH = settings.get('directories', 'var_lib')
+    if _VAR_LIB_PATH is not None:
+        VAR_LIB_PATH = _VAR_LIB_PATH
+
+    _ETC_PATH = settings.get('directories', 'etc')
+    if _ETC_PATH is not None:
+        ETC_PATH = _ETC_PATH
 
 class OConfig(object):
     _custom_home = None
 
     def __init__(self):
         self.current_user = getpass.getuser()
+
         self.global_options = {}
-        self.reports = Storage()
+
         self.scapyFactory = None
         self.tor_state = None
 
         self.logging = True
+
+        # These are the configuration options
         self.basic = Storage()
         self.advanced = Storage()
+        self.reports = Storage()
         self.tor = Storage()
         self.privacy = Storage()
-        self.set_paths()
 
-    def embedded_settings(self, category, option):
-        embedded_settings = os.path.join(get_ooni_root(), 'settings.ini')
-        if os.path.isfile(embedded_settings):
-            settings = SafeConfigParser()
-            with open(embedded_settings) as fp:
-                settings.readfp(fp)
-            return settings.get(category, option)
-        return None
+        self.set_paths()
 
     def is_initialized(self):
         # When this is false it means that the user has not gone
@@ -170,64 +214,23 @@ class OConfig(object):
         with open(initialized_path, 'w+'): pass
 
     @property
-    def var_lib_path(self):
-        if hasattr(sys, 'real_prefix'):
-            # We are in a virtualenv use the /usr/share in the virtualenv
-            return os.path.join(
-                os.path.abspath(sys.prefix),
-                'var', 'lib', 'ooni'
-            )
-        var_lib_path = self.embedded_settings("directories", "var_lib")
-        if var_lib_path:
-            return os.path.abspath(var_lib_path)
-        return "/var/lib/ooni"
-
-    @property
     def running_path(self):
         """
         This is the directory used to store state application data.
         It defaults to /var/lib/ooni, but if that is not writeable we will
         use the ooni_home.
         """
-        var_lib_path = self.var_lib_path
-        if os.access(var_lib_path, os.W_OK):
-            return var_lib_path
+        if os.access(VAR_LIB_PATH, os.W_OK):
+            return VAR_LIB_PATH
         return self.ooni_home
-
-    @property
-    def usr_share_path(self):
-        if hasattr(sys, 'real_prefix'):
-            # We are in a virtualenv use the /usr/share in the virtualenv
-            return os.path.join(
-                os.path.abspath(sys.prefix),
-                'usr', 'share', 'ooni'
-            )
-        usr_share_path = self.embedded_settings("directories", "usr_share")
-        if usr_share_path:
-            return os.path.abspath(usr_share_path)
-        return "/usr/share/ooni"
-
-
-    @property
-    def etc_path(self):
-        if hasattr(sys, 'real_prefix'):
-            # We are in a virtualenv use the /usr/share in the virtualenv
-            return os.path.join(
-                os.path.abspath(sys.prefix),
-                'usr', 'share', 'ooni'
-            )
-        etc_path = self.embedded_settings("directories", "etc")
-        if etc_path:
-            return os.path.abspath(etc_path)
-        return "/etc"
 
     @property
     def data_directory_candidates(self):
         dirs = [
             self.ooni_home,
-            self.var_lib_path,
-            self.usr_share_path,
-            os.path.join(get_ooni_root(), '..', 'data'),
+            VAR_LIB_PATH,
+            USR_SHARE_PATH,
+            os.path.join(OONIPROBE_ROOT, '..', 'data'),
             '/usr/share/'
         ]
         if os.getenv("OONI_DATA_DIR"):
@@ -241,7 +244,7 @@ class OConfig(object):
         for target_dir in self.data_directory_candidates:
             if os.path.isdir(target_dir):
                 return target_dir
-        return self.var_lib_path
+        return VAR_LIB_PATH
 
     @property
     def ooni_home(self):
@@ -260,14 +263,14 @@ class OConfig(object):
                 return file_path
 
     def set_paths(self):
-        self.nettest_directory = os.path.join(get_ooni_root(), 'nettests')
-        self.web_ui_directory = os.path.join(get_ooni_root(), 'ui', 'web', 'client')
+        self.nettest_directory = os.path.join(OONIPROBE_ROOT, 'nettests')
+        self.web_ui_directory = os.path.join(OONIPROBE_ROOT, 'ui', 'web','client')
 
         self.inputs_directory = os.path.join(self.running_path, 'inputs')
         self.scheduler_directory = os.path.join(self.running_path, 'scheduler')
         self.resources_directory = os.path.join(self.running_path, 'resources')
 
-        self.decks_available_directory = os.path.join(self.running_path,
+        self.decks_available_directory = os.path.join(USR_SHARE_PATH,
                                                       'decks-available')
         self.decks_enabled_directory = os.path.join(self.running_path,
                                                     'decks-enabled')
@@ -317,6 +320,7 @@ class OConfig(object):
     def create_config_file(self, include_ip=False, include_asn=True,
                            include_country=True, should_upload=True,
                            preferred_backend="onion"):
+        self.initialize_ooni_home()
         def _bool_to_yaml(value):
             if value is True:
                 return 'true'
@@ -342,39 +346,23 @@ class OConfig(object):
             )
         self.read_config_file()
 
-    def _create_config_file(self):
-        target_config_file = self.config_file
-        print "Creating it for you in '%s'." % target_config_file
-        sample_config_file = self.get_data_file_path('ooniprobe.conf.sample')
-
-        with open(sample_config_file) as f:
-            with open(target_config_file, 'w+') as w:
-                for line in f:
-                    if line.startswith('    logfile: '):
-                        w.write('    logfile: %s\n' % (
-                            os.path.join(self.ooni_home, 'ooniprobe.log'))
-                        )
-                    else:
-                        w.write(line)
-
     def read_config_file(self, check_incoherences=False):
-        #if not os.path.isfile(self.config_file):
-        #    print "Configuration file does not exist."
-        #    self._create_config_file()
-        #    self.read_config_file()
-
         configuration = {}
+        config_file = {}
+        log.debug("Reading config file from %s" % self.config_file)
         if os.path.isfile(self.config_file):
             with open(self.config_file) as f:
                 config_file_contents = '\n'.join(f.readlines())
-                configuration = yaml.safe_load(config_file_contents)
+                config_file = yaml.safe_load(config_file_contents)
 
         for category in defaults.keys():
+            configuration[category] = {}
             for k, v in defaults[category].items():
                 try:
-                    value = configuration.get(category, {})[k]
+                    value = config_file.get(category, {})[k]
                 except KeyError:
                     value = v
+                configuration[category][k] = value
                 getattr(self, category)[k] = value
 
         self.set_paths()

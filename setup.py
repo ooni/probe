@@ -92,6 +92,8 @@ import os
 import shutil
 import tempfile
 import subprocess
+from glob import glob
+
 from ConfigParser import SafeConfigParser
 
 from os.path import join as pj
@@ -138,29 +140,19 @@ class OoniInstall(install):
         else:
             var_path = pj(prefix, 'var', 'lib')
 
-        for root, dirs, file_names in os.walk('data/'):
-            files = []
-            for file_name in file_names:
-                if file_name.endswith('.pyc'):
-                    continue
-                elif file_name.endswith('.dat') and \
-                        file_name.startswith('Geo'):
-                    continue
-                elif file_name == "ooniprobe.conf.sample":
-                    files.append(self.gen_config(share_path))
-                    continue
-                files.append(pj(root, file_name))
-            self.distribution.data_files.append(
-                [
-                    pj(share_path, 'ooni', root.replace('data/', '')),
-                    files
-                ]
+        self.distribution.data_files.append(
+            (
+                pj(share_path, 'ooni', 'decks-available'),
+                glob('data/decks/*')
             )
+        )
         settings = SafeConfigParser()
         settings.add_section("directories")
         settings.set("directories", "usr_share",
                      os.path.join(share_path, "ooni"))
         settings.set("directories", "var_lib",
+                     os.path.join(var_path, "ooni"))
+        settings.set("directories", "etc",
                      os.path.join(var_path, "ooni"))
         with open("ooni/settings.ini", "w+") as fp:
             settings.write(fp)
@@ -196,7 +188,7 @@ class OoniInstall(install):
         if is_lepidopter():
             self.update_lepidopter_config()
 
-
+setup_requires = ['twisted']
 install_requires = []
 dependency_links = []
 data_files = []
@@ -248,6 +240,7 @@ setup(
     include_package_data=True,
     dependency_links=dependency_links,
     install_requires=install_requires,
+    setup_requires=setup_requires,
     zip_safe=False,
     entry_points={
         'console_scripts': [

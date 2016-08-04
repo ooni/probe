@@ -10,7 +10,7 @@ from twisted.python import usage
 from twisted.internet import defer
 
 from ooni import errors, __version__
-from ooni.settings import config
+from ooni.settings import config, OONIPROBE_ROOT
 from ooni.utils import log
 
 class LifetimeExceeded(Exception): pass
@@ -182,7 +182,30 @@ def director_startup_other_failures(failure):
 
 
 def initializeOoniprobe(global_options):
-    # XXX print here the informed consent documentation.
+    print("""
+                   _   _              _
+            __ _ _ _ ___ ___| |_(_)_ _  __ _ __| |
+           / _` | '_/ -_) -_)  _| | ' \/ _` (_-<_|
+           \__, |_| \___\___|\__|_|_||_\__, /__(_)
+           |___/                       |___/      )
+          """)
+    print("It looks like this is the first time you are running ooniprobe")
+    print("Please take a minute to read through the informed consent documentation and "
+          "understand what are the risks associated with running ooniprobe.")
+    print("Press enter to continue...")
+    raw_input()
+    with open(os.path.join(OONIPROBE_ROOT, 'ui', 'consent-form.md')) as f:
+        consent_form_text = ''.join(f.readlines())
+    from pydoc import pager
+    pager(consent_form_text)
+
+    answer = ""
+    while answer.lower() != "yes":
+        print('Type "yes" if you are fully aware of the risks associated with using ooniprobe and you wish to proceed')
+        answer = raw_input("> ")
+
+    print("")
+    print("Now help us configure some things!")
     answer = raw_input('Should we upload measurements to a collector? (Y/n) ')
     should_upload = True
     if answer.lower().startswith("n"):
@@ -195,15 +218,15 @@ def initializeOoniprobe(global_options):
 
     answer = raw_input('Should we include your ASN (your network) in '
                        'measurements? (Y/n) ')
-    include_asn = False
+    include_asn = True
     if answer.lower().startswith("n"):
-        include_asn = True
+        include_asn = False
 
     answer = raw_input('Should we include your Country in '
                        'measurements? (Y/n) ')
-    include_country = False
+    include_country = True
     if answer.lower().startswith("n"):
-        include_country = True
+        include_country = False
 
     answer = raw_input('How would you like reports to be uploaded? (onion, '
                        'https, cloudfronted) ')
@@ -230,7 +253,7 @@ def setupGlobalOptions(logging, start_tor, check_incoherences):
         log.err("You first need to agree to the informed consent and setup "
                 "ooniprobe to run it.")
         global_options['initialize'] = True
-        return
+        return global_options
 
     config.set_paths()
     config.initialize_ooni_home()

@@ -149,8 +149,10 @@ class WebUIAPI(object):
     _reactor = reactor
     _enable_xsrf_protection = True
 
-    def __init__(self, config, director, _reactor=reactor):
+    def __init__(self, config, director, scheduler, _reactor=reactor):
         self.director = director
+        self.scheduler = scheduler
+
         self.config = config
         self.measurement_path = FilePath(config.measurements_directory)
 
@@ -301,16 +303,33 @@ class WebUIAPI(object):
         for deck_id, deck in self.director.deck_store.list():
             deck_list['available'][deck_id] = {
                 'name': deck.name,
-                'description': deck.description
+                'description': deck.description,
+                'schedule': deck.schedule,
+                'enabled': self.director.deck_store.is_enabled(deck_id)
             }
 
         for deck_id, deck in self.director.deck_store.list_enabled():
             deck_list['enabled'][deck_id] = {
                 'name': deck.name,
-                'description': deck.description
+                'description': deck.description,
+                'schedule': deck.schedule,
+                'enabled': True
             }
 
         return self.render_json(deck_list, request)
+
+    @app.route('/api/deck/<string:deck_id>/run', methods=["POST"])
+    @xsrf_protect(check=True)
+    @requires_true(attrs=['_director_started', '_is_initialized'])
+    def api_deck_run(self, request, deck_id):
+        try:
+            deck = self.director.deck_store.get(deck_id)
+        except DeckNotFound:
+            raise WebUIError(404, "Deck not found")
+
+        self.run_deck(deck)
+
+        return self.render_json({"status": "starting"}, request)
 
     @app.route('/api/deck/<string:deck_id>/enable', methods=["POST"])
     @xsrf_protect(check=True)
@@ -320,6 +339,8 @@ class WebUIAPI(object):
             self.director.deck_store.enable(deck_id)
         except DeckNotFound:
             raise WebUIError(404, "Deck not found")
+
+        self.scheduler.refresh_deck_list()
 
         return self.render_json({"status": "enabled"}, request)
 
@@ -331,6 +352,7 @@ class WebUIAPI(object):
             self.director.deck_store.disable(deck_id)
         except DeckNotFound:
             raise WebUIError(404, "Deck not found")
+        self.scheduler.refresh_deck_list()
 
         return self.render_json({"status": "disabled"}, request)
 
