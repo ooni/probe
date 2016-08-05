@@ -11,6 +11,7 @@ class ConfigTestCase(unittest.TestCase):
         self.ooni_home_dir = os.path.abspath("ooni_home")
         self.config = config
         self.config.initialize_ooni_home(self.ooni_home_dir)
+        config.is_initialized = lambda: True
         super(ConfigTestCase, self).setUp()
 
     def skipTest(self, reason):

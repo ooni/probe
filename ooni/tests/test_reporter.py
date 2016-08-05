@@ -3,6 +3,7 @@ import yaml
 import json
 import time
 import shutil
+import tempfile
 
 from twisted.internet import defer
 from twisted.trial import unittest
@@ -119,8 +120,8 @@ class TestOONIBReportLog(ConfigTestCase):
 
     def setUp(self):
         super(TestOONIBReportLog, self).setUp()
-        self.report_log = OONIBReportLog()
         self.measurement_id = '20160727T182604Z-ZZ-AS0-dummy'
+        self.config.measurements_directory = tempfile.mkdtemp()
         self.measurement_dir = os.path.join(
             self.config.measurements_directory,
             self.measurement_id
@@ -128,6 +129,7 @@ class TestOONIBReportLog(ConfigTestCase):
         self.report_log_path = os.path.join(self.measurement_dir,
                                             'report_log.json')
         os.mkdir(self.measurement_dir)
+        self.report_log = OONIBReportLog()
 
     def tearDown(self):
         shutil.rmtree(self.measurement_dir)

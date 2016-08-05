@@ -373,7 +373,6 @@ class Director(object):
         Launches a Tor with :param: socks_port :param: control_port
         :param: tor_binary set in ooniprobe.conf
         """
-        from txtorcon import TorConfig
         if self._tor_state == 'running':
             log.debug("Tor is already running")
             defer.returnValue(self._tor_state)

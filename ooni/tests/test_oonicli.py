@@ -66,8 +66,6 @@ class TestRunDirector(ConfigTestCase):
         if not is_internet_connected():
             self.skipTest("You must be connected to the internet to run this test")
 
-        config.tor.socks_port = 9050
-        config.tor.control_port = None
         self.filenames = ['example-input.txt']
         with open('example-input.txt', 'w+') as f:
             f.write('http://torproject.org/\n')
@@ -83,7 +81,7 @@ class TestRunDirector(ConfigTestCase):
 
     @defer.inlineCallbacks
     def run_helper(self, test_name, nettest_args, verify_function, ooni_args=()):
-        output_file = os.path.abspath('test_report.yamloo')
+        output_file = os.path.abspath('test_report.njson')
         self.filenames.append(output_file)
         oldargv = sys.argv
         sys.argv = ['']
@@ -91,6 +89,12 @@ class TestRunDirector(ConfigTestCase):
         sys.argv.extend(['-n', '-o', output_file, test_name])
         sys.argv.extend(nettest_args)
         global_options = setupGlobalOptions(False, False, False)
+
+        config.tor.socks_port = 9050
+        config.advanced.start_tor = False
+        config.tor.control_port = None
+        config.advanced.debug = True
+
         yield runWithDirector(global_options,
                               create_input_store=False)
         with open(output_file) as f:

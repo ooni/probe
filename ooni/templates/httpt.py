@@ -110,8 +110,8 @@ class HTTPTest(NetTestCase):
                 self.agent = FixedRedirectAgent(self.agent)
                 self.report['agent'] = 'redirect'
             except:
-                log.err("Warning! You are running an old version of twisted"\
-                        "(<= 10.1). I will not be able to follow redirects."\
+                log.err("Warning! You are running an old version of twisted "
+                        "(<= 10.1). I will not be able to follow redirects."
                         "This may make the testing less precise.")
 
         if len(self.contentDecoders) > 0:

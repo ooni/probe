@@ -72,10 +72,11 @@ class TestDirector(ConfigTestCase):
     def test_start_tor(self):
         @defer.inlineCallbacks
         def director_start_tor():
+            self.config.advanced.start_tor = True
             director = Director()
             yield director.start_tor()
-            assert config.tor.socks_port == 4242
-            assert config.tor.control_port == 4242
+            self.assertEqual(config.tor.socks_port, 4242)
+            self.assertEqual(config.tor.control_port, 4242)
 
         return director_start_tor()
 
