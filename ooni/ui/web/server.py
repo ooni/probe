@@ -196,7 +196,7 @@ class WebUIAPI(object):
         }
 
     def handle_director_event(self, event):
-        log.msg("Handling event {0}".format(event.type))
+        log.debug("Handling event {0}".format(event.type))
         self.director_event_poller.notify(event)
 
     def director_started(self, _):

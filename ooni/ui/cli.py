@@ -74,15 +74,6 @@ class Options(usage.Options):
     def __init__(self):
         usage.Options.__init__(self)
 
-    def getUsage(self, width=None):
-        return super(Options, self).getUsage(width) + """
-To get started you may want to run:
-
-$ oonideckgen
-
-This will tell you how to run ooniprobe :)
-"""
-
     def opt_spew(self):
         """
         Print an insanely verbose log of everything that happens.
@@ -109,9 +100,6 @@ This will tell you how to run ooniprobe :)
 
 
 def parseOptions():
-    print "WARNING: running ooniprobe involves some risk that varies greatly"
-    print "         from country to country. You should be aware of this when"
-    print "         running the tool. Read more about this in the manpage or README."
     cmd_line_options = Options()
     if len(sys.argv) == 1:
         cmd_line_options.getUsage()
@@ -182,13 +170,6 @@ def director_startup_other_failures(failure):
 
 
 def initializeOoniprobe(global_options):
-    print("""
-                   _   _              _
-            __ _ _ _ ___ ___| |_(_)_ _  __ _ __| |
-           / _` | '_/ -_) -_)  _| | ' \/ _` (_-<_|
-           \__, |_| \___\___|\__|_|_||_\__, /__(_)
-           |___/                       |___/      )
-          """)
     print("It looks like this is the first time you are running ooniprobe")
     print("Please take a minute to read through the informed consent documentation and "
           "understand what are the risks associated with running ooniprobe.")

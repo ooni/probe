@@ -9,9 +9,7 @@ from twisted.internet.endpoints import TCP4ClientEndpoint
 
 from os.path import abspath, expanduser
 
-from ooni.utils.net import ConnectAndCloseProtocol, connectProtocol
 from ooni.utils import Storage, log, get_ooni_root
-from ooni import errors
 
 CONFIG_FILE_TEMPLATE = """\
 # This is the configuration file for OONIProbe
@@ -380,6 +378,7 @@ class OConfig(object):
         self.log_incoherences(incoherent)
 
     def log_incoherences(self, incoherences):
+        from ooni import errors
         if len(incoherences) > 0:
             if len(incoherences) > 1:
                 incoherent_pretty = ", ".join(incoherences[:-1]) + ' and ' + incoherences[-1]
@@ -393,6 +392,7 @@ class OConfig(object):
         """
         Called only when we must start tor by director.start
         """
+        from ooni.utils.net import ConnectAndCloseProtocol, connectProtocol
         incoherent = []
         if not self.advanced.start_tor:
             if self.tor.socks_port is None:

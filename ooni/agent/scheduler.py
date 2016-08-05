@@ -70,6 +70,7 @@ class ScheduledTask(object):
 
     @property
     def last_run(self):
+        self._last_run.restat(False)
         if not self._last_run.exists():
             return datetime.fromtimestamp(0)
         with self._last_run.open('r') as in_file:
@@ -208,6 +209,8 @@ def run_system_tasks(no_input_store=False):
         log.debug("Running task {0}".format(task.identifier))
         try:
             yield task.run()
+        except DidNotRun:
+            log.debug("Did not run {0}".format(task.identifier))
         except Exception as exc:
             log.err("Failed to run task {0}".format(task.identifier))
             log.exception(exc)

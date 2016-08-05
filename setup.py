@@ -188,7 +188,7 @@ class OoniInstall(install):
         if is_lepidopter():
             self.update_lepidopter_config()
 
-setup_requires = ['twisted']
+setup_requires = ['twisted', 'pyyaml']
 install_requires = []
 dependency_links = []
 data_files = []

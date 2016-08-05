@@ -259,8 +259,9 @@ class NGDeck(object):
             try:
                 yield task.setup()
             except InputNotFound:
-                log.msg("Skipping this task because the input cannot be found")
-                self._skip = True
+                log.msg("Skipping the task {0} because the input cannot be "
+                        "found".format(task.id))
+                task.skip = True
         self._is_setup = True
 
     @defer.inlineCallbacks
@@ -271,8 +272,8 @@ class NGDeck(object):
             yield director.start_tor()
         yield self.query_bouncer()
         for task in self._tasks:
-            if task._skip is True:
-                log.msg("Skipping running {0}".format(task.name))
+            if task.skip is True:
+                log.msg("Skipping running {0}".format(task.id))
                 continue
             if task.type == "ooni":
                 yield self._run_ooni_task(task, director)
@@ -294,9 +295,9 @@ class DeckTask(object):
         self.cwd = cwd
         self.data = deepcopy(data)
 
-        self._skip = False
+        self.skip = False
 
-        self.id = ""
+        self.id = "invalid"
 
         self.type = None
         self.metadata = {}

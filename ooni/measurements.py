@@ -3,6 +3,7 @@ import json
 import signal
 
 from twisted.python.filepath import FilePath
+from ooni.utils import log
 from ooni.settings import config
 
 class MeasurementInProgress(Exception):
@@ -118,7 +119,10 @@ def list_measurements():
     measurements = []
     measurement_path = FilePath(config.measurements_directory)
     for measurement_id in measurement_path.listdir():
-        measurements.append(get_measurement(measurement_id))
+        try:
+            measurements.append(get_measurement(measurement_id))
+        except:
+            log.err("Failed to get metadata for measurement {0}".format(measurement_id))
     return measurements
 
 if __name__ == "__main__":
