@@ -1,5 +1,6 @@
 import csv
 import json
+import errno
 from copy import deepcopy
 
 from twisted.internet import defer
@@ -76,8 +77,16 @@ class InputStore(object):
         self.path = FilePath(config.inputs_directory)
         self.resources = FilePath(config.resources_directory)
 
-        self.path.child("descriptors").makedirs(ignoreExistingDirectory=True)
-        self.path.child("data").makedirs(ignoreExistingDirectory=True)
+        try:
+            self.path.child("descriptors").makedirs()
+        except OSError as e:
+            if not e.errno == errno.EEXIST:
+                raise
+        try:
+            self.path.child("data").makedirs()
+        except OSError as e:
+            if not e.errno == errno.EEXIST:
+                raise
         yield self.update_url_lists(country_code)
 
     @defer.inlineCallbacks

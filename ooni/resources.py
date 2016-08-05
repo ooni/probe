@@ -1,4 +1,5 @@
 import json
+import errno
 
 from twisted.python.filepath import FilePath
 from twisted.internet import defer
@@ -107,7 +108,11 @@ def check_for_update(country_code=None):
     latest_version = yield get_latest_version()
 
     resources_dir = FilePath(config.resources_directory)
-    resources_dir.makedirs(ignoreExistingDirectory=True)
+    try:
+        resources_dir.makedirs()
+    except OSError as e:
+        if not e.errno == errno.EEXIST:
+            raise
     current_manifest = resources_dir.child("manifest.json")
 
     if current_manifest.exists():
@@ -149,7 +154,11 @@ def check_for_update(country_code=None):
                 filename = filename[:-3]
                 gzipped = True
             dst_file = resources_dir.child(pre_path).child(filename)
-            dst_file.parent().makedirs(ignoreExistingDirectory=True)
+            try:
+                dst_file.parent().makedirs()
+            except OSError as e:
+                if not e.errno == errno.EEXIST:
+                    raise
             src_file = dst_file.temporarySibling()
             src_file.alwaysCreate = 0
 
