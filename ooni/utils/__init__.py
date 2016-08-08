@@ -1,14 +1,14 @@
 import shutil
 import string
 import random
-import os
-from datetime import datetime
-
 import gzip
+import os
+
+from datetime import datetime
 from zipfile import ZipFile
 
-from ooni import errors
-
+from twisted.python.filepath import FilePath
+from twisted.python.runtime import platform
 
 class Storage(dict):
     """
@@ -53,8 +53,8 @@ class Storage(dict):
         for (k, v) in value.items():
             self[k] = v
 
-
 def checkForRoot():
+    from ooni import errors
     if os.getuid() != 0:
         raise errors.InsufficientPrivileges
 
@@ -89,6 +89,9 @@ def randomStr(length, num=True):
         chars += string.digits
     return ''.join(random.choice(chars) for x in range(length))
 
+LONG_DATE = "%Y-%m-%d %H:%M:%S"
+SHORT_DATE = "%Y%m%dT%H%M%SZ"
+
 def generate_filename(test_details, prefix=None, extension=None):
     """
     Returns a filename for every test execution.
@@ -96,19 +99,18 @@ def generate_filename(test_details, prefix=None, extension=None):
     It's used to assure that all files of a certain test have a common basename but different
     extension.
     """
-    LONG_DATE = "%Y-%m-%d %H:%M:%S"
-    SHORT_DATE = "%Y-%m-%dT%H%M%SZ"
-
     kwargs = {}
     filename_format = ""
     if prefix is not None:
         kwargs["prefix"] = prefix
         filename_format += "{prefix}-"
-    filename_format += "{test_name}-{timestamp}"
+    filename_format += "{timestamp}-{probe_cc}-{probe_asn}-{test_name}"
     if extension is not None:
         kwargs["extension"] = extension
         filename_format += ".{extension}"
     kwargs['test_name']  = test_details['test_name']
+    kwargs['probe_cc']  = test_details.get('probe_cc', 'ZZ')
+    kwargs['probe_asn']  = test_details.get('probe_asn', 'AS0')
     kwargs['timestamp'] = datetime.strptime(test_details['test_start_time'],
                                             LONG_DATE).strftime(SHORT_DATE)
     return filename_format.format(**kwargs)
@@ -126,6 +128,11 @@ def sanitize_options(options):
         sanitized_options.append(option)
     return sanitized_options
 
+def rename(src, dst):
+    # Best effort atomic renaming
+    if platform.isWindows() and os.path.exists(dst):
+        os.unlink(dst)
+    os.rename(src, dst)
 
 def unzip(filename, dst):
     assert filename.endswith('.zip')
@@ -139,17 +146,16 @@ def unzip(filename, dst):
     return dst_path
 
 
-def gunzip(filename, dst):
-    assert filename.endswith(".gz")
-    dst_path = os.path.join(
-        dst,
-        os.path.basename(filename).replace(".gz", "")
-    )
-    with open(dst_path, "w+") as fw:
-        gzip_file = gzip.open(filename)
-        shutil.copyfileobj(gzip_file, fw)
-        gzip_file.close()
-
+def gunzip(file_path):
+    """
+    gunzip a file in place.
+    """
+    tmp_location = FilePath(file_path).temporarySibling()
+    in_file = gzip.open(file_path)
+    with tmp_location.open('w') as out_file:
+        shutil.copyfileobj(in_file, out_file)
+    in_file.close()
+    rename(tmp_location.path, file_path)
 
 def get_ooni_root():
     script = os.path.join(__file__, '..')

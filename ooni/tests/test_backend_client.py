@@ -60,22 +60,6 @@ class TestEnd2EndBackendClient(ConfigTestCase):
     def test_download_input(self):
         yield self.collector_client.downloadInput(input_id)
 
-    @defer.inlineCallbacks
-    def test_get_deck_list(self):
-        deck_list = yield self.collector_client.getDeckList()
-        self.assertTrue(isinstance(deck_list, list))
-
-    @defer.inlineCallbacks
-    def test_get_deck_descriptor(self):
-        deck_descriptor = yield self.collector_client.getDeck(deck_id)
-        for key in ['name', 'description',
-                    'version', 'author', 'date', 'id']:
-            self.assertTrue(hasattr(deck_descriptor, key))
-
-    @defer.inlineCallbacks
-    def test_download_deck(self):
-        yield self.collector_client.downloadDeck(deck_id)
-
     def test_lookup_invalid_helpers(self):
         bouncer_client = BouncerClient('http://127.0.0.1:8888')
         return self.failUnlessFailure(

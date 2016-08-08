@@ -19,6 +19,7 @@ from ooni.common.txextra import TrueHeaders
 from ooni.common.txextra import FixedRedirectAgent, TrueHeadersAgent
 from ooni.common.http_utils import representBody
 from ooni.errors import handleAllFailures
+from ooni.geoip import probe_ip
 
 class InvalidSocksProxyOption(Exception):
     pass
@@ -109,8 +110,8 @@ class HTTPTest(NetTestCase):
                 self.agent = FixedRedirectAgent(self.agent)
                 self.report['agent'] = 'redirect'
             except:
-                log.err("Warning! You are running an old version of twisted"\
-                        "(<= 10.1). I will not be able to follow redirects."\
+                log.err("Warning! You are running an old version of twisted "
+                        "(<= 10.1). I will not be able to follow redirects."
                         "This may make the testing less precise.")
 
         if len(self.contentDecoders) > 0:
@@ -159,9 +160,9 @@ class HTTPTest(NetTestCase):
             else:
                 response_body = ''
             # Attempt to redact the IP address of the probe from the responses
-            if (config.privacy.includeip is False and config.probe_ip.address is not None and
+            if (config.privacy.includeip is False and probe_ip.address is not None and
                     (isinstance(response_body, str) or isinstance(response_body, unicode))):
-                response_body = response_body.replace(config.probe_ip.address, "[REDACTED]")
+                response_body = response_body.replace(probe_ip.address, "[REDACTED]")
             if (getattr(response, 'request', None) and
                     getattr(response.request, 'absoluteURI', None)):
                 session['request']['url'] = response.request.absoluteURI

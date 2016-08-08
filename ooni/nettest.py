@@ -2,18 +2,19 @@ import os
 import re
 import time
 import sys
-from hashlib import sha256
 
 from twisted.internet import defer
+from twisted.python.filepath import FilePath
 from twisted.trial.runner import filenameToModule
 from twisted.python import usage, reflect
 
-from ooni import __version__ as ooniprobe_version
+from ooni import __version__ as ooniprobe_version, errors
 from ooni import otime
 from ooni.tasks import Measurement
 from ooni.utils import log, sanitize_options, randomStr
 from ooni.utils.net import hasRawSocketPermission
 from ooni.settings import config
+from ooni.geoip import probe_ip
 
 from ooni import errors as e
 
@@ -67,10 +68,12 @@ def getOption(opt_parameter, required_options, type='text'):
     else:
         required = False
 
-    return {'description': description,
-            'value': default, 'required': required,
-            'type': type
-            }
+    return {
+        'description': description,
+        'value': default,
+        'required': required,
+        'type': type
+    }
 
 
 def getArguments(test_class):
@@ -119,13 +122,15 @@ def getNetTestInformation(net_test_file):
     test_class = getTestClassFromFile(net_test_file)
 
     test_id = os.path.basename(net_test_file).replace('.py', '')
-    information = {'id': test_id,
-                   'name': test_class.name,
-                   'description': test_class.description,
-                   'version': test_class.version,
-                   'arguments': getArguments(test_class),
-                   'path': net_test_file,
-                   }
+    information = {
+        'id': test_id,
+        'name': test_class.name,
+        'description': test_class.description,
+        'version': test_class.version,
+        'arguments': getArguments(test_class),
+        'simple_options': test_class.simpleOptions,
+        'path': net_test_file
+    }
     return information
 
 
@@ -144,7 +149,7 @@ def usageOptionsFactory(test_name, test_version):
             """
             Display the net_test version and exit.
             """
-            print "{} version: {}".format(test_name, test_version)
+            log.msg("{} version: {}".format(test_name, test_version))
             sys.exit(0)
 
     return UsageOptions
@@ -189,12 +194,13 @@ class NetTestLoader(object):
 
     def getTestDetails(self):
         return {
-            'probe_asn': config.probe_ip.geodata['asn'],
-            'probe_cc': config.probe_ip.geodata['countrycode'],
-            'probe_ip': config.probe_ip.geodata['ip'],
-            'probe_city': config.probe_ip.geodata['city'],
+            'probe_asn': probe_ip.geodata['asn'],
+            'probe_cc': probe_ip.geodata['countrycode'],
+            'probe_ip': probe_ip.geodata['ip'],
+            'probe_city': probe_ip.geodata['city'],
             'software_name': 'ooniprobe',
             'software_version': ooniprobe_version,
+            # XXX only sanitize the input files
             'options': sanitize_options(self.options),
             'annotations': self.annotations,
             'data_format_version': '0.2.0',
@@ -202,8 +208,8 @@ class NetTestLoader(object):
             'test_version': self.testVersion,
             'test_helpers': self.testHelpers,
             'test_start_time': otime.timestampNowLongUTC(),
-            'input_hashes': [input_file['hash']
-                             for input_file in self.inputFiles],
+            # XXX We should deprecate this key very soon
+            'input_hashes': [],
             'report_id': self.reportId
         }
 
@@ -231,28 +237,14 @@ class NetTestLoader(object):
         input_file = {
             'key': key,
             'test_options': self.localOptions,
-            'hash': None,
-
-            'url': None,
-            'address': None,
-
             'filename': None
         }
         m = ONION_INPUT_REGEXP.match(filename)
         if m:
-            input_file['url'] = filename
-            input_file['address'] = m.group(1)
-            input_file['hash'] = m.group(2)
+            raise e.InvalidInputFile("Input files hosted on hidden services "
+                                     "are not longer supported")
         else:
             input_file['filename'] = filename
-            try:
-                with open(filename) as f:
-                    h = sha256()
-                    for l in f:
-                        h.update(l)
-            except:
-                raise e.InvalidInputFile(filename)
-            input_file['hash'] = h.hexdigest()
         self.inputFiles.append(input_file)
 
     def _accumulateTestOptions(self, test_class):
@@ -454,7 +446,11 @@ class NetTestState(object):
                   (self.doneTasks, self.tasks))
         if self.completedScheduling and \
                 self.doneTasks == self.tasks:
-            self.allTasksDone.callback(self.doneTasks)
+            if self.allTasksDone.called:
+                log.err("allTasksDone was already called. This is probably a bug.")
+            else:
+                self.allTasksDone.callback(self.doneTasks)
+
 
     def taskDone(self):
         """
@@ -518,13 +514,13 @@ class NetTest(object):
 
     def doneNetTest(self, result):
         if self.summary:
-            print "Summary for %s" % self.testDetails['test_name']
-            print "------------" + "-"*len(self.testDetails['test_name'])
+            log.msg("Summary for %s" % self.testDetails['test_name'])
+            log.msg("------------" + "-"*len(self.testDetails['test_name']))
             for test_class in self.uniqueClasses():
                 test_instance = test_class()
                 test_instance.displaySummary(self.summary)
         if self.testDetails["report_id"]:
-            print "Report ID: %s" % self.testDetails["report_id"]
+            log.msg("Report ID: %s" % self.testDetails["report_id"])
 
     def doneReport(self, report_results):
         """
@@ -706,6 +702,8 @@ class NetTestCase(object):
     requiresRoot = False
     requiresTor = False
 
+    simpleOptions = {}
+
     localOptions = {}
 
     @classmethod
@@ -841,3 +839,43 @@ class NetTestCase(object):
 
     def __repr__(self):
         return "<%s inputs=%s>" % (self.__class__, self.inputs)
+
+
+def nettest_to_path(path, allow_arbitrary_paths=False):
+    """
+    Takes as input either a path or a nettest name.
+
+    The nettest name may either be prefixed by the category of the nettest (
+    blocking, experimental, manipulation or third_party) or not.
+
+    Args:
+
+        allow_arbitrary_paths:
+            allow also paths that are not relative to the nettest_directory.
+
+    Returns:
+
+        full path to the nettest file.
+    """
+    if allow_arbitrary_paths and os.path.exists(path):
+        return path
+
+    test_name = path.rsplit("/", 1)[-1]
+    test_categories = [
+        "blocking",
+        "experimental",
+        "manipulation",
+        "third_party"
+    ]
+    nettest_dir = FilePath(config.nettest_directory)
+    found_path = None
+    for category in test_categories:
+        p = nettest_dir.preauthChild(os.path.join(category, test_name) + '.py')
+        if p.exists():
+            if found_path is not None:
+                raise Exception("Found two tests named %s" % test_name)
+            found_path = p.path
+
+    if not found_path:
+        raise e.NetTestNotFound(path)
+    return found_path

@@ -12,7 +12,7 @@ from twisted.python.versions import Version
 from twisted import version as _twisted_version
 _twisted_14_0_2_version = Version('twisted', 14, 0, 2)
 
-from ooni import errors as e
+from ooni import errors as e, constants
 from ooni.settings import config
 from ooni.utils import log, onion
 from ooni.utils.net import BodyReceiver, StringProducer, Downloader
@@ -134,6 +134,8 @@ class OONIBClient(object):
         return finished
 
     def queryBackend(self, method, urn, query=None, retries=3):
+        log.debug("Querying backend {0}{1} with {2}".format(self.base_address,
+                                                         urn, query))
         bodyProducer = None
         if query:
             bodyProducer = StringProducer(json.dumps(query))
@@ -212,104 +214,11 @@ class CollectorClient(OONIBClient):
 
         return d
 
-    def getInput(self, input_hash):
-        from ooni.deck import InputFile
-
-        input_file = InputFile(input_hash)
-        if input_file.descriptorCached:
-            return defer.succeed(input_file)
-        else:
-            d = self.queryBackend('GET', '/input/' + input_hash)
-
-            @d.addCallback
-            def cb(descriptor):
-                input_file.load(descriptor)
-                input_file.save()
-                return input_file
-
-            @d.addErrback
-            def err(err):
-                log.err("Failed to get descriptor for input %s" % input_hash)
-                log.exception(err)
-
-            return d
-
-    def getInputList(self):
-        return self.queryBackend('GET', '/input')
-
-    def downloadInput(self, input_hash):
-        from ooni.deck import InputFile
-
-        input_file = InputFile(input_hash)
-
-        if input_file.fileCached:
-            return defer.succeed(input_file)
-        else:
-            d = self.download('/input/' + input_hash + '/file', input_file.cached_file)
-
-            @d.addCallback
-            def cb(res):
-                input_file.verify()
-                return input_file
-
-            @d.addErrback
-            def err(err):
-                log.err("Failed to download the input file %s" % input_hash)
-                log.exception(err)
-
-            return d
-
     def getInputPolicy(self):
         return self.queryBackend('GET', '/policy/input')
 
     def getNettestPolicy(self):
         return self.queryBackend('GET', '/policy/nettest')
-
-    def getDeckList(self):
-        return self.queryBackend('GET', '/deck')
-
-    def getDeck(self, deck_hash):
-        from ooni.deck import Deck
-
-        deck = Deck(deck_hash)
-        if deck.descriptorCached:
-            return defer.succeed(deck)
-        else:
-            d = self.queryBackend('GET', '/deck/' + deck_hash)
-
-            @d.addCallback
-            def cb(descriptor):
-                deck.load(descriptor)
-                deck.save()
-                return deck
-
-            @d.addErrback
-            def err(err):
-                log.err("Failed to get descriptor for deck %s" % deck_hash)
-                log.exception(err)
-
-            return d
-
-    def downloadDeck(self, deck_hash):
-        from ooni.deck import Deck
-
-        deck = Deck(deck_hash)
-        if deck.fileCached:
-            return defer.succeed(deck)
-        else:
-            d = self.download('/deck/' + deck_hash + '/file', deck.cached_file)
-
-            @d.addCallback
-            def cb(res):
-                deck.verify()
-                return deck
-
-            @d.addErrback
-            def err(err):
-                log.err("Failed to download the deck %s" % deck_hash)
-                log.exception(err)
-
-            return d
 
     def createReport(self, test_details):
         request = {
@@ -364,3 +273,23 @@ class WebConnectivityClient(OONIBClient):
             'tcp_connect': tcp_connect
         }
         return self.queryBackend('POST', '/', query=request)
+
+
+def get_preferred_bouncer():
+    preferred_backend = config.advanced.get(
+        "preferred_backend", "onion"
+    )
+    bouncer_address = getattr(
+        constants, "CANONICAL_BOUNCER_{0}".format(
+            preferred_backend.upper()
+        )
+    )
+    if preferred_backend == "cloudfront":
+        return BouncerClient(
+            settings={
+                'address': bouncer_address[0],
+                'front': bouncer_address[1],
+                'type': 'cloudfront'
+        })
+    else:
+        return BouncerClient(bouncer_address)

@@ -1,17 +1,17 @@
+import exceptions
 import os
 import sys
-import yaml
 
+import json
 from twisted.internet import defer
 
-import exceptions
 from ooni import errors
+from ooni.settings import config
 from ooni.tests import is_internet_connected
 from ooni.tests.bases import ConfigTestCase
-from ooni.settings import config
-from ooni.oonicli import runWithDirector, setupGlobalOptions
-from ooni.oonicli import setupAnnotations, setupCollector
-from ooni.oonicli import createDeck
+from ooni.ui.cli import createDeck
+from ooni.ui.cli import runWithDirector, setupGlobalOptions
+from ooni.ui.cli import setupAnnotations, setupCollector
 from ooni.utils.net import hasRawSocketPermission
 
 
@@ -55,7 +55,6 @@ advanced:
     oonid_api_port: 8042
 tor:
     socks_port: 9050
-
 """ % config.data_directory
 
 
@@ -67,8 +66,6 @@ class TestRunDirector(ConfigTestCase):
         if not is_internet_connected():
             self.skipTest("You must be connected to the internet to run this test")
 
-        config.tor.socks_port = 9050
-        config.tor.control_port = None
         self.filenames = ['example-input.txt']
         with open('example-input.txt', 'w+') as f:
             f.write('http://torproject.org/\n')
@@ -84,7 +81,7 @@ class TestRunDirector(ConfigTestCase):
 
     @defer.inlineCallbacks
     def run_helper(self, test_name, nettest_args, verify_function, ooni_args=()):
-        output_file = os.path.abspath('test_report.yamloo')
+        output_file = os.path.abspath('test_report.njson')
         self.filenames.append(output_file)
         oldargv = sys.argv
         sys.argv = ['']
@@ -92,17 +89,24 @@ class TestRunDirector(ConfigTestCase):
         sys.argv.extend(['-n', '-o', output_file, test_name])
         sys.argv.extend(nettest_args)
         global_options = setupGlobalOptions(False, False, False)
-        yield runWithDirector(global_options)
+
+        config.tor.socks_port = 9050
+        config.advanced.start_tor = False
+        config.tor.control_port = None
+        config.advanced.debug = True
+
+        yield runWithDirector(global_options,
+                              create_input_store=False)
         with open(output_file) as f:
-            entries = yaml.safe_load_all(f)
-            header = entries.next()
+            entries = map(json.loads, f)
+            first_entry = entries[0]
             try:
-                first_entry = entries.next()
+                test_keys = entries[0]['test_keys']
             except StopIteration:
                 raise Exception("Missing entry in report")
-        verify_header(header)
+        verify_header(first_entry)
         verify_entry(first_entry)
-        verify_function(first_entry)
+        verify_function(test_keys)
         sys.argv = oldargv
 
     @defer.inlineCallbacks
@@ -148,8 +152,8 @@ class TestRunDirector(ConfigTestCase):
 
         yield self.run_helper('blocking/dns_consistency',
                               ['-b', '8.8.8.8:53',
-                               '-t', '8.8.8.8',
-                               '-f', 'example-input.txt'],
+                              '-t', '8.8.8.8',
+                              '-f', 'example-input.txt'],
                               verify_function)
 
     @defer.inlineCallbacks

@@ -88,19 +88,19 @@ Have fun!
 
 from __future__ import print_function
 
-from ooni import __version__, __author__
 import os
-import sys
-import glob
 import shutil
 import tempfile
 import subprocess
+from glob import glob
+
 from ConfigParser import SafeConfigParser
 
 from os.path import join as pj
-from setuptools import setup, Command
+from setuptools import setup
 from setuptools.command.install import install
-from distutils.spawn import find_executable
+
+from ooni import __version__, __author__
 
 GEOIP_ASN_URL = "https://download.maxmind.com/download/geoip/database/asnum/GeoIPASNum.dat.gz"
 GEOIP_URL = "https://geolite.maxmind.com/download/geoip/database/GeoLiteCountry/GeoIP.dat.gz"
@@ -140,29 +140,19 @@ class OoniInstall(install):
         else:
             var_path = pj(prefix, 'var', 'lib')
 
-        for root, dirs, file_names in os.walk('data/'):
-            files = []
-            for file_name in file_names:
-                if file_name.endswith('.pyc'):
-                    continue
-                elif file_name.endswith('.dat') and \
-                        file_name.startswith('Geo'):
-                    continue
-                elif file_name == "ooniprobe.conf.sample":
-                    files.append(self.gen_config(share_path))
-                    continue
-                files.append(pj(root, file_name))
-            self.distribution.data_files.append(
-                [
-                    pj(share_path, 'ooni', root.replace('data/', '')),
-                    files
-                ]
+        self.distribution.data_files.append(
+            (
+                pj(share_path, 'ooni', 'decks-available'),
+                glob('data/decks/*')
             )
+        )
         settings = SafeConfigParser()
         settings.add_section("directories")
         settings.set("directories", "usr_share",
                      os.path.join(share_path, "ooni"))
         settings.set("directories", "var_lib",
+                     os.path.join(var_path, "ooni"))
+        settings.set("directories", "etc",
                      os.path.join(var_path, "ooni"))
         with open("ooni/settings.ini", "w+") as fp:
             settings.write(fp)
@@ -177,11 +167,9 @@ class OoniInstall(install):
             pass
 
     def ooniresources(self):
-        ooniresources = find_executable("ooniresources")
-        process = subprocess.Popen([ooniresources],
-                                   stdout=sys.stdout.fileno(),
-                                   stderr=sys.stderr.fileno())
-        process.wait()
+        from ooni.resources import check_for_update
+        from twisted.internet import task
+        task.react(lambda _: check_for_update())
 
     def update_lepidopter_config(self):
         try:
@@ -200,157 +188,18 @@ class OoniInstall(install):
         if is_lepidopter():
             self.update_lepidopter_config()
 
-class ExecutableNotFound(Exception):
-    pass
-
-class CreateOoniResources(Command):
-    description = ("Create ooni-resources.tar.gz containing test-lists and "
-                   "GeoIP data files")
-    user_options = []
-
-    def initialize_options(self):
-        pass
-    def finalize_options(self):
-        pass
-    def download(self, url, directory, filename):
-        dst_path = pj(directory, filename)
-        args = [
-            self.wget,
-            "-O",
-            dst_path,
-            url
-        ]
-        out = run_command(args)
-        if out is None:
-            raise Exception("Failed to download {0}".format(url))
-        return dst_path
-
-    def find_executables(self):
-        self.wget = find_executable("wget")
-        if not self.wget:
-            raise ExecutableNotFound("wget")
-        self.tar = find_executable("tar")
-        if not self.tar:
-            raise ExecutableNotFound("tar")
-        self.unzip = find_executable("unzip")
-        if not self.unzip:
-            raise ExecutableNotFound("unzip")
-        self.gunzip = find_executable("gunzip")
-        if not self.gunzip:
-            raise ExecutableNotFound("gunzip")
-
-    def run(self):
-        dst_path = "dist/ooni-resources.tar.gz"
-
-        try:
-            self.find_executables()
-        except ExecutableNotFound as enf:
-            print("ERR: Could not find '{0}'".format(enf.message))
-            return
-
-        tmp_dir = tempfile.mkdtemp()
-        pkg_dir = tempfile.mkdtemp()
-
-        os.mkdir(pj(pkg_dir, "resources"))
-        os.mkdir(pj(pkg_dir, "GeoIP"))
-
-        try:
-            geoip_asn_path = self.download(GEOIP_ASN_URL, tmp_dir, "GeoIPASNum.dat.gz")
-        except Exception as exc:
-            print(exc.message)
-            return
-        try:
-            geoip_path = self.download(GEOIP_URL, tmp_dir, "GeoIP.dat.gz")
-        except Exception as exc:
-            print(exc.message)
-            return
-        try:
-            test_lists_path = self.download(TEST_LISTS_URL, tmp_dir, "master.zip")
-        except Exception as exc:
-            print(exc.message)
-            return
-
-        run_command([self.gunzip, geoip_asn_path])
-        run_command([self.gunzip, geoip_path])
-        run_command([self.unzip, "-d", tmp_dir, test_lists_path])
-
-        shutil.move(pj(tmp_dir, "GeoIP.dat"),
-                    pj(pkg_dir, "GeoIP", "GeoIP.dat"))
-        shutil.move(pj(tmp_dir, "GeoIPASNum.dat"),
-                    pj(pkg_dir, "GeoIP", "GeoIPASNum.dat"))
-        shutil.move(pj(tmp_dir, "test-lists-master", "lists"),
-                    pj(pkg_dir, "resources", "citizenlab-test-lists"))
-        # Don't include services and official lists
-        shutil.rmtree(
-            pj(pkg_dir,
-               "resources",
-               "citizenlab-test-lists",
-               "services"),
-            ignore_errors=True)
-        shutil.rmtree(
-            pj(pkg_dir,
-               "resources",
-               "citizenlab-test-lists",
-               "official"),
-            ignore_errors=True)
-        run_command([self.tar, "cvzf", dst_path, "-C", pkg_dir, "."])
-
-        # Cleanup
-        shutil.rmtree(pkg_dir, ignore_errors=True)
-        shutil.rmtree(tmp_dir, ignore_errors=True)
-        print("Written ooniresources to {0}".format(dst_path))
-
-
-
-class GenerateComponent(Command):
-    description = ("Generate a new component for the web ui")
-    user_options = []
-
-    def initialize_options(self):
-        pass
-    def finalize_options(self):
-        pass
-    def run(self):
-        from jinja2 import Template
-        context = os.path.abspath(os.path.dirname(__file__))
-        component_dir = os.path.join(context, "ooni", "ui", "web", "client",
-                                     "app", "components")
-        component_name = raw_input("Enter component name: ")
-        lower_name = component_name.lower().replace(" ", "-")
-        upper_name = lower_name[0].upper() + lower_name[1:]
-        dst_dir = os.path.join(component_dir, lower_name)
-        os.mkdir(dst_dir)
-        for template_file in glob.glob("data/component-template/*"):
-            target_filename = os.path.basename(template_file).replace("templ",
-                                                                      lower_name)
-            target_path = os.path.join(dst_dir, target_filename)
-            template = Template(open(template_file).read())
-            with open(target_path, "w+") as fw:
-                fw.write(template.render(name=lower_name,
-                                         nameUpper=upper_name))
-                fw.write("\n")
-            print("Written %s" % target_path)
-        print("Component \"%s\" created!" % component_name)
-        print("You should now edit "
-              "\"ooni/ui/web/client/app/components/components.js\" "
-              "to require the newly create component like so:")
-        print("""
-var {upper_name} = require("{lower_name}/{lower_name}");
-var componentsModule = angular.module("app.components", [
-    // In here are the other components
-    {upper_name}
-]).name;
-""".format(lower_name=lower_name, upper_name=upper_name))
-
+setup_requires = ['twisted', 'pyyaml']
 install_requires = []
 dependency_links = []
 data_files = []
 packages = [
     'ooni',
-    'ooni.api',
+    'ooni.agent',
     'ooni.common',
-    'ooni.deckgen',
-    'ooni.deckgen.processors',
+    'ooni.contrib',
+    'ooni.contrib.dateutil',
+    'ooni.contrib.dateutil.tz',
+    'ooni.deck',
     'ooni.kit',
     'ooni.nettests',
     'ooni.nettests.manipulation',
@@ -358,10 +207,11 @@ packages = [
     'ooni.nettests.scanning',
     'ooni.nettests.blocking',
     'ooni.nettests.third_party',
-    'ooni.report',
-    'ooni.resources',
+    'ooni.scripts',
     'ooni.templates',
     'ooni.tests',
+    'ooni.ui',
+    'ooni.ui.web',
     'ooni.utils'
 ]
 
@@ -388,15 +238,22 @@ setup(
     data_files=data_files,
     packages=packages,
     include_package_data=True,
-    scripts=["bin/oonideckgen", "bin/ooniprobe",
-             "bin/oonireport", "bin/ooniresources"],
     dependency_links=dependency_links,
     install_requires=install_requires,
+    setup_requires=setup_requires,
     zip_safe=False,
+    entry_points={
+        'console_scripts': [
+            'ooniresources = ooni.scripts.ooniresources:run', # This is deprecated
+            'oonideckgen = ooni.scripts.oonideckgen:run', # This is deprecated
+
+            'ooniprobe = ooni.scripts.ooniprobe:run',
+            'oonireport = ooni.scripts.oonireport:run',
+            'ooniprobe-agent = ooni.scripts.ooniprobe_agent:run'
+        ]
+    },
     cmdclass={
-        "install": OoniInstall,
-        "create_ooniresources": CreateOoniResources,
-        "generate_component": GenerateComponent
+        "install": OoniInstall
     },
     classifiers=(
         "Development Status :: 5 - Production/Stable",

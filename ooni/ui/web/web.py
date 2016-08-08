@@ -1,62 +1,28 @@
-import os
-
-from twisted.scripts import twistd
-from twisted.python import usage
-from twisted.internet import reactor
 from twisted.web import server
+from twisted.internet import reactor
 from twisted.application import service
 
+from ooni.ui.web.server import WebUIAPI
 from ooni.settings import config
-from ooni.director import Director
-from ooni.utils import log
-
-from .server import WebUIAPI
 
 class WebUIService(service.MultiService):
-    portNum = 8822
+    def __init__(self, director, scheduler, port_number=8842):
+        service.MultiService.__init__(self)
+
+        self.director = director
+        self.scheduler = scheduler
+        self.port_number = port_number
+
     def startService(self):
         service.MultiService.startService(self)
-        config.set_paths()
-        config.initialize_ooni_home()
-        config.read_config_file()
-        def _started(res):
-            log.msg("Director started")
-            root = server.Site(WebUIAPI(config, director).app.resource())
-            self._port = reactor.listenTCP(self.portNum, root)
-        director = Director()
-        #d = director.start()
-        #d.addCallback(_started)
-        #d.addErrback(self._startupFailed)
-        _started(None)
 
-    def _startupFailed(self, err):
-        log.err("Failed to start the director")
-        log.exception(err)
-        os.abort()
+        web_ui_api = WebUIAPI(config, self.director, self.scheduler)
+        self._port = reactor.listenTCP(
+            self.port_number,
+            server.Site(web_ui_api.app.resource())
+        )
 
     def stopService(self):
+        service.MultiService.stopService(self)
         if self._port:
             self._port.stopListening()
-
-class StartOoniprobeWebUIPlugin:
-    tapname = "ooniprobe"
-    def makeService(self, so):
-        return WebUIService()
-
-class OoniprobeTwistdConfig(twistd.ServerOptions):
-    subCommands = [("StartOoniprobeWebUI", None, usage.Options, "ooniprobe web ui")]
-
-def start():
-    twistd_args = ["--nodaemon"]
-    twistd_config = OoniprobeTwistdConfig()
-    twistd_args.append("StartOoniprobeWebUI")
-    try:
-        twistd_config.parseOptions(twistd_args)
-    except usage.error, ue:
-        print("ooniprobe: usage error from twistd: {}\n".format(ue))
-    twistd_config.loadedPlugins = {"StartOoniprobeWebUI": StartOoniprobeWebUIPlugin()}
-    twistd.runApp(twistd_config)
-    return 0
-
-if __name__ == "__main__":
-    start()
