@@ -1,7 +1,7 @@
 ---
 name: Full Web test deck
 description: This deck runs HTTP Header Field Manipulation, HTTP Invalid
-    Request and the Web Connectivity test
+    Request Line and the Web Connectivity test
 schedule: "@daily"
 tasks:
 - name: Runs the HTTP Header Field Manipulation test
