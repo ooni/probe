@@ -143,8 +143,8 @@ if hasattr(sys, 'real_prefix'):
 # These are the the embedded settings
 _SETTINGS_INI = os.path.join(OONIPROBE_ROOT, 'settings.ini')
 
-USR_SHARE_PATH = '/var/lib/ooni'
-VAR_LIB_PATH = '/usr/share/ooni'
+USR_SHARE_PATH = '/usr/share/ooni'
+VAR_LIB_PATH = '/var/lib/ooni'
 ETC_PATH = '/etc'
 
 if IS_VIRTUALENV:
