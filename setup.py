@@ -279,6 +279,9 @@ class CreateOoniResources(Command):
                     pj(pkg_dir, "GeoIP", "GeoIPASNum.dat"))
         shutil.move(pj(tmp_dir, "test-lists-master", "lists"),
                     pj(pkg_dir, "resources", "citizenlab-test-lists"))
+        # Touch the namebench dns servers file
+        with open(pj(pkg_dir, "resources", "namebench-dns-servers.csv"), "w"):
+            pass
         # Don't include services and official lists
         shutil.rmtree(
             pj(pkg_dir,

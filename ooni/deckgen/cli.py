@@ -122,10 +122,6 @@ def resources_up_to_date():
         return False
 
     if config.get_data_file_path("resources/"
-                                 "namebench-dns-servers.csv") is None:
-        return False
-
-    if config.get_data_file_path("resources/"
                                  "citizenlab-test-lists/"
                                  "global.csv") is None:
         return False
