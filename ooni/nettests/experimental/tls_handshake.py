@@ -27,6 +27,7 @@ from socket import inet_aton as socket_inet_aton
 from socket import gethostbyname as socket_gethostbyname
 from time   import sleep
 
+import base64
 import os
 import socket
 import struct
@@ -763,7 +764,7 @@ class HandshakeTest(nettest.NetTestCase):
             ## (which would be visible in pcaps anyway, since the FQDN is
             ## never encrypted) I do not see a way for this to log any user or
             ## identifying information. Correct me if I'm wrong.
-            self.report['session_key'] = session_key
+            self.report['session_key'] = {'b64': base64.standard_b64encode(session_key)} # json can't do binary
 
             log.msg("Server certificate:\n\n%s" % server_cert)
             log.msg("Server certificate chain:\n\n%s"
