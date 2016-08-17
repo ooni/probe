@@ -680,7 +680,9 @@ class HandshakeTest(nettest.NetTestCase):
                 log.debug("Max bytes in receive buffer: %d" % _read_buffer)
 
                 try:
-                    received = connection.recv(int(_read_buffer))
+                    # Zero-read triggers OpenSSL.SSL.SysCallError: (-1, 'Unexpected EOF')
+                    # The server may have sent a reply we don't know about due to network latency.
+                    received = connection.recv(int(_read_buffer)) if _read_buffer > 0 else None
                 except SSL.WantReadError, wre:
                     if connection.want_read():
                         self.state = connection.state_string()
