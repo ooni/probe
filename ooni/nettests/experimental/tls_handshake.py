@@ -46,6 +46,8 @@ from ooni.utils import log
 from ooni.errors import InsufficientPrivileges
 from ooni.settings import config
 
+HAS_SNI = getattr(SSL.Connection, "set_tlsext_host_name", None) is not None
+
 ## For a way to obtain the current version of Firefox's default ciphersuite
 ## list, see https://trac.torproject.org/projects/tor/attachment/ticket/4744/
 ## and the attached file "get_mozilla_files.py".
@@ -127,9 +129,11 @@ class HandshakeOptions(usage.Options):
          'Remote host IP address (v4/v6) and port, i.e. "1.2.3.4:443"'],
         ['port', 'p', None,
          'Use this port for all hosts, regardless of port specified in file'],
+        ['sni', None, None, 'Use SNI for Server Name Indication field'],
         ['ciphersuite', 'c', None ,
          'File containing ciphersuite list, one per line'],]
     optFlags = [
+        ['no-sni', None, 'Disable SNI'],
         ['ssl2', '2', 'Use SSLv2'],
         ['ssl3', '3', 'Use SSLv3'],
         ['tls1', 't', 'Use TLSv1'],]
@@ -166,6 +170,19 @@ class HandshakeTest(nettest.NetTestCase):
                 raise SystemExit("Need --host or --file!")
             if options['host']:
                 self.host = options['host']
+
+            if options['sni'] is not None and options['no-sni']:
+                raise SystemExit('Need either --sni or --no-sni, not both')
+            elif options['no-sni']:
+                self.sni = None
+            elif options['sni'] is not None:
+                self.sni = options['sni']
+            else:
+                # FIXME: it represents old behavior, but browsers actually use SNI
+                # so it's likely bad default
+                self.sni = None
+            if self.sni is not None and not HAS_SNI:
+                raise SystemExit('OpenSSL has no SNI support')
 
             ## If no context was chosen, explain our default to the user:
             if not (options['ssl2'] or options['ssl3'] or options['tls1']):
@@ -357,6 +374,8 @@ class HandshakeTest(nettest.NetTestCase):
             sckt = self.buildSocket(addr)
             context = self.getContext()
             connection = SSL.Connection(context, sckt)
+            if self.sni is not None:
+                connection.set_tlsext_host_name(self.sni)
             try:
                connection.connect(host)
             except socket_timeout as stmo:
@@ -401,6 +420,7 @@ class HandshakeTest(nettest.NetTestCase):
 
             self.report['host'] = addr
             self.report['port'] = port
+            self.report['sni'] = self.sni
             self.report['state'] = 'CONNECTION_FAILED'
 
             return connection
@@ -746,6 +766,7 @@ class HandshakeTest(nettest.NetTestCase):
 
             self.report['host'] = host
             self.report['port'] = port
+            self.report['sni'] = self.sni
             self.report['state'] = self.state
             self.report['renegotiations'] = renegotiations
             self.report['server_cert'] = server_cert
@@ -797,6 +818,7 @@ class HandshakeTest(nettest.NetTestCase):
 
             self.report['host'] = host
             self.report['port'] = port
+            self.report['sni'] = self.sni
 
             if isinstance(connection, Exception) \
                     or isinstance(connection, ConnectionTimeout):
