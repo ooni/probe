@@ -11,14 +11,12 @@ from ooni.utils import log
 from ooni.settings import config
 from ooni.agent.agent import AgentService
 
-WEB_UI_PORT = 8842
-WEB_UI_URL = "http://127.0.0.1:{0}".format(WEB_UI_PORT)
 
 class StartOoniprobeAgentPlugin:
     tapname = "ooniprobe"
 
     def makeService(self, so):
-        return AgentService(WEB_UI_PORT)
+        return AgentService(config.advanced.webui_port)
 
 class OoniprobeTwistdConfig(twistd.ServerOptions):
     subCommands = [
@@ -70,6 +68,8 @@ def start_agent(options=None):
         "StartOoniprobeAgent": StartOoniprobeAgentPlugin()
     }
     print("Starting ooniprobe agent.")
+    WEB_UI_URL = "http://{0}:{1}".format(
+        config.advanced.webui_address, config.advanced.webui_port)
     print("To view the GUI go to %s" % WEB_UI_URL)
     log.start()
     twistd.runApp(twistd_config)

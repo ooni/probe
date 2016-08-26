@@ -19,7 +19,8 @@ class WebUIService(service.MultiService):
         web_ui_api = WebUIAPI(config, self.director, self.scheduler)
         self._port = reactor.listenTCP(
             self.port_number,
-            server.Site(web_ui_api.app.resource())
+            server.Site(web_ui_api.app.resource()),
+            interface=config.advanced.webui_address
         )
 
     def stopService(self):

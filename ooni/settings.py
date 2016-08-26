@@ -65,6 +65,11 @@ advanced:
     # insecure_backend: false
     # The preferred backend type, can be one of onion, https or cloudfront
     preferred_backend: {preferred_backend}
+    # The port and address for the Web UI
+    #webui_port: 8842
+    #webui_address: "127.0.0.1"
+    # Should the Web UI be disabled
+    #disable_webui: false
 tor:
     #socks_port: 8801
     #control_port: 8802
@@ -121,7 +126,10 @@ defaults = {
         "reporting_retries": 5,
         "reporting_concurrency": 7,
         "insecure_backend": False,
-        "preferred_backend": "onion"
+        "preferred_backend": "onion",
+        "webui_port": 8842,
+        "webui_address": "127.0.0.1",
+        "webui_disabled": False
     },
     "tor": {
         "socks_port": None,
