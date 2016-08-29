@@ -338,8 +338,8 @@ def createDeck(global_options, url=None):
         raise SystemExit(3)
 
     except errors.OONIUsageError as e:
-        log.err(e)
-        print e.net_test_loader.usageOptions().getUsage()
+        log.exception(e)
+        map(log.msg, e.net_test_loader.usageOptions().getUsage().split("\n"))
         raise SystemExit(4)
 
     except errors.HTTPSCollectorUnsupported:

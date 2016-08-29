@@ -14,7 +14,7 @@ from hashlib import sha256
 from ooni import errors
 from ooni.deck.store import input_store
 from ooni.deck.backend import lookup_collector_and_test_helpers
-from ooni.deck.deck import nettest_to_path, NGDeck
+from ooni.deck.deck import nettest_to_path, NGDeck, options_to_args
 from ooni.deck.legacy import convert_legacy_deck
 from ooni.tests.bases import ConfigTestCase
 from ooni.tests.mocks import MockBouncerClient, MockCollectorClient
@@ -330,3 +330,11 @@ class TestNGDeck(ConfigTestCase):
             "manipulation/http_header_field_manipulation",
             "blocking/web_connectivity"
         ])
+        tasks = map(lambda task: task['ooni'], ng_deck['tasks'])
+        self.assertEqual(
+            tasks[2]['f'],
+            '/path/to/citizenlab-urls-global.txt')
+
+    def test_options_to_args(self):
+        args = options_to_args({"f": "foobar.txt", "bar": None, "help": 0})
+        print(args)

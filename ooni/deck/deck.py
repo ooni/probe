@@ -317,12 +317,16 @@ class DeckTask(object):
 
         self._load(data)
 
-    def _get_option(self, name, task_data, default=None):
+    def _pop_option(self, name, task_data, default=None):
         try:
-            return self.global_options[name]
+            value = self.global_options[name]
+            if value in [None, 0]:
+                raise KeyError
         except KeyError:
-            return task_data.pop(name,
-                                 self.parent_metadata.get(name, default))
+            value = task_data.pop(name,
+                                  self.parent_metadata.get(name, default))
+        task_data.pop(name, None)
+        return value
 
     def _load_ooni(self, task_data):
         required_keys = ["test_name"]
@@ -334,8 +338,8 @@ class DeckTask(object):
         nettest_path = nettest_to_path(task_data.pop("test_name"),
                                        self._arbitrary_paths)
 
-        annotations = self._get_option('annotations', task_data, {})
-        collector_address = self._get_option('collector', task_data, None)
+        annotations = self._pop_option('annotations', task_data, {})
+        collector_address = self._pop_option('collector', task_data, None)
 
         try:
             self.output_path = self.global_options['reportfile']
