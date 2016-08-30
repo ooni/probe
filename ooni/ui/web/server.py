@@ -1,6 +1,8 @@
 from __future__ import print_function
 
+import os
 import json
+import errno
 import string
 from functools import wraps
 from random import SystemRandom
@@ -186,13 +188,21 @@ class WebUIAPI(object):
 
     @property
     def status(self):
+        quota_warning = None
+        try:
+            with open(os.path.join(config.running_dir, "quota_warning")) as in_file:
+                quota_warning = in_file.read()
+        except IOError as ioe:
+            if ioe.errno != errno.ENOENT:
+                raise
         return {
             "software_version": ooniprobe_version,
             "software_name": "ooniprobe",
             "asn": probe_ip.geodata['asn'],
             "country_code": probe_ip.geodata['countrycode'],
             "director_started": self._director_started,
-            "initialized": self._is_initialized
+            "initialized": self._is_initialized,
+            "quota_warning": quota_warning
         }
 
     def handle_director_event(self, event):

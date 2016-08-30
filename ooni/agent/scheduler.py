@@ -1,3 +1,6 @@
+import os
+import errno
+
 from datetime import datetime
 
 from twisted.application import service
@@ -8,6 +11,7 @@ from twisted.python.filepath import FilePath
 from ooni.scripts import oonireport
 from ooni import resources
 from ooni.utils import log, SHORT_DATE
+from ooni.utils.files import human_size_to_bytes, directory_usage
 from ooni.deck.store import input_store, deck_store
 from ooni.settings import config
 from ooni.contrib import croniter
@@ -146,6 +150,66 @@ class DeleteOldReports(ScheduledTask):
                 measurement_path.child(measurement['id']).remove()
 
 
+class CheckMeasurementQuota(ScheduledTask):
+    """
+    This task is run to ensure we don't run out of disk space and deletes
+    older reports to avoid filling the quota.
+    """
+    identifier = 'check-measurement-quota'
+    schedule = '@hourly'
+    _warn_when = 0.8
+
+    def task(self):
+        if config.basic.measurement_quota is None:
+            return
+        maximum_bytes = human_size_to_bytes(config.basic.measurement_quota)
+        available_bytes = directory_usage(config.measurements_directory)
+        warning_path = os.path.join(config.running_path, 'quota_warning')
+
+        if (float(available_bytes) / float(maximum_bytes)) >= self._warn_when:
+            log.warn("You are about to reach the maximum allowed quota. Be careful")
+            with open(warning_path, "w") as out_file:
+                out_file.write("{0} {1}".split(available_bytes, maximum_bytes))
+        else:
+            try:
+                os.remove(warning_path)
+            except OSError as ose:
+                if ose.errno != errno.ENOENT:
+                    raise
+
+        if float(available_bytes) < float(maximum_bytes):
+            # We are within the allow quota exit.
+            return
+
+        # We should begin to delete old reports
+        amount_to_delete = float(maximum_bytes) - float(available_bytes)
+        amount_deleted = 0
+        measurement_path = FilePath(config.measurements_directory)
+
+        kept_measurements = []
+        stale_measurements = []
+        remaining_measurements = []
+        measurements_by_date = sorted(list_measurements(compute_size=True),
+                                      key=lambda k: k['test_start_time'])
+        for measurement in measurements_by_date:
+            if measurement['keep'] is True:
+                kept_measurements.append(measurement)
+            elif measurement['stale'] is True:
+                stale_measurements.append(measurement)
+            else:
+                remaining_measurements.append(measurement)
+
+        # This is the order in which we should begin deleting measurements.
+        ordered_measurements = (stale_measurements +
+                                remaining_measurements +
+                                kept_measurements)
+        while amount_deleted < amount_to_delete:
+            measurement = ordered_measurements.pop(0)
+            log.warn("Deleting report {0}".format(measurement["id"]))
+            measurement_path.child(measurement['id']).remove()
+            amount_deleted += measurement['size']
+
+
 class RunDeck(ScheduledTask):
     """
     This will run the decks that have been configured on the system as the
@@ -196,6 +260,7 @@ SYSTEM_TASKS = [
     UpdateInputsAndResources
 ]
 
+
 @defer.inlineCallbacks
 def run_system_tasks(no_input_store=False):
     task_classes = SYSTEM_TASKS[:]
@@ -214,6 +279,7 @@ def run_system_tasks(no_input_store=False):
         except Exception as exc:
             log.err("Failed to run task {0}".format(task.identifier))
             log.exception(exc)
+
 
 class SchedulerService(service.MultiService):
     """
@@ -271,6 +337,7 @@ class SchedulerService(service.MultiService):
         self.schedule(UpdateInputsAndResources())
         self.schedule(UploadReports())
         self.schedule(DeleteOldReports())
+        self.schedule(CheckMeasurementQuota())
         self.schedule(RefreshDeckList(self))
 
         self._looping_call.start(self.interval)

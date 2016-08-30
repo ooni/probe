@@ -20,6 +20,9 @@ basic:
     # Where OONIProbe should be writing it's log file
     logfile: {logfile}
     loglevel: WARNING
+    # The maximum amount of data to store on disk. Once the quota is reached,
+    # we will start deleting older reports.
+    # measurement_quota: 1G
 privacy:
     # Should we include the IP address of the probe in the report?
     includeip: {include_ip}
@@ -99,7 +102,8 @@ tor:
 defaults = {
     "basic": {
         "loglevel": "WARNING",
-        "logfile": "ooniprobe.log"
+        "logfile": "ooniprobe.log",
+        "measurement_quota": "1G"
     },
     "privacy": {
         "includeip": False,

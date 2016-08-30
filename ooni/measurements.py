@@ -4,6 +4,7 @@ import signal
 
 from twisted.python.filepath import FilePath
 from ooni.utils import log
+from ooni.utils.files import directory_usage
 from ooni.settings import config
 
 class MeasurementInProgress(Exception):
@@ -61,7 +62,8 @@ def generate_summary(input_file, output_file):
 class MeasurementNotFound(Exception):
     pass
 
-def get_measurement(measurement_id):
+def get_measurement(measurement_id, compute_size=False):
+    size = -1
     measurement_path = FilePath(config.measurements_directory)
     measurement = measurement_path.child(measurement_id)
     if not measurement.exists():
@@ -70,6 +72,7 @@ def get_measurement(measurement_id):
     running = False
     completed = True
     keep = False
+    stale = False
     if measurement.child("measurements.njson.progress").exists():
         completed = False
         # XXX this is done quite often around the code, probably should
@@ -80,10 +83,14 @@ def get_measurement(measurement_id):
             os.kill(pid, signal.SIG_DFL)
             running = True
         except OSError:
-            pass
+            stale = True
 
     if measurement.child("keep").exists():
         keep = True
+
+    if compute_size is True:
+        size = directory_usage(measurement.path)
+
     test_start_time, country_code, asn, test_name = \
         measurement_id.split("-")[:4]
     return {
@@ -94,7 +101,9 @@ def get_measurement(measurement_id):
         "id": measurement_id,
         "completed": completed,
         "keep": keep,
-        "running": running
+        "running": running,
+        "stale": stale,
+        "size": size
     }
 
 
@@ -115,12 +124,13 @@ def get_summary(measurement_id):
     with summary.open("r") as f:
         return json.load(f)
 
-def list_measurements():
+
+def list_measurements(compute_size=False):
     measurements = []
     measurement_path = FilePath(config.measurements_directory)
     for measurement_id in measurement_path.listdir():
         try:
-            measurements.append(get_measurement(measurement_id))
+            measurements.append(get_measurement(measurement_id, compute_size))
         except:
             log.err("Failed to get metadata for measurement {0}".format(measurement_id))
     return measurements

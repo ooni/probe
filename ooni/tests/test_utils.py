@@ -1,7 +1,10 @@
 import os
+import tempfile
+
 from twisted.trial import unittest
 
 from ooni.utils import log, generate_filename, net
+from ooni.utils.files import human_size_to_bytes, directory_usage
 
 
 class TestUtils(unittest.TestCase):
@@ -43,3 +46,34 @@ class TestUtils(unittest.TestCase):
     def test_get_addresses(self):
         addresses = net.getAddresses()
         assert isinstance(addresses, list)
+
+    def test_human_size(self):
+        self.assertEqual(
+            human_size_to_bytes("1G"),
+            1024**3
+        )
+        self.assertEqual(
+            human_size_to_bytes("1.3M"),
+            1.3 * 1024**2
+        )
+        self.assertEqual(
+            human_size_to_bytes("1.2K"),
+            1.2 * 1024
+        )
+        self.assertEqual(
+            human_size_to_bytes("1"),
+            1.0
+        )
+        self.assertEqual(
+            human_size_to_bytes("100.2"),
+            100.2
+        )
+
+    def test_directory_usage(self):
+        tmp_dir = tempfile.mkdtemp()
+        with open(os.path.join(tmp_dir, "something.txt"), "w") as out_file:
+            out_file.write("A"*1000)
+        os.mkdir(os.path.join(tmp_dir, "subdir"))
+        with open(os.path.join(tmp_dir, "subdir", "something.txt"), "w") as out_file:
+            out_file.write("A"*1000)
+        self.assertEqual(directory_usage(tmp_dir), 1000*2)
