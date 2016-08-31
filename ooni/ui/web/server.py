@@ -190,7 +190,8 @@ class WebUIAPI(object):
     def status(self):
         quota_warning = None
         try:
-            with open(os.path.join(config.running_dir, "quota_warning")) as in_file:
+            with open(os.path.join(config.running_path,
+                                   "quota_warning")) as in_file:
                 quota_warning = in_file.read()
         except IOError as ioe:
             if ioe.errno != errno.ENOENT:
@@ -259,6 +260,21 @@ class WebUIAPI(object):
         d.addCallback(got_status_update)
         return d
 
+    @app.route('/api/initialize', methods=["GET"])
+    @xsrf_protect(check=False)
+    @requires_false(attrs=['_is_initialized'])
+    def api_initialize_get(self, request):
+        available_decks = []
+        for deck_id, deck in self.director.deck_store.list():
+            available_decks.append({
+                'name': deck.name,
+                'description': deck.description,
+                'schedule': deck.schedule,
+                'enabled': self.director.deck_store.is_enabled(deck_id),
+                'id': deck_id
+            })
+        return self.render_json({"available_decks": available_decks}, request)
+
     @app.route('/api/initialize', methods=["POST"])
     @xsrf_protect(check=True)
     @requires_false(attrs=['_is_initialized'])
@@ -278,6 +294,26 @@ class WebUIAPI(object):
                 raise WebUIError(400, 'Missing required key {0}'.format(
                     required_key))
         config.create_config_file(**options)
+        try:
+            deck_config = initial_configuration['deck_config']
+        except KeyError:
+            raise WebUIError(400, 'Missing enabled decks')
+
+        for deck_id, enabled in deck_config.items():
+            try:
+                if enabled is True:
+                    self.director.deck_store.enable(deck_id)
+                elif enabled is False:
+                    try:
+                        self.director.deck_store.disable(deck_id)
+                    except DeckNotFound:
+                        # We ignore these errors, because it could be that a deck
+                        # that is marked as disabled is already disabled
+                        pass
+            except DeckNotFound:
+                raise WebUIError(404, 'Deck not found')
+
+        self.scheduler.refresh_deck_list()
         config.set_initialized()
 
         self._is_initialized = True
