@@ -26,8 +26,6 @@ from ooni.measurements import get_summary, get_measurement, list_measurements
 from ooni.measurements import MeasurementNotFound, MeasurementInProgress
 from ooni.geoip import probe_ip
 
-config.advanced.debug = True
-
 class WebUIError(Exception):
     def __init__(self, code, message):
         self.code = code

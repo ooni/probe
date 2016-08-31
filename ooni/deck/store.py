@@ -162,7 +162,11 @@ class DeckStore(object):
         if not deck_path.exists():
             raise DeckNotFound(deck_id)
         deck_enabled_path = self.enabled_directory.child(deck_id + '.yaml')
-        deck_path.linkTo(deck_enabled_path)
+        try:
+            deck_path.linkTo(deck_enabled_path)
+        except OSError as ose:
+            if ose.errno != errno.EEXIST:
+                raise
 
     def disable(self, deck_id):
         deck_enabled_path = self.enabled_directory.child(deck_id + '.yaml')
