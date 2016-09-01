@@ -1,6 +1,7 @@
 import os
 import sys
 import yaml
+import errno
 import getpass
 from ConfigParser import SafeConfigParser
 
@@ -332,7 +333,7 @@ class OConfig(object):
             try:
                 os.makedirs(path)
             except OSError as exc:
-                if exc.errno != 17:
+                if exc.errno != errno.EEXIST:
                     raise
 
     def create_config_file(self, include_ip=False, include_asn=True,
