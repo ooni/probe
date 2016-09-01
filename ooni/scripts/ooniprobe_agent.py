@@ -2,6 +2,7 @@ from __future__ import print_function
 
 import os
 import time
+import errno
 import signal
 
 from twisted.scripts import twistd
@@ -55,7 +56,8 @@ def start_agent(options=None):
 
     # Since we are starting the logger below ourselves we make twistd log to
     #  a null log observer
-    twistd_args = ['--logger', 'ooni.utils.log.ooniloggerNull']
+    twistd_args = ['--logger', 'ooni.utils.log.ooniloggerNull',
+                   '--umask', '022']
     twistd_config = OoniprobeTwistdConfig()
     if options is not None:
         twistd_args.extend(options.twistd_args)
@@ -68,9 +70,12 @@ def start_agent(options=None):
         "StartOoniprobeAgent": StartOoniprobeAgentPlugin()
     }
 
-    if status_agent() == 0:
+    try:
+        get_running_pidfile()
         print("Stop ooniprobe-agent before attempting to start it")
         return 1
+    except NotRunning:
+        pass
 
     print("Starting ooniprobe agent.")
     WEB_UI_URL = "http://{0}:{1}".format(
@@ -80,8 +85,16 @@ def start_agent(options=None):
     twistd.runApp(twistd_config)
     return 0
 
-def status_agent():
-    running = False
+
+class NotRunning(RuntimeError):
+    pass
+
+def get_running_pidfile():
+    """
+    :return: This pid of the running ooniprobe-agent instance.
+    :raises: NotRunning if it's not running
+    """
+    running_pidfile = None
     for pidfile in [config.system_pid_path, config.user_pid_path]:
         if not os.path.exists(pidfile):
             # Didn't find the pid_file
@@ -90,36 +103,51 @@ def status_agent():
         pid = int(pid)
         try:
             os.kill(pid, signal.SIG_DFL)
-            running = True
-        except OSError, oserr:
-            if oserr.errno == 3:
+            running_pidfile = pidfile
+            break
+        except OSError as ose:
+            if ose.errno == errno.ESRCH:
                 # Found pid, but isn't running
                 continue
-    if running is True:
+            elif ose.errno == errno.EPERM:
+                # The process is owned by root. We assume it's running
+                running_pidfile = pidfile
+                break
+    if running_pidfile is None:
+        raise NotRunning
+    return running_pidfile
+
+def status_agent():
+    try:
+        get_running_pidfile()
         print("ooniprobe-agent is running")
         return 0
-    print("ooniprobe-agent is NOT running")
-    return 1
+    except NotRunning:
+        print("ooniprobe-agent is NOT running")
+        return 1
 
 def stop_agent():
     # This function is borrowed from tahoe
-    pidfile = os.path.join(
-        config.running_path,
-        'twistd.pid'
-    )
-    if not os.path.exists(pidfile):
-        print("It seems like ooniprobe-agent is not running")
+    try:
+        pidfile = get_running_pidfile()
+    except NotRunning:
+        print("ooniprobe-agent is NOT running. Nothing to do.")
         return 2
+
     pid = open(pidfile, "r").read()
     pid = int(pid)
     try:
         os.kill(pid, signal.SIGKILL)
-    except OSError, oserr:
-        if oserr.errno == 3:
+    except OSError as ose:
+        if ose.errno == errno.ESRCH:
             print("No process was running. Cleaning up.")
             # the process didn't exist, so wipe the pid file
             os.remove(pidfile)
             return 2
+        elif ose.errno == errno.EPERM:
+            # The process is owned by root. We assume it's running
+            print("ooniprobe-agent is owned by root. We cannot stop it.")
+            return 3
         else:
             raise
     try:
