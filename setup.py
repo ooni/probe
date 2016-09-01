@@ -69,19 +69,17 @@ When you got them run:
 Using ooniprobe
 ---------------
 
-To generate a test deck for your country, cd to the directory where you want it
-and run:
+It is recommended that you start the ooniprobe-agent system daemon that will
+expose a localhost only Web UI and automatically run tests for you.
+
+This can be done with:
 
 .. code:: bash
 
-    oonideckgen
+    ooniprobe-agent start
 
 
-To setup a daily cronjob run this:
-
-.. code:: bash
-
-    (crontab -l 2>/dev/null; echo "@daily ooniprobe `oonideckgen | grep -e '^ooniprobe'`") | crontab -
+Then connect to the local web interface on http://127.0.0.1:8842/
 
 Have fun!
 """

@@ -67,6 +67,11 @@ def start_agent(options=None):
     twistd_config.loadedPlugins = {
         "StartOoniprobeAgent": StartOoniprobeAgentPlugin()
     }
+
+    if status_agent() == 0:
+        print("Stop ooniprobe-agent before attempting to start it")
+        return 1
+
     print("Starting ooniprobe agent.")
     WEB_UI_URL = "http://{0}:{1}".format(
         config.advanced.webui_address, config.advanced.webui_port)
@@ -76,23 +81,25 @@ def start_agent(options=None):
     return 0
 
 def status_agent():
-    pidfile = os.path.join(
-        config.running_path,
-        'twistd.pid'
-    )
-    if not os.path.exists(pidfile):
-        print("ooniprobe-agent is NOT running")
-        return  1
-    pid = open(pidfile, "r").read()
-    pid = int(pid)
-    try:
-        os.kill(pid, signal.SIG_DFL)
-    except OSError, oserr:
-        if oserr.errno == 3:
-            print("ooniprobe-agent is NOT running")
-            return 1
-    print("ooniprobe-agent is running")
-    return 0
+    running = False
+    for pidfile in [config.system_pid_path, config.user_pid_path]:
+        if not os.path.exists(pidfile):
+            # Didn't find the pid_file
+            continue
+        pid = open(pidfile, "r").read()
+        pid = int(pid)
+        try:
+            os.kill(pid, signal.SIG_DFL)
+            running = True
+        except OSError, oserr:
+            if oserr.errno == 3:
+                # Found pid, but isn't running
+                continue
+    if running is True:
+        print("ooniprobe-agent is running")
+        return 0
+    print("ooniprobe-agent is NOT running")
+    return 1
 
 def stop_agent():
     # This function is borrowed from tahoe

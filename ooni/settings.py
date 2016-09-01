@@ -235,6 +235,14 @@ class OConfig(object):
         return self.ooni_home
 
     @property
+    def user_pid_path(self):
+        return os.path.join(self.ooni_home, "twistd.pid")
+
+    @property
+    def system_pid_path(self):
+        return os.path.join(VAR_LIB_PATH, "twistd.pid")
+
+    @property
     def data_directory_candidates(self):
         dirs = [
             self.ooni_home,
