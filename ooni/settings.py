@@ -266,31 +266,6 @@ class OConfig(object):
         with open(initialized_path, 'w+'): pass
 
     @property
-    def last_run_version(self):
-        """
-        :return: Version identifying the last run version of ooniprobe.
-        """
-        last_run_version_path = os.path.join(
-            self.running_path, "last_run_version"
-        )
-        if not os.path.exists(last_run_version_path):
-            return parse_version("0")
-        with open(last_run_version_path) as in_file:
-            last_run_version = in_file.read()
-        return parse_version(last_run_version)
-
-    @property
-    def current_version(self):
-        return parse_version(ooniprobe_version)
-
-    def set_last_run_version(self):
-        last_run_version_path = os.path.join(
-            self.running_path, "last_run_version"
-        )
-        with open(last_run_version_path, "w") as out_file:
-            out_file.write(ooniprobe_version)
-
-    @property
     def running_path(self):
         """
         This is the directory used to store state application data.
@@ -407,14 +382,6 @@ class OConfig(object):
             except OSError as exc:
                 if exc.errno != errno.EEXIST:
                     raise
-
-        # This means ooniprobe was installed for the first time or is coming
-        # from a 1.x series installation. We should configure the default deck.
-        if self.last_run_version.public == "0":
-            from ooni.deck.store import deck_store
-            DEFAULT_DECKS = ['web-full']
-            for deck_id in DEFAULT_DECKS:
-                deck_store.enable(deck_id)
 
     def create_config_file(self, include_ip=False, include_asn=True,
                            include_country=True, should_upload=True,

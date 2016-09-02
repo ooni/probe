@@ -12,7 +12,7 @@ from ooni.scripts import oonireport
 from ooni import resources
 from ooni.utils import log, SHORT_DATE
 from ooni.utils.files import human_size_to_bytes, directory_usage
-from ooni.deck.store import input_store, deck_store
+from ooni.deck.store import input_store, deck_store, DEFAULT_DECKS
 from ooni.settings import config
 from ooni.contrib import croniter
 from ooni.geoip import probe_ip
@@ -40,6 +40,10 @@ class FileSystemlockAndMutex(object):
     def release(self):
         self._fs_lock.unlock()
         self._mutex.release()
+
+# We use this date to indicate that the scheduled task has never run.
+# Easter egg, try to see what is special about this date :)?
+CANARY_DATE = datetime(1957, 8, 4)
 
 class DidNotRun(Exception):
     pass
@@ -76,7 +80,7 @@ class ScheduledTask(object):
     def last_run(self):
         self._last_run.restat(False)
         if not self._last_run.exists():
-            return datetime.fromtimestamp(0)
+            return CANARY_DATE
         with self._last_run.open('r') as in_file:
             date_str = in_file.read()
         return datetime.strptime(date_str, self._time_format)
@@ -89,6 +93,13 @@ class ScheduledTask(object):
     def task(self):
         raise NotImplemented
 
+    def first_run(self):
+        """
+        This hook is called if it's the first time a particular scheduled
+        operation is run.
+        """
+        pass
+
     @defer.inlineCallbacks
     def run(self):
         yield self._last_run_lock.acquire()
@@ -96,6 +107,8 @@ class ScheduledTask(object):
             self._last_run_lock.release()
             raise DidNotRun
         try:
+            if self.last_run == CANARY_DATE:
+                yield defer.maybeDeferred(self.first_run)
             yield self.task()
             self._update_last_run()
         except:
@@ -240,6 +253,13 @@ class RefreshDeckList(ScheduledTask):
         self.scheduler = scheduler
         super(RefreshDeckList, self).__init__(schedule, identifier)
 
+    def first_run(self):
+        """
+        On first run we enable the default decks.
+        """
+        for deck_id in DEFAULT_DECKS:
+            deck_store.enable(deck_id)
+
     def task(self):
         self.scheduler.refresh_deck_list()
 
@@ -301,6 +321,10 @@ class SchedulerService(service.MultiService):
         for scheduled_task in self._scheduled_tasks[:]:
             if isinstance(scheduled_task, RunDeck):
                 self._scheduled_tasks.remove(scheduled_task)
+
+        if not config.is_initialized():
+            # Disable scheduling measurements if we are not initialized.
+            return
 
         for deck_id, deck in deck_store.list_enabled():
             if deck.schedule is None:

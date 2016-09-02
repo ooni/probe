@@ -398,7 +398,7 @@ class Director(object):
                 self._tor_starting.callback(self._tor_state)
             except Exception as exc:
                 log.err("Failed to start tor")
-                log.exc(exc)
+                log.exception(exc)
                 self._tor_starting.errback(Failure(exc))
 
         elif config.tor.control_port and config.tor_state is None:

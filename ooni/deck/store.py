@@ -11,6 +11,9 @@ from ooni.otime import timestampNowISO8601UTC
 from ooni.resources import check_for_update
 from ooni.settings import config
 
+# These are the decks to be run by default.
+DEFAULT_DECKS = ['web-full']
+
 class InputNotFound(Exception):
     pass
 
