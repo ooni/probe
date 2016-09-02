@@ -330,7 +330,7 @@ def createDeck(global_options, url=None):
     except errors.MissingRequiredOption as option_name:
         log.err('Missing required option: "%s"' % option_name)
         incomplete_net_test_loader = option_name.net_test_loader
-        print incomplete_net_test_loader.usageOptions().getUsage()
+        map(log.msg, incomplete_net_test_loader.usageOptions().getUsage().split("\n"))
         raise SystemExit(2)
 
     except errors.NetTestNotFound as path:
@@ -508,7 +508,7 @@ def runWithDaemonDirector(global_options):
                                         url=data['url'].encode('utf8'))
                 # When the test has been completed, go back to waiting for a message.
                 d.addCallback(readmsg, channel, queue_object, consumer_tag, counter+1)
-            except exceptions.AMQPError,v:
+            except exceptions.AMQPError, v:
                 log.msg("Error")
                 log.exception(v)
                 finished.errback(v)

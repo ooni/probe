@@ -81,4 +81,9 @@ Vagrant.configure("2") do |config|
     end
   end
 
+  config.vm.define "testing" do |testing|
+    testing.vm.network "forwarded_port", guest: 8842, host: 8142
+    testing.vm.synced_folder ".", "/data/ooni-probe"
+  end
+
 end

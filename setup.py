@@ -87,39 +87,54 @@ Have fun!
 from __future__ import print_function
 
 import os
-import shutil
 import tempfile
-import subprocess
 from glob import glob
 
 from ConfigParser import SafeConfigParser
 
 from os.path import join as pj
 from setuptools import setup
-from setuptools.command.install import install
+from setuptools.command.install import install as InstallCommand
 
 from ooni import __version__, __author__
 
-GEOIP_ASN_URL = "https://download.maxmind.com/download/geoip/database/asnum/GeoIPASNum.dat.gz"
-GEOIP_URL = "https://geolite.maxmind.com/download/geoip/database/GeoLiteCountry/GeoIP.dat.gz"
-TEST_LISTS_URL = "https://github.com/citizenlab/test-lists/archive/master.zip"
+CLASSIFIERS = """\
+Development Status :: 5 - Production/Stable
+Environment :: Console
+Framework :: Twisted
+Intended Audience :: Developers
+Intended Audience :: Education
+Intended Audience :: End Users/Desktop
+Intended Audience :: Information Technology
+Intended Audience :: Science/Research
+Intended Audience :: Telecommunications Industry
+License :: OSI Approved :: BSD Licens
+Programming Language :: Python
+Programming Language :: Python :: 2
+Programming Language :: Python :: 2 :: Only
+Programming Language :: Python :: 2.6
+Programming Language :: Python :: 2.7
+Operating System :: MacOS :: MacOS X
+Operating System :: POSIX
+Operating System :: POSIX :: BSD
+Operating System :: POSIX :: BSD :: BSD/OS
+Operating System :: POSIX :: BSD :: FreeBSD
+Operating System :: POSIX :: BSD :: NetBSD
+Operating System :: POSIX :: BSD :: OpenBSD
+Operating System :: POSIX :: Linux
+Operating System :: Unix
+Topic :: Scientific/Engineering :: Information Analysis
+Topic :: Security
+Topic :: Security :: Cryptography
+Topic :: Software Development :: Libraries :: Application Frameworks
+Topic :: Software Development :: Libraries :: Python Modules
+Topic :: Software Development :: Testing
+Topic :: Software Development :: Testing :: Traffic Generation
+Topic :: System :: Networking :: Monitoring
+"""
 
-def run_command(args, cwd=None):
-    try:
-        p = subprocess.Popen(args, stdout=subprocess.PIPE, cwd=cwd)
-    except EnvironmentError:
-        return None
-    stdout = p.communicate()[0].strip()
-    if p.returncode != 0:
-        return None
-    return stdout
 
-def is_lepidopter():
-    if os.path.exists("/etc/default/lepidopter"):
-        return True
-    return False
-
-class OoniInstall(install):
+class OoniInstall(InstallCommand):
     def gen_config(self, share_path):
         config_file = pj(tempfile.mkdtemp(), "ooniprobe.conf.sample")
         o = open(config_file, "w+")
@@ -164,127 +179,90 @@ class OoniInstall(install):
         except OSError:
             pass
 
-    def ooniresources(self):
-        from ooni.resources import check_for_update
-        from twisted.internet import task
-        task.react(lambda _: check_for_update())
-
-    def update_lepidopter_config(self):
-        try:
-            shutil.copyfile("data/configs/lepidopter-ooniprobe.conf",
-                            "/etc/ooniprobe/ooniprobe.conf")
-            shutil.copyfile("data/configs/lepidopter-oonireport.conf",
-                            "/etc/ooniprobe/oonireport.conf")
-        except Exception:
-            print("ERR: Failed to copy configuration files to /etc/ooniprobe/")
-
-    def run(self):
+    def pre_install(self):
         prefix = os.path.abspath(self.prefix)
         self.set_data_files(prefix)
+
+    def post_install(self):
+        pass
+
+    def run(self):
+        self.pre_install()
         self.do_egg_install()
-        self.ooniresources()
-        if is_lepidopter():
-            self.update_lepidopter_config()
+        self.post_install()
 
-setup_requires = ['twisted', 'pyyaml']
-install_requires = []
-dependency_links = []
-data_files = []
-packages = [
-    'ooni',
-    'ooni.agent',
-    'ooni.common',
-    'ooni.contrib',
-    'ooni.contrib.dateutil',
-    'ooni.contrib.dateutil.tz',
-    'ooni.deck',
-    'ooni.kit',
-    'ooni.nettests',
-    'ooni.nettests.manipulation',
-    'ooni.nettests.experimental',
-    'ooni.nettests.scanning',
-    'ooni.nettests.blocking',
-    'ooni.nettests.third_party',
-    'ooni.scripts',
-    'ooni.templates',
-    'ooni.tests',
-    'ooni.ui',
-    'ooni.ui.web',
-    'ooni.utils'
-]
+def setup_package():
+    setup_requires = []
+    install_requires = []
+    dependency_links = []
+    data_files = []
+    packages = [
+        'ooni',
+        'ooni.agent',
+        'ooni.common',
+        'ooni.contrib',
+        'ooni.contrib.dateutil',
+        'ooni.contrib.dateutil.tz',
+        'ooni.deck',
+        'ooni.kit',
+        'ooni.nettests',
+        'ooni.nettests.manipulation',
+        'ooni.nettests.experimental',
+        'ooni.nettests.scanning',
+        'ooni.nettests.blocking',
+        'ooni.nettests.third_party',
+        'ooni.scripts',
+        'ooni.templates',
+        'ooni.tests',
+        'ooni.ui',
+        'ooni.ui.web',
+        'ooni.utils'
+    ]
 
-with open('requirements.txt') as f:
-    for line in f:
-        if line.startswith("#"):
-            continue
-        if line.startswith('https'):
-            dependency_links.append(line)
-            continue
-        install_requires.append(line)
+    with open('requirements.txt') as f:
+        for line in f:
+            if line.startswith("#"):
+                continue
+            if line.startswith('https'):
+                dependency_links.append(line)
+                continue
+            install_requires.append(line)
 
-setup(
-    name="ooniprobe",
-    version=__version__,
-    author=__author__,
-    author_email="contact@openobservatory.org",
-    description="Network measurement tool for"
-                "identifying traffic manipulation and blocking.",
-    long_description=__doc__,
-    license='BSD 2 clause',
-    url="https://ooni.torproject.org/",
-    package_dir={'ooni': 'ooni'},
-    data_files=data_files,
-    packages=packages,
-    include_package_data=True,
-    dependency_links=dependency_links,
-    install_requires=install_requires,
-    setup_requires=setup_requires,
-    zip_safe=False,
-    entry_points={
-        'console_scripts': [
-            'ooniresources = ooni.scripts.ooniresources:run', # This is deprecated
-            'oonideckgen = ooni.scripts.oonideckgen:run', # This is deprecated
+    metadata = dict(
+        name="ooniprobe",
+        version=__version__,
+        author=__author__,
+        author_email="contact@openobservatory.org",
+        description="Network measurement tool for"
+                    "identifying traffic manipulation and blocking.",
+        long_description=__doc__,
+        license='BSD 2 clause',
+        url="https://ooni.torproject.org/",
+        package_dir={'ooni': 'ooni'},
+        data_files=data_files,
+        packages=packages,
+        include_package_data=True,
+        dependency_links=dependency_links,
+        install_requires=install_requires,
+        setup_requires=setup_requires,
+        zip_safe=False,
+        entry_points={
+            'console_scripts': [
+                'ooniresources = ooni.scripts.ooniresources:run',  # This is deprecated
+                'oonideckgen = ooni.scripts.oonideckgen:run',  # This is deprecated
 
-            'ooniprobe = ooni.scripts.ooniprobe:run',
-            'oonireport = ooni.scripts.oonireport:run',
-            'ooniprobe-agent = ooni.scripts.ooniprobe_agent:run'
-        ]
-    },
-    cmdclass={
-        "install": OoniInstall
-    },
-    classifiers=(
-        "Development Status :: 5 - Production/Stable",
-        "Environment :: Console",
-        "Framework :: Twisted",
-        "Intended Audience :: Developers",
-        "Intended Audience :: Education",
-        "Intended Audience :: End Users/Desktop",
-        "Intended Audience :: Information Technology",
-        "Intended Audience :: Science/Research",
-        "Intended Audience :: Telecommunications Industry",
-        "License :: OSI Approved :: BSD License"
-        "Programming Language :: Python",
-        "Programming Language :: Python :: 2",
-        "Programming Language :: Python :: 2 :: Only",
-        "Programming Language :: Python :: 2.6",
-        "Programming Language :: Python :: 2.7",
-        "Operating System :: MacOS :: MacOS X",
-        "Operating System :: POSIX",
-        "Operating System :: POSIX :: BSD",
-        "Operating System :: POSIX :: BSD :: BSD/OS",
-        "Operating System :: POSIX :: BSD :: FreeBSD",
-        "Operating System :: POSIX :: BSD :: NetBSD",
-        "Operating System :: POSIX :: BSD :: OpenBSD",
-        "Operating System :: POSIX :: Linux",
-        "Operating System :: Unix",
-        "Topic :: Scientific/Engineering :: Information Analysis",
-        "Topic :: Security",
-        "Topic :: Security :: Cryptography",
-        "Topic :: Software Development :: Libraries :: Application Frameworks",
-        "Topic :: Software Development :: Libraries :: Python Modules",
-        "Topic :: Software Development :: Testing",
-        "Topic :: Software Development :: Testing :: Traffic Generation",
-        "Topic :: System :: Networking :: Monitoring",
+                'ooniprobe = ooni.scripts.ooniprobe:run',
+                'oonireport = ooni.scripts.oonireport:run',
+                'ooniprobe-agent = ooni.scripts.ooniprobe_agent:run'
+            ]
+        },
+        cmdclass={
+            "install": OoniInstall
+        },
+        classifiers=[c for c in CLASSIFIERS.split('\n') if c]
     )
-)
+
+    setup(**metadata)
+
+if __name__ == "__main__":
+    setup_package()

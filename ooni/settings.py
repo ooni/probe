@@ -3,6 +3,7 @@ import sys
 import yaml
 import errno
 import getpass
+from pkg_resources import parse_version
 from ConfigParser import SafeConfigParser
 
 from twisted.internet import defer, reactor
@@ -10,6 +11,7 @@ from twisted.internet.endpoints import TCP4ClientEndpoint
 
 from os.path import abspath, expanduser
 
+from ooni import __version__ as ooniprobe_version
 from ooni.utils import Storage, log, get_ooni_root
 
 CONFIG_FILE_TEMPLATE = """\
@@ -19,8 +21,8 @@ CONFIG_FILE_TEMPLATE = """\
 
 basic:
     # Where OONIProbe should be writing it's log file
-    logfile: {logfile}
-    loglevel: WARNING
+    # logfile: {logfile}
+    # loglevel: WARNING
     # The maximum amount of data to store on disk. Once the quota is reached,
     # we will start deleting older reports.
     # measurement_quota: 1G
@@ -191,6 +193,37 @@ elif os.path.isfile(_SETTINGS_INI):
     if _ETC_PATH is not None:
         ETC_PATH = _ETC_PATH
 
+
+def _load_config_files_with_defaults(config_files, defaults):
+    """
+    This takes care of reading the config files in reverse order (the first
+    item will have priority over the last element) and produce a
+    configuration that includes ONLY the options inside of the defaults
+    dictionary.
+
+    :param config_files: a list of configuration file paths
+    :param defaults: the default values for the configuration file
+    :return: a configuration that is the result of reading the config files
+    and joining it with the default options.
+    """
+    config_from_files = {}
+    configuration = {}
+    for config_file_path in reversed(config_files):
+        if not os.path.exists(config_file_path):
+            continue
+        with open(config_file_path) as in_file:
+            c = yaml.safe_load(in_file)
+        config_from_files.update(c)
+
+    for category in defaults.keys():
+        configuration[category] = {}
+        for k, v in defaults[category].items():
+            try:
+                configuration[category][k] = config_from_files[category][k]
+            except KeyError:
+                configuration[category][k] = defaults[category][k]
+    return configuration
+
 class OConfig(object):
     _custom_home = None
 
@@ -211,6 +244,10 @@ class OConfig(object):
         self.tor = Storage()
         self.privacy = Storage()
 
+        # In here we store the configuration files ordered by priority.
+        # First configuration file takes priority over the others.
+        self.config_files = []
+
         self.set_paths()
 
     def is_initialized(self):
@@ -223,6 +260,31 @@ class OConfig(object):
     def set_initialized(self):
         initialized_path = os.path.join(self.running_path, 'initialized')
         with open(initialized_path, 'w+'): pass
+
+    @property
+    def last_run_version(self):
+        """
+        :return: Version identifying the last run version of ooniprobe.
+        """
+        last_run_version_path = os.path.join(
+            self.running_path, "last_run_version"
+        )
+        if not os.path.exists(last_run_version_path):
+            return parse_version("0")
+        with open(last_run_version_path) as in_file:
+            last_run_version = in_file.read()
+        return parse_version(last_run_version)
+
+    @property
+    def current_version(self):
+        return parse_version(ooniprobe_version)
+
+    def set_last_run_version(self):
+        last_run_version_path = os.path.join(
+            self.running_path, "last_run_version"
+        )
+        with open(last_run_version_path, "w") as out_file:
+            out_file.write(ooniprobe_version)
 
     @property
     def running_path(self):
@@ -266,6 +328,10 @@ class OConfig(object):
         return VAR_LIB_PATH
 
     @property
+    def user_config_file_path(self):
+        return os.path.join(self.running_path, 'ooniprobe.conf')
+
+    @property
     def ooni_home(self):
         home = expanduser('~'+self.current_user)
         if os.getenv("HOME"):
@@ -283,7 +349,8 @@ class OConfig(object):
 
     def set_paths(self):
         self.nettest_directory = os.path.join(OONIPROBE_ROOT, 'nettests')
-        self.web_ui_directory = os.path.join(OONIPROBE_ROOT, 'ui', 'web','client')
+        self.web_ui_directory = os.path.join(OONIPROBE_ROOT, 'ui', 'web',
+                                             'client')
 
         self.inputs_directory = os.path.join(self.running_path, 'inputs')
         self.scheduler_directory = os.path.join(self.running_path, 'scheduler')
@@ -297,12 +364,13 @@ class OConfig(object):
         self.measurements_directory = os.path.join(self.running_path,
                                                    'measurements')
 
+        self.config_files = [
+            self.user_config_file_path,
+            '/etc/ooniprobe.conf'
+        ]
         if self.global_options.get('configfile'):
             config_file = self.global_options['configfile']
-            self.config_file = expanduser(config_file)
-        else:
-            self.config_file = os.path.join(self.running_path,
-                                            'ooniprobe.conf')
+            self.config_files.insert(0, expanduser(config_file))
 
         if 'logfile' in self.basic:
             self.basic.logfile = expanduser(
@@ -336,6 +404,14 @@ class OConfig(object):
                 if exc.errno != errno.EEXIST:
                     raise
 
+        # This means ooniprobe was installed for the first time or is coming
+        # from a 1.x series installation. We should configure the default deck.
+        if self.last_run_version.public == "0":
+            from ooni.deck.store import deck_store
+            DEFAULT_DECKS = ['web-full']
+            for deck_id in DEFAULT_DECKS:
+                deck_store.enable(deck_id)
+
     def create_config_file(self, include_ip=False, include_asn=True,
                            include_country=True, should_upload=True,
                            preferred_backend="onion"):
@@ -354,9 +430,10 @@ class OConfig(object):
         should_upload = _bool_to_yaml(should_upload)
 
         logfile = os.path.join(self.running_path, 'ooniprobe.log')
-        with open(self.config_file, 'w+') as out_file:
+        with open(self.user_config_file_path, 'w') as out_file:
             out_file.write(
-                    CONFIG_FILE_TEMPLATE.format(logfile=logfile,
+                    CONFIG_FILE_TEMPLATE.format(
+                                    logfile=logfile,
                                     include_ip=include_ip,
                                     include_asn=include_asn,
                                     include_country=include_country,
@@ -366,23 +443,12 @@ class OConfig(object):
         self.read_config_file()
 
     def read_config_file(self, check_incoherences=False):
-        configuration = {}
-        config_file = {}
-        log.debug("Reading config file from %s" % self.config_file)
-        if os.path.isfile(self.config_file):
-            with open(self.config_file) as f:
-                config_file_contents = '\n'.join(f.readlines())
-                config_file = yaml.safe_load(config_file_contents)
+        configuration = _load_config_files_with_defaults(
+            self.config_files, defaults)
 
-        for category in defaults.keys():
-            configuration[category] = {}
-            for k, v in defaults[category].items():
-                try:
-                    value = config_file.get(category, {})[k]
-                except KeyError:
-                    value = v
-                configuration[category][k] = value
-                getattr(self, category)[k] = value
+        for category in configuration.keys():
+            for key, value in configuration[category].items():
+                getattr(self, category)[key] = value
 
         self.set_paths()
         if check_incoherences:
@@ -405,7 +471,8 @@ class OConfig(object):
                 incoherent_pretty = ", ".join(incoherences[:-1]) + ' and ' + incoherences[-1]
             else:
                 incoherent_pretty = incoherences[0]
-            log.err("You must set properly %s in %s." % (incoherent_pretty, self.config_file))
+            log.err("You must set properly %s in %s." % (incoherent_pretty,
+                                                         self.config_files[0]))
             raise errors.ConfigFileIncoherent
 
     @defer.inlineCallbacks
@@ -439,7 +506,3 @@ class OConfig(object):
             self.log_incoherences(incoherent)
 
 config = OConfig()
-if not os.path.isfile(config.config_file) \
-       and os.path.isfile('/etc/ooniprobe.conf'):
-    config.global_options['configfile'] = '/etc/ooniprobe.conf'
-    config.set_paths()

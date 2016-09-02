@@ -58,6 +58,7 @@ def start_agent(options=None):
     #  a null log observer
     twistd_args = ['--logger', 'ooni.utils.log.ooniloggerNull',
                    '--umask', '022']
+
     twistd_config = OoniprobeTwistdConfig()
     if options is not None:
         twistd_args.extend(options.twistd_args)
