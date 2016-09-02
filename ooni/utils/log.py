@@ -1,5 +1,6 @@
 import os
 import sys
+import errno
 import codecs
 import logging
 
@@ -132,6 +133,20 @@ class OONILogger(object):
             logfile = os.path.expanduser(config.basic.logfile)
 
         log_folder = os.path.dirname(logfile)
+        if not os.access(log_folder, os.W_OK):
+            # If we don't have permissions to write to the log_folder,
+            # write to running dir.
+            log_folder = config.running_path
+            logfile = os.path.join(log_folder, "ooniprobe.log")
+
+        try:
+            os.makedirs(log_folder)
+        except OSError as ose:
+            if ose.errno == errno.EEXIST and os.path.isdir(log_folder):
+                pass
+            else:
+                raise
+
         log_filename = os.path.basename(logfile)
         file_log_level = levels.get(config.basic.loglevel,
                                     levels['INFO'])
