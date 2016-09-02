@@ -89,7 +89,7 @@ tor:
     # This is the timeout after which we consider to to not have
     # bootstrapped properly.
     #timeout: 200
-    torrc:
+    #torrc:
         #HTTPProxy: host:port
         #HTTPProxyAuthenticator: user:password
         #HTTPSProxy: host:port
@@ -213,14 +213,18 @@ def _load_config_files_with_defaults(config_files, defaults):
             continue
         with open(config_file_path) as in_file:
             c = yaml.safe_load(in_file)
-        config_from_files.update(c)
+        for category in c.keys():
+            if c[category] is None:
+                continue
+            config_from_files[category] = config_from_files.get(category, {})
+            config_from_files[category].update(c[category])
 
     for category in defaults.keys():
         configuration[category] = {}
         for k, v in defaults[category].items():
             try:
                 configuration[category][k] = config_from_files[category][k]
-            except KeyError:
+            except (KeyError, TypeError):
                 configuration[category][k] = defaults[category][k]
     return configuration
 

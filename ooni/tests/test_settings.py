@@ -146,7 +146,8 @@ class TestSettings(ConfigTestCase):
                 'key': 'value'
             },
             'cat2': {
-                'key': 'value'
+                'key': 'value',
+                'key2': 'value2'
             },
             'cat3': {
                 'key': 'value'
@@ -162,11 +163,15 @@ class TestSettings(ConfigTestCase):
             },
             'invalid_category': {
                 'ignored': 'ignored'
-            }
+            },
+            'cat3': None
         }
         config_file_B = {
             'cat1': {
                 'key': 'valueB'
+            },
+            'cat2': {
+                'key2': 'value2B'
             }
         }
         temp_dir = tempfile.mkdtemp()
@@ -188,7 +193,8 @@ class TestSettings(ConfigTestCase):
                 'key': 'valueB'
             },
             'cat2': {
-                'key': 'valueA'
+                'key': 'valueA',
+                'key2': 'value2B'
             },
             'cat3': {
                 'key': 'value'
