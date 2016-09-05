@@ -182,7 +182,8 @@ class CheckMeasurementQuota(ScheduledTask):
         if (float(available_bytes) / float(maximum_bytes)) >= self._warn_when:
             log.warn("You are about to reach the maximum allowed quota. Be careful")
             with open(warning_path, "w") as out_file:
-                out_file.write("{0} {1}".split(available_bytes, maximum_bytes))
+                out_file.write("{0} {1}".format(available_bytes,
+                                                maximum_bytes))
         else:
             try:
                 os.remove(warning_path)
