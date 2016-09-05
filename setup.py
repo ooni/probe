@@ -143,7 +143,7 @@ def is_updater_installed():
     return os.path.exists('/etc/lepidopter-update/version')
 
 
-def install_updater():
+def install_lepidopter_update():
     check_call(["data/updater.py", "install"])
 
 
@@ -199,17 +199,14 @@ class OoniInstall(InstallCommand):
     def run(self):
         self.pre_install()
         self.do_egg_install()
-
+        if is_lepidopter() and not is_updater_installed():
+            print("Lepidopter now requires that ooniprobe is installed via the "
+                 "updater")
+            print("Let me install the auto-updater for you and we shall use that "
+                  "for updates in the future.")
+            install_lepidopter_update()
 
 def setup_package():
-    if is_lepidopter() and not is_updater_installed():
-        print("Lepidopter now requires that ooniprobe is installed via the "
-              "updater")
-        print("Let me install the auto-updater for you and we shall use that "
-              "for updates in the future.")
-        install_updater()
-        return
-
     setup_requires = []
     install_requires = []
     dependency_links = []
