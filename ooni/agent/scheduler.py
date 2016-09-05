@@ -176,13 +176,13 @@ class CheckMeasurementQuota(ScheduledTask):
         if config.basic.measurement_quota is None:
             return
         maximum_bytes = human_size_to_bytes(config.basic.measurement_quota)
-        available_bytes = directory_usage(config.measurements_directory)
+        used_bytes = directory_usage(config.measurements_directory)
         warning_path = os.path.join(config.running_path, 'quota_warning')
 
-        if (float(available_bytes) / float(maximum_bytes)) >= self._warn_when:
+        if (float(used_bytes) / float(maximum_bytes)) >= self._warn_when:
             log.warn("You are about to reach the maximum allowed quota. Be careful")
             with open(warning_path, "w") as out_file:
-                out_file.write("{0} {1}".format(available_bytes,
+                out_file.write("{0} {1}".format(used_bytes,
                                                 maximum_bytes))
         else:
             try:
@@ -191,12 +191,12 @@ class CheckMeasurementQuota(ScheduledTask):
                 if ose.errno != errno.ENOENT:
                     raise
 
-        if float(available_bytes) < float(maximum_bytes):
+        if float(used_bytes) < float(maximum_bytes):
             # We are within the allow quota exit.
             return
 
         # We should begin to delete old reports
-        amount_to_delete = float(maximum_bytes) - float(available_bytes)
+        amount_to_delete = float(used_bytes) - float(maximum_bytes)
         amount_deleted = 0
         measurement_path = FilePath(config.measurements_directory)
 
