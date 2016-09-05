@@ -95,6 +95,7 @@ from ConfigParser import SafeConfigParser
 from os.path import join as pj
 from setuptools import setup
 from setuptools.command.install import install as InstallCommand
+from subprocess import check_call
 
 from ooni import __version__, __author__
 
@@ -132,6 +133,18 @@ Topic :: Software Development :: Testing
 Topic :: Software Development :: Testing :: Traffic Generation
 Topic :: System :: Networking :: Monitoring
 """
+
+
+def is_lepidopter():
+    return os.path.exists('/etc/default/lepidopter')
+
+
+def is_updater_installed():
+    return os.path.exists('/etc/lepidopter-update/version')
+
+
+def install_updater():
+    check_call(["data/updater.py", "install"])
 
 
 class OoniInstall(InstallCommand):
@@ -183,15 +196,20 @@ class OoniInstall(InstallCommand):
         prefix = os.path.abspath(self.prefix)
         self.set_data_files(prefix)
 
-    def post_install(self):
-        pass
-
     def run(self):
         self.pre_install()
         self.do_egg_install()
-        self.post_install()
+
 
 def setup_package():
+    if is_lepidopter() and not is_updater_installed():
+        print("Lepidopter now requires that ooniprobe is installed via the "
+              "updater")
+        print("Let me install the auto-updater for you and we shall use that "
+              "for updates in the future.")
+        install_updater()
+        return
+
     setup_requires = []
     install_requires = []
     dependency_links = []
