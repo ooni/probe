@@ -128,6 +128,8 @@ def get_summary(measurement_id):
 def list_measurements(compute_size=False):
     measurements = []
     measurement_path = FilePath(config.measurements_directory)
+    if not measurement_path.exists():
+        return measurements
     for measurement_id in measurement_path.listdir():
         try:
             measurements.append(get_measurement(measurement_id, compute_size))
