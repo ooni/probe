@@ -3,7 +3,6 @@ import sys
 import yaml
 import errno
 import getpass
-from pkg_resources import parse_version
 from ConfigParser import SafeConfigParser
 
 from twisted.internet import defer, reactor
@@ -11,7 +10,6 @@ from twisted.internet.endpoints import TCP4ClientEndpoint
 
 from os.path import abspath, expanduser
 
-from ooni import __version__ as ooniprobe_version
 from ooni.utils import Storage, log, get_ooni_root
 
 CONFIG_FILE_TEMPLATE = """\

@@ -53,7 +53,8 @@ class ScheduledTask(object):
     schedule = None
     identifier = None
 
-    def __init__(self, schedule=None, identifier=None):
+    def __init__(self, schedule=None, identifier=None,
+                 scheduler_directory=config.scheduler_directory):
         if schedule is not None:
             self.schedule = schedule
         if identifier is not None:
@@ -61,7 +62,6 @@ class ScheduledTask(object):
 
         assert self.identifier is not None, "self.identifier must be set"
         assert self.schedule is not None, "self.schedule must be set"
-        scheduler_directory = config.scheduler_directory
 
         self._last_run = FilePath(scheduler_directory).child(self.identifier)
         self._last_run_lock = FileSystemlockAndMutex(
@@ -91,7 +91,7 @@ class ScheduledTask(object):
             out_file.write(current_time.strftime(self._time_format))
 
     def task(self):
-        raise NotImplemented
+        raise NotImplementedError
 
     def first_run(self):
         """
