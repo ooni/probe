@@ -23,10 +23,10 @@ CURRENT_VERSION_PATH = "/etc/lepidopter-update/version"
 UPDATER_PATH = "/opt/ooni/updater/versions/"
 SCRIPT_INSTALL_PATH = "/opt/ooni/updater/updater.py"
 
-SYSTEMD_SCRIPT_PATH = "/etc/systemd/system/lepidopter-updater.service"
+SYSTEMD_SCRIPT_PATH = "/etc/systemd/system/lepidopter-update.service"
 SYSTEMD_SCRIPT = """\
 [Unit]
-Description=lepidopter-updater service
+Description=lepidopter-update service
 
 [Service]
 Type=simple
@@ -138,12 +138,13 @@ def verify_file(signature_path, signer_pk_path):
 
     try:
         try:
-            check_call(["gpg", "--yes", "-o", tmp_key, "--dearmor", signer_pk_path])
+            check_call(["gpg", "--batch", "--yes", "-o", tmp_key,
+                        "--dearmor", signer_pk_path])
         except CalledProcessError:
             raise InvalidPublicKey
 
         try:
-            output = check_output(["gpg", "--status-fd", "1",
+            output = check_output(["gpg", "--batch", "--status-fd", "1",
                                    "--no-default-keyring", "--keyring",
                                    tmp_key, "--trust-model", "always",
                                    "--verify", signature_path])
