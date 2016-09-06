@@ -1,4 +1,6 @@
 import os
+import uuid
+import errno
 from copy import deepcopy
 from string import Template
 
@@ -90,7 +92,6 @@ class NGDeck(object):
 
         self._measurement_path = FilePath(config.measurements_directory)
         self._tasks = []
-        self.task_ids = []
 
         if deck_path is not None:
             self.open(deck_path)
@@ -145,7 +146,6 @@ class NGDeck(object):
                     self.bouncer.backend_type == "onion"):
                 self.requires_tor = True
             self._tasks.append(deck_task)
-            self.task_ids.append(deck_task.id)
 
         if self.metadata.get('no_collector', False):
             self.no_collector = True
@@ -217,7 +217,10 @@ class NGDeck(object):
 
     def _run_ooni_task(self, task, director):
         net_test_loader = task.ooni["net_test_loader"]
-        test_details = task.ooni["test_details"]
+        # XXX-REFACTOR we do this so late to avoid the collision between the
+        #  same id and hence generating the same filename.
+        test_details = net_test_loader.getTestDetails()
+        task.id = generate_filename(test_details)
 
         measurement_id = None
         report_filename = task.output_path
@@ -228,9 +231,9 @@ class NGDeck(object):
             try:
                 measurement_dir.createDirectory()
             except OSError as ose:
-                # Ignore 'File Exists'
-                if ose.errno != 17:
-                    raise
+                if ose.errno == errno.EEXIST:
+                    raise Exception("Directory already exists, there is a "
+                                    "collision")
 
             report_filename = measurement_dir.child("measurements.njson.progress").path
             pid_file = measurement_dir.child("running.pid")
@@ -388,10 +391,9 @@ class DeckTask(object):
             )
             file_path = resolve_file_path(filename, self.cwd)
             input_file['test_options'][input_file['key']] = file_path
-        self.ooni['test_details'] = self.ooni['net_test_loader'].getTestDetails()
-        self.id = generate_filename(self.ooni['test_details'])
 
     def setup(self):
+        self.id = str(uuid.uuid4())
         return getattr(self, "_setup_"+self.type)()
 
     def _load(self, data):
