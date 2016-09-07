@@ -20,8 +20,8 @@ from subprocess import check_output, check_call, CalledProcessError
 UPDATE_BASE_URL = "https://github.com/OpenObservatory/lepidopter-update/releases/download/"
 
 CURRENT_VERSION_PATH = "/etc/lepidopter-update/version"
-UPDATER_PATH = "/opt/ooni/updater/versions/"
-SCRIPT_INSTALL_PATH = "/opt/ooni/updater/updater.py"
+UPDATER_PATH = "/opt/ooni/lepidopter-update/versions/"
+SCRIPT_INSTALL_PATH = "/opt/ooni/lepidopter-update/updater.py"
 
 SYSTEMD_SCRIPT_PATH = "/etc/systemd/system/lepidopter-update.service"
 SYSTEMD_SCRIPT = """\
@@ -30,14 +30,16 @@ Description=lepidopter-update service
 
 [Service]
 Type=simple
-ExecStart={0} --log-file /var/log/lepidopter-update.log update --watch
+Environment="UPDATER={0}"
+ExecStart=$UPDATER --log-file /var/log/ooni/lepidopter-update.log update --watch
 TimeoutStartSec=300
 Restart=on-failure
+
 [Install]
 WantedBy=multi-user.target
 """.format(SCRIPT_INSTALL_PATH)
 
-PUBLIC_KEY_PATH = "/opt/ooni/updater/public.asc"
+PUBLIC_KEY_PATH = "/opt/ooni/lepidopter-update/public.asc"
 PUBLIC_KEY = """\
 -----BEGIN PGP PUBLIC KEY BLOCK-----
 Comment: GPGTools - https://gpgtools.org
@@ -306,8 +308,8 @@ def install(args):
     with open(SYSTEMD_SCRIPT_PATH, "w") as out_file:
         out_file.write(SYSTEMD_SCRIPT)
 
-    check_call(["systemctl", "enable", "lepidopter-updater"])
-    check_call(["systemctl", "start", "lepidopter-updater"])
+    check_call(["systemctl", "enable", "lepidopter-update"])
+    check_call(["systemctl", "start", "lepidopter-update"])
 
 class InvalidLogLevel(Exception):
     pass
