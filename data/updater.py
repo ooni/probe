@@ -30,8 +30,7 @@ Description=lepidopter-update service
 
 [Service]
 Type=simple
-Environment="UPDATER={0}"
-ExecStart=$UPDATER --log-file /var/log/ooni/lepidopter-update.log update --watch
+ExecStart={0} --log-file /var/log/ooni/lepidopter-update.log update --watch
 TimeoutStartSec=300
 Restart=on-failure
 
