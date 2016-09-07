@@ -1,6 +1,8 @@
 import os
 import re
 import pwd
+import fcntl
+import errno
 import string
 import StringIO
 import subprocess
@@ -214,6 +216,25 @@ def get_client_transport(transport):
 
     raise UninstalledTransport
 
+def is_tor_data_dir_usable(tor_data_dir):
+    """
+    Checks if the Tor data dir specified is usable. This means that
+     it is not being locked and we have permissions to write to it.
+    """
+    if not os.path.exists(tor_data_dir):
+        return True
+
+    try:
+        fcntl.flock(open(os.path.join(tor_data_dir, 'lock'), 'w'),
+                    fcntl.LOCK_EX | fcntl.LOCK_NB)
+        return True
+    except (IOError, OSError) as err:
+        if err.errno == errno.EACCES:
+            # Permission error
+            return False
+        elif err.errno == errno.EAGAIN:
+            # File locked
+            return False
 
 def get_tor_config():
     tor_config = TorConfig()
@@ -227,11 +248,22 @@ def get_tor_config():
 
     if config.tor.data_dir:
         data_dir = os.path.expanduser(config.tor.data_dir)
-
-        if not os.path.exists(data_dir):
-            log.debug("%s does not exist. Creating it." % data_dir)
+        # We only use the Tor data dir specified in the config file if
+        # 1. It is not locked (i.e. another process is using it)
+        # 2. We have write permissions to it
+        data_dir_usable = is_tor_data_dir_usable(data_dir)
+        try:
             os.makedirs(data_dir)
-        tor_config.DataDirectory = data_dir
+            log.debug("%s does not exist. Creating it." % data_dir)
+        except OSError as ose:
+            if ose.errno == errno.EEXIST:
+                pass
+            elif ose.errno == errno.EACCESS:
+                data_dir_usable = False
+            else:
+                raise
+        if data_dir_usable:
+            tor_config.DataDirectory = data_dir
 
     if config.tor.bridges:
         tor_config.UseBridges = 1
