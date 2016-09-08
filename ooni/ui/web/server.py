@@ -4,6 +4,7 @@ import os
 import json
 import errno
 import string
+import random
 from functools import wraps
 from random import SystemRandom
 
@@ -150,6 +151,7 @@ class WebUIAPI(object):
     _enable_xsrf_protection = True
 
     def __init__(self, config, director, scheduler, _reactor=reactor):
+        self._reactor = reactor
         self.director = director
         self.scheduler = scheduler
 
@@ -165,6 +167,12 @@ class WebUIAPI(object):
         self._director_started = False
         self._is_initialized = config.is_initialized()
 
+        # We use exponential backoff to trigger retries of the startup of
+        # the director.
+        self._director_startup_retries = 0
+        # Maximum delay should be 6 hours
+        self._director_max_retry_delay = 6*60*60
+
         self.status_poller = LongPoller(
             self._long_polling_timeout, _reactor)
         self.director_event_poller = LongPoller(
@@ -179,9 +187,11 @@ class WebUIAPI(object):
             self.start_director()
 
     def start_director(self):
+        log.debug("Starting director")
         d = self.director.start()
 
         d.addCallback(self.director_started)
+        d.addErrback(self.director_startup_failed)
         d.addBoth(lambda _: self.status_poller.notify())
 
     @property
@@ -208,7 +218,24 @@ class WebUIAPI(object):
         log.debug("Handling event {0}".format(event.type))
         self.director_event_poller.notify(event)
 
+    def director_startup_failed(self, failure):
+        self._director_startup_retries += 1
+
+        # We delay the startup using binary exponential backoff with an
+        # upper bound.
+        startup_delay = random.uniform(
+            0, min(2**self._director_startup_retries,
+                   self._director_max_retry_delay)
+        )
+        log.err("Failed to start the director, "
+                "retrying in {0}s".format(startup_delay))
+        self._reactor.callLater(
+            startup_delay,
+            self.start_director
+        )
+
     def director_started(self, _):
+        log.debug("Started director")
         self._director_started = True
 
     @app.handle_errors(NotFound)
@@ -435,7 +462,7 @@ class WebUIAPI(object):
             deck.load(deck_data)
             self.run_deck(deck)
 
-        except errors.MissingRequiredOption, option_name:
+        except errors.MissingRequiredOption as option_name:
             raise WebUIError(
                 400, 'Missing required option: "{}"'.format(option_name)
             )

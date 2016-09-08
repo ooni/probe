@@ -203,11 +203,9 @@ class Director(object):
             yield probe_ip.lookup()
             self.notify(DirectorEvent("success", "Looked up probe IP"))
 
-        self.notify(DirectorEvent("success",
-                                  "Running system tasks"))
+        self.notify(DirectorEvent("success", "Running system tasks"))
         yield run_system_tasks(no_input_store=not create_input_store)
-        self.notify(DirectorEvent("success",
-                                  "Ran system tasks"))
+        self.notify(DirectorEvent("success", "Ran system tasks"))
 
     @defer.inlineCallbacks
     def start(self, start_tor=False, check_incoherences=True,
@@ -218,6 +216,7 @@ class Director(object):
             self._director_starting.callback(self._director_state)
         except Exception as exc:
             self._director_starting.errback(Failure(exc))
+            raise
 
     @property
     def measurementSuccessRatio(self):

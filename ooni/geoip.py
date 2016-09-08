@@ -181,11 +181,16 @@ class ProbeIP(object):
         self._state = INITIAL
         self._looking_up = defer.Deferred()
         self._looking_up.addCallback(self._looked_up)
+        self._looking_up.addErrback(self._lookup_failed)
 
     def _looked_up(self, result):
         self._last_lookup = time.time()
         self._reset_state()
         return result
+
+    def _lookup_failed(self, failure):
+        self._reset_state()
+        return failure
 
     def resolveGeodata(self):
         from ooni.settings import config
@@ -227,8 +232,9 @@ class ProbeIP(object):
                 self.resolveGeodata()
                 self._looking_up.callback(self.address)
                 defer.returnValue(self.address)
-            except Exception:
+            except Exception as exc:
                 log.msg("Unable to lookup the probe IP via GeoIPService")
+                self._looking_up.errback(defer.failure.Failure(exc))
                 raise
 
     @defer.inlineCallbacks
