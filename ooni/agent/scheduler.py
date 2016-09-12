@@ -16,6 +16,8 @@ from ooni.utils.files import human_size_to_bytes, directory_usage
 from ooni.deck.store import input_store, deck_store, DEFAULT_DECKS
 from ooni.settings import config
 from ooni.contrib import croniter
+from ooni.contrib.dateutil.tz import tz
+
 from ooni.geoip import probe_ip
 from ooni.measurements import list_measurements
 
@@ -91,7 +93,8 @@ class ScheduledTask(object):
             return CANARY_DATE
         with self._last_run.open('r') as in_file:
             date_str = in_file.read()
-        return datetime.strptime(date_str, self._time_format)
+        return datetime.strptime(date_str, self._time_format).replace(
+            tzinfo=tz.tzutc())
 
     def _update_last_run(self, last_run_time):
         with self._last_run.open('w') as out_file:
