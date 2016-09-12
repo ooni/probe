@@ -1,11 +1,12 @@
 import os
 import shutil
+import random
 import tempfile
 
 from twisted.internet import defer
 from twisted.trial import unittest
 
-from ooni.agent.scheduler import ScheduledTask, DidNotRun
+from ooni.agent.scheduler import ScheduledTask, DidNotRun, FileSystemlockAndMutex
 
 class TestScheduler(unittest.TestCase):
     def test_scheduled_task(self):
@@ -49,3 +50,28 @@ class TestScheduler(unittest.TestCase):
 
         self.assertEqual(dummy_st.should_run, False)
         shutil.rmtree(scheduler_directory)
+
+
+    @defer.inlineCallbacks
+    def test_filesystem_lock_and_mutex(self):
+        lock_dir = tempfile.mkdtemp()
+        lock_path = os.path.join(lock_dir, 'lock')
+
+        lock = FileSystemlockAndMutex(lock_path)
+
+        lock_count = 100
+        unlock_count = 0
+        dl = []
+        for i in range(lock_count):
+            dl.append(lock.acquire())
+            if random.choice([0, 1]) == 0:
+                unlock_count += 1
+                lock.release()
+
+        for i in range(lock_count - unlock_count):
+            lock.release()
+
+        yield defer.DeferredList(dl)
+        self.assertFalse(lock.locked)
+
+        shutil.rmtree(lock_dir)
