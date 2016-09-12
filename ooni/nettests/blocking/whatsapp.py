@@ -222,7 +222,7 @@ class WhatsAppNetwork(object):
         for ip in WHATSAPP_IPV4.split("\n"):
             try:
                 self.ipv4_networks.append(ipaddr.IPv4Network(ip))
-            except Exception as exc:
+            except Exception:
                 log.err("IP is wrong")
                 log.msg(ip)
         self.ipv6_networks = map(ipaddr.IPv6Network,
@@ -252,7 +252,7 @@ class WhatsappTest(httpt.HTTPTest, dnst.DNSTest):
     description = ("This test checks to see if the servers used by whatsapp "
                    "messenger are reachable")
     author = "Arturo Filastò"
-    version = "0.1.0"
+    version = "0.2.0"
 
     requiresRoot = False
     requiresTor = False
@@ -278,7 +278,7 @@ class WhatsappTest(httpt.HTTPTest, dnst.DNSTest):
         # {"status": "fail", "reason": "missing_param", "param": "code"}
 
         try:
-            response = yield self.doRequest(url, 'GET')
+            yield self.doRequest(url, 'GET')
         except Exception as exc:
             failure_string = failureToString(defer.failure.Failure(exc))
             log.err("Failed to contact the registration server %s" % failure_string)
@@ -345,7 +345,7 @@ class WhatsappTest(httpt.HTTPTest, dnst.DNSTest):
             try:
                 yield self._test_connect_to_port(address, port)
                 connected = True
-            except Exception as exc:
+            except Exception:
                 pass
 
         if connected == False:
@@ -355,22 +355,20 @@ class WhatsappTest(httpt.HTTPTest, dnst.DNSTest):
     def _test_endpoint(self, hostname, whatsapp_network):
         log.msg("Testing %s" % hostname)
         addresses = yield self.performALookup(hostname)
-        consistent = True
+        ip_in_whats_app_network = False
+
         for address in addresses[:]:
             try:
-                is_in_whats_app_network = whatsapp_network.contains(address)
+                ip_in_whats_app_network |= whatsapp_network.contains(address)
             except ValueError:
                 # This happens when it's not an IP
                 addresses.remove(address)
                 continue
-            if not is_in_whats_app_network:
-                self.report['whatsapp_endpoints_status'] = 'blocked'
-                consistent = False
 
-        if consistent == False:
+        if ip_in_whats_app_network == False:
             log.msg("%s presents an inconsistent DNS response" % hostname)
+            self.report['whatsapp_endpoints_status'] = 'blocked'
             self.report['whatsapp_endpoints_dns_inconsistent'].append(hostname)
-            defer.returnValue(None)
 
         dl = []
         for address in addresses:
