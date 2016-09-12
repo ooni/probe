@@ -93,10 +93,9 @@ class ScheduledTask(object):
             date_str = in_file.read()
         return datetime.strptime(date_str, self._time_format)
 
-    def _update_last_run(self):
+    def _update_last_run(self, last_run_time):
         with self._last_run.open('w') as out_file:
-            current_time = datetime.utcnow()
-            out_file.write(current_time.strftime(self._time_format))
+            out_file.write(last_run_time.strftime(self._time_format))
 
     def task(self):
         raise NotImplementedError
@@ -117,8 +116,9 @@ class ScheduledTask(object):
         try:
             if self.last_run == CANARY_DATE:
                 yield defer.maybeDeferred(self.first_run)
+            last_run_time = datetime.utcnow()
             yield self.task()
-            self._update_last_run()
+            self._update_last_run(last_run_time)
         except:
             raise
         finally:
