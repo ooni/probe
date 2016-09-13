@@ -458,7 +458,7 @@ class WebUIAPI(object):
             ]
         }
         try:
-            deck = NGDeck(no_collector=True)
+            deck = NGDeck()
             deck.load(deck_data)
             self.run_deck(deck)
 
