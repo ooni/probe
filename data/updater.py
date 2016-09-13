@@ -133,7 +133,7 @@ class InvalidPublicKey(Exception):
     pass
 
 
-def verify_file(signature_path, signer_pk_path):
+def verify_file(signature_path, file_path, signer_pk_path):
     tmp_dir = tempfile.mkdtemp()
     tmp_key = os.path.join(tmp_dir, "signing-key.gpg")
 
@@ -148,7 +148,7 @@ def verify_file(signature_path, signer_pk_path):
             output = check_output(["gpg", "--batch", "--status-fd", "1",
                                    "--no-default-keyring", "--keyring",
                                    tmp_key, "--trust-model", "always",
-                                   "--verify", signature_path])
+                                   "--verify", signature_path, file_path])
         except CalledProcessError:
             raise InvalidSignature
 
@@ -188,7 +188,7 @@ def perform_update(version, skip_verification=False):
 
     if skip_verification is not True:
         try:
-            verify_file(updater_sig_path, PUBLIC_KEY_PATH)
+            verify_file(updater_sig_path, updater_path, PUBLIC_KEY_PATH)
         except InvalidSignature:
             logging.error("Found an invalid signature. Bailing")
             raise UpdateFailed
