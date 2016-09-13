@@ -608,7 +608,7 @@ class Report(object):
         if self.collector_client:
             self.oonib_reporter = OONIBReporter(self.test_details,
                                                 self.collector_client)
-            self.test_details['report_id'] = yield self.open_oonib_reporter()
+            yield self.open_oonib_reporter()
 
         if not self.no_njson:
             self.njson_reporter = NJSONReporter(self.test_details,
