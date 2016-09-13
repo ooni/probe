@@ -1,6 +1,24 @@
 Changelog
 =========
 
+v2.0.0-rc.2 (Tue, 13 Sep 2016)
+------------------------------
+
+This is a release candidate for a major ooniprobe release.
+
+It includes a new web user interface and a system daemon for running ooniprobe
+tests.
+
+Feature list:
+
+* System daemon for running tests periodically (https://github.com/TheTorProject/ooni-probe/issues/576)
+
+* Web user interface for viewing measurement results (https://github.com/TheTorProject/ooni-probe/issues/575)
+
+* New deck format (https://github.com/TheTorProject/ooni-probe/issues/571)
+
+* Local reports are written in JSON (https://github.com/TheTorProject/ooni-probe/issues/557)
+
 v1.6.1 (Tue, 26 Jul 2016)
 -------------------------
 
