@@ -50,10 +50,12 @@ class FileSystemlockAndMutex(object):
 
 # We use this date to indicate that the scheduled task has never run.
 # Easter egg, try to see what is special about this date :)?
-CANARY_DATE = datetime(1957, 8, 4)
+CANARY_DATE = datetime(1957, 8, 4, tzinfo=tz.tzutc())
+
 
 class DidNotRun(Exception):
     pass
+
 
 class ScheduledTask(object):
     _time_format = "%Y-%m-%dT%H:%M:%SZ"
@@ -80,7 +82,7 @@ class ScheduledTask(object):
 
     @property
     def should_run(self):
-        current_time = datetime.utcnow()
+        current_time = datetime.utcnow().replace(tzinfo=tz.tzutc())
         next_cycle = croniter(self.schedule, self.last_run).get_next(datetime)
         if next_cycle <= current_time:
             return True
