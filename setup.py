@@ -152,7 +152,7 @@ def mkdir_p(path):
     try:
         os.makedirs(path)
     except OSError as ose:
-        if ose != errno.EEXIST:
+        if ose.errno != errno.EEXIST:
             raise
 
 class OoniInstall(InstallCommand):

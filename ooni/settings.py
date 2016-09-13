@@ -168,7 +168,7 @@ if IS_VIRTUALENV:
     )
     USR_SHARE_PATH = os.path.join(
         _PREFIX,
-        'usr', 'share', 'ooni'
+        'share', 'ooni'
     )
     ETC_PATH = os.path.join(
         _PREFIX,
