@@ -86,7 +86,7 @@ tor:
     #
     # This is the timeout after which we consider to to not have
     # bootstrapped properly.
-    #timeout: 200
+    #timeout: 400
     #torrc:
         #HTTPProxy: host:port
         #HTTPProxyAuthenticator: user:password
@@ -141,7 +141,7 @@ defaults = {
         "control_port": None,
         "bridges": None,
         "data_dir": None,
-        "timeout": 200,
+        "timeout": 400,
         "torrc": {}
     }
 }
