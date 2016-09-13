@@ -278,6 +278,7 @@ class RefreshDeckList(ScheduledTask):
     def task(self):
         self.scheduler.refresh_deck_list()
 
+
 class SendHeartBeat(ScheduledTask):
     """
     This task is used to send a heartbeat that the probe is still alive and
@@ -345,6 +346,7 @@ class SchedulerService(service.MultiService):
 
         # If we are not initialized we should not enable anything
         if not config.is_initialized():
+            log.msg("We are not initialized skipping setup of decks")
             to_enable = []
 
         for scheduled_task in self._scheduled_tasks[:]:
@@ -355,13 +357,16 @@ class SchedulerService(service.MultiService):
             if info in to_enable:
                 # If the task is already scheduled there is no need to
                 # enable it.
+                log.msg("The deck {0} is already scheduled".format(deck_id))
                 to_enable.remove(info)
             else:
                 # If one of the tasks that is scheduled is no longer in the
                 # scheduled tasks. We should disable it.
+                log.msg("The deck task {0} should be disabled".format(deck_id))
                 self.unschedule(scheduled_task)
 
         for deck_id, schedule in to_enable:
+            log.msg("Scheduling to run {0}".format(deck_id))
             self.schedule(RunDeck(self.director, deck_id, schedule))
 
     def _task_did_not_run(self, failure, task):
