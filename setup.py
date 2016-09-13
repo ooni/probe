@@ -87,6 +87,7 @@ Have fun!
 from __future__ import print_function
 
 import os
+import errno
 import tempfile
 from glob import glob
 
@@ -147,6 +148,13 @@ def install_lepidopter_update():
     check_call(["data/updater.py", "install"])
 
 
+def mkdir_p(path):
+    try:
+        os.makedirs(path)
+    except OSError as ose:
+        if ose != errno.EEXIST:
+            raise
+
 class OoniInstall(InstallCommand):
     def gen_config(self, share_path):
         config_file = pj(tempfile.mkdtemp(), "ooniprobe.conf.sample")
@@ -183,14 +191,9 @@ class OoniInstall(InstallCommand):
         with open("ooni/settings.ini", "w+") as fp:
             settings.write(fp)
 
-        try:
-            os.makedirs(pj(var_path, 'ooni'))
-        except OSError:
-            pass
-        try:
-            os.makedirs(pj(share_path, 'ooni'))
-        except OSError:
-            pass
+        mkdir_p(pj(var_path, 'ooni'))
+        mkdir_p(pj(share_path, 'ooni'))
+        mkdir_p(pj(share_path, 'ooni', 'decks-available'))
 
     def pre_install(self):
         prefix = os.path.abspath(self.prefix)
