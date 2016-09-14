@@ -16,6 +16,8 @@ def sort_addresses_by_priority(priority_address,
         'address': priority_address,
         'type': backend_type
     }
+    # We prefer an onion collector to an https collector to a cloudfront
+    # collector to a plaintext collector
     address_priority = ['onion', 'https', 'cloudfront', 'http']
     address_priority.remove(preferred_backend)
     address_priority.insert(0, preferred_backend)
@@ -73,8 +75,6 @@ def get_reachable_test_helper(test_helper_name, test_helper_address,
 @defer.inlineCallbacks
 def get_reachable_collector(collector_address, collector_alternate,
                             preferred_backend):
-    # We prefer onion collector to https collector to cloudfront
-    # collectors to plaintext collectors
     for collector_settings in sort_addresses_by_priority(
             collector_address,
             collector_alternate,

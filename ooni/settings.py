@@ -18,7 +18,7 @@ CONFIG_FILE_TEMPLATE = """\
 # Keep in mind that indentation matters.
 
 basic:
-    # Where OONIProbe should be writing it's log file
+    # Where OONIProbe should be writing its log file
     # logfile: {logfile}
     # loglevel: WARNING
     # The maximum amount of data to store on disk. Once the quota is reached,

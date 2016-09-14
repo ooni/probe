@@ -24,9 +24,12 @@ from ooni.measurements import list_measurements
 class FileSystemlockAndMutex(object):
     """
     This is a lock that is both a mutex lock and also on filesystem.
-    When you acquire it, it will first block on the mutex lock and then
-    once that is released it will attempt to acquire the lock on the
-    filesystem.
+    When you acquire it, it will first acquire the mutex lock and then
+    acquire the filesystem lock. The release order is inverted.
+
+    This is to avoid concurrent usage within the same process. When using it
+    concurrently the mutex lock will block before the filesystem lock is
+    acquired.
 
     It's a way to support concurrent usage of the DeferredFilesystemLock
     without races.
@@ -291,7 +294,7 @@ class SendHeartBeat(ScheduledTask):
         # XXX implement this
         pass
 
-# Order mattters
+# Order matters
 SYSTEM_TASKS = [
     UpdateInputsAndResources
 ]
@@ -303,7 +306,10 @@ def run_system_tasks(no_input_store=False):
 
     if no_input_store:
         log.debug("Not updating the inputs")
-        task_classes.remove(UpdateInputsAndResources)
+        try:
+            task_classes.remove(UpdateInputsAndResources)
+        except ValueError:
+            pass
 
     for task_class in task_classes:
         task = task_class()
@@ -337,7 +343,15 @@ class SchedulerService(service.MultiService):
         self._scheduled_tasks.remove(task)
 
     def refresh_deck_list(self):
+        """
+        This checks if there are some decks that have been enabled and
+        should be scheduled as periodic tasks to run on the next scheduler
+        cycle and if some have been disabled and should not be run.
 
+        It does so by listing the enabled decks and checking if the enabled
+        ones are already scheduled or if some of the scheduled ones are not
+        amongst the enabled decks.
+        """
         to_enable = []
         for deck_id, deck in deck_store.list_enabled():
             if deck.schedule is None:

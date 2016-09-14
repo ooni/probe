@@ -112,7 +112,11 @@ class Director(object):
 
     def notify(self, event):
         for handler in self._subscribers:
-            handler(event)
+            try:
+                handler(event)
+            except Exception as exc:
+                log.err("Failed to run handler")
+                log.exception(exc)
 
     def _reset_director_state(self):
         self._director_state = 'not-running'

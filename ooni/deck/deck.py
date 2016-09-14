@@ -25,7 +25,7 @@ def resolve_file_path(v, prepath=None):
     if v.startswith("$"):
         # This raises InputNotFound and we let it carry onto the caller
         return input_store.get(v[1:])["filepath"]
-    elif prepath is not None and (not os.path.isabs(v)):
+    if prepath is not None and (not os.path.isabs(v)):
         return FilePath(prepath).preauthChild(v).path
     return v
 

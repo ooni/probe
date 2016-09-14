@@ -3,7 +3,7 @@
 # Keep in mind that indentation matters.
 
 basic:
-    # Where OONIProbe should be writing it's log file
+    # Where OONIProbe should be writing its log file
     logfile: /var/log/ooniprobe.log
     loglevel: WARNING
 privacy:
