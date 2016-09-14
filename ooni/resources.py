@@ -5,11 +5,6 @@ from twisted.python.filepath import FilePath
 from twisted.internet import defer
 from twisted.web.client import downloadPage, getPage, HTTPClientFactory
 
-# WARNING: this script is being run as part of the post install procedure.
-# Be sure to not import either in this module or in the imported modules
-# dependencies other than twisted. If you end up including something that is
-# not twisted, then you will need to add it to the setup_requires in setup.py.
-
 from ooni.utils import log, gunzip, rename
 from ooni.settings import config
 
