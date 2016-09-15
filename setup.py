@@ -145,7 +145,7 @@ def is_updater_installed():
 
 
 def install_lepidopter_update():
-    check_call(["data/updater.py", "install"])
+    check_call(["data/lepidopter-update.py", "install"])
 
 
 def mkdir_p(path):

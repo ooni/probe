@@ -7,7 +7,7 @@ include data/oonireport.1
 include data/ooniresources.1
 include data/ooniprobe.conf.sample
 
-include data/updater.py
+include data/lepidopter-update.py
 
 include ooni/settings.ini
 include ooni/ui/consent-form.md

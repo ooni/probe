@@ -1,19 +1,41 @@
 #!/usr/bin/env python2
+"""
+This is the auto-updater script for lepidopter.
+
+It must be run from root and it takes care of downloading the most recent
+updates and doing all the operations needed to perform the update.
+
+To run it expects systemd to be configured.
+
+This script includes a self-installer which can be run via:
+
+python updater.py install
+
+It then expects to be run as a systemd service with:
+
+python updater.py update --watch
+"""
 
 from __future__ import print_function
 
 import os
 import re
 import imp # XPY3 this is deprecated in python3
+import sys
 import time
 import errno
 import shutil
+import getpass
 import logging
 import tempfile
 import argparse
 
 from subprocess import check_output, check_call, CalledProcessError
 
+# The version number of the updater
+__version__ = "1.0.0"
+
+LOG_FORMAT = "%(asctime)s - %(levelname)s - %(message)s"
 # UPDATE_BASE_URL/latest/version must return an integer containing the latest version number
 # UPDATE_BASE_URL/VERSION/update.py must return the update script for VERSION
 # UPDATE_BASE_URL/VERSION/update.py.asc must return a valid GPG signature for update.py
@@ -326,7 +348,12 @@ def _setup_logging(args):
     except AttributeError:
         raise InvalidLogLevel()
 
-    logging.basicConfig(filename=log_file, level=log_level)
+    logging.basicConfig(filename=log_file, level=log_level, format=LOG_FORMAT)
+
+def _check_user():
+    if getpass.getuser() != 'root':
+        print("ERROR: this script must be run as root!")
+        sys.exit(1)
 
 def main():
     parser = argparse.ArgumentParser(description="Auto-update system for lepidopter")
@@ -350,6 +377,7 @@ def main():
 
     args = parser.parse_args()
     _setup_logging(args)
+    _check_user()
     args.func(args)
 
 
