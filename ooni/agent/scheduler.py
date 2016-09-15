@@ -398,6 +398,15 @@ class SchedulerService(service.MultiService):
         """
         This function is called every self.interval seconds to check
         which periodic tasks should be run.
+
+        Note: the task will wait on the lock if there is already a task of
+        that type running. This means that if a task is very long running
+        there can potentially be a pretty large backlog of accumulated
+        periodic tasks waiting to know if they should run.
+        XXX
+        We may want to do something like not wait on the lock if there is
+        already a queue that is larger than a certain amount or something
+        smarter if still starts to become a memory usage concern.
         """
         for task in self._scheduled_tasks:
             log.debug("Running task {0}".format(task.identifier))
