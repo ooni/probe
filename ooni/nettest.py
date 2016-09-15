@@ -242,7 +242,7 @@ class NetTestLoader(object):
         m = ONION_INPUT_REGEXP.match(filename)
         if m:
             raise e.InvalidInputFile("Input files hosted on hidden services "
-                                     "are not longer supported")
+                                     "are no longer supported")
         else:
             input_file['filename'] = filename
         self.inputFiles.append(input_file)

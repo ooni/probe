@@ -1,6 +1,8 @@
 import shutil
 import string
 import random
+import signal
+import errno
 import gzip
 import os
 
@@ -160,3 +162,16 @@ def gunzip(file_path):
 def get_ooni_root():
     script = os.path.join(__file__, '..')
     return os.path.dirname(os.path.realpath(script))
+
+def is_process_running(pid):
+    try:
+        os.kill(pid, signal.SIG_DFL)
+        running = True
+    except OSError as ose:
+        if ose.errno == errno.EPERM:
+            running = True
+        elif ose.errno == errno.ESRCH:
+            running = False
+        else:
+            raise
+    return running

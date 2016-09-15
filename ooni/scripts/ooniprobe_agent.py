@@ -8,7 +8,7 @@ import signal
 from twisted.scripts import twistd
 from twisted.python import usage
 
-from ooni.utils import log
+from ooni.utils import log, is_process_running
 from ooni.settings import config
 from ooni.agent.agent import AgentService
 
@@ -102,18 +102,10 @@ def get_running_pidfile():
             continue
         pid = open(pidfile, "r").read()
         pid = int(pid)
-        try:
-            os.kill(pid, signal.SIG_DFL)
+        if is_process_running(pid):
             running_pidfile = pidfile
-            break
-        except OSError as ose:
-            if ose.errno == errno.ESRCH:
-                # Found pid, but isn't running
-                continue
-            elif ose.errno == errno.EPERM:
-                # The process is owned by root. We assume it's running
-                running_pidfile = pidfile
-                break
+        else:
+            continue
     if running_pidfile is None:
         raise NotRunning
     return running_pidfile

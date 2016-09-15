@@ -1,9 +1,7 @@
-import os
 import json
-import signal
 
 from twisted.python.filepath import FilePath
-from ooni.utils import log
+from ooni.utils import log, is_process_running
 from ooni.utils.files import directory_usage
 from ooni.settings import config
 
@@ -75,14 +73,11 @@ def get_measurement(measurement_id, compute_size=False):
     stale = False
     if measurement.child("measurements.njson.progress").exists():
         completed = False
-        # XXX this is done quite often around the code, probably should
-        # be moved into some utility function.
         pid = measurement.child("running.pid").open("r").read()
         pid = int(pid)
-        try:
-            os.kill(pid, signal.SIG_DFL)
+        if is_process_running(pid):
             running = True
-        except OSError:
+        else:
             stale = True
 
     if measurement.child("keep").exists():
@@ -136,10 +131,3 @@ def list_measurements(compute_size=False):
         except:
             log.err("Failed to get metadata for measurement {0}".format(measurement_id))
     return measurements
-
-if __name__ == "__main__":
-    import sys
-    if len(sys.argv) != 3:
-        print("Usage: {0} [input_file] [output_file]".format(sys.argv[0]))
-        sys.exit(1)
-    generate_summary(sys.argv[1], sys.argv[2])
