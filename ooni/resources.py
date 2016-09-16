@@ -5,7 +5,7 @@ from twisted.python.filepath import FilePath
 from twisted.internet import defer
 from twisted.web.client import downloadPage, getPage, HTTPClientFactory
 
-from ooni.utils import log, gunzip, rename
+from ooni.utils import log, gunzip, rename, mkdir_p
 from ooni.settings import config
 
 # Disable logs of HTTPClientFactory
@@ -107,11 +107,7 @@ def check_for_update(country_code=None):
     latest_version = yield get_latest_version()
 
     resources_dir = FilePath(config.resources_directory)
-    try:
-        resources_dir.makedirs()
-    except OSError as e:
-        if not e.errno == errno.EEXIST:
-            raise
+    mkdir_p(resources_dir.path)
     current_manifest = resources_dir.child("manifest.json")
 
     if current_manifest.exists():
@@ -153,11 +149,9 @@ def check_for_update(country_code=None):
                 filename = filename[:-3]
                 gzipped = True
             dst_file = resources_dir.child(pre_path).child(filename)
-            try:
-                dst_file.parent().makedirs()
-            except OSError as e:
-                if not e.errno == errno.EEXIST:
-                    raise
+
+            mkdir_p(dst_file.parent().path)
+
             src_file = dst_file.temporarySibling()
             src_file.alwaysCreate = 0
 

@@ -175,3 +175,16 @@ def is_process_running(pid):
         else:
             raise
     return running
+
+def mkdir_p(path):
+    """
+    Like makedirs, but it also ignores EEXIST errors, unless it exists but
+    isn't a directory.
+    """
+    try:
+        os.makedirs(path)
+    except OSError as ose:
+        if ose.errno != errno.EEXIST:
+            raise
+        if not os.path.isdir(path):
+            raise

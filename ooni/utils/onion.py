@@ -15,6 +15,7 @@ from twisted.internet.endpoints import TCP4ClientEndpoint
 from txtorcon import TorConfig, TorState, launch_tor, build_tor_connection
 from txtorcon.util import find_tor_binary as tx_find_tor_binary
 
+from ooni.utils import mkdir_p
 from ooni.utils.net import randomFreePort
 from ooni import constants
 from ooni import errors
@@ -253,12 +254,9 @@ def get_tor_config():
         # 2. We have write permissions to it
         data_dir_usable = is_tor_data_dir_usable(data_dir)
         try:
-            os.makedirs(data_dir)
-            log.debug("%s does not exist. Creating it." % data_dir)
+            mkdir_p(data_dir)
         except OSError as ose:
-            if ose.errno == errno.EEXIST:
-                pass
-            elif ose.errno == errno.EACCESS:
+            if ose.errno == errno.EACCESS:
                 data_dir_usable = False
             else:
                 raise

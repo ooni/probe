@@ -1,12 +1,12 @@
 from __future__ import print_function
 
-import errno
 import os
 import sys
 
 from twisted.internet import defer, task
 from twisted.python import usage
 
+from ooni.utils import mkdir_p
 from ooni.otime import prettyDateNowUTC
 from ooni import errors
 from ooni.geoip import probe_ip
@@ -120,11 +120,7 @@ def oonideckgen(reactor):
 
     options['country-code'] = options['country-code'].lower()
 
-    try:
-        os.makedirs(os.path.dirname(options['output']))
-    except OSError as exception:
-        if exception.errno != errno.EEXIST:
-            raise
+    mkdir_p(os.path.dirname(options['output']))
 
     generate_deck(options)
 

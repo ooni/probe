@@ -6,6 +6,7 @@ from copy import deepcopy
 from twisted.internet import defer
 from twisted.python.filepath import FilePath
 
+from ooni.utils import mkdir_p
 from ooni.deck.deck import NGDeck
 from ooni.otime import timestampNowISO8601UTC
 from ooni.resources import check_for_update
@@ -80,16 +81,9 @@ class InputStore(object):
         self.path = FilePath(config.inputs_directory)
         self.resources = FilePath(config.resources_directory)
 
-        try:
-            self.path.child("descriptors").makedirs()
-        except OSError as e:
-            if not e.errno == errno.EEXIST:
-                raise
-        try:
-            self.path.child("data").makedirs()
-        except OSError as e:
-            if not e.errno == errno.EEXIST:
-                raise
+        mkdir_p(self.path.child("descriptors").path)
+        mkdir_p(self.path.child("data").path)
+
         yield self.update_url_lists(country_code)
 
     @defer.inlineCallbacks

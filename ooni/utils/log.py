@@ -7,6 +7,7 @@ import logging
 from twisted.python import log as tw_log
 from twisted.python.logfile import DailyLogFile
 
+from ooni.utils import mkdir_p
 from ooni import otime
 
 # Get rid of the annoying "No route found for
@@ -140,13 +141,7 @@ class OONILogger(object):
             log_folder = config.running_path
             logfile = os.path.join(log_folder, "ooniprobe.log")
 
-        try:
-            os.makedirs(log_folder)
-        except OSError as ose:
-            if ose.errno == errno.EEXIST and os.path.isdir(log_folder):
-                pass
-            else:
-                raise
+        mkdir_p(log_folder)
 
         log_filename = os.path.basename(logfile)
         file_log_level = levels.get(config.basic.loglevel,
