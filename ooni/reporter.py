@@ -221,7 +221,8 @@ class NJSONReporter(OReporter):
         OReporter.__init__(self, test_details)
 
     def _writeln(self, line):
-        self._write("%s\n" % line)
+        self._write(line)
+        self._write("\n")
 
     def _write(self, data):
         if not self._stream:
@@ -249,8 +250,7 @@ class NJSONReporter(OReporter):
             'test_keys': e
         }
         report_entry.update(self.testDetails)
-        self._write(json.dumps(report_entry))
-        self._write("\n")
+        self._writeln(json.dumps(report_entry))
 
     def createReport(self):
         self._stream = open(self.report_path, 'w+')

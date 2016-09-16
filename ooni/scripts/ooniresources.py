@@ -30,5 +30,6 @@ def run():
         print "%s: Try --help for usage details." % (sys.argv[0])
         sys.exit(1)
 
-    print("WARNING: Usage of this script is deprecated.")
+    print("WARNING: Usage of this script is deprecated. We will not do "
+          "anything.")
     sys.exit(0)

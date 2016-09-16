@@ -91,6 +91,10 @@ def check_for_update(country_code=None):
     Checks if we need to update the resources.
     If the country_code is specified then only the resources for that
     country will be updated/downloaded.
+
+    XXX we currently don't check the shasum of resources although this is
+    included inside of the manifest.
+    This should probably be done once we have signing of resources.
     :return: the latest version.
     """
     temporary_files = []

@@ -1,6 +1,7 @@
 from __future__ import print_function
 
 import os
+import sys
 import time
 import errno
 import signal
@@ -65,8 +66,9 @@ def start_agent(options=None):
     twistd_args.append("StartOoniprobeAgent")
     try:
         twistd_config.parseOptions(twistd_args)
-    except usage.error, ue:
+    except usage.error as ue:
         print("ooniprobe: usage error from twistd: {}\n".format(ue))
+        sys.exit(1)
     twistd_config.loadedPlugins = {
         "StartOoniprobeAgent": StartOoniprobeAgentPlugin()
     }
@@ -103,12 +105,8 @@ def get_running_pidfile():
         pid = open(pidfile, "r").read()
         pid = int(pid)
         if is_process_running(pid):
-            running_pidfile = pidfile
-        else:
-            continue
-    if running_pidfile is None:
-        raise NotRunning
-    return running_pidfile
+            return pidfile
+    raise NotRunning
 
 def status_agent():
     try:
