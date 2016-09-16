@@ -128,12 +128,15 @@ def stop_agent():
     pid = open(pidfile, "r").read()
     pid = int(pid)
     try:
-        os.kill(pid, signal.SIGKILL)
+        os.kill(pid, signal.SIGTERM)
     except OSError as ose:
         if ose.errno == errno.ESRCH:
             print("No process was running. Cleaning up.")
             # the process didn't exist, so wipe the pid file
-            os.remove(pidfile)
+            try:
+                os.remove(pidfile)
+            except EnvironmentError as exc:
+                print("Failed to delete the pidfile {0}".format(exc))
             return 2
         elif ose.errno == errno.EPERM:
             # The process is owned by root. We assume it's running
@@ -152,7 +155,7 @@ def stop_agent():
     while True:
         # poll once per second until we see the process is no longer running
         try:
-            os.kill(pid, 0)
+            os.kill(pid, signal.SIG_DFL)
         except OSError:
             print("process %d is dead" % pid)
             return
@@ -161,7 +164,16 @@ def stop_agent():
             if first_time:
                 print("It looks like pid %d is still running "
                       "after %d seconds" % (pid, (time.time() - start)))
-                print("I will keep watching it until you interrupt me.")
+                print("Sending a SIGKILL and waiting for it to terminate "
+                      "until you kill me.")
+                try:
+                    os.kill(pid, signal.SIGKILL)
+                except OSError as ose:
+                    # Race condition check. It could have dies already. If
+                    # so we are happy.
+                    if ose.errno == errno.ESRCH:
+                        print("process %d is dead" % pid)
+                        return
                 wait = 10
                 first_time = False
             else:
