@@ -59,7 +59,7 @@ tor:
 
 
 class TestRunDirector(ConfigTestCase):
-    timeout = 220
+    timeout = 420
 
     def setUp(self):
         super(TestRunDirector, self).setUp()
