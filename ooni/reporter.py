@@ -17,7 +17,7 @@ from twisted.python.util import untilConcludes
 from twisted.internet import defer
 from twisted.internet.error import ConnectionRefusedError
 
-from ooni.utils import log
+from ooni.utils import log, is_process_running
 from ooni.tasks import Measurement
 try:
     from scapy.packet import Packet
@@ -458,9 +458,7 @@ class OONIBReportLog(object):
             if entry['completed'] is False:
                 continue
             if entry['status'] in ('created',):
-                try:
-                    os.kill(entry['pid'], 0)
-                except OSError:
+                if not is_process_running(entry['pid']):
                     incomplete_reports.append(
                         (entry['measurements_path'], entry)
                     )
@@ -476,13 +474,10 @@ class OONIBReportLog(object):
         all_entries = yield self.get_report_log_entries()
         for entry in all_entries[:]:
             if entry['status'] in ('created',):
-                try:
-                    os.kill(entry['pid'], 0)
+                if is_process_running(entry['pid']):
                     in_progress_reports.append(
                         (entry['measurements_path'], entry)
                     )
-                except OSError:
-                    pass
         defer.returnValue(in_progress_reports)
 
     @defer.inlineCallbacks
