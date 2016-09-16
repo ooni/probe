@@ -11,10 +11,8 @@ from ooni.otime import prettyDateNowUTC
 from ooni import errors
 from ooni.geoip import probe_ip
 from ooni.resources import check_for_update
-from ooni.settings import config
 from ooni.deck import NGDeck
-
-__version__ = "1.0.0"
+from ooni import __version__
 
 class Options(usage.Options):
     synopsis = """%s [options]

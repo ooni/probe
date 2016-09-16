@@ -14,8 +14,7 @@ from ooni.reporter import OONIBReporter, OONIBReportLog
 from ooni.utils import log
 from ooni.settings import config
 from ooni.backend_client import BouncerClient, CollectorClient
-
-__version__ = "0.1.0"
+from ooni import __version__
 
 @defer.inlineCallbacks
 def lookup_collector_client(report_header, bouncer):

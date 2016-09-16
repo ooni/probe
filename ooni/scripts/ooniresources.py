@@ -1,6 +1,7 @@
 import sys
 
 from twisted.python import usage
+from ooni import __version__
 
 class Options(usage.Options):
     synopsis = """%s
@@ -17,7 +18,7 @@ class Options(usage.Options):
     optParameters = []
 
     def opt_version(self):
-        print("ooniresources version: 0.2.0")
+        print("ooniresources version: %s" % __version__)
         sys.exit(0)
 
 
