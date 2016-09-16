@@ -192,20 +192,23 @@ class ProbeIP(object):
         self._reset_state()
         return failure
 
-    def resolveGeodata(self):
+    def resolveGeodata(self,
+                       include_ip=None,
+                       include_asn=None,
+                       include_country=None):
         from ooni.settings import config
 
         self.geodata = ip_to_location(self.address)
         self.geodata['ip'] = self.address
-        if not config.privacy.includeasn:
+        if not config.privacy.includeasn and include_asn is not True:
             self.geodata['asn'] = 'AS0'
-        if not config.privacy.includecountry:
+        if not config.privacy.includecountry and include_country is not True:
             self.geodata['countrycode'] = 'ZZ'
-        if not config.privacy.includeip:
+        if not config.privacy.includeip and include_ip is not True:
             self.geodata['ip'] = '127.0.0.1'
 
     @defer.inlineCallbacks
-    def lookup(self):
+    def lookup(self, include_ip=None, include_asn=None, include_country=None):
         if self._state == IN_PROGRESS:
             yield self._looking_up
         elif self._last_lookup < time.time() - self._expire_in:
@@ -218,7 +221,7 @@ class ProbeIP(object):
             try:
                 yield self.askTor()
                 log.msg("Found your IP via Tor")
-                self.resolveGeodata()
+                self.resolveGeodata(include_ip, include_asn, include_country)
                 self._looking_up.callback(self.address)
                 defer.returnValue(self.address)
             except errors.TorStateNotFound:
@@ -229,7 +232,7 @@ class ProbeIP(object):
             try:
                 yield self.askGeoIPService()
                 log.msg("Found your IP via a GeoIP service")
-                self.resolveGeodata()
+                self.resolveGeodata(include_ip, include_asn, include_country)
                 self._looking_up.callback(self.address)
                 defer.returnValue(self.address)
             except Exception as exc:

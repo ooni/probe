@@ -84,8 +84,7 @@ def generate_deck(options):
 
 @defer.inlineCallbacks
 def get_user_country_code():
-    config.privacy.includecountry = True
-    yield probe_ip.lookup()
+    yield probe_ip.lookup(include_country=True)
     defer.returnValue(probe_ip.geodata['countrycode'])
 
 
