@@ -144,8 +144,8 @@ class LongPoller(object):
 
 class WebUIAPI(object):
     app = Klein()
-    # Maximum number in seconds after which to return a result even if not
-    # change happenned.
+    # Maximum number in seconds after which to return a result even if no
+    # change happened.
     _long_polling_timeout = 5
     _reactor = reactor
     _enable_xsrf_protection = True

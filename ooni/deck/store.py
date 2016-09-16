@@ -92,15 +92,17 @@ class InputStore(object):
         yield self.create(country_code)
 
     def _update_cache(self):
+        new_cache = {}
         descs = self.path.child("descriptors")
         if not descs.exists():
-            self._cache = {}
+            self._cache = new_cache
             return
 
         for fn in descs.listdir():
             with descs.child(fn).open("r") as in_fh:
                 input_desc = json.load(in_fh)
-                self._cache[input_desc.pop("id")] = input_desc
+                new_cache[input_desc.pop("id")] = input_desc
+        self._cache = new_cache
         self._cache_stale = False
         return
 
@@ -172,6 +174,7 @@ class DeckStore(object):
         deck_enabled_path.remove()
 
     def _update_cache(self):
+        new_cache = {}
         for deck_path in self.available_directory.listdir():
             if not deck_path.endswith('.yaml'):
                 continue
@@ -179,7 +182,9 @@ class DeckStore(object):
             deck = NGDeck(
                 deck_path=self.available_directory.child(deck_path).path
             )
-            self._cache[deck_id] = deck
+            new_cache[deck_id] = deck
+        self._cache = new_cache
+        self._cache_stale = False
 
     def get(self, deck_id):
         if self._cache_stale:
