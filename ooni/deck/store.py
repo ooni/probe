@@ -115,7 +115,7 @@ class InputStore(object):
         if self._cache_stale:
             self._update_cache()
         try:
-            input_desc = self._cache[input_id]
+            input_desc = deepcopy(self._cache[input_id])
         except KeyError:
             raise InputNotFound(input_id)
         return input_desc
@@ -190,7 +190,7 @@ class DeckStore(object):
         if self._cache_stale:
             self._update_cache()
         try:
-            return self._cache[deck_id]
+            return deepcopy(self._cache[deck_id])
         except KeyError:
             raise DeckNotFound(deck_id)
 

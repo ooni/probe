@@ -474,7 +474,7 @@ class WebUIAPI(object):
 
         except errors.InsufficientPrivileges:
             raise WebUIError(
-                400, 'Insufficient priviledges'
+                400, 'Insufficient privileges'
             )
         except:
             raise WebUIError(
@@ -511,8 +511,10 @@ class WebUIAPI(object):
     @xsrf_protect(check=False)
     @requires_true(attrs=['_is_initialized'])
     def api_input_details(self, request, input_id):
+        input_desc = self.director.input_store.get(input_id)
+        input_desc.pop('filepath')
         return self.render_json(
-            self.director.input_store.get(input_id), request
+            input_desc, request
         )
 
     @app.route('/api/measurement', methods=["GET"])
