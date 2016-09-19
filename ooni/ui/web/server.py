@@ -56,13 +56,13 @@ def xsrf_protect(check=True):
         @wraps(f)
         def wrapper(instance, request, *a, **kw):
             should_check = check and instance._enable_xsrf_protection
-            token_cookie = request.getCookie(b'XSRF-TOKEN')
+            token_cookie = request.getCookie(u'XSRF-TOKEN')
             token_header = request.getHeader(b"X-XSRF-TOKEN")
             if (token_cookie != instance._xsrf_token and
                     instance._enable_xsrf_protection):
-                request.addCookie(b'XSRF-TOKEN',
+                request.addCookie(u'XSRF-TOKEN',
                                   instance._xsrf_token,
-                                  path=b'/')
+                                  path=u'/')
             if should_check and token_cookie != token_header:
                 raise WebUIError(404, "Invalid XSRF token")
             return f(instance, request, *a, **kw)
@@ -161,7 +161,7 @@ class WebUIAPI(object):
         # We use a double submit token to protect against XSRF
         rng = SystemRandom()
         token_space = string.letters+string.digits
-        self._xsrf_token = b''.join([rng.choice(token_space)
+        self._xsrf_token = ''.join([rng.choice(token_space)
                                     for _ in range(30)])
 
         self._director_started = False
