@@ -12,6 +12,7 @@ from twisted.python import usage
 from ooni.utils import log, is_process_running
 from ooni.settings import config
 from ooni.agent.agent import AgentService
+from ooni import __version__
 
 
 class StartOoniprobeAgentPlugin:
@@ -38,6 +39,10 @@ class RunOptions(usage.Options):
     pass
 
 class AgentOptions(usage.Options):
+
+    synopsis = """%s [options] command
+    """ % (os.path.basename(sys.argv[0]),)
+
     subCommands = [
         ['start', None, StartOptions, "Start the ooniprobe-agent in the "
                                       "background"],
@@ -45,8 +50,16 @@ class AgentOptions(usage.Options):
         ['status', None, StatusOptions, "Show status of the ooniprobe-agent"],
         ['run', None, RunOptions, "Run the ooniprobe-agent in the foreground"]
     ]
+
     def postOptions(self):
         self.twistd_args = []
+
+    def opt_version(self):
+        """
+        Display the ooniprobe version and exit.
+        """
+        print("ooniprobe-agent version:", __version__)
+        sys.exit(0)
 
 def start_agent(options=None):
     config.set_paths()
@@ -188,14 +201,18 @@ def run():
     options = AgentOptions()
     options.parseOptions()
 
-    if options.subCommand == "run":
-        options.twistd_args += ("--nodaemon",)
+    if options.subCommand == None:
+        print(options)
+        return
 
     if options.subCommand == "stop":
         return stop_agent()
 
     if options.subCommand == "status":
         return status_agent()
+
+    if options.subCommand == "run":
+        options.twistd_args += ("--nodaemon",)
 
     return start_agent(options)
 
