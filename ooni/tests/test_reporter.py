@@ -2,11 +2,13 @@ import os
 import yaml
 import json
 import time
-from mock import MagicMock
+import shutil
+import tempfile
 
 from twisted.internet import defer
 from twisted.trial import unittest
 
+from ooni.tests.bases import ConfigTestCase
 from ooni import errors as e
 from ooni.tests.mocks import MockCollectorClient
 from ooni.reporter import YAMLReporter, OONIBReporter, OONIBReportLog
@@ -114,65 +116,58 @@ class TestOONIBReporter(unittest.TestCase):
         req = {'content': 'something'}
         yield self.oonib_reporter.writeReportEntry(req)
 
-class TestOONIBReportLog(unittest.TestCase):
+class TestOONIBReportLog(ConfigTestCase):
 
     def setUp(self):
-        self.report_log = OONIBReportLog('report_log')
-        self.report_log.create_report_log()
+        super(TestOONIBReportLog, self).setUp()
+        self.measurement_id = '20160727T182604Z-ZZ-AS0-dummy'
+        self.config.measurements_directory = tempfile.mkdtemp()
+        self.measurement_dir = os.path.join(
+            self.config.measurements_directory,
+            self.measurement_id
+        )
+        self.report_log_path = os.path.join(self.measurement_dir,
+                                            'report_log.json')
+        os.mkdir(self.measurement_dir)
+        self.report_log = OONIBReportLog()
 
     def tearDown(self):
-        os.remove(self.report_log.file_name)
+        shutil.rmtree(self.measurement_dir)
+        super(TestOONIBReportLog, self).tearDown()
 
     @defer.inlineCallbacks
     def test_report_created(self):
-        yield self.report_log.created("path_to_my_report.yaml",
-                                             'httpo://foo.onion',
-                                             'someid')
-        with open(self.report_log.file_name) as f:
-            report = yaml.safe_load(f)
-            assert "path_to_my_report.yaml" in report
-
-    @defer.inlineCallbacks
-    def test_concurrent_edit(self):
-        d1 = self.report_log.created("path_to_my_report1.yaml",
-                                            'httpo://foo.onion',
-                                            'someid1')
-        d2 = self.report_log.created("path_to_my_report2.yaml",
-                                            'httpo://foo.onion',
-                                            'someid2')
-        yield defer.DeferredList([d1, d2])
-        with open(self.report_log.file_name) as f:
-            report = yaml.safe_load(f)
-            assert "path_to_my_report1.yaml" in report
-            assert "path_to_my_report2.yaml" in report
+        yield self.report_log.created(self.measurement_id, {})
+        with open(self.report_log_path) as f:
+            report = json.load(f)
+            self.assertEqual(report['status'], 'created')
 
     @defer.inlineCallbacks
     def test_report_closed(self):
-        yield self.report_log.created("path_to_my_report.yaml",
-                                             'httpo://foo.onion',
-                                             'someid')
-        yield self.report_log.closed("path_to_my_report.yaml")
+        yield self.report_log.created(self.measurement_id, {})
+        yield self.report_log.closed(self.measurement_id)
 
-        with open(self.report_log.file_name) as f:
-            report = yaml.safe_load(f)
-            assert "path_to_my_report.yaml" not in report
+        self.assertFalse(os.path.exists(self.report_log_path))
 
     @defer.inlineCallbacks
     def test_report_creation_failed(self):
-        yield self.report_log.creation_failed("path_to_my_report.yaml",
-                                                     'httpo://foo.onion')
-        with open(self.report_log.file_name) as f:
-            report = yaml.safe_load(f)
-        assert "path_to_my_report.yaml" in report
-        assert report["path_to_my_report.yaml"]["status"] == "creation-failed"
+        yield self.report_log.creation_failed(self.measurement_id, {})
+        with open(self.report_log_path) as f:
+            report = json.load(f)
+        self.assertEqual(report["status"], "creation-failed")
 
     @defer.inlineCallbacks
-    def test_list_reports(self):
-        yield self.report_log.creation_failed("failed_report.yaml",
-                                              'httpo://foo.onion')
-        yield self.report_log.created("created_report.yaml",
-                                      'httpo://foo.onion', 'XXXX')
+    def test_list_reports_in_progress(self):
+        yield self.report_log.created(self.measurement_id, {})
+        in_progress = yield self.report_log.get_in_progress()
+        incomplete = yield self.report_log.get_incomplete()
+        self.assertEqual(len(incomplete), 0)
+        self.assertEqual(len(in_progress), 1)
 
-        assert len(self.report_log.reports_in_progress) == 1
-        assert len(self.report_log.reports_incomplete) == 0
-        assert len(self.report_log.reports_to_upload) == 1
+    @defer.inlineCallbacks
+    def test_list_reports_to_upload(self):
+        yield self.report_log.creation_failed(self.measurement_id, {})
+        incomplete = yield self.report_log.get_incomplete()
+        to_upload = yield self.report_log.get_to_upload()
+        self.assertEqual(len(incomplete), 0)
+        self.assertEqual(len(to_upload), 1)

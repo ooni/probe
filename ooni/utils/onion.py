@@ -1,5 +1,8 @@
 import os
 import re
+import pwd
+import fcntl
+import errno
 import string
 import StringIO
 import subprocess
@@ -12,6 +15,8 @@ from twisted.internet.endpoints import TCP4ClientEndpoint
 from txtorcon import TorConfig, TorState, launch_tor, build_tor_connection
 from txtorcon.util import find_tor_binary as tx_find_tor_binary
 
+from ooni.utils import mkdir_p
+from ooni.utils.net import randomFreePort
 from ooni import constants
 from ooni import errors
 from ooni.utils import log
@@ -212,6 +217,80 @@ def get_client_transport(transport):
 
     raise UninstalledTransport
 
+def is_tor_data_dir_usable(tor_data_dir):
+    """
+    Checks if the Tor data dir specified is usable. This means that
+     it is not being locked and we have permissions to write to it.
+    """
+    if not os.path.exists(tor_data_dir):
+        return True
+
+    try:
+        fcntl.flock(open(os.path.join(tor_data_dir, 'lock'), 'w'),
+                    fcntl.LOCK_EX | fcntl.LOCK_NB)
+        return True
+    except (IOError, OSError) as err:
+        if err.errno == errno.EACCES:
+            # Permission error
+            return False
+        elif err.errno == errno.EAGAIN:
+            # File locked
+            return False
+
+def get_tor_config():
+    tor_config = TorConfig()
+    if config.tor.control_port is None:
+        config.tor.control_port = int(randomFreePort())
+    if config.tor.socks_port is None:
+        config.tor.socks_port = int(randomFreePort())
+
+    tor_config.ControlPort = config.tor.control_port
+    tor_config.SocksPort = config.tor.socks_port
+
+    if config.tor.data_dir:
+        data_dir = os.path.expanduser(config.tor.data_dir)
+        # We only use the Tor data dir specified in the config file if
+        # 1. It is not locked (i.e. another process is using it)
+        # 2. We have write permissions to it
+        data_dir_usable = is_tor_data_dir_usable(data_dir)
+        try:
+            mkdir_p(data_dir)
+        except OSError as ose:
+            if ose.errno == errno.EACCESS:
+                data_dir_usable = False
+            else:
+                raise
+        if data_dir_usable:
+            tor_config.DataDirectory = data_dir
+
+    if config.tor.bridges:
+        tor_config.UseBridges = 1
+        if config.advanced.obfsproxy_binary:
+            tor_config.ClientTransportPlugin = (
+                'obfs2,obfs3 exec %s managed' %
+                config.advanced.obfsproxy_binary
+            )
+        bridges = []
+        with open(config.tor.bridges) as f:
+            for bridge in f:
+                if 'obfs' in bridge:
+                    if config.advanced.obfsproxy_binary:
+                        bridges.append(bridge.strip())
+                else:
+                    bridges.append(bridge.strip())
+        tor_config.Bridge = bridges
+
+    if config.tor.torrc:
+        for i in config.tor.torrc.keys():
+            setattr(tor_config, i, config.tor.torrc[i])
+
+    if os.geteuid() == 0:
+        tor_config.User = pwd.getpwuid(os.geteuid()).pw_name
+
+    tor_config.save()
+    log.debug("Setting control port as %s" % tor_config.ControlPort)
+    log.debug("Setting SOCKS port as %s" % tor_config.SocksPort)
+    return tor_config
 
 class TorLauncherWithRetries(object):
     def __init__(self, tor_config, timeout=config.tor.timeout):
@@ -244,7 +323,6 @@ class TorLauncherWithRetries(object):
     @defer.inlineCallbacks
     def _state_complete(self, state):
         config.tor_state = state
-        log.msg("Successfully bootstrapped Tor")
         log.debug("We now have the following circuits: ")
         for circuit in state.circuits.values():
             log.debug(" * %s" % circuit)

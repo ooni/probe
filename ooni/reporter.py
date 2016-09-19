@@ -1,22 +1,23 @@
 import uuid
 import yaml
+import json
 import os
 
 from copy import deepcopy
 
 from datetime import datetime
-from contextlib import contextmanager
 
 from yaml.representer import SafeRepresenter
 from yaml.emitter import Emitter
 from yaml.serializer import Serializer
 from yaml.resolver import Resolver
 
+from twisted.python.filepath import FilePath
 from twisted.python.util import untilConcludes
 from twisted.internet import defer
 from twisted.internet.error import ConnectionRefusedError
 
-from ooni.utils import log
+from ooni.utils import log, is_process_running
 from ooni.tasks import Measurement
 try:
     from scapy.packet import Packet
@@ -34,6 +35,7 @@ from ooni.utils import generate_filename
 from ooni.settings import config
 
 from ooni.tasks import ReportEntry
+from ooni.measurements import list_measurements
 
 
 def createPacketReport(packet_list):
@@ -206,6 +208,56 @@ class YAMLReporter(OReporter):
     def finish(self):
         self._stream.close()
 
+class NJSONReporter(OReporter):
+
+    """
+    report_destination:
+        the destination directory of the report
+
+    """
+
+    def __init__(self, test_details, report_filename):
+        self.report_path = report_filename
+        OReporter.__init__(self, test_details)
+
+    def _writeln(self, line):
+        self._write(line)
+        self._write("\n")
+
+    def _write(self, data):
+        if not self._stream:
+            raise errors.ReportNotCreated
+        if self._stream.closed:
+            raise errors.ReportAlreadyClosed
+        s = str(data)
+        assert isinstance(s, type(''))
+        self._stream.write(s)
+        untilConcludes(self._stream.flush)
+
+    def writeReportEntry(self, entry):
+        if isinstance(entry, Measurement):
+            e = deepcopy(entry.testInstance.report)
+        elif isinstance(entry, dict):
+            e = deepcopy(entry)
+        else:
+            raise Exception("Failed to serialise entry")
+        report_entry = {
+            'input': e.pop('input', None),
+            'id': str(uuid.uuid4()),
+            'test_start_time': e.pop('test_start_time', None),
+            'measurement_start_time': e.pop('measurement_start_time', None),
+            'test_runtime': e.pop('test_runtime', None),
+            'test_keys': e
+        }
+        report_entry.update(self.testDetails)
+        self._writeln(json.dumps(report_entry))
+
+    def createReport(self):
+        self._stream = open(self.report_path, 'w+')
+
+    def finish(self):
+        self._stream.close()
+
 
 class OONIBReporter(OReporter):
 
@@ -219,25 +271,20 @@ class OONIBReporter(OReporter):
     def serializeEntry(self, entry, serialisation_format="yaml"):
         if serialisation_format == "json":
             if isinstance(entry, Measurement):
-                report_entry = {
-                    'input': entry.testInstance.report.pop('input', None),
-                    'id': str(uuid.uuid4()),
-                    'test_start_time': entry.testInstance.report.pop('test_start_time', None),
-                    'measurement_start_time': entry.testInstance.report.pop('measurement_start_time', None),
-                    'test_runtime': entry.testInstance.report.pop('test_runtime', None),
-                    'test_keys': entry.testInstance.report
-                }
+                e = deepcopy(entry.testInstance.report)
+
             elif isinstance(entry, dict):
-                report_entry = {
-                    'input': entry.pop('input', None),
-                    'id': str(uuid.uuid4()),
-                    'test_start_time': entry.pop('test_start_time', None),
-                    'measurement_start_time': entry.pop('measurement_start_time', None),
-                    'test_runtime': entry.pop('test_runtime', None),
-                    'test_keys': entry
-                }
+                e = deepcopy(entry)
             else:
                 raise Exception("Failed to serialise entry")
+            report_entry = {
+                'input': e.pop('input', None),
+                'id': str(uuid.uuid4()),
+                'test_start_time': e.pop('test_start_time', None),
+                'measurement_start_time': e.pop('measurement_start_time', None),
+                'test_runtime': e.pop('test_runtime', None),
+                'test_keys': e
+            }
             report_entry.update(self.testDetails)
             return report_entry
         else:
@@ -296,9 +343,12 @@ class OONIBReporter(OReporter):
             log.msg("Try running a different test or try reporting to a "
                     "different collector.")
             raise errors.OONIBReportCreationError
-        except Exception, e:
+        except errors.OONIBError:
             log.err("Failed to connect to reporter backend")
-            log.exception(e)
+            raise errors.OONIBReportCreationError
+        except Exception as exc:
+            log.err("Failed to connect to reporter backend")
+            log.exception(exc)
             raise errors.OONIBReportCreationError
 
         self.reportId = response['report_id'].encode('ascii')
@@ -313,154 +363,163 @@ class OONIBReporter(OReporter):
         log.debug("Closing report with id %s" % self.reportId)
         return self.collector_client.closeReport(self.reportId)
 
+class NoReportLog(Exception):
+    pass
+
 class OONIBReportLog(object):
 
     """
     Used to keep track of report creation on a collector backend.
     """
+    _date_format = "%Y%m%dT%H:%M:%SZ"
 
-    def __init__(self, file_name=None):
-        if file_name is None:
-            file_name = config.report_log_file
-        self.file_name = file_name
-        self.create_report_log()
+    def __init__(self):
+        self.measurement_dir = FilePath(config.measurements_directory)
 
-    def get_report_log(self):
-        with open(self.file_name) as f:
-            report_log = yaml.safe_load(f)
-        if not report_log:
-            report_log = {}  # consumers expect dictionary structure
-        return report_log
+    def _parse_log_entry(self, in_file, measurement_id):
+        entry = json.load(in_file)
+        entry['last_update'] = datetime.strptime(entry['last_update'],
+                                                 self._date_format)
+        entry['measurements_path'] = self.measurement_dir.child(
+            measurement_id).child('measurements.njson').path
+        entry['measurement_id'] = measurement_id
+        return entry
 
-    @property
-    def reports_incomplete(self):
-        reports = []
-        report_log = self.get_report_log()
-        for report_file, value in report_log.items():
-            if value['status'] in ('created'):
-                try:
-                    os.kill(value['pid'], 0)
-                except:
-                    reports.append((report_file, value))
-            elif value['status'] in ('incomplete'):
-                reports.append((report_file, value))
-        return reports
+    def _lock_for_report_log(self, measurement_id):
+        lock_file = self.measurement_dir.child(measurement_id).child("report_log.lock")
+        return defer.DeferredFilesystemLock(lock_file.path)
 
-    @property
-    def reports_in_progress(self):
-        reports = []
-        report_log = self.get_report_log()
-        for report_file, value in report_log.items():
-            if value['status'] in ('created'):
-                try:
-                    os.kill(value['pid'], 0)
-                    reports.append((report_file, value))
-                except:
-                    pass
-        return reports
+    def _get_report_log_file(self, measurement_id):
+        report_log_file = self.measurement_dir.child(measurement_id).child("report_log.json")
+        return report_log_file
 
-    @property
-    def reports_to_upload(self):
-        reports = []
-        report_log = self.get_report_log()
-        for report_file, value in report_log.items():
-            if value['status'] in ('creation-failed', 'not-created'):
-                reports.append((report_file, value))
-        return reports
+    @defer.inlineCallbacks
+    def get_report_log(self, measurement_id):
+        lock = self._lock_for_report_log(measurement_id)
+        yield lock.deferUntilLocked()
 
-    def run(self, f, *arg, **kw):
-        lock = defer.DeferredFilesystemLock(self.file_name + '.lock')
-        d = lock.deferUntilLocked()
-
-        def unlockAndReturn(r):
+        report_log_file = self._get_report_log_file(measurement_id)
+        if not report_log_file.exists():
             lock.unlock()
-            return r
+            raise NoReportLog
 
-        def execute(_):
-            d = defer.maybeDeferred(f, *arg, **kw)
-            d.addBoth(unlockAndReturn)
-            return d
+        with report_log_file.open('r') as in_file:
+            entry = self._parse_log_entry(in_file, measurement_id)
 
-        d.addCallback(execute)
-        return d
+        lock.unlock()
 
-    def create_report_log(self):
-        if not os.path.exists(self.file_name):
-            with open(self.file_name, 'w+') as f:
-                f.write(yaml.safe_dump({}))
+        defer.returnValue(entry)
 
-    @contextmanager
-    def edit_log(self):
-        with open(self.file_name) as rfp:
-            report = yaml.safe_load(rfp)
-        # This should never happen.
-        if report is None:
-            report = {}
-        with open(self.file_name, 'w+') as wfp:
+    @defer.inlineCallbacks
+    def get_report_log_entries(self):
+        entries = []
+        for measurement in list_measurements():
             try:
-                yield report
-            finally:
-                wfp.write(yaml.safe_dump(report))
+                entry = yield self.get_report_log(measurement['id'])
+                entry['completed'] = measurement['completed']
+                entries.append(entry)
+            except NoReportLog:
+                continue
+        defer.returnValue(entries)
 
-    def _not_created(self, report_file):
-        with self.edit_log() as report:
-            report[report_file] = {
-                'pid': os.getpid(),
-                'created_at': datetime.now(),
-                'status': 'not-created',
-                'collector': None
-            }
+    @defer.inlineCallbacks
+    def update_log(self, measurement_id, value):
+        lock = self._lock_for_report_log(measurement_id)
+        yield lock.deferUntilLocked()
 
-    def not_created(self, report_file):
-        return self.run(self._not_created, report_file)
+        report_log_file = self._get_report_log_file(measurement_id)
+        with report_log_file.open('w+') as out_file:
+            entry = value
+            entry['last_update'] = datetime.utcnow().strftime(self._date_format)
+            json.dump(entry, out_file)
 
-    def _created(self, report_file, collector_settings, report_id):
-        with self.edit_log() as report:
-            assert report_file is not None
-            report[report_file] = {
-                'pid': os.getpid(),
-                'created_at': datetime.now(),
-                'status': 'created',
-                'collector': collector_settings,
-                'report_id': report_id
-            }
-        return report_id
+        lock.unlock()
 
-    def created(self, report_file, collector_settings, report_id):
-        return self.run(self._created, report_file,
-                        collector_settings, report_id)
+    @defer.inlineCallbacks
+    def remove_log(self, measurement_id):
+        lock = self._lock_for_report_log(measurement_id)
+        yield lock.deferUntilLocked()
 
-    def _creation_failed(self, report_file, collector_settings):
-        with self.edit_log() as report:
-            report[report_file] = {
-                'pid': os.getpid(),
-                'created_at': datetime.now(),
-                'status': 'creation-failed',
-                'collector': collector_settings
-            }
+        report_log_file = self._get_report_log_file(measurement_id)
+        try:
+            log.debug("Deleting log file")
+            report_log_file.remove()
+        except Exception as exc:
+            log.exception(exc)
 
-    def creation_failed(self, report_file, collector_settings):
-        return self.run(self._creation_failed, report_file,
-                        collector_settings)
+        lock.unlock()
 
-    def _incomplete(self, report_file):
-        with self.edit_log() as report:
-            if report[report_file]['status'] != "created":
-                raise errors.ReportNotCreated()
-            report[report_file]['status'] = 'incomplete'
+    @defer.inlineCallbacks
+    def get_incomplete(self):
+        incomplete_reports = []
+        all_entries = yield self.get_report_log_entries()
+        for entry in all_entries[:]:
+            # This means that the measurement itself is incomplete
+            if entry['completed'] is False:
+                continue
+            if entry['status'] in ('created',):
+                if not is_process_running(entry['pid']):
+                    incomplete_reports.append(
+                        (entry['measurements_path'], entry)
+                    )
+            elif entry['status'] in ('incomplete',):
+                    incomplete_reports.append(
+                        (entry['measurements_path'], entry)
+                    )
+        defer.returnValue(incomplete_reports)
 
-    def incomplete(self, report_file):
-        return self.run(self._incomplete, report_file)
+    @defer.inlineCallbacks
+    def get_in_progress(self):
+        in_progress_reports = []
+        all_entries = yield self.get_report_log_entries()
+        for entry in all_entries[:]:
+            if entry['status'] in ('created',):
+                if is_process_running(entry['pid']):
+                    in_progress_reports.append(
+                        (entry['measurements_path'], entry)
+                    )
+        defer.returnValue(in_progress_reports)
 
-    def _closed(self, report_file):
-        with self.edit_log() as report:
-            rs = report[report_file]['status']
-            if  rs != "created" and rs != "incomplete":
-                raise errors.ReportNotCreated()
-            del report[report_file]
+    @defer.inlineCallbacks
+    def get_to_upload(self):
+        to_upload_reports = []
+        all_entries = yield self.get_report_log_entries()
+        for entry in all_entries[:]:
+            # This means that the measurement itself is incomplete
+            if entry['completed'] is False:
+                continue
+            if entry['status'] in ('creation-failed', 'not-created'):
+                to_upload_reports.append(
+                    (entry['measurements_path'], entry)
+                )
+        defer.returnValue(to_upload_reports)
 
-    def closed(self, report_file):
-        return self.run(self._closed, report_file)
+    def _update_status(self, measurement_id, status, collector_settings={}):
+        value = {
+            'pid': os.getpid(),
+            'status': status,
+            'collector': collector_settings
+        }
+        return self.update_log(measurement_id, value)
+
+    def not_created(self, measurement_id):
+        return self._update_status(measurement_id, 'not-created')
+
+    def created(self, measurement_id, collector_settings):
+        return self._update_status(measurement_id, 'created',
+                                   collector_settings)
+
+
+    def creation_failed(self, measurement_id, collector_settings):
+        return self._update_status(measurement_id, 'creation-failed',
+                                   collector_settings)
+
+    def incomplete(self, measurement_id, collector_settings):
+        return self._update_status(measurement_id, 'incomplete',
+                                   collector_settings)
+
+    def closed(self, measurement_id):
+        return self.remove_log(measurement_id)
 
 
 class Report(object):
@@ -468,7 +527,7 @@ class Report(object):
 
     def __init__(self, test_details, report_filename,
                  reportEntryManager, collector_client=None,
-                 no_yamloo=False):
+                 no_njson=False, measurement_id=None):
         """
         This is an abstraction layer on top of all the configured reporters.
 
@@ -488,20 +547,22 @@ class Report(object):
             collector:
                 The address of the oonib collector for this report.
 
-            no_yamloo:
+            no_njson:
                 If we should disable reporting to disk.
         """
         self.test_details = test_details
         self.collector_client = collector_client
+
         if report_filename is None:
             report_filename = self.generateReportFilename()
         self.report_filename = report_filename
 
+        self.measurement_id = measurement_id
         self.report_log = OONIBReportLog()
 
-        self.yaml_reporter = None
+        self.njson_reporter = None
         self.oonib_reporter = None
-        self.no_yamloo = no_yamloo
+        self.no_njson = no_njson
 
         self.done = defer.Deferred()
         self.reportEntryManager = reportEntryManager
@@ -509,23 +570,24 @@ class Report(object):
     def generateReportFilename(self):
         report_filename = generate_filename(self.test_details,
                                             prefix='report',
-                                            extension='yamloo')
+                                            extension='njson')
         report_path = os.path.join('.', report_filename)
         return os.path.abspath(report_path)
 
     def open_oonib_reporter(self):
         def creation_failed(failure):
             self.oonib_reporter = None
-            return self.report_log.creation_failed(self.report_filename,
-                                                   self.collector_client.settings)
+            if self.measurement_id:
+                return self.report_log.creation_failed(self.measurement_id,
+                                                       self.collector_client.settings)
 
         def created(report_id):
             if not self.oonib_reporter:
                 return
             self.test_details['report_id'] = report_id
-            return self.report_log.created(self.report_filename,
-                                           self.collector_client.settings,
-                                           report_id)
+            if self.measurement_id:
+                return self.report_log.created(self.measurement_id,
+                                               self.collector_client.settings)
 
         d = self.oonib_reporter.createReport()
         d.addErrback(creation_failed)
@@ -541,14 +603,14 @@ class Report(object):
         if self.collector_client:
             self.oonib_reporter = OONIBReporter(self.test_details,
                                                 self.collector_client)
-            self.test_details['report_id'] = yield self.open_oonib_reporter()
+            yield self.open_oonib_reporter()
 
-        if not self.no_yamloo:
-            self.yaml_reporter = YAMLReporter(self.test_details,
-                                              self.report_filename)
-            if not self.oonib_reporter:
-                yield self.report_log.not_created(self.report_filename)
-            yield defer.maybeDeferred(self.yaml_reporter.createReport)
+        if not self.no_njson:
+            self.njson_reporter = NJSONReporter(self.test_details,
+                                                self.report_filename)
+            if not self.oonib_reporter and self.measurement_id:
+                yield self.report_log.not_created(self.measurement_id)
+            yield defer.maybeDeferred(self.njson_reporter.createReport)
 
         defer.returnValue(self.reportId)
 
@@ -570,21 +632,23 @@ class Report(object):
         d = defer.Deferred()
         deferreds = []
 
-        def yaml_report_failed(failure):
+        def njson_report_failed(failure):
             d.errback(failure)
 
         def oonib_report_failed(failure):
-            return self.report_log.incomplete(self.report_filename)
+            if self.measurement_id:
+                return self.report_log.incomplete(self.measurement_id,
+                                                  self.collector_client.settings)
 
         def all_reports_written(_):
             if not d.called:
                 d.callback(None)
 
-        if self.yaml_reporter:
-            write_yaml_report = ReportEntry(self.yaml_reporter, measurement)
-            self.reportEntryManager.schedule(write_yaml_report)
-            write_yaml_report.done.addErrback(yaml_report_failed)
-            deferreds.append(write_yaml_report.done)
+        if self.njson_reporter:
+            write_njson_report = ReportEntry(self.njson_reporter, measurement)
+            self.reportEntryManager.schedule(write_njson_report)
+            write_njson_report.done.addErrback(njson_report_failed)
+            deferreds.append(write_njson_report.done)
 
         if self.oonib_reporter:
             write_oonib_report = ReportEntry(self.oonib_reporter, measurement)
@@ -609,11 +673,12 @@ class Report(object):
         d = defer.Deferred()
         deferreds = []
 
-        def yaml_report_failed(failure):
+        def njson_report_failed(failure):
             d.errback(failure)
 
         def oonib_report_closed(result):
-            return self.report_log.closed(self.report_filename)
+            if self.measurement_id:
+                return self.report_log.closed(self.measurement_id)
 
         def oonib_report_failed(result):
             log.exception(result)
@@ -623,10 +688,10 @@ class Report(object):
             if not d.called:
                 d.callback(None)
 
-        if self.yaml_reporter:
-            close_yaml = defer.maybeDeferred(self.yaml_reporter.finish)
-            close_yaml.addErrback(yaml_report_failed)
-            deferreds.append(close_yaml)
+        if self.njson_reporter:
+            close_njson = defer.maybeDeferred(self.njson_reporter.finish)
+            close_njson.addErrback(njson_report_failed)
+            deferreds.append(close_njson)
 
         if self.oonib_reporter:
             close_oonib = self.oonib_reporter.finish()
