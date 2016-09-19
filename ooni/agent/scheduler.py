@@ -53,7 +53,7 @@ class FileSystemlockAndMutex(object):
 
 # We use this date to indicate that the scheduled task has never run.
 # Easter egg, try to see what is special about this date :)?
-CANARY_DATE = datetime(1957, 8, 4, tzinfo=tz.tzutc())
+CANARY_DATE = datetime(1957, 10, 4, tzinfo=tz.tzutc())
 
 
 class DidNotRun(Exception):
