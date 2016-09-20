@@ -138,6 +138,14 @@ class UpdateInputsAndResources(ScheduledTask):
     schedule = "@daily"
 
     @defer.inlineCallbacks
+    def first_run(self):
+        """
+        On first run we update the resources that are common to every country.
+        """
+        log.debug("Updating the global inputs and resources")
+        yield resources.check_for_update("ZZ")
+
+    @defer.inlineCallbacks
     def task(self):
         log.debug("Updating the inputs")
         yield probe_ip.lookup()
