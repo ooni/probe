@@ -104,7 +104,7 @@ or this:
             print(var_one)
 
 
-They should NOT be wrapper like this:
+They should NOT be wrapped like this:
 
         foo = long_function_name(var_one, var_two,
                 var_three, var_four)
