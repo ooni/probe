@@ -91,7 +91,7 @@ Use 4 spaces per indentation level.
         set expandtab
 
 
-Continuation lines should be wrapper like this:
+Continuation lines should be wrapped like this:
 
         foo = long_function_name(var_one, var_two,
                                  var_three, var_four)
