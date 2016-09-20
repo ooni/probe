@@ -83,7 +83,7 @@ should be all lowercase separated by an underscore.
 
 ### Indentation
 
-    Use 4 spaces per indentation level.
+Use 4 spaces per indentation level.
 
     This can be setup in vi with:
         set tabstop=4
@@ -91,12 +91,12 @@ should be all lowercase separated by an underscore.
         set expandtab
 
 
-    Continuation lines should be wrapper like this:
+Continuation lines should be wrapper like this:
 
         foo = long_function_name(var_one, var_two,
                                  var_three, var_four)
 
-    or this:
+or this:
 
         def long_function_name(var_one,
                     var_two, var_three,
@@ -104,12 +104,12 @@ should be all lowercase separated by an underscore.
             print(var_one)
 
 
-    They should NOT be wrapper like this:
+They should NOT be wrapper like this:
 
         foo = long_function_name(var_one, var_two,
                 var_three, var_four)
 
-    and NOT like this:
+and NOT like this:
 
         # See how it creates confusion with what is inside the function?
         def long_function_name(var_one,
