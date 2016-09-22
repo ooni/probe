@@ -6,7 +6,7 @@ from copy import deepcopy
 from twisted.internet import defer
 from twisted.python.filepath import FilePath
 
-from ooni.utils import mkdir_p
+from ooni.utils import mkdir_p, log
 from ooni.deck.deck import NGDeck
 from ooni.otime import timestampNowISO8601UTC
 from ooni.resources import check_for_update
@@ -41,6 +41,8 @@ class InputStore(object):
                 yield check_for_update(country_code)
 
             if not in_file.exists():
+                log.msg("Could not find input for country "
+                        "{0} in {1}".format(cc, in_file.path))
                 continue
 
             # XXX maybe move this to some utility function.
