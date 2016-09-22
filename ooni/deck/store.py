@@ -35,6 +35,7 @@ class InputStore(object):
             countries.append(country_code)
 
         for cc in countries:
+            cc = cc.lower()
             in_file = self.resources.child("citizenlab-test-lists").child("{0}.csv".format(cc))
             if not in_file.exists():
                 yield check_for_update(country_code)
