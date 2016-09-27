@@ -88,7 +88,7 @@ contribute measurements to OONI daily you can also add this to your crontab::
 
     @daily ooniprobe $THE_OONI_COMMAND
 
-Run this command to automatically update your crontab:: 
+Run this command to automatically update your crontab::
 
     (crontab -l 2>/dev/null; echo "@daily ooniprobe $THE_OONI_COMMAND") | crontab -
 
@@ -337,7 +337,7 @@ You can download the code for ooniprobe from the following git repository::
 
 It is also viewable on the web via: https://gitweb.torproject.org/ooni-probe.git.
 
-You should then submit patches for review as pull requests to this github repository: 
+You should then submit patches for review as pull requests to this github repository:
 
 https://github.com/TheTorProject/ooni-probe
 
@@ -368,7 +368,7 @@ On Debian based systems a development environment can be setup as follows: (prer
 `virtualenv venv` will create a folder in the current directory which will
 contain the Python executable files, and a copy of the pip library which you can
 use to install other packages. To begin using the virtual environment, it needs
-to be activated:
+to be activated::
 
 
     source venv/bin/activate
