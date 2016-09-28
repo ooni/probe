@@ -123,6 +123,7 @@ class ScheduledTask(object):
             raise DidNotRun
         try:
             if self.last_run == CANARY_DATE:
+                log.debug("Detected first run")
                 yield defer.maybeDeferred(self.first_run)
             last_run_time = datetime.utcnow()
             yield self.task()
@@ -138,9 +139,19 @@ class UpdateInputsAndResources(ScheduledTask):
     schedule = "@daily"
 
     @defer.inlineCallbacks
+    def first_run(self):
+        """
+        On first run we update the resources that are common to every country.
+        """
+        log.debug("Updating the global inputs and resources")
+        yield resources.check_for_update("ZZ")
+
+    @defer.inlineCallbacks
     def task(self):
         log.debug("Updating the inputs")
         yield probe_ip.lookup()
+        log.debug("Updating the inputs for country %s" %
+                  probe_ip.geodata['countrycode'])
         yield resources.check_for_update(probe_ip.geodata['countrycode'])
         yield input_store.update(probe_ip.geodata['countrycode'])
         yield probe_ip.resolveGeodata()

@@ -215,6 +215,7 @@ class ProbeIP(object):
             self.address = None
 
         if self.address:
+            self.resolveGeodata(include_ip, include_asn, include_country)
             defer.returnValue(self.address)
         else:
             self._state = IN_PROGRESS
