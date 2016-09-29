@@ -20,6 +20,7 @@ class TestScheduler(unittest.TestCase):
         self.assertEqual(scheduled_task.should_run, True)
         self.assertFailure(scheduled_task.run(), NotImplementedError)
         self.assertEqual(scheduled_task.should_run, True)
+        self.assertFalse(os.path.islink(os.path.join(scheduler_directory, identifier + '.lock')))
         shutil.rmtree(scheduler_directory)
 
     @defer.inlineCallbacks
@@ -31,8 +32,9 @@ class TestScheduler(unittest.TestCase):
         scheduler_directory = tempfile.mkdtemp()
         spam_path = os.path.join(scheduler_directory, 'spam.txt')
         class DummyST(ScheduledTask):
-            def task(self):
-                with open(spam_path, 'w') as out_file:
+            def task(subself):
+                self.assertTrue(os.path.islink(os.path.join(scheduler_directory, subself.identifier + '.lock')))
+                with open(spam_path, 'a') as out_file:
                     out_file.write("I ran\n")
 
         schedule = "@daily"
@@ -58,6 +60,8 @@ class TestScheduler(unittest.TestCase):
         lock_path = os.path.join(lock_dir, 'lock')
 
         lock = FileSystemlockAndMutex(lock_path)
+
+        os.symlink(str(2**30), lock_path) # that's non-existend PID for sure
 
         lock_count = 100
         unlock_count = 0
