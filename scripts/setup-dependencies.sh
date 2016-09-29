@@ -882,7 +882,7 @@ case $DISTRO_VERSION in
   echo "${DSTUFFT_PUB_KEY}" > ${DSTUFFT_KEY_FILE}
 
   # Import the Tor public key
-  DO "sudo gpg --homedir /root --no-default-keyring --keyring $TMP_KEYRING --keyserver x-hkp://pool.sks-keyservers.net --recv-keys 0x886DDD89" "0"
+  DO "sudo gpg --homedir /root --no-default-keyring --keyring $TMP_KEYRING --keyserver x-hkp://pool.sks-keyservers.net --recv-keys 0xA3C4F0F979CAA22CDBA8F512EE8CBC9E886DDD89" "0"
   sudo gpg --homedir /root --no-default-keyring --keyring $TMP_KEYRING --export A3C4F0F979CAA22CDBA8F512EE8CBC9E886DDD89 | sudo apt-key add -
     
   HAVE_TOR_REPO="`grep deb.torproject.org/torproject.org /etc/apt/sources.list /etc/apt/sources.list.d/* 2>&1|grep torproject|head -n 1`";

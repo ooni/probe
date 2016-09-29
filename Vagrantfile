@@ -5,7 +5,7 @@ $setup_ooniprobe = <<SCRIPT
 echo "deb http://deb.torproject.org/torproject.org jessie main" >> /etc/apt/sources.list
 
 # Install deb.torproject.org key
-gpg --keyserver keys.gnupg.net --recv 886DDD89
+gpg --keyserver keys.gnupg.net --recv A3C4F0F979CAA22CDBA8F512EE8CBC9E886DDD89
 gpg --export A3C4F0F979CAA22CDBA8F512EE8CBC9E886DDD89 | apt-key add -
 
 apt-get update
@@ -30,7 +30,7 @@ echo "Installing Tor..."
 
 echo "deb http://deb.torproject.org/torproject.org jessie main" >> /etc/apt/sources.list
 
-gpg --keyserver keys.gnupg.net --recv 886DDD89
+gpg --keyserver keys.gnupg.net --recv A3C4F0F979CAA22CDBA8F512EE8CBC9E886DDD89
 gpg --export A3C4F0F979CAA22CDBA8F512EE8CBC9E886DDD89 | apt-key add -
 
 apt-get update
