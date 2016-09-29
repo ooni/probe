@@ -3,6 +3,7 @@ import sys
 import errno
 import codecs
 import logging
+from datetime import datetime
 
 from twisted.python import log as tw_log
 from twisted.python.logfile import DailyLogFile
@@ -100,6 +101,27 @@ class StdoutStderrObserver(LogLevelObserver):
             self.write(text + "\n")
             self.flush()
 
+class MsecLogObserver(tw_log.FileLogObserver):
+    def formatTime(self, when):
+        """
+        Code from Twisted==16.4.1 modified to log microseconds.  Although this
+        logging subsystem is legacy: http://twistedmatrix.com/trac/ticket/7596
+        Also, `timeFormat` is not used as `%z` is broken.
+        """
+        tzOffset = -self.getTimezoneOffset(when)
+        when = datetime.utcfromtimestamp(when + tzOffset)
+        tzHour = abs(int(tzOffset / 60 / 60))
+        tzMin = abs(int(tzOffset / 60 % 60))
+        if tzOffset < 0:
+            tzSign = '-'
+        else:
+            tzSign = '+'
+        return '%d-%02d-%02d %02d:%02d:%02d,%06d%s%02d%02d' % (
+            when.year, when.month, when.day,
+            when.hour, when.minute, when.second,
+            when.microsecond,
+            tzSign, tzHour, tzMin)
+
 class OONILogger(object):
     def msg(self, msg, *arg, **kw):
         text = log_encode(msg)
@@ -152,17 +174,17 @@ class OONILogger(object):
 
         daily_logfile = DailyLogFile(log_filename, log_folder)
 
-        tw_log.msg("Starting %s on %s (%s UTC)" % (application_name,
-                                                   otime.prettyDateNow(),
-                                                   otime.prettyDateNowUTC()))
-
-        self.fileObserver = LogLevelObserver(daily_logfile,
-                                             log_level=file_log_level)
+        self.fileObserver = MsecLogObserver(LogLevelObserver(daily_logfile,
+                                             log_level=file_log_level))
         self.stdoutObserver = StdoutStderrObserver(sys.stdout,
                                                    log_level=stdout_log_level)
 
         tw_log.startLoggingWithObserver(self.fileObserver.emit)
         tw_log.addObserver(self.stdoutObserver.emit)
+
+        tw_log.msg("Starting %s on %s (%s UTC)" % (application_name,
+                                                   otime.prettyDateNow(),
+                                                   otime.prettyDateNowUTC()))
 
     def stop(self):
         self.stdoutObserver.stop()
