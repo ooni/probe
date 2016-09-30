@@ -29,6 +29,9 @@ from ooni.common.http_utils import REQUEST_HEADERS
 class InvalidControlResponse(Exception):
     pass
 
+class AbsentHostname(Exception):
+    pass
+
 class UsageOptions(usage.Options):
     optParameters = [
         ['url', 'u', None, 'Specify a single URL to test'],
@@ -175,7 +178,7 @@ class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
 
         self.hostname = urlparse(self.input).netloc
         if not self.hostname:
-            raise Exception("Invalid input")
+            raise AbsentHostname('No hostname', self.input)
 
         self.control = {
             'tcp_connect': {},

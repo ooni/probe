@@ -6,7 +6,7 @@ import sys
 from twisted.internet import defer
 from twisted.python.filepath import FilePath
 from twisted.trial.runner import filenameToModule
-from twisted.python import usage, reflect
+from twisted.python import failure, usage, reflect
 
 from ooni import __version__ as ooniprobe_version, errors
 from ooni import otime
@@ -578,6 +578,9 @@ class NetTest(object):
         """
         This is a generator that yields measurements and registers the
         callbacks for when a measurement is successful or has failed.
+
+        FIXME: If this generator throws exception TaskManager scheduler is
+        irreversibly damaged.
         """
 
         for test_class, test_methods in self.testCases:
@@ -591,11 +594,16 @@ class NetTest(object):
                 test_instance._setUp()
                 test_instance.summary = self.summary
                 for method in test_methods:
+                    try:
+                        measurement = self.makeMeasurement(
+                            test_instance,
+                            method,
+                            test_input)
+                    except Exception:
+                        log.exception(failure.Failure())
+                        log.err('Failed to run %s %s %s' % (test_instance, method, test_input))
+                        continue # it's better to skip single measurement...
                     log.debug("Running %s %s" % (test_instance, method))
-                    measurement = self.makeMeasurement(
-                        test_instance,
-                        method,
-                        test_input)
                     measurements.append(measurement.done)
                     self.state.taskCreated()
                     yield measurement
