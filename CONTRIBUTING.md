@@ -52,7 +52,7 @@ address one specific issue).
 Make sure all the existing unittests for ooni-probe are passing.
 
 ```
-make check
+trial ooni
 ```
 
 If you add extra code or modify existing code, be sure that it is covered
