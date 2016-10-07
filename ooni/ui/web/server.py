@@ -527,7 +527,9 @@ class WebUIAPI(object):
     @app.route('/api/measurement/<string:measurement_id>', methods=["GET"])
     @xsrf_protect(check=False)
     @requires_true(attrs=['_is_initialized'])
+    @defer.inlineCallbacks
     def api_measurement_summary(self, request, measurement_id):
+        log.warn("SUMMARY")
         try:
             measurement = get_measurement(measurement_id)
         except InsecurePath:
@@ -540,8 +542,8 @@ class WebUIAPI(object):
         if measurement['completed'] is False:
             raise WebUIError(400, "measurement in progress")
 
-        summary = get_summary(measurement_id)
-        return self.render_json(summary, request)
+        summary = yield get_summary(measurement_id)
+        defer.returnValue(self.render_json(summary, request))
 
     @app.route('/api/measurement/<string:measurement_id>', methods=["DELETE"])
     @xsrf_protect(check=True)

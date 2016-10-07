@@ -1,5 +1,7 @@
 import json
 
+from twisted.internet import defer
+from twisted.internet.threads import deferToThread
 from twisted.python.filepath import FilePath
 from ooni.utils import log, is_process_running
 from ooni.utils.files import directory_usage
@@ -56,6 +58,7 @@ def generate_summary(input_file, output_file):
 
     with open(output_file, "w") as fw:
         json.dump(results, fw)
+    return results
 
 class MeasurementNotFound(Exception):
     pass
@@ -103,21 +106,27 @@ def get_measurement(measurement_id, compute_size=False):
 
 
 def get_summary(measurement_id):
+    """
+    Returns a deferred that will fire with the content of the summary
+     or will errback with MeasurementInProgress if the measurement has not
+     yet finished running.
+    """
     measurement_path = FilePath(config.measurements_directory)
     measurement = measurement_path.child(measurement_id)
 
     if measurement.child("measurements.njson.progress").exists():
-        raise MeasurementInProgress
+        return defer.fail(MeasurementInProgress)
 
     summary = measurement.child("summary.json")
     if not summary.exists():
-        generate_summary(
+        return deferToThread(
+            generate_summary,
             measurement.child("measurements.njson").path,
             summary.path
         )
 
     with summary.open("r") as f:
-        return json.load(f)
+        return defer.succeed(json.load(f))
 
 
 def list_measurements(compute_size=False):
