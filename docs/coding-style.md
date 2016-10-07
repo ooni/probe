@@ -1,5 +1,4 @@
-Hacking on OONI
-***************
+# Hacking on OONI
 
 This documents gives guidelines on where to start looking
 for helping out in developing OONI and what guidelines you
@@ -30,92 +29,12 @@ guides as specified in PEP.
 
                                        - Tim Peters, The Zen of Python
 
-Code Structure
----------
-
-- HACKING
-  The document you are currently reading.
-
-- inputs/
-  Contains input files for tests.
-
-- ooni/
-  Contains the main ooni probe comand line client
-
-- ooni/inputunit.py
-  In here we have functions related to the creation of input
-  units. Input units are how the inputs to be fed to tests are
-  split up into.
-
-- ooni/nettest.py
-  In here is the NetTest API definition. This is how people
-  interested in writing ooniprobe tests will be specifying
-  them.
-
-- ooni/nodes.py
-  Mostly broken code for the remote dispatching of tests.
-
-- ooni/oonicli.py
-  In here we take care of running ooniprobe from the command
-  line interface
-
-- ooni/reporter.py
-  In here goes the logic for the creation of ooniprobe
-  reports.
-
-- ooni/runner.py
-  Handles running ooni.nettests as well as
-  ooni.plugoo.tests.OONITests.
-
-- ooni/settings.py
-  Parts of the code related to parsing OONI
-  configuration files and making them accessible
-  to other components of the software.
-
-- ooni/otime.py
-  Generation of timestamps, time conversions and all the rest
-
-- ooni/kit/
-  In here go utilities that can be used by tests.
-
-- ooni/utils/
-  In here go internal utilities that are useful to ooniprobe
-
-- ooni/geoip.py
-  In here go functions related to the understanding of
-  geographical information of the probe
-
-- ooni/utils/hacks.py
-  When some software has issues and we need to fix it in a
-  hackish way, we put it in here. This one day will be empty.
-
-- ooni/utils/log.py
-  log realted functions.
-
-- ooni/utils/net.py
-  utilities for networking related operations
-
-- ooni/utils/onion.py
-  Utilities for working with Tor.
-  XXX this code should be removed and merged into txtorcon.
-
-- ooni/utils/txscapy.py
-  Tools for making scapy work well with twisted.
-
-- ooniprobe.conf
-  The main OONI-probe configuration file. This can be used
-  to configure your OONI CLI, tell it where it should report
-  to, where the asset files are located, what should be used
-  for control, etc.
-
-Test related conventions
-------------------------
+## Test related conventions
 
 These are the conventions for tests that are written in ooniprobe. That is what
 goes inside of nettests/.
 
-Naming
-......
+### Naming
 
 All methods that are relevant to the test should be all lower case separated by
 underscore.
@@ -123,8 +42,7 @@ underscore.
 All variables that are specific to your test should be all lower case separated
 by underscore.
 
-Simplicity
-..........
+### Simplicity
 
 Tests written in ooniprobe should be as short as possible and should contain as
 little code not related to the measurement as possible. It should be possible
@@ -134,8 +52,7 @@ Everything that is not related directly to the test should go inside of the
 test template of which the test you are writing is a subclass of.
 
 
-Style guide
------------
+## Style guide
 
 This is an extract of the most important parts of PEP-8. When in doubt on
 what code style should be followed first consult this doc, then PEP-8 and
@@ -145,8 +62,7 @@ The most important part to read is the following as it contains the guidelines
 of naming of variables, functions and classes, as it does not follow pure
 PEP-8.
 
-Naming convention
-.................
+### Naming convention
 
 Class names should follow the CapWords convention.
 Note: When using abbreviations in CapWords, capitalize all the letters
@@ -165,10 +81,9 @@ Functions should follow camelCase with the first letter non-capital.
 Functions and variables that are inside the local scope of a class or method
 should be all lowercase separated by an underscore.
 
-Indentation
-...........
+### Indentation
 
-    Use 4 spaces per indentation level.
+Use 4 spaces per indentation level.
 
     This can be setup in vi with:
         set tabstop=4
@@ -176,12 +91,12 @@ Indentation
         set expandtab
 
 
-    Continuation lines should be wrapper like this:
+Continuation lines should be wrapped like this:
 
         foo = long_function_name(var_one, var_two,
                                  var_three, var_four)
 
-    or this:
+or this:
 
         def long_function_name(var_one,
                     var_two, var_three,
@@ -189,12 +104,12 @@ Indentation
             print(var_one)
 
 
-    They should NOT be wrapper like this:
+They should NOT be wrapped like this:
 
         foo = long_function_name(var_one, var_two,
                 var_three, var_four)
 
-    and NOT like this:
+and NOT like this:
 
         # See how it creates confusion with what is inside the function?
         def long_function_name(var_one,
@@ -203,8 +118,7 @@ Indentation
             print(var_one)
 
 
-Tabs or Spaces?
-...............
+### Tabs or Spaces?
 
 Every time you insert a \t into any piece of code a kitten dies.
 
@@ -212,21 +126,18 @@ Only spaces. Please.
 
 (code should be run with python -tt)
 
-Maximum Line Length
-...................
+### Maximum Line Length
 
 Maximum of 79 characters. 72 characters for long blocks of text is recommended.
 
-Blank Lines
-...........
+### Blank Lines
 
 Separate top-level function and class definitions with two blank lines.
 
 Method definitions inside of class are separated by a single blank line.
 
 
-Encoding
-........
+### Encoding
 
 Always use UTF-8 encoding. This can be specified by adding the encoding cookie
 to the beginning of your python files:
@@ -238,8 +149,7 @@ only be in ASCII. Non ASCII characters are allowed when they are related to
 testing non-ASCII features or for the names of authors.
 
 
-Imports
-.......
+### Imports
 
 Import should be one per line as so:
 
@@ -259,8 +169,7 @@ Imports should be grouped in the following order:
 You should put a blank line between each group of imports.
 
 
-Comments
-........
+### Comments
 
 Comments should always be up to date with the code. Don't have
 comments that contraddict with the code.
@@ -273,8 +182,7 @@ they refer to. They start with # and are followed by a single space.
 Use inline comments sparingly. # Gotcha?
 
 
-Documentation strings
-.....................
+### Documentation strings
 
 Write docstrings for all public modules, functions, classes and
 methods. Even better if you write them also for non-public methods.
@@ -282,5 +190,4 @@ methods. Even better if you write them also for non-public methods.
 Place docstrings under the def.
 
 For a better overview on how to write docstrings consult: PEP-257
-
 
