@@ -61,6 +61,11 @@ class DidNotRun(Exception):
 
 
 class ScheduledTask(object):
+    """
+    Two ScheduledTask instances with same identifier are not permited to run
+    concurrently.  There should be no ScheduledTask queue waiting for the lock
+    as SchedulerService ticks quite often.
+    """
     _time_format = "%Y-%m-%dT%H:%M:%SZ"
     schedule = None
     identifier = None
@@ -117,6 +122,9 @@ class ScheduledTask(object):
 
     @defer.inlineCallbacks
     def run(self):
+        if self._last_run_lock.locked:
+            # do not allow the queue to grow forever
+            raise DidNotRun
         yield self._last_run_lock.acquire()
         if not self.should_run:
             self._last_run_lock.release()
