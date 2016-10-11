@@ -5,7 +5,7 @@ from hashlib import md5
 from datetime import datetime
 
 from twisted.application import service
-from twisted.internet import defer
+from twisted.internet import defer, reactor
 from twisted.internet.task import LoopingCall
 from twisted.python.filepath import FilePath
 
@@ -71,7 +71,9 @@ class ScheduledTask(object):
     identifier = None
 
     def __init__(self, schedule=None, identifier=None,
-                 scheduler_directory=config.scheduler_directory):
+                 scheduler_directory=None):
+        if scheduler_directory is None:
+            scheduler_directory = config.scheduler_directory
         if schedule is not None:
             self.schedule = schedule
         if identifier is not None:
@@ -346,11 +348,14 @@ class SchedulerService(service.MultiService):
     """
     This service is responsible for running the periodic tasks.
     """
-    def __init__(self, director, interval=30):
+    def __init__(self, director, interval=30, _reactor=reactor):
         service.MultiService.__init__(self)
         self.director = director
         self.interval = interval
+
         self._looping_call = LoopingCall(self._should_run)
+        self._looping_call.clock = _reactor
+
         self._scheduled_tasks = []
 
     def schedule(self, task):

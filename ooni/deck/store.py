@@ -130,9 +130,10 @@ class InputStore(object):
 
 
 class DeckStore(object):
-    def __init__(self):
-        self.enabled_directory = FilePath(config.decks_enabled_directory)
-        self.available_directory = FilePath(config.decks_available_directory)
+    def __init__(self, enabled_directory=config.decks_enabled_directory,
+                 available_directory=config.decks_available_directory):
+        self.enabled_directory = FilePath(enabled_directory)
+        self.available_directory = FilePath(available_directory)
         self._cache = {}
         self._cache_stale = True
 
