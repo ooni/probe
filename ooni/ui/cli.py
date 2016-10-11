@@ -210,13 +210,13 @@ def initializeOoniprobe(global_options):
         include_country = False
 
     answer = raw_input('How would you like reports to be uploaded? (onion, '
-                       'https, cloudfronted) ')
+                       'https, cloudfront) ')
 
     preferred_backend = 'onion'
     if answer.lower().startswith("https"):
         preferred_backend = 'https'
-    elif answer.lower().startswith("cloudfronted"):
-        preferred_backend = 'cloudfronted'
+    elif answer.lower().startswith("cloudfront"):
+        preferred_backend = 'cloudfront'
 
     config.create_config_file(include_ip=include_ip,
                               include_asn=include_asn,
