@@ -31,8 +31,8 @@ class FileSystemlockAndMutex(object):
     concurrently the mutex lock will block before the filesystem lock is
     acquired.
 
-    It's a way to support concurrent usage of the DeferredFilesystemLock
-    without races.
+    It's a way to support concurrent usage of the DeferredFilesystemLock from
+    different stacks (threads/fibers) within the same process without races.
     """
     def __init__(self, file_path):
         self._fs_lock = defer.DeferredFilesystemLock(file_path)
