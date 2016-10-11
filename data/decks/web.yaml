@@ -1,16 +1,11 @@
 ---
-name: Full Web test deck
-description: This deck runs HTTP Header Field Manipulation, HTTP Invalid
-    Request Line and the Web Connectivity test
+name: Web test deck
+description: This deck runs HTTP Header Field Manipulation and the Web Connectivity test
 schedule: "@daily"
 tasks:
 - name: Runs the HTTP Header Field Manipulation test
   ooni:
     test_name: http_header_field_manipulation
-
-- name: Runs the HTTP Invalid Request Line test
-  ooni:
-    test_name: http_invalid_request_line
 
 - name: Runs the Web Connectivity Test
   ooni:

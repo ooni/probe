@@ -1,0 +1,14 @@
+---
+name: Instant Messaging deck
+description: This test deck will check to see if instant messaging applications are working
+schedule: "@daily"
+tasks:
+- name: Checks to see if WhatsApp web is working
+  ooni:
+    test_name: web_connectivity
+    url: 'https://web.whatsapp.com/'
+
+- name: Checks to see if Facebook is working
+  ooni:
+    test_name: web_connectivity
+    url: 'https://facebook.com/'
