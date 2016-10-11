@@ -6,7 +6,7 @@ import errno
 import gzip
 import os
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from zipfile import ZipFile
 
 from twisted.python.filepath import FilePath
@@ -90,6 +90,15 @@ def randomStr(length, num=True):
     if num:
         chars += string.digits
     return ''.join(random.choice(chars) for x in range(length))
+
+def randomDate(start, end):
+    """
+    From: http://stackoverflow.com/a/553448
+    """
+    delta = end - start
+    int_delta = (delta.days * 24 * 60 * 60)
+    random_second = random.randrange(int_delta)
+    return start + timedelta(seconds=random_second)
 
 LONG_DATE = "%Y-%m-%d %H:%M:%S"
 SHORT_DATE = "%Y%m%dT%H%M%SZ"
