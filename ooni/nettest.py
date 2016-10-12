@@ -608,6 +608,11 @@ class NetTest(object):
                     self.state.taskCreated()
                     yield measurement
 
+                # This is to skip setting callbacks on measurements that
+                # cannot be run.
+                if len(measurements) == 0:
+                    continue
+
                 # When the measurement.done callbacks have all fired
                 # call the postProcessor before writing the report
                 if self.report:
