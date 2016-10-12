@@ -333,6 +333,7 @@ class WhatsappTest(httpt.HTTPTest, dnst.DNSTest):
             result['status']['success'] = False
             result['status']['failure'] = failureToString(failure)
             self.report['tcp_connect'].append(result)
+            return failure
 
         return d
 
