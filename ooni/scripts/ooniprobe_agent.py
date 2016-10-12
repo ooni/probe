@@ -168,7 +168,7 @@ def stop_agent():
     while True:
         # poll once per second until we see the process is no longer running
         try:
-            os.kill(pid, signal.SIG_DFL)
+            os.kill(pid, 0)
         except OSError:
             print("process %d is dead" % pid)
             return
