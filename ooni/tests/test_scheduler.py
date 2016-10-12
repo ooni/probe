@@ -15,7 +15,7 @@ from twisted.trial import unittest
 from ooni.utils import generate_filename, randomSTR, randomDate, LONG_DATE
 from ooni.tests.bases import ConfigTestCase
 
-from ooni.deck.store import DeckStore
+from ooni.deck.store import DeckStore, DEFAULT_DECKS
 from ooni.agent.scheduler import ScheduledTask, DidNotRun
 from ooni.agent.scheduler import FileSystemlockAndMutex
 from ooni.agent.scheduler import SchedulerService
@@ -182,14 +182,13 @@ def write_dummy_measurements(fh, size=100):
     return written_size
 
 
-DUMMY_WEB_FULL = """
+DUMMY_DECK = """
 ---
-name: Full Web test deck
-description: This deck runs HTTP Header Field Manipulation, HTTP Invalid
-    Request and the Web Connectivity test
+name: Dummy deck
+description: Dummy deck
 schedule: "@daily"
 tasks:
-- name: Runs the HTTP Header Field Manipulation test
+- name: Dummy bar
   ooni:
     test_name: http_header_field_manipulation
 """
@@ -232,9 +231,10 @@ class TestSchedulerService(ConfigTestCase):
         self.mock_deck.setup.return_value = defer.succeed(None)
         self.mock_deck.run.return_value = defer.succeed(None)
 
-        with open(os.path.join(self.decks_available_directory,
-                               'web-full.yaml'), 'w') as out_file:
-            out_file.write(DUMMY_WEB_FULL)
+        for deck_name in DEFAULT_DECKS:
+            with open(os.path.join(self.decks_available_directory,
+                                   '%s.yaml' % deck_name), 'w') as out_file:
+                out_file.write(DUMMY_DECK)
 
     def create_dummy_measurements(self, count=10, size=10*1024):
         for _ in range(count):
