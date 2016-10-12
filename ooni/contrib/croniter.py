@@ -157,7 +157,7 @@ class croniter(object):
 
     def get_current(self, ret_type=None):
         ret_type = ret_type or self._ret_type
-        if ret_type == datetime.datetime:
+        if issubclass(ret_type,  datetime.datetime):
             return self._timestamp_to_datetime(self.cur)
         return self.cur
 
@@ -219,7 +219,7 @@ class croniter(object):
 
         ret_type = ret_type or self._ret_type
 
-        if ret_type not in (float, datetime.datetime):
+        if not issubclass(ret_type, (float, datetime.datetime)):
             raise TypeError("Invalid ret_type, only 'float' or 'datetime' "
                             "is acceptable.")
 
@@ -239,7 +239,7 @@ class croniter(object):
             result = self._calc(self.cur, expanded, is_prev)
         self.cur = result
 
-        if ret_type == datetime.datetime:
+        if issubclass(ret_type, datetime.datetime):
             result = self._timestamp_to_datetime(result)
 
         return result
