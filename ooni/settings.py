@@ -318,6 +318,13 @@ class OConfig(object):
         else:
             return os.path.join(home, '.ooni')
 
+    @property
+    def web_ui_url(self):
+        return "http://{0}:{1}".format(
+            self.advanced.webui_address,
+            self.advanced.webui_port
+        )
+
     def get_data_file_path(self, file_name):
         for target_dir in self.data_directory_candidates:
             file_path = os.path.join(target_dir, file_name)

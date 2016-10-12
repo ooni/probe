@@ -94,9 +94,7 @@ def start_agent(options=None):
         pass
 
     print("Starting ooniprobe agent.")
-    WEB_UI_URL = "http://{0}:{1}".format(
-        config.advanced.webui_address, config.advanced.webui_port)
-    print("To view the GUI go to %s" % WEB_UI_URL)
+    print("To view the GUI go to %s" % config.web_ui_url)
     log.start()
     twistd.runApp(twistd_config)
     return 0
