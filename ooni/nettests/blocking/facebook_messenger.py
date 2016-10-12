@@ -4,7 +4,12 @@ from twisted.internet import defer, reactor
 from twisted.python import usage
 from twisted.internet.endpoints import TCP4ClientEndpoint
 
-from ooni.geoip import ip_to_location
+try:
+    from ooni.geoip import ip_to_location
+except ImportError:
+    # Backward compatibility with 1.6.0
+    from ooni.geoip import IPToLocation as ip_to_location
+
 from ooni.utils import log
 from ooni.common.tcp_utils import TCPConnectFactory
 from ooni.errors import failureToString
