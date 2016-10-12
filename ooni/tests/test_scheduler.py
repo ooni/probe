@@ -353,13 +353,13 @@ class TestSchedulerService(ConfigTestCase):
             dummy_clock.advance((datetime(2000,01,03,23,59,59) - FakeDatetime.utcnow()).total_seconds())
             launches = {}
             while FakeDatetime.utcnow() < datetime(2000,1,4, 6,0,0):
-                dummy_clock.advance(random.uniform(0, 120))
                 for t in scheduler_service._scheduled_tasks:
                     with open(os.path.join(self.scheduler_directory, t.identifier)) as in_file:
                         launches.setdefault(t.identifier, set())
                         launches[t.identifier].add(in_file.read())
                     self.assertLessEqual(t._smear_coef, 1.0)
                     t._smear_coef = random.random()
+                dummy_clock.advance(random.uniform(0, 120))
             self.assertEqual(len(launches), len(scheduler_service._scheduled_tasks))
             self.assertEqual({k: len(v) for k, v in launches.iteritems()}, dict.fromkeys(launches.iterkeys(), 2))
 
