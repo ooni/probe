@@ -278,7 +278,7 @@ class TestSchedulerService(ConfigTestCase):
         class FakeDatetime(datetime):
             @staticmethod
             def utcnow():
-                return datetime(2000, 1, 1, 7) + timedelta(seconds=dummy_clock.seconds())
+                return datetime(2000,1,1, 7,0,0) + timedelta(seconds=dummy_clock.seconds())
         with mock.patch('ooni.agent.scheduler.deck_store', self.deck_store), \
              mock.patch('ooni.agent.scheduler.datetime', FakeDatetime):
             scheduler_service = SchedulerService(
@@ -328,7 +328,7 @@ class TestSchedulerService(ConfigTestCase):
             self.assertLessEqual(zero, 1) # should ALMOST never happen
 
             # leaping to the end of the day
-            dummy_clock.advance((datetime(2000,01,02,23,59,59) - FakeDatetime.utcnow()).total_seconds())
+            dummy_clock.advance((datetime(2000,1,2, 23,59,59) - FakeDatetime.utcnow()).total_seconds())
             for t in scheduler_service._scheduled_tasks:
                 with open(os.path.join(self.scheduler_directory, t.identifier)) as in_file:
                     if t.schedule == '@daily':
@@ -350,7 +350,7 @@ class TestSchedulerService(ConfigTestCase):
             self.assertGreater(FakeDatetime.utcnow(), datetime(2000,1,3, 5,0,0)) # should be ~6:00
 
             # verify, that double-run does not happen even in case of reseeding (reboot/restart)
-            dummy_clock.advance((datetime(2000,01,03,23,59,59) - FakeDatetime.utcnow()).total_seconds())
+            dummy_clock.advance((datetime(2000,1,3, 23,59,59) - FakeDatetime.utcnow()).total_seconds())
             launches = {}
             while FakeDatetime.utcnow() < datetime(2000,1,4, 6,0,0):
                 for t in scheduler_service._scheduled_tasks:
