@@ -13,19 +13,19 @@ def ooniprobe(reactor):
     if global_options['queue']:
         return runWithDaemonDirector(global_options)
 
-    if global_options['initialize']:
-        initializeOoniprobe(global_options)
-        return defer.succeed(None)
-
     if global_options['web-ui']:
-        from ooni.scripts.ooniprobe_agent import WEB_UI_URL
+        from ooni.settings import config
         from ooni.scripts.ooniprobe_agent import status_agent, start_agent
         if status_agent() != 0:
             p = Process(target=start_agent)
             p.start()
             p.join()
             print("Started ooniprobe-agent")
-        webbrowser.open_new(WEB_UI_URL)
+        webbrowser.open_new(config.web_ui_url)
+        return defer.succeed(None)
+
+    if global_options['initialize']:
+        initializeOoniprobe(global_options)
         return defer.succeed(None)
 
     return runWithDirector(global_options)
