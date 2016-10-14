@@ -171,6 +171,9 @@ class NetTestLoader(object):
     def __init__(self, options, test_file=None, test_string=None,
                  annotations={}):
         self.options = options
+        # Ensure annotations are always dicts
+        if not isinstance(annotations, dict):
+            annotations = {}
         self.annotations = annotations
         self.annotations['platform'] = self.annotations.get('platform',
                                                             config.platform)
