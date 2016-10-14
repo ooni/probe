@@ -174,7 +174,7 @@ def get_ooni_root():
 
 def is_process_running(pid):
     try:
-        os.kill(pid, signal.SIG_DFL)
+        os.kill(pid, 0)
         running = True
     except OSError as ose:
         if ose.errno == errno.EPERM:

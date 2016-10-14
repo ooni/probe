@@ -3,6 +3,7 @@ import sys
 import yaml
 import errno
 import getpass
+import platform
 from ConfigParser import SafeConfigParser
 
 from twisted.internet import defer, reactor
@@ -317,6 +318,27 @@ class OConfig(object):
             return self._custom_home
         else:
             return os.path.join(home, '.ooni')
+
+    @property
+    def web_ui_url(self):
+        return "http://{0}:{1}".format(
+            self.advanced.webui_address,
+            self.advanced.webui_port
+        )
+
+    @property
+    def platform(self):
+        if os.path.exists('/etc/default/lepidopter'):
+            return 'lepidopter'
+        system = platform.system()
+        if system == 'Darwin':
+            return 'macos'
+        elif system == 'Linux':
+            return 'linux'
+        elif system == 'Windows':
+            # Really?
+            return 'windows'
+        return 'unknown'
 
     def get_data_file_path(self, file_name):
         for target_dir in self.data_directory_candidates:

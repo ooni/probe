@@ -169,9 +169,16 @@ class NetTestLoader(object):
     requiresTor = False
 
     def __init__(self, options, test_file=None, test_string=None,
-                 annotations={}):
+                 annotations=None):
         self.options = options
+        if annotations is None:
+            annotations = {}
+        if not isinstance(annotations, dict):
+            log.warn("BUG: Annotations is not a dictionary. Resetting it.")
+            annotations = {}
         self.annotations = annotations
+        self.annotations['platform'] = self.annotations.get('platform',
+                                                            config.platform)
 
         self.requiresTor = False
 
@@ -607,6 +614,11 @@ class NetTest(object):
                     measurements.append(measurement.done)
                     self.state.taskCreated()
                     yield measurement
+
+                # This is to skip setting callbacks on measurements that
+                # cannot be run.
+                if len(measurements) == 0:
+                    continue
 
                 # When the measurement.done callbacks have all fired
                 # call the postProcessor before writing the report

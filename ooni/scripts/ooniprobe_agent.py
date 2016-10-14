@@ -94,9 +94,7 @@ def start_agent(options=None):
         pass
 
     print("Starting ooniprobe agent.")
-    WEB_UI_URL = "http://{0}:{1}".format(
-        config.advanced.webui_address, config.advanced.webui_port)
-    print("To view the GUI go to %s" % WEB_UI_URL)
+    print("To view the GUI go to %s" % config.web_ui_url)
     log.start()
     twistd.runApp(twistd_config)
     return 0
@@ -121,6 +119,17 @@ def get_running_pidfile():
             return pidfile
     raise NotRunning
 
+def is_stale_pidfile(pidfile):
+    try:
+        with open(pidfile) as fd:
+            pid = int(fd.read())
+    except Exception:
+        return False # that's either garbage in the pid-file or a race
+    return not is_process_running(pid)
+
+def get_stale_pidfiles():
+    return [f for f in [config.system_pid_path, config.user_pid_path] if is_stale_pidfile(f)]
+
 def status_agent():
     try:
         get_running_pidfile()
@@ -130,7 +139,7 @@ def status_agent():
         print("ooniprobe-agent is NOT running")
         return 1
 
-def stop_agent():
+def do_stop_agent():
     # This function is borrowed from tahoe
     try:
         pidfile = get_running_pidfile()
@@ -144,12 +153,7 @@ def stop_agent():
         os.kill(pid, signal.SIGTERM)
     except OSError as ose:
         if ose.errno == errno.ESRCH:
-            print("No process was running. Cleaning up.")
-            # the process didn't exist, so wipe the pid file
-            try:
-                os.remove(pidfile)
-            except EnvironmentError as exc:
-                print("Failed to delete the pidfile {0}".format(exc))
+            print("No process was running.") # it's just a race
             return 2
         elif ose.errno == errno.EPERM:
             # The process is owned by root. We assume it's running
@@ -157,10 +161,7 @@ def stop_agent():
             return 3
         else:
             raise
-    try:
-        os.remove(pidfile)
-    except EnvironmentError:
-        pass
+    # the process wants to clean it's own pidfile itself
     start = time.time()
     time.sleep(0.1)
     wait = 40
@@ -168,7 +169,7 @@ def stop_agent():
     while True:
         # poll once per second until we see the process is no longer running
         try:
-            os.kill(pid, signal.SIG_DFL)
+            os.kill(pid, 0)
         except OSError:
             print("process %d is dead" % pid)
             return
@@ -196,6 +197,16 @@ def stop_agent():
         time.sleep(1)
     # we define rc=1 to mean "I think something is still running, sorry"
     return 1
+
+def stop_agent():
+    retval = do_stop_agent()
+    for pidfile in get_stale_pidfiles():
+        try:
+            os.remove(pidfile)
+            print("Cleaned up stale pidfile {0}".format(pidfile))
+        except EnvironmentError:
+            print("Failed to delete the pidfile {0}: {1}".format(pidfile, exc))
+    return retval
 
 def run():
     options = AgentOptions()
