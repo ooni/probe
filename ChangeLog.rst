@@ -3,6 +3,7 @@ Changelog
 
 v2.0.0 (Fri, 14 Oct 2016)
 ------------------------------
+codename: mezzanine
 
 Stable release of ooniprobe 2.0.0
 
