@@ -1,6 +1,33 @@
 Changelog
 =========
 
+v2.0.0 (Fri, 14 Oct 2016)
+------------------------------
+
+Stable release of ooniprobe 2.0.0
+
+Feature list:
+
+* System daemon for running tests periodically (https://github.com/TheTorProject/ooni-probe/issues/576)
+
+* Web user interface for viewing measurement results (https://github.com/TheTorProject/ooni-probe/issues/575)
+
+* New deck format (https://github.com/TheTorProject/ooni-probe/issues/571)
+
+* Local reports are written in JSON (https://github.com/TheTorProject/ooni-probe/issues/557)
+
+* Include decks for testing reachability of Tor, websites of IM apps
+
+* Include the platform as an annotation inside of reports
+
+Bugfixing since previous release candidates:
+
+* Fix -w option of ooniprobe (https://github.com/TheTorProject/ooni-probe/issues/623)
+
+* Scheduler lockfile for RunDecks not being released (https://github.com/TheTorProject/ooni-probe/issues/612)
+
+* Missing country testing list (https://github.com/TheTorProject/ooni-probe/issues/606)
+
 v2.0.0-rc.3 (Mon, 19 Sep 2016)
 ------------------------------
 
