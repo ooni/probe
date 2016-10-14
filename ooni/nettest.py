@@ -172,6 +172,8 @@ class NetTestLoader(object):
                  annotations={}):
         self.options = options
         self.annotations = annotations
+        self.annotations['platform'] = self.annotations.get('platform',
+                                                            config.platform)
 
         self.requiresTor = False
 
