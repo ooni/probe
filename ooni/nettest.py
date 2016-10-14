@@ -169,10 +169,12 @@ class NetTestLoader(object):
     requiresTor = False
 
     def __init__(self, options, test_file=None, test_string=None,
-                 annotations={}):
+                 annotations=None):
         self.options = options
-        # Ensure annotations are always dicts
+        if annotations is None:
+            annotations = {}
         if not isinstance(annotations, dict):
+            log.warn("BUG: Annotations is not a dictionary. Resetting it.")
             annotations = {}
         self.annotations = annotations
         self.annotations['platform'] = self.annotations.get('platform',
