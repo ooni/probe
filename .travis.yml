@@ -51,4 +51,4 @@ notifications:
     skip_join: true
     template:
       - "%{repository} (%{commit}): %{message} Diff: %{compare_url}"
-        "Build: %{build_url}"
+      - "Build: %{build_url}"
