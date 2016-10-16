@@ -11,6 +11,15 @@ env:
   - TWISTED=Twisted==15.3.0
   - TWISTED=Twisted==15.4.0
   - TWISTED=Twisted==15.5.0
+  - TWISTED=Twisted==16.0.0
+  - TWISTED=Twisted==16.1.0
+  - TWISTED=Twisted==16.1.1
+  - TWISTED=Twisted==16.2.0
+  - TWISTED=Twisted==16.3.0
+  - TWISTED=Twisted==16.3.1
+  - TWISTED=Twisted==16.3.2
+  - TWISTED=Twisted==16.4.0
+  - TWISTED=Twisted==16.4.1
   - TWISTED=Twisted
 before_install:
   - sudo apt-get update
@@ -30,6 +39,7 @@ install:
 # command to run tests, e.g. python setup.py test
 script:
   - sudo $(which coverage) run $(which trial) ooni
+  - pip list
 after_success:
   - coveralls
 notifications:
@@ -40,5 +50,5 @@ notifications:
     on_failure: change
     skip_join: true
     template:
-      - "%{repository} (%{commit}) : %{message} Diff:%{compare_url},
-        Build %{build_url}"
+      - "%{repository} (%{commit}): %{message} Diff: %{compare_url}"
+        "Build: %{build_url}"
