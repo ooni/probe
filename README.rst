@@ -44,54 +44,6 @@ Furthermore, ooniprobe takes no precautions to protect the install target machin
 from forensics analysis.  If the fact that you have installed or used ooni
 probe is a liability for you, please be aware of this risk.
 
-OONI in 5 minutes
-=================
-
-On Debian testing or unstable::
-
-    sudo apt-get install ooniprobe
-
-On Debian stable (jessie)::
-
-    echo 'deb http://ftp.debian.org/debian jessie-backports main' | sudo tee -a /etc/apt/sources.list
-    sudo apt-get update
-    sudo apt-get install ooniprobe
-
-On Ubuntu 16.04 (xenial), 15.10 (wily) or 14.04 (trusty)::
-
-    echo 'deb http://deb.torproject.org/torproject.org $RELEASE main' | sudo tee -a /etc/apt/sources.list
-    sudo apt-get update
-    sudo apt-get install ooniprobe
-
-Note: You'll need to swap out ``$RELEASE`` for either ``xenial``, ``wily``, or
-``trusty``. This will not happen automatically. You will also need to ensure
-that you have the ``universe`` repository enabled. The ``universe`` repository
-is enabled by default in a standard Ubuntu installation but may not be on some
-minimal on not standard installations.
-
-On unix systems::
-
-    sudo pip install ooniprobe
-
-To install it from the current master run::
-
-    sudo pip install https://github.com/TheTorProject/ooni-probe/archive/master.zip
-
-Then run::
-
-    mkdir my_decks
-    oonideckgen -o my_decks/
-
-If you're using the Debian package, you will be asked when installing whether
-you would like to run OONI daily. On other platforms, if you would like to
-contribute measurements to OONI daily you can also add this to your crontab::
-
-    @daily ooniprobe $THE_OONI_COMMAND
-
-Run this command to automatically update your crontab::
-
-    (crontab -l 2>/dev/null; echo "@daily ooniprobe $THE_OONI_COMMAND") | crontab -
-
 Installation
 ============
 
@@ -116,17 +68,24 @@ Make sure you have installed the following dependencies:
   * libpcap-dev
   * libssl-dev
   * libffi-dev
+  * libgmp-dev
+  * openssl
+  * libyaml-dev
   * tor (>=0.2.5.1 to run all the tor related tests)
+
+Optional dependencies:
+
+  * obfs4proxy
 
 On debian based systems this can generally be done by running::
 
-    sudo apt-get install -y build-essential libdumbnet-dev libpcap-dev libgeoip-dev libffi-dev python-dev python-pip tor
+    sudo apt-get install -y build-essential libdumbnet-dev libpcap-dev libgeoip-dev libffi-dev python-dev python-pip tor libgmp-dev obfs4proxy
 
 Then you should be able to install ooniprobe by running::
 
     sudo pip install ooniprobe
 
-or as a user to install inside a virtualenv::
+or install ooniprobe as a user::
 
     pip install ooniprobe
 
@@ -148,8 +107,7 @@ On debian/ubuntu::
 
 3. Open a Terminal and run::
 
-    git clone https://git.torproject.org/ooni-probe.git
-    git clone https://github.com/TheTorProject/ooni-backend.git
+    git clone https://github.com/TheTorProject/ooni-probe.git
     cd ooni-probe/
     vagrant up
 
@@ -157,11 +115,12 @@ On debian/ubuntu::
 
     vagrant ssh
 
-ooniprobe will be installed in ``/ooni``.
+5. Start ooniprobe agent::
 
-5. You can run tests with::
+    ooniprobe-agent start
 
-    ooniprobe blocking/http_requests -f /ooni/var/example_inputs/alexa-top-1k.txt
+6. Connect to the web UI on your host machine at http://localhost:8042/
+
 
 Using ooniprobe
 ===============
@@ -179,134 +138,41 @@ Using ooniprobe
 Configuring ooniprobe
 ---------------------
 
-You may edit the configuration for ooniprobe by editing the configuration file
-found inside of ``~/.ooni/ooniprobe.conf``.
+After successfully installing ooniprobe you should be able to access the web UI
+on your host machine at http://localhost:8042/ .
+
+You should now be presented with the web UI setup wizard where you can read the
+risks involved with running ooniprobe. Upon answering the quiz correctly you can
+enable or disable ooniprobe tests, set how you can connect to the measurement's
+collector and finally configure your privacy settings.
 
 By default ooniprobe will not include personal identifying information in the
-test result, nor create a pcap file. This behavior can be personalized.
+test results, nor create a pcap file. This behavior can be personalized.
 
+Run ooniprobe as a service (systemd)
+------------------------------------
 
-Updating resources
-------------------
+Upon ooniprobe version 2.0.0 there is no need for cronjobs as ooniprobe-agent is
+responsible for the tasks scheduling.
 
-To generate decks you will have to update the input resources of ooniprobe.
+You can ensure that ooniprobe-agent is always running by installing and enabling
+the systemd unit `ooniprobe.service`::
 
-This can be done with::
+    git clone https://github.com/TheTorProject/ooni-probe.git
+    cp ooni-probe/scripts/systemd/ooniprobe.service $(pkg-config systemd --variable=systemdsystemconfdir)
+    systemctl enable ooniprobe
+    systemctl start ooniprobe
 
-    ooniresources
+You should be able to see something similar if ooniprobe service is running::
 
-If you get a permission error, you may have to run the command as root or
-change the ooniprobe data directory inside of `ooniprobe.conf`.
+    ● ooniprobe.service - ooniprobe.service, network interference detection tool
+       Loaded: loaded (/etc/systemd/system/ooniprobe.service; enabled)
+       Active: active (running) since Thu 2016-10-20 09:17:42 UTC; 16s ago
+       Process: 311 ExecStart=/usr/local/bin/ooniprobe-agent start (code=exited, status=0/SUCCESS)
+       Main PID: 390 (ooniprobe-agent)
+       CGroup: /system.slice/ooniprobe.service
+               └─390 /usr/bin/python /usr/local/bin/ooniprobe-agent start
 
-Generating decks
-----------------
-
-You can generate decks for your country thanks to the oonideckgen command.
-
-If you wish, for example, to generate a deck to be run in the country of Italy,
-you can do so (be sure to have updated the input resources first) by running::
-
-    oonideckgen --country-code IT --output ~/
-
-You will now have in your home a folder called `deck-it`, containing the ooni
-deck (ends with .deck) and the inputs.
-Note: that you should not move the `deck-*` directory once it has been
-generated as the paths to the inputs referenced by the test in the deck are
-absolute. If you want your deck to live in another directory you must
-regenerated it.
-
-
-Running decks
--------------
-
-You will find all the installed decks inside of ``/usr/share/ooni/decks``.
-
-You may then run a deck by using the command line option ``-i``:
-
-As root::
-
-    ooniprobe -i /usr/share/ooni/decks/mlab.deck
-
-
-Or as a user::
-
-    ooniprobe -i /usr/share/ooni/decks/mlab_no_root.deck
-
-
-Or:
-
-As root::
-
-    ooniprobe -i /usr/share/ooni/decks/complete.deck
-
-
-Or as a user::
-
-    ooniprobe -i /usr/share/ooni/decks/complete_no_root.deck
-
-
-The above tests will require around 20-30 minutes to complete depending on your network speed.
-
-If you would prefer to run some faster tests you should run:
-As root::
-
-    ooniprobe -i /usr/share/ooni/decks/fast.deck
-
-
-Or as a user::
-
-    ooniprobe -i /usr/share/ooni/decks/fast_no_root.deck
-
-
-Running net tests
------------------
-
-You may list all the installed stable net tests with::
-
-
-    ooniprobe -s
-
-
-You may then run a nettest by specifying its name for example::
-
-
-    ooniprobe manipulation/http_header_field_manipulation
-
-
-It is also possible to specify inputs to tests as URLs::
-
-
-    ooniprobe blocking/http_requests -f httpo://ihiderha53f36lsd.onion/input/37e60e13536f6afe47a830bfb6b371b5cf65da66d7ad65137344679b24fdccd1
-
-
-You can find the result of the test in your current working directory.
-
-By default the report result will be collected by the default ooni collector
-and the addresses of test helpers will be obtained from the default bouncer.
-
-You may also specify your own collector or bouncer with the options ``-c`` and
-``-b``.
-
-
-Bridges and obfsproxy bridges
-=============================
-
-ooniprobe submits reports to oonib report collectors through Tor to a hidden
-service endpoint. By default, ooniprobe uses the installed system Tor, but can
-also be configured to launch Tor (see the advanced.start_tor option in
-ooniprobe.conf), and ooniprobe supports bridges (and obfsproxy bridges, if
-obfsproxy is installed). The tor.bridges option in ooniprobe.conf sets the path
-to a file that should contain a set of "bridge" lines (of the same format as
-used in torrc, and as returned by https://bridges.torproject.org). If obfsproxy
-bridges are to be used, the path to the obfsproxy binary must be configured.
-See option advanced.obfsproxy_binary, in ooniprobe.conf.
-
-(Optional) Install obfsproxy
-----------------------------
-
-Install the latest version of obfsproxy for your platform.
-
-Download Obfsproxy: https://www.torproject.org/projects/obfsproxy.html.en
 
 Setting capabilities on your virtualenv python binary
 =====================================================
@@ -332,10 +198,8 @@ Contributing
 You can download the code for ooniprobe from the following git repository::
 
 
-    git clone https://git.torproject.org/ooni-probe.git
+    git clone https://github.com/TheTorProject/ooni-probe.git
 
-
-It is also viewable on the web via: https://gitweb.torproject.org/ooni-probe.git.
 
 You should then submit patches for review as pull requests to this github repository:
 
