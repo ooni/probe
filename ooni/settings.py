@@ -156,6 +156,9 @@ if hasattr(sys, 'real_prefix'):
 
 # These are the the embedded settings
 _SETTINGS_INI = os.path.join(OONIPROBE_ROOT, 'settings.ini')
+# This can be overridden by an environment variable for end to end testing
+if 'OONIPROBE_SETTINGS' in os.environ:
+    _SETTINGS_INI = os.environ['OONIPROBE_SETTINGS']
 
 USR_SHARE_PATH = '/usr/share/ooni'
 VAR_LIB_PATH = '/var/lib/ooni'
