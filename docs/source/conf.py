@@ -218,8 +218,11 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    ('index', 'ooniprobe', u'an internet censorship measurement tool',
-     [u'The Tor Project'], 1)
+    ('manual/oonideckgen', 'oonideckgen', u'DEPRECATED ooni tool', [u'The Tor Project'], 1),
+    ('manual/ooniprobe-agent', 'ooniprobe-agent', u'an internet censorship measurement tool, system daemon.', [u'The Tor Project'], 1),
+    ('manual/ooniprobe', 'ooniprobe', u'an internet censorship measurement tool', [u'The Tor Project'], 1),
+    ('manual/oonireport', 'oonireport', u'upload ooniprobe measurements', [u'The Tor Project'], 1),
+    ('manual/ooniresources', 'ooniresources', u'DEPRECATED ooni tool', [u'The Tor Project'], 1),
 ]
 
 # If true, show URL addresses after external links.

@@ -1,8 +1,8 @@
 .\" Man page generated from reStructuredText.
 .
-.TH "OONIPROBE" "1" "October 14, 2016" "2.0.0" "OONI: Open Observatory of Network Interference"
+.TH "OONIPROBE-AGENT" "1" "October 14, 2016" "2.0.0" "OONI: Open Observatory of Network Interference"
 .SH NAME
-ooniprobe \- an internet censorship measurement tool
+ooniprobe-agent \- an internet censorship measurement tool, system daemon.
 .
 .nr rst2man-indent-level 0
 .
@@ -32,78 +32,34 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 ..
 .SH SYNOPSIS
 .sp
-\fBooniprobe\fP [\fIoptions\fP] ([\fItest name\fP] | [\fIpath to nettest\fP\&.py])
+\fBooniprobe\-agent\fP start | stop | run | status
 .SH DESCRIPTION
 .sp
-\fBooniprobe\fP, is a tool for performing internet censorship
-measurements. Our goal is to achieve a common data format and set of
-methodologies for conducting censorship related research.
+\fBooniprobe\-agent\fP, is a system daemon responsible for automatically
+running OONI measurements and exposing a web user interface. The web user
+interface is accessible by default on \fI\%http://127.0.0.1:8842/\fP
 .SH OPTIONS
 .INDENT 0.0
 .TP
-.B \-h\fP,\fB  \-\-help
+.B \-\-help
 Display help and exit.
-.TP
-.B \-n\fP,\fB  \-\-no\-collector
-Disable writing to collector
-.TP
-.B \-N\fP,\fB  \-\-no\-njson
-Disable writing to disk
-.TP
-.B \-g\fP,\fB  \-\-no\-geoip
-Disable geoip lookup on start
-.TP
-.B \-s\fP,\fB  \-\-list
-List the currently installed ooniprobe nettests
-.TP
-.B \-v\fP,\fB  \-\-verbose
-Show more verbose information
-.TP
-.B \-w\fP,\fB  \-\-web\-ui
-Start the web UI
-.TP
-.B \-z\fP,\fB  \-\-initialize
-Initialize ooniprobe to begin running it
-.TP
-.BI \-o\fP,\fB  \-\-reportfile \ PATH_TO_FILE
-Specify the report file name to write to.
-.TP
-.BI \-i\fP,\fB  \-\-testdeck \ PATH_TO_DECK
-Specify as input a test deck: a yaml file containing the tests to run and their arguments.
-.TP
-.BI \-c\fP,\fB  \-\-collector \ COLLECTOR_ADDRESS
-Specify the address of the collector for test results. In most cases a user
-will prefer to specify a bouncer over this.
-.TP
-.BI \-b\fP,\fB  \-\-bouncer \ BOUNCER_ADDRESS
-Specify the bouncer used to obtain the address of the collector and test helpers.
-.TP
-.BI \-l\fP,\fB  \-\-logfile \ PATH_TO_LOGFILE
-Write to this logs to this filename.
-.TP
-.BI \-O\fP,\fB  \-\-pcapfile \ PATH_TO_PCAPFILE
-Write a PCAP of the ooniprobe session to this filename.
-.TP
-.BI \-f\fP,\fB  \-\-configfile \ PATH_TO_CONFIG
-Specify a path to the ooniprobe configuration file.
-.TP
-.B \-d\fP,\fB  \-\-datadir
-Specify a path to the ooniprobe data directory.
-.UNINDENT
-.INDENT 0.0
-.TP
-.B \-a, \-\-annotations key:value[,key2:value2]
-Annotate the report with a key:value[, key:value] format.
-.TP
-.B \-P, \-\-preferred\-backend onion|https|cloudfront
-Set the preferred backend to use when submitting results and/or
-communicating with test helpers. Can be either onion, https or cloudfront
-.UNINDENT
-.INDENT 0.0
 .TP
 .B \-\-version
 Display the ooniprobe version and exit.
 .UNINDENT
+.SH COMMANDS
+.sp
+\fBstart\fP
+Start the ooniprobe\-agent in the background
+.sp
+\fBstop\fP
+Stop the ooniprobe\-agent
+.sp
+\fBstatus\fP
+Show status of the ooniprobe\-agent
+.sp
+\fBrun\fP
+Run the ooniprobe\-agent in the foreground
 .SH OONIPROBE
 .SS Read this before running ooniprobe!
 .sp
