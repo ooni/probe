@@ -224,17 +224,12 @@ def initializeOoniprobe(global_options):
                               should_upload=should_upload,
                               preferred_backend=preferred_backend)
     config.set_initialized()
+    print("ooniprobe is now initialized. You can begin using it!")
 
 def setupGlobalOptions(logging, start_tor, check_incoherences):
     global_options = parseOptions()
 
     config.global_options = global_options
-
-    if not config.is_initialized():
-        log.err("You first need to agree to the informed consent and setup "
-                "ooniprobe to run it.")
-        global_options['initialize'] = True
-        return global_options
 
     config.set_paths()
     config.initialize_ooni_home()
@@ -242,6 +237,9 @@ def setupGlobalOptions(logging, start_tor, check_incoherences):
         config.read_config_file(check_incoherences=check_incoherences)
     except errors.ConfigFileIncoherent:
         sys.exit(6)
+
+    if not config.is_initialized():
+        initializeOoniprobe(global_options)
 
     if global_options['verbose']:
         config.advanced.debug = True
