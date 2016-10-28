@@ -365,7 +365,8 @@ def runTestWithDirector(director, global_options, url=None,
                         create_input_store=True):
     deck = createDeck(global_options, url=url)
 
-    d = director.start(create_input_store=create_input_store)
+    d = director.start(create_input_store=create_input_store,
+                       start_tor=start_tor)
     @defer.inlineCallbacks
     def post_director_start(_):
         try:
