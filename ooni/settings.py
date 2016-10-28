@@ -156,6 +156,9 @@ if hasattr(sys, 'real_prefix'):
 
 # These are the the embedded settings
 _SETTINGS_INI = os.path.join(OONIPROBE_ROOT, 'settings.ini')
+# This can be overridden by an environment variable for end to end testing
+if 'OONIPROBE_SETTINGS' in os.environ:
+    _SETTINGS_INI = os.environ['OONIPROBE_SETTINGS']
 
 USR_SHARE_PATH = '/usr/share/ooni'
 VAR_LIB_PATH = '/var/lib/ooni'
@@ -345,6 +348,27 @@ class OConfig(object):
             file_path = os.path.join(target_dir, file_name)
             if os.path.isfile(file_path):
                 return file_path
+
+    def log_info(self):
+        log.msg("Paths")
+        log.msg("-----")
+        log.msg("inputs directory: %s" % self.inputs_directory)
+        log.msg("scheduler directory: %s" % self.scheduler_directory)
+        log.msg("resources directory: %s" % self.resources_directory)
+        log.msg("decks available directory: %s" % self.decks_available_directory)
+        log.msg("decks enabled directory: %s" % self.decks_enabled_directory)
+        log.msg("measurements directory: %s" % self.measurements_directory)
+
+        log.msg("running path: %s" % self.running_path)
+        log.msg("config files: %s" % ','.join(self.config_files))
+        log.msg("ooni home: %s" % self.ooni_home)
+        log.msg("var_lib path: %s" % VAR_LIB_PATH)
+        log.msg("etc path: %s" % ETC_PATH)
+        log.msg("usr_share path: %s" % USR_SHARE_PATH)
+
+        log.debug("nettest directory: %s" % self.nettest_directory)
+        log.debug("web ui directory: %s" % self.web_ui_directory)
+
 
     def set_paths(self):
         self.nettest_directory = os.path.join(OONIPROBE_ROOT, 'nettests')

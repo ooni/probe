@@ -33,6 +33,7 @@ class Options(usage.Options):
                 ["web-ui", "w", "Start the web UI"],
                 ["initialize", "z", "Initialize ooniprobe to begin running "
                                     "it"],
+                ["info", None, "Print system wide info and exit"]
                 ]
 
     optParameters = [
@@ -61,7 +62,8 @@ class Options(usage.Options):
                                          "communicating with test helpers. "
                                          "Can be either onion, "
                                          "https or cloudfront"],
-        ["queue", "Q", None, "AMQP Queue URL amqp://user:pass@host:port/vhost/queue"]
+        ["queue", "Q", None, "AMQP Queue URL "
+                             "amqp://user:pass@host:port/vhost/queue"]
     ]
 
     compData = usage.Completions(
@@ -90,7 +92,8 @@ class Options(usage.Options):
         sys.exit(0)
 
     def parseArgs(self, *args):
-        if self['testdeck'] or self['list'] or self['web-ui']:
+        flag_opts = ['testdeck', 'list', 'web-ui', 'info']
+        if any([self[opt] for opt in flag_opts]):
             return
         try:
             self['test_file'] = args[0]
