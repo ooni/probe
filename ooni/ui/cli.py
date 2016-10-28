@@ -171,6 +171,10 @@ def director_startup_other_failures(failure):
 
 def initializeOoniprobe(global_options):
     print("It looks like this is the first time you are running ooniprobe")
+    if not sys.stdin.isatty():
+        print("ERROR: STDIN is not attached to a tty. Quiting.")
+        sys.exit(8)
+
     print("Please take a minute to read through the informed consent documentation and "
           "understand what are the risks associated with running ooniprobe.")
     print("Press enter to continue...")
