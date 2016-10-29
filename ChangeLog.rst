@@ -17,6 +17,8 @@ Bug fixes:
 
 * Fix https://github.com/TheTorProject/ooni-probe/issues/650
 
+* Fix https://github.com/TheTorProject/ooni-probe/issues/651
+
 v2.0.0 (Fri, 14 Oct 2016)
 ------------------------------
 codename: mezzanine
