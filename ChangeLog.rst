@@ -1,6 +1,22 @@
 Changelog
 =========
 
+v2.0.1 (Sat, 29 Oct 2016)
+--------------------------
+
+Improvements:
+
+* Add `--info` command line option to print paths of ooniprobe
+
+* Support specifying a `settings.ini` via an environment variable to facilitate
+  testing.
+
+Bug fixes:
+
+* Fix https://github.com/TheTorProject/ooni-probe/issues/636
+
+* Fix https://github.com/TheTorProject/ooni-probe/issues/650
+
 v2.0.0 (Fri, 14 Oct 2016)
 ------------------------------
 codename: mezzanine
