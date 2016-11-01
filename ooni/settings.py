@@ -22,6 +22,7 @@ basic:
     # Where OONIProbe should be writing its log file
     # logfile: {logfile}
     # loglevel: WARNING
+    # logrotate: true
     # The maximum amount of data to store on disk. Once the quota is reached,
     # we will start deleting older reports.
     # measurement_quota: 1G
@@ -105,6 +106,7 @@ defaults = {
     "basic": {
         "loglevel": "WARNING",
         "logfile": "ooniprobe.log",
+        "logrotate": True,
         "measurement_quota": "1G"
     },
     "privacy": {

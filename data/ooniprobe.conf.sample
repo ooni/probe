@@ -6,6 +6,7 @@ basic:
     # Where OONIProbe should be writing its log file
     logfile: /var/log/ooniprobe.log
     loglevel: WARNING
+    logrotate: true
 privacy:
     # Should we include the IP address of the probe in the report?
     includeip: false

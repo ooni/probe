@@ -172,10 +172,12 @@ class OONILogger(object):
         if config.advanced.debug:
             stdout_log_level = levels['DEBUG']
 
-        daily_logfile = DailyLogFile(log_filename, log_folder)
+        if config.basic.logrotate is True:
+            logfile = DailyLogFile(log_filename, log_folder)
+        else:
+            logfile = open(os.path.join(log_folder, log_filename), 'a')
 
-        self.fileObserver = MsecLogObserver(daily_logfile,
-                                             log_level=file_log_level)
+        self.fileObserver = MsecLogObserver(logfile, log_level=file_log_level)
         self.stdoutObserver = StdoutStderrObserver(sys.stdout,
                                                    log_level=stdout_log_level)
 
