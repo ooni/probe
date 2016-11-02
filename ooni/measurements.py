@@ -1,4 +1,5 @@
 import json
+import operator
 
 from twisted.internet import defer
 from twisted.internet.threads import deferToThread
@@ -129,7 +130,7 @@ def get_summary(measurement_id):
         return defer.succeed(json.load(f))
 
 
-def list_measurements(compute_size=False):
+def list_measurements(compute_size=False, order=None):
     measurements = []
     measurement_path = FilePath(config.measurements_directory)
     if not measurement_path.exists():
@@ -139,4 +140,9 @@ def list_measurements(compute_size=False):
             measurements.append(get_measurement(measurement_id, compute_size))
         except:
             log.err("Failed to get metadata for measurement {0}".format(measurement_id))
+
+    if order is not None:
+        reverse = True if order.lower() is 'asc' else False
+        measurements.sort(key=operator.itemgetter('test_start_time'),
+                          reverse=reverse)
     return measurements
