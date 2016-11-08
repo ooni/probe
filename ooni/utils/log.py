@@ -6,9 +6,10 @@ import logging
 from datetime import datetime
 
 from twisted.python import log as tw_log
-from twisted.python.logfile import DailyLogFile
+from twisted.python.logfile import DailyLogFile, LogFile
 
 from ooni.utils import mkdir_p
+from ooni.utils.files import human_size_to_bytes
 from ooni import otime
 
 # Get rid of the annoying "No route found for
@@ -172,8 +173,14 @@ class OONILogger(object):
         if config.advanced.debug:
             stdout_log_level = levels['DEBUG']
 
-        if config.basic.logrotate is True:
+        if config.basic.rotate is 'daily':
             logfile = DailyLogFile(log_filename, log_folder)
+        elif config.basic.rotate is 'length':
+            logfile = LogFile(log_filename, log_folder,
+                              rotateLength=human_size_to_bytes(
+                                  config.basic.rotate_length
+                              ),
+                              maxRotatedFiles=config.basic.max_rotated_files)
         else:
             logfile = open(os.path.join(log_folder, log_filename), 'a')
 

@@ -22,7 +22,13 @@ basic:
     # Where OONIProbe should be writing its log file
     # logfile: {logfile}
     # loglevel: WARNING
-    # logrotate: true
+    # Will rotate logs daily when "daily" or based on rotate_length
+    # when "length" is set. null to disable rotation.
+    # rotate: daily
+    # rotate_length: 1M
+    # Sets an upper bound on the number of rotated files, only works when
+    # rotate: length
+    # max_rotated_files: None
     # The maximum amount of data to store on disk. Once the quota is reached,
     # we will start deleting older reports.
     # measurement_quota: 1G
@@ -106,7 +112,9 @@ defaults = {
     "basic": {
         "loglevel": "WARNING",
         "logfile": "ooniprobe.log",
-        "logrotate": True,
+        "rotate": "daily",
+        "rotate_length": "1M",
+        "max_rotated_files": None,
         "measurement_quota": "1G"
     },
     "privacy": {
