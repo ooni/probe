@@ -167,6 +167,7 @@ class ProbeIP(object):
             'ubuntu': UbuntuGeoIP
             # We are disabling this because it sometimes creates parsing
             # errors.
+            # See: https://github.com/TheTorProject/ooni-probe/issues/670
             # 'duckduckgo': DuckDuckGoGeoIP
         }
         self.geodata = {
