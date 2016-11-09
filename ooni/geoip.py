@@ -164,8 +164,10 @@ class ProbeIP(object):
 
     def __init__(self):
         self.geoIPServices = {
-            'ubuntu': UbuntuGeoIP,
-            'duckduckgo': DuckDuckGoGeoIP
+            'ubuntu': UbuntuGeoIP
+            # We are disabling this because it sometimes creates parsing
+            # errors.
+            # 'duckduckgo': DuckDuckGoGeoIP
         }
         self.geodata = {
             'asn': 'AS0',
