@@ -177,9 +177,9 @@ class OONILogger(object):
             logfile = DailyLogFile(log_filename, log_folder)
         elif config.basic.rotate is 'length':
             logfile = LogFile(log_filename, log_folder,
-                              rotateLength=human_size_to_bytes(
+                              rotateLength=int(human_size_to_bytes(
                                   config.basic.rotate_length
-                              ),
+                              )),
                               maxRotatedFiles=config.basic.max_rotated_files)
         else:
             logfile = open(os.path.join(log_folder, log_filename), 'a')
