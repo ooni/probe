@@ -28,7 +28,7 @@ basic:
     # rotate_length: 1M
     # Sets an upper bound on the number of rotated files, only works when
     #  "length" is the rotation mode
-    # max_rotated_files: None
+    # max_rotated_files: null
     # The maximum amount of data to store on disk. Once the quota is reached,
     # we will start deleting older reports.
     # measurement_quota: 1G
