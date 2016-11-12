@@ -164,8 +164,11 @@ class ProbeIP(object):
 
     def __init__(self):
         self.geoIPServices = {
-            'ubuntu': UbuntuGeoIP,
-            'duckduckgo': DuckDuckGoGeoIP
+            'ubuntu': UbuntuGeoIP
+            # We are disabling this because it sometimes creates parsing
+            # errors.
+            # See: https://github.com/TheTorProject/ooni-probe/issues/670
+            # 'duckduckgo': DuckDuckGoGeoIP
         }
         self.geodata = {
             'asn': 'AS0',
