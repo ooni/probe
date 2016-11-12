@@ -68,9 +68,6 @@ Make sure you have installed the following dependencies:
   * libpcap-dev
   * libssl-dev
   * libffi-dev
-  * libgmp-dev
-  * openssl
-  * libyaml-dev
   * tor (>=0.2.5.1 to run all the tor related tests)
 
 Optional dependencies:
@@ -79,7 +76,7 @@ Optional dependencies:
 
 On debian based systems this can generally be done by running::
 
-    sudo apt-get install -y build-essential libdumbnet-dev libpcap-dev libgeoip-dev libffi-dev python-dev python-pip tor libgmp-dev obfs4proxy
+    sudo apt-get install -y build-essential libdumbnet-dev libpcap-dev libgeoip-dev libffi-dev python-dev python-pip tor libssl-dev obfs4proxy
 
 Then you should be able to install ooniprobe by running::
 
@@ -158,12 +155,12 @@ responsible for the tasks scheduling.
 You can ensure that ooniprobe-agent is always running by installing and enabling
 the systemd unit `ooniprobe.service`::
 
-    git clone https://github.com/TheTorProject/ooni-probe.git
-    cp ooni-probe/scripts/systemd/ooniprobe.service $(pkg-config systemd --variable=systemdsystemconfdir)
+    wget https://raw.githubusercontent.com/TheTorProject/ooni-probe/master/scripts/systemd/ooniprobe.service --directory-prefix=/etc/systemd/system
     systemctl enable ooniprobe
     systemctl start ooniprobe
 
-You should be able to see something similar if ooniprobe service is running::
+You should be able to see a similar output if ooniprobe (systemd) service is
+active and loaded by running `systemctl status ooniprobe`::
 
     ● ooniprobe.service - ooniprobe.service, network interference detection tool
        Loaded: loaded (/etc/systemd/system/ooniprobe.service; enabled)
