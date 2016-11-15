@@ -173,9 +173,9 @@ class OONILogger(object):
         if config.advanced.debug:
             stdout_log_level = levels['DEBUG']
 
-        if config.basic.rotate is 'daily':
+        if config.basic.rotate == 'daily':
             logfile = DailyLogFile(log_filename, log_folder)
-        elif config.basic.rotate is 'length':
+        elif config.basic.rotate == 'length':
             logfile = LogFile(log_filename, log_folder,
                               rotateLength=int(human_size_to_bytes(
                                   config.basic.rotate_length
