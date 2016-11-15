@@ -1,6 +1,18 @@
 Changelog
 =========
 
+v2.0.2 (Wed, 16 Nov 2016)
+--------------------------
+
+Improvements:
+
+* Add support for specifying how the log rotation should happen
+
+Bug fixes:
+
+* Fix bug that lead to too many log lines being written:
+  https://github.com/TheTorProject/ooni-probe/issues/663
+
 v2.0.1 (Sat, 29 Oct 2016)
 --------------------------
 
