@@ -44,6 +44,50 @@ Furthermore, ooniprobe takes no precautions to protect the install target machin
 from forensics analysis.  If the fact that you have installed or used ooni
 probe is a liability for you, please be aware of this risk.
 
+OONI in 5 minutes
+=================
+
+The latest ooniprobe version for Debian and Ubuntu releases can be found in the
+deb.torproject.org package repository.
+
+On Debian stable (jessie)::
+
+    gpg --keyserver keys.gnupg.net --recv A3C4F0F979CAA22CDBA8F512EE8CBC9E886DDD89
+    gpg --export A3C4F0F979CAA22CDBA8F512EE8CBC9E886DDD89 | sudo apt-key add -
+    echo 'deb http://deb.torproject.org/torproject.org jessie main' | sudo tee /etc/apt/sources.list.d/ooniprobe.list
+    sudo apt-get update
+    sudo apt-get install ooniprobe deb.torproject.org-keyring
+
+On Debian testing::
+
+    gpg --keyserver keys.gnupg.net --recv A3C4F0F979CAA22CDBA8F512EE8CBC9E886DDD89
+    gpg --export A3C4F0F979CAA22CDBA8F512EE8CBC9E886DDD89 | sudo apt-key add -
+    echo 'deb http://deb.torproject.org/torproject.org testing main' | sudo tee /etc/apt/sources.list.d/ooniprobe.list
+    sudo apt-get update
+    sudo apt-get install ooniprobe deb.torproject.org-keyring
+
+On Debian unstable::
+
+    gpg --keyserver keys.gnupg.net --recv A3C4F0F979CAA22CDBA8F512EE8CBC9E886DDD89
+    gpg --export A3C4F0F979CAA22CDBA8F512EE8CBC9E886DDD89 | sudo apt-key add -
+    echo 'deb http://deb.torproject.org/torproject.org unstable main' | sudo tee /etc/apt/sources.list.d/ooniprobe.list
+    sudo apt-get update
+    sudo apt-get install ooniprobe deb.torproject.org-keyring
+
+On Ubuntu 16.10 (yakkety), 16.04 (xenial), 15.10 (wily) or 14.04 (trusty)::
+
+    gpg --keyserver keys.gnupg.net --recv A3C4F0F979CAA22CDBA8F512EE8CBC9E886DDD89
+    gpg --export A3C4F0F979CAA22CDBA8F512EE8CBC9E886DDD89 | sudo apt-key add -
+    echo 'deb http://deb.torproject.org/torproject.org $RELEASE main' | sudo tee /etc/apt/sources.list.d/ooniprobe.list
+    sudo apt-get update
+    sudo apt-get install ooniprobe deb.torproject.org-keyring
+
+Note: You'll need to swap out ``$RELEASE`` for either ``yakkety``, ``xenial``,
+``wily``, or ``trusty``. This will not happen automatically. You will also need
+to ensure that you have the ``universe`` repository enabled. The ``universe``
+repository is enabled by default in a standard Ubuntu installation but may not
+be on some minimal on not standard installations.
+
 Installation
 ============
 
@@ -110,13 +154,13 @@ On debian/ubuntu::
 
 4. Login to the box with::
 
-    vagrant ssh
+    vagrant ssh probe
 
 5. Start ooniprobe agent::
 
     ooniprobe-agent start
 
-6. Connect to the web UI on your host machine at http://localhost:8042/
+6. Connect to the web UI on your host machine at http://localhost:8842/
 
 
 Using ooniprobe
@@ -136,7 +180,7 @@ Configuring ooniprobe
 ---------------------
 
 After successfully installing ooniprobe you should be able to access the web UI
-on your host machine at http://localhost:8042/ .
+on your host machine at http://localhost:8842/ .
 
 You should now be presented with the web UI setup wizard where you can read the
 risks involved with running ooniprobe. Upon answering the quiz correctly you can
