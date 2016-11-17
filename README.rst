@@ -74,7 +74,7 @@ On Debian unstable::
     sudo apt-get update
     sudo apt-get install ooniprobe deb.torproject.org-keyring
 
-On Ubuntu 16.10 (yakkety), 16.04 (xenial), 15.10 (wily) or 14.04 (trusty)::
+On Ubuntu 16.10 (yakkety), 16.04 (xenial) or 14.04 (trusty)::
 
     gpg --keyserver keys.gnupg.net --recv A3C4F0F979CAA22CDBA8F512EE8CBC9E886DDD89
     gpg --export A3C4F0F979CAA22CDBA8F512EE8CBC9E886DDD89 | sudo apt-key add -
@@ -82,11 +82,11 @@ On Ubuntu 16.10 (yakkety), 16.04 (xenial), 15.10 (wily) or 14.04 (trusty)::
     sudo apt-get update
     sudo apt-get install ooniprobe deb.torproject.org-keyring
 
-Note: You'll need to swap out ``$RELEASE`` for either ``yakkety``, ``xenial``,
-``wily``, or ``trusty``. This will not happen automatically. You will also need
-to ensure that you have the ``universe`` repository enabled. The ``universe``
-repository is enabled by default in a standard Ubuntu installation but may not
-be on some minimal on not standard installations.
+Note: You'll need to swap out ``$RELEASE`` for either ``yakkety``, ``xenial`` or
+``trusty``. This will not happen automatically. You will also need to ensure
+that you have the ``universe`` repository enabled. The ``universe`` repository
+is enabled by default in a standard Ubuntu installation but may not be on some
+minimal on not standard installations.
 
 Installation
 ============
