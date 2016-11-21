@@ -186,18 +186,6 @@ By default ooniprobe will not include personal identifying information in the
 test result, nor create a pcap file. This behavior can be personalized.
 
 
-Updating resources
-------------------
-
-To generate decks you will have to update the input resources of ooniprobe.
-
-This can be done with::
-
-    ooniresources
-
-If you get a permission error, you may have to run the command as root or
-change the ooniprobe data directory inside of `ooniprobe.conf`.
-
 Generating decks
 ----------------
 
