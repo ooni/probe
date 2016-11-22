@@ -264,27 +264,18 @@ class WhatsappTest(httpt.HTTPTest, dnst.DNSTest):
     description = ("This test checks to see if the servers used by whatsapp "
                    "messenger are reachable")
     author = "Arturo Filastò"
-    version = "0.3.0"
+    version = "0.3.1"
 
     requiresRoot = False
     requiresTor = False
     followRedirects = True
     usageOptions = UsageOptions
 
-    def setUp(self):
-        self.report['registratison_server_failure'] = None
-        self.report['registration_server_status'] = None
-        self.report['whatsapp_web_failure'] = None
-        self.report['whatsapp_web_status'] = None
-
-        self.report['whatsapp_endpoints_status'] = None
-        self.report['whatsapp_endpoints_dns_inconsistent'] = []
-        self.report['whatsapp_endpoints_blocked'] = []
-
-        self.report['tcp_connect'] = []
-
     @defer.inlineCallbacks
     def test_registration_server(self):
+        self.report['registratison_server_failure'] = None
+        self.report['registration_server_status'] = None
+
         url = 'https://v.whatsapp.net/v2/register'
         # Ensure I get back:
         # {"status": "fail", "reason": "missing_param", "param": "code"}
@@ -318,6 +309,9 @@ class WhatsappTest(httpt.HTTPTest, dnst.DNSTest):
 
     @defer.inlineCallbacks
     def test_whatsapp_web(self):
+        self.report['whatsapp_web_failure'] = None
+        self.report['whatsapp_web_status'] = None
+
         yield self._test_whatsapp_web('https://web.whatsapp.com/')
         yield self._test_whatsapp_web('http://web.whatsapp.com/')
         if self.report['whatsapp_web_status'] != 'blocked':
@@ -401,9 +395,14 @@ class WhatsappTest(httpt.HTTPTest, dnst.DNSTest):
             log.msg("No blocking detected via TCP on %s" % hostname)
             self.report['whatsapp_endpoints_status'] = 'ok'
 
-
     @defer.inlineCallbacks
     def test_endpoints(self):
+        self.report['whatsapp_endpoints_status'] = None
+        self.report['whatsapp_endpoints_dns_inconsistent'] = []
+        self.report['whatsapp_endpoints_blocked'] = []
+
+        self.report['tcp_connect'] = []
+
         possible_endpoints = map(lambda x: "e%s.whatsapp.net" % x, range(1, 16))
         whatsapp_network = WhatsAppNetwork()
         to_test_endpoints = []
