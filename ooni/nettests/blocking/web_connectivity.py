@@ -38,7 +38,7 @@ class UsageOptions(usage.Options):
     ]
 
 
-    class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
+class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
     """
     Web connectivity
     """
