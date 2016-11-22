@@ -1,6 +1,8 @@
 from __future__ import absolute_import
 import re
 import os
+import json
+import time
 import random
 
 from hashlib import sha256
@@ -27,11 +29,15 @@ except ImportError:
 class GeoIPDataFilesNotFound(Exception):
     pass
 
-def IPToLocation(ipaddr):
+def ip_to_location(ipaddr):
     from ooni.settings import config
 
-    country_file = config.get_data_file_path('GeoIP/GeoIP.dat')
-    asn_file = config.get_data_file_path('GeoIP/GeoIPASNum.dat')
+    country_file = config.get_data_file_path(
+        'resources/maxmind-geoip/GeoIP.dat'
+    )
+    asn_file = config.get_data_file_path(
+        'resources/maxmind-geoip/GeoIPASNum.dat'
+    )
 
     location = {'city': None, 'countrycode': 'ZZ', 'asn': 'AS0'}
     if not asn_file or not country_file:
@@ -68,7 +74,9 @@ def database_version():
     }
 
     for key in version.keys():
-        geoip_file = config.get_data_file_path("GeoIP/" + key + ".dat")
+        geoip_file = config.get_data_file_path(
+            "resources/maxmind-geoip/" + key + ".dat"
+        )
         if not geoip_file or not os.path.isfile(geoip_file):
             continue
         timestamp = os.stat(geoip_file).st_mtime
@@ -136,22 +144,31 @@ class UbuntuGeoIP(HTTPGeoIPLookupper):
         probe_ip = m.group(1)
         return probe_ip
 
-class TorProjectGeoIP(HTTPGeoIPLookupper):
-    url = "https://check.torproject.org/"
+class DuckDuckGoGeoIP(HTTPGeoIPLookupper):
+    url = "https://api.duckduckgo.com/?q=ip&format=json"
 
     def parseResponse(self, response_body):
-        regexp = "Your IP address appears to be:  <strong>((\d+\.)+(\d+))"
-        probe_ip = re.search(regexp, response_body).group(1)
+        j = json.loads(response_body)
+        regexp = "Your IP address is (.*) in "
+        probe_ip = re.search(regexp, j['Answer']).group(1)
         return probe_ip
+
+INITIAL = 0
+IN_PROGRESS = 1
 
 class ProbeIP(object):
     strategy = None
     address = None
+    # How long should we consider geoip results valid?
+    _expire_in = 10*60
 
     def __init__(self):
         self.geoIPServices = {
-            'ubuntu': UbuntuGeoIP,
-            'torproject': TorProjectGeoIP
+            'ubuntu': UbuntuGeoIP
+            # We are disabling this because it sometimes creates parsing
+            # errors.
+            # See: https://github.com/TheTorProject/ooni-probe/issues/670
+            # 'duckduckgo': DuckDuckGoGeoIP
         }
         self.geodata = {
             'asn': 'AS0',
@@ -160,27 +177,56 @@ class ProbeIP(object):
             'ip': '127.0.0.1'
         }
 
-    def resolveGeodata(self):
+        self._last_lookup = 0
+        self._reset_state()
+
+    def _reset_state(self):
+        self._state = INITIAL
+        self._looking_up = defer.Deferred()
+        self._looking_up.addCallback(self._looked_up)
+        self._looking_up.addErrback(self._lookup_failed)
+
+    def _looked_up(self, result):
+        self._last_lookup = time.time()
+        self._reset_state()
+        return result
+
+    def _lookup_failed(self, failure):
+        self._reset_state()
+        return failure
+
+    def resolveGeodata(self,
+                       include_ip=None,
+                       include_asn=None,
+                       include_country=None):
         from ooni.settings import config
 
-        self.geodata = IPToLocation(self.address)
+        self.geodata = ip_to_location(self.address)
         self.geodata['ip'] = self.address
-        if not config.privacy.includeasn:
+        if not config.privacy.includeasn and include_asn is not True:
             self.geodata['asn'] = 'AS0'
-        if not config.privacy.includecountry:
+        if not config.privacy.includecountry and include_country is not True:
             self.geodata['countrycode'] = 'ZZ'
-        if not config.privacy.includeip:
+        if not config.privacy.includeip and include_ip is not True:
             self.geodata['ip'] = '127.0.0.1'
 
     @defer.inlineCallbacks
-    def lookup(self):
+    def lookup(self, include_ip=None, include_asn=None, include_country=None):
+        if self._state == IN_PROGRESS:
+            yield self._looking_up
+        elif self._last_lookup < time.time() - self._expire_in:
+            self.address = None
+
         if self.address:
+            self.resolveGeodata(include_ip, include_asn, include_country)
             defer.returnValue(self.address)
         else:
+            self._state = IN_PROGRESS
             try:
                 yield self.askTor()
                 log.msg("Found your IP via Tor")
-                self.resolveGeodata()
+                self.resolveGeodata(include_ip, include_asn, include_country)
+                self._looking_up.callback(self.address)
                 defer.returnValue(self.address)
             except errors.TorStateNotFound:
                 log.debug("Tor is not running. Skipping IP lookup via Tor.")
@@ -190,10 +236,12 @@ class ProbeIP(object):
             try:
                 yield self.askGeoIPService()
                 log.msg("Found your IP via a GeoIP service")
-                self.resolveGeodata()
+                self.resolveGeodata(include_ip, include_asn, include_country)
+                self._looking_up.callback(self.address)
                 defer.returnValue(self.address)
-            except Exception:
+            except Exception as exc:
                 log.msg("Unable to lookup the probe IP via GeoIPService")
+                self._looking_up.errback(defer.failure.Failure(exc))
                 raise
 
     @defer.inlineCallbacks
@@ -233,3 +281,5 @@ class ProbeIP(object):
             return d
         else:
             raise errors.TorStateNotFound
+
+probe_ip = ProbeIP()

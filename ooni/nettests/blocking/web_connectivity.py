@@ -29,6 +29,9 @@ from ooni.common.http_utils import REQUEST_HEADERS
 class InvalidControlResponse(Exception):
     pass
 
+class AbsentHostname(Exception):
+    pass
+
 class UsageOptions(usage.Options):
     optParameters = [
         ['url', 'u', None, 'Specify a single URL to test'],
@@ -76,6 +79,12 @@ class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
     requiresRoot = False
     requiresTor = False
     followRedirects = True
+
+    # These are the options to be shown on the GUI
+    simpleOptions = [
+        {"name": "url", "type": "text"},
+        {"name": "file", "type": "file/url"}
+    ]
 
     # Factor used to determine HTTP blockpage detection
     # the factor 0.7 comes from http://www3.cs.stonybrook.edu/~phillipa/papers/JLFG14.pdf
@@ -169,7 +178,7 @@ class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
 
         self.hostname = urlparse(self.input).netloc
         if not self.hostname:
-            raise Exception("Invalid input")
+            raise AbsentHostname('No hostname', self.input)
 
         self.control = {
             'tcp_connect': {},
@@ -344,10 +353,10 @@ class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
         if len(control_addrs.intersection(experiment_addrs)) > 0:
             return True
 
-        experiment_asns = set(map(lambda x: geoip.IPToLocation(x)['asn'],
-                              experiment_addrs))
-        control_asns = set(map(lambda x: geoip.IPToLocation(x)['asn'],
-                           control_addrs))
+        experiment_asns = set(map(lambda x: geoip.ip_to_location(x)['asn'],
+                                  experiment_addrs))
+        control_asns = set(map(lambda x: geoip.ip_to_location(x)['asn'],
+                               control_addrs))
 
         # Remove the instance of AS0 when we fail to find the ASN
         control_asns.discard('AS0')

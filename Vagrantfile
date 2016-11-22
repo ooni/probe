@@ -5,7 +5,7 @@ $setup_ooniprobe = <<SCRIPT
 echo "deb http://deb.torproject.org/torproject.org jessie main" >> /etc/apt/sources.list
 
 # Install deb.torproject.org key
-gpg --keyserver keys.gnupg.net --recv 886DDD89
+gpg --keyserver keys.gnupg.net --recv A3C4F0F979CAA22CDBA8F512EE8CBC9E886DDD89
 gpg --export A3C4F0F979CAA22CDBA8F512EE8CBC9E886DDD89 | apt-key add -
 
 apt-get update
@@ -13,9 +13,15 @@ apt-get update
 apt-get install -y tor deb.torproject.org-keyring
 
 # Setup for sniffer subsystem
-apt-get install -y build-essential libdumbnet-dev libpcap-dev libgeoip-dev libffi-dev python-dev python-pip
+apt-get install -y build-essential libdumbnet-dev libpcap-dev libgeoip-dev libffi-dev python-dev python-pip libssl-dev
 cd /data/ooni-probe
 python setup.py install
+
+
+echo "To run ooniprobe:"
+echo "1. vagrant ssh probe"
+echo "2. ooniprobe-agent start"
+echo "3. connect to the web UI on your host machine at http://localhost:8042/"
 
 SCRIPT
 
@@ -24,7 +30,7 @@ echo "Installing Tor..."
 
 echo "deb http://deb.torproject.org/torproject.org jessie main" >> /etc/apt/sources.list
 
-gpg --keyserver keys.gnupg.net --recv 886DDD89
+gpg --keyserver keys.gnupg.net --recv A3C4F0F979CAA22CDBA8F512EE8CBC9E886DDD89
 gpg --export A3C4F0F979CAA22CDBA8F512EE8CBC9E886DDD89 | apt-key add -
 
 apt-get update
@@ -47,6 +53,13 @@ cp oonib.conf.example /etc/oonibackend.conf
 echo "Installing ooni-backend"
 python setup.py install
 
+echo ""
+echo "To run oonibackend:"
+echo "1. vagrant ssh backend"
+echo "2. vi /etc/oonibackend.conf  # possibly"
+echo "3. cd /data/ooni-backend"
+echo "4. sudo ./bin/oonib -c /etc/oonibackend.conf"
+
 SCRIPT
 
 Vagrant.configure("2") do |config|
@@ -54,6 +67,7 @@ Vagrant.configure("2") do |config|
   config.vm.box = "debian/contrib-jessie64"
 
   config.vm.define "probe" do |probe|
+    probe.vm.network "forwarded_port", guest: 8842, host: 8042
     probe.vm.synced_folder ".", "/data/ooni-probe"
     probe.vm.provision :shell, :inline => $setup_ooniprobe
   end
@@ -66,22 +80,5 @@ Vagrant.configure("2") do |config|
       backend.vm.provision :shell, :inline => $setup_oonibackend
     end
   end
-
-  if File.directory?("../ooni-backend")
-    config.vm.provision "shell", inline: <<-EOF
-      echo "To run oonibackend:"
-      echo "1. vagrant ssh backend"
-      echo "2. vi /etc/oonibackend.conf  # possibly"
-      echo "3. cd /data/ooni-backend"
-      echo "4. sudo ./bin/oonib -c /etc/oonibackend.conf"
-    EOF
-  end
-
-  config.vm.provision "shell", inline: <<-EOF
-    echo "To run ooniprobe:"
-    echo "1. vagrant ssh probe"
-    echo "2. oonideckgen"
-    echo "3. ooniprobe -i deck-*/*.deck"
-  EOF
 
 end

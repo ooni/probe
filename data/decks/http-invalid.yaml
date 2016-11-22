@@ -1,0 +1,8 @@
+---
+name: HTTP Invalid Request Line
+description: This deck runs HTTP Invalid Request Line test
+schedule: "@daily"
+tasks:
+- name: Runs the HTTP Invalid Request Line test
+  ooni:
+    test_name: http_invalid_request_line

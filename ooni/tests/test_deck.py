@@ -1,11 +1,21 @@
 import os
 
+from StringIO import StringIO
+from copy import deepcopy
+
+import yaml
+
+from mock import patch
+
 from twisted.internet import defer
 from twisted.trial import unittest
 
 from hashlib import sha256
 from ooni import errors
-from ooni.deck import InputFile, Deck, nettest_to_path
+from ooni.deck.store import input_store
+from ooni.deck.backend import lookup_collector_and_test_helpers
+from ooni.deck.deck import nettest_to_path, NGDeck, options_to_args
+from ooni.deck.legacy import convert_legacy_deck
 from ooni.tests.bases import ConfigTestCase
 from ooni.tests.mocks import MockBouncerClient, MockCollectorClient
 
@@ -76,45 +86,6 @@ class BaseTestCase(unittest.TestCase):
 """
         super(BaseTestCase, self).setUp()
 
-
-class TestInputFile(BaseTestCase):
-    def tearDown(self):
-        if self.filename != "":
-            os.remove(self.filename)
-
-    def test_file_cached(self):
-        self.filename = file_hash = sha256(self.dummy_deck_content).hexdigest()
-        input_file = InputFile(file_hash, base_path='.')
-        with open(file_hash, 'w+') as f:
-            f.write(self.dummy_deck_content)
-        assert input_file.fileCached
-
-    def test_file_invalid_hash(self):
-        self.filename = invalid_hash = 'a' * 64
-        with open(invalid_hash, 'w+') as f:
-            f.write("b" * 100)
-        input_file = InputFile(invalid_hash, base_path='.')
-        self.assertRaises(AssertionError, input_file.verify)
-
-    def test_save_descriptor(self):
-        descriptor = {
-            'name': 'spam',
-            'id': 'spam',
-            'version': 'spam',
-            'author': 'spam',
-            'date': 'spam',
-            'description': 'spam'
-        }
-        file_id = 'a' * 64
-        self.filename = file_id + '.desc'
-        input_file = InputFile(file_id, base_path='.')
-        input_file.load(descriptor)
-        input_file.save()
-        assert os.path.isfile(self.filename)
-
-        assert input_file.descriptorCached
-
-
 class TestDeck(BaseTestCase, ConfigTestCase):
     def setUp(self):
         super(TestDeck, self).setUp()
@@ -133,62 +104,54 @@ class TestDeck(BaseTestCase, ConfigTestCase):
         super(TestDeck, self).tearDown()
 
     def test_open_deck(self):
-        deck = Deck(bouncer=FAKE_BOUNCER_ADDRESS,
-                    decks_directory=".")
-        deck.loadDeck(self.deck_file)
-        assert len(deck.netTestLoaders) == 1
+        deck = NGDeck()
+        deck.open(self.deck_file)
+        assert len(deck.tasks) == 1
 
     def test_load_deck_with_global_options(self):
         global_options = {
             "annotations": {"spam": "ham"},
             "collector": "httpo://thirteenchars123.onion"
         }
-        deck = Deck(bouncer=FAKE_BOUNCER_ADDRESS,
-                    decks_directory=".")
-        deck.loadDeck(self.deck_file,
-                      global_options=global_options)
+        deck = NGDeck(global_options=global_options)
+        deck.open(self.deck_file)
         self.assertEqual(
-            deck.netTestLoaders[0].annotations,
+            deck.tasks[0].ooni['net_test_loader'].annotations,
             global_options['annotations']
         )
         self.assertEqual(
-            deck.netTestLoaders[0].collector.base_address,
+            deck.tasks[0].ooni['net_test_loader'].collector.base_address,
             global_options['collector'].replace("httpo://", "http://")
         )
 
-    def test_save_deck_descriptor(self):
-        deck = Deck(bouncer=FAKE_BOUNCER_ADDRESS,
-                    decks_directory=".")
-        deck.loadDeck(self.deck_file)
-        deck.load({'name': 'spam',
-                   'id': 'spam',
-                   'version': 'spam',
-                   'author': 'spam',
-                   'date': 'spam',
-                   'description': 'spam'
-                   })
-        deck.save()
-        self.filename = self.deck_file + ".desc"
-        deck.verify()
-
+    @patch('ooni.deck.deck.BouncerClient', MockBouncerClient)
+    @patch('ooni.deck.deck.CollectorClient', MockCollectorClient)
+    @patch('ooni.deck.backend.CollectorClient', MockCollectorClient)
     @defer.inlineCallbacks
     def test_lookup_test_helpers_and_collector(self):
-        deck = Deck(bouncer=FAKE_BOUNCER_ADDRESS,
-                    decks_directory=".")
-        deck.bouncer = MockBouncerClient(FAKE_BOUNCER_ADDRESS)
-        deck._BouncerClient = MockBouncerClient
-        deck._CollectorClient = MockCollectorClient
-        deck.loadDeck(self.deck_file)
+        deck = NGDeck()
+        deck.open(self.deck_file)
 
-        self.assertEqual(len(deck.netTestLoaders[0].missingTestHelpers), 1)
+        self.assertEqual(
+            len(deck.tasks[0].ooni['net_test_loader'].missingTestHelpers),
+            1
+        )
 
-        yield deck.lookupCollectorAndTestHelpers()
+        yield lookup_collector_and_test_helpers(
+            net_test_loaders=[deck.tasks[0].ooni['net_test_loader']],
+            preferred_backend='onion',
+            bouncer=MockBouncerClient()
+        )
 
-        self.assertEqual(deck.netTestLoaders[0].collector.settings['address'],
-                         'httpo://thirteenchars123.onion')
+        self.assertEqual(
+            deck.tasks[0].ooni['net_test_loader'].collector.settings['address'],
+            'httpo://thirteenchars123.onion'
+        )
 
-        self.assertEqual(deck.netTestLoaders[0].localOptions['backend'],
-                         '127.0.0.1')
+        self.assertEqual(
+            deck.tasks[0].ooni['net_test_loader'].localOptions['backend'],
+            '127.0.0.1'
+        )
 
 
     def test_deck_with_many_tests(self):
@@ -197,15 +160,15 @@ class TestDeck(BaseTestCase, ConfigTestCase):
         self.deck_file = os.path.join(self.cwd, deck_hash)
         with open(self.deck_file, 'w+') as f:
             f.write(self.dummy_deck_content_with_many_tests)
-        deck = Deck(decks_directory=".")
-        deck.loadDeck(self.deck_file)
+        deck = NGDeck()
+        deck.open(self.deck_file)
 
         self.assertEqual(
-            deck.netTestLoaders[0].localOptions['backend'],
+            deck.tasks[0].ooni['net_test_loader'].localOptions['backend'],
             '1.1.1.1'
         )
         self.assertEqual(
-            deck.netTestLoaders[1].localOptions['backend'],
+            deck.tasks[1].ooni['net_test_loader'].localOptions['backend'],
             '2.2.2.2'
         )
 
@@ -217,55 +180,161 @@ class TestDeck(BaseTestCase, ConfigTestCase):
                           nettest_to_path,
                           "invalid_test")
 
+    @patch('ooni.deck.deck.BouncerClient', MockBouncerClient)
+    @patch('ooni.deck.deck.CollectorClient', MockCollectorClient)
+    @patch('ooni.deck.backend.CollectorClient', MockCollectorClient)
     @defer.inlineCallbacks
     def test_lookup_test_helpers_and_collector_cloudfront(self):
         self.config.advanced.preferred_backend = "cloudfront"
-        deck = Deck(bouncer=FAKE_BOUNCER_ADDRESS,
-                    decks_directory=".")
-        deck.bouncer = MockBouncerClient(FAKE_BOUNCER_ADDRESS)
-        deck._BouncerClient = MockBouncerClient
-        deck._CollectorClient = MockCollectorClient
-        deck.loadDeck(self.deck_file)
+        deck = NGDeck()
+        deck.open(self.deck_file)
+        first_net_test_loader = deck.tasks[0].ooni['net_test_loader']
+        net_test_loaders = map(lambda task: task.ooni['net_test_loader'],
+                               deck.tasks)
+        self.assertEqual(len(first_net_test_loader.missingTestHelpers), 1)
 
-        self.assertEqual(len(deck.netTestLoaders[0].missingTestHelpers), 1)
-
-        yield deck.lookupCollectorAndTestHelpers()
+        yield lookup_collector_and_test_helpers(
+            net_test_loaders=net_test_loaders ,
+            preferred_backend='cloudfront',
+            bouncer=MockBouncerClient()
+        )
 
         self.assertEqual(
-            deck.netTestLoaders[0].collector.settings['address'],
+            first_net_test_loader.collector.settings['address'],
             'https://address.cloudfront.net'
         )
         self.assertEqual(
-            deck.netTestLoaders[0].collector.settings['front'],
+            first_net_test_loader.collector.settings['front'],
             'front.cloudfront.net'
         )
 
         self.assertEqual(
-            deck.netTestLoaders[0].localOptions['backend'],
+            first_net_test_loader.localOptions['backend'],
             '127.0.0.1'
         )
 
-
+    @patch('ooni.deck.deck.BouncerClient', MockBouncerClient)
+    @patch('ooni.deck.deck.CollectorClient', MockCollectorClient)
+    @patch('ooni.deck.backend.CollectorClient', MockCollectorClient)
     @defer.inlineCallbacks
     def test_lookup_test_helpers_and_collector_https(self):
         self.config.advanced.preferred_backend = "https"
-        deck = Deck(bouncer=FAKE_BOUNCER_ADDRESS,
-                    decks_directory=".")
-        deck.bouncer = MockBouncerClient(FAKE_BOUNCER_ADDRESS)
-        deck._BouncerClient = MockBouncerClient
-        deck._CollectorClient = MockCollectorClient
-        deck.loadDeck(self.deck_file)
+        deck = NGDeck()
+        deck.open(self.deck_file)
 
-        self.assertEqual(len(deck.netTestLoaders[0].missingTestHelpers), 1)
+        first_net_test_loader = deck.tasks[0].ooni['net_test_loader']
+        net_test_loaders = map(lambda task: task.ooni['net_test_loader'],
+                               deck.tasks)
 
-        yield deck.lookupCollectorAndTestHelpers()
+        self.assertEqual(len(first_net_test_loader .missingTestHelpers), 1)
+
+        yield lookup_collector_and_test_helpers(
+            net_test_loaders=net_test_loaders,
+            preferred_backend='https',
+            bouncer=MockBouncerClient()
+        )
 
         self.assertEqual(
-            deck.netTestLoaders[0].collector.settings['address'],
+            first_net_test_loader.collector.settings['address'],
             'https://collector.ooni.io'
         )
 
         self.assertEqual(
-            deck.netTestLoaders[0].localOptions['backend'],
+            first_net_test_loader.localOptions['backend'],
             '127.0.0.1'
         )
+
+class TestInputStore(ConfigTestCase):
+    @defer.inlineCallbacks
+    def test_update_input_store(self):
+        self.skipTest("antani")
+        yield input_store.update("ZZ")
+        print os.listdir(os.path.join(
+            self.config.resources_directory, "citizenlab-test-lists"))
+        print os.listdir(os.path.join(self.config.inputs_directory))
+
+TASK_DATA = {
+    "name": "Some Task",
+    "ooni": {
+        "test_name": "web_connectivity",
+        "file": "$citizen_lab_global_urls"
+    }
+}
+
+DECK_DATA = {
+    "name": "My deck",
+    "description": "Something",
+    "tasks": [
+        deepcopy(TASK_DATA)
+    ]
+}
+
+LEGACY_DECK = """
+- options:
+    annotations: null
+    bouncer: null
+    collector: null
+    no-collector: 0
+    no-geoip: 0
+    no-yamloo: 0
+    reportfile: null
+    subargs: [--flag, --key, value]
+    test_file: manipulation/http_invalid_request_line
+    verbose: 0
+- options:
+    annotations: null
+    bouncer: null
+    collector: null
+    no-collector: 0
+    no-geoip: 0
+    no-yamloo: 0
+    reportfile: null
+    subargs: []
+    test_file: manipulation/http_header_field_manipulation
+    verbose: 0
+- options:
+    annotations: null
+    bouncer: null
+    collector: null
+    no-collector: 0
+    no-geoip: 0
+    no-yamloo: 0
+    reportfile: null
+    subargs: [-f, /path/to/citizenlab-urls-global.txt]
+    test_file: blocking/web_connectivity
+    verbose: 0
+"""
+
+class TestNGDeck(ConfigTestCase):
+    def test_deck_task(self):
+        #yield input_store.update("ZZ")
+        #deck_task = DeckTask(TASK_DATA)
+        #self.assertIsInstance(deck_task.ooni["net_test_loader"],
+        #                      NetTestLoader)
+        pass
+
+    def test_deck_load(self):
+        #yield input_store.update("ZZ")
+        #deck = NGDeck(deck_data=DECK_DATA)
+        #self.assertEqual(len(deck.tasks), 1)
+        pass
+
+    def test_convert_legacy_deck(self):
+        legacy_deck = yaml.safe_load(StringIO(LEGACY_DECK))
+        ng_deck = convert_legacy_deck(legacy_deck)
+        self.assertEqual(len(ng_deck['tasks']), 3)
+        task_names = map(lambda task: task['ooni']['test_name'],
+                         ng_deck['tasks'])
+        self.assertItemsEqual(task_names, [
+            "manipulation/http_invalid_request_line",
+            "manipulation/http_header_field_manipulation",
+            "blocking/web_connectivity"
+        ])
+        tasks = map(lambda task: task['ooni'], ng_deck['tasks'])
+        self.assertEqual(
+            tasks[2]['f'],
+            '/path/to/citizenlab-urls-global.txt')
+
+    def test_options_to_args(self):
+        args = options_to_args({"f": "foobar.txt", "bar": None, "help": 0})
+        print(args)

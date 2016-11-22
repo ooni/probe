@@ -1,6 +1,87 @@
 Changelog
 =========
 
+v2.0.2 (Wed, 16 Nov 2016)
+--------------------------
+
+Improvements:
+
+* Add support for specifying how the log rotation should happen
+
+Bug fixes:
+
+* Fix bug that lead to too many log lines being written:
+  https://github.com/TheTorProject/ooni-probe/issues/663
+
+v2.0.1 (Sat, 29 Oct 2016)
+--------------------------
+
+Improvements:
+
+* Add `--info` command line option to print paths of ooniprobe
+
+* Support specifying a `settings.ini` via an environment variable to facilitate
+  testing.
+
+Bug fixes:
+
+* Fix https://github.com/TheTorProject/ooni-probe/issues/636
+
+* Fix https://github.com/TheTorProject/ooni-probe/issues/650
+
+* Fix https://github.com/TheTorProject/ooni-probe/issues/651
+
+v2.0.0 (Fri, 14 Oct 2016)
+------------------------------
+codename: mezzanine
+
+Stable release of ooniprobe 2.0.0
+
+Feature list:
+
+* System daemon for running tests periodically (https://github.com/TheTorProject/ooni-probe/issues/576)
+
+* Web user interface for viewing measurement results (https://github.com/TheTorProject/ooni-probe/issues/575)
+
+* New deck format (https://github.com/TheTorProject/ooni-probe/issues/571)
+
+* Local reports are written in JSON (https://github.com/TheTorProject/ooni-probe/issues/557)
+
+* Include decks for testing reachability of Tor, websites of IM apps
+
+* Include the platform as an annotation inside of reports
+
+Bugfixing since previous release candidates:
+
+* Fix -w option of ooniprobe (https://github.com/TheTorProject/ooni-probe/issues/623)
+
+* Scheduler lockfile for RunDecks not being released (https://github.com/TheTorProject/ooni-probe/issues/612)
+
+* Missing country testing list (https://github.com/TheTorProject/ooni-probe/issues/606)
+
+v2.0.0-rc.3 (Mon, 19 Sep 2016)
+------------------------------
+
+Bugfixing and code cleanup
+
+v2.0.0-rc.2 (Tue, 13 Sep 2016)
+------------------------------
+
+This is a release candidate for a major ooniprobe release.
+
+It includes a new web user interface and a system daemon for running ooniprobe
+tests.
+
+Feature list:
+
+* System daemon for running tests periodically (https://github.com/TheTorProject/ooni-probe/issues/576)
+
+* Web user interface for viewing measurement results (https://github.com/TheTorProject/ooni-probe/issues/575)
+
+* New deck format (https://github.com/TheTorProject/ooni-probe/issues/571)
+
+* Local reports are written in JSON (https://github.com/TheTorProject/ooni-probe/issues/557)
+
 v1.6.1 (Tue, 26 Jul 2016)
 -------------------------
 

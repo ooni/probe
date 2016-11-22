@@ -1,4 +1,8 @@
+import os
 import random
+import tempfile
+
+import yaml
 
 from twisted.internet import defer, reactor
 from twisted.internet.protocol import Protocol, Factory
@@ -10,6 +14,7 @@ from ooni import errors
 from ooni.utils import net
 from bases import ConfigTestCase
 
+from ooni.settings import _load_config_files_with_defaults
 
 class TestSettings(ConfigTestCase):
     def setUp(self):
@@ -133,3 +138,65 @@ class TestSettings(ConfigTestCase):
 
         self.configuration['advanced']['interface'] = random.choice(get_if_list())
         self.conf.check_incoherences(self.configuration)
+
+
+    def test_load_config_files(self):
+        defaults = {
+            'cat1': {
+                'key': 'value'
+            },
+            'cat2': {
+                'key': 'value',
+                'key2': 'value2'
+            },
+            'cat3': {
+                'key': 'value'
+            }
+        }
+        config_file_A = {
+            'cat1': {
+                'key': 'valueA'
+            },
+            'cat2': {
+                'key': 'valueA',
+                'invalid_key': 'ignored'
+            },
+            'invalid_category': {
+                'ignored': 'ignored'
+            },
+            'cat3': None
+        }
+        config_file_B = {
+            'cat1': {
+                'key': 'valueB'
+            },
+            'cat2': {
+                'key2': 'value2B'
+            }
+        }
+        temp_dir = tempfile.mkdtemp()
+        config_file_A_path = os.path.join(temp_dir, "configA.conf")
+        config_file_B_path = os.path.join(temp_dir, "configB.conf")
+        with open(config_file_A_path, 'w') as out_file:
+            yaml.safe_dump(config_file_A, out_file)
+
+        with open(config_file_B_path, 'w') as out_file:
+            yaml.safe_dump(config_file_B, out_file)
+
+        config = _load_config_files_with_defaults([config_file_B_path,
+                                                   '/invalid/path/ignored.txt',
+                                                   config_file_A_path],
+                                                  defaults)
+
+        self.assertEqual(config, {
+            'cat1': {
+                'key': 'valueB'
+            },
+            'cat2': {
+                'key': 'valueA',
+                'key2': 'value2B'
+            },
+            'cat3': {
+                'key': 'value'
+            }
+        })

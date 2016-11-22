@@ -1,0 +1,12 @@
+---
+name: Tor test deck
+description: This deck runs test related to testing the reachability of the Tor network
+schedule: "@daily"
+tasks:
+- name: Checks if the Tor client works
+  ooni:
+    test_name: vanilla_tor
+
+- name: Runs the Meek fronted request test
+  ooni:
+    test_name: meek_fronted_requests

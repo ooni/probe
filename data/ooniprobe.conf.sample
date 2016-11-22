@@ -3,8 +3,19 @@
 # Keep in mind that indentation matters.
 
 basic:
-    # Where OONIProbe should be writing it's log file
-    logfile: /var/log/ooniprobe.log
+    # Where OONIProbe should be writing its log file
+    # logfile: ooniprobe.log
+    # loglevel: WARNING
+    # Will rotate logs daily when "daily" or based on rotate_length
+    #  when "length" is set. null to disable rotation.
+    # rotate: daily
+    # rotate_length: 1M
+    # Sets an upper bound on the number of rotated files, only works when
+    #  "length" is the rotation mode
+    # max_rotated_files: null
+    # The maximum amount of data to store on disk. Once the quota is reached,
+    # we will start deleting older reports.
+    # measurement_quota: 1G
 privacy:
     # Should we include the IP address of the probe in the report?
     includeip: false
@@ -44,10 +55,6 @@ advanced:
     reporting_retries: 5
     # How many reports to perform concurrently
     reporting_concurrency: 7
-    oonid_api_port: 8042
-    report_log_file: null
-    inputs_dir: null
-    decks_dir: null
     # If we should support communicating to plaintext backends (via HTTP)
     insecure_backend: false
     # The preferred backend type, can be one of onion, https or cloudfront
