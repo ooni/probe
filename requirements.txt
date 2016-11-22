@@ -1,17 +1,20 @@
+# These are dependencies of ooniprobe depedencies that require specific
+# versions.
+pyasn1>=0.1.8
+setuptools>=11.3
+
+# These are direct dependencies of ooniprobe.
 PyYAML>=3.10
 Twisted>=13.2.0
 ipaddr>=2.1.10
-pyOpenSSL>=0.13
+pyOpenSSL>=0.15.1
 geoip
 txtorcon>=0.7
 txsocksx>=0.0.2
-parsley>=1.1
-scapy-real>=2.2.0-dev
+scapy>=2.2.0
 pypcap>=1.1
 service-identity
 pydumbnet
-pyasn1
-pyasn1-modules
-characteristic
 zope.interface
-cryptography
+certifi
+klein

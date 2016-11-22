@@ -1,15 +1,19 @@
+from base64 import b64encode
 from ooni.nettest import NetTestCase
-from ooni.utils import log, base64Dict
+from ooni.utils import log
 from ooni.settings import config
 from ooni.utils.net import hasRawSocketPermission
 
 from ooni.utils.txscapy import ScapySender, ScapyFactory
 
 
-def _representPacket(packet):
+def representPacket(packet):
     return {
-        "raw_packet": base64Dict(str(packet)),
-        "summary": repr(packet)
+        "raw_packet": {
+            'data': b64encode(str(packet)),
+            'format': 'base64'
+        },
+        "summary": str(repr(packet))
     }
 
 class BaseScapyTest(NetTestCase):
@@ -94,8 +98,8 @@ class BaseScapyTest(NetTestCase):
                 sent_packet.src = '127.0.0.1'
                 received_packet.dst = '127.0.0.1'
 
-            self.report['sent_packets'].append(_representPacket(sent_packet))
-            self.report['answered_packets'].append(_representPacket(received_packet))
+            self.report['sent_packets'].append(representPacket(sent_packet))
+            self.report['answered_packets'].append(representPacket(received_packet))
         return packets
 
     def sr(self, packets, timeout=None, *arg, **kw):
@@ -148,7 +152,7 @@ class BaseScapyTest(NetTestCase):
 
         scapySender.stopSending()
         for sent_packet in packets:
-            self.report['sent_packets'].append(sent_packet)
+            self.report['sent_packets'].append(representPacket(sent_packet))
 
 
 ScapyTest = BaseScapyTest

@@ -110,13 +110,10 @@ class Measurement(TaskWithTimeout):
         """
         self.testInstance = test_instance
         self.testInstance.input = test_input
-        if not hasattr(self.testInstance, '_start_time'):
-            self.testInstance._start_time = time.time()
-
-        if 'input' not in self.testInstance.report.keys():
-            self.testInstance.report['input'] = test_input
 
         self.testInstance.setUp()
+        if 'input' not in self.testInstance.report.keys():
+            self.testInstance.report['input'] = self.testInstance.input
 
         self.netTestMethod = getattr(self.testInstance, test_method)
 
@@ -140,6 +137,8 @@ class Measurement(TaskWithTimeout):
     def run(self):
         if 'measurement_start_time' not in self.testInstance.report.keys():
             self.testInstance.report['measurement_start_time'] = otime.timestampNowLongUTC()
+        if not hasattr(self.testInstance, '_start_time'):
+            self.testInstance._start_time = time.time()
         return self.netTestMethod()
 
 

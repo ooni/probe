@@ -1,5 +1,7 @@
 from ooni.templates import httpt, dnst
 
+from ooni.tests import is_internet_connected
+
 from twisted.names import dns
 from twisted.internet.error import DNSLookupError
 from twisted.internet import reactor, defer, base
@@ -44,8 +46,11 @@ class TestHTTPT(unittest.TestCase):
         yield self.assertFailure(http_test.doRequest('http://invaliddomain/'), DNSLookupError)
         assert http_test.report['requests'][0]['failure'] == 'dns_lookup_error'
 
-
 class TestDNST(unittest.TestCase):
+    def setUp(self):
+        if not is_internet_connected():
+            self.skipTest("You must be connected to the internet to run this test")
+
     def test_represent_answer_a(self):
         a_record = dns.RRHeader(payload=dns.Record_A(address="1.1.1.1"),
                                 type=dns.A)
@@ -77,6 +82,8 @@ class TestDNST(unittest.TestCase):
 
     @defer.inlineCallbacks
     def test_perform_a_lookup(self):
+        if not is_internet_connected():
+            self.skipTest("You must be connected to the internet to run this test")
         dns_test = dnst.DNSTest()
         dns_test._setUp()
         result = yield dns_test.performALookup('example.com', dns_server=('8.8.8.8', 53))

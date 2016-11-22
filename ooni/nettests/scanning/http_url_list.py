@@ -9,7 +9,8 @@ from ooni.utils import log
 
 class UsageOptions(usage.Options):
     optParameters = [['content', 'c', None,
-                        'The file to read from containing the content of a block page'],
+                      'The file to read from containing the content of a '
+                        'block page.'],
                      ['url', 'u', None, 'Specify a single URL to test.']
                     ]
 
@@ -31,8 +32,8 @@ class HTTPURLList(httpt.HTTPTest):
     requiresRoot = False
     requiresTor = False
 
-    inputFile = ['file', 'f', None, 
-            'List of URLS to perform GET and POST requests to']
+    inputFile = ['file', 'f', None,
+            'List of URLS to perform GET and POST requests to.']
 
     def setUp(self):
         """

@@ -12,25 +12,26 @@ from ooni.settings import config
 
 class UsageOptions(usage.Options):
     optParameters = [
-                    ['backend', 'b', None, 'Test backend to use'],
-                    ['timeout', 't', 5, 'The timeout for the traceroute test'],
+                    ['backend', 'b', None, 'Test backend to use.'],
+                    ['timeout', 't', 5, 'The timeout for the traceroute test.'],
                     ['maxttl', 'm', 30,
-                     'The maximum value of ttl to set on packets'],
+                     'The maximum value of ttl to set on packets.'],
                     ['dstport', 'd', None,
                      'Specify a single destination port. May be repeated.'],
                     ['interval', 'i', None,
-                     'Specify the inter-packet delay in seconds'],
+                     'Specify the inter-packet delay in seconds.'],
                     ['numPackets', 'n', None,
-                     'Specify the number of packets to send per hop'],
+                     'Specify the number of packets to send per hop.'],
         ]
 
 
 class Traceroute(scapyt.BaseScapyTest):
     name = "Traceroute"
     description = "Performs a UDP, TCP, ICMP traceroute with destination port number "\
-                  "set to 0, 22, 23, 53, 80, 123, 443, 8080 and 65535"
+                  "set to 0, 22, 23, 53, 80, 123, 443, 8080 and 65535."
 
     requiredTestHelpers = {'backend': 'traceroute'}
+    requiredOptions = ['backend']
     requiresRoot = True
     requiresTor = False
 
@@ -63,9 +64,9 @@ class Traceroute(scapyt.BaseScapyTest):
         st.stopListening()
         st.matchResponses()
         for packet in st.sent_packets:
-            self.report['sent_packets'].append(packet)
+            self.report['sent_packets'].append(scapyt.representPacket(packet))
         for packet in st.matched_packets.values():
-            self.report['answered_packets'].extend(packet)
+            self.report['answered_packets'].append(scapyt.representPacket(packet))
 
         for ttl in xrange(st.ttl_min, st.ttl_max):
             matchedPackets = filter(

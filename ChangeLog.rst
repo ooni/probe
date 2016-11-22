@@ -1,6 +1,175 @@
 Changelog
 =========
 
+v2.0.2 (Wed, 16 Nov 2016)
+--------------------------
+
+Improvements:
+
+* Add support for specifying how the log rotation should happen
+
+Bug fixes:
+
+* Fix bug that lead to too many log lines being written:
+  https://github.com/TheTorProject/ooni-probe/issues/663
+
+v2.0.1 (Sat, 29 Oct 2016)
+--------------------------
+
+Improvements:
+
+* Add `--info` command line option to print paths of ooniprobe
+
+* Support specifying a `settings.ini` via an environment variable to facilitate
+  testing.
+
+Bug fixes:
+
+* Fix https://github.com/TheTorProject/ooni-probe/issues/636
+
+* Fix https://github.com/TheTorProject/ooni-probe/issues/650
+
+* Fix https://github.com/TheTorProject/ooni-probe/issues/651
+
+v2.0.0 (Fri, 14 Oct 2016)
+------------------------------
+codename: mezzanine
+
+Stable release of ooniprobe 2.0.0
+
+Feature list:
+
+* System daemon for running tests periodically (https://github.com/TheTorProject/ooni-probe/issues/576)
+
+* Web user interface for viewing measurement results (https://github.com/TheTorProject/ooni-probe/issues/575)
+
+* New deck format (https://github.com/TheTorProject/ooni-probe/issues/571)
+
+* Local reports are written in JSON (https://github.com/TheTorProject/ooni-probe/issues/557)
+
+* Include decks for testing reachability of Tor, websites of IM apps
+
+* Include the platform as an annotation inside of reports
+
+Bugfixing since previous release candidates:
+
+* Fix -w option of ooniprobe (https://github.com/TheTorProject/ooni-probe/issues/623)
+
+* Scheduler lockfile for RunDecks not being released (https://github.com/TheTorProject/ooni-probe/issues/612)
+
+* Missing country testing list (https://github.com/TheTorProject/ooni-probe/issues/606)
+
+v2.0.0-rc.3 (Mon, 19 Sep 2016)
+------------------------------
+
+Bugfixing and code cleanup
+
+v2.0.0-rc.2 (Tue, 13 Sep 2016)
+------------------------------
+
+This is a release candidate for a major ooniprobe release.
+
+It includes a new web user interface and a system daemon for running ooniprobe
+tests.
+
+Feature list:
+
+* System daemon for running tests periodically (https://github.com/TheTorProject/ooni-probe/issues/576)
+
+* Web user interface for viewing measurement results (https://github.com/TheTorProject/ooni-probe/issues/575)
+
+* New deck format (https://github.com/TheTorProject/ooni-probe/issues/571)
+
+* Local reports are written in JSON (https://github.com/TheTorProject/ooni-probe/issues/557)
+
+v1.6.1 (Tue, 26 Jul 2016)
+-------------------------
+
+* Fix #569
+
+* Fix #573
+
+v1.6.0 (Sun, 10 Jul 2016)
+-------------------------
+codename: Shells and Seaweed
+
+* Add support for cloudfrontend and HTTPS collector
+https://github.com/TheTorProject/ooni-probe/issues/530
+
+* Add bisection logic to inputProcessor (big thanks to @seamustuohy for the
+  patch):
+  https://github.com/TheTorProject/ooni-probe/issues/503
+
+* Add bridge failover support:
+  https://github.com/TheTorProject/ooni-probe/issues/538
+
+* Make it possible to run tests without specifying the test type
+  https://github.com/TheTorProject/ooni-probe/issues/483
+
+Bug fixes:
+
+* Silently ignores '--pcapfile' flag (thanks to @willscott for the patch!):
+  https://github.com/TheTorProject/ooni-probe/issues/521
+
+* The options specified on the command line should have priority over the deck
+  options.
+  https://github.com/TheTorProject/ooni-probe/issues/529
+
+v1.5.1 (Fri, 3 Jun 2016)
+-------------------------
+codename: The Big Wave
+
+* Add --default-collector option to oonireport
+
+* Fix critical bug in web_connectivity test
+
+v1.5.0 (Mon, 30 May 2016)
+-------------------------
+codename: The Big Wave
+
+* Implement web_connectivity test that measures for both DNS and HTTP
+  censorship.
+
+* Fix a regression bug that lead to Tor exit ip address not being included in
+  reports.
+
+v1.4.2 (Fri, 29 Apr 2016)
+-------------------------
+
+* Hotfix for bug in serialising binary response bodies
+
+* Use the most recent scapy version
+
+
+v1.4.1 (Wed, 27 Apr 2016)
+-------------------------
+
+* Fix problem with uploading of release
+
+
+v1.4.0 (Wed, 27 Apr 2016)
+-------------------------
+
+codename: Under the Sea
+
+* Support for reporting using JSON
+
+* Support for running ooniprobe with a message queue providing URLs to test
+
+* Psiphon censorship circumvention test
+
+* OpenVPN censorship circumvention test
+
+* Add test for vanilla Tor
+
+* Support for disabling reporting to disk
+
+* Improvements to HTTP response body decoding (includes fix that lead to empty
+  bodies being misrepresented)
+
+* Attempt to scrub the probe IP address from the body of HTTP responses
+
+
 v1.3.2 (Fri, 20 Nov 2015)
 -------------------------
 

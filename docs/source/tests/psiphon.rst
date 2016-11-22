@@ -16,7 +16,12 @@ Details
 Description
 ===========
 
-This test first check that the Psiphon path exists, then launches Psiphon and parses output to determine if it has bootstrapped. After bootstrap, it fetches google.com (or other URL specified by the --url argument) using Psiphons SOCKS proxy listening on 127.0.0.1:1080 (or otherwise specified by the --socksproxy argument).
+This test first check that the Psiphon path exists, then launches Psiphon and
+parses output to determine if it has bootstrapped. After bootstrap, it fetches
+`http://www.google.com/humans.txt` using Psiphons SOCKS
+proxy listening on 127.0.0.1:1080 (or otherwise specified by the --socksproxy
+argument).
+It will then check to see if the response body contains the string: "Google is built by a large"
 
 The specific string used to determine bootstrap from Psiphon output in version
 "0.0.1" is "Press Ctrl-C to terminate." from standard output.
@@ -26,13 +31,15 @@ How to run the test
 
 `ooniprobe third_party/psiphon`
 
-To test Psiphon with a different URL run:
-
-`ooniprobe third_party/psiphon -u http://<url>/`
-
 To test Psiphon when it is installed in a different path other than the user home:
 
 `ooniprobe third_party/psiphon -p <path to Psiphon repository>`
+
+For advanced usages you may also configure a different URL and expected body
+for the response with the `--url` and `--expected-body` command line options.
+
+`ooniprobe third_party/psiphon --url http://www.github.com/humans.txt --expected-body '/* TEAM */'`
+
 
 How to install Psiphon
 ===================
@@ -49,7 +56,7 @@ To run Psiphon manually, it must be run inside of the proper directory:
 Sample report
 =============
 
-`ooniprobe third_party/psiphon -u http://google.com`
+`ooniprobe third_party/psiphon`
 
     ::
 
@@ -79,6 +86,7 @@ Sample report
     agent: agent
     input: null
     psiphon_installed: true
+    default_configuration: true
     requests:
     - request:
         body: null
@@ -87,9 +95,7 @@ Sample report
         tor: {is_tor: false}
         url: http://google.com
       response:
-        body: "<HTML><HEAD><meta http-equiv=\"content-type\" content=\"text/html;charset=utf-8\"\
-          >\n<TITLE>301 Moved</TITLE></HEAD><BODY>\n<H1>301 Moved</H1>\nThe document has\
-          \ moved\n<A HREF=\"http://www.google.com/\">here</A>.\r\n</BODY></HTML>\r\n"
+        body: "Google is built by a large team of engineers, designers, researchers, robots, and others in many different sites across the globe. It is updated continuously, and built with more tools and technologies than we can shake a stick at. If you'd like to help us out, see google.com/careers."
         code: 301
         headers:
         - - Content-Length

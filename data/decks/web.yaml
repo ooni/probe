@@ -1,0 +1,18 @@
+---
+name: Web test deck
+description: This deck runs HTTP Header Field Manipulation and the Web Connectivity test
+schedule: "@daily"
+tasks:
+- name: Runs the HTTP Header Field Manipulation test
+  ooni:
+    test_name: http_header_field_manipulation
+
+- name: Runs the Web Connectivity Test
+  ooni:
+    test_name: web_connectivity
+    file: $citizenlab_global_urls
+
+- name: Runs the Web Connectivity Test
+  ooni:
+    test_name: web_connectivity
+    file: $citizenlab_${probe_cc}_urls

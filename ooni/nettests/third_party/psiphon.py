@@ -6,17 +6,18 @@ from twisted.internet import defer, reactor
 from twisted.internet.error import ProcessExitedAlready
 from twisted.python import usage
 
-from ooni.utils import log
+from ooni.utils import log, net
 from ooni.templates import process, httpt
 
 
 class UsageOptions(usage.Options):
-    log.debug("UsageOptions")
     optParameters = [
-        ['url', 'u', None, 'Specify a single URL to test.'],
         ['psiphonpath', 'p', None, 'Specify psiphon python client path.'],
-        ['socksproxy', 's', None, 'Specify psiphon socks proxy ip:port.'],]
-
+        ['url', 'u', net.GOOGLE_HUMANS[0],
+            'Specify the URL to fetch over psiphon (default: http://www.google.com/humans.txt).'],
+        ['expected-body', 'e', net.GOOGLE_HUMANS[1],
+            'Specify the beginning of the expected body in the response (default: ' + net.GOOGLE_HUMANS[1] + ').']
+    ]
 
 class PsiphonTest(httpt.HTTPTest,  process.ProcessTest):
 
@@ -30,30 +31,33 @@ class PsiphonTest(httpt.HTTPTest,  process.ProcessTest):
     """
 
     name = "Psiphon Test"
-    description = "Bootstraps Psiphon and \
-                does a HTTP GET for the specified URL"
+    description = ("Bootstraps Psiphon and "
+                   "does a HTTP GET for the specified URL.")
     author = "juga"
-    version = "0.0.1"
-    timeout = 20
+    version = "0.1.0"
+    timeout = 120
     usageOptions = UsageOptions
 
     def _setUp(self):
-        # it is necessary to do this in _setUp instead of setUp
-        # because it needs to happen before HTTPTest's _setUp.
-        # incidentally, setting this option in setUp results in HTTPTest
-        # *saying* it is using this proxy while not actually using it.
-        log.debug('PiphonTest._setUp: setting socksproxy')
         self.localOptions['socksproxy'] = '127.0.0.1:1080'
         super(PsiphonTest, self)._setUp()
 
     def setUp(self):
         log.debug('PsiphonTest.setUp')
 
+        self.report['bootstrapped_success'] = None
+        self.report['request_success'] = None
+        self.report['psiphon_found'] = None
+        self.report['default_configuration'] = True
+
         self.bootstrapped = defer.Deferred()
-        if self.localOptions['url']:
-            self.url = self.localOptions['url']
-        else:
-            self.url = 'https://check.torproject.org'
+        self.url = self.localOptions['url']
+
+        if self.localOptions['url'] != net.GOOGLE_HUMANS[0]:
+            self.report['default_configuration'] = False
+
+        if self.localOptions['expected-body'] != net.GOOGLE_HUMANS[1]:
+            self.report['default_configuration'] = False
 
         if self.localOptions['psiphonpath']:
             self.psiphonpath = self.localOptions['psiphonpath']
@@ -67,6 +71,7 @@ class PsiphonTest(httpt.HTTPTest,  process.ProcessTest):
                 getenv('HOME'), 'psiphon-circumvention-system/pyclient/pyclient')
             log.debug('psiphon path: %s' % self.psiphonpath)
 
+    def createCommand(self):
         # psi_client.py can not be run directly because the paths in the
         # code are relative, so it'll fail to execute from this test
         x = """
@@ -77,7 +82,7 @@ connect(False)
         f.write(x)
         f.close()
         self.command = [sys.executable, f.name]
-        log.debug('command: %s' % ''.join(self.command))
+        log.debug('command: %s' % ' '.join(self.command))
 
     def handleRead(self, stdout, stderr):
         if 'Press Ctrl-C to terminate.' in self.processDirector.stdout:
@@ -90,10 +95,7 @@ connect(False)
 
     def test_psiphon(self):
         log.debug('PsiphonTest.test_psiphon')
-
-        self.report['bootstrapped_success'] = None
-        self.report['request_success'] = None
-        self.report['psiphon_found'] = None
+        self.createCommand()
         if not os.path.exists(self.psiphonpath):
             log.err('psiphon path does not exists, is it installed?')
             self.report['psiphon_found'] = False
@@ -128,7 +130,11 @@ connect(False)
             d = self.doRequest(self.url)
             def addSuccessToReport(res):
                 log.debug("PsiphonTest.callDoRequest.addSuccessToReport")
-                self.report['request_success'] = True
+                if res.body.startswith(self.localOptions['expected-body']):
+                    self.report['request_success'] = True
+                else:
+                    self.report['request_success'] = False
+
                 return res
             d.addCallback(addSuccessToReport)
             def addFailureToReport(res):

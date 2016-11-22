@@ -8,10 +8,10 @@ from ooni.templates import tcpt
 
 class UsageOptions(usage.Options):
     optParameters = [
-        ['backend', 'b', None, 'The OONI backend that runs a TCP echo server'],
+        ['backend', 'b', None, 'The OONI backend that runs a TCP echo server.'],
         ['backendport', 'p', 80,
          'Specify the port that the TCP echo server is running '
-         '(should only be set for debugging)']]
+         '(should only be set for debugging).']]
 
 
 class HTTPInvalidRequestLine(tcpt.TCPTest):
@@ -42,14 +42,14 @@ class HTTPInvalidRequestLine(tcpt.TCPTest):
         self.address = self.localOptions['backend']
         self.report['tampering'] = None
 
-    def check_for_manipulation(self, response, payload):
+    def check_for_manipulation(self, response, payload, manipulation_type):
         log.debug("Checking if %s == %s" % (response, payload))
         if response != payload:
-            log.msg("Detected manipulation!")
+            log.msg("{0}: Detected manipulation!".format(manipulation_type))
             log.msg(response)
             self.report['tampering'] = True
         else:
-            log.msg("No manipulation detected.")
+            log.msg("{0}: No manipulation detected.".format(manipulation_type))
             self.report['tampering'] = False
 
     def test_random_invalid_method(self):
@@ -75,7 +75,7 @@ class HTTPInvalidRequestLine(tcpt.TCPTest):
         payload = randomSTR(4) + " / HTTP/1.1\n\r"
 
         d = self.sendPayload(payload)
-        d.addCallback(self.check_for_manipulation, payload)
+        d.addCallback(self.check_for_manipulation, payload, 'random_invalid_method')
         return d
 
     def test_random_invalid_field_count(self):
@@ -91,7 +91,7 @@ class HTTPInvalidRequestLine(tcpt.TCPTest):
         payload += "\n\r"
 
         d = self.sendPayload(payload)
-        d.addCallback(self.check_for_manipulation, payload)
+        d.addCallback(self.check_for_manipulation, payload, 'random_invalid_field_count')
         return d
 
     def test_random_big_request_method(self):
@@ -103,7 +103,7 @@ class HTTPInvalidRequestLine(tcpt.TCPTest):
         payload = randomStr(1024) + ' / HTTP/1.1\n\r'
 
         d = self.sendPayload(payload)
-        d.addCallback(self.check_for_manipulation, payload)
+        d.addCallback(self.check_for_manipulation, payload, 'random_big_request_method')
         return d
 
     def test_random_invalid_version_number(self):
@@ -116,5 +116,5 @@ class HTTPInvalidRequestLine(tcpt.TCPTest):
         payload += '\n\r'
 
         d = self.sendPayload(payload)
-        d.addCallback(self.check_for_manipulation, payload)
+        d.addCallback(self.check_for_manipulation, payload, 'random_invalid_version_number')
         return d

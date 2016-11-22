@@ -1,16 +1,16 @@
 import shutil
 import string
 import random
-import glob
-import os
-from datetime import datetime
-
+import signal
+import errno
 import gzip
-from base64 import b64encode
+import os
+
+from datetime import datetime, timedelta
 from zipfile import ZipFile
 
-from ooni import errors
-
+from twisted.python.filepath import FilePath
+from twisted.python.runtime import platform
 
 class Storage(dict):
     """
@@ -55,8 +55,8 @@ class Storage(dict):
         for (k, v) in value.items():
             self[k] = v
 
-
 def checkForRoot():
+    from ooni import errors
     if os.getuid() != 0:
         raise errors.InsufficientPrivileges
 
@@ -91,51 +91,40 @@ def randomStr(length, num=True):
         chars += string.digits
     return ''.join(random.choice(chars) for x in range(length))
 
-
-def pushFilenameStack(filename):
+def randomDate(start, end):
     """
-    Takes as input a target filename and checks to see if a file by such name
-    already exists. If it does exist then it will attempt to rename it to .1,
-    if .1 exists it will rename .1 to .2 if .2 exists then it will rename it to
-    .3, etc.
-    This is similar to pushing into a LIFO stack.
-
-    Args:
-        filename (str): the path to filename that you wish to create.
+    From: http://stackoverflow.com/a/553448
     """
-    stack = glob.glob(filename + ".*")
-    stack.sort(key=lambda x: int(x.split('.')[-1]))
-    for f in reversed(stack):
-        c_idx = f.split(".")[-1]
-        c_filename = '.'.join(f.split(".")[:-1])
-        new_idx = int(c_idx) + 1
-        new_filename = "%s.%s" % (c_filename, new_idx)
-        os.rename(f, new_filename)
-    os.rename(filename, filename + ".1")
+    delta = end - start
+    int_delta = (delta.days * 24 * 60 * 60)
+    random_second = random.randrange(int_delta)
+    return start + timedelta(seconds=random_second)
 
+LONG_DATE = "%Y-%m-%d %H:%M:%S"
+SHORT_DATE = "%Y%m%dT%H%M%SZ"
 
-def generate_filename(testDetails, prefix=None, extension=None, filename=None):
+def generate_filename(test_details, prefix=None, extension=None):
     """
     Returns a filename for every test execution.
 
     It's used to assure that all files of a certain test have a common basename but different
     extension.
     """
-    if filename is None:
-        test_name, start_time = testDetails['test_name'], testDetails['test_start_time']
-        start_time = datetime.strptime(start_time, "%Y-%m-%d %H:%M:%S").strftime("%Y-%m-%dT%H%M%SZ")
-        suffix = "%s-%s" % (test_name, start_time)
-        basename = '%s-%s' % (prefix, suffix) if prefix is not None else suffix
-        final_filename = '%s.%s' % (basename, extension) if extension is not None else basename
-    else:
-        if extension is not None:
-            basename = filename.split('.')[0] if '.' in filename else filename
-            final_filename = '%s.%s' % (basename, extension)
-        else:
-            final_filename = filename
-
-    return final_filename
-
+    kwargs = {}
+    filename_format = ""
+    if prefix is not None:
+        kwargs["prefix"] = prefix
+        filename_format += "{prefix}-"
+    filename_format += "{timestamp}-{probe_cc}-{probe_asn}-{test_name}"
+    if extension is not None:
+        kwargs["extension"] = extension
+        filename_format += ".{extension}"
+    kwargs['test_name']  = test_details['test_name']
+    kwargs['probe_cc']  = test_details.get('probe_cc', 'ZZ')
+    kwargs['probe_asn']  = test_details.get('probe_asn', 'AS0')
+    kwargs['timestamp'] = datetime.strptime(test_details['test_start_time'],
+                                            LONG_DATE).strftime(SHORT_DATE)
+    return filename_format.format(**kwargs)
 
 def sanitize_options(options):
     """
@@ -145,10 +134,16 @@ def sanitize_options(options):
     """
     sanitized_options = []
     for option in options:
-        option = os.path.basename(option)
+        if isinstance(option, str):
+            option = os.path.basename(option)
         sanitized_options.append(option)
     return sanitized_options
 
+def rename(src, dst):
+    # Best effort atomic renaming
+    if platform.isWindows() and os.path.exists(dst):
+        os.unlink(dst)
+    os.rename(src, dst)
 
 def unzip(filename, dst):
     assert filename.endswith('.zip')
@@ -162,24 +157,43 @@ def unzip(filename, dst):
     return dst_path
 
 
-def gunzip(filename, dst):
-    assert filename.endswith(".gz")
-    dst_path = os.path.join(
-        dst,
-        os.path.basename(filename).replace(".gz", "")
-    )
-    with open(dst_path, "w+") as fw:
-        gzip_file = gzip.open(filename)
-        shutil.copyfileobj(gzip_file, fw)
-        gzip_file.close()
-
+def gunzip(file_path):
+    """
+    gunzip a file in place.
+    """
+    tmp_location = FilePath(file_path).temporarySibling()
+    in_file = gzip.open(file_path)
+    with tmp_location.open('w') as out_file:
+        shutil.copyfileobj(in_file, out_file)
+    in_file.close()
+    rename(tmp_location.path, file_path)
 
 def get_ooni_root():
     script = os.path.join(__file__, '..')
     return os.path.dirname(os.path.realpath(script))
 
-def base64Dict(data):
-    return {
-        'format': 'base64',
-        'data': b64encode(data)
-    }
+def is_process_running(pid):
+    try:
+        os.kill(pid, 0)
+        running = True
+    except OSError as ose:
+        if ose.errno == errno.EPERM:
+            running = True
+        elif ose.errno == errno.ESRCH:
+            running = False
+        else:
+            raise
+    return running
+
+def mkdir_p(path):
+    """
+    Like makedirs, but it also ignores EEXIST errors, unless it exists but
+    isn't a directory.
+    """
+    try:
+        os.makedirs(path)
+    except OSError as ose:
+        if ose.errno != errno.EEXIST:
+            raise
+        if not os.path.isdir(path):
+            raise

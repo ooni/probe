@@ -6,55 +6,62 @@
 #           Arturo "hellais" Filastò <art@fuffa.org>
 # :licence: see LICENSE
 
-from ooni import nettest
-from ooni.utils import log
 import time
 import os
+import distutils.spawn
+
+from twisted.python import usage
 from twisted.internet import reactor, threads
 
-class NetalyzrWrapperTest(nettest.NetTestCase):
+from ooni.templates import process
+from ooni.utils import log
+
+class JavaNotInstalled(Exception):
+    pass
+
+class CouldNotFindNetalyzrCli(Exception):
+    pass
+
+class UsageOptions(usage.Options):
+    optParameters = [
+        ['clipath', 'p', None, 'Specify the path to NetalyzrCLI.jar (can be '
+                               'downloaded from '
+                               'http://netalyzr.icsi.berkeley.edu/NetalyzrCLI.jar).']
+    ]
+
+class NetalyzrWrapperTest(process.ProcessTest):
     name = "NetalyzrWrapper"
+    description = "A wrapper around the Netalyzr java command line client."
+    author = "Jacob Appelbaum <jacob@appelbaum.net>"
+
+    requiredOptions = ['clipath']
+
+    usageOptions = UsageOptions
     requiresRoot = False
     requiresTor = False
 
+    timeout = 300
+
+    def requirements(self):
+        if not distutils.spawn.find_executable("java"):
+            raise JavaNotInstalled("Java is not installed.")
+
     def setUp(self):
-        cwd = os.path.abspath(os.path.join(os.path.abspath(__file__), '..'))
+        if not os.path.exists(self.localOptions['clipath']):
+            raise CouldNotFindNetalyzrCli("Could not find NetalyzrCLI.jar at {}".format(self.localOptions['clipath']))
 
-        # XXX set the output directory to something more uniform
-        outputdir = os.path.join(cwd, '..', '..')
-
-        program_path = os.path.join(cwd, 'NetalyzrCLI.jar')
-        program = "java -jar %s -d" % program_path
-
-        test_token = time.asctime(time.gmtime()).replace(" ", "_").strip()
-
-        self.output_file = os.path.join(outputdir,
-                "NetalyzrCLI_" + test_token + ".out")
-        self.output_file.strip()
-        self.run_me = program + " 2>&1 >> " + self.output_file
-
-    def blocking_call(self):
-        try:
-            result = threads.blockingCallFromThread(reactor, os.system, self.run_me) 
-        except:
-            log.debug("Netalyzr had an error, please see the log file: %s" % self.output_file)
-        finally:
-            self.clean_up()
-
-    def clean_up(self):
-        self.report['netalyzr_report'] = self.output_file
-        log.debug("finished running NetalzrWrapper")
-        log.debug("Please check %s for Netalyzr output" % self.output_file)
+        self.command = [
+            distutils.spawn.find_executable("java"),
+            "-jar",
+            "{}".format(self.localOptions['clipath']),
+            "-d"
+        ]
 
     def test_run_netalyzr(self):
         """
         This test simply wraps netalyzr and runs it from command line
         """
         log.msg("Running NetalyzrWrapper (this will take some time, be patient)")
-        log.debug("with command '%s'" % self.run_me)
-        # XXX we probably want to use a processprotocol here to obtain the
-        # stdout from Netalyzr. This would allows us to visualize progress
-        # (currently there is no progress because the stdout of os.system is
-        # trapped by twisted) and to include the link to the netalyzr report
-        # directly in the OONI report, perhaps even downloading it.
-        reactor.callInThread(self.blocking_call)
+        log.debug("with command '%s'" % self.command)
+        self.d = self.run(self.command, env=os.environ, usePTY=1)
+        return self.d

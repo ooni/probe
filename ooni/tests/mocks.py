@@ -3,7 +3,7 @@ from twisted.internet import defer
 
 from ooni.tasks import BaseTask, TaskWithTimeout
 from ooni.managers import TaskManager
-
+from ooni.backend_client import CollectorClient
 
 class MockMeasurementFailOnce(BaseTask):
     def run(self):
@@ -189,17 +189,56 @@ class MockTaskManager(TaskManager):
         self.successes.append((result, task))
 
 
-class MockOONIBClient(object):
+class MockBouncerClient(object):
+    def __init__(self, *args, **kw):
+        self.backend_type = "onion"
+
     def lookupTestHelpers(self, required_test_helpers):
         ret = {
             'default': {
                 'address': '127.0.0.1',
-                'collector': 'httpo://thirteenchars1234.onion'
+                'collector': 'httpo://thirteenchars123.onion'
             }
         }
         for required_test_helper in required_test_helpers:
             ret[required_test_helper] = {
                 'address': '127.0.0.1',
-                'collector': 'httpo://thirteenchars1234.onion'
+                'collector': 'httpo://thirteenchars123.onion'
             }
         return defer.succeed(ret)
+
+    def lookupTestCollector(self, net_tests):
+        ret = {
+            'net-tests': [
+            ]
+        }
+        for net_test in net_tests:
+            test_helpers ={}
+            for test_helper in net_test['test-helpers']:
+                test_helpers[test_helper] = '127.0.0.1'
+
+            ret['net-tests'].append({
+                'name': net_test['name'],
+                'version': net_test['version'],
+                'input-hashes': net_test['input-hashes'],
+                'collector': 'httpo://thirteenchars123.onion',
+                'collector-alternate': [
+                    {'type': 'https', 'address': 'https://collector.ooni.io'},
+                    {'type': 'http', 'address': 'http://collector.ooni.io'},
+                    {
+                        'type': 'cloudfront',
+                        'address': 'https://address.cloudfront.net',
+                        'front': 'front.cloudfront.net'
+                    },
+                ],
+                'test-helpers': test_helpers
+            })
+        return defer.succeed(ret)
+
+
+class MockCollectorClient(CollectorClient):
+    def isSupported(self):
+        return True
+
+    def isReachable(self):
+        return defer.succeed(True)

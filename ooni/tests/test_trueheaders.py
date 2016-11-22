@@ -1,6 +1,6 @@
 from twisted.trial import unittest
 
-from ooni.utils.trueheaders import TrueHeaders
+from ooni.common.txextra import TrueHeaders
 
 dummy_headers_dict = {
     'Header1': ['Value1', 'Value2'],

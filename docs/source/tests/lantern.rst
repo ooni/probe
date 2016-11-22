@@ -17,22 +17,30 @@ Description
 ===========
 
 This test launches Lantern in --headless mode, and parses output to determine
-if it has bootstrapped.  After bootstrap, it fetches the URL supplied by the
---url option using Lanterns http proxy interface listening on 127.0.0.1.8787.
+if it has bootstrapped.  After bootstrap, it fetches a URL using Lanterns HTTP
+proxy interface listening on 127.0.0.1.8787 and checks to see if the response
+body matches the expected result.
+As a URL for testing we use http://www.google.com/humans.txt and look for the
+string "Google is built by a large" in the response body.
 
 The specific string used to determine bootstrap from Lantern output in version
-"2.0.10" is "client (http) proxy at" from standard output.
+"2.0.10" is "Successfully dialed via" from standard output.
 
 How to run the test
 ===================
 
-`ooniprobe nettests/third_party/lantern.py -u http://<url>`
+`ooniprobe nettests/third_party/lantern.py`
+
+For advanced usages you may also configure a different URL and expected body
+for the response with the `--url` and `--expected-body` command line options.
+
+`ooniprobe nettests/third_party/lantern.py --url http://humanstxt.org/humans.txt --expected-body '/* TEAM */'`
 
 Sample report
 =============
 
 From running:
-`ooniprobe nettests/third_party/lantern.py -u http://www.google.com`
+`ooniprobe nettests/third_party/lantern.py`
 
 ::
 
@@ -50,10 +58,9 @@ test_name: lantern_circumvention_tool_test
 test_version: 0.0.1
 ...
 ---
-body: "<HTML><HEAD><meta http-equiv=\"content-type\" content=\"text/html;charset=utf-8\"\
-  >\n<TITLE>301 Moved</TITLE></HEAD><BODY>\n<H1>301 Moved</H1>\nThe document has moved\n\
-  <A HREF=\"http://www.google.com/\">here</A>.\r\n</BODY></HTML>\r\n"
+body: "Google is built by a large team of engineers, designers, researchers, robots, and others in many different sites across the globe. It is updated continuously, and built with more tools and technologies than we can shake a stick at. If you'd like to help us out, see google.com/careers."
 bootstrapped: true
+default_configuration: true
 input: null
 lantern --headless: {exit_reason: process_done, stderr: '', stdout: ''}
 ```

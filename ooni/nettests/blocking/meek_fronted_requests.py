@@ -9,7 +9,7 @@ from ooni.utils import log
 class UsageOptions(usage.Options):
     optParameters = [ ['expectedBody', 'B',
                          'I’m just a happy little web server.\n',
-                          'Expected body content from GET response'],
+                          'Expected body content from GET response.'],
                       ['domainName', 'D', None,
                         'Specify a single fronted domainName to test.'],
                       ['hostHeader', 'H', None,
@@ -23,21 +23,20 @@ class meekTest(httpt.HTTPTest):
     and response with: "I’m just a happy little web server.\n".
     The input file should be formatted as (one per line):
     "domainName:hostHeader"
-    www.google.com:meek-reflect.appspot.com
     ajax.aspnetcdn.com:az668014.vo.msecnd.net
     a0.awsstatic.com:d2zfqthxsdq309.cloudfront.net
 
     """
     name = "Meek fronted requests test"
-    description = "This tests for the Meek Tor pluggable transport frontend reachability"
+    description = "This tests for the Meek Tor pluggable transport "\
+                  "frontend reachability."
     version = "0.0.1"
 
     usageOptions = UsageOptions
     inputFile = ['file', 'f', None,
                   "File containing the domainName:hostHeader combinations to\
                   be tested, one per line."]
-    inputs = [('www.google.com', 'meek-reflect.appspot.com'),
-               ('ajax.aspnetcdn.com', 'az668014.vo.msecnd.net'),
+    inputs = [('ajax.aspnetcdn.com', 'az668014.vo.msecnd.net'),
                ('a0.awsstatic.com', 'd2zfqthxsdq309.cloudfront.net')]
 
     requiresRoot = False

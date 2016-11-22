@@ -3,8 +3,19 @@
 # Keep in mind that indentation matters.
 
 basic:
-    # Where OONIProbe should be writing it's log file
-    logfile: /var/log/ooniprobe.log
+    # Where OONIProbe should be writing its log file
+    # logfile: ooniprobe.log
+    # loglevel: WARNING
+    # Will rotate logs daily when "daily" or based on rotate_length
+    #  when "length" is set. null to disable rotation.
+    # rotate: daily
+    # rotate_length: 1M
+    # Sets an upper bound on the number of rotated files, only works when
+    #  "length" is the rotation mode
+    # max_rotated_files: null
+    # The maximum amount of data to store on disk. Once the quota is reached,
+    # we will start deleting older reports.
+    # measurement_quota: 1G
 privacy:
     # Should we include the IP address of the probe in the report?
     includeip: false
@@ -12,8 +23,6 @@ privacy:
     includeasn: true
     # Should we include the country as reported by GeoIP in the report?
     includecountry: true
-    # Should we include the city as reported by GeoIP in the report?
-    includecity: false
     # Should we collect a full packet capture on the client?
     includepcap: false
 reports:
@@ -23,7 +32,6 @@ reports:
     pcap: null
     collector: null
 advanced:
-    geoip_data_dir: /usr/share/GeoIP
     debug: false
     # enable if auto detection fails
     #tor_binary: /usr/sbin/tor
@@ -36,22 +44,21 @@ advanced:
     # explicitly set the control port and SOCKS port
     start_tor: true
     # After how many seconds we should give up on a particular measurement
-    measurement_timeout: 60
+    measurement_timeout: 120
     # After how many retries we should give up on a measurement
     measurement_retries: 2
     # How many measurements to perform concurrently
-    measurement_concurrency: 10
+    measurement_concurrency: 4
     # After how may seconds we should give up reporting
-    reporting_timeout: 80
+    reporting_timeout: 360
     # After how many retries to give up on reporting
-    reporting_retries: 3
+    reporting_retries: 5
     # How many reports to perform concurrently
-    reporting_concurrency: 15
-    oonid_api_port: 8042
-    report_log_file: null
-    inputs_dir: null
-    decks_dir: null
-    insecure_collector: false
+    reporting_concurrency: 7
+    # If we should support communicating to plaintext backends (via HTTP)
+    insecure_backend: false
+    # The preferred backend type, can be one of onion, https or cloudfront
+    preferred_backend: onion
 tor:
     #socks_port: 8801
     #control_port: 8802
@@ -61,8 +68,18 @@ tor:
     # This should be set to something to avoid having Tor download each time
     # the descriptors and consensus data.
     #data_dir: ~/.tor/
+    #
+    # This is the timeout after which we consider to to not have
+    # bootstrapped properly.
+    timeout: 200
     torrc:
         #HTTPProxy: host:port
         #HTTPProxyAuthenticator: user:password
         #HTTPSProxy: host:port
         #HTTPSProxyAuthenticator: user:password
+        #UseBridges: 1
+        #Bridge:
+        #- "meek_lite 0.0.2.0:1 url=https://meek-reflect.appspot.com/ front=www.google.com"
+        #- "meek_lite 0.0.2.0:2 url=https://d2zfqthxsdq309.cloudfront.net/ front=a0.awsstatic.com"
+        #- "meek_lite 0.0.2.0:3 url=https://az786092.vo.msecnd.net/ front=ajax.aspnetcdn.com"
+        #ClientTransportPlugin: "meek_lite exec /usr/bin/obfs4proxy"

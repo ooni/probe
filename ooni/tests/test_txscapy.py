@@ -18,9 +18,6 @@ class TestTxScapy(unittest.TestCase):
     def tearDown(self):
         self.scapy_factory.connectionLost(None)
 
-    def test_pcapdnet_installed(self):
-        assert txscapy.pcapdnet_installed() is True
-
     def test_send_packet_no_answer(self):
         from scapy.all import IP, TCP
 

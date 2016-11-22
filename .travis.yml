@@ -1,15 +1,20 @@
 language: python
 env:
+  # version in debian wheezy-backports
   - TWISTED=Twisted==13.2
-  - TWISTED=Twisted==14.0
-  - TWISTED=Twisted==14.0.1
+  # version in debian jessie
   - TWISTED=Twisted==14.0.2
-  - TWISTED=Twisted==15.0.0
-  - TWISTED=Twisted==15.1.0
-  - TWISTED=Twisted==15.2.0
+  # version in ubuntu wily
   - TWISTED=Twisted==15.2.1
-  - TWISTED=Twisted==15.3.0
-  - TWISTED=Twisted==15.4.0
+  # version in ubuntu xenial
+  - TWISTED=Twisted==16.0.0
+  # version in debian jessie-backports
+  - TWISTED=Twisted==16.2.0
+  # version in debian stretch
+  - TWISTED=Twisted==16.3.0
+  # version in debian sid
+  - TWISTED=Twisted==16.4.1
+  # this points the latest stable
   - TWISTED=Twisted
 before_install:
   - sudo apt-get update
@@ -29,6 +34,7 @@ install:
 # command to run tests, e.g. python setup.py test
 script:
   - sudo $(which coverage) run $(which trial) ooni
+  - pip list
 after_success:
   - coveralls
 notifications:
@@ -36,4 +42,8 @@ notifications:
     channels:
       - "irc.oftc.net#ooni"
     on_success: change
-    on_failure: always
+    on_failure: change
+    skip_join: true
+    template:
+      - "%{repository} (%{commit}): %{message} Diff: %{compare_url}"
+      - "Build: %{build_url}"

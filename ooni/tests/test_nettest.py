@@ -1,4 +1,6 @@
 import os
+import yaml
+import json
 from tempfile import mkstemp
 
 from twisted.trial import unittest
@@ -147,6 +149,65 @@ class HTTPBasedTest(httpt.HTTPTest):
                               use_tor=False)
 """
 
+generator_net_test = """
+from twisted.python import usage
+from ooni.nettest import NetTestCase
+
+class UsageOptions(usage.Options):
+    optParameters = [['spam', 's', None, 'ham']]
+
+def input_generator():
+    # Generates a list of numbers
+    # The first value sent back is appended to the list.
+    received = False
+    numbers = [i for i in range(10)]
+    while numbers:
+        i = numbers.pop()
+        result = yield i
+        # Place sent value back in numbers
+        if result is not None and received is False:
+            numbers.append(result)
+            received = True
+            yield i
+
+class TestSendGen(NetTestCase):
+    usageOptions = UsageOptions
+    inputs = input_generator()
+
+    def test_input_sent_to_generator(self):
+        # Sends a single value back to the generator
+        if self.input == 5:
+            self.inputs.send(self.input)
+"""
+
+generator_id_net_test = """
+from twisted.python import usage
+from ooni.nettest import NetTestCase
+
+class UsageOptions(usage.Options):
+    optParameters = [['spam', 's', None, 'ham']]
+
+class DummyTestCaseA(NetTestCase):
+
+    usageOptions = UsageOptions
+
+    def test_a(self):
+        self.report.setdefault("results", []).append(id(self.inputs))
+
+    def test_b(self):
+        self.report.setdefault("results", []).append(id(self.inputs))
+
+    def test_c(self):
+        self.report.setdefault("results", []).append(id(self.inputs))
+
+class DummyTestCaseB(NetTestCase):
+
+    usageOptions = UsageOptions
+
+    def test_a(self):
+        self.report.setdefault("results", []).append(id(self.inputs))
+"""
+
 dummyInputs = range(1)
 dummyArgs = ('--spam', 'notham')
 dummyOptions = {'spam': 'notham'}
@@ -159,19 +220,22 @@ dummyInputFile = 'dummyInputFile.txt'
 
 
 
-class TestNetTest(unittest.TestCase):
+class TestNetTest(ConfigTestCase):
     timeout = 1
 
     def setUp(self):
+        super(TestNetTest, self).setUp()
         self.filename = ""
         with open(dummyInputFile, 'w') as f:
             for i in range(10):
                 f.write("%s\n" % i)
+        super(TestNetTest, self).setUp()
 
     def tearDown(self):
         os.remove(dummyInputFile)
         if self.filename != "":
             os.remove(self.filename)
+        super(TestNetTest, self).tearDown()
 
     def assertCallable(self, thing):
         self.assertIn('__call__', dir(thing))
@@ -186,13 +250,6 @@ class TestNetTest(unittest.TestCase):
                 uniq_test_methods.add(test_method)
         self.assertEqual(set(['test_a', 'test_b']), uniq_test_methods)
 
-    def verifyClasses(self, test_cases, control_classes):
-        actual_classes = set()
-        for test_class, test_methods in test_cases:
-            actual_classes.add(test_class.__name__)
-
-        self.assertEqual(actual_classes, control_classes)
-
     def test_load_net_test_from_file(self):
         """
         Given a file verify that the net test cases are properly
@@ -206,7 +263,7 @@ class TestNetTest(unittest.TestCase):
         ntl = NetTestLoader(dummyArgs)
         ntl.loadNetTestFile(net_test_file)
 
-        self.verifyMethods(ntl.testCases)
+        self.verifyMethods(ntl.getTestCases())
         os.unlink(net_test_file)
 
     def test_load_net_test_from_str(self):
@@ -217,24 +274,21 @@ class TestNetTest(unittest.TestCase):
         ntl = NetTestLoader(dummyArgs)
         ntl.loadNetTestString(net_test_string)
 
-        self.verifyMethods(ntl.testCases)
+        self.verifyMethods(ntl.getTestCases())
 
     def test_load_net_test_multiple(self):
         ntl = NetTestLoader(dummyArgs)
         ntl.loadNetTestString(double_net_test_string)
-
-        self.verifyMethods(ntl.testCases)
-        self.verifyClasses(ntl.testCases, set(('DummyTestCaseA', 'DummyTestCaseB')))
-
+        test_cases = ntl.getTestCases()
+        self.verifyMethods(test_cases)
         ntl.checkOptions()
 
     def test_load_net_test_multiple_different_options(self):
         ntl = NetTestLoader(dummyArgs)
         ntl.loadNetTestString(double_different_options_net_test_string)
 
-        self.verifyMethods(ntl.testCases)
-        self.verifyClasses(ntl.testCases, set(('DummyTestCaseA', 'DummyTestCaseB')))
-
+        test_cases = ntl.getTestCases()
+        self.verifyMethods(test_cases)
         self.assertRaises(IncoherentOptions, ntl.checkOptions)
 
     def test_load_with_option(self):
@@ -242,7 +296,7 @@ class TestNetTest(unittest.TestCase):
         ntl.loadNetTestString(net_test_string)
 
         self.assertIsInstance(ntl, NetTestLoader)
-        for test_klass, test_meth in ntl.testCases:
+        for test_klass, test_meth in ntl.getTestCases():
             for option in dummyOptions.keys():
                 self.assertIn(option, test_klass.usageOptions())
 
@@ -263,39 +317,33 @@ class TestNetTest(unittest.TestCase):
         ntl.loadNetTestString(net_test_string_with_required_option)
         self.assertRaises(MissingRequiredOption, ntl.checkOptions)
 
+    @defer.inlineCallbacks
     def test_net_test_inputs(self):
         ntl = NetTestLoader(dummyArgsWithFile)
         ntl.loadNetTestString(net_test_string_with_file)
-
         ntl.checkOptions()
-        nt = NetTest(ntl, None)
-        nt.initializeInputProcessor()
+        nt = NetTest(ntl.getTestCases(), ntl.getTestDetails(), None)
+        yield nt.initialize()
 
-        # XXX: if you use the same test_class twice you will have consumed all
-        # of its inputs!
-        tested = set([])
-        for test_class, test_method in ntl.testCases:
-            if test_class not in tested:
-                tested.update([test_class])
-                self.assertEqual(len(list(test_class.inputs)), 10)
+        for test_class, test_methods in nt.testCases:
+            self.assertEqual(len(list(test_class.inputs)), 10)
 
     def test_setup_local_options_in_test_cases(self):
         ntl = NetTestLoader(dummyArgs)
         ntl.loadNetTestString(net_test_string)
 
         ntl.checkOptions()
+        self.assertEqual(dict(ntl.localOptions), dummyOptions)
 
-        for test_class, test_method in ntl.testCases:
-            self.assertEqual(test_class.localOptions, dummyOptions)
-
+    @defer.inlineCallbacks
     def test_generate_measurements_size(self):
         ntl = NetTestLoader(dummyArgsWithFile)
         ntl.loadNetTestString(net_test_string_with_file)
-
         ntl.checkOptions()
-        net_test = NetTest(ntl, None)
 
-        net_test.initializeInputProcessor()
+        net_test = NetTest(ntl.getTestCases(), ntl.getTestDetails(), None)
+
+        yield net_test.initialize()
         measurements = list(net_test.generateMeasurements())
         self.assertEqual(len(measurements), 20)
 
@@ -307,7 +355,7 @@ class TestNetTest(unittest.TestCase):
         director = Director()
 
         self.filename = 'dummy_report.yamloo'
-        d = director.startNetTest(ntl, self.filename)
+        d = director.start_net_test_loader(ntl, self.filename)
 
         @d.addCallback
         def complete(result):
@@ -321,9 +369,56 @@ class TestNetTest(unittest.TestCase):
         ntl = NetTestLoader(dummyArgs)
         ntl.loadNetTestString(net_test_root_required)
 
-        for test_class, method in ntl.testCases:
+        for test_class, methods in ntl.getTestCases():
             self.assertTrue(test_class.requiresRoot)
 
+    def test_singular_input_processor(self):
+        """
+        Verify that all measurements use the same object as their input processor.
+        """
+        ntl = NetTestLoader(dummyArgs)
+        ntl.loadNetTestString(generator_id_net_test)
+        ntl.checkOptions()
+
+        director = Director()
+        self.filename = 'dummy_report.njson'
+        d = director.start_net_test_loader(ntl, self.filename)
+
+        @d.addCallback
+        def complete(result):
+            with open(self.filename) as report_file:
+                all_report_entries = map(json.loads, report_file)
+                results_case_a = all_report_entries[0]['test_keys']
+                aa_test, ab_test, ac_test = results_case_a.get('results', [])
+                results_case_b = all_report_entries[1]['test_keys']
+                ba_test = results_case_b.get('results', [])[0]
+            # Within a NetTestCase an inputs object will be consistent
+            self.assertEqual(aa_test, ab_test, ac_test)
+            # An inputs object will be different between different NetTestCases
+            self.assertNotEqual(aa_test, ba_test)
+
+        return d
+
+    def test_send_to_inputs_generator(self):
+        """
+        Verify that a net test can send information back into an inputs generator.
+        """
+        ntl = NetTestLoader(dummyArgs)
+        ntl.loadNetTestString(generator_net_test)
+        ntl.checkOptions()
+
+        director = Director()
+        self.filename = 'dummy_report.njson'
+        d = director.start_net_test_loader(ntl, self.filename)
+
+        @d.addCallback
+        def complete(result):
+            with open(self.filename) as report_file:
+                all_report_entries = map(json.loads, report_file)
+                results = [x['input'] for x in all_report_entries]
+            self.assertEqual(results, [9, 8, 7, 6, 5, 5, 3, 2, 1, 0])
+
+        return d
 
 class TestNettestTimeout(ConfigTestCase):
 
@@ -372,7 +467,7 @@ class TestNettestTimeout(ConfigTestCase):
         director = Director()
 
         self.filename = 'dummy_report.yamloo'
-        d = director.startNetTest(ntl, self.filename)
+        d = director.start_net_test_loader(ntl, self.filename)
 
         @d.addCallback
         def complete(result):

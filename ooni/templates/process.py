@@ -1,7 +1,9 @@
 from twisted.internet import protocol, defer, reactor
 
+from ooni.settings import config
 from ooni.nettest import NetTestCase
 from ooni.utils import log
+from ooni.geoip import probe_ip
 
 
 class ProcessDirector(protocol.ProcessProtocol):
@@ -66,7 +68,7 @@ class ProcessDirector(protocol.ProcessProtocol):
         self.stderr += data
         if self.shouldClose():
             self.close("condition_met")
-        self.handlRead(None,  data)
+        self.handleRead(None,  data)
 
 
     def inConnectionLost(self):
@@ -105,6 +107,12 @@ class ProcessTest(NetTestCase):
         log.debug("Finished %s: %s" % (command, result))
         if not isinstance(self.report.get('commands'), list):
             self.report['commands'] = []
+
+        # Attempt to redact the IP address of the probe from the standard output
+        if config.privacy.includeip is False and probe_ip.address is not None:
+            result['stdout'] = result['stdout'].replace(probe_ip.address, "[REDACTED]")
+            result['stderr'] = result['stderr'].replace(probe_ip.address, "[REDACTED]")
+
         self.report['commands'].append({
             'command_name': ' '.join(command),
             'command_stdout': result['stdout'],

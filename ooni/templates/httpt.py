@@ -1,21 +1,25 @@
 import random
 
-from twisted.internet import defer
-
 from txtorcon.interface import StreamListenerMixin
+
+from twisted.web.client import readBody, PartialDownloadError
+from twisted.web.client import ContentDecoderAgent
 
 from twisted.internet import reactor
 from twisted.internet.endpoints import TCP4ClientEndpoint
-from ooni.utils.trueheaders import TrueHeadersAgent, TrueHeadersSOCKS5Agent
+
+from ooni.utils.socks import TrueHeadersSOCKS5Agent
 
 from ooni.nettest import NetTestCase
-from ooni.utils import log, base64Dict
+from ooni.utils import log
 from ooni.settings import config
 
-from ooni.utils.net import BodyReceiver, StringProducer, userAgents
-from ooni.utils.trueheaders import TrueHeaders
+from ooni.utils.net import StringProducer, userAgents
+from ooni.common.txextra import TrueHeaders
+from ooni.common.txextra import FixedRedirectAgent, TrueHeadersAgent
+from ooni.common.http_utils import representBody
 from ooni.errors import handleAllFailures
-
+from ooni.geoip import probe_ip
 
 class InvalidSocksProxyOption(Exception):
     pass
@@ -28,12 +32,19 @@ class StreamListener(StreamListenerMixin):
     def stream_succeeded(self, stream):
         host=self.request['url'].split('/')[2]
         try:
-            if stream.target_host == host and len(self.request['tor']) == 1:
+            if stream.target_host == host and self.request['tor']['exit_ip'] is None:
                 self.request['tor']['exit_ip'] = stream.circuit.path[-1].ip
                 self.request['tor']['exit_name'] = stream.circuit.path[-1].name
                 config.tor_state.stream_listeners.remove(self)
         except:
             log.err("Tor Exit ip detection failed")
+
+
+def _representHeaders(headers):
+    represented_headers = {}
+    for name, value in headers.getAllRawHeaders():
+        represented_headers[name] = unicode(value[0], errors='ignore')
+    return represented_headers
 
 class HTTPTest(NetTestCase):
     """
@@ -55,6 +66,12 @@ class HTTPTest(NetTestCase):
     randomizeUA = False
     followRedirects = False
 
+    # You can specify a list of tuples in the format of (CONTENT_TYPE,
+    # DECODER)
+    # For example to support Gzip decoding you should specify
+    # contentDecoders = [('gzip', GzipDecoder)]
+    contentDecoders = []
+
     baseParameters = [['socksproxy', 's', None,
         'Specify a socks proxy to use for requests (ip:port)']]
 
@@ -72,7 +89,6 @@ class HTTPTest(NetTestCase):
                     config.tor.socks_port))
 
         self.report['socksproxy'] = None
-        sockshost, socksport = (None, None)
         if self.localOptions['socksproxy']:
             try:
                 sockshost, socksport = self.localOptions['socksproxy'].split(':')
@@ -90,15 +106,19 @@ class HTTPTest(NetTestCase):
 
         if self.followRedirects:
             try:
-                from twisted.web.client import RedirectAgent
-                self.control_agent = RedirectAgent(self.control_agent)
-                self.agent = RedirectAgent(self.agent)
+                self.control_agent = FixedRedirectAgent(self.control_agent)
+                self.agent = FixedRedirectAgent(self.agent)
                 self.report['agent'] = 'redirect'
             except:
-                log.err("Warning! You are running an old version of twisted"\
-                        "(<= 10.1). I will not be able to follow redirects."\
+                log.err("Warning! You are running an old version of twisted "
+                        "(<= 10.1). I will not be able to follow redirects."
                         "This may make the testing less precise.")
 
+        if len(self.contentDecoders) > 0:
+            self.control_agent = ContentDecoderAgent(self.control_agent,
+                                                     self.contentDecoders)
+            self.agent = ContentDecoderAgent(self.agent,
+                                             self.contentDecoders)
         self.processInputs()
         log.debug("Finished test setup")
 
@@ -122,25 +142,6 @@ class HTTPTest(NetTestCase):
 
             failure (instance): An instance of :class:twisted.internet.failure.Failure
         """
-        def _representHeaders(headers):
-            represented_headers = {}
-            for name, value in headers.getAllRawHeaders():
-                represented_headers[name] = value[0]
-            return represented_headers
-
-        def _representBody(body):
-            # XXX perhaps add support for decoding gzip in the future.
-            try:
-                body = unicode(body, 'ascii')
-                body = body.replace('\0', '')
-            except UnicodeDecodeError:
-                try:
-                    body = unicode(body, 'utf-8')
-                    body = body.replace('\0', '')
-                except UnicodeDecodeError:
-                    body = base64Dict(body)
-            return body
-
         log.debug("Adding %s to report" % request)
         request_headers = TrueHeaders(request['headers'])
         session = {
@@ -150,22 +151,37 @@ class HTTPTest(NetTestCase):
                 'url': request['url'],
                 'method': request['method'],
                 'tor': request['tor']
-            }
+            },
+            'response': None
         }
         if response:
             if self.localOptions.get('withoutbody', 0) is 0:
-                response_body = _representBody(response_body)
+                response_body = representBody(response_body)
             else:
                 response_body = ''
+            # Attempt to redact the IP address of the probe from the responses
+            if (config.privacy.includeip is False and probe_ip.address is not None and
+                    (isinstance(response_body, str) or isinstance(response_body, unicode))):
+                response_body = response_body.replace(probe_ip.address, "[REDACTED]")
+            if (getattr(response, 'request', None) and
+                    getattr(response.request, 'absoluteURI', None)):
+                session['request']['url'] = response.request.absoluteURI
             session['response'] = {
                 'headers': _representHeaders(response.headers),
                 'body': response_body,
                 'code': response.code
-        }
+            }
         session['failure'] = None
         if failure_string:
             session['failure'] = failure_string
+
         self.report['requests'].append(session)
+
+        if response and response.previousResponse:
+            self.addToReport(request, response.previousResponse,
+                             response_body=None,
+                             failure_string=None)
+
 
     def _processResponseBody(self, response_body, request, response, body_processor):
         log.debug("Processing response body")
@@ -178,6 +194,8 @@ class HTTPTest(NetTestCase):
         return response
 
     def _processResponseBodyFail(self, failure, request, response):
+        if failure.check(PartialDownloadError):
+            return failure.value.response
         failure_string = handleAllFailures(failure)
         HTTPTest.addToReport(self, request, response,
                              failure_string=failure_string)
@@ -262,17 +280,11 @@ class HTTPTest(NetTestCase):
         else:
             self.processResponseHeaders(response_headers_dict)
 
-        try:
-            content_length = int(response.headers.getRawHeaders('content-length')[0])
-        except Exception:
-            content_length = None
-
-        finished = defer.Deferred()
-        response.deliverBody(BodyReceiver(finished, content_length))
-        finished.addCallback(self._processResponseBody, request,
-                response, body_processor)
+        finished = readBody(response)
         finished.addErrback(self._processResponseBodyFail, request,
                             response)
+        finished.addCallback(self._processResponseBody, request,
+                response, body_processor)
         return finished
 
     def doRequest(self, url, method="GET",

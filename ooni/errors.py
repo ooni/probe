@@ -78,11 +78,9 @@ def failureToString(failure):
 
     for failure_type, failure_string in known_failures:
         if isinstance(failure.value, failure_type):
-            if failure_string:
-                return failure_string
-            else:
-                # Failure without a corresponding failure message
-                return 'unknown_failure %s' % str(failure.value)
+            return failure_string
+    # Failure without a corresponding failure message
+    return 'unknown_failure %s' % str(failure.value)
 
 class DirectorException(Exception):
     pass
@@ -92,11 +90,14 @@ class UnableToStartTor(DirectorException):
     pass
 
 
-class InvalidOONIBCollectorAddress(Exception):
+class InvalidAddress(Exception):
+    pass
+
+class InvalidOONIBCollectorAddress(InvalidAddress):
     pass
 
 
-class InvalidOONIBBouncerAddress(Exception):
+class InvalidOONIBBouncerAddress(InvalidAddress):
     pass
 
 
@@ -172,6 +173,13 @@ class OONIBInputDescriptorNotFound(OONIBInputError):
     pass
 
 
+class OONIBInvalidInputHash(OONIBError):
+    pass
+
+
+class OONIBInvalidNettestName(OONIBError):
+    pass
+
 class UnableToLoadDeckInput(Exception):
     pass
 
@@ -197,6 +205,8 @@ class MissingRequiredOption(Exception):
     def __str__(self):
         return ','.join(self.message)
 
+class MissingTestHelper(MissingRequiredOption):
+    pass
 
 class OONIUsageError(usage.UsageError):
     def __init__(self, net_test_loader):
@@ -256,10 +266,14 @@ class ConfigFileIncoherent(Exception):
 def get_error(error_key):
     if error_key == 'test-helpers-key-missing':
         return CouldNotFindTestHelper
-    if error_key == 'input-descriptor-not-found':
+    elif error_key == 'input-descriptor-not-found':
         return OONIBInputDescriptorNotFound
-    if error_key == 'invalid-request':
+    elif error_key == 'invalid-request':
         return OONIBInvalidRequest
+    elif error_key == 'invalid-input-hash':
+        return OONIBInvalidInputHash
+    elif error_key == 'invalid-nettest-name':
+        return OONIBInvalidNettestName
     elif isinstance(error_key, int):
         return Error("%d" % error_key)
     else:
@@ -281,8 +295,28 @@ class ProtocolAlreadyRegistered(Exception):
 class LibraryNotInstalledError(Exception):
     pass
 
-class InsecureCollector(Exception):
+
+class InsecureBackend(Exception):
     pass
 
-class HTTPSCollectorUnsupported(Exception):
+class CollectorUnsupported(Exception):
+    pass
+
+class HTTPSCollectorUnsupported(CollectorUnsupported):
+    pass
+
+
+class BackendNotSupported(Exception):
+    pass
+
+
+class NoReachableCollectors(Exception):
+    pass
+
+
+class NoReachableTestHelpers(Exception):
+    pass
+
+
+class InvalidPreferredBackend(Exception):
     pass
