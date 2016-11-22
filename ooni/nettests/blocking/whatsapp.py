@@ -271,6 +271,10 @@ class WhatsappTest(httpt.HTTPTest, dnst.DNSTest):
     followRedirects = True
     usageOptions = UsageOptions
 
+    def setUp(self):
+        # We need more time to ensure all the endpoints can timeout
+        self.timeout = 16 * 20
+
     @defer.inlineCallbacks
     def test_registration_server(self):
         self.report['registratison_server_failure'] = None
