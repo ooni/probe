@@ -379,7 +379,7 @@ class WhatsappTest(httpt.HTTPTest, dnst.DNSTest):
                 continue
 
         if ip_in_whats_app_network == False:
-            log.msg("%s presents an inconsistent DNS response" % hostname)
+            log.msg("%s presents an INCONSISTENT DNS response" % hostname)
             self.report['whatsapp_endpoints_status'] = 'blocked'
             self.report['whatsapp_endpoints_dns_inconsistent'].append(hostname)
 
@@ -394,7 +394,7 @@ class WhatsappTest(httpt.HTTPTest, dnst.DNSTest):
                 tcp_blocked = True
 
         if tcp_blocked == True:
-            log.msg("%s is blocked based on TCP" % hostname)
+            log.msg("%s is BLOCKED based on TCP" % hostname)
             self.report['whatsapp_endpoints_blocked'].append(hostname)
             self.report['whatsapp_endpoints_status'] = 'blocked'
         else:
