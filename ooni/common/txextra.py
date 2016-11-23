@@ -19,6 +19,8 @@ from twisted.internet.defer import Deferred, fail, maybeDeferred, failure
 
 from twisted.python import log
 
+from .ip_utils import is_private_address
+
 class TrueHeaders(Headers):
     def __init__(self, rawHeaders=None):
         self._rawHeaders = dict()
@@ -168,6 +170,10 @@ class FixedRedirectAgent(BrowserLikeRedirectAgent):
     This is a redirect agent with this patch manually applied:
     https://twistedmatrix.com/trac/ticket/8265
     """
+    def __init__(self, agent, redirectLimit=20, ignorePrivateRedirects=False):
+        self.ignorePrivateRedirects = ignorePrivateRedirects
+        BrowserLikeRedirectAgent.__init__(self, agent, redirectLimit)
+
     def _handleRedirect(self, response, method, uri, headers, redirectCount):
         """
         Handle a redirect response, checking the number of redirects already
@@ -191,12 +197,22 @@ class FixedRedirectAgent(BrowserLikeRedirectAgent):
             response.request.absoluteURI,
             locationHeaders[0]
         )
+        uri = client.URI.fromBytes(location)
+        if self.ignorePrivateRedirects and (is_private_address(uri.host) or
+                                            uri.host == "localhost"):
+            return response
+
         deferred = self._agent.request(method, location, headers)
 
         def _chainResponse(newResponse):
+            if isinstance(newResponse, Failure):
+                # This is needed to write the response even in case of failure
+                newResponse.previousResponse = response
+                newResponse.requestLocation = location
+                return newResponse
             newResponse.setPreviousResponse(response)
             return newResponse
 
-        deferred.addCallback(_chainResponse)
+        deferred.addBoth(_chainResponse)
         return deferred.addCallback(
             self._handleResponse, method, uri, headers, redirectCount + 1)
