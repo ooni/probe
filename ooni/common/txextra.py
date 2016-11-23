@@ -198,8 +198,8 @@ class FixedRedirectAgent(BrowserLikeRedirectAgent):
             locationHeaders[0]
         )
         uri = client.URI.fromBytes(location)
-        if self.ignorePrivateRedirects and (is_private_address(uri.host) or
-                                            uri.host == "localhost"):
+        if self.ignorePrivateRedirects and is_private_address(uri.host,
+                                                              only_loopback=True):
             return response
 
         deferred = self._agent.request(method, location, headers)
