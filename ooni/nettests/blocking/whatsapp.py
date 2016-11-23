@@ -264,7 +264,7 @@ class WhatsappTest(httpt.HTTPTest, dnst.DNSTest):
     description = ("This test checks to see if the servers used by whatsapp "
                    "messenger are reachable")
     author = "Arturo Filastò"
-    version = "0.3.1"
+    version = "0.4.0"
 
     requiresRoot = False
     requiresTor = False
@@ -407,7 +407,7 @@ class WhatsappTest(httpt.HTTPTest, dnst.DNSTest):
 
         self.report['tcp_connect'] = []
 
-        possible_endpoints = map(lambda x: "e%s.whatsapp.net" % x, range(1, 16))
+        possible_endpoints = map(lambda x: "e%s.whatsapp.net" % x, range(1, 17))
         whatsapp_network = WhatsAppNetwork()
         to_test_endpoints = []
         if self.localOptions.get('all-endpoints', False):
