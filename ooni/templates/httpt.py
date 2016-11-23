@@ -66,6 +66,10 @@ class HTTPTest(NetTestCase):
     randomizeUA = False
     followRedirects = False
 
+    # When this is set to False we will follow redirects pointing to IPs in
+    # rfc1918
+    ignorePrivateRedirects = False
+
     # You can specify a list of tuples in the format of (CONTENT_TYPE,
     # DECODER)
     # For example to support Gzip decoding you should specify
@@ -107,7 +111,10 @@ class HTTPTest(NetTestCase):
         if self.followRedirects:
             try:
                 self.control_agent = FixedRedirectAgent(self.control_agent)
-                self.agent = FixedRedirectAgent(self.agent)
+                self.agent = FixedRedirectAgent(
+                    self.agent,
+                    ignorePrivateRedirects=self.ignorePrivateRedirects
+                )
                 self.report['agent'] = 'redirect'
             except:
                 log.err("Warning! You are running an old version of twisted "
@@ -129,7 +136,8 @@ class HTTPTest(NetTestCase):
     def processInputs(self):
         pass
 
-    def addToReport(self, request, response=None, response_body=None, failure_string=None):
+    def addToReport(self, request, response=None, response_body=None,
+                    failure_string=None, previous_response=None):
         """
         Adds to the report the specified request and response.
 
@@ -176,9 +184,10 @@ class HTTPTest(NetTestCase):
             session['failure'] = failure_string
 
         self.report['requests'].append(session)
-
         if response and response.previousResponse:
-            self.addToReport(request, response.previousResponse,
+            previous_response = response.previousResponse
+        if previous_response:
+            self.addToReport(request, previous_response,
                              response_body=None,
                              failure_string=None)
 
@@ -367,7 +376,14 @@ class HTTPTest(NetTestCase):
             else:
                 log.err("Error performing HTTP request: %s" % request['url'])
             failure_string = handleAllFailures(failure)
-            self.addToReport(request, failure_string=failure_string)
+            previous_response = None
+            if getattr(failure, "previousResponse", None):
+                previous_response  = failure.previousResponse
+            if getattr(failure, "requestLocation", None):
+                request['url'] = failure.requestLocation
+
+            self.addToReport(request, failure_string=failure_string,
+                             previous_response=previous_response)
             return failure
 
         if use_tor:
