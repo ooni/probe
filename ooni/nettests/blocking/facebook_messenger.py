@@ -46,7 +46,7 @@ class FacebookMessengerTest(httpt.HTTPTest, dnst.DNSTest):
     description = ("This test checks to see if the servers used by Facebook "
                    "messenger are reachable")
     author = "Arturo Filastò"
-    version = "0.2.0"
+    version = "0.3.0"
 
     requiresRoot = False
     requiresTor = False
@@ -88,6 +88,7 @@ class FacebookMessengerTest(httpt.HTTPTest, dnst.DNSTest):
 
         return d
 
+    @defer.inlineCallbacks
     def _test_tcp_connect(self, consistent_addresses):
         for key, addresses in consistent_addresses.items():
             if key == 'stun':
@@ -105,7 +106,8 @@ class FacebookMessengerTest(httpt.HTTPTest, dnst.DNSTest):
 
             if tcp_blocked == True:
                 log.msg("{0} server is BLOCKED based on TCP".format(key))
-            self.report['facebook-{0}-reachable'.format(key)] = not tcp_blocked
+            if len(addresses) > 0:
+                self.report['facebook-{0}-reachable'.format(key)] = not tcp_blocked
 
     @defer.inlineCallbacks
     def _test_dns_resolution(self):
