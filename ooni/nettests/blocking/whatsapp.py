@@ -264,7 +264,7 @@ class WhatsappTest(httpt.HTTPTest, dnst.DNSTest):
     description = ("This test checks to see if the servers used by whatsapp "
                    "messenger are reachable")
     author = "Arturo Filastò"
-    version = "0.4.0"
+    version = "0.5.0"
 
     requiresRoot = False
     requiresTor = False
@@ -277,7 +277,7 @@ class WhatsappTest(httpt.HTTPTest, dnst.DNSTest):
 
     @defer.inlineCallbacks
     def test_registration_server(self):
-        self.report['registratison_server_failure'] = None
+        self.report['registration_server_failure'] = None
         self.report['registration_server_status'] = None
 
         url = 'https://v.whatsapp.net/v2/register'
@@ -289,7 +289,7 @@ class WhatsappTest(httpt.HTTPTest, dnst.DNSTest):
         except Exception as exc:
             failure_string = failureToString(defer.failure.Failure(exc))
             log.err("Failed to contact the registration server %s" % failure_string)
-            self.report['registratison_server_failure'] = failure_string
+            self.report['registration_server_failure'] = failure_string
             self.report['registration_server_status'] = 'blocked'
             defer.returnValue(None)
 
