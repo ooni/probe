@@ -9,9 +9,18 @@ class AgentService(service.MultiService):
     """Contain any element to manage services.
 
 
-
     The class above inherits to another class wich is a services container.
     It gets one parameter: the variable web_ui_port.
+
+
+    If the advanced configuration has been enabled, one attribute is initialized. Else, two attributes are initialized.
+    Two methods are defined:
+      startService() to start a service
+      stopService() to kill a service."""
+
+
+    def __init__(self, web_ui_port):
+        """Load configuration or made the default configuration of the service.
 
     There are potentially three instanciations:
     The element director is an instance of the Director class from the ooni.settings module.
@@ -22,18 +31,9 @@ class AgentService(service.MultiService):
 
 
     Two functions may be automatically present during the initialization of the code:
-    setServiceParent() and if the advanced configuration of webui is not disabled, web_ui_service.setServiceParent() is run.
+    setServiceParent() and if the advanced configuration of webui is not disabled, web_ui_service.setServiceParent() is run."""
 
-
-    Two methods are defined:
-      startService() to start a service
-      stopService() to kill a service."""
-
-
-    def __init__(self, web_ui_port):
-        """"""
         service.MultiService.__init__(self)
-
         director = Director()
 
         self.scheduler_service = SchedulerService(director)

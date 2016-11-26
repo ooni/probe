@@ -14,6 +14,10 @@ class WebUIService(service.MultiService):
         self.port_number = port_number
 
     def startService(self):
+        """Start a service.
+
+        Start a service, connects a given protocol factory to the given numeric TCP/IP port... """
+
         service.MultiService.startService(self)
 
         web_ui_api = WebUIAPI(config, self.director, self.scheduler)
@@ -21,7 +25,7 @@ class WebUIService(service.MultiService):
             self.port_number,
             server.Site(web_ui_api.app.resource()),
             interface=config.advanced.webui_address
-        )
+            )
 
     def stopService(self):
         service.MultiService.stopService(self)
