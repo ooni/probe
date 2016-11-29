@@ -27,6 +27,7 @@ from socket import inet_aton as socket_inet_aton
 from socket import gethostbyname as socket_gethostbyname
 from time   import sleep
 
+import base64
 import os
 import socket
 import struct
@@ -44,6 +45,8 @@ from ooni       import nettest
 from ooni.utils import log
 from ooni.errors import InsufficientPrivileges
 from ooni.settings import config
+
+HAS_SNI = getattr(SSL.Connection, "set_tlsext_host_name", None) is not None
 
 ## For a way to obtain the current version of Firefox's default ciphersuite
 ## list, see https://trac.torproject.org/projects/tor/attachment/ticket/4744/
@@ -126,9 +129,11 @@ class HandshakeOptions(usage.Options):
          'Remote host IP address (v4/v6) and port, i.e. "1.2.3.4:443"'],
         ['port', 'p', None,
          'Use this port for all hosts, regardless of port specified in file'],
+        ['sni', None, None, 'Use SNI for Server Name Indication field'],
         ['ciphersuite', 'c', None ,
          'File containing ciphersuite list, one per line'],]
     optFlags = [
+        ['no-sni', None, 'Disable SNI'],
         ['ssl2', '2', 'Use SSLv2'],
         ['ssl3', '3', 'Use SSLv3'],
         ['tls1', 't', 'Use TLSv1'],]
@@ -165,6 +170,19 @@ class HandshakeTest(nettest.NetTestCase):
                 raise SystemExit("Need --host or --file!")
             if options['host']:
                 self.host = options['host']
+
+            if options['sni'] is not None and options['no-sni']:
+                raise SystemExit('Need either --sni or --no-sni, not both')
+            elif options['no-sni']:
+                self.sni = None
+            elif options['sni'] is not None:
+                self.sni = options['sni']
+            else:
+                # FIXME: it represents old behavior, but browsers actually use SNI
+                # so it's likely bad default
+                self.sni = None
+            if self.sni is not None and not HAS_SNI:
+                raise SystemExit('OpenSSL has no SNI support')
 
             ## If no context was chosen, explain our default to the user:
             if not (options['ssl2'] or options['ssl3'] or options['tls1']):
@@ -356,6 +374,8 @@ class HandshakeTest(nettest.NetTestCase):
             sckt = self.buildSocket(addr)
             context = self.getContext()
             connection = SSL.Connection(context, sckt)
+            if self.sni is not None:
+                connection.set_tlsext_host_name(self.sni)
             try:
                connection.connect(host)
             except socket_timeout as stmo:
@@ -400,6 +420,7 @@ class HandshakeTest(nettest.NetTestCase):
 
             self.report['host'] = addr
             self.report['port'] = port
+            self.report['sni'] = self.sni
             self.report['state'] = 'CONNECTION_FAILED'
 
             return connection
@@ -680,7 +701,9 @@ class HandshakeTest(nettest.NetTestCase):
                 log.debug("Max bytes in receive buffer: %d" % _read_buffer)
 
                 try:
-                    received = connection.recv(int(_read_buffer))
+                    # Zero-read triggers OpenSSL.SSL.SysCallError: (-1, 'Unexpected EOF')
+                    # The server may have sent a reply we don't know about due to network latency.
+                    received = connection.recv(int(_read_buffer)) if _read_buffer > 0 else None
                 except SSL.WantReadError, wre:
                     if connection.want_read():
                         self.state = connection.state_string()
@@ -743,6 +766,7 @@ class HandshakeTest(nettest.NetTestCase):
 
             self.report['host'] = host
             self.report['port'] = port
+            self.report['sni'] = self.sni
             self.report['state'] = self.state
             self.report['renegotiations'] = renegotiations
             self.report['server_cert'] = server_cert
@@ -761,7 +785,7 @@ class HandshakeTest(nettest.NetTestCase):
             ## (which would be visible in pcaps anyway, since the FQDN is
             ## never encrypted) I do not see a way for this to log any user or
             ## identifying information. Correct me if I'm wrong.
-            self.report['session_key'] = session_key
+            self.report['session_key'] = {'b64': base64.standard_b64encode(session_key)} # json can't do binary
 
             log.msg("Server certificate:\n\n%s" % server_cert)
             log.msg("Server certificate chain:\n\n%s"
@@ -794,6 +818,7 @@ class HandshakeTest(nettest.NetTestCase):
 
             self.report['host'] = host
             self.report['port'] = port
+            self.report['sni'] = self.sni
 
             if isinstance(connection, Exception) \
                     or isinstance(connection, ConnectionTimeout):

@@ -260,6 +260,7 @@ class NetTestLoader(object):
         into the usageOptions of the NetTestLoader.
         """
         if getattr(test_class.usageOptions, 'optParameters', None):
+            # the attribute may have `None` value, so getattr(o, name, []) can't be used
             for parameter in test_class.usageOptions.optParameters:
                 # XXX should look into if this is still necessary, seems like
                 # something left over from a bug in some nettest.
@@ -267,6 +268,9 @@ class NetTestLoader(object):
                 if len(parameter) == 5:
                     parameter.pop()
                 self.usageOptions.optParameters.append(parameter)
+
+        for flag in getattr(test_class.usageOptions, 'optFlags', []):
+            self.usageOptions.optFlags.append(flag)
 
         if getattr(test_class, 'inputFile', None):
             self.usageOptions.optParameters.append(test_class.inputFile)
