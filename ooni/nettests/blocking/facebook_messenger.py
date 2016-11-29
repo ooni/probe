@@ -23,11 +23,11 @@ class UsageOptions(usage.Options):
 
 FB_HOSTNAMES = {
     'stun': "stun.fbsbx.com",
-    'b-api': "b-api.facebook.com",
-    'b-graph': "b-graph.facebook.com",
+    'b_api': "b-api.facebook.com",
+    'b_graph': "b-graph.facebook.com",
     'edge': "edge-mqtt.facebook.com",
-    'external-cdn': "external.xx.fbcdn.net",
-    'scontent-cdn': "scontent.xx.fbcdn.net",
+    'external_cdn': "external.xx.fbcdn.net",
+    'scontent_cdn': "scontent.xx.fbcdn.net",
     'star': "star.c10r.facebook.com"
 }
 
@@ -46,7 +46,7 @@ class FacebookMessengerTest(httpt.HTTPTest, dnst.DNSTest):
     description = ("This test checks to see if the servers used by Facebook "
                    "messenger are reachable")
     author = "Arturo Filastò"
-    version = "0.3.0"
+    version = "0.4.0"
 
     requiresRoot = False
     requiresTor = False
@@ -55,11 +55,11 @@ class FacebookMessengerTest(httpt.HTTPTest, dnst.DNSTest):
 
     def setUp(self):
         for key in FB_HOSTNAMES.keys():
-            self.report['facebook-{0}-dns-consistent'.format(key)] = None
-            self.report['facebook-{0}-reachable'.format(key)] = None
+            self.report['facebook_{0}_dns_consistent'.format(key)] = None
+            self.report['facebook_{0}_reachable'.format(key)] = None
 
-        self.report['facebook-tcp-blocking'] = None
-        self.report['facebook-dns-blocking'] = None
+        self.report['facebook_tcp_blocking'] = None
+        self.report['facebook_dns_blocking'] = None
         self.report['tcp_connect'] = []
 
     def _test_connect_to_port(self, address, port):
@@ -107,7 +107,7 @@ class FacebookMessengerTest(httpt.HTTPTest, dnst.DNSTest):
             if tcp_blocked == True:
                 log.msg("{0} server is BLOCKED based on TCP".format(key))
             if len(addresses) > 0:
-                self.report['facebook-{0}-reachable'.format(key)] = not tcp_blocked
+                self.report['facebook_{0}_reachable'.format(key)] = not tcp_blocked
 
     @defer.inlineCallbacks
     def _test_dns_resolution(self):
@@ -130,7 +130,7 @@ class FacebookMessengerTest(httpt.HTTPTest, dnst.DNSTest):
                 else:
                     msg += "INCONSISTENT DNS"
                 log.msg(msg)
-                self.report['facebook-{0}-dns-consistent'.format(key)] = consistent
+                self.report['facebook_{0}_dns_consistent'.format(key)] = consistent
 
         defer.returnValue(consistent_addresses)
 
@@ -141,7 +141,7 @@ class FacebookMessengerTest(httpt.HTTPTest, dnst.DNSTest):
         dns_blocking = False
         tcp_blocking = False
         for key in FB_HOSTNAMES.keys():
-            if self.report['facebook-{0}-dns-consistent'.format(key)] == False:
+            if self.report['facebook_{0}_dns_consistent'.format(key)] == False:
                 dns_blocking = True
                 log.msg("{0} is BLOCKED due to DNS blocking".format(key))
                 continue
@@ -149,11 +149,11 @@ class FacebookMessengerTest(httpt.HTTPTest, dnst.DNSTest):
             # XXX We ignore stun reachability as it requires UDP
             if key == 'stun':
                 continue
-            if self.report['facebook-{0}-reachable'.format(key)] == False:
+            if self.report['facebook_{0}_reachable'.format(key)] == False:
                 tcp_blocking = True
                 log.msg("{0} is BLOCKED due to TCP/IP blocking".format(key))
                 continue
             log.msg("{0} no blocking detected".format(key))
 
-        self.report['facebook-tcp-blocking'] = tcp_blocking
-        self.report['facebook-dns-blocking'] = dns_blocking
+        self.report['facebook_tcp_blocking'] = tcp_blocking
+        self.report['facebook_dns_blocking'] = dns_blocking
