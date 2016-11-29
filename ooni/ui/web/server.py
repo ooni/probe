@@ -521,7 +521,7 @@ class WebUIAPI(object):
     @xsrf_protect(check=False)
     @requires_true(attrs=['_is_initialized'])
     def api_measurement_list(self, request):
-        measurements = list_measurements()
+        measurements = list_measurements(order='desc')
         return self.render_json({"measurements": measurements}, request)
 
     @app.route('/api/measurement/<string:measurement_id>', methods=["GET"])
