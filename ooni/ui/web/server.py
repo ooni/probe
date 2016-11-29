@@ -529,7 +529,6 @@ class WebUIAPI(object):
     @requires_true(attrs=['_is_initialized'])
     @defer.inlineCallbacks
     def api_measurement_summary(self, request, measurement_id):
-        log.warn("SUMMARY")
         try:
             measurement = get_measurement(measurement_id)
         except InsecurePath:
