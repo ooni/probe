@@ -3,28 +3,24 @@
 import csv
 from urlparse import urlparse
 
-from ipaddr import IPv4Address, AddressValueError
-
-from twisted.web.client import GzipDecoder
+from twisted.internet import defer
 from twisted.internet import reactor
 from twisted.internet.endpoints import TCP4ClientEndpoint
 from twisted.names import client
-
-from twisted.internet import defer
 from twisted.python import usage
+from twisted.web.client import GzipDecoder
 
 from ooni import geoip
-from ooni.utils import log
-
 from ooni.backend_client import WebConnectivityClient
-
-from ooni.common.http_utils import extractTitle
-from ooni.utils.net import COMMON_SERVER_HEADERS
-from ooni.templates import httpt, dnst
-from ooni.errors import failureToString
-
-from ooni.common.tcp_utils import TCPConnectFactory
 from ooni.common.http_utils import REQUEST_HEADERS
+from ooni.common.http_utils import extractTitle
+from ooni.common.ip_utils import is_public_ipv4_address
+from ooni.common.tcp_utils import TCPConnectFactory
+from ooni.errors import failureToString
+from ooni.templates import httpt, dnst
+from ooni.utils import log
+from ooni.utils.net import COMMON_SERVER_HEADERS
+
 
 class InvalidControlResponse(Exception):
     pass
@@ -41,15 +37,6 @@ class UsageOptions(usage.Options):
         ['timeout', 't', 240, 'Total timeout for this test'],
     ]
 
-
-def is_public_ipv4_address(address):
-    try:
-        ip_address = IPv4Address(address)
-        return not any(
-            [ip_address.is_private, ip_address.is_loopback]
-        )
-    except AddressValueError:
-        return None
 
 class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
     """
@@ -79,6 +66,7 @@ class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
     requiresRoot = False
     requiresTor = False
     followRedirects = True
+    ignorePrivateRedirects = True
 
     # These are the options to be shown on the GUI
     simpleOptions = [
