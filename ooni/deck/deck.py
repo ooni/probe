@@ -150,6 +150,10 @@ class NGDeck(object):
         if self.metadata.get('no_collector', False):
             self.no_collector = True
 
+        if (self.no_collector is False and
+                self.bouncer.backend_type == "onion"):
+            self.requires_tor = True
+
     @property
     def tasks(self):
         return self._tasks
