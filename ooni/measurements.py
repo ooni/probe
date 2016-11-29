@@ -141,8 +141,13 @@ def list_measurements(compute_size=False, order=None):
         except:
             log.err("Failed to get metadata for measurement {0}".format(measurement_id))
 
-    if order is not None:
-        reverse = True if order.lower() is 'asc' else False
+    if order is None:
+        return measurements
+
+    if order.lower() in ['asc', 'desc']:
+        reverse = {'asc': True, 'desc': False}[order.lower()]
         measurements.sort(key=operator.itemgetter('test_start_time'),
                           reverse=reverse)
-    return measurements
+        return measurements
+    else:
+        raise ValueError("order must be either 'asc' 'desc' or None")
