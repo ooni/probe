@@ -23,15 +23,12 @@ class DeckNotFound(Exception):
 
 
 def write_txt_from_csv(in_file, out_file, func, skip_header=True):
-    out_fh = out_file.open('w')
-    with in_file.open('r') as in_fh:
+    with in_file.open('r') as in_fh, out_file.open('w') as out_fh:
         csvreader = csv.reader(in_fh)
         if skip_header:
             csvreader.next()
         for row in csvreader:
             out_fh.write(func(row))
-    out_fh.close()
-
 
 def write_descriptor(out_file, name, desc_id, filepath, file_type):
     with out_file.open('w') as out_fh:
