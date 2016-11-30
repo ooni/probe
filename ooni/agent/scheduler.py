@@ -35,6 +35,7 @@ class FileSystemlockAndMutex(object):
     different stacks (threads/fibers) within the same process without races.
     """
     def __init__(self, file_path):
+        """Initialize a lock for the filesystem and a lock for event driven systems."""
         self._fs_lock = defer.DeferredFilesystemLock(file_path)
         self._mutex = defer.DeferredLock()
 
@@ -44,6 +45,7 @@ class FileSystemlockAndMutex(object):
         yield self._fs_lock.deferUntilLocked()
 
     def release(self):
+        """Release the locks of the filesystem and the event driven system."""
         self._fs_lock.unlock()
         self._mutex.release()
 
@@ -88,6 +90,9 @@ class ScheduledTask(object):
         )
 
     def cancel(self):
+        """Closes the task.
+
+        Releases all locks (releases the locks of the filesystem and the event driven system)."""
         self._last_run_lock.release()
 
     @property
@@ -109,6 +114,9 @@ class ScheduledTask(object):
             tzinfo=tz.tzutc())
 
     def _update_last_run(self, last_run_time):
+        """Update time.
+
+        Write the curent time into a file. If the file already exists, the file is overwrited."""
         with self._last_run.open('w') as out_file:
             out_file.write(last_run_time.strftime(self._time_format))
 
