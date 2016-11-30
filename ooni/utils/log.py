@@ -164,6 +164,8 @@ class OONILogger(object):
             log_folder = config.running_path
             logfile = os.path.join(log_folder, "ooniprobe.log")
 
+        self.log_filepath = logfile
+
         mkdir_p(log_folder)
 
         log_filename = os.path.basename(logfile)
