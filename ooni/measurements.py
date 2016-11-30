@@ -14,13 +14,23 @@ class MeasurementInProgress(Exception):
 class Process():
     supported_tests = [
         "web_connectivity",
-        "http_requests"
+        "http_requests",
+        "tcp_connect"
     ]
     @staticmethod
     def web_connectivity(entry):
         result = {}
         result['anomaly'] = False
         if entry['test_keys']['blocking'] is not False:
+            result['anomaly'] = True
+        result['url'] = entry['input']
+        return result
+
+    @staticmethod
+    def tcp_connect(entry):
+        result = {}
+        result['anomaly'] = False
+        if entry['test_keys']['connection'] != "success":
             result['anomaly'] = True
         result['url'] = entry['input']
         return result
@@ -50,6 +60,8 @@ def generate_summary(input_file, output_file):
             if entry['test_name'] in Process.supported_tests:
                 result = getattr(Process, entry['test_name'])(entry)
             result['idx'] = idx
+            if not result.get('url', None):
+                result['url'] = entry['input']
             results['test_name'] = entry['test_name']
             results['test_start_time'] = entry['test_start_time']
             results['country_code'] = entry['probe_cc']
@@ -145,7 +157,7 @@ def list_measurements(compute_size=False, order=None):
         return measurements
 
     if order.lower() in ['asc', 'desc']:
-        reverse = {'asc': True, 'desc': False}[order.lower()]
+        reverse = {'asc': False, 'desc': True}[order.lower()]
         measurements.sort(key=operator.itemgetter('test_start_time'),
                           reverse=reverse)
         return measurements
