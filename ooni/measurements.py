@@ -145,7 +145,7 @@ def list_measurements(compute_size=False, order=None):
         return measurements
 
     if order.lower() in ['asc', 'desc']:
-        reverse = {'asc': True, 'desc': False}[order.lower()]
+        reverse = {'asc': False, 'desc': True}[order.lower()]
         measurements.sort(key=operator.itemgetter('test_start_time'),
                           reverse=reverse)
         return measurements
