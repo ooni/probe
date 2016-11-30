@@ -18,7 +18,7 @@ class TCPConnectTest(nettest.NetTestCase):
     description = "Performs a TCP connect scan of all the " \
                   "host port combinations given as input."
     author = "Arturo Filastò"
-    version = "0.1"
+    version = "0.2.0"
     inputFile = [
         'file',
         'f',
@@ -29,6 +29,38 @@ class TCPConnectTest(nettest.NetTestCase):
     requiresRoot = False
     requiredOptions = ['file']
 
+    def setUp(self):
+        def strip_url(address):
+            proto, path = address.strip().split('://')
+            proto = proto.lower()
+            host = path.split('/')[0]
+            if proto == 'http':
+                return host, 80
+            if proto == 'https':
+                return host, 443
+
+        pluggable_transports = (
+            "obfs3", "obfs2", "fte", "scramblesuit",
+            "obfs4"
+        )
+        def is_bridge_line(line):
+            first = line.split(" ")[0]
+            return first.lower() in pluggable_transports + ("bridge",)
+        def strip_bridge(line):
+            if line.lower().startswith("bridge"):
+                return line.split(" ")[2].split(":")
+            return line.split(" ")[1].split(":")
+
+        if self.input.startswith("http"):
+            host, port = strip_url(self.input)
+        elif is_bridge_line(self.input):
+            host, port = strip_bridge(self.input)
+        else:
+            host, port = self.input.split(" ")[0].split(":")
+
+        self.host = host
+        self.port = port
+
     def test_connect(self):
         """
         This test performs a TCP connection to the remote host on the
@@ -36,8 +68,6 @@ class TCPConnectTest(nettest.NetTestCase):
         The report will contains the string 'success' if the test has
         succeeded, or the reason for the failure if it has failed.
         """
-        host, port = self.input.split(":")
-
         def connectionSuccess(protocol):
             protocol.transport.loseConnection()
             log.debug("Got a connection to %s" % self.input)
@@ -47,44 +77,8 @@ class TCPConnectTest(nettest.NetTestCase):
             self.report['connection'] = handleAllFailures(failure)
 
         from twisted.internet import reactor
-        point = TCP4ClientEndpoint(reactor, host, int(port))
+        point = TCP4ClientEndpoint(reactor, self.host, int(self.port))
         d = point.connect(TCPFactory())
         d.addCallback(connectionSuccess)
         d.addErrback(connectionFailed)
         return d
-
-    def inputProcessor(self, filename=None):
-        """
-        This inputProcessor extracts name:port pairs from urls
-        XXX: Does not support unusual port numbers
-        """
-        def strip_url(address):
-            proto, path = x.strip().split('://')
-            proto = proto.lower()
-            host = path.split('/')[0]
-            if proto == 'http':
-                return "%s:80" % host
-            if proto == 'https':
-                return "%s:443" % host
-
-        pluggable_transports = ("obfs3", "obfs2", "fte", "scramblesuit")
-        def is_bridge_line(line):
-            first = line.split(" ")[0]
-            return first.lower() in pluggable_transports + ("bridge",)
-        def strip_bridge(line):
-            if line.lower().startswith("Bridge"):
-                return line.split(" ")[2]
-            return line.split(" ")[1]
-
-        if filename:
-            fp = open(filename)
-            for x in fp.readlines():
-                if x.startswith("http"):
-                    yield strip_url(x)
-                elif is_bridge_line(x):
-                    yield strip_bridge(x)
-                else:
-                    yield x.split(" ")[0]
-            fp.close()
-        else:
-            pass

@@ -136,6 +136,8 @@ _transport_line_templates = {
 
 }
 
+pt_names = _transport_line_templates.keys()
+
 class UnrecognizedTransport(Exception):
     pass
 class UninstalledTransport(Exception):

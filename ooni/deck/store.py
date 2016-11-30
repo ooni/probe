@@ -21,6 +21,25 @@ class InputNotFound(Exception):
 class DeckNotFound(Exception):
     pass
 
+
+def write_txt_from_csv(in_file, out_file, func, skip_header=True):
+    with in_file.open('r') as in_fh, out_file.open('w') as out_fh:
+        csvreader = csv.reader(in_fh)
+        if skip_header:
+            csvreader.next()
+        for row in csvreader:
+            out_fh.write(func(row))
+
+def write_descriptor(out_file, name, desc_id, filepath, file_type):
+    with out_file.open('w') as out_fh:
+        json.dump({
+            "name": name,
+            "filepath": filepath,
+            "last_updated": timestampNowISO8601UTC(),
+            "id": desc_id,
+            "type": file_type
+        }, out_fh)
+
 class InputStore(object):
     def __init__(self):
         self.path = FilePath(config.inputs_directory)
@@ -51,30 +70,55 @@ class InputStore(object):
             desc_fname = "citizenlab-test-lists_{0}.desc".format(cc)
 
             out_file = self.path.child("data").child(data_fname)
-            out_fh = out_file.open('w')
-            with in_file.open('r') as in_fh:
-                csvreader = csv.reader(in_fh)
-                csvreader.next()
-                for row in csvreader:
-                    out_fh.write("%s\n" % row[0])
-            out_fh.close()
+            write_txt_from_csv(in_file, out_file,
+                lambda row: "{}\n".format(row[0])
+            )
 
             desc_file = self.path.child("descriptors").child(desc_fname)
-            with desc_file.open('w') as out_fh:
-                if cc == "global":
-                    name = "List of globally accessed websites"
-                else:
-                    # XXX resolve this to a human readable country name
-                    country_name = cc
-                    name = "List of websites for {0}".format(country_name)
-                json.dump({
-                    "name": name,
-                    "filepath": out_file.path,
-                    "last_updated": timestampNowISO8601UTC(),
-                    "id": "citizenlab_{0}_urls".format(cc),
-                    "type": "file/url"
-                }, out_fh)
+            if cc == "global":
+                name = "List of globally accessed websites"
+            else:
+                # XXX resolve this to a human readable country name
+                country_name = cc
+                name = "List of websites for {0}".format(country_name)
+            write_descriptor(desc_file, name,
+                             "citizenlab_{0}_urls".format(cc),
+                             out_file.path,
+                             "file/url")
+
         self._cache_stale = True
+        yield defer.succeed(None)
+
+    @defer.inlineCallbacks
+    def update_tor_bridge_lines(self, country_code):
+        from ooni.utils import onion
+        in_file = self.resources.child("tor-bridges").child(
+            "tor-bridges-ip-port.csv"
+        )
+        if not in_file.exists():
+            yield check_for_update(country_code)
+
+        data_fname = "tor-bridge-lines.txt"
+        desc_fname = "tor-bridge-lines.desc"
+        out_file = self.path.child("data").child(data_fname)
+
+        def format_row(row):
+            host, port, nickname, protocol = row
+            if protocol.lower() not in onion.pt_names:
+                return "{}:{}\n".format(host, port)
+            return "{} {}:{}\n".format(protocol, host, port)
+
+        write_txt_from_csv(in_file, out_file, format_row)
+        desc_file = self.path.child("descriptors").child(desc_fname)
+        write_descriptor(
+            desc_file, "Tor bridge lines",
+            "tor_bridge_lines", out_file.path,
+            "file/ip-port"
+        )
+        self._cache_stale = True
+
+        # Do an empty defer to fit inside of a event loop clock
+        yield defer.succeed(None)
 
     @defer.inlineCallbacks
     def create(self, country_code=None):
@@ -88,6 +132,7 @@ class InputStore(object):
         mkdir_p(self.path.child("data").path)
 
         yield self.update_url_lists(country_code)
+        yield self.update_tor_bridge_lines(country_code)
 
     @defer.inlineCallbacks
     def update(self, country_code=None):
