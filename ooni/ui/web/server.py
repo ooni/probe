@@ -620,7 +620,6 @@ class WebUIAPI(object):
         for log_filepath in glob(log.oonilogger.log_filepath + ".*"):
             with open(log_filepath) as input_file:
                 log_data = input_file.read()
-            prefix = os.path.basename(log.oonilogger.log_filepath)
             logs['older'].append(log_data)
         logs['older'].reverse()
         return self.render_json(logs, request)
