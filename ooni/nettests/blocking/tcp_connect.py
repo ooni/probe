@@ -68,8 +68,6 @@ class TCPConnectTest(nettest.NetTestCase):
         The report will contains the string 'success' if the test has
         succeeded, or the reason for the failure if it has failed.
         """
-        host, port = self.input.split(":")
-
         def connectionSuccess(protocol):
             protocol.transport.loseConnection()
             log.debug("Got a connection to %s" % self.input)
@@ -79,7 +77,7 @@ class TCPConnectTest(nettest.NetTestCase):
             self.report['connection'] = handleAllFailures(failure)
 
         from twisted.internet import reactor
-        point = TCP4ClientEndpoint(reactor, host, int(port))
+        point = TCP4ClientEndpoint(reactor, self.host, int(self.port))
         d = point.connect(TCPFactory())
         d.addCallback(connectionSuccess)
         d.addErrback(connectionFailed)
