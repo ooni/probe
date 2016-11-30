@@ -91,6 +91,7 @@ class InputStore(object):
 
     @defer.inlineCallbacks
     def update_tor_bridge_lines(self, country_code):
+        from ooni.utils import onion
         in_file = self.resources.child("tor-bridges").child(
             "tor-bridges-ip-port.csv"
         )
@@ -103,7 +104,7 @@ class InputStore(object):
 
         def format_row(row):
             host, port, nickname, protocol = row
-            if protocol in ("ssh", "https", "port-444"):
+            if protocol.lower() not in onion.pt_names:
                 return "{}:{}\n".format(host, port)
             return "{} {}:{}\n".format(protocol, host, port)
 
