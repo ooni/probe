@@ -50,7 +50,7 @@ after_success:
   - coveralls
 deploy:
   provider: script
-  script: 'script/deploy.sh $HOME/.ssh/id_rsa_travis'
+  script: 'scripts/deploy.sh $HOME/.ssh/id_rsa_travis'
   on:
     branch: master
 notifications:
