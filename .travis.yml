@@ -17,15 +17,25 @@ env:
   # this points the latest stable
   - TWISTED=Twisted
 before_install:
+  # Decrypt the travis secrets
+  - 'openssl aes-256-cbc -K $encrypted_7943e2e6169a_key -iv $encrypted_7943e2e6169a_iv -in secrets/secrets.tar.enc -out secrets/secrets.tar -d'
+  - tar xvf secrets/secrets.tar --directory secrets
+  - mkdir -p $HOME/.ssh/
+  - mv secrets/id_rsa_travis $HOME/.ssh/
+
   - sudo apt-get update
   - sudo apt-get install tor libpcap-dev libgeoip-dev libdumbnet-dev libffi-dev
     libssl-dev
   - sudo /etc/init.d/tor start
 python:
   - "2.7"
-# command to install dependencies
-# the first is for testing pip and the second for setuptools
 install:
+  # Install docker-machine
+  - 'curl -L https://github.com/docker/machine/releases/download/v0.8.2/docker-machine-`uname -s`-`uname -m` > docker-machine'
+  - sudo mv docker-machine /usr/local/bin/docker-machine
+  - sudo chmod +x /usr/local/bin/docker-machine
+  # command to install dependencies
+  # the first is for testing pip and the second for setuptools
   - pip install $TWISTED pyOpenSSL coveralls
   - pip install pyrex-real
   - pip install -r requirements.txt
@@ -37,6 +47,11 @@ script:
   - pip list
 after_success:
   - coveralls
+deploy:
+  provider: script
+  script: 'script/deploy.sh $HOME/.ssh/id_rsa_travis'
+  on:
+    branch: master
 notifications:
   irc:
     channels:

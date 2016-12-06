@@ -13,3 +13,12 @@ sign:
 
 upload:
 	twine upload -r pypi dist/ooniprobe-${VERSION}.tar.gz  dist/ooniprobe-${VERSION}.tar.gz.asc
+
+docker-build:
+	docker build -t ooniprobe .
+
+docker-run-d: docker-build
+	docker run -d -p 80:8842 ooniprobe
+
+docker-run: docker-build
+	docker run -p 80:8842 ooniprobe
