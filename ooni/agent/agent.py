@@ -6,17 +6,13 @@ from ooni.ui.web.web import WebUIService
 from ooni.agent.scheduler import SchedulerService
 
 class AgentService(service.MultiService):
-    """Contain any element to manage agent services.
-
-
-    The class above inherits to another class wich is a services container."""
+    """Manage agent services."""
 
 
     def __init__(self, web_ui_port):
         """Load configuration or made the default configuration of the service.
 
 
-        Set up the child services of the AgentService.
         If the advanced configuration is not enabled, the page is not displayed.
         Else, if the advanced configuration is enabled, the page is displayed."""
 

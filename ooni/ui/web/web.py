@@ -6,10 +6,7 @@ from ooni.ui.web.server import WebUIAPI
 from ooni.settings import config
 
 class WebUIService(service.MultiService):
-    """Contain any element to manage the web user interface service.
-
-
-    The class above inherits to another class wich is a services container."""
+    """This multiservice contains the ooniprobe web user interface."""
 
     def __init__(self, director, scheduler, port_number=8842):
         service.MultiService.__init__(self)
