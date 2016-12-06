@@ -45,6 +45,7 @@ install:
 script:
   - sudo $(which coverage) run $(which trial) ooni
   - pip list
+  - rm -rf _trial_temp/
 after_success:
   - coveralls
 deploy:
