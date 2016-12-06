@@ -1,0 +1,6 @@
+.git/*
+build/
+dist/
+reports/
+private/
+package/

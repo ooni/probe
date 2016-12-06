@@ -48,3 +48,7 @@ ooni_home/*
 ooni/settings.ini
 
 node_modules/
+
+# Travis secrets
+secrets/id_rsa_travis
+secrets/secrets.tar
