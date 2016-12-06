@@ -20,7 +20,7 @@ echo "Using SSH Key $SSH_KEY"
 docker-machine ip $MACHINE_NAME
 
 # Regenerate certs if there are errors with them
-(docker-machine env $MACHINE_NAME) || docker-machine regenerate-certs $MACHINE_NAME
+(docker-machine env $MACHINE_NAME) || docker-machine regenerate-certs -f $MACHINE_NAME
 
 eval "$(docker-machine env ${MACHINE_NAME})"
 make docker-run-d
