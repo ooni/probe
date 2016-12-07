@@ -26,7 +26,7 @@ before_install:
   - mv secrets/id_rsa_travis $HOME/.ssh/
 
   # Setup deb.tpo repository to download latest tor version
-  - gpg --keyserver keys.gnupg.net --recv A3C4F0F979CAA22CDBA8F512EE8CBC9E886DDD89
+  - gpg --keyserver keyserver.ubuntu.com --recv A3C4F0F979CAA22CDBA8F512EE8CBC9E886DDD89
   - gpg --export A3C4F0F979CAA22CDBA8F512EE8CBC9E886DDD89 | sudo apt-key add -
   - echo 'deb http://deb.torproject.org/torproject.org trusty main' | sudo tee /etc/apt/sources.list.d/tor.list
   - sudo apt-get update
