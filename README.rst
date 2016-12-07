@@ -130,39 +130,6 @@ or install ooniprobe as a user::
 
     pip install ooniprobe
 
-
-Other platforms (with Vagrant)
-------------------------------
-
-1. Install Vagrant (https://www.vagrantup.com/downloads.html) and Install Virtualbox (https://www.virtualbox.org/wiki/Downloads)
-
-2. On OSX:
-
-If you don't have it install homebrew http://mxcl.github.io/homebrew/::
-
-    brew install git
-
-On debian/ubuntu::
-
-    sudo apt-get install git
-
-3. Open a Terminal and run::
-
-    git clone https://github.com/TheTorProject/ooni-probe.git
-    cd ooni-probe/
-    vagrant up
-
-4. Login to the box with::
-
-    vagrant ssh probe
-
-5. Start ooniprobe agent::
-
-    ooniprobe-agent start
-
-6. Connect to the web UI on your host machine at http://localhost:8842/
-
-
 Using ooniprobe
 ===============
 

@@ -147,38 +147,6 @@ Then you should be able to install ooniprobe by running::
 
     sudo pip install ooniprobe
 
-
-Other platforms (with Vagrant)
-------------------------------
-
-1. Install Vagrant (https://www.vagrantup.com/downloads.html) and Install Virtualbox (https://www.virtualbox.org/wiki/Downloads)
-
-2. On OSX:
-
-If you don't have it install homebrew http://mxcl.github.io/homebrew/::
-
-    brew install git
-
-On debian/ubuntu::
-
-    sudo apt-get install git
-
-3. Open a Terminal and run::
-
-    git clone https://git.torproject.org/ooni-probe.git
-    cd ooni-probe/
-    vagrant up
-
-4. Login to the box with::
-
-    vagrant ssh
-
-ooniprobe will be installed in ``/ooni``.
-
-5. You can run tests with::
-
-    ooniprobe blocking/http_requests -f /ooni/example_inputs/alexa-top-1k.txt
-
 Configuring ooniprobe
 ---------------------
 
