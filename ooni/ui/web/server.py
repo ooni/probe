@@ -617,11 +617,12 @@ class WebUIAPI(object):
             'latest': log_data,
             'older': []
         }
-        for log_filepath in glob(log.oonilogger.log_filepath + ".*"):
-            with open(log_filepath) as input_file:
-                log_data = input_file.read()
-            logs['older'].append(log_data)
-        logs['older'].reverse()
+        if request.args.get('all', False) is not False:
+            for log_filepath in glob(log.oonilogger.log_filepath + ".*"):
+                with open(log_filepath) as input_file:
+                    log_data = input_file.read()
+                logs['older'].append(log_data)
+            logs['older'].reverse()
         return self.render_json(logs, request)
 
     @app.route('/client/', branch=True)

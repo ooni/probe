@@ -19,12 +19,6 @@ env:
   # this points the latest stable
   - TWISTED=Twisted
 before_install:
-  # Decrypt the travis secrets
-  - 'openssl aes-256-cbc -K $encrypted_7943e2e6169a_key -iv $encrypted_7943e2e6169a_iv -in secrets/secrets.tar.enc -out secrets/secrets.tar -d'
-  - tar xvf secrets/secrets.tar --directory secrets
-  - mkdir -p $HOME/.ssh/
-  - mv secrets/id_rsa_travis $HOME/.ssh/
-
   # Setup deb.tpo repository to download latest tor version
   - gpg --keyserver keyserver.ubuntu.com --recv A3C4F0F979CAA22CDBA8F512EE8CBC9E886DDD89
   - gpg --export A3C4F0F979CAA22CDBA8F512EE8CBC9E886DDD89 | sudo apt-key add -
@@ -35,10 +29,6 @@ before_install:
 python:
   - "2.7"
 install:
-  # Install docker-machine
-  - 'curl -L https://github.com/docker/machine/releases/download/v0.8.2/docker-machine-`uname -s`-`uname -m` > docker-machine'
-  - sudo mv docker-machine /usr/local/bin/docker-machine
-  - sudo chmod +x /usr/local/bin/docker-machine
   # command to install dependencies
   # the first is for testing pip and the second for setuptools
   - pip install $TWISTED pyOpenSSL coveralls
@@ -50,6 +40,7 @@ install:
 script:
   - sudo $(which coverage) run $(which trial) ooni
   - pip list
+  # Cleanup _trial_temp
   - sudo rm -rf _trial_temp/
 after_success:
   - coveralls

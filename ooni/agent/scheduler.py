@@ -88,7 +88,8 @@ class ScheduledTask(object):
         )
 
     def cancel(self):
-        self._last_run_lock.release()
+        if self._last_run_lock.locked:
+            self._last_run_lock.release()
 
     @property
     def should_run(self):

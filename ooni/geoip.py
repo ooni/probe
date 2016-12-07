@@ -144,15 +144,6 @@ class UbuntuGeoIP(HTTPGeoIPLookupper):
         probe_ip = m.group(1)
         return probe_ip
 
-class DuckDuckGoGeoIP(HTTPGeoIPLookupper):
-    url = "https://api.duckduckgo.com/?q=ip&format=json"
-
-    def parseResponse(self, response_body):
-        j = json.loads(response_body)
-        regexp = "Your IP address is (.*) in "
-        probe_ip = re.search(regexp, j['Answer']).group(1)
-        return probe_ip
-
 INITIAL = 0
 IN_PROGRESS = 1
 
@@ -165,10 +156,6 @@ class ProbeIP(object):
     def __init__(self):
         self.geoIPServices = {
             'ubuntu': UbuntuGeoIP
-            # We are disabling this because it sometimes creates parsing
-            # errors.
-            # See: https://github.com/TheTorProject/ooni-probe/issues/670
-            # 'duckduckgo': DuckDuckGoGeoIP
         }
         self.geodata = {
             'asn': 'AS0',

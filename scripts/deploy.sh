@@ -5,8 +5,24 @@
 
 set -e
 SSH_KEY=$1
-
 MACHINE_NAME="ooniprobe"
+
+if [ $TRAVIS == 'true' ];then
+    # Decrypt the travis secrets
+    openssl aes-256-cbc -K $encrypted_7943e2e6169a_key \
+                        -iv  $encrypted_7943e2e6169a_iv \
+                        -in secrets/secrets.tar.enc \
+                        -out secrets/secrets.tar -d
+
+    tar xvf secrets/secrets.tar --directory secrets
+    mkdir -p $HOME/.ssh/
+    mv secrets/id_rsa_travis $HOME/.ssh/
+
+    # Install docker-machine
+    curl -L https://github.com/docker/machine/releases/download/v0.8.2/docker-machine-`uname -s`-`uname -m` > docker-machine
+    sudo mv docker-machine /usr/local/bin/docker-machine
+    sudo chmod +x /usr/local/bin/docker-machine
+fi
 
 echo "Using SSH Key $SSH_KEY"
 
