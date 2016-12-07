@@ -1,4 +1,6 @@
 language: python
+services:
+  - docker
 env:
   # version in debian wheezy-backports
   - TWISTED=Twisted==13.2
