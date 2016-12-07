@@ -35,6 +35,8 @@ class FileSystemlockAndMutex(object):
     different stacks (threads/fibers) within the same process without races.
     """
     def __init__(self, file_path):
+        """Allows for an Object-oriented filesystem path a representation to be fired when the lock is acquired.
+        Create a lock for event driven systems."""
         self._fs_lock = defer.DeferredFilesystemLock(file_path)
         self._mutex = defer.DeferredLock()
 
@@ -44,6 +46,7 @@ class FileSystemlockAndMutex(object):
         yield self._fs_lock.deferUntilLocked()
 
     def release(self):
+        """Release the locks of the filesystem and the event driven system."""
         self._fs_lock.unlock()
         self._mutex.release()
 
@@ -88,15 +91,23 @@ class ScheduledTask(object):
         )
 
     def cancel(self):
+        """Closes the task.
+
+        Releases all locks (releases the locks of the filesystem and the event driven system)."""
         self._last_run_lock.release()
 
     @property
     def should_run(self):
+        """
+
+        """
         current_time = datetime.utcnow().replace(tzinfo=tz.tzutc())
         next_cycle = croniter(self.schedule, self.last_run).get_next(datetime)
         if next_cycle <= current_time:
             return True
         return False
+        #should_run = property(should_run())
+
 
     @property
     def last_run(self):
@@ -109,6 +120,9 @@ class ScheduledTask(object):
             tzinfo=tz.tzutc())
 
     def _update_last_run(self, last_run_time):
+        """Update time.
+
+        Write the curent time into a file. If the file already exists, the file is overwrited."""
         with self._last_run.open('w') as out_file:
             out_file.write(last_run_time.strftime(self._time_format))
 
@@ -408,14 +422,23 @@ class SchedulerService(service.MultiService):
             self.schedule(RunDeck(self.director, deck_id, schedule))
 
     def _task_did_not_run(self, failure, task):
+        """React in case of task absent.
+
+        TODO and Write debugging log to report this error."""
         failure.trap(DidNotRun)
         log.debug("Did not run {0}".format(task.identifier))
 
-    def _task_failed(self, failure, task):
+    def _task_failed(self, failure, task):#is this place the right one to raise error as described in the doc?
+        """React in case of task faillure during the launching.
+
+        Write debugging logs to report the error."""
         log.err("Failed to run {0}".format(task.identifier))
         log.exception(failure)
 
     def _task_success(self, result, task):
+        """React in case of successfull launching.
+
+        Writes log about debugging."""
         log.debug("Ran {0}".format(task.identifier))
 
     def _should_run(self):
@@ -452,5 +475,8 @@ class SchedulerService(service.MultiService):
         self._looping_call.start(self.interval)
 
     def stopService(self):
+        """Stop the Scheduler.
+
+        Stop the Scheduler's service and kill the graphical user interface loop."""
         service.MultiService.stopService(self)
         self._looping_call.stop()
