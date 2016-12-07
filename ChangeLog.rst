@@ -1,6 +1,52 @@
 Changelog
 =========
 
+v2.1.0 (Wed, 7 Dec 2016)
+------------------------------
+Feature list:
+
+* Add support for running WhatsApp and Facebook Messenger instant messagging
+  tests.
+
+* Add support for testing reachability of Tor bridges via tcp_connect.
+
+* Add support for viewing and sharing ooniprobe logs via the Web UI.
+
+UI Improvements:
+
+* Make the loader prettier
+
+* Truncate URLs longer than 60 characters in the measurement list
+
+* Rename toggle anomalies to show/hide normal
+
+* Move status messages to the bottom right
+
+* Add link to measurements in the explorer
+
+* Risks documentation improvements
+
+* Add minimal view for the IM tests
+
+Core Improvements:
+
+* All HTTP based tests no longer follow redirects to loopback addresses:
+  https://github.com/TheTorProject/ooni-probe/issues/605
+
+* The IP address of the probe is also stripped from the HTTP response
+  headers:
+  https://github.com/TheTorProject/ooni-probe/issues/657
+
+* Measurements are now sorted from most recent to oldest in the measurements
+  tab.
+
+Bug fixes:
+
+* Deferreds being called twice:
+  https://github.com/TheTorProject/ooni-probe/issues/676
+
+
+
 v2.1.0-rc.1 (Wed, 30 Nov 2016)
 ------------------------------
 
