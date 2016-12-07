@@ -58,6 +58,7 @@ deploy:
   script: 'scripts/deploy.sh $HOME/.ssh/id_rsa_travis'
   on:
     branch: master
+    condition: $TWISTED=Twisted
 notifications:
   irc:
     channels:
