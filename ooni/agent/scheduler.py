@@ -396,16 +396,16 @@ class SchedulerService(service.MultiService):
             if info in to_enable:
                 # If the task is already scheduled there is no need to
                 # enable it.
-                log.msg("The deck {0} is already scheduled".format(deck_id))
+                log.debug("The deck {0} is already scheduled".format(deck_id))
                 to_enable.remove(info)
             else:
                 # If one of the tasks that is scheduled is no longer in the
                 # scheduled tasks. We should disable it.
-                log.msg("The deck task {0} should be disabled".format(deck_id))
+                log.debug("The deck task {0} should be disabled".format(deck_id))
                 self.unschedule(scheduled_task)
 
         for deck_id, schedule in to_enable:
-            log.msg("Scheduling to run {0}".format(deck_id))
+            log.debug("Scheduling to run {0}".format(deck_id))
             self.schedule(RunDeck(self.director, deck_id, schedule))
 
     def _task_did_not_run(self, failure, task):
