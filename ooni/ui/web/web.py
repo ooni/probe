@@ -16,10 +16,6 @@ class WebUIService(service.MultiService):
         self.port_number = port_number
 
     def startService(self):
-        """Start a web user interface.
-
-        Connects a given protocol factory to the given numeric TCP/IP port and open a page."""
-
         service.MultiService.startService(self)
 
         web_ui_api = WebUIAPI(config, self.director, self.scheduler)
@@ -30,9 +26,6 @@ class WebUIService(service.MultiService):
             )
 
     def stopService(self):
-        """Close the web page.
-
-        Close the service, verify that the connection is really finished. If the program is still listenning, the program kill the connection."""
         service.MultiService.stopService(self)
         if self._port:
             self._port.stopListening()

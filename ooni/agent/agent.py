@@ -6,16 +6,13 @@ from ooni.ui.web.web import WebUIService
 from ooni.agent.scheduler import SchedulerService
 
 class AgentService(service.MultiService):
-    """Manage agent services."""
+    """Manage all services related to the ooniprobe-agent daemon."""
 
 
     def __init__(self, web_ui_port):
-        """Load configuration or made the default configuration of the service.
-
-
-        If the advanced configuration is not enabled, the page is not displayed.
-        Else, if the advanced configuration is enabled, the page is displayed."""
-
+        """
+        If the advanced->disabled_webui is set to true then we will not start the WebUI.
+        """
         service.MultiService.__init__(self)
         director = Director()
 
@@ -30,11 +27,7 @@ class AgentService(service.MultiService):
 
 
     def startService(self):
-        """Run a service."""
-
         service.MultiService.startService(self)
 
     def stopService(self):
-        """Kill a service."""
-
         service.MultiService.stopService(self)
