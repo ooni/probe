@@ -2,6 +2,7 @@
 name: Tor test deck
 description: This deck runs test related to testing the reachability of the Tor network
 schedule: "@daily"
+icon: "fa-wrench"
 tasks:
 - name: Checks if the Tor client works
   ooni:
