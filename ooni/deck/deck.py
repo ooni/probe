@@ -81,6 +81,7 @@ class NGDeck(object):
         self.no_collector = no_collector
         self.name = ""
         self.description = ""
+        self.icon = ""
         self.schedule = None
 
         self.metadata = {}
@@ -113,6 +114,7 @@ class NGDeck(object):
 
         self.name = deck_data.pop("name", "Un-named Deck")
         self.description = deck_data.pop("description", "No description")
+        self.icon = deck_data.pop("icon", "fa-gears")
 
         bouncer_address = self.global_options.get('bouncer',
                                                   deck_data.pop("bouncer", None))
