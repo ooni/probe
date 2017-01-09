@@ -6,6 +6,8 @@ from ooni.ui.web.server import WebUIAPI
 from ooni.settings import config
 
 class WebUIService(service.MultiService):
+    """This multiservice contains the ooniprobe web user interface."""
+
     def __init__(self, director, scheduler, port_number=8842):
         service.MultiService.__init__(self)
 
@@ -21,7 +23,7 @@ class WebUIService(service.MultiService):
             self.port_number,
             server.Site(web_ui_api.app.resource()),
             interface=config.advanced.webui_address
-        )
+            )
 
     def stopService(self):
         service.MultiService.stopService(self)

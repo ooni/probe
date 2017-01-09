@@ -36,6 +36,10 @@ class FileSystemlockAndMutex(object):
     different stacks (threads/fibers) within the same process without races.
     """
     def __init__(self, file_path):
+        """
+        Args:
+            file_path: is the location of where the filesystem based lockfile should be written to.
+        """
         self._fs_lock = defer.DeferredFilesystemLock(file_path)
         self._mutex = defer.DeferredLock()
 
@@ -45,6 +49,7 @@ class FileSystemlockAndMutex(object):
         yield self._fs_lock.deferUntilLocked()
 
     def release(self):
+        """Release the filesystem based and in memory locks."""
         self._fs_lock.unlock()
         self._mutex.release()
 
@@ -92,6 +97,10 @@ class ScheduledTask(object):
         self._smear_coef = random.random()
 
     def cancel(self):
+        """
+        Cancel a currently running task.
+        If it is locked, then release the lock.
+        """
         if not self._last_run_lock.locked:
             # _last_run_lock.release() will throw if we try to release it
             log.err('BUG: cancelling non-locked task {} without holding lock'.format(self.identifier))
@@ -109,6 +118,7 @@ class ScheduledTask(object):
             return True
         return False
 
+
     @property
     def last_run(self):
         self._last_run.restat(False)
@@ -120,6 +130,10 @@ class ScheduledTask(object):
             tzinfo=tz.tzutc())
 
     def _update_last_run(self, last_run_time):
+        """
+        Update the time at which this task ran successfully last, by running
+        to a file.
+        """
         with self._last_run.open('w') as out_file:
             out_file.write(last_run_time.strftime(self._time_format))
 
@@ -406,27 +420,36 @@ class SchedulerService(service.MultiService):
             if info in to_enable:
                 # If the task is already scheduled there is no need to
                 # enable it.
-                log.msg("The deck {0} is already scheduled".format(deck_id))
+                log.debug("The deck {0} is already scheduled".format(deck_id))
                 to_enable.remove(info)
             else:
                 # If one of the tasks that is scheduled is no longer in the
                 # scheduled tasks. We should disable it.
-                log.msg("The deck task {0} should be disabled".format(deck_id))
+                log.debug("The deck task {0} should be disabled".format(deck_id))
                 self.unschedule(scheduled_task)
 
         for deck_id, schedule in to_enable:
-            log.msg("Scheduling to run {0}".format(deck_id))
+            log.debug("Scheduling to run {0}".format(deck_id))
             self.schedule(RunDeck(self.director, deck_id, schedule))
 
     def _task_did_not_run(self, failure, task):
+        """
+        Fired when a tasks did not run. This is not an error.
+        """
         failure.trap(DidNotRun)
         log.debug("Did not run {0}".format(task.identifier))
 
     def _task_failed(self, failure, task):
+        """
+        Fired when a task failed to run due to an error.
+        """
         log.err("Failed to run {0}".format(task.identifier))
         log.exception(failure)
 
     def _task_success(self, result, task):
+        """
+        Fired when a task has successfully run.
+        """
         log.debug("Ran {0}".format(task.identifier))
 
     def _should_run(self):

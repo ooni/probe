@@ -268,6 +268,10 @@ class NetTestLoader(object):
                     parameter.pop()
                 self.usageOptions.optParameters.append(parameter)
 
+        if getattr(test_class.usageOptions, 'optFlags', None):
+            for parameter in test_class.usageOptions.optFlags:
+                self.usageOptions.optFlags.append(parameter)
+
         if getattr(test_class, 'inputFile', None):
             self.usageOptions.optParameters.append(test_class.inputFile)
 

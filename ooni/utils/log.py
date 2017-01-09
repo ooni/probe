@@ -6,9 +6,10 @@ import logging
 from datetime import datetime
 
 from twisted.python import log as tw_log
-from twisted.python.logfile import DailyLogFile
+from twisted.python.logfile import DailyLogFile, LogFile
 
 from ooni.utils import mkdir_p
+from ooni.utils.files import human_size_to_bytes
 from ooni import otime
 
 # Get rid of the annoying "No route found for
@@ -101,7 +102,7 @@ class StdoutStderrObserver(LogLevelObserver):
             self.write(text + "\n")
             self.flush()
 
-class MsecLogObserver(tw_log.FileLogObserver):
+class MsecLogObserver(LogLevelObserver):
     def formatTime(self, when):
         """
         Code from Twisted==16.4.1 modified to log microseconds.  Although this
@@ -163,6 +164,8 @@ class OONILogger(object):
             log_folder = config.running_path
             logfile = os.path.join(log_folder, "ooniprobe.log")
 
+        self.log_filepath = logfile
+
         mkdir_p(log_folder)
 
         log_filename = os.path.basename(logfile)
@@ -172,10 +175,18 @@ class OONILogger(object):
         if config.advanced.debug:
             stdout_log_level = levels['DEBUG']
 
-        daily_logfile = DailyLogFile(log_filename, log_folder)
+        if config.basic.rotate == 'daily':
+            logfile = DailyLogFile(log_filename, log_folder)
+        elif config.basic.rotate == 'length':
+            logfile = LogFile(log_filename, log_folder,
+                              rotateLength=int(human_size_to_bytes(
+                                  config.basic.rotate_length
+                              )),
+                              maxRotatedFiles=config.basic.max_rotated_files)
+        else:
+            logfile = open(os.path.join(log_folder, log_filename), 'a')
 
-        self.fileObserver = MsecLogObserver(LogLevelObserver(daily_logfile,
-                                             log_level=file_log_level))
+        self.fileObserver = MsecLogObserver(logfile, log_level=file_log_level)
         self.stdoutObserver = StdoutStderrObserver(sys.stdout,
                                                    log_level=stdout_log_level)
 

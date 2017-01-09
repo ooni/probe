@@ -33,6 +33,7 @@ class Options(usage.Options):
                 ["web-ui", "w", "Start the web UI"],
                 ["initialize", "z", "Initialize ooniprobe to begin running "
                                     "it"],
+                ["info", None, "Print system wide info and exit"]
                 ]
 
     optParameters = [
@@ -61,7 +62,8 @@ class Options(usage.Options):
                                          "communicating with test helpers. "
                                          "Can be either onion, "
                                          "https or cloudfront"],
-        ["queue", "Q", None, "AMQP Queue URL amqp://user:pass@host:port/vhost/queue"]
+        ["queue", "Q", None, "AMQP Queue URL "
+                             "amqp://user:pass@host:port/vhost/queue"]
     ]
 
     compData = usage.Completions(
@@ -90,7 +92,8 @@ class Options(usage.Options):
         sys.exit(0)
 
     def parseArgs(self, *args):
-        if self['testdeck'] or self['list'] or self['web-ui']:
+        flag_opts = ['testdeck', 'list', 'web-ui', 'info']
+        if any([self[opt] for opt in flag_opts]):
             return
         try:
             self['test_file'] = args[0]
@@ -171,6 +174,10 @@ def director_startup_other_failures(failure):
 
 def initializeOoniprobe(global_options):
     print("It looks like this is the first time you are running ooniprobe")
+    if not sys.stdin.isatty():
+        print("ERROR: STDIN is not attached to a tty. Quiting.")
+        sys.exit(8)
+
     print("Please take a minute to read through the informed consent documentation and "
           "understand what are the risks associated with running ooniprobe.")
     print("Press enter to continue...")
@@ -224,17 +231,12 @@ def initializeOoniprobe(global_options):
                               should_upload=should_upload,
                               preferred_backend=preferred_backend)
     config.set_initialized()
+    print("ooniprobe is now initialized. You can begin using it!")
 
 def setupGlobalOptions(logging, start_tor, check_incoherences):
     global_options = parseOptions()
 
     config.global_options = global_options
-
-    if not config.is_initialized():
-        log.err("You first need to agree to the informed consent and setup "
-                "ooniprobe to run it.")
-        global_options['initialize'] = True
-        return global_options
 
     config.set_paths()
     config.initialize_ooni_home()
@@ -242,6 +244,9 @@ def setupGlobalOptions(logging, start_tor, check_incoherences):
         config.read_config_file(check_incoherences=check_incoherences)
     except errors.ConfigFileIncoherent:
         sys.exit(6)
+
+    if not config.is_initialized():
+        initializeOoniprobe(global_options)
 
     if global_options['verbose']:
         config.advanced.debug = True
@@ -365,7 +370,8 @@ def runTestWithDirector(director, global_options, url=None,
                         create_input_store=True):
     deck = createDeck(global_options, url=url)
 
-    d = director.start(create_input_store=create_input_store)
+    d = director.start(create_input_store=create_input_store,
+                       start_tor=start_tor)
     @defer.inlineCallbacks
     def post_director_start(_):
         try:

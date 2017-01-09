@@ -1,32 +1,119 @@
 Architecture
 ============
 
-The goal of this document is provide an overview of how ooni works, what are
-it's pieces and how they interact with one another.
+Last Updated: 2016-08-01
 
-Keep in mind that this is the *big picture* and not all of the features and
-compontent detailed here are implemented.
-To get an idea of what is implemented and with what sort of quality see the
-`Implementation status`_ section of this page.
+The purpose of this goal is to illustrate the design goals of the various
+components part of the OONI ecosystem, how they work and what is the
+relationship between each other.
 
-The two main components of ooni are `oonib`_ and `ooniprobe`_.
+The following diagram gives you an idea of how the various OONI components
+are related to each other.
 
-.. image:: _static/images/ooniprobe-architecture.png
-    :width: 700px
+.. graphviz::
 
-ooniprobe
----------
+    digraph Architecture {
 
-ooniprobe the client side component of ooni that is responsible for performing
+        subgraph cluster_0 {
+            style=filled;
+            color=lightgrey;
+            node [style=filled,color=white];
+            "ooni-probe";
+            "measurement-kit";
+            label="clients";
+        }
+
+        "ooni-probe" -> "ooni-backend";
+        "measurement-kit" -> "ooni-backend";
+        "ooni-wui" -> "ooni-probe";
+        "lepidopter" -> "ooni-probe";
+        "ooni-backend" -> "ooni-pipeline";
+        "ooni-pipeline" -> "ooni-explorer";
+    }
+
+
+The main software components are the following:
+
+* ooni-probe_: what users interested in contributing measurements will run.
+  It also includes a web based user interface for running measurements and
+  inspecting the results.
+  code repository: `<https://github.com/TheTorProject/ooni-probe>`_
+
+* measurement-kit_: a portable C++ library that implements some ooniprobe
+  tests and is currently being used to port ooniprobe to mobile platforms
+  (Android and iOS).
+  In the future the measurement engine of ooniprobe will be replaced with
+  measurement-kit.
+  code repository: `<https://github.com/measurement-kit/measurement-kit>`_
+
+* ooni-backend_: the software component that measurement clients communicate
+  with to learn the address of where they should submit results, submit results
+  (collector) and run certain tests against (see: `Test Helpers`_).
+  code repository: `<https://github.com/TheTorProject/ooni-backend>`_
+
+* ooni-pipeline_: responsible for taking raw measurement data (from
+  collectors) normalising it, extracting insight from it and preparing it for
+  being presented inside of the `ooni-explorer`_ interface.
+  code repository: `<https://github.com/TheTorProject/ooni-pipeline>`_
+
+* ooni-explorer_: a web front-end to the measurements collected by the OONI
+  platform. It features a world map view showcasing the countries where we have
+  identified network anomalies.
+  code repository: `<https://github.com/TheTorProject/ooni-explorer>`_
+
+* ooni-wui_: web user interface assets and the implementation of the
+  ooni-probe web interface. Components in here are meant to be re-used across
+  the various software components (ooni-probe, ooni-explorer, net-probe, etc.),
+  though work on this from is not yet complete.
+  code repository: `<https://github.com/TheTorProject/ooni-wui>`_
+
+* lepidopter_: a raspberry pi image for running ooniprobe.
+  code repository: `<https://github.com/TheTorProject/lepidopter>`_
+
+* ooni-web_: the canonical ooni.torproject.org website.
+  code repository: `<https://github.com/TheTorProject/ooni-web>`_
+
+
+
+.. _ooni-probe:
+---------------
+
+ooni-probe the client side component of OONI that is responsible for performing
 measurements on the to be tested network.
 
-The main design goals for ooniprobe are:
+Originally thought of as a tool to be used by users to investigate network
+anomalies on their own and quickly implement new tests to check for new
+censorship conditions, the focus is now shifting more towards something
+meant to be used in an unattended manner.
 
-Test specification decoupling
-.............................
+As such it's evolving into being a system daemon that is always running on
+a users machine and automatically performs the network measurements the user
+has instructed it to perform.
 
-By this I mean that the definition of the test should be as loosely coupled to
-the code that is used for running the test.
+Design goals
+.............
+
+The current design goals are:
+
+**Unattended measurement collection**
+
+It should be possible for a user of the system to install it and forget about
+it. This means that it shouldn't be necessary to constantly interact with the tool
+itself.
+
+Previously some of the design considerations for ooni-probe used to be:
+
+**Test specification decoupling**
+
+This design goal is still largely valid, though as ooni-probe grows as mainly
+an enduser tool it's importance will be decreasing.
+
+Moreover the long-term plan for this is given the fact that tests are going to
+be run based on measurement-kit_ is to have the testing framework logic be 
+implemented in the measurement-kit_ scripting language.
+
+The outline of this design goal nonetheless is that the definition of the test
+should be as loosely coupled to the code that is used for running the test.
 
 This is achieved via what are called **Test Templates**. Test Templates a high
 level interface to the test developer specific to the protocol they are writing
@@ -46,8 +133,7 @@ received, but a developer may with to include inside of their report the
 checksum of the of the content as is show in the example in `Writing Tests
 <writing_tests.html>`_.
 
-Support for high concurrency
-............................
+**Support for high concurrency**
 
 By this I mean that we want to be able to scan through big lists as fast as
 possible.
@@ -68,68 +154,72 @@ For this purpose we have chosen to use the `Twisted networking framework
 If you have an argument for which you believe Twisted is not a good idea, I
 would love to know :).
 
-Notes:
-.. XXX
+Running lot's of tests concurrently can reduce their accuracy. The ideal
+strategy for dealing with this would involve adjusting the concurrency 
+based on failure rate.
+Currently this is not implemented inside of ooniprobe and instead we use
+a configurable concurrency value that is set to default as 3.
 
-Running lot's of tests concurrently can reduce their accuracy.  The strategy
-for dealing with this involves doing proper error handling and adjusting the
-concurrency window over time if the amount of error rates increases.
+Implementation details
+......................
 
-Currently the level of concurrency for tests is implemented inside of
-:class:`ooni.inputunit`_, but we do not expose to the user a way of setting
-this. Such feature will be something that will be controllable via the
-ooniprobe API.
+Below is a high level diagram of how the various modules of ooniprobe
+are interrelated to each other.
 
-Why Tor Hidden Services?
-........................
+.. graphviz::
 
-We chose to use Tor Hidden Services as the means of exposing a backend
-reporting system for the following reasons:
+    digraph ooniprobe_impl {
 
-Easy addressing
-_______________
+        "agent" -> "director";
+        "scheduler" -> "director";
 
-Using Tor Hidden Service allows us to have a globally unique identifier to be
-passed to the ooni-probe clients. This identifier does not need to change even
-if we decide to migrate the collector backend to a different machine (all we
-have to do is copy the private key to the new box).
+        "director" -> "deck";
 
-It also allows people to run a collector backend if they do not have a public
-IP address (if they are behing NAT for example).
+        "deck" -> "nettest";
+        "deck" -> "backend_client";
+        "deck" -> "nettests";
+    }
 
-Security
-________
+ooni-probe is written in python using the `Twisted networking framework
+<http://twistedmatrix.org>`_.
 
-Tor Hidden Services give us for free and with little thought end to end
-encryption and authentication. Once the address for the collector has been
-transmitted to the probe you do not need to do any extra authenticatication, because
-the address is self authenticating.
+The two main concepts in ooniprobe are a decks and nettests. A nettest is a
+particular network test that is designed to identify one class of anomalies.
 
-Possible drawbacks
-__________________
+A deck is a collection of one or more nettests and some associated inputs (such
+as a list of URLs).
 
-Supporting Tor Hidden Services as the only system for reporting means a
-ooni-probe user is required to have Tor working to be able to submit reports to
-a collector. In some cases this is not possible, because the user is in a
-country where Tor is censored and they do not have any Tor bridges available.
+The director is responsible for starting the measurement and reporting task
+managers, starting tor, looking up the IP address of the probe and in general
+controlling the lifecycle of the application.
 
-Latency is also a big issue in Tor Hidden Services and this can make the
-reporting process very long especially if the users network is not very good.
+The schedulers are periodic tasks that need to be executed (think cron). Their
+state is kept track of on disk (in particular the last time a successful
+execution was performed).
 
-For these reasons we plan to support in the future also non Tor HS based
-reporting to oonib. 
-Currently this can easily be achieved by simply using tor2web.org.
+The agent is responsible for starting director, the schedulers and exposing the
+web user interface.
 
-Standardization
-...............
+.. _measurement-kit:
+--------------------
 
-.. TODO
+Measurement-kit is a C++ library that implements network measurement primitives
+and some of the ooniprobe tests.
 
-oonib
------
+It has been developed with the goal of being able to target mobile platforms
+(Android and iOS), but is growing with the intent of eventually replacing the
+measurement engine of ooniprobe entirely with native code.
+
+There is work in progress to support calling it from python (see:
+`<https://github.com/measurement-kit/measurement-kit/pull/697>`_) and there
+are plans to implement a scripting interface around it to aid the development of
+tests (see: `<https://github.com/measurement-kit/measurement-kit/issues/702>`_).
+
+.. _ooni-backend:
+-----------------
 
 This is the backend component of OONI. It is responsible for exposing `test
-helpers`_ and the `report collector`_.
+helpers`_ , the `measurement collector`_ and the `bouncer service`_
 
 Test Helpers
 ............
@@ -139,120 +229,79 @@ ooniprobes when running tests.
 
 If you would like to see a test helper implemented inside of oonib, thats
 great!
-All you have to do is `open a ticket on trac
-<https://trac.torproject.org/projects/tor/newticket?component=Ooni&keywords=oonib_testhelpers%20ooni_wishlist&summary=Add%20support%20for%20PROTOCOL_NAME%20test%20helper>`_.
+All you have to do is `open a ticket on github
+<https://github.com/TheTorProject/ooni-backend/issues/new?title=[new%20test-helper%20request]%20YOUR_TESTHELPER_NAME>`_.
 
 To get an idea of the current implementation status of test helpers see the
 `oonib/testhelpers/
-<https://gitweb.torproject.org/ooni-probe.git/tree/HEAD:/oonib/testhelpers>`_
+<https://github.com/TheTorProject/ooni-backend/tree/master/oonib/testhelpers>`_
 directory of the ooniprobe git repository.
 
 .. TODO
    write up the list of currently implemented test helpers and how to use them.
 
-Report collector
+Measurement collector
 ................
 
-.. autoclass:: oonib.report.file_collector.NewReportHandlerFile
-    :noindex:
+This is the service that is used for submitting measurement results to.
 
+The specification for the API of the measurement collector can be found here:
+`<https://github.com/TheTorProject/ooni-spec/blob/master/oonib.md#20-collector>`_
 
-An ooniprobe run
-----------------
+Bouncer service
+................
 
-Here we describe how an ooniprobe run should look like:
+This is the service that is responsible for informing clients of where they
+should be submitting their results to and what are the addresses of the
+test-helpers they require to perform their measurements.
 
-  1. If configured to do so ooniprobe will start a connection to the Tor
-       network for the purpose of having a known good test channel and for
-       having a way of reporting to the backend collector
+The specification for the API of the bouncer can be found here:
+`<https://github.com/TheTorProject/ooni-spec/blob/master/oonib.md#40-bouncer>`_
 
-  2. It will obtain it's IP Address from Tor via the getinfo addr Tor Ctrl port
-       request.
+.. _ooni-pipeline:
+------------------
 
-  3. If a collect is specified it will connect to the reporting system and get
-       a report id that allows them to submit reports to the collector.
+When measurements are submitted to a measurement collector they are then
+processed by the data pipeline.
 
-  4. If inputs are specified it will slice them up into chunks of request to be
-       performed in parallel.
+The measurements are first normalised (to take into account the different data
+formats that ooniprobe has supported over time), then sanitised (to redact from them
+sensitive information such a private bridge IP address) and then put inside of a
+database to be served via the ooni-explorer_.
 
-  5. Once every chunk of inputs (called an InputUnit) will have completed the
-       report file and/or the collector will be updated.
+It is currently written in python using the `luigi workflow manager
+<https://luigi.readthedocs.org>`_, but that may change in the near future.
+For future plans see: `<https://github.com/TheTorProject/ooni-pipeline/issues/32>`_
 
+.. _ooni-explorer:
+------------------
 
-OONIprobe Control Interface
----------------------------
-.. XXX update this section once interface is implemented.
-The ooniprobe client provides a rich and simple JSON-based interface for 
-control over HTTP. While the implementation of this interface is currently
-a work in progress, the specification may be found `here <control_interface.rst>`_.
+This is the web interface that is used by end users to inspect measurements
+collected by ooniprobe.
 
+It is written as a node.js web app (based on the strongloop framework), with
+angular.js and d3.js.
 
-Implementation status
----------------------
+.. _ooni-wui:
+-------------
 
-ooniprobe
-.........
+Web user interface assets and the implementation of the ooni-probe web
+interface. Components in here are meant to be re-used across the various
+software components (ooni-probe, ooni-explorer, net-probe, etc.), though work
+on this from is not yet complete.
 
-**Reporting**
+.. _lepidopter:
+---------------
 
-  * To flat YAML file: *alpha*
+A raspberry pi image for running ooniprobe.
 
-  * To remote httpo backend: *alpha*
+Amongst other things it takes care of automatically updating ooniprobe to the
+latest version and packaging all the dependencies required to run ooniprobe.
 
-**Test templates**
+.. _ooni-web:
+-------------
 
-  * HTTP test template: *alpha*
+The canonical ooni.torproject.org website.
 
-  * Scapy test template: *alpha*
-
-  * DNS test template: *alpha*
-
-  * TCP test template: *prototype*
-
-**Tests**
-
-To see the list of implemented tests see:
-https://ooni.torproject.org/docs/#core-ooniprobe-tests
-
-**ooniprobe API**
-
-  * Specification: *draft*
-
-  * HTTP API: *not implemented*
-
-**ooniprobe HTML5/JS user interface**
-
-  Not implemented.
-
-**ooniprobe build system**
-
-  Not implemented.
-
-**ooniprobe command line interface**
-
-  Implemented in alpha quality, though needs to be ported to use the HTTP based
-  API.
-
-oonib
-.....
-
-**Collector**
-
-  * collection of YAML reports to flat file: *alpha*
-
-  * collection of pcap reports: *not implemented*
-
-  * association of reports with test helpers: *not implemented*
-
-**Test helpers**
-
-  * HTTP Return JSON Helper: *alpha*
-
-  * DNS Test helper: *prototype*
-
-  * Test Helper - collector mapping: *Not implemented*
-
-  * TCP Test helper: *prototype*
-
-  * Daphn3 Test helper: *prototype*
-
+It is implemented using `hugo <https://gohugo.io>`_ a golang based static
+website generator.

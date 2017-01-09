@@ -6,9 +6,14 @@ from ooni.ui.web.web import WebUIService
 from ooni.agent.scheduler import SchedulerService
 
 class AgentService(service.MultiService):
-    def __init__(self, web_ui_port):
-        service.MultiService.__init__(self)
+    """Manage all services related to the ooniprobe-agent daemon."""
 
+
+    def __init__(self, web_ui_port):
+        """
+        If the advanced->disabled_webui is set to true then we will not start the WebUI.
+        """
+        service.MultiService.__init__(self)
         director = Director()
 
         self.scheduler_service = SchedulerService(director)

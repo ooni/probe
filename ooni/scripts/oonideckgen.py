@@ -30,7 +30,7 @@ class Options(usage.Options):
     ]
 
     def opt_version(self):
-        print("oonideckgen version: " % __version__)
+        print("oonideckgen version: %s" % __version__)
         sys.exit(0)
 
 def generate_deck(options):

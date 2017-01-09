@@ -1,6 +1,112 @@
 Changelog
 =========
 
+v2.1.0 (Wed, 7 Dec 2016)
+------------------------------
+Feature list:
+
+* Add support for running WhatsApp and Facebook Messenger instant messagging
+  tests.
+
+* Add support for testing reachability of Tor bridges via tcp_connect.
+
+* Add support for viewing and sharing ooniprobe logs via the Web UI.
+
+UI Improvements:
+
+* Make the loader prettier
+
+* Truncate URLs longer than 60 characters in the measurement list
+
+* Rename toggle anomalies to show/hide normal
+
+* Move status messages to the bottom right
+
+* Add link to measurements in the explorer
+
+* Risks documentation improvements
+
+* Add minimal view for the IM tests
+
+Core Improvements:
+
+* All HTTP based tests no longer follow redirects to loopback addresses:
+  https://github.com/TheTorProject/ooni-probe/issues/605
+
+* The IP address of the probe is also stripped from the HTTP response
+  headers:
+  https://github.com/TheTorProject/ooni-probe/issues/657
+
+* Measurements are now sorted from most recent to oldest in the measurements
+  tab.
+
+Bug fixes:
+
+* Deferreds being called twice:
+  https://github.com/TheTorProject/ooni-probe/issues/676
+
+
+
+v2.1.0-rc.1 (Wed, 30 Nov 2016)
+------------------------------
+
+Feature list:
+
+* Add support for running WhatsApp and Facebook Messenger instant messagging
+  tests.
+
+* Add support for testing reachability of Tor bridges via tcp_connect.
+
+* Add support for viewing and sharing ooniprobe logs via the Web UI.
+
+Improvements:
+
+* All HTTP based tests no longer follow redirects to loopback addresses:
+  https://github.com/TheTorProject/ooni-probe/issues/605
+
+* The IP address of the probe is also stripped from the HTTP response
+  headers:
+  https://github.com/TheTorProject/ooni-probe/issues/657
+
+* Measurements are now sorted from most recent to oldest in the measurements
+  tab.
+
+Bug fixes:
+
+* Deferreds being called twice:
+  https://github.com/TheTorProject/ooni-probe/issues/676
+
+
+v2.0.2 (Wed, 16 Nov 2016)
+--------------------------
+
+Improvements:
+
+* Add support for specifying how the log rotation should happen
+
+Bug fixes:
+
+* Fix bug that lead to too many log lines being written:
+  https://github.com/TheTorProject/ooni-probe/issues/663
+
+v2.0.1 (Sat, 29 Oct 2016)
+--------------------------
+
+Improvements:
+
+* Add `--info` command line option to print paths of ooniprobe
+
+* Support specifying a `settings.ini` via an environment variable to facilitate
+  testing.
+
+Bug fixes:
+
+* Fix https://github.com/TheTorProject/ooni-probe/issues/636
+
+* Fix https://github.com/TheTorProject/ooni-probe/issues/650
+
+* Fix https://github.com/TheTorProject/ooni-probe/issues/651
+
 v2.0.0 (Fri, 14 Oct 2016)
 ------------------------------
 codename: mezzanine

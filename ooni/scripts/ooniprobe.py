@@ -7,9 +7,14 @@ from twisted.internet import task, defer
 def ooniprobe(reactor):
     from ooni.ui.cli import runWithDaemonDirector, runWithDirector
     from ooni.ui.cli import setupGlobalOptions, initializeOoniprobe
+    from ooni.settings import config
 
     global_options = setupGlobalOptions(logging=True, start_tor=True,
                                         check_incoherences=True)
+    if global_options['info']:
+        config.log_info()
+        return defer.succeed(None)
+
     if global_options['queue']:
         return runWithDaemonDirector(global_options)
 

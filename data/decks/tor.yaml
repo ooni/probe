@@ -10,3 +10,10 @@ tasks:
 - name: Runs the Meek fronted request test
   ooni:
     test_name: meek_fronted_requests
+
+- name: Does a tcp_connect test on the tor bridges
+  ooni:
+    annotations:
+      test_class: tor_bridge_reachability
+    test_name: tcp_connect
+    file: "$tor_bridge_lines"
