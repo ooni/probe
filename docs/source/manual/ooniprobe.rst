@@ -27,6 +27,7 @@ Options
 
 -g, --no-geoip
     Disable geoip lookup on start
+    The IP Address of the user executing ooniprobe is not excluded from the reports.
 
 -s, --list
     List the currently installed ooniprobe nettests
