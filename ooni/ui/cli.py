@@ -376,7 +376,7 @@ def runTestWithDirector(director, global_options, url=None,
     def post_director_start(_):
         try:
             yield deck.setup()
-            yield deck.run(director)
+            yield deck.run(director, from_schedule=False)
         except errors.UnableToLoadDeckInput as error:
             raise defer.failure.Failure(error)
         except errors.NoReachableTestHelpers as error:

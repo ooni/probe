@@ -11,7 +11,7 @@ from ooni.settings import config
 class MeasurementInProgress(Exception):
     pass
 
-class Process():
+class MeasurementTypes():
     supported_tests = [
         "web_connectivity",
         "http_requests",
@@ -51,14 +51,15 @@ class Process():
         result['url'] = entry['input']
         return result
 
-def generate_summary(input_file, output_file):
+
+def generate_summary(input_file, output_file, deck_id='none'):
     results = {}
     with open(input_file) as in_file:
         for idx, line in enumerate(in_file):
             entry = json.loads(line.strip())
             result = {}
-            if entry['test_name'] in Process.supported_tests:
-                result = getattr(Process, entry['test_name'])(entry)
+            if entry['test_name'] in MeasurementTypes.supported_tests:
+                result = getattr(MeasurementTypes, entry['test_name'])(entry)
             result['idx'] = idx
             if not result.get('url', None):
                 result['url'] = entry['input']
@@ -66,6 +67,7 @@ def generate_summary(input_file, output_file):
             results['test_start_time'] = entry['test_start_time']
             results['country_code'] = entry['probe_cc']
             results['asn'] = entry['probe_asn']
+            results['deck_id'] = deck_id
             results['results'] = results.get('results', [])
             results['results'].append(result)
 
@@ -73,8 +75,10 @@ def generate_summary(input_file, output_file):
         json.dump(results, fw)
     return results
 
+
 class MeasurementNotFound(Exception):
     pass
+
 
 def get_measurement(measurement_id, compute_size=False):
     size = -1
@@ -114,7 +118,9 @@ def get_measurement(measurement_id, compute_size=False):
         "keep": keep,
         "running": running,
         "stale": stale,
-        "size": size
+        "size": size,
+        # XXX we need the deck ID in here
+        "deck_id": "none"
     }
 
 

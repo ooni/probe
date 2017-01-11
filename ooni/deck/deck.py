@@ -1,6 +1,7 @@
 import os
 import uuid
 import errno
+import hashlib
 from copy import deepcopy
 from string import Template
 
@@ -82,6 +83,7 @@ class NGDeck(object):
         self.name = ""
         self.description = ""
         self.icon = ""
+        self.id = None
         self.schedule = None
 
         self.metadata = {}
@@ -102,10 +104,15 @@ class NGDeck(object):
     def open(self, deck_path, global_options=None):
         with open(deck_path) as fh:
             deck_data = yaml.safe_load(fh)
+        self.id = os.path.basename(deck_path[:-1*len('.yaml')])
         self.deck_directory = os.path.abspath(os.path.dirname(deck_path))
         self.load(deck_data, global_options)
 
     def load(self, deck_data, global_options=None):
+        if self.id is None:
+            # This happens when you load a deck not from a filepath so we
+            # use the first 16 characters of the SHA256 hexdigest as an ID
+            self.id = hashlib.sha256(deck_data).hexdigest()[:16]
         if global_options is not None:
             self.global_options = normalize_options(global_options)
 
@@ -209,7 +216,8 @@ class NGDeck(object):
             )
             generate_summary(
                 measurement_dir.child("measurements.njson").path,
-                measurement_dir.child("summary.json").path
+                measurement_dir.child("summary.json").path,
+                deck_id=self.id
             )
             measurement_dir.child("running.pid").remove()
 
@@ -274,18 +282,20 @@ class NGDeck(object):
         self._is_setup = True
 
     @defer.inlineCallbacks
-    def run(self, director):
+    def run(self, director, from_schedule=False):
         assert self._is_setup, "You must call setup() before you can run a " \
                                "deck"
         if self.requires_tor:
             yield director.start_tor()
         yield self.query_bouncer()
+        director.deckStarted(self.id, from_schedule)
         for task in self._tasks:
             if task.skip is True:
-                log.msg("Skipping running {0}".format(task.id))
+                log.debug("Skipping running {0}".format(task.id))
                 continue
             if task.type == "ooni":
                 yield self._run_ooni_task(task, director)
+        director.deckFinished(self.id, from_schedule)
         self._is_setup = False
 
 
