@@ -26,7 +26,8 @@ Options
     Disable writing to disk
 
 -g, --no-geoip
-    Disable geoip lookup on start
+    Disable geoip lookup on start. 
+    Warning: By using this option the IP address of the user executing ooniprobe is not excluded from the report.
 
 -s, --list
     List the currently installed ooniprobe nettests
