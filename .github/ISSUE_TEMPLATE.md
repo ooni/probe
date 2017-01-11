@@ -8,18 +8,36 @@
 2. [Second Step]
 3. [and so on...]
 
+<details><summary>Backtrace of the error</summary>
+
+```
+[paste output here]
+```
+</details>
+
 **Expected behavior:** [What you expected to happen]
 
 **Actual behavior:** [What actually happened]
 
-### Versions
+### Further information
 
 **How did you install ooniprobe**
 
-Did you get it via pip, homebrew or debian packages?
-
-**What version of ooniprobe are you running?**
-
-You can get this information by running `ooniprobe --version`
+Did you install ooniprobe via the **debian package**, **homebrew** or **pip**
 
 **What operating system are you running and what version is it?**
+
+<details><summary>Output of `ooniprobe -v --info`</summary>
+
+```
+[paste output here]
+```
+</details>
+
+<details><summary>Output of `ooniprobe --version`</summary>
+
+```
+[paste output here]
+```
+</details>
+
