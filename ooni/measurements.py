@@ -106,8 +106,11 @@ def get_measurement(measurement_id, compute_size=False):
     if compute_size is True:
         size = directory_usage(measurement.path)
 
-    test_start_time, country_code, asn, test_name = \
-        measurement_id.split("-")[:4]
+    measurement_metadata = measurement_id.split("-")
+    test_start_time, country_code, asn, test_name = measurement_metadata[:4]
+    deck_id = "none"
+    if len(measurement_metadata) > 4:
+        deck_id = '-'.join(measurement_metadata[4:])
     return {
         "test_name": test_name,
         "country_code": country_code,
@@ -119,8 +122,7 @@ def get_measurement(measurement_id, compute_size=False):
         "running": running,
         "stale": stale,
         "size": size,
-        # XXX we need the deck ID in here
-        "deck_id": "none"
+        "deck_id": deck_id
     }
 
 
@@ -156,8 +158,9 @@ def list_measurements(compute_size=False, order=None):
     for measurement_id in measurement_path.listdir():
         try:
             measurements.append(get_measurement(measurement_id, compute_size))
-        except:
+        except Exception as exc:
             log.err("Failed to get metadata for measurement {0}".format(measurement_id))
+            log.exception(exc)
 
     if order is None:
         return measurements

@@ -370,6 +370,12 @@ class WebUIAPI(object):
     def api_deck_list(self, request):
         deck_list = {'decks': []}
         for deck_id, deck in self.director.deck_store.list():
+            nettests = []
+            for task in deck.tasks:
+                if task.type == 'ooni':
+                    assert task.ooni['test_name'] is not None
+                    nettests.append(task.ooni['test_name'])
+
             deck_list['decks'].append({
                 'id': deck_id,
                 'name': deck.name,
@@ -378,7 +384,7 @@ class WebUIAPI(object):
                                             deck_id, from_schedule=False),
                 'running_scheduled': self.director.isDeckRunning(
                                             deck_id, from_schedule=True),
-                'nettests': [], #XXX
+                'nettests': nettests,
                 'description': deck.description,
                 'schedule': deck.schedule,
                 'enabled': self.director.deck_store.is_enabled(deck_id)

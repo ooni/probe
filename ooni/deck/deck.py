@@ -234,7 +234,7 @@ class NGDeck(object):
         # XXX-REFACTOR we do this so late to avoid the collision between the
         #  same id and hence generating the same filename.
         test_details = net_test_loader.getTestDetails()
-        task.id = generate_filename(test_details)
+        task.id = generate_filename(test_details, deck_id=self.id)
 
         measurement_id = None
         report_filename = task.output_path
@@ -330,7 +330,8 @@ class DeckTask(object):
 
         self.ooni = {
             'bouncer_client': None,
-            'test_details': {}
+            'test_details': {},
+            'test_name': None
         }
         self.output_path = None
 
@@ -353,8 +354,9 @@ class DeckTask(object):
             if required_key not in task_data:
                 raise MissingTaskDataKey(required_key)
 
+        self.ooni['test_name'] = task_data.pop('test_name')
         # This raises e.NetTestNotFound, we let it go onto the caller
-        nettest_path = nettest_to_path(task_data.pop("test_name"),
+        nettest_path = nettest_to_path(self.ooni['test_name'],
                                        self._arbitrary_paths)
 
         annotations = self._pop_option('annotations', task_data, {})
