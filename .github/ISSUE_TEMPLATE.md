@@ -23,7 +23,7 @@
 
 **How did you install ooniprobe**
 
-Did you install ooniprobe via the **debian package**, **homebrew** or **pip**
+Did you install ooniprobe via the **debian package**, **homebrew** or **pip**?
 
 **What operating system are you running and what version is it?**
 
