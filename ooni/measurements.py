@@ -93,11 +93,14 @@ def get_measurement(measurement_id, compute_size=False):
     stale = False
     if measurement.child("measurements.njson.progress").exists():
         completed = False
-        pid = measurement.child("running.pid").open("r").read()
-        pid = int(pid)
-        if is_process_running(pid):
-            running = True
-        else:
+        try:
+            pid = measurement.child("running.pid").open("r").read()
+            pid = int(pid)
+            if is_process_running(pid):
+                running = True
+            else:
+                stale = True
+        except IOError:
             stale = True
 
     if measurement.child("keep").exists():

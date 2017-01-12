@@ -1,4 +1,5 @@
 import os
+import json
 import uuid
 import errno
 import hashlib
@@ -36,14 +37,12 @@ def options_to_args(options):
     for k, v in options.items():
         if v is None:
             continue
-        if v == False or v == 0:
+        if isinstance(v, bool):
             continue
         if (len(k)) == 1:
             args.append('-'+k)
         else:
             args.append('--'+k)
-        if isinstance(v, bool) or isinstance(v, int):
-            continue
         args.append(v)
     return args
 
@@ -112,7 +111,7 @@ class NGDeck(object):
         if self.id is None:
             # This happens when you load a deck not from a filepath so we
             # use the first 16 characters of the SHA256 hexdigest as an ID
-            self.id = hashlib.sha256(deck_data).hexdigest()[:16]
+            self.id = hashlib.sha256(json.dumps(deck_data)).hexdigest()[:16]
         if global_options is not None:
             self.global_options = normalize_options(global_options)
 

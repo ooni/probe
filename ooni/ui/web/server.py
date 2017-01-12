@@ -481,7 +481,8 @@ class WebUIAPI(object):
             raise WebUIError(
                 400, 'Insufficient privileges'
             )
-        except:
+        except Exception as exc:
+            log.exception(exc)
             raise WebUIError(
                 500, 'Failed to start nettest'
             )
