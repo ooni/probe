@@ -26,6 +26,13 @@ def subargs_to_options(subargs):
 
     return options
 
+boolean_options = [
+    'no-collector',
+    'no-geoip',
+    'no-yamloo',
+    'verbose'
+]
+
 def convert_legacy_deck(deck_data):
     """
     I take a legacy deck list and convert it to the new deck format.
@@ -58,6 +65,8 @@ def convert_legacy_deck(deck_data):
             deck_task["ooni"][name] = value
 
         for name, value in options.items():
+            if name in boolean_options:
+                value = False if value == 0 else True
             deck_task["ooni"][name] = value
 
         new_deck_data["tasks"].append(deck_task)
