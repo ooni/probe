@@ -30,7 +30,10 @@ boolean_options = [
     'no-collector',
     'no-geoip',
     'no-yamloo',
-    'verbose'
+    'verbose',
+    'help',
+    'no-default-reporter',
+    'resume'
 ]
 
 def convert_legacy_deck(deck_data):

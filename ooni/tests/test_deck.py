@@ -336,5 +336,7 @@ class TestNGDeck(ConfigTestCase):
             '/path/to/citizenlab-urls-global.txt')
 
     def test_options_to_args(self):
-        args = options_to_args({"f": "foobar.txt", "bar": None, "help": 0})
-        print(args)
+        args = options_to_args({"f": "foobar.txt", "bar": None,
+                                "disabled-flag": False, "enabled-flag": True})
+        self.assertEqual(set(args), set(['-f', 'foobar.txt',
+                                         '--enabled-flag']))

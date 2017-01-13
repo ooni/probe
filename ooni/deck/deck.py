@@ -37,12 +37,14 @@ def options_to_args(options):
     for k, v in options.items():
         if v is None:
             continue
-        if isinstance(v, bool):
+        if v == False:
             continue
         if (len(k)) == 1:
             args.append('-'+k)
         else:
             args.append('--'+k)
+        if v == True:
+            continue
         args.append(v)
     return args
 
