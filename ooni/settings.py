@@ -519,14 +519,19 @@ class OConfig(object):
                 except Exception:
                     incoherent.append('tor:socks_port')
 
-            if self.tor.control_port is not None:
-                control_port_ep = TCP4ClientEndpoint(reactor,
+	if self.tor.control_port is not None:
+       	    if isinstance(self.tor.control_port,int):
+	        control_port_ep = TCP4ClientEndpoint(reactor,
                                                      "localhost",
                                                      self.tor.control_port)
-                try:
-                    yield connectProtocol(control_port_ep, ConnectAndCloseProtocol())
-                except Exception:
-                    incoherent.append('tor:control_port')
+		try:
+		    yield connectProtocol(control_port_ep, ConnectAndCloseProtocol())
+		except Exception:
+		    incoherent.append('tor:control_port')		
+            else:
+		if self.tor.control_port.lstrip.startswith("unix:"):
+		    control_port_ep = self.tor.control_port.lstrip("unix:")
+               	           
 
             self.log_incoherences(incoherent)
 
