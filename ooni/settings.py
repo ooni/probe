@@ -520,7 +520,7 @@ class OConfig(object):
                     incoherent.append('tor:socks_port')
 
 	if self.tor.control_port is not None:
-       	    if isinstance(self.tor.control_port,int):
+       	    if isinstance(self.tor.control_port, int):
 	        control_port_ep = TCP4ClientEndpoint(reactor,
                                                      "localhost",
                                                      self.tor.control_port)
