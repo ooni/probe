@@ -538,6 +538,6 @@ class OConfig(object):
                 else:
 			incoherent.append('tor:control_port')
 
-       self.log_incoherences(incoherent)
+        self.log_incoherences(incoherent)
 
 config = OConfig()
