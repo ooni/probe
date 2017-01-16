@@ -529,10 +529,15 @@ class OConfig(object):
 		except Exception:
 		    incoherent.append('tor:control_port')		
             else:
-		if self.tor.control_port.lstrip.startswith("unix:"):
-		    control_port_ep = self.tor.control_port.lstrip("unix:")
-               	           
+		conf_unix_socket_path = self.tor.control_port
+		if conf_unix_socket_path.lstrip.startswith("unix:"):
+			if os.path.exists(conf_unix_socket_path.lstrip("unix:")):
+				unix_socket_path = conf_unix_socket_path.lstrip("unix:")
+			else:
+				incoherent.append('tor:control_port')
+                else:
+			incoherent.append('tor:control_port')
 
-            self.log_incoherences(incoherent)
+       self.log_incoherences(incoherent)
 
 config = OConfig()
