@@ -519,25 +519,25 @@ class OConfig(object):
                 except Exception:
                     incoherent.append('tor:socks_port')
 
-	if self.tor.control_port is not None:
-       	    if isinstance(self.tor.control_port, int):
-	        control_port_ep = TCP4ClientEndpoint(reactor,
-                                                     "localhost",
-                                                     self.tor.control_port)
-		try:
-		    yield connectProtocol(control_port_ep, ConnectAndCloseProtocol())
-		except Exception:
-		    incoherent.append('tor:control_port')		
-            else:
-		conf_unix_socket_path = self.tor.control_port
-		if conf_unix_socket_path.lstrip.startswith("unix:"):
-			if os.path.exists(conf_unix_socket_path.lstrip("unix:")):
-				unix_socket_path = conf_unix_socket_path.lstrip("unix:")
-			else:
-				incoherent.append('tor:control_port')
+	    if self.tor.control_port is not None:
+       	        if isinstance(self.tor.control_port, int):
+	            control_port_ep = TCP4ClientEndpoint(reactor,
+                                                         "localhost",
+                                                         self.tor.control_port)
+		    try:
+		        yield connectProtocol(control_port_ep, ConnectAndCloseProtocol())
+		    except Exception:
+		        incoherent.append('tor:control_port')		
                 else:
-			incoherent.append('tor:control_port')
+		    conf_unix_socket_path = self.tor.control_port
+		    if conf_unix_socket_path.lstrip.startswith("unix:"):
+	                if os.path.exists(conf_unix_socket_path.lstrip("unix:")):
+			    unix_socket_path = conf_unix_socket_path.lstrip("unix:")
+			else:
+		 	    incoherent.append('tor:control_port')
+                    else:
+		        incoherent.append('tor:control_port')
 
-        self.log_incoherences(incoherent)
+            self.log_incoherences(incoherent)
 
 config = OConfig()
