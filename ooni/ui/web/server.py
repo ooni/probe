@@ -7,6 +7,7 @@ import string
 import random
 from functools import wraps
 from random import SystemRandom
+from glob import glob
 
 from twisted.internet import defer, task, reactor
 from twisted.python import usage
@@ -529,7 +530,6 @@ class WebUIAPI(object):
     @requires_true(attrs=['_is_initialized'])
     @defer.inlineCallbacks
     def api_measurement_summary(self, request, measurement_id):
-        log.warn("SUMMARY")
         try:
             measurement = get_measurement(measurement_id)
         except InsecurePath:
@@ -605,6 +605,25 @@ class WebUIAPI(object):
             if r is None:
                 raise WebUIError(404, "Could not find measurement with this idx")
         return self.render_json(r, request)
+
+    @app.route('/api/logs',
+               methods=["GET"])
+    @xsrf_protect(check=True)
+    @requires_true(attrs=['_is_initialized'])
+    def api_get_logs(self, request):
+        with open(log.oonilogger.log_filepath) as input_file:
+            log_data = input_file.read()
+        logs = {
+            'latest': log_data,
+            'older': []
+        }
+        if request.args.get('all', False) is not False:
+            for log_filepath in glob(log.oonilogger.log_filepath + ".*"):
+                with open(log_filepath) as input_file:
+                    log_data = input_file.read()
+                logs['older'].append(log_data)
+            logs['older'].reverse()
+        return self.render_json(logs, request)
 
     @app.route('/client/', branch=True)
     @xsrf_protect(check=False)
