@@ -503,6 +503,10 @@ class NetTest(object):
         self.testDetails = test_details
         self.testCases = test_cases
 
+        self._startTime = 0
+        self._totalInputs = 0
+        self._completedInputs = 0
+
         self.summary = {}
 
         # This will fire when all the measurements have been completed and
@@ -533,6 +537,19 @@ class NetTest(object):
         if self.testDetails["report_id"]:
             log.msg("Report ID: %s" % self.testDetails["report_id"])
 
+    @property
+    def completionRate(self):
+        return float(self._completedInputs) / (time.time() - self._startTime)
+
+    @property
+    def completionPercentage(self):
+        return float(self._completedInputs) / float(self._totalInputs)
+
+    @property
+    def completionEta(self):
+        remaining_inputs = self._totalInputs - self._completedInputs
+        return (self.completionRate * remaining_inputs) * 1.5 # fudge factor
+
     def doneReport(self, report_results):
         """
         This will get called every time a report is done and therefore a
@@ -541,6 +558,13 @@ class NetTest(object):
         The state for the NetTest is informed of the fact that another task has
         reached the done state.
         """
+        self._completedInputs += 1
+        log.msg("Status")
+        log.msg("------")
+        log.msg("%d completed %d remaining" % (self._completedInputs,
+                                               self._totalInputs))
+        log.msg("%0.1f%% (ETA: %ds)" % (self.completionPercentage * 100,
+                                        self.completionEta))
         self.state.taskDone()
 
         return report_results
@@ -576,6 +600,11 @@ class NetTest(object):
     def initialize(self):
         for test_class, _ in self.testCases:
             # Initialize Input Processor
+            inputs = yield defer.maybeDeferred(
+                test_class().getInputProcessor
+            )
+            for _ in inputs:
+                self._totalInputs += 1
             test_class.inputs = yield defer.maybeDeferred(
                 test_class().getInputProcessor
             )
@@ -593,6 +622,7 @@ class NetTest(object):
         FIXME: If this generator throws exception TaskManager scheduler is
         irreversibly damaged.
         """
+        self._startTime = time.time()
 
         for test_class, test_methods in self.testCases:
             # load a singular input processor for all instances

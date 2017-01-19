@@ -72,6 +72,8 @@ class Director(object):
         self.activeNetTests = []
         self.activeDecks = []
 
+        self.activeMeasurements = {}
+
         self.measurementManager = MeasurementManager()
         self.measurementManager.director = self
 
@@ -307,7 +309,6 @@ class Director(object):
             log.error("Completed deck {0} is not actually running".format(
                 deck_id))
 
-
     def isDeckRunning(self, deck_id, from_schedule):
         """
         :param deck_id: the ID of the deck to check if it's running
@@ -358,11 +359,15 @@ class Director(object):
         yield net_test.initialize()
         try:
             self.activeNetTests.append(net_test)
+            if measurement_id:
+                self.activeMeasurements[measurement_id] = net_test
             self.measurementManager.schedule(net_test.generateMeasurements())
 
             yield net_test.done
             yield report.close()
         finally:
+            if measurement_id:
+                del self.activeMeasurements[measurement_id]
             self.netTestDone(net_test)
 
     def start_sniffing(self, test_details):
