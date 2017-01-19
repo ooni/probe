@@ -85,6 +85,9 @@ advanced:
 tor:
     #socks_port: 8801
     #control_port: 8802
+    # Alternatively set control_port to the unix domain socket. Useful for Debian based systems
+    #control_port: unix:/var/run/tor/control
+    #
     # Specify the absolute path to the Tor bridges to use for testing
     #bridges: bridges.list
     # Specify path of the tor datadirectory.
@@ -520,13 +523,23 @@ class OConfig(object):
                     incoherent.append('tor:socks_port')
 
             if self.tor.control_port is not None:
-                control_port_ep = TCP4ClientEndpoint(reactor,
-                                                     "localhost",
-                                                     self.tor.control_port)
-                try:
-                    yield connectProtocol(control_port_ep, ConnectAndCloseProtocol())
-                except Exception:
-                    incoherent.append('tor:control_port')
+                if isinstance(self.tor.control_port, int):
+                    control_port_ep = TCP4ClientEndpoint(reactor,
+                                                         "localhost",
+                                                         self.tor.control_port)
+                    try:
+                        yield connectProtocol(control_port_ep, ConnectAndCloseProtocol())
+                    except Exception:
+                        incoherent.append('tor:control_port')
+                else:
+                    conf_unix_socket_path = self.tor.control_port
+                    if conf_unix_socket_path.lstrip.startswith("unix:"):
+                        if os.path.exists(conf_unix_socket_path.lstrip("unix:")):
+                            unix_socket_path = conf_unix_socket_path.lstrip("unix:")
+                        else:
+                            incoherent.append('tor:control_port')
+                    else:
+                        incoherent.append('tor:control_port')
 
             self.log_incoherences(incoherent)
 
