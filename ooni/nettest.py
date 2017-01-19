@@ -1,7 +1,8 @@
 import os
 import re
-import time
 import sys
+import copy
+import time
 
 from twisted.internet import defer
 from twisted.python.filepath import FilePath
@@ -543,6 +544,8 @@ class NetTest(object):
 
     @property
     def completionPercentage(self):
+        if self._totalInputs == 0:
+            return 0.0
         return float(self._completedInputs) / float(self._totalInputs)
 
     @property
@@ -600,14 +603,12 @@ class NetTest(object):
     def initialize(self):
         for test_class, _ in self.testCases:
             # Initialize Input Processor
-            inputs = yield defer.maybeDeferred(
-                test_class().getInputProcessor
-            )
-            for _ in inputs:
-                self._totalInputs += 1
+            test_instance = test_class()
             test_class.inputs = yield defer.maybeDeferred(
-                test_class().getInputProcessor
+                test_instance.getInputProcessor
             )
+            if test_instance._totalInputs != -1:
+                self._totalInputs += test_instance._totalInputs
 
             # Run the setupClass method
             yield defer.maybeDeferred(
@@ -760,6 +761,8 @@ class NetTestCase(object):
 
     localOptions = {}
 
+    _totalInputs = -1
+
     @classmethod
     def setUpClass(cls):
         """
@@ -884,7 +887,12 @@ class NetTestCase(object):
         """
         if self.inputFileSpecified:
             self.inputFilename = self.localOptions[self.inputFile[0]]
+            for _ in self.inputProcessor(self.inputFilename):
+                self._totalInputs += 1
             return self.inputProcessor(self.inputFilename)
+
+        if isinstance(self.inputs, list):
+            self._totalInputs = len(self.input)
 
         if self.inputs:
             return self.inputs
