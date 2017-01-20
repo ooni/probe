@@ -892,7 +892,7 @@ class NetTestCase(object):
             return self.inputProcessor(self.inputFilename)
 
         if isinstance(self.inputs, list):
-            self._totalInputs = len(self.input)
+            self._totalInputs = len(self.inputs)
 
         if self.inputs:
             return self.inputs
