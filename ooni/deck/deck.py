@@ -218,6 +218,7 @@ class NGDeck(object):
             generate_summary(
                 measurement_dir.child("measurements.njson").path,
                 measurement_dir.child("summary.json").path,
+                measurement_dir.child("anomaly").path,
                 deck_id=self.id
             )
             measurement_dir.child("running.pid").remove()
