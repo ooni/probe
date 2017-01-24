@@ -297,7 +297,8 @@ class WebUIAPI(object):
                 'description': deck.description,
                 'schedule': deck.schedule,
                 'enabled': self.director.deck_store.is_enabled(deck_id),
-                'id': deck_id
+                'id': deck_id,
+                'icon': deck.icon
             })
         return self.render_json({"available_decks": available_decks}, request)
 
