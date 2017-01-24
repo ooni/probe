@@ -367,7 +367,7 @@ class WebUIAPI(object):
 
     @app.route('/api/deck', methods=["GET"])
     @xsrf_protect(check=False)
-    @requires_true(attrs=['_director_started', '_is_initialized'])
+    @requires_true(attrs=['_is_initialized'])
     def api_deck_list(self, request):
         deck_list = {'decks': []}
         for deck_id, deck in self.director.deck_store.list():
@@ -492,7 +492,7 @@ class WebUIAPI(object):
 
     @app.route('/api/nettest', methods=["GET"])
     @xsrf_protect(check=False)
-    @requires_true(attrs=['_director_started', '_is_initialized'])
+    @requires_true(attrs=['_is_initialized'])
     def api_nettest_list(self, request):
         return self.render_json(self.director.netTests, request)
 
