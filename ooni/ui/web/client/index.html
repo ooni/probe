@@ -1,232 +1,203 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <title></title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black">
-
-   <style type='text/css'>
-  @-webkit-keyframes uil-ripple {
-    0% {
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>ooniprobe</title><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black"><link rel="apple-touch-icon" sizes="57x57" href="/favicons/apple-icon-57x57.png"><link rel="apple-touch-icon" sizes="60x60" href="/favicons/apple-icon-60x60.png"><link rel="apple-touch-icon" sizes="72x72" href="/favicons/apple-icon-72x72.png"><link rel="apple-touch-icon" sizes="76x76" href="/favicons/apple-icon-76x76.png"><link rel="apple-touch-icon" sizes="114x114" href="/favicons/apple-icon-114x114.png"><link rel="apple-touch-icon" sizes="120x120" href="/favicons/apple-icon-120x120.png"><link rel="apple-touch-icon" sizes="144x144" href="/favicons/apple-icon-144x144.png"><link rel="apple-touch-icon" sizes="152x152" href="/favicons/apple-icon-152x152.png"><link rel="apple-touch-icon" sizes="180x180" href="/favicons/apple-icon-180x180.png"><link rel="icon" type="image/png" sizes="192x192" href="/favicons/android-icon-192x192.png"><link rel="icon" type="image/png" sizes="32x32" href="/favicons/favicon-32x32.png"><link rel="icon" type="image/png" sizes="96x96" href="/favicons/favicon-96x96.png"><link rel="icon" type="image/png" sizes="16x16" href="/favicons/favicon-16x16.png"><meta name="msapplication-TileColor" content="#ffffff"><meta name="msapplication-TileImage" content="/favicons/ms-icon-144x144.png"><meta name="theme-color" content="#ffffff"><style type="text/css">@-webkit-keyframes uil-ripple {
+      0% {
+        width: 0;
+        height: 0;
+        opacity: 0;
+        margin: 0 0 0 0;
+      }
+      33% {
+        width: 44%;
+        height: 44%;
+        margin: -22% 0 0 -22%;
+        opacity: 1;
+      }
+      100% {
+        width: 88%;
+        height: 88%;
+        margin: -44% 0 0 -44%;
+        opacity: 0;
+      }
+    }
+    @-webkit-keyframes uil-ripple {
+      0% {
+        width: 0;
+        height: 0;
+        opacity: 0;
+        margin: 0 0 0 0;
+      }
+      33% {
+        width: 44%;
+        height: 44%;
+        margin: -22% 0 0 -22%;
+        opacity: 1;
+      }
+      100% {
+        width: 88%;
+        height: 88%;
+        margin: -44% 0 0 -44%;
+        opacity: 0;
+      }
+    }
+    @-moz-keyframes uil-ripple {
+      0% {
+        width: 0;
+        height: 0;
+        opacity: 0;
+        margin: 0 0 0 0;
+      }
+      33% {
+        width: 44%;
+        height: 44%;
+        margin: -22% 0 0 -22%;
+        opacity: 1;
+      }
+      100% {
+        width: 88%;
+        height: 88%;
+        margin: -44% 0 0 -44%;
+        opacity: 0;
+      }
+    }
+    @-ms-keyframes uil-ripple {
+      0% {
+        width: 0;
+        height: 0;
+        opacity: 0;
+        margin: 0 0 0 0;
+      }
+      33% {
+        width: 44%;
+        height: 44%;
+        margin: -22% 0 0 -22%;
+        opacity: 1;
+      }
+      100% {
+        width: 88%;
+        height: 88%;
+        margin: -44% 0 0 -44%;
+        opacity: 0;
+      }
+    }
+    @-moz-keyframes uil-ripple {
+      0% {
+        width: 0;
+        height: 0;
+        opacity: 0;
+        margin: 0 0 0 0;
+      }
+      33% {
+        width: 44%;
+        height: 44%;
+        margin: -22% 0 0 -22%;
+        opacity: 1;
+      }
+      100% {
+        width: 88%;
+        height: 88%;
+        margin: -44% 0 0 -44%;
+        opacity: 0;
+      }
+    }
+    @-webkit-keyframes uil-ripple {
+      0% {
+        width: 0;
+        height: 0;
+        opacity: 0;
+        margin: 0 0 0 0;
+      }
+      33% {
+        width: 44%;
+        height: 44%;
+        margin: -22% 0 0 -22%;
+        opacity: 1;
+      }
+      100% {
+        width: 88%;
+        height: 88%;
+        margin: -44% 0 0 -44%;
+        opacity: 0;
+      }
+    }
+    @-o-keyframes uil-ripple {
+      0% {
+        width: 0;
+        height: 0;
+        opacity: 0;
+        margin: 0 0 0 0;
+      }
+      33% {
+        width: 44%;
+        height: 44%;
+        margin: -22% 0 0 -22%;
+        opacity: 1;
+      }
+      100% {
+        width: 88%;
+        height: 88%;
+        margin: -44% 0 0 -44%;
+        opacity: 0;
+      }
+    }
+    @keyframes uil-ripple {
+      0% {
+        width: 0;
+        height: 0;
+        opacity: 0;
+        margin: 0 0 0 0;
+      }
+      33% {
+        width: 44%;
+        height: 44%;
+        margin: -22% 0 0 -22%;
+        opacity: 1;
+      }
+      100% {
+        width: 88%;
+        height: 88%;
+        margin: -44% 0 0 -44%;
+        opacity: 0;
+      }
+    }
+    .uil-ripple-css {
+      background: none;
+      position: relative;
+      width: 200px;
+      height: 200px;
+    }
+    .uil-ripple-css div {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      margin: 0;
       width: 0;
       height: 0;
       opacity: 0;
-      margin: 0 0 0 0;
+      border-radius: 50%;
+      border-width: 12px;
+      border-style: solid;
+      -ms-animation: uil-ripple 2s ease-out infinite;
+      -moz-animation: uil-ripple 2s ease-out infinite;
+      -webkit-animation: uil-ripple 2s ease-out infinite;
+      -o-animation: uil-ripple 2s ease-out infinite;
+      animation: uil-ripple 2s ease-out infinite;
     }
-    33% {
-      width: 44%;
-      height: 44%;
-      margin: -22% 0 0 -22%;
-      opacity: 1;
+    .uil-ripple-css div:nth-of-type(1) {
+      border-color: #0588CB;
     }
-    100% {
-      width: 88%;
-      height: 88%;
-      margin: -44% 0 0 -44%;
-      opacity: 0;
+    .uil-ripple-css div:nth-of-type(2) {
+      border-color: #777777;
+      -ms-animation-delay: 1s;
+      -moz-animation-delay: 1s;
+      -webkit-animation-delay: 1s;
+      -o-animation-delay: 1s;
+      animation-delay: 1s;
     }
-  }
-  @-webkit-keyframes uil-ripple {
-    0% {
-      width: 0;
-      height: 0;
-      opacity: 0;
-      margin: 0 0 0 0;
+    .loader {
+      padding-top: 100px;
+      margin: 0 auto;
+      width: 200px;
     }
-    33% {
-      width: 44%;
-      height: 44%;
-      margin: -22% 0 0 -22%;
-      opacity: 1;
-    }
-    100% {
-      width: 88%;
-      height: 88%;
-      margin: -44% 0 0 -44%;
-      opacity: 0;
-    }
-  }
-  @-moz-keyframes uil-ripple {
-    0% {
-      width: 0;
-      height: 0;
-      opacity: 0;
-      margin: 0 0 0 0;
-    }
-    33% {
-      width: 44%;
-      height: 44%;
-      margin: -22% 0 0 -22%;
-      opacity: 1;
-    }
-    100% {
-      width: 88%;
-      height: 88%;
-      margin: -44% 0 0 -44%;
-      opacity: 0;
-    }
-  }
-  @-ms-keyframes uil-ripple {
-    0% {
-      width: 0;
-      height: 0;
-      opacity: 0;
-      margin: 0 0 0 0;
-    }
-    33% {
-      width: 44%;
-      height: 44%;
-      margin: -22% 0 0 -22%;
-      opacity: 1;
-    }
-    100% {
-      width: 88%;
-      height: 88%;
-      margin: -44% 0 0 -44%;
-      opacity: 0;
-    }
-  }
-  @-moz-keyframes uil-ripple {
-    0% {
-      width: 0;
-      height: 0;
-      opacity: 0;
-      margin: 0 0 0 0;
-    }
-    33% {
-      width: 44%;
-      height: 44%;
-      margin: -22% 0 0 -22%;
-      opacity: 1;
-    }
-    100% {
-      width: 88%;
-      height: 88%;
-      margin: -44% 0 0 -44%;
-      opacity: 0;
-    }
-  }
-  @-webkit-keyframes uil-ripple {
-    0% {
-      width: 0;
-      height: 0;
-      opacity: 0;
-      margin: 0 0 0 0;
-    }
-    33% {
-      width: 44%;
-      height: 44%;
-      margin: -22% 0 0 -22%;
-      opacity: 1;
-    }
-    100% {
-      width: 88%;
-      height: 88%;
-      margin: -44% 0 0 -44%;
-      opacity: 0;
-    }
-  }
-  @-o-keyframes uil-ripple {
-    0% {
-      width: 0;
-      height: 0;
-      opacity: 0;
-      margin: 0 0 0 0;
-    }
-    33% {
-      width: 44%;
-      height: 44%;
-      margin: -22% 0 0 -22%;
-      opacity: 1;
-    }
-    100% {
-      width: 88%;
-      height: 88%;
-      margin: -44% 0 0 -44%;
-      opacity: 0;
-    }
-  }
-  @keyframes uil-ripple {
-    0% {
-      width: 0;
-      height: 0;
-      opacity: 0;
-      margin: 0 0 0 0;
-    }
-    33% {
-      width: 44%;
-      height: 44%;
-      margin: -22% 0 0 -22%;
-      opacity: 1;
-    }
-    100% {
-      width: 88%;
-      height: 88%;
-      margin: -44% 0 0 -44%;
-      opacity: 0;
-    }
-  }
-  .uil-ripple-css {
-    background: none;
-    position: relative;
-    width: 200px;
-    height: 200px;
-  }
-  .uil-ripple-css div {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    margin: 0;
-    width: 0;
-    height: 0;
-    opacity: 0;
-    border-radius: 50%;
-    border-width: 12px;
-    border-style: solid;
-    -ms-animation: uil-ripple 2s ease-out infinite;
-    -moz-animation: uil-ripple 2s ease-out infinite;
-    -webkit-animation: uil-ripple 2s ease-out infinite;
-    -o-animation: uil-ripple 2s ease-out infinite;
-    animation: uil-ripple 2s ease-out infinite;
-  }
-  .uil-ripple-css div:nth-of-type(1) {
-    border-color: #0588CB;
-  }
-  .uil-ripple-css div:nth-of-type(2) {
-    border-color: #777777;
-    -ms-animation-delay: 1s;
-    -moz-animation-delay: 1s;
-    -webkit-animation-delay: 1s;
-    -o-animation-delay: 1s;
-    animation-delay: 1s;
-  }
-  .loader {
-    padding-top: 100px;
-    margin: 0 auto;
-    width: 200px;
-  }
-  .loader h2 {
-    font-family: "Fira Sans", sans-serif;
-    text-align: center;
-  }
-
-  </style>
-
-  </head>
-  <body ng-app="app" ng-strict-di ng-cloak>
-
-    <app>
-      <div class="loader">
-        <div class='uil-ripple-css' style='transform:scale(0.88);'><div></div><div></div></div>
-        <h2>Loading ooniprobe</h2>
-        <h2>Please wait...</h2>
-      </div>
-    </app>
-
-  <script type="text/javascript" src="app.bundle.js?117c50fc29f143dfeab2"></script></body>
-
-
-</html>
+    .loader h2 {
+      font-family: "Fira Sans", sans-serif;
+      text-align: center;
+    }</style><link rel="shortcut icon" href="/client/favicon.ico"><link href="/client/app.4e95db688e110f884adaf837dd9d784d.css" rel="stylesheet"></head><body><div id="root" style="height: 100%"><div class="loader"><div class="uil-ripple-css" style="transform:scale(0.88)"><div></div><div></div></div><h2>Loading ooniprobe</h2><h2>Please wait...</h2></div></div><script type="text/javascript" src="/client/vendor.d1ecd855bf83ce34907e.js"></script><script type="text/javascript" src="/client/app.2cc5c41c1b121d65cc9b.js"></script></body></html>
