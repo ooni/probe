@@ -25,7 +25,7 @@ class HTTPInvalidRequestLine(tcpt.TCPTest):
     ascii letters or numbers ('XxXx' will be 4).
     """
     name = "HTTP Invalid Request Line"
-    description = "Performs out of spec HTTP requests in the attempt to "\
+    description = "Performs out of spec HTTP requests in an attempt to "\
                   "trigger a proxy error message."
     version = "0.2"
     authors = "Arturo Filastò"

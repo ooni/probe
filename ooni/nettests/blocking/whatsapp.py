@@ -261,8 +261,8 @@ class UsageOptions(usage.Options):
 
 class WhatsappTest(httpt.HTTPTest, dnst.DNSTest):
     name = "Whatsapp"
-    description = ("This test checks to see if the servers used by whatsapp "
-                   "messenger are reachable")
+    description = ("This test examines the reachability of WhatsApp "
+                   " and WhatsApp's web interface (web.whatsapp.com) in your network.")
     author = "Arturo Filastò"
     version = "0.5.0"
 

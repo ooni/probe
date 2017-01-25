@@ -28,8 +28,8 @@ class meekTest(httpt.HTTPTest):
 
     """
     name = "Meek fronted requests test"
-    description = "This tests for the Meek Tor pluggable transport "\
-                  "frontend reachability."
+    description = "This test examines whether the domains used by Meek "\
+                  "(a type of Tor bridge) work in your network."
     version = "0.0.1"
 
     usageOptions = UsageOptions
