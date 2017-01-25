@@ -91,10 +91,10 @@ minimal, or not standard, installations.
 Installation
 ============
 
-Mac OS X
---------
+macOS
+-----
 
-You can install ooniprobe on OSX if you have installed homebrew (http://mxcl.github.io/homebrew) with::
+You can install ooniprobe on macOS if you have installed homebrew (http://brew.sh/) with::
 
     brew install ooniprobe
 
