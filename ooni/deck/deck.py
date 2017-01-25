@@ -1,6 +1,8 @@
 import os
+import json
 import uuid
 import errno
+import hashlib
 from copy import deepcopy
 from string import Template
 
@@ -35,13 +37,13 @@ def options_to_args(options):
     for k, v in options.items():
         if v is None:
             continue
-        if v == False or v == 0:
+        if v == False:
             continue
         if (len(k)) == 1:
             args.append('-'+k)
         else:
             args.append('--'+k)
-        if isinstance(v, bool) or isinstance(v, int):
+        if v == True:
             continue
         args.append(v)
     return args
@@ -82,6 +84,7 @@ class NGDeck(object):
         self.name = ""
         self.description = ""
         self.icon = ""
+        self.id = None
         self.schedule = None
 
         self.metadata = {}
@@ -102,10 +105,15 @@ class NGDeck(object):
     def open(self, deck_path, global_options=None):
         with open(deck_path) as fh:
             deck_data = yaml.safe_load(fh)
+        self.id = os.path.basename(deck_path[:-1*len('.yaml')])
         self.deck_directory = os.path.abspath(os.path.dirname(deck_path))
         self.load(deck_data, global_options)
 
     def load(self, deck_data, global_options=None):
+        if self.id is None:
+            # This happens when you load a deck not from a filepath so we
+            # use the first 16 characters of the SHA256 hexdigest as an ID
+            self.id = hashlib.sha256(json.dumps(deck_data)).hexdigest()[:16]
         if global_options is not None:
             self.global_options = normalize_options(global_options)
 
@@ -209,7 +217,8 @@ class NGDeck(object):
             )
             generate_summary(
                 measurement_dir.child("measurements.njson").path,
-                measurement_dir.child("summary.json").path
+                measurement_dir.child("summary.json").path,
+                deck_id=self.id
             )
             measurement_dir.child("running.pid").remove()
 
@@ -226,7 +235,7 @@ class NGDeck(object):
         # XXX-REFACTOR we do this so late to avoid the collision between the
         #  same id and hence generating the same filename.
         test_details = net_test_loader.getTestDetails()
-        task.id = generate_filename(test_details)
+        task.id = generate_filename(test_details, deck_id=self.id)
 
         measurement_id = None
         report_filename = task.output_path
@@ -274,18 +283,20 @@ class NGDeck(object):
         self._is_setup = True
 
     @defer.inlineCallbacks
-    def run(self, director):
+    def run(self, director, from_schedule=False):
         assert self._is_setup, "You must call setup() before you can run a " \
                                "deck"
         if self.requires_tor:
             yield director.start_tor()
         yield self.query_bouncer()
+        director.deckStarted(self.id, from_schedule)
         for task in self._tasks:
             if task.skip is True:
-                log.msg("Skipping running {0}".format(task.id))
+                log.debug("Skipping running {0}".format(task.id))
                 continue
             if task.type == "ooni":
                 yield self._run_ooni_task(task, director)
+        director.deckFinished(self.id, from_schedule)
         self._is_setup = False
 
 
@@ -320,7 +331,8 @@ class DeckTask(object):
 
         self.ooni = {
             'bouncer_client': None,
-            'test_details': {}
+            'test_details': {},
+            'test_name': None
         }
         self.output_path = None
 
@@ -343,8 +355,9 @@ class DeckTask(object):
             if required_key not in task_data:
                 raise MissingTaskDataKey(required_key)
 
+        self.ooni['test_name'] = task_data.pop('test_name')
         # This raises e.NetTestNotFound, we let it go onto the caller
-        nettest_path = nettest_to_path(task_data.pop("test_name"),
+        nettest_path = nettest_to_path(self.ooni['test_name'],
                                        self._arbitrary_paths)
 
         annotations = self._pop_option('annotations', task_data, {})

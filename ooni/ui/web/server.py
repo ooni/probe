@@ -147,7 +147,7 @@ class WebUIAPI(object):
     app = Klein()
     # Maximum number in seconds after which to return a result even if no
     # change happened.
-    _long_polling_timeout = 5
+    _long_polling_timeout = 30
     _reactor = reactor
     _enable_xsrf_protection = True
 
@@ -171,8 +171,8 @@ class WebUIAPI(object):
         # We use exponential backoff to trigger retries of the startup of
         # the director.
         self._director_startup_retries = 0
-        # Maximum delay should be 6 hours
-        self._director_max_retry_delay = 6*60*60
+        # Maximum delay should be 30 minutes
+        self._director_max_retry_delay = 30*60
 
         self.status_poller = LongPoller(
             self._long_polling_timeout, _reactor)
@@ -368,26 +368,27 @@ class WebUIAPI(object):
     @xsrf_protect(check=False)
     @requires_true(attrs=['_director_started', '_is_initialized'])
     def api_deck_list(self, request):
-        deck_list = {
-            'available': {},
-            'enabled': {}
-        }
+        deck_list = {'decks': []}
         for deck_id, deck in self.director.deck_store.list():
-            deck_list['available'][deck_id] = {
+            nettests = []
+            for task in deck.tasks:
+                if task.type == 'ooni':
+                    assert task.ooni['test_name'] is not None
+                    nettests.append(task.ooni['test_name'])
+
+            deck_list['decks'].append({
+                'id': deck_id,
                 'name': deck.name,
+                'icon': deck.icon,
+                'running': self.director.isDeckRunning(
+                                            deck_id, from_schedule=False),
+                'running_scheduled': self.director.isDeckRunning(
+                                            deck_id, from_schedule=True),
+                'nettests': nettests,
                 'description': deck.description,
                 'schedule': deck.schedule,
                 'enabled': self.director.deck_store.is_enabled(deck_id)
-            }
-
-        for deck_id, deck in self.director.deck_store.list_enabled():
-            deck_list['enabled'][deck_id] = {
-                'name': deck.name,
-                'description': deck.description,
-                'schedule': deck.schedule,
-                'enabled': True
-            }
-
+            })
         return self.render_json(deck_list, request)
 
     @app.route('/api/deck/<string:deck_id>/run', methods=["POST"])
@@ -433,9 +434,12 @@ class WebUIAPI(object):
         # These are dangling deferreds
         try:
             yield deck.setup()
-            yield deck.run(self.director)
+            yield deck.run(self.director, from_schedule=False)
+            self.director_event_poller.notify(DirectorEvent("success",
+                                                            "Started Deck "
+                                                            + deck.id))
         except:
-            self.director_event_poller.notify(DirectorEvent("error",
+             self.director_event_poller.notify(DirectorEvent("error",
                                                             "Failed to start deck"))
 
     @app.route('/api/nettest/<string:test_name>/start', methods=["POST"])
@@ -477,7 +481,8 @@ class WebUIAPI(object):
             raise WebUIError(
                 400, 'Insufficient privileges'
             )
-        except:
+        except Exception as exc:
+            log.exception(exc)
             raise WebUIError(
                 500, 'Failed to start nettest'
             )
