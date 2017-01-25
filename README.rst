@@ -248,14 +248,14 @@ to be activated::
     pip install -r requirements-dev.txt
     python setup.py install
 
-Then, you can check whether the installation went well with:
+Then, you can check whether the installation went well with::
 
     ooniprobe -s
 
 This will explain you the risks of running ooniprobe and make sure you have
 understood them, afterwars it shows you the available tests.
 
-To run the ooniprobe agent, instead, type:
+To run the ooniprobe agent, instead, type::
 
     ooniprobe-agent run
 
