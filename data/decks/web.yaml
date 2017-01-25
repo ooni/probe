@@ -1,6 +1,6 @@
 ---
-name: Web test deck
-description: This deck runs HTTP Header Field Manipulation and the Web Connectivity test
+name: Test URLs
+description: "This deck examines whether (and how) websites are blocked and tries to detect censorship and/or surveillance systems in your network. The Web Connectivity test examines whether access to websites is blocked through DNS tampering, TCP connection RST/IP blocking, or by a transparent HTTP proxy. The HTTP Header Field Manipulation test tries to detect censorship and/or surveillance systems in your network by sending HTTP headers to an echo server that have variations in capitalization."
 schedule: "@daily"
 icon: "fa-unlink"
 tasks:

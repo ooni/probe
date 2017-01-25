@@ -1,6 +1,8 @@
 ---
-name: HTTP Invalid Request Line
-description: This deck runs HTTP Invalid Request Line test
+name: Test for Surveillance
+description: "This deck runs the HTTP Invalid
+Request Line test which tries to detect censorship and/or surveillance systems
+in your network by sending an HTTP invalid request line to an echo server."
 schedule: "@daily"
 icon: "fa-gears"
 tasks:

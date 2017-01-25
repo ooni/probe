@@ -1,13 +1,15 @@
 ---
-name: Instant Messaging deck
-description: This test deck will check to see if instant messaging applications are working
+name: Test Instant Messaging Apps
+description: "This test deck will check to see if instant messaging applications are working.
+    The WhatsApp test examines the reachability of both WhatsApp and WhatsApp's web interface (web.whatsapp.com) in your network.
+    The Facebook Messenger test examines the reachability of Facebook Messenger in your network."
 schedule: "@daily"
 icon: "fa-comment-o"
 tasks:
-- name: Checks to see if WhatsApp is working
+- name: Checks to see if WhatsApp is working.
   ooni:
     test_name: whatsapp
 
-- name: Checks to see if Facebook Messenger is working
+- name: Checks to see if Facebook Messenger is working.
   ooni:
     test_name: facebook_messenger
