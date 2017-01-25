@@ -86,7 +86,7 @@ Note: You'll need to swap out ``$RELEASE`` for either ``yakkety``, ``xenial`` or
 ``trusty``. This will not happen automatically. You will also need to ensure
 that you have the ``universe`` repository enabled. The ``universe`` repository
 is enabled by default in a standard Ubuntu installation but may not be on some
-minimal on not standard installations.
+minimal, or not standard, installations.
 
 Installation
 ============
