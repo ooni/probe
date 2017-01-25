@@ -1,8 +1,10 @@
----
-name: HTTP Invalid Request Line
-description: This deck runs HTTP Invalid Request Line test
-schedule: "@daily"
-tasks:
-- name: Runs the HTTP Invalid Request Line test
-  ooni:
+--- 
+name: Test for Middle Boxes 
+description: "This deck runs the HTTP Invalid
+Request Line test which tries to detect censorship and/or surveillance systems
+in your network by sending an HTTP invalid request line to an echo server." 
+schedule: "@daily" 
+tasks:  
+- name: Runs the HTTP Invalid Request Line test   
+  ooni:     
     test_name: http_invalid_request_line
