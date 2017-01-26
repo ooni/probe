@@ -11,7 +11,7 @@ from ooni.settings import config
 class MeasurementInProgress(Exception):
     pass
 
-class Process():
+class MeasurementTypes():
     supported_tests = [
         "web_connectivity",
         "http_requests",
@@ -51,14 +51,15 @@ class Process():
         result['url'] = entry['input']
         return result
 
-def generate_summary(input_file, output_file):
+
+def generate_summary(input_file, output_file, deck_id='none'):
     results = {}
     with open(input_file) as in_file:
         for idx, line in enumerate(in_file):
             entry = json.loads(line.strip())
             result = {}
-            if entry['test_name'] in Process.supported_tests:
-                result = getattr(Process, entry['test_name'])(entry)
+            if entry['test_name'] in MeasurementTypes.supported_tests:
+                result = getattr(MeasurementTypes, entry['test_name'])(entry)
             result['idx'] = idx
             if not result.get('url', None):
                 result['url'] = entry['input']
@@ -66,6 +67,7 @@ def generate_summary(input_file, output_file):
             results['test_start_time'] = entry['test_start_time']
             results['country_code'] = entry['probe_cc']
             results['asn'] = entry['probe_asn']
+            results['deck_id'] = deck_id
             results['results'] = results.get('results', [])
             results['results'].append(result)
 
@@ -73,8 +75,10 @@ def generate_summary(input_file, output_file):
         json.dump(results, fw)
     return results
 
+
 class MeasurementNotFound(Exception):
     pass
+
 
 def get_measurement(measurement_id, compute_size=False):
     size = -1
@@ -89,11 +93,14 @@ def get_measurement(measurement_id, compute_size=False):
     stale = False
     if measurement.child("measurements.njson.progress").exists():
         completed = False
-        pid = measurement.child("running.pid").open("r").read()
-        pid = int(pid)
-        if is_process_running(pid):
-            running = True
-        else:
+        try:
+            pid = measurement.child("running.pid").open("r").read()
+            pid = int(pid)
+            if is_process_running(pid):
+                running = True
+            else:
+                stale = True
+        except IOError:
             stale = True
 
     if measurement.child("keep").exists():
@@ -102,8 +109,11 @@ def get_measurement(measurement_id, compute_size=False):
     if compute_size is True:
         size = directory_usage(measurement.path)
 
-    test_start_time, country_code, asn, test_name = \
-        measurement_id.split("-")[:4]
+    measurement_metadata = measurement_id.split("-")
+    test_start_time, country_code, asn, test_name = measurement_metadata[:4]
+    deck_id = "none"
+    if len(measurement_metadata) > 4:
+        deck_id = '-'.join(measurement_metadata[4:])
     return {
         "test_name": test_name,
         "country_code": country_code,
@@ -114,7 +124,8 @@ def get_measurement(measurement_id, compute_size=False):
         "keep": keep,
         "running": running,
         "stale": stale,
-        "size": size
+        "size": size,
+        "deck_id": deck_id
     }
 
 
@@ -150,8 +161,9 @@ def list_measurements(compute_size=False, order=None):
     for measurement_id in measurement_path.listdir():
         try:
             measurements.append(get_measurement(measurement_id, compute_size))
-        except:
+        except Exception as exc:
             log.err("Failed to get metadata for measurement {0}".format(measurement_id))
+            log.exception(exc)
 
     if order is None:
         return measurements

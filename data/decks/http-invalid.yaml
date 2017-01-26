@@ -2,6 +2,7 @@
 name: HTTP Invalid Request Line
 description: This deck runs HTTP Invalid Request Line test
 schedule: "@daily"
+icon: "fa-gears"
 tasks:
 - name: Runs the HTTP Invalid Request Line test
   ooni:

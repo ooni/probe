@@ -70,6 +70,7 @@ class Director(object):
 
     def __init__(self):
         self.activeNetTests = []
+        self.activeDecks = []
 
         self.measurementManager = MeasurementManager()
         self.measurementManager.director = self
@@ -289,6 +290,32 @@ class Director(object):
         self.failedMeasurements += 1
         measurement.result = failure
         return measurement
+
+    def deckStarted(self, deck_id, from_schedule):
+        log.debug("Starting {0} ({1})".format(deck_id,
+                                              'scheduled' if from_schedule
+                                              else 'user-run'))
+        self.activeDecks.append((deck_id, from_schedule))
+
+    def deckFinished(self, deck_id, from_schedule):
+        log.debug("Finished {0} ({1})".format(deck_id,
+                                              'scheduled' if from_schedule
+                                              else 'user-run'))
+        try:
+            self.activeDecks.remove((deck_id, from_schedule))
+        except ValueError:
+            log.error("Completed deck {0} is not actually running".format(
+                deck_id))
+
+
+    def isDeckRunning(self, deck_id, from_schedule):
+        """
+        :param deck_id: the ID of the deck to check if it's running
+        :param from_schedule:  True if we want to know the status of a
+        scheduled deck run False for user initiated runs.
+        :return: True if the deck is running False otherwise
+        """
+        return (deck_id, from_schedule) in self.activeDecks
 
     def netTestDone(self, net_test):
         self.notify(DirectorEvent("success",

@@ -227,11 +227,10 @@ class DeckStore(object):
         for deck_path in self.available_directory.listdir():
             if not deck_path.endswith('.yaml'):
                 continue
-            deck_id = deck_path[:-1*len('.yaml')]
             deck = NGDeck(
                 deck_path=self.available_directory.child(deck_path).path
             )
-            new_cache[deck_id] = deck
+            new_cache[deck.id] = deck
         self._cache = new_cache
         self._cache_stale = False
 
