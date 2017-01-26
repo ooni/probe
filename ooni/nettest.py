@@ -546,11 +546,17 @@ class NetTest(object):
     def completionPercentage(self):
         if self._totalInputs == 0:
             return 0.0
+        # Never return 100%
+        if self._completedInputs >= self._totalInputs:
+            return 0.99
         return float(self._completedInputs) / float(self._totalInputs)
 
     @property
     def completionEta(self):
         remaining_inputs = self._totalInputs - self._completedInputs
+        # We adjust for negative values
+        if remaining_inputs <= 0:
+            return 1
         return (self.completionRate * remaining_inputs) * 1.5 # fudge factor
 
     def doneReport(self, report_results):
@@ -562,6 +568,7 @@ class NetTest(object):
         reached the done state.
         """
         self._completedInputs += 1
+        log.msg("")
         log.msg("Status")
         log.msg("------")
         log.msg("%d completed %d remaining" % (self._completedInputs,
@@ -601,14 +608,17 @@ class NetTest(object):
 
     @defer.inlineCallbacks
     def initialize(self):
-        for test_class, _ in self.testCases:
+        for test_class, test_cases in self.testCases:
             # Initialize Input Processor
             test_instance = test_class()
             test_class.inputs = yield defer.maybeDeferred(
                 test_instance.getInputProcessor
             )
-            if test_instance._totalInputs != -1:
-                self._totalInputs += test_instance._totalInputs
+            for _ in test_cases:
+                if test_instance._totalInputs != None:
+                    self._totalInputs += test_instance._totalInputs
+                else:
+                    self._totalInputs += 1
 
             # Run the setupClass method
             yield defer.maybeDeferred(
@@ -761,7 +771,7 @@ class NetTestCase(object):
 
     localOptions = {}
 
-    _totalInputs = -1
+    _totalInputs = None
 
     @classmethod
     def setUpClass(cls):
@@ -886,6 +896,8 @@ class NetTestCase(object):
             inputProcessor.
         """
         if self.inputFileSpecified:
+            if self._totalInputs is None:
+                self._totalInputs = 0
             self.inputFilename = self.localOptions[self.inputFile[0]]
             for _ in self.inputProcessor(self.inputFilename):
                 self._totalInputs += 1
