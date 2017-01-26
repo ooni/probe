@@ -1,5 +1,6 @@
 from twisted.trial import unittest
 from ooni.common.http_utils import META_CHARSET_REGEXP
+from ooni.common.ip_utils import is_public_ipv4_address, is_private_ipv4_address
 
 class TestHTTPUtils(unittest.TestCase):
     def test_charset_detection(self):
@@ -17,3 +18,16 @@ class TestHTTPUtils(unittest.TestCase):
         self.assertEqual(META_CHARSET_REGEXP.search(
             with_two_charsets).group(1), 'UTF-8')
         self.assertEqual(META_CHARSET_REGEXP.search(with_empty_charset), None)
+
+class TestIPUtils(unittest.TestCase):
+    def test_is_public_ipv4(self):
+        self.assertTrue(is_public_ipv4_address('8.8.8.8'))
+        self.assertFalse(is_public_ipv4_address('example.com'))
+        self.assertFalse(is_public_ipv4_address('127.0.0.1'))
+        self.assertFalse(is_public_ipv4_address('192.168.1.1'))
+
+    def test_is_private_ipv4(self):
+        self.assertFalse(is_private_ipv4_address('8.8.8.8'))
+        self.assertFalse(is_private_ipv4_address('example.com'))
+        self.assertTrue(is_private_ipv4_address('127.0.0.1'))
+        self.assertTrue(is_private_ipv4_address('192.168.2.2'))
