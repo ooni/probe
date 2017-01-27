@@ -1,9 +1,11 @@
 ---
 name: Test Tor
-description: "This deck includes tests designed to examine the reachability of the Tor network and Tor bridges.
-    The Vanilla Tor test examines the reachability of the Tor network.
-    The Tor Bridges test examines the reachability of Tor bridges in your network.
-    The Meek Fronted Requests test examines whether the domains used by Meek (a type of Tor bridge) work in your network."
+description: "This deck includes tests designed to examine the reachability of
+the Tor network and Tor bridges. The Vanilla Tor test examines the
+reachability of the Tor network. The Tor Bridges test examines the
+reachability of Tor bridges in your network.  The Meek Fronted Requests test
+examines whether the domains used by Meek (a type of Tor bridge) work in your
+network."
 schedule: "@daily"
 icon: "fa-wrench"
 tasks:
