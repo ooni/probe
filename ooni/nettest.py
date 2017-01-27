@@ -146,6 +146,10 @@ def usageOptionsFactory(test_name, test_version):
             test_name
         )
 
+        def opt_help(self):
+            map(log.msg, self.__str__().split("\n"))
+            sys.exit(0)
+
         def opt_version(self):
             """
             Display the net_test version and exit.
