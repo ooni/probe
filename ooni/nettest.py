@@ -615,11 +615,6 @@ class NetTest(object):
         for test_class, test_cases in self.testCases:
             # Initialize Input Processor
             test_instance = test_class()
-            inputs = yield defer.maybeDeferred(
-                test_class().getInputProcessor
-            )
-            for _ in inputs:
-                self._totalInputs += 1
             test_class.inputs = yield defer.maybeDeferred(
                 test_instance.getInputProcessor
             )
