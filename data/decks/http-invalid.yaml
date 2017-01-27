@@ -1,8 +1,8 @@
 ---
 name: Test for Middle Boxes
-description: "This deck runs the HTTP Invalid
-Request Line test which tries to detect censorship and/or surveillance systems
-in your network by sending an HTTP invalid request line to an echo server."
+description: "This deck runs the HTTP Invalid Request Line test which tries to
+detect censorship and/or surveillance systems in your network by sending an
+HTTP invalid request line to an echo server."
 schedule: "@daily"
 icon: "fa-gears"
 tasks:
