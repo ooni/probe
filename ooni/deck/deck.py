@@ -37,13 +37,13 @@ def options_to_args(options):
     for k, v in options.items():
         if v is None:
             continue
-        if v == False:
+        if v is False:
             continue
         if (len(k)) == 1:
             args.append('-'+k)
         else:
             args.append('--'+k)
-        if v == True:
+        if v is True:
             continue
         args.append(v)
     return args
@@ -218,6 +218,7 @@ class NGDeck(object):
             generate_summary(
                 measurement_dir.child("measurements.njson").path,
                 measurement_dir.child("summary.json").path,
+                measurement_dir.child("anomaly").path,
                 deck_id=self.id
             )
             measurement_dir.child("running.pid").remove()
