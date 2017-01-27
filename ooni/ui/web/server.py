@@ -472,7 +472,7 @@ class WebUIAPI(object):
                 400, 'Missing required option: "{}"'.format(option_name)
             )
 
-        except usage.UsageError:
+        except usage.UsageError as ue:
             raise WebUIError(
                 400, 'Error in parsing options'
             )
@@ -528,6 +528,14 @@ class WebUIAPI(object):
     @requires_true(attrs=['_is_initialized'])
     def api_measurement_list(self, request):
         measurements = list_measurements(order='desc')
+        for measurement in measurements:
+            if measurement['running'] == False:
+                continue
+            try:
+                net_test = self.director.activeMeasurements[measurement['id']]
+                measurement['progress'] = net_test.completionPercentage * 100
+            except KeyError:
+                log.err("Did not find measurement with ID %s" % measurement['id'])
         return self.render_json({"measurements": measurements}, request)
 
     @app.route('/api/measurement/<string:measurement_id>', methods=["GET"])

@@ -23,6 +23,10 @@ class MeasurementTypes():
         result['anomaly'] = False
         if entry['test_keys']['blocking'] is not False:
             result['anomaly'] = True
+            if entry['test_keys']['blocking'] is None:
+                result['anomaly_type'] = 'warning'
+            else:
+                result['anomaly_type'] = 'danger'
         result['url'] = entry['input']
         return result
 
@@ -32,6 +36,7 @@ class MeasurementTypes():
         result['anomaly'] = False
         if entry['test_keys']['connection'] != "success":
             result['anomaly'] = True
+            result['anomaly_type'] = 'danger'
         result['url'] = entry['input']
         return result
 
@@ -48,12 +53,15 @@ class MeasurementTypes():
             )
         )
         result['anomaly'] = anomaly
+        if anomaly is True:
+            result['anomaly_type'] = 'danger'
         result['url'] = entry['input']
         return result
 
 
-def generate_summary(input_file, output_file, deck_id='none'):
+def generate_summary(input_file, output_file, anomaly_file, deck_id='none'):
     results = {}
+    anomaly = False
     with open(input_file) as in_file:
         for idx, line in enumerate(in_file):
             entry = json.loads(line.strip())
@@ -61,6 +69,8 @@ def generate_summary(input_file, output_file, deck_id='none'):
             if entry['test_name'] in MeasurementTypes.supported_tests:
                 result = getattr(MeasurementTypes, entry['test_name'])(entry)
             result['idx'] = idx
+            if result.get('anomaly', None) is True:
+                anomaly = True
             if not result.get('url', None):
                 result['url'] = entry['input']
             results['test_name'] = entry['test_name']
@@ -73,6 +83,8 @@ def generate_summary(input_file, output_file, deck_id='none'):
 
     with open(output_file, "w") as fw:
         json.dump(results, fw)
+    if anomaly is True:
+        with open(anomaly_file, 'w') as _: pass
     return results
 
 
@@ -91,6 +103,7 @@ def get_measurement(measurement_id, compute_size=False):
     completed = True
     keep = False
     stale = False
+    anomaly = False
     if measurement.child("measurements.njson.progress").exists():
         completed = False
         try:
@@ -105,6 +118,9 @@ def get_measurement(measurement_id, compute_size=False):
 
     if measurement.child("keep").exists():
         keep = True
+
+    if measurement.child("anomaly").exists():
+        anomaly = True
 
     if compute_size is True:
         size = directory_usage(measurement.path)
@@ -125,7 +141,8 @@ def get_measurement(measurement_id, compute_size=False):
         "running": running,
         "stale": stale,
         "size": size,
-        "deck_id": deck_id
+        "deck_id": deck_id,
+        "anomaly": anomaly
     }
 
 
@@ -142,11 +159,13 @@ def get_summary(measurement_id):
         return defer.fail(MeasurementInProgress)
 
     summary = measurement.child("summary.json")
+    anomaly = measurement.child("anomaly")
     if not summary.exists():
         return deferToThread(
             generate_summary,
             measurement.child("measurements.njson").path,
-            summary.path
+            summary.path,
+            anomaly.path
         )
 
     with summary.open("r") as f:
