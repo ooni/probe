@@ -1,7 +1,6 @@
 import shutil
 import string
 import random
-import signal
 import errno
 import gzip
 import os
@@ -103,7 +102,7 @@ def randomDate(start, end):
 LONG_DATE = "%Y-%m-%d %H:%M:%S"
 SHORT_DATE = "%Y%m%dT%H%M%SZ"
 
-def generate_filename(test_details, prefix=None, extension=None):
+def generate_filename(test_details, prefix=None, extension=None, deck_id=None):
     """
     Returns a filename for every test execution.
 
@@ -116,6 +115,9 @@ def generate_filename(test_details, prefix=None, extension=None):
         kwargs["prefix"] = prefix
         filename_format += "{prefix}-"
     filename_format += "{timestamp}-{probe_cc}-{probe_asn}-{test_name}"
+    if deck_id is not None:
+        kwargs["deck_id"] = deck_id
+        filename_format += "-{deck_id}"
     if extension is not None:
         kwargs["extension"] = extension
         filename_format += ".{extension}"

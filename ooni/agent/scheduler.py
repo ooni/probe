@@ -294,7 +294,7 @@ class RunDeck(ScheduledTask):
     def task(self):
         deck = deck_store.get(self.deck_id)
         yield deck.setup()
-        yield deck.run(self.director)
+        yield deck.run(self.director, from_schedule=True)
 
 
 class RefreshDeckList(ScheduledTask):
