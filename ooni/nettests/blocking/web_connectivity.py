@@ -468,7 +468,7 @@ class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
         @experiment_http.addErrback
         def http_experiment_err(failure):
             failure_string = failureToString(failure)
-            log.err("Failed to perform HTTP request %s" % failure_string)
+            log.msg("Failed to perform HTTP request %s" % failure_string)
             self.report['http_experiment_failure'] = failure_string
 
         experiment_http_response = yield experiment_http
