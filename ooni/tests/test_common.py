@@ -41,7 +41,7 @@ class TestTxExtra(unittest.TestCase):
     @defer.inlineCallbacks
     def test_redirect_works(self):
         agent = FixedRedirectAgent(TrueHeadersAgent(reactor))
-        headers = TrueHeaders({"Spam": "ham"})
+        headers = TrueHeaders({"Spam": ["ham"]})
         url = "http://httpbin.org/absolute-redirect/3"
         response = yield agent.request('GET', url, headers)
         body = yield readBody(response)
