@@ -3,6 +3,8 @@ from twisted.trial import unittest
 from twisted.internet import defer, reactor
 from twisted.web.client import readBody
 
+from . import is_internet_connected
+
 from ooni.common.http_utils import META_CHARSET_REGEXP
 from ooni.common.ip_utils import is_public_ipv4_address, is_private_ipv4_address
 from ooni.common.txextra import FixedRedirectAgent, TrueHeadersAgent, TrueHeaders
@@ -40,6 +42,9 @@ class TestIPUtils(unittest.TestCase):
 class TestTxExtra(unittest.TestCase):
     @defer.inlineCallbacks
     def test_redirect_works(self):
+        if not is_internet_connected():
+            raise unittest.SkipTest("Internet connection missing")
+
         agent = FixedRedirectAgent(TrueHeadersAgent(reactor))
         headers = TrueHeaders({"Spam": ["ham"]})
         url = "http://httpbin.org/absolute-redirect/3"
