@@ -229,7 +229,8 @@ class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
         log.msg("* performing control request with backend")
         self.control = yield self.web_connectivity_client.control(
             http_request=self.input,
-            tcp_connect=sockets
+            tcp_connect=sockets,
+            http_request_headers=REQUEST_HEADERS
         )
         self.report['control'] = self.control
 
