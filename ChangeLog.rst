@@ -1,7 +1,7 @@
 Changelog
 =========
 
-v2.2.0-rc.0 (Mon, 6 Feb 2017)
+v2.2.0-rc.1 (Mon, 6 Feb 2017)
 ------------------------------
 
 Feature list:
