@@ -1,6 +1,25 @@
 Changelog
 =========
 
+v2.2.0-rc.0 (Mon, 6 Feb 2017)
+------------------------------
+
+Feature list:
+
+* Major improvements to the web user interface
+
+* Support for showing progress of ongoing measurements
+
+* Add icons to decks
+
+* Show in measurements view the deck that generated a certain test
+
+* Support unix-socket tor control ports #479 (thanks @ioef)
+
+* Better explaination for -g option #498 (thanks @ioef)
+
+* Improvements to some docstring (thanks @donald213)
+
 v2.1.0 (Wed, 7 Dec 2016)
 ------------------------------
 Feature list:
