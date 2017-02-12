@@ -259,6 +259,10 @@ To run the ooniprobe agent, instead, type::
 
     ooniprobe-agent run
 
+To execute the unit tests for ooniprobe, type::
+
+    coverage run $(which trial) ooni
+
 Donate
 -------
 
