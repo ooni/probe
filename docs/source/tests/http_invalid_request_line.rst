@@ -5,9 +5,9 @@ Details
 
 *Current version*: 0.1.3
 
-*NetTest*: HTTP Invalid Request Line (https://gitweb.torproject.org/ooni-probe.git/blob/HEAD:/ooni/nettests/manipulation/http_invalid_request_line.py)
+*NetTest*: HTTP Invalid Request Line (https://github.com/TheTorProject/ooni-probe/tree/master/ooni/nettests/manipulation/http_invalid_request_line.py)
 
-*Test Helper*: TCPEchoHelper (https://gitweb.torproject.org/oonib.git/blob/HEAD:/oonib/testhelpers/tcp_helpers.py)
+*Test Helper*: TCPEchoHelper (https://github.com/TheTorProject/ooni-backend/tree/master/oonib/testhelpers/tcp_helpers.py)
 
 *Test Type*: Traffic Manipulation
 
@@ -42,6 +42,7 @@ This sends random 4 letter HTTP request method.
 The request on the wire will look like this:
 
 ::
+
     XxXxX / HTTP/1.1\n\r
 
 
@@ -51,6 +52,7 @@ test random invalid field count
 This generates a request that looks like this:
 
 ::
+
     XxXxX XxXxX XxXxX XxXxX
 
     This may trigger some bugs in the HTTP parsers of transparent HTTP
@@ -73,6 +75,7 @@ test random invalid version number
 This generates a request that looks like this:
 
 ::
+
     GET / HTTP/XxX
 
 This attempts to trigger bugs in the parsing of the HTTP version number, that

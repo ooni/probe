@@ -44,24 +44,23 @@ From running:
 
 ::
 
----
-input_hashes: []
-options: [-u, google.com]
-probe_asn: AS1234
-probe_cc: US
-probe_city: null
-probe_ip: 127.0.0.1
-software_name: ooniprobe
-software_version: 1.2.3-rc1
-start_time: 1428344311.0
-test_name: lantern_circumvention_tool_test
-test_version: 0.0.1
-...
----
-body: "Google is built by a large team of engineers, designers, researchers, robots, and others in many different sites across the globe. It is updated continuously, and built with more tools and technologies than we can shake a stick at. If you'd like to help us out, see google.com/careers."
-bootstrapped: true
-default_configuration: true
-input: null
-lantern --headless: {exit_reason: process_done, stderr: '', stdout: ''}
-```
+    ---
+    input_hashes: []
+    options: [-u, google.com]
+    probe_asn: AS1234
+    probe_cc: US
+    probe_city: null
+    probe_ip: 127.0.0.1
+    software_name: ooniprobe
+    software_version: 1.2.3-rc1
+    start_time: 1428344311.0
+    test_name: lantern_circumvention_tool_test
+    test_version: 0.0.1
+    ...
+    ---
+    body: "Google is built by a large team of engineers, designers, researchers, robots, and others in many different sites across the globe. It is updated continuously, and built with more tools and technologies than we can shake a stick at. If you'd like to help us out, see google.com/careers."
+    bootstrapped: true
+    default_configuration: true
+    input: null
+    lantern --headless: {exit_reason: process_done, stderr: '', stdout: ''}
 
