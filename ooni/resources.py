@@ -174,4 +174,5 @@ def check_for_update(country_code=None):
 
     for resource in to_delete:
         log.msg("Deleting old resources")
-        resources_dir.child(resource["path"]).remove()
+        pre_path, filename = resource["path"].split("/")
+        resources_dir.child(pre_path).child(filename).remove()
