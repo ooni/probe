@@ -7,6 +7,9 @@ ooniprobe: a network interference detection tool
 .. image:: https://coveralls.io/repos/TheTorProject/ooni-probe/badge.png
     :target: https://coveralls.io/r/TheTorProject/ooni-probe
 
+.. image:: https://slack.openobservatory.org/badge.svg
+    :target: https://slack.openobservatory.org/badge.svg
+
 ___________________________________________________________________________
 
 .. image:: https://ooni.torproject.org/images/ooni-header-mascot.png
