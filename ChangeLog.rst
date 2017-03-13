@@ -16,6 +16,8 @@ Bug fixes:
 
 * Update to new key for lepidopter-update
 
+ooniprobe-wui version: 2.2.0-rc.4
+
 v2.2.0-rc.1 (Mon, 6 Feb 2017)
 ------------------------------
 
