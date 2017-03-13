@@ -1,6 +1,21 @@
 Changelog
 =========
 
+v2.2.0-rc.2 (Mon, 13 Mar 2017)
+------------------------------
+
+Feature list:
+
+* Add support for internationalizations
+
+* Support Spanish, French, Italian and English
+
+Bug fixes:
+
+* Fix bug in deleting of old resources
+
+* Update to new key for lepidopter-update
+
 v2.2.0-rc.1 (Mon, 6 Feb 2017)
 ------------------------------
 
