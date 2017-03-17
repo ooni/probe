@@ -167,19 +167,28 @@ class HTTPTest(NetTestCase):
                     getattr(response.request, 'absoluteURI', None)):
                 session['request']['url'] = response.request.absoluteURI
 
+            response_headers = {}
+            for name, value in response.headers.getAllRawHeaders():
+                response_headers[name] = value[0]
+
+            # Attempt to redact the IP address of the probe from the responses
+            if config.privacy.includeip is False and \
+                            probe_ip.address is not None:
+                if isinstance(response_body, str) or \
+                        isinstance(response_body, unicode):
+                    response_body = response_body.replace(probe_ip.address, "[REDACTED]")
+
+                for key, value in response_headers.items():
+                    response_headers[key] = value.replace(probe_ip.address,
+                                                          "[REDACTED]")
+            for key, value in response_headers.items():
+                response_headers[key] = representBody(value)
+
             if self.localOptions.get('withoutbody', 0) is 0:
                 response_body = representBody(response_body)
             else:
                 response_body = ''
 
-            response_headers = _representHeaders(response.headers)
-            # Attempt to redact the IP address of the probe from the responses
-            if (config.privacy.includeip is False and probe_ip.address is not None and
-                    (isinstance(response_body, str) or isinstance(response_body, unicode))):
-                response_body = response_body.replace(probe_ip.address, "[REDACTED]")
-                for key, value in response_headers.items():
-                    response_headers[key] = value.replace(probe_ip.address,
-                                                          "[REDACTED]")
             session['response'] = {
                 'headers': response_headers,
                 'body': response_body,
