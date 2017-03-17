@@ -174,8 +174,7 @@ class HTTPTest(NetTestCase):
             # Attempt to redact the IP address of the probe from the responses
             if config.privacy.includeip is False and \
                             probe_ip.address is not None:
-                if isinstance(response_body, str) or \
-                        isinstance(response_body, unicode):
+                if isinstance(response_body, (str, unicode)):
                     response_body = response_body.replace(probe_ip.address, "[REDACTED]")
 
                 for key, value in response_headers.items():
