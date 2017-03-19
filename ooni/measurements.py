@@ -84,7 +84,7 @@ class MeasurementTypes():
     def http_header_field_manipulation(entry):
         result = {}
         result['anomaly'] = False
-        for t in entry['test_keys']['tampering'].value():
+        for t in entry['test_keys'].get('tampering', {}).values():
             if t == True:
                 result['anomaly'] = True
         return result
