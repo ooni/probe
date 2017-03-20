@@ -40,7 +40,7 @@ class HTTPRequestsTest(httpt.HTTPTest):
     description = ("Performs a HTTP GET request over Tor and one over the "
                   "local network and compares the two results.")
     author = "Arturo Filastò"
-    version = "0.2.5"
+    version = "0.3.0"
 
     usageOptions = UsageOptions
 

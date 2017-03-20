@@ -46,7 +46,7 @@ class FacebookMessengerTest(httpt.HTTPTest, dnst.DNSTest):
     description = ("This test examines the reachability of Facebook "
                    "Messenger in your network.")
     author = "Arturo Filastò"
-    version = "0.4.0"
+    version = "0.5.0"
 
     requiresRoot = False
     requiresTor = False

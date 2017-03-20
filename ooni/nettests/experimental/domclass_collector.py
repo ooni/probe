@@ -13,7 +13,7 @@ from ooni.templates import httpt
 class DOMClassCollector(httpt.HTTPTest):
     name = "DOM class collector"
     author = "Arturo Filastò"
-    version = 0.1
+    version = "0.2.0"
 
     followRedirects = True
 
