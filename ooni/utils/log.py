@@ -16,6 +16,18 @@ from ooni import otime
 # IPv6 destination warnings":
 logging.getLogger("scapy.runtime").setLevel(logging.ERROR)
 
+
+class MyDailyLogFile(DailyLogFile):
+    """ Override default behavior of Twisted class such that the
+        suffix always uses two digits for months and days such that
+        the rotated log files are lexicographically sortable """
+
+    def suffix(self, tupledate):
+        if len(tupledate) < 3:  # just in case
+            return DailyLogFile.suffix(self, tupledate)
+        return "{:04d}_{:02d}_{:02d}".format(*tupledate[:3])
+
+
 def log_encode(logmsg):
     """
     I encode logmsg (a str or unicode) as printable ASCII. Each case
@@ -176,7 +188,7 @@ class OONILogger(object):
             stdout_log_level = levels['DEBUG']
 
         if config.basic.rotate == 'daily':
-            logfile = DailyLogFile(log_filename, log_folder)
+            logfile = MyDailyLogFile(log_filename, log_folder)
         elif config.basic.rotate == 'length':
             logfile = LogFile(log_filename, log_folder,
                               rotateLength=int(human_size_to_bytes(

@@ -366,7 +366,7 @@ class TestSchedulerService(ConfigTestCase):
             # We check that the run method of the deck was called twice
             # NB: That does NOT check that @daily task was called exactly twice
             self.mock_deck.run.assert_has_calls([
-                mock.call(mock_director), mock.call(mock_director)
+                mock.call(mock_director, from_schedule=True), mock.call(mock_director, from_schedule=True)
             ])
             d.callback(None)
 

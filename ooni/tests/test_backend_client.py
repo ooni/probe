@@ -163,7 +163,9 @@ class TestBackendClient(ConfigTestCase):
             'POST', '/',
             query={
                 "http_request": "http://example.com/",
-                "tcp_connect": ["127.0.0.1:8080", "127.0.0.1:8082"]
+                "tcp_connect": ["127.0.0.1:8080", "127.0.0.1:8082"],
+                "http_request_headers": {},
+                "include_http_responses": False
             })
 
 

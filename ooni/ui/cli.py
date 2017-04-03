@@ -26,7 +26,8 @@ class Options(usage.Options):
     optFlags = [["help", "h"],
                 ["no-collector", "n", "Disable writing to collector"],
                 ["no-njson", "N", "Disable writing to disk"],
-                ["no-geoip", "g", "Disable geoip lookup on start"],
+                ["no-geoip", "g", "Disable geoip lookup on start. "
+                                  "With this option your IP address can be disclosed in the report."],
                 ["list", "s", "List the currently installed ooniprobe "
                               "nettests"],
                 ["verbose", "v", "Show more verbose information"],
@@ -376,7 +377,7 @@ def runTestWithDirector(director, global_options, url=None,
     def post_director_start(_):
         try:
             yield deck.setup()
-            yield deck.run(director)
+            yield deck.run(director, from_schedule=False)
         except errors.UnableToLoadDeckInput as error:
             raise defer.failure.Failure(error)
         except errors.NoReachableTestHelpers as error:

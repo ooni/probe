@@ -37,6 +37,12 @@ class TrueHeaders(Headers):
         self._rawHeaders[name.lower()]['name'] = name
         self._rawHeaders[name.lower()]['values'] = values
 
+    def copy(self):
+        rawHeaders = {}
+        for k, v in self.getAllRawHeaders():
+            rawHeaders[k] = v
+        return self.__class__(rawHeaders)
+
     def getAllRawHeaders(self):
         for _, v in self._rawHeaders.iteritems():
             yield v['name'], v['values']
@@ -197,7 +203,11 @@ class FixedRedirectAgent(BrowserLikeRedirectAgent):
             response.request.absoluteURI,
             locationHeaders[0]
         )
-        uri = client.URI.fromBytes(location)
+        if getattr(client, 'URI', None):
+            uri = client.URI.fromBytes(location)
+        else:
+            # Backward compatibility with twisted 14.0.2
+            uri = client._URI.fromBytes(location)
         if self.ignorePrivateRedirects and is_private_address(uri.host,
                                                               only_loopback=True):
             return response

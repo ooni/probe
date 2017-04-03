@@ -378,9 +378,9 @@ class HTTPTest(NetTestCase):
 
         def errback(failure, request):
             if request['tor']['is_tor']:
-                log.err("Error performing torified HTTP request: %s" % request['url'])
+                log.msg("Error performing torified HTTP request: %s" % request['url'])
             else:
-                log.err("Error performing HTTP request: %s" % request['url'])
+                log.msg("Error performing HTTP request: %s" % request['url'])
             failure_string = handleAllFailures(failure)
             previous_response = None
             if getattr(failure, "previousResponse", None):

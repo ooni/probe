@@ -1,7 +1,8 @@
 import os
 import re
-import time
 import sys
+import copy
+import time
 
 from twisted.internet import defer
 from twisted.python.filepath import FilePath
@@ -144,6 +145,10 @@ def usageOptionsFactory(test_name, test_version):
             os.path.basename(sys.argv[0]),
             test_name
         )
+
+        def opt_help(self):
+            map(log.msg, self.__str__().split("\n"))
+            sys.exit(0)
 
         def opt_version(self):
             """
@@ -503,6 +508,10 @@ class NetTest(object):
         self.testDetails = test_details
         self.testCases = test_cases
 
+        self._startTime = 0
+        self._totalInputs = 0
+        self._completedInputs = 0
+
         self.summary = {}
 
         # This will fire when all the measurements have been completed and
@@ -533,6 +542,27 @@ class NetTest(object):
         if self.testDetails["report_id"]:
             log.msg("Report ID: %s" % self.testDetails["report_id"])
 
+    @property
+    def completionRate(self):
+        return float(self._completedInputs) / (time.time() - self._startTime)
+
+    @property
+    def completionPercentage(self):
+        if self._totalInputs == 0:
+            return 0.0
+        # Never return 100%
+        if self._completedInputs >= self._totalInputs:
+            return 0.99
+        return float(self._completedInputs) / float(self._totalInputs)
+
+    @property
+    def completionEta(self):
+        remaining_inputs = self._totalInputs - self._completedInputs
+        # We adjust for negative values
+        if remaining_inputs <= 0:
+            return 1
+        return (self.completionRate * remaining_inputs) * 1.5 # fudge factor
+
     def doneReport(self, report_results):
         """
         This will get called every time a report is done and therefore a
@@ -541,6 +571,14 @@ class NetTest(object):
         The state for the NetTest is informed of the fact that another task has
         reached the done state.
         """
+        self._completedInputs += 1
+        log.msg("")
+        log.msg("Status")
+        log.msg("------")
+        log.msg("%d completed %d remaining" % (self._completedInputs,
+                                               self._totalInputs))
+        log.msg("%0.1f%% (ETA: %ds)" % (self.completionPercentage * 100,
+                                        self.completionEta))
         self.state.taskDone()
 
         return report_results
@@ -574,11 +612,17 @@ class NetTest(object):
 
     @defer.inlineCallbacks
     def initialize(self):
-        for test_class, _ in self.testCases:
+        for test_class, test_cases in self.testCases:
             # Initialize Input Processor
+            test_instance = test_class()
             test_class.inputs = yield defer.maybeDeferred(
-                test_class().getInputProcessor
+                test_instance.getInputProcessor
             )
+            for _ in test_cases:
+                if test_instance._totalInputs != None:
+                    self._totalInputs += test_instance._totalInputs
+                else:
+                    self._totalInputs += 1
 
             # Run the setupClass method
             yield defer.maybeDeferred(
@@ -593,6 +637,7 @@ class NetTest(object):
         FIXME: If this generator throws exception TaskManager scheduler is
         irreversibly damaged.
         """
+        self._startTime = time.time()
 
         for test_class, test_methods in self.testCases:
             # load a singular input processor for all instances
@@ -730,6 +775,8 @@ class NetTestCase(object):
 
     localOptions = {}
 
+    _totalInputs = None
+
     @classmethod
     def setUpClass(cls):
         """
@@ -853,8 +900,15 @@ class NetTestCase(object):
             inputProcessor.
         """
         if self.inputFileSpecified:
+            if self._totalInputs is None:
+                self._totalInputs = 0
             self.inputFilename = self.localOptions[self.inputFile[0]]
+            for _ in self.inputProcessor(self.inputFilename):
+                self._totalInputs += 1
             return self.inputProcessor(self.inputFilename)
+
+        if isinstance(self.inputs, list):
+            self._totalInputs = len(self.inputs)
 
         if self.inputs:
             return self.inputs
