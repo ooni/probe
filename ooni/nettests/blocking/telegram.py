@@ -8,11 +8,10 @@ from ooni.utils import log
 from ooni.common.tcp_utils import TCPConnectFactory
 from ooni.errors import failureToString
 
-from ooni.templates import httpt
+from ooni import nettest
 
 # These are taken from:
 # https://github.com/telegramdesktop/tdesktop/blob/e6d94b5ee7d96a97ee5976dacb87bafd00beac1d/Telegram/SourceFiles/config.h#L205
-
 TELEGRAM_DCS = [
     (1, "149.154.175.50", 443),
     (2, "149.154.167.51", 443),
@@ -24,7 +23,7 @@ TELEGRAM_DCS = [
 class UsageOptions(usage.Options):
     pass
 
-class TelegramTest(httpt.HTTPTest):
+class TelegramTest(nettest.NetTestCase):
     name = "Telegram"
     description = ("This test examines the reachability of Telegram "
                    "in your network.")
