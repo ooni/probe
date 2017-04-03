@@ -340,8 +340,8 @@ class WebUIAPI(object):
             except DeckNotFound:
                 raise WebUIError(404, 'Deck not found')
 
-        self.scheduler.refresh_deck_list()
         config.set_initialized()
+        self.scheduler.refresh_deck_list()
 
         self._is_initialized = True
 
