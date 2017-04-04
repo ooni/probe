@@ -5,6 +5,7 @@ from twisted.python import usage
 from twisted.internet.endpoints import TCP4ClientEndpoint
 
 from ooni.utils import log
+from ooni.common.http_utils import extractTitle
 from ooni.common.tcp_utils import TCPConnectFactory
 from ooni.errors import failureToString
 
@@ -28,7 +29,7 @@ class TelegramTest(httpt.HTTPTest):
     description = ("This test examines the reachability of Telegram "
                    "in your network.")
     author = "Arturo Filastò"
-    version = "0.2.0"
+    version = "0.3.0"
 
     requiresRoot = False
     requiresTor = False
@@ -113,6 +114,32 @@ class TelegramTest(httpt.HTTPTest):
         else:
             self.report['telegram_http_blocking'] = False
             log.msg("Telegram servers are not blocked based on HTTP")
+
+    @defer.inlineCallbacks
+    def _test_telegram_web(self, url):
+        try:
+            response = yield self.doRequest(url, 'GET')
+        except Exception as exc:
+            failure_string = failureToString(defer.failure.Failure(exc))
+            log.err("Failed to connect to whatsapp web %s" % failure_string)
+            self.report['telegram_web_failure'] = failure_string
+            self.report['telegram_web_status'] = 'blocked'
+            defer.returnValue(None)
+
+        title = extractTitle(response.body).strip()
+        if title != "Telegram Web":
+            self.report['telegram_web_status'] = 'blocked'
+
+    @defer.inlineCallbacks
+    def test_telegram_web(self):
+        self.report['telegram_web_failure'] = None
+        self.report['telegram_web_status'] = None
+
+        yield self._test_telegram_web('https://web.telegram.org/')
+        yield self._test_telegram_web('http://web.telegram.org/')
+        if self.report['telegram_web_status'] != 'blocked':
+            self.report['telegram_web_status'] = 'ok'
+
 
     @defer.inlineCallbacks
     def test_endpoints(self):
