@@ -274,43 +274,97 @@ class TestSchedulerService(ConfigTestCase):
 
         mock_director = mock.MagicMock()
         d = defer.Deferred()
-        with mock.patch('ooni.agent.scheduler.deck_store', self.deck_store):
-
-            dummy_clock = task.Clock()
+        dummy_clock = task.Clock()
+        class FakeDatetime(datetime):
+            @staticmethod
+            def utcnow():
+                return datetime(2000,1,1, 7,0,0) + timedelta(seconds=dummy_clock.seconds())
+        with mock.patch('ooni.agent.scheduler.deck_store', self.deck_store), \
+             mock.patch('ooni.agent.scheduler.datetime', FakeDatetime):
             scheduler_service = SchedulerService(
                 director=mock_director,
                 _reactor=dummy_clock
             )
             scheduler_service.startService()
-            dummy_clock.advance(30)
+            dummy_clock.advance(45)
 
-            now_time = datetime.utcnow()
-            DT_FRMT = "%Y-%m-%dT%H:%M:%SZ"
-
+            # these tasks were run before clock was pumped
             for t in scheduler_service._scheduled_tasks:
-                with open(os.path.join(self.scheduler_directory,
-                                       t.identifier)) as in_file:
-                    dstr = datetime.strptime(in_file.read(),
-                                             DT_FRMT).strftime("%Y-%m-%dT%H")
-                    self.assertEqual(dstr, now_time.strftime("%Y-%m-%dT%H"))
+                self.assertIn(t.schedule, ('@daily', '@hourly'))
+                with open(os.path.join(self.scheduler_directory, t.identifier)) as in_file:
+                    self.assertEqual(in_file.read(), '2000-01-01T07:00:00Z')
 
-            dummy_clock.advance(30)
-            dummy_clock.advance(30)
-            dummy_clock.advance(30)
-            dummy_clock.advance(30)
-            dummy_clock.advance(30)
-            dummy_clock.advance(30)
-            # Here we pretend they ran yesterday so to re-trigger the daily
-            # tasks
+            # that's leaping clock, it leads to immediate scheduling
+            dummy_clock.advance(24 * 60 * 60)
             for t in scheduler_service._scheduled_tasks:
-                with open(os.path.join(self.scheduler_directory,
-                                       t.identifier), 'w') as out_file:
-                    yesterday = (now_time - timedelta(days=1,
-                                                      hours=2)).strftime(DT_FRMT)
-                    out_file.write(yesterday)
-            dummy_clock.advance(30)
+                with open(os.path.join(self.scheduler_directory, t.identifier)) as in_file:
+                    self.assertEqual(in_file.read(), '2000-01-02T07:00:45Z')
+
+            # nothing happens during an hour
+            dummy_clock.advance(60 * 60 - 46)
+            self.assertEqual(FakeDatetime.utcnow(), datetime(2000,1,2, 7,59,59))
+            for t in scheduler_service._scheduled_tasks:
+                with open(os.path.join(self.scheduler_directory, t.identifier)) as in_file:
+                    self.assertEqual(in_file.read(), '2000-01-02T07:00:45Z')
+
+            # that's ticking clock, it smears the load a bit
+            dummy_clock.pump([1] * 1800)
+            zero, hourly, daily = 0, 0, 0
+            for t in scheduler_service._scheduled_tasks:
+                with open(os.path.join(self.scheduler_directory, t.identifier)) as in_file:
+                    if t.schedule == '@daily':
+                        daily += 1
+                        self.assertEqual(in_file.read(), '2000-01-02T07:00:45Z')
+                    elif t.schedule == '@hourly':
+                        hourly += 1
+                        # `:[03]0Z` is caused by scheduler resolution & ticking one second a time
+                        last_run = in_file.read()
+                        self.assertRegexpMatches(last_run, '^2000-01-02T08:0.:[03]0Z$')
+                        if last_run == '2000-01-02T08:00:00Z':
+                            zero += 1
+            self.assertGreater(hourly, 0)
+            self.assertGreater(daily, 0)
+            self.assertLess(zero, hourly)
+            self.assertLessEqual(zero, 1) # should ALMOST never happen
+
+            # leaping to the end of the day
+            dummy_clock.advance((datetime(2000,1,2, 23,59,59) - FakeDatetime.utcnow()).total_seconds())
+            for t in scheduler_service._scheduled_tasks:
+                with open(os.path.join(self.scheduler_directory, t.identifier)) as in_file:
+                    if t.schedule == '@daily':
+                        self.assertEqual(in_file.read(), '2000-01-02T07:00:45Z')
+                    elif t.schedule == '@hourly':
+                        self.assertEqual(in_file.read(), '2000-01-02T23:59:59Z')
+
+            # save ~30% of the testcase runtime while ticking through six hours
+            for t in scheduler_service._scheduled_tasks[:]:
+                if t.schedule == '@hourly':
+                    scheduler_service.unschedule(t)
+
+            # ticking through six hours
+            dummy_clock.pump([random.uniform(0, 120) for i in xrange(6*60)])
+            for t in scheduler_service._scheduled_tasks:
+                with open(os.path.join(self.scheduler_directory, t.identifier)) as in_file:
+                    # randomized clock kills 30s resolution of the scheduler
+                    self.assertRegexpMatches(in_file.read(), '^2000-01-03T0[012]:..:..Z$')
+            self.assertGreater(FakeDatetime.utcnow(), datetime(2000,1,3, 5,0,0)) # should be ~6:00
+
+            # verify, that double-run does not happen even in case of reseeding (reboot/restart)
+            dummy_clock.advance((datetime(2000,1,3, 23,59,59) - FakeDatetime.utcnow()).total_seconds())
+            launches = {}
+            while FakeDatetime.utcnow() < datetime(2000,1,4, 6,0,0):
+                for t in scheduler_service._scheduled_tasks:
+                    with open(os.path.join(self.scheduler_directory, t.identifier)) as in_file:
+                        launches.setdefault(t.identifier, set())
+                        launches[t.identifier].add(in_file.read())
+                    self.assertLessEqual(t._smear_coef, 1.0)
+                    t._smear_coef = random.random()
+                dummy_clock.advance(random.uniform(0, 120))
+            self.assertEqual(len(launches), len(scheduler_service._scheduled_tasks))
+            self.assertEqual({k: len(v) for k, v in launches.iteritems()}, dict.fromkeys(launches.iterkeys(), 2))
 
             # We check that the run method of the deck was called twice
+            # NB: That does NOT check that @daily task was called exactly twice
             self.mock_deck.run.assert_has_calls([
                 mock.call(mock_director, from_schedule=True), mock.call(mock_director, from_schedule=True)
             ])

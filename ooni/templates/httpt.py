@@ -290,7 +290,9 @@ class HTTPTest(NetTestCase):
             HTTPTest.addToReport(self, request, response)
             return
         else:
-            log.debug("Got response %s" % response)
+            log.debug("Got response")
+            log.debug("code: %d" % response.code)
+            log.debug("headers: %s" % response.headers.getAllRawHeaders())
 
         if str(response.code).startswith('3'):
             self.processRedirect(response.headers.getRawHeaders('Location')[0])
