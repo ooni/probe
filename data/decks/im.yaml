@@ -13,3 +13,6 @@ tasks:
 - name: Checks to see if Facebook Messenger is working.
   ooni:
     test_name: facebook_messenger
+- name: Checks to see if Telegram is working.
+  ooni:
+    test_name: telegram

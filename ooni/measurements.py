@@ -20,6 +20,7 @@ class MeasurementTypes():
         "http_header_field_manipulation",
         "facebook_messenger",
         "whatsapp",
+        "telegram",
         "vanilla_tor"
     ]
 
@@ -30,6 +31,15 @@ class MeasurementTypes():
         if entry['test_keys'].get('success', None) == False:
             result['anomaly'] = True
         return result
+
+    @staticmethod
+    def telegram(entry):
+        result = {}
+        result['anomaly'] = True
+        if entry['test_keys'].get('telegram_tcp_blocking', None) == False:
+            result['anomaly'] = False
+        return result
+
 
     @staticmethod
     def whatsapp(entry):
