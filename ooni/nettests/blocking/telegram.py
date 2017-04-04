@@ -8,27 +8,27 @@ from ooni.utils import log
 from ooni.common.tcp_utils import TCPConnectFactory
 from ooni.errors import failureToString
 
-from ooni import nettest
+from ooni.templates import httpt
 
 # These are taken from:
 # https://github.com/telegramdesktop/tdesktop/blob/e6d94b5ee7d96a97ee5976dacb87bafd00beac1d/Telegram/SourceFiles/config.h#L205
 TELEGRAM_DCS = [
-    (1, "149.154.175.50", 443),
-    (2, "149.154.167.51", 443),
-    (3, "149.154.175.100", 443),
-    (4, "149.154.167.91", 443),
-    (5, "149.154.171.5", 443)
+    (1, "149.154.175.50"),
+    (2, "149.154.167.51"),
+    (3, "149.154.175.100"),
+    (4, "149.154.167.91"),
+    (5, "149.154.171.5")
 ]
 
 class UsageOptions(usage.Options):
     pass
 
-class TelegramTest(nettest.NetTestCase):
+class TelegramTest(httpt.HTTPTest):
     name = "Telegram"
     description = ("This test examines the reachability of Telegram "
                    "in your network.")
     author = "Arturo Filastò"
-    version = "0.1.0"
+    version = "0.2.0"
 
     requiresRoot = False
     requiresTor = False
@@ -37,6 +37,7 @@ class TelegramTest(nettest.NetTestCase):
 
     def setUp(self):
         self.report['telegram_tcp_blocking'] = None
+        self.report['telegram_http_blocking'] = None
         self.report['tcp_connect'] = []
 
     def _test_connect_to_port(self, address, port):
@@ -67,24 +68,53 @@ class TelegramTest(nettest.NetTestCase):
 
     @defer.inlineCallbacks
     def _test_tcp_connect(self):
-        for dc_id, address, port in TELEGRAM_DCS:
+        for dc_id, address in TELEGRAM_DCS:
             dl = []
-            log.debug("Testing %s:%s" % (address, port))
-            dl.append(self._test_connect_to_port(address, port))
+            log.debug("Testing %s:443|80" % (address))
+            dl.append(self._test_connect_to_port(address, 443))
+            dl.append(self._test_connect_to_port(address, 80))
 
         results = yield defer.DeferredList(dl, consumeErrors=True)
-        tcp_blocked = False
+        tcp_blocked = True
         for success, result in results:
-            if success == False:
-                tcp_blocked = True
+            if success == True:
+                tcp_blocked = False
 
         if tcp_blocked == True:
             self.report['telegram_tcp_blocking'] = True
-            log.msg("telegram servers are BLOCKED based on TCP")
+            log.msg("Telegram servers are BLOCKED based on TCP")
         else:
             self.report['telegram_tcp_blocking'] = False
-            log.msg("telegram servers are not blocked")
+            log.msg("Telegram servers are not blocked based on TCP")
+
+    @defer.inlineCallbacks
+    def _test_http_request(self):
+        http_blocked = True
+        for dc_id, address in TELEGRAM_DCS:
+            if http_blocked == False:
+                break
+            for port in [80, 443]:
+                url = 'http://{}:{}'.format(address, port)
+                try:
+                    response = yield self.doRequest(url, 'POST')
+                except Exception as exc:
+                    failure_string = failureToString(defer.failure.Failure(exc))
+                    log.err("Failed to connect to {}: {}".format(url, failure_string))
+                    continue
+                log.debug("Got back status code {}".format(response.code))
+                log.debug("{}".format(response.body))
+                if response.code == 501:
+                    http_blocked = False
+                    break
+
+        if http_blocked == True:
+            self.report['telegram_http_blocking'] = True
+            log.msg("Telegram servers are BLOCKED based on HTTP")
+        else:
+            self.report['telegram_http_blocking'] = False
+            log.msg("Telegram servers are not blocked based on HTTP")
 
     @defer.inlineCallbacks
     def test_endpoints(self):
         yield self._test_tcp_connect()
+        yield self._test_http_request()
