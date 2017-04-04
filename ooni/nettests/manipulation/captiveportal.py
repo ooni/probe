@@ -62,7 +62,7 @@ class CaptivePortal(httpt.HTTPTest, dnst.DNSTest):
 
     name = "captiveportal"
     description = "Captive Portal Test."
-    version = '0.3'
+    version = "0.4.0"
     author = "Isis Lovecruft"
     usageOptions = UsageOptions
     requiresRoot = False

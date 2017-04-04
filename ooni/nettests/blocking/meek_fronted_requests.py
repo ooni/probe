@@ -30,7 +30,7 @@ class meekTest(httpt.HTTPTest):
     name = "Meek fronted requests test"
     description = "This test examines whether the domains used by Meek "\
                   "(a type of Tor bridge) work in your network."
-    version = "0.0.1"
+    version = "0.1.0"
 
     usageOptions = UsageOptions
     inputFile = ['file', 'f', None,

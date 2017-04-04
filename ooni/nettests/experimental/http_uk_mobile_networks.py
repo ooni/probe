@@ -25,6 +25,7 @@ class HTTPUKMobileNetworksTest(httpt.HTTPTest):
     XXX port the knowledge from the trac ticket into this test docstring
     """
     name = "HTTP UK mobile network redirect test"
+    version = "0.1.0"
 
     usageOptions = UsageOptions
 

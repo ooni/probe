@@ -264,7 +264,7 @@ class WhatsappTest(httpt.HTTPTest, dnst.DNSTest):
     description = ("This test examines the reachability of WhatsApp "
                    " and WhatsApp's web interface (web.whatsapp.com) in your network.")
     author = "Arturo Filastò"
-    version = "0.5.0"
+    version = "0.6.0"
 
     requiresRoot = False
     requiresTor = False

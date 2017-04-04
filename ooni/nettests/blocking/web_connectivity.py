@@ -48,7 +48,7 @@ class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
                    "connect to the resolved IPs and then fetching the page "
                    "and comparing all these results with those of a control.")
     author = "Arturo Filastò"
-    version = "0.2.0"
+    version = "0.3.0"
 
     contentDecoders = [('gzip', GzipDecoder)]
 
