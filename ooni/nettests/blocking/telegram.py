@@ -121,7 +121,7 @@ class TelegramTest(httpt.HTTPTest):
             response = yield self.doRequest(url, 'GET')
         except Exception as exc:
             failure_string = failureToString(defer.failure.Failure(exc))
-            log.err("Failed to connect to whatsapp web %s" % failure_string)
+            log.err("Failed to connect to telegram web %s" % failure_string)
             self.report['telegram_web_failure'] = failure_string
             self.report['telegram_web_status'] = 'blocked'
             defer.returnValue(None)
