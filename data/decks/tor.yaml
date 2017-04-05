@@ -7,7 +7,7 @@ reachability of Tor bridges in your network.  The Meek Fronted Requests test
 examines whether the domains used by Meek (a type of Tor bridge) work in your
 network."
 schedule: "@daily"
-icon: "fa-wrench"
+icon: "oo-tor"
 tasks:
 - name: Checks if the Tor client works
   ooni:
