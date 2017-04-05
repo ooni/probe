@@ -1,6 +1,37 @@
 Changelog
 =========
 
+v2.2.0 (Wed, 5 Apr 2017)
+------------------------------
+
+Feature list:
+
+* Major improvements to the web user interface
+
+* Support for showing progress of ongoing measurements
+
+* Add icons to decks
+
+* Show in measurements view the deck that generated a certain test
+
+* Support unix-socket tor control ports #479 (thanks @ioef)
+
+* Better explaination for -g option #498 (thanks @ioef)
+
+* Improvements to some docstring (thanks @donald213)
+
+* Add support for internationalizations
+
+* Support Spanish, French, Italian, English and Hindi
+
+Bug fixes:
+
+* Fix bug in deleting of old resources
+
+* Update to new key for lepidopter-update
+
+ooniprobe-wui version: 2.2.0
+
 v2.2.0-rc.2 (Mon, 13 Mar 2017)
 ------------------------------
 

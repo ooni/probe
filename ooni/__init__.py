@@ -1,7 +1,7 @@
 # -*- encoding: utf-8 -*-
 
 __author__ = "Open Observatory of Network Interference"
-__version__ = "2.2.0.rc2"
+__version__ = "2.2.0"
 
 __all__ = [
     'agent',
