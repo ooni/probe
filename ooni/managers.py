@@ -4,6 +4,8 @@ from twisted.internet import defer
 from ooni.utils import log
 from ooni.settings import config
 
+from twisted.internet import reactor
+
 
 def makeIterable(item):
     """
@@ -48,7 +50,7 @@ class TaskManager(object):
             log.debug('Permanent failure for %s' % task)
             task.done.errback(failure)
 
-        self._fillSlots()
+        reactor.callLater(0, self._fillSlots)
 
         self.failed(failure, task)
 
@@ -89,7 +91,7 @@ class TaskManager(object):
         # Fires the done deferred when the task has completed
         task.done.callback(result)
 
-        self._fillSlots()
+        reactor.callLater(0, self._fillSlots)
 
         self.succeeded(result, task)
 
@@ -114,7 +116,7 @@ class TaskManager(object):
         iterable = makeIterable(task_or_task_iterator)
 
         self._tasks = itertools.chain(self._tasks, iterable)
-        self._fillSlots()
+        reactor.callLater(0, self._fillSlots)
 
     def start(self):
         """
@@ -122,7 +124,7 @@ class TaskManager(object):
         """
         self.failures = 0
 
-        self._fillSlots()
+        reactor.callLater(0, self._fillSlots)
 
     def failed(self, failure, task):
         """
@@ -158,12 +160,12 @@ class LinkedTaskManager(TaskManager):
     def _succeeded(self, result, task):
         super(LinkedTaskManager, self)._succeeded(result, task)
         if self.parent:
-            self.parent._fillSlots()
+            reactor.callLater(0, self.parent._fillSlots)
 
     def _failed(self, result, task):
         super(LinkedTaskManager, self)._failed(result, task)
         if self.parent:
-            self.parent._fillSlots()
+            reactor.callLater(0, self.parent._fillSlots)
 
 
 class MeasurementManager(LinkedTaskManager):
