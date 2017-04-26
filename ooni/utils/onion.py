@@ -337,6 +337,7 @@ class TorLauncherWithRetries(object):
         self.started.callback(state)
 
     def _setup_failed(self, failure):
+        log.msg("Starting Tor failed: {}".format(failure.value))
         self.tor_output.seek(0)
         map(log.debug, self.tor_output.readlines())
         self.tor_output.seek(0)
