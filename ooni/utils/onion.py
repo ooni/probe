@@ -378,8 +378,8 @@ class TorLauncherWithRetries(object):
         log.debug("Building a TorState")
         config.tor.protocol = proto
         state = TorState(proto.tor_protocol)
-        state.post_bootstrap.addCallbacks(self._state_complete,
-                                          self._setup_failed)
+        state.post_bootstrap.addCallback(self._state_complete)
+        state.post_bootstrap.addErrback(self._setup_failed)
 
     def _launch_tor(self):
         return launch_tor(self.tor_config, reactor,
