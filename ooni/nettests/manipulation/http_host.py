@@ -42,7 +42,7 @@ class HTTPHost(httpt.HTTPTest):
     description = "Tests a variety of different filter bypassing techniques "\
                   "based on the HTTP Host header field."
     author = "Arturo Filastò"
-    version = "0.2.4"
+    version = "0.3.0"
 
     randomizeUA = False
     usageOptions = UsageOptions

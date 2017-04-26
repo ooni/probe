@@ -26,8 +26,8 @@ class UsageOptions(usage.Options):
 
 class BridgeReachability(nettest.NetTestCase):
     name = "Bridge Reachability"
-    description = "A test for checking if bridges are reachable " \
-                  "from a given location."
+    description = "This test examines the reachability of Tor bridges " \
+                  "in your network."
     author = "Arturo Filastò"
     version = "0.1.2"
 

@@ -43,10 +43,10 @@ def is_facebook_ip(ip_address):
 
 class FacebookMessengerTest(httpt.HTTPTest, dnst.DNSTest):
     name = "Facebook Messenger"
-    description = ("This test checks to see if the servers used by Facebook "
-                   "messenger are reachable")
+    description = ("This test examines the reachability of Facebook "
+                   "Messenger in your network.")
     author = "Arturo Filastò"
-    version = "0.4.0"
+    version = "0.5.0"
 
     requiresRoot = False
     requiresTor = False

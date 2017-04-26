@@ -48,7 +48,7 @@ class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
                    "connect to the resolved IPs and then fetching the page "
                    "and comparing all these results with those of a control.")
     author = "Arturo Filastò"
-    version = "0.1.0"
+    version = "0.3.0"
 
     contentDecoders = [('gzip', GzipDecoder)]
 
@@ -229,7 +229,8 @@ class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
         log.msg("* performing control request with backend")
         self.control = yield self.web_connectivity_client.control(
             http_request=self.input,
-            tcp_connect=sockets
+            tcp_connect=sockets,
+            http_request_headers=REQUEST_HEADERS
         )
         self.report['control'] = self.control
 
@@ -468,7 +469,7 @@ class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
         @experiment_http.addErrback
         def http_experiment_err(failure):
             failure_string = failureToString(failure)
-            log.err("Failed to perform HTTP request %s" % failure_string)
+            log.msg("Failed to perform HTTP request %s" % failure_string)
             self.report['http_experiment_failure'] = failure_string
 
         experiment_http_response = yield experiment_http

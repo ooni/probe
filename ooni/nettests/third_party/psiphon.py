@@ -34,7 +34,7 @@ class PsiphonTest(httpt.HTTPTest,  process.ProcessTest):
     description = ("Bootstraps Psiphon and "
                    "does a HTTP GET for the specified URL.")
     author = "juga"
-    version = "0.1.0"
+    version = "0.2.0"
     timeout = 120
     usageOptions = UsageOptions
 

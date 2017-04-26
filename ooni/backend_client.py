@@ -120,7 +120,7 @@ class OONIBClient(object):
                 # We we will recursively keep trying to perform a request until
                 # we have reached the retry count.
                 if attempts < retries:
-                    log.err("Lookup failed. Retrying.")
+                    log.err("Lookup {} failed. Retrying.".format(uri))
                     attempts += 1
                     perform_request(attempts)
                 else:
@@ -267,10 +267,16 @@ class WebConnectivityClient(OONIBClient):
 
         return d
 
-    def control(self, http_request, tcp_connect):
+    def control(self, http_request, tcp_connect,
+                http_request_headers=None,
+                include_http_responses=False):
+        if http_request_headers is None:
+            http_request_headers = {}
         request = {
             'http_request': http_request,
-            'tcp_connect': tcp_connect
+            'tcp_connect': tcp_connect,
+            'http_request_headers': http_request_headers,
+            'include_http_responses': include_http_responses
         }
         return self.queryBackend('POST', '/', query=request)
 

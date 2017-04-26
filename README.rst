@@ -7,6 +7,9 @@ ooniprobe: a network interference detection tool
 .. image:: https://coveralls.io/repos/TheTorProject/ooni-probe/badge.png
     :target: https://coveralls.io/r/TheTorProject/ooni-probe
 
+.. image:: https://slack.openobservatory.org/badge.svg
+    :target: https://slack.openobservatory.org/badge.svg
+
 ___________________________________________________________________________
 
 .. image:: https://ooni.torproject.org/images/ooni-header-mascot.png
@@ -86,15 +89,15 @@ Note: You'll need to swap out ``$RELEASE`` for either ``yakkety``, ``xenial`` or
 ``trusty``. This will not happen automatically. You will also need to ensure
 that you have the ``universe`` repository enabled. The ``universe`` repository
 is enabled by default in a standard Ubuntu installation but may not be on some
-minimal on not standard installations.
+minimal, or not standard, installations.
 
 Installation
 ============
 
-Mac OS X
---------
+macOS
+-----
 
-You can install ooniprobe on OSX if you have installed homebrew (http://mxcl.github.io/homebrew) with::
+You can install ooniprobe on macOS if you have installed homebrew (http://brew.sh/) with::
 
     brew install ooniprobe
 
@@ -147,7 +150,7 @@ Configuring ooniprobe
 ---------------------
 
 After successfully installing ooniprobe you should be able to access the web UI
-on your host machine at http://localhost:8842/ .
+on your host machine at <http://localhost:8842/>.
 
 You should now be presented with the web UI setup wizard where you can read the
 risks involved with running ooniprobe. Upon answering the quiz correctly you can
@@ -247,8 +250,21 @@ to be activated::
     pip install -r requirements.txt
     pip install -r requirements-dev.txt
     python setup.py install
-    ooniprobe -s  # if all went well, lists available tests
 
+Then, you can check whether the installation went well with::
+
+    ooniprobe -s
+
+This will explain you the risks of running ooniprobe and make sure you have
+understood them, afterwards it shows you the available tests.
+
+To run the ooniprobe agent, instead, type::
+
+    ooniprobe-agent run
+
+To execute the unit tests for ooniprobe, type::
+
+    coverage run $(which trial) ooni
 
 Donate
 -------
