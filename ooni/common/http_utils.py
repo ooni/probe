@@ -5,6 +5,8 @@ from base64 import b64encode
 def representBody(body):
     if not body:
         return body
+    if isinstance(body, unicode):
+        return body
     try:
         body = unicode(body, 'utf-8')
     except UnicodeDecodeError:
