@@ -31,7 +31,7 @@
 import random
 import re
 import string
-from urlparse import urlparse
+from uritools import *
 
 from twisted.names import error
 from twisted.python import usage
@@ -74,7 +74,7 @@ class CaptivePortal(httpt.HTTPTest, dnst.DNSTest):
         Parses an HTTP url, fetches it, and returns a response
         object.
         """
-        url = urlparse(url).geturl()
+        url = urisplit(url).geturi()
         #XXX: HTTP Error 302: The HTTP server returned a redirect error that
         #would lead to an infinite loop.  The last 30x error message was: Found
         try:

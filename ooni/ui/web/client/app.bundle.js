@@ -58,7 +58,7 @@
 	var Common = __webpack_require__(39);
 	var Components = __webpack_require__(41);
 	
-	__webpack_require__(113);
+	__webpack_require__(127);
 	
 	angular.module('app', [
 	    uiRouter,
@@ -82,7 +82,7 @@
 /***/ function(module, exports) {
 
 	/**
-	 * @license AngularJS v1.5.7
+	 * @license AngularJS v1.5.9
 	 * (c) 2010-2016 Google, Inc. http://angularjs.org
 	 * License: MIT
 	 */
@@ -140,7 +140,7 @@
 	      return match;
 	    });
 	
-	    message += '\nhttp://errors.angularjs.org/1.5.7/' +
+	    message += '\nhttp://errors.angularjs.org/1.5.9/' +
 	      (module ? module + '/' : '') + code;
 	
 	    for (i = SKIP_INDEXES, paramPrefix = '?'; i < templateArgs.length; i++, paramPrefix = '&') {
@@ -152,99 +152,101 @@
 	  };
 	}
 	
-	/* We need to tell jshint what variables are being exported */
-	/* global angular: true,
-	  msie: true,
-	  jqLite: true,
-	  jQuery: true,
-	  slice: true,
-	  splice: true,
-	  push: true,
-	  toString: true,
-	  ngMinErr: true,
-	  angularModule: true,
-	  uid: true,
-	  REGEX_STRING_REGEXP: true,
-	  VALIDITY_STATE_PROPERTY: true,
+	/* We need to tell ESLint what variables are being exported */
+	/* exported
+	  angular,
+	  msie,
+	  jqLite,
+	  jQuery,
+	  slice,
+	  splice,
+	  push,
+	  toString,
+	  ngMinErr,
+	  angularModule,
+	  uid,
+	  REGEX_STRING_REGEXP,
+	  VALIDITY_STATE_PROPERTY,
 	
-	  lowercase: true,
-	  uppercase: true,
-	  manualLowercase: true,
-	  manualUppercase: true,
-	  nodeName_: true,
-	  isArrayLike: true,
-	  forEach: true,
-	  forEachSorted: true,
-	  reverseParams: true,
-	  nextUid: true,
-	  setHashKey: true,
-	  extend: true,
-	  toInt: true,
-	  inherit: true,
-	  merge: true,
-	  noop: true,
-	  identity: true,
-	  valueFn: true,
-	  isUndefined: true,
-	  isDefined: true,
-	  isObject: true,
-	  isBlankObject: true,
-	  isString: true,
-	  isNumber: true,
-	  isDate: true,
-	  isArray: true,
-	  isFunction: true,
-	  isRegExp: true,
-	  isWindow: true,
-	  isScope: true,
-	  isFile: true,
-	  isFormData: true,
-	  isBlob: true,
-	  isBoolean: true,
-	  isPromiseLike: true,
-	  trim: true,
-	  escapeForRegexp: true,
-	  isElement: true,
-	  makeMap: true,
-	  includes: true,
-	  arrayRemove: true,
-	  copy: true,
-	  equals: true,
-	  csp: true,
-	  jq: true,
-	  concat: true,
-	  sliceArgs: true,
-	  bind: true,
-	  toJsonReplacer: true,
-	  toJson: true,
-	  fromJson: true,
-	  convertTimezoneToLocal: true,
-	  timezoneToOffset: true,
-	  startingTag: true,
-	  tryDecodeURIComponent: true,
-	  parseKeyValue: true,
-	  toKeyValue: true,
-	  encodeUriSegment: true,
-	  encodeUriQuery: true,
-	  angularInit: true,
-	  bootstrap: true,
-	  getTestability: true,
-	  snake_case: true,
-	  bindJQuery: true,
-	  assertArg: true,
-	  assertArgFn: true,
-	  assertNotHasOwnProperty: true,
-	  getter: true,
-	  getBlockNodes: true,
-	  hasOwnProperty: true,
-	  createMap: true,
+	  lowercase,
+	  uppercase,
+	  manualLowercase,
+	  manualUppercase,
+	  nodeName_,
+	  isArrayLike,
+	  forEach,
+	  forEachSorted,
+	  reverseParams,
+	  nextUid,
+	  setHashKey,
+	  extend,
+	  toInt,
+	  inherit,
+	  merge,
+	  noop,
+	  identity,
+	  valueFn,
+	  isUndefined,
+	  isDefined,
+	  isObject,
+	  isBlankObject,
+	  isString,
+	  isNumber,
+	  isNumberNaN,
+	  isDate,
+	  isArray,
+	  isFunction,
+	  isRegExp,
+	  isWindow,
+	  isScope,
+	  isFile,
+	  isFormData,
+	  isBlob,
+	  isBoolean,
+	  isPromiseLike,
+	  trim,
+	  escapeForRegexp,
+	  isElement,
+	  makeMap,
+	  includes,
+	  arrayRemove,
+	  copy,
+	  equals,
+	  csp,
+	  jq,
+	  concat,
+	  sliceArgs,
+	  bind,
+	  toJsonReplacer,
+	  toJson,
+	  fromJson,
+	  convertTimezoneToLocal,
+	  timezoneToOffset,
+	  startingTag,
+	  tryDecodeURIComponent,
+	  parseKeyValue,
+	  toKeyValue,
+	  encodeUriSegment,
+	  encodeUriQuery,
+	  angularInit,
+	  bootstrap,
+	  getTestability,
+	  snake_case,
+	  bindJQuery,
+	  assertArg,
+	  assertArgFn,
+	  assertNotHasOwnProperty,
+	  getter,
+	  getBlockNodes,
+	  hasOwnProperty,
+	  createMap,
 	
-	  NODE_TYPE_ELEMENT: true,
-	  NODE_TYPE_ATTRIBUTE: true,
-	  NODE_TYPE_TEXT: true,
-	  NODE_TYPE_COMMENT: true,
-	  NODE_TYPE_DOCUMENT: true,
-	  NODE_TYPE_DOCUMENT_FRAGMENT: true,
+	  NODE_TYPE_ELEMENT,
+	  NODE_TYPE_ATTRIBUTE,
+	  NODE_TYPE_TEXT,
+	  NODE_TYPE_COMMENT,
+	  NODE_TYPE_DOCUMENT,
+	  NODE_TYPE_DOCUMENT_FRAGMENT
 	*/
 	
 	////////////////////////////////////
@@ -278,16 +280,18 @@
 	
 	
 	var manualLowercase = function(s) {
-	  /* jshint bitwise: false */
+	  /* eslint-disable no-bitwise */
 	  return isString(s)
 	      ? s.replace(/[A-Z]/g, function(ch) {return String.fromCharCode(ch.charCodeAt(0) | 32);})
 	      : s;
+	  /* eslint-enable */
 	};
 	var manualUppercase = function(s) {
-	  /* jshint bitwise: false */
+	  /* eslint-disable no-bitwise */
 	  return isString(s)
 	      ? s.replace(/[a-z]/g, function(ch) {return String.fromCharCode(ch.charCodeAt(0) & ~32);})
 	      : s;
+	  /* eslint-enable */
 	};
 	
 	
@@ -342,12 +346,12 @@
 	
 	  // Support: iOS 8.2 (not reproducible in simulator)
 	  // "length" in obj used to prevent JIT error (gh-11508)
-	  var length = "length" in Object(obj) && obj.length;
+	  var length = 'length' in Object(obj) && obj.length;
 	
 	  // NodeList objects (with `item` method) and
 	  // other objects with suitable length characteristics are array-like
 	  return isNumber(length) &&
-	    (length >= 0 && ((length - 1) in obj || obj instanceof Array) || typeof obj.item == 'function');
+	    (length >= 0 && ((length - 1) in obj || obj instanceof Array) || typeof obj.item === 'function');
 	
 	}
 	
@@ -393,7 +397,7 @@
 	      for (key in obj) {
 	        // Need to check if hasOwnProperty exists,
 	        // as on IE8 the result of querySelectorAll is an object without a hasOwnProperty function
-	        if (key != 'prototype' && key != 'length' && key != 'name' && (!obj.hasOwnProperty || obj.hasOwnProperty(key))) {
+	        if (key !== 'prototype' && key !== 'length' && key !== 'name' && (!obj.hasOwnProperty || obj.hasOwnProperty(key))) {
 	          iterator.call(context, obj[key], key, obj);
 	        }
 	      }
@@ -561,6 +565,11 @@
 	function toInt(str) {
 	  return parseInt(str, 10);
 	}
+	
+	var isNumberNaN = Number.isNaN || function isNumberNaN(num) {
+	  // eslint-disable-next-line no-self-compare
+	  return num !== num;
+	};
 	
 	
 	function inherit(parent, extra) {
@@ -839,8 +848,10 @@
 	// http://docs.closure-library.googlecode.com/git/local_closure_goog_string_string.js.source.html#line1021
 	// Prereq: s is a string.
 	var escapeForRegexp = function(s) {
-	  return s.replace(/([-()\[\]{}+?*.$\^|,:#<!\\])/g, '\\$1').
-	           replace(/\x08/g, '\\x08');
+	  return s
+	    .replace(/([-()\[\]{}+?*.$\^|,:#<!\\])/g, '\\$1')
+	    // eslint-disable-next-line no-control-regex
+	    .replace(/\x08/g, '\\x08');
 	};
 	
 	
@@ -880,7 +891,7 @@
 	}
 	
 	function includes(array, obj) {
-	  return Array.prototype.indexOf.call(array, obj) != -1;
+	  return Array.prototype.indexOf.call(array, obj) !== -1;
 	}
 	
 	function arrayRemove(array, value) {
@@ -904,7 +915,13 @@
 	 * * If a destination is provided, all of its elements (for arrays) or properties (for objects)
 	 *   are deleted and then all elements/properties from the source are copied to it.
 	 * * If `source` is not an object or array (inc. `null` and `undefined`), `source` is returned.
-	 * * If `source` is identical to 'destination' an exception will be thrown.
+	 * * If `source` is identical to `destination` an exception will be thrown.
+	 *
+	 * <br />
+	 * <div class="alert alert-warning">
+	 *   Only enumerable properties are taken into account. Non-enumerable properties (both on `source`
+	 *   and on `destination`) will be ignored.
+	 * </div>
 	 *
 	 * @param {*} source The source that will be used to make a copy.
 	 *                   Can be any type, including primitives, `null`, and `undefined`.
@@ -913,41 +930,42 @@
 	 * @returns {*} The copy or updated `destination`, if `destination` was specified.
 	 *
 	 * @example
-	 <example module="copyExample">
-	 <file name="index.html">
-	 <div ng-controller="ExampleController">
-	 <form novalidate class="simple-form">
-	 Name: <input type="text" ng-model="user.name" /><br />
-	 E-mail: <input type="email" ng-model="user.email" /><br />
-	 Gender: <input type="radio" ng-model="user.gender" value="male" />male
-	 <input type="radio" ng-model="user.gender" value="female" />female<br />
-	 <button ng-click="reset()">RESET</button>
-	 <button ng-click="update(user)">SAVE</button>
-	 </form>
-	 <pre>form = {{user | json}}</pre>
-	 <pre>master = {{master | json}}</pre>
-	 </div>
+	  <example module="copyExample" name="angular-copy">
+	    <file name="index.html">
+	      <div ng-controller="ExampleController">
+	        <form novalidate class="simple-form">
+	          <label>Name: <input type="text" ng-model="user.name" /></label><br />
+	          <label>Age:  <input type="number" ng-model="user.age" /></label><br />
+	          Gender: <label><input type="radio" ng-model="user.gender" value="male" />male</label>
+	                  <label><input type="radio" ng-model="user.gender" value="female" />female</label><br />
+	          <button ng-click="reset()">RESET</button>
+	          <button ng-click="update(user)">SAVE</button>
+	        </form>
+	        <pre>form = {{user | json}}</pre>
+	        <pre>master = {{master | json}}</pre>
+	      </div>
+	    </file>
+	    <file name="script.js">
+	      // Module: copyExample
+	      angular.
+	        module('copyExample', []).
+	        controller('ExampleController', ['$scope', function($scope) {
+	          $scope.master = {};
 	
-	 <script>
-	  angular.module('copyExample', [])
-	    .controller('ExampleController', ['$scope', function($scope) {
-	      $scope.master= {};
+	          $scope.reset = function() {
+	            // Example with 1 argument
+	            $scope.user = angular.copy($scope.master);
+	          };
 	
-	      $scope.update = function(user) {
-	        // Example with 1 argument
-	        $scope.master= angular.copy(user);
-	      };
+	          $scope.update = function(user) {
+	            // Example with 2 arguments
+	            angular.copy(user, $scope.master);
+	          };
 	
-	      $scope.reset = function() {
-	        // Example with 2 arguments
-	        angular.copy($scope.master, $scope.user);
-	      };
-	
-	      $scope.reset();
-	    }]);
-	 </script>
-	 </file>
-	 </example>
+	          $scope.reset();
+	        }]);
+	    </file>
+	  </example>
 	 */
 	function copy(source, destination) {
 	  var stackSource = [];
@@ -955,10 +973,10 @@
 	
 	  if (destination) {
 	    if (isTypedArray(destination) || isArrayBuffer(destination)) {
-	      throw ngMinErr('cpta', "Can't copy! TypedArray destination cannot be mutated.");
+	      throw ngMinErr('cpta', 'Can\'t copy! TypedArray destination cannot be mutated.');
 	    }
 	    if (source === destination) {
-	      throw ngMinErr('cpi', "Can't copy! Source and destination are identical.");
+	      throw ngMinErr('cpi', 'Can\'t copy! Source and destination are identical.');
 	    }
 	
 	    // Empty the destination object
@@ -1024,7 +1042,7 @@
 	
 	    if (isWindow(source) || isScope(source)) {
 	      throw ngMinErr('cpws',
-	        "Can't copy! Making copies of Window or Scope instances is not supported.");
+	        'Can\'t copy! Making copies of Window or Scope instances is not supported.');
 	    }
 	
 	    var needsRecurse = false;
@@ -1054,13 +1072,16 @@
 	      case '[object Uint8ClampedArray]':
 	      case '[object Uint16Array]':
 	      case '[object Uint32Array]':
-	        return new source.constructor(copyElement(source.buffer));
+	        return new source.constructor(copyElement(source.buffer), source.byteOffset, source.length);
 	
 	      case '[object ArrayBuffer]':
-	        //Support: IE10
+	        // Support: IE10
 	        if (!source.slice) {
+	          // If we're in this case we know the environment supports ArrayBuffer
+	          /* eslint-disable no-undef */
 	          var copied = new ArrayBuffer(source.byteLength);
 	          new Uint8Array(copied).set(new Uint8Array(source));
+	          /* eslint-enable */
 	          return copied;
 	        }
 	        return source.slice(0);
@@ -1143,7 +1164,6 @@
 	        angular.module('equalsExample', []).controller('ExampleController', ['$scope', function($scope) {
 	          $scope.user1 = {};
 	          $scope.user2 = {};
-	          $scope.result;
 	          $scope.compare = function() {
 	            $scope.result = angular.equals($scope.user1, $scope.user2);
 	          };
@@ -1154,12 +1174,13 @@
 	function equals(o1, o2) {
 	  if (o1 === o2) return true;
 	  if (o1 === null || o2 === null) return false;
+	  // eslint-disable-next-line no-self-compare
 	  if (o1 !== o1 && o2 !== o2) return true; // NaN === NaN
 	  var t1 = typeof o1, t2 = typeof o2, length, key, keySet;
-	  if (t1 == t2 && t1 == 'object') {
+	  if (t1 === t2 && t1 === 'object') {
 	    if (isArray(o1)) {
 	      if (!isArray(o2)) return false;
-	      if ((length = o1.length) == o2.length) {
+	      if ((length = o1.length) === o2.length) {
 	        for (key = 0; key < length; key++) {
 	          if (!equals(o1[key], o2[key])) return false;
 	        }
@@ -1170,7 +1191,7 @@
 	      return equals(o1.getTime(), o2.getTime());
 	    } else if (isRegExp(o1)) {
 	      if (!isRegExp(o2)) return false;
-	      return o1.toString() == o2.toString();
+	      return o1.toString() === o2.toString();
 	    } else {
 	      if (isScope(o1) || isScope(o2) || isWindow(o1) || isWindow(o2) ||
 	        isArray(o2) || isDate(o2) || isRegExp(o2)) return false;
@@ -1218,9 +1239,8 @@
 	
 	  function noUnsafeEval() {
 	    try {
-	      /* jshint -W031, -W054 */
+	      // eslint-disable-next-line no-new, no-new-func
 	      new Function('');
-	      /* jshint +W031, +W054 */
 	      return false;
 	    } catch (e) {
 	      return true;
@@ -1272,7 +1292,8 @@
 	  var i, ii = ngAttrPrefixes.length, prefix, name;
 	  for (i = 0; i < ii; ++i) {
 	    prefix = ngAttrPrefixes[i];
-	    if (el = window.document.querySelector('[' + prefix.replace(':', '\\:') + 'jq]')) {
+	    el = window.document.querySelector('[' + prefix.replace(':', '\\:') + 'jq]');
+	    if (el) {
 	      name = el.getAttribute(prefix + 'jq');
 	      break;
 	    }
@@ -1290,7 +1311,6 @@
 	}
 	
 	
-	/* jshint -W101 */
 	/**
 	 * @ngdoc function
 	 * @name angular.bind
@@ -1308,7 +1328,6 @@
 	 * @param {...*} args Optional arguments to be prebound to the `fn` function call.
 	 * @returns {function()} Function that wraps the `fn` with all the specified bindings.
 	 */
-	/* jshint +W101 */
 	function bind(self, fn) {
 	  var curryArgs = arguments.length > 2 ? sliceArgs(arguments, 2) : [];
 	  if (isFunction(fn) && !(fn instanceof RegExp)) {
@@ -1416,7 +1435,7 @@
 	  // IE/Edge do not "understand" colon (`:`) in timezone
 	  timezone = timezone.replace(ALL_COLONS, '');
 	  var requestedTimezoneOffset = Date.parse('Jan 01, 1970 00:00:00 ' + timezone) / 60000;
-	  return isNaN(requestedTimezoneOffset) ? fallback : requestedTimezoneOffset;
+	  return isNumberNaN(requestedTimezoneOffset) ? fallback : requestedTimezoneOffset;
 	}
 	
 	
@@ -1444,7 +1463,7 @@
 	    // turns out IE does not let you set .html() on elements which
 	    // are not allowed to have children. So we just ignore it.
 	    element.empty();
-	  } catch (e) {}
+	  } catch (e) { /* empty */ }
 	  var elemHtml = jqLite('<div>').append(element).html();
 	  try {
 	    return element[0].nodeType === NODE_TYPE_TEXT ? lowercase(elemHtml) :
@@ -1483,7 +1502,7 @@
 	 */
 	function parseKeyValue(/**string*/keyValue) {
 	  var obj = {};
-	  forEach((keyValue || "").split('&'), function(keyValue) {
+	  forEach((keyValue || '').split('&'), function(keyValue) {
 	    var splitPoint, key, val;
 	    if (keyValue) {
 	      key = keyValue = keyValue.replace(/\+/g,'%20');
@@ -1578,6 +1597,34 @@
 	  return null;
 	}
 	
+	function allowAutoBootstrap(document) {
+	  if (!document.currentScript) {
+	    return true;
+	  }
+	  var src = document.currentScript.getAttribute('src');
+	  var link = document.createElement('a');
+	  link.href = src;
+	  var scriptProtocol = link.protocol;
+	  var docLoadProtocol = document.location.protocol;
+	  if (docLoadProtocol === scriptProtocol) {
+	    return true;
+	  }
+	  switch (scriptProtocol) {
+	    case 'http:':
+	    case 'https:':
+	    case 'ftp:':
+	    case 'blob:':
+	    case 'file:':
+	    case 'data:':
+	      return true;
+	    default:
+	      return false;
+	  }
+	}
+	
+	// Cached as it has to run during loading so that document.currentScript is available.
+	var isAutoBootstrapAllowed = allowAutoBootstrap(window.document);
+	
 	/**
 	 * @ngdoc directive
 	 * @name ngApp
@@ -1621,7 +1668,7 @@
 	 *
 	 * `ngApp` is the easiest, and most common way to bootstrap an application.
 	 *
-	 <example module="ngAppDemo">
+	 <example module="ngAppDemo" name="ng-app">
 	   <file name="index.html">
 	   <div ng-controller="ngAppDemoController">
 	     I can add: {{a}} + {{b}} =  {{ a+b }}
@@ -1637,7 +1684,7 @@
 	 *
 	 * Using `ngStrictDi`, you would see something like this:
 	 *
-	 <example ng-app-included="true">
+	 <example ng-app-included="true" name="strict-di">
 	   <file name="index.html">
 	   <div ng-app="ngAppStrictDemo" ng-strict-di>
 	       <div ng-controller="GoodController1">
@@ -1686,7 +1733,7 @@
 	     }])
 	     .controller('GoodController2', GoodController2);
 	     function GoodController2($scope) {
-	       $scope.name = "World";
+	       $scope.name = 'World';
 	     }
 	     GoodController2.$inject = ['$scope'];
 	   </file>
@@ -1736,7 +1783,12 @@
 	    }
 	  });
 	  if (appElement) {
-	    config.strictDi = getNgAttribute(appElement, "strict-di") !== null;
+	    if (!isAutoBootstrapAllowed) {
+	      window.console.error('Angular: disabling automatic bootstrap. <script> protocol indicates ' +
+	          'an extension, document.location.href does not match.');
+	      return;
+	    }
+	    config.strictDi = getNgAttribute(appElement, 'strict-di') !== null;
 	    bootstrap(appElement, module ? [module] : [], config);
 	  }
 	}
@@ -1814,7 +1866,7 @@
 	      // Encode angle brackets to prevent input from being sanitized to empty string #8683.
 	      throw ngMinErr(
 	          'btstrpd',
-	          "App already bootstrapped with this element '{0}'",
+	          'App already bootstrapped with this element \'{0}\'',
 	          tag.replace(/</,'&lt;').replace(/>/,'&gt;'));
 	    }
 	
@@ -1943,7 +1995,7 @@
 	    jQuery.cleanData = function(elems) {
 	      var events;
 	      for (var i = 0, elem; (elem = elems[i]) != null; i++) {
-	        events = jQuery._data(elem, "events");
+	        events = jQuery._data(elem, 'events');
 	        if (events && events.$destroy) {
 	          jQuery(elem).triggerHandler('$destroy');
 	        }
@@ -1965,7 +2017,7 @@
 	 */
 	function assertArg(arg, name, reason) {
 	  if (!arg) {
-	    throw ngMinErr('areq', "Argument '{0}' is {1}", (name || '?'), (reason || "required"));
+	    throw ngMinErr('areq', 'Argument \'{0}\' is {1}', (name || '?'), (reason || 'required'));
 	  }
 	  return arg;
 	}
@@ -1987,7 +2039,7 @@
 	 */
 	function assertNotHasOwnProperty(name, context) {
 	  if (name === 'hasOwnProperty') {
-	    throw ngMinErr('badname', "hasOwnProperty is not a valid {0} name", context);
+	    throw ngMinErr('badname', 'hasOwnProperty is not a valid {0} name', context);
 	  }
 	}
 	
@@ -2155,9 +2207,9 @@
 	      }
 	      return ensure(modules, name, function() {
 	        if (!requires) {
-	          throw $injectorMinErr('nomod', "Module '{0}' is not available! You either misspelled " +
-	             "the module name or forgot to load it. If registering a module ensure that you " +
-	             "specify the dependencies as the second argument.", name);
+	          throw $injectorMinErr('nomod', 'Module \'{0}\' is not available! You either misspelled ' +
+	             'the module name or forgot to load it. If registering a module ensure that you ' +
+	             'specify the dependencies as the second argument.', name);
 	        }
 	
 	        /** @type {!Array.<Array.<*>>} */
@@ -2492,7 +2544,6 @@
 	  formDirective,
 	  scriptDirective,
 	  selectDirective,
-	  styleDirective,
 	  optionDirective,
 	  ngBindDirective,
 	  ngBindHtmlDirective,
@@ -2557,6 +2608,7 @@
 	  $HttpParamSerializerJQLikeProvider,
 	  $HttpBackendProvider,
 	  $xhrFactoryProvider,
+	  $jsonpCallbacksProvider,
 	  $LocationProvider,
 	  $LogProvider,
 	  $ParseProvider,
@@ -2594,11 +2646,13 @@
 	 * - `codeName` – `{string}` – Code name of the release, such as "jiggling-armfat".
 	 */
 	var version = {
-	  full: '1.5.7',    // all of these placeholder strings will be replaced by grunt's
-	  major: 1,    // package task
+	  // These placeholder strings will be replaced by grunt's `build` task.
+	  // They need to be double- or single-quoted.
+	  full: '1.5.9',
+	  major: 1,
 	  minor: 5,
-	  dot: 7,
-	  codeName: 'hexagonal-circumvolution'
+	  dot: 9,
+	  codeName: 'timeturning-lockdown'
 	};
 	
 	
@@ -2629,7 +2683,7 @@
 	    'isDate': isDate,
 	    'lowercase': lowercase,
 	    'uppercase': uppercase,
-	    'callbacks': {counter: 0},
+	    'callbacks': {$$counter: 0},
 	    'getTestability': getTestability,
 	    '$$minErr': minErr,
 	    '$$csp': csp,
@@ -2652,7 +2706,6 @@
 	            form: formDirective,
 	            script: scriptDirective,
 	            select: selectDirective,
-	            style: styleDirective,
 	            option: optionDirective,
 	            ngBind: ngBindDirective,
 	            ngBindHtml: ngBindHtmlDirective,
@@ -2718,6 +2771,7 @@
 	        $httpParamSerializerJQLike: $HttpParamSerializerJQLikeProvider,
 	        $httpBackend: $HttpBackendProvider,
 	        $xhrFactory: $xhrFactoryProvider,
+	        $jsonpCallbacks: $jsonpCallbacksProvider,
 	        $location: $LocationProvider,
 	        $log: $LogProvider,
 	        $parse: $ParseProvider,
@@ -2756,7 +2810,7 @@
 	  addEventListenerFn: true,
 	  removeEventListenerFn: true,
 	  BOOLEAN_ATTR: true,
-	  ALIASED_ATTR: true,
+	  ALIASED_ATTR: true
 	*/
 	
 	//////////////////////////////////
@@ -2884,9 +2938,9 @@
 	function jqNextId() { return ++jqId; }
 	
 	
-	var SPECIAL_CHARS_REGEXP = /([\:\-\_]+(.))/g;
+	var SPECIAL_CHARS_REGEXP = /([:\-_]+(.))/g;
 	var MOZ_HACK_REGEXP = /^moz([A-Z])/;
-	var MOUSE_EVENT_MAP= { mouseleave: "mouseout", mouseenter: "mouseover"};
+	var MOUSE_EVENT_MAP = { mouseleave: 'mouseout', mouseenter: 'mouseover' };
 	var jqLiteMinErr = minErr('jqLite');
 	
 	/**
@@ -2914,7 +2968,7 @@
 	  'col': [2, '<table><colgroup>', '</colgroup></table>'],
 	  'tr': [2, '<table><tbody>', '</tbody></table>'],
 	  'td': [3, '<table><tbody><tr>', '</tr></tbody></table>'],
-	  '_default': [0, "", ""]
+	  '_default': [0, '', '']
 	};
 	
 	wrapMap.optgroup = wrapMap.option;
@@ -2956,10 +3010,10 @@
 	    nodes.push(context.createTextNode(html));
 	  } else {
 	    // Convert html into DOM nodes
-	    tmp = tmp || fragment.appendChild(context.createElement("div"));
-	    tag = (TAG_NAME_REGEXP.exec(html) || ["", ""])[1].toLowerCase();
+	    tmp = fragment.appendChild(context.createElement('div'));
+	    tag = (TAG_NAME_REGEXP.exec(html) || ['', ''])[1].toLowerCase();
 	    wrap = wrapMap[tag] || wrapMap._default;
-	    tmp.innerHTML = wrap[1] + html.replace(XHTML_TAG_REGEXP, "<$1></$2>") + wrap[2];
+	    tmp.innerHTML = wrap[1] + html.replace(XHTML_TAG_REGEXP, '<$1></$2>') + wrap[2];
 	
 	    // Descend through wrappers to the right content
 	    i = wrap[0];
@@ -2970,12 +3024,12 @@
 	    nodes = concat(nodes, tmp.childNodes);
 	
 	    tmp = fragment.firstChild;
-	    tmp.textContent = "";
+	    tmp.textContent = '';
 	  }
 	
 	  // Remove wrapper from fragment
-	  fragment.textContent = "";
-	  fragment.innerHTML = ""; // Clear inner HTML
+	  fragment.textContent = '';
+	  fragment.innerHTML = ''; // Clear inner HTML
 	  forEach(nodes, function(node) {
 	    fragment.appendChild(node);
 	  });
@@ -3010,10 +3064,9 @@
 	
 	
 	// IE9-11 has no method "contains" in SVG element and in Node.prototype. Bug #10259.
-	var jqLiteContains = window.Node.prototype.contains || function(arg) {
-	  // jshint bitwise: false
+	var jqLiteContains = window.Node.prototype.contains || /** @this */ function(arg) {
+	  // eslint-disable-next-line no-bitwise
 	  return !!(this.compareDocumentPosition(arg) & 16);
-	  // jshint bitwise: true
 	};
 	
 	/////////////////////////////////////////////
@@ -3029,7 +3082,7 @@
 	    argIsString = true;
 	  }
 	  if (!(this instanceof JQLite)) {
-	    if (argIsString && element.charAt(0) != '<') {
+	    if (argIsString && element.charAt(0) !== '<') {
 	      throw jqLiteMinErr('nosel', 'Looking up elements via selectors is not supported by jqLite! See: http://docs.angularjs.org/api/angular.element');
 	    }
 	    return new JQLite(element);
@@ -3158,17 +3211,17 @@
 	
 	function jqLiteHasClass(element, selector) {
 	  if (!element.getAttribute) return false;
-	  return ((" " + (element.getAttribute('class') || '') + " ").replace(/[\n\t]/g, " ").
-	      indexOf(" " + selector + " ") > -1);
+	  return ((' ' + (element.getAttribute('class') || '') + ' ').replace(/[\n\t]/g, ' ').
+	      indexOf(' ' + selector + ' ') > -1);
 	}
 	
 	function jqLiteRemoveClass(element, cssClasses) {
 	  if (cssClasses && element.setAttribute) {
 	    forEach(cssClasses.split(' '), function(cssClass) {
 	      element.setAttribute('class', trim(
-	          (" " + (element.getAttribute('class') || '') + " ")
-	          .replace(/[\n\t]/g, " ")
-	          .replace(" " + trim(cssClass) + " ", " "))
+	          (' ' + (element.getAttribute('class') || '') + ' ')
+	          .replace(/[\n\t]/g, ' ')
+	          .replace(' ' + trim(cssClass) + ' ', ' '))
 	      );
 	    });
 	  }
@@ -3177,7 +3230,7 @@
 	function jqLiteAddClass(element, cssClasses) {
 	  if (cssClasses && element.setAttribute) {
 	    var existingClasses = (' ' + (element.getAttribute('class') || '') + ' ')
-	                            .replace(/[\n\t]/g, " ");
+	                            .replace(/[\n\t]/g, ' ');
 	
 	    forEach(cssClasses.split(' '), function(cssClass) {
 	      cssClass = trim(cssClass);
@@ -3224,7 +3277,7 @@
 	function jqLiteInheritedData(element, name, value) {
 	  // if element is the document object work with the html element instead
 	  // this makes $(document).scope() possible
-	  if (element.nodeType == NODE_TYPE_DOCUMENT) {
+	  if (element.nodeType === NODE_TYPE_DOCUMENT) {
 	    element = element.documentElement;
 	  }
 	  var names = isArray(name) ? name : [name];
@@ -3287,9 +3340,8 @@
 	    } else {
 	      this.on('DOMContentLoaded', trigger); // works for modern browsers and IE9
 	      // we can not use jqLite since we are not done loading and jQuery could be loaded later.
-	      // jshint -W064
+	      // eslint-disable-next-line new-cap
 	      JQLite(window).on('load', trigger); // fallback to window.onload for others
-	      // jshint +W064
 	    }
 	  },
 	  toString: function() {
@@ -3394,7 +3446,7 @@
 	    var lowercasedName = lowercase(name);
 	    if (BOOLEAN_ATTR[lowercasedName]) {
 	      if (isDefined(value)) {
-	        if (!!value) {
+	        if (value) {
 	          element[name] = true;
 	          element.setAttribute(name, lowercasedName);
 	        } else {
@@ -3476,7 +3528,7 @@
 	    // in a way that survives minification.
 	    // jqLiteEmpty takes no arguments but is a setter.
 	    if (fn !== jqLiteEmpty &&
-	        (isUndefined((fn.length == 2 && (fn !== jqLiteHasClass && fn !== jqLiteController)) ? arg1 : arg2))) {
+	        (isUndefined((fn.length === 2 && (fn !== jqLiteHasClass && fn !== jqLiteController)) ? arg1 : arg2))) {
 	      if (isObject(arg1)) {
 	
 	        // we are a write, but the object properties are the key/values
@@ -3818,6 +3870,7 @@
 	
 	
 	// Provider for private $$jqLite service
+	/** @this */
 	function $$jqLiteProvider() {
 	  this.$get = function $$jqLite() {
 	    return extend(JQLite, {
@@ -3860,7 +3913,7 @@
 	  }
 	
 	  var objType = typeof obj;
-	  if (objType == 'function' || (objType == 'object' && obj !== null)) {
+	  if (objType === 'function' || (objType === 'object' && obj !== null)) {
 	    key = obj.$$hashKey = objType + ':' + (nextUidFn || nextUid)();
 	  } else {
 	    key = objType + ':' + obj;
@@ -3910,7 +3963,7 @@
 	  }
 	};
 	
-	var $$HashMapProvider = [function() {
+	var $$HashMapProvider = [/** @this */function() {
 	  this.$get = [function() {
 	    return HashMap;
 	  }];
@@ -4235,7 +4288,6 @@
 	 *
 	 * @returns {Array.<string>} The names of the services which the function requires.
 	 */
-	
 	
 	
 	
@@ -4582,7 +4634,7 @@
 	            if (angular.isString(caller)) {
 	              path.push(caller);
 	            }
-	            throw $injectorMinErr('unpr', "Unknown provider: {0}", path.join(' <- '));
+	            throw $injectorMinErr('unpr', 'Unknown provider: {0}', path.join(' <- '));
 	          })),
 	      instanceCache = {},
 	      protoInstanceInjector =
@@ -4621,16 +4673,16 @@
 	      provider_ = providerInjector.instantiate(provider_);
 	    }
 	    if (!provider_.$get) {
-	      throw $injectorMinErr('pget', "Provider '{0}' must define $get factory method.", name);
+	      throw $injectorMinErr('pget', 'Provider \'{0}\' must define $get factory method.', name);
 	    }
-	    return providerCache[name + providerSuffix] = provider_;
+	    return (providerCache[name + providerSuffix] = provider_);
 	  }
 	
 	  function enforceReturnValue(name, factory) {
-	    return function enforcedReturnValue() {
+	    return /** @this */ function enforcedReturnValue() {
 	      var result = instanceInjector.invoke(factory, this);
 	      if (isUndefined(result)) {
-	        throw $injectorMinErr('undef', "Provider '{0}' must return a value from $get factory method.", name);
+	        throw $injectorMinErr('undef', 'Provider \'{0}\' must return a value from $get factory method.', name);
 	      }
 	      return result;
 	    };
@@ -4703,15 +4755,15 @@
 	        if (isArray(module)) {
 	          module = module[module.length - 1];
 	        }
-	        if (e.message && e.stack && e.stack.indexOf(e.message) == -1) {
+	        if (e.message && e.stack && e.stack.indexOf(e.message) === -1) {
 	          // Safari & FF's stack traces don't contain error.message content
 	          // unlike those of Chrome and IE
 	          // So if stack doesn't contain message, we create a new string that contains both.
 	          // Since error.stack is read-only in Safari, I'm overriding e and not e.stack here.
-	          /* jshint -W022 */
+	          // eslint-disable-next-line no-ex-assign
 	          e = e.message + '\n' + e.stack;
 	        }
-	        throw $injectorMinErr('modulerr', "Failed to instantiate module {0} due to:\n{1}",
+	        throw $injectorMinErr('modulerr', 'Failed to instantiate module {0} due to:\n{1}',
 	                  module, e.stack || e.message || e);
 	      }
 	    });
@@ -4735,7 +4787,8 @@
 	        try {
 	          path.unshift(serviceName);
 	          cache[serviceName] = INSTANTIATING;
-	          return cache[serviceName] = factory(serviceName, caller);
+	          cache[serviceName] = factory(serviceName, caller);
+	          return cache[serviceName];
 	        } catch (err) {
 	          if (cache[serviceName] === INSTANTIATING) {
 	            delete cache[serviceName];
@@ -4769,10 +4822,10 @@
 	      if (msie <= 11) {
 	        return false;
 	      }
-	      // Workaround for MS Edge.
-	      // Check https://connect.microsoft.com/IE/Feedback/Details/2211653
+	      // Support: Edge 12-13 only
+	      // See: https://developer.microsoft.com/en-us/microsoft-edge/platform/issues/6156135/
 	      return typeof func === 'function'
-	        && /^(?:class\s|constructor\()/.test(stringifyFn(func));
+	        && /^(?:class\b|constructor\()/.test(stringifyFn(func));
 	    }
 	
 	    function invoke(fn, self, locals, serviceName) {
@@ -4825,6 +4878,7 @@
 	/**
 	 * @ngdoc provider
 	 * @name $anchorScrollProvider
+	 * @this
 	 *
 	 * @description
 	 * Use `$anchorScrollProvider` to disable automatic scrolling whenever
@@ -4896,7 +4950,7 @@
 	   * </div>
 	   *
 	   * @example
-	     <example module="anchorScrollExample">
+	     <example module="anchorScrollExample" name="anchor-scroll">
 	       <file name="index.html">
 	         <div id="scrollArea" ng-controller="ScrollController">
 	           <a ng-click="gotoBottom()">Go to bottom</a>
@@ -4906,7 +4960,7 @@
 	       <file name="script.js">
 	         angular.module('anchorScrollExample', [])
 	           .controller('ScrollController', ['$scope', '$location', '$anchorScroll',
-	             function ($scope, $location, $anchorScroll) {
+	             function($scope, $location, $anchorScroll) {
 	               $scope.gotoBottom = function() {
 	                 // set the location.hash to the id of
 	                 // the element you wish to scroll to.
@@ -4935,7 +4989,7 @@
 	   * See {@link ng.$anchorScroll#yOffset $anchorScroll.yOffset} for more details.
 	   *
 	   * @example
-	     <example module="anchorScrollOffsetExample">
+	     <example module="anchorScrollOffsetExample" name="anchor-scroll-offset">
 	       <file name="index.html">
 	         <div class="fixed-header" ng-controller="headerCtrl">
 	           <a href="" ng-click="gotoAnchor(x)" ng-repeat="x in [1,2,3,4,5]">
@@ -4952,7 +5006,7 @@
 	             $anchorScroll.yOffset = 50;   // always scroll by 50 extra pixels
 	           }])
 	           .controller('headerCtrl', ['$anchorScroll', '$location', '$scope',
-	             function ($anchorScroll, $location, $scope) {
+	             function($anchorScroll, $location, $scope) {
 	               $scope.gotoAnchor = function(x) {
 	                 var newHash = 'anchor' + x;
 	                 if ($location.hash() !== newHash) {
@@ -5071,7 +5125,7 @@
 	      // first anchor with given name :-D
 	      else if ((elm = getFirstAnchor(document.getElementsByName(hash)))) scrollTo(elm);
 	
-	      // no element and hash == 'top', scroll to the top of the page
+	      // no element and hash === 'top', scroll to the top of the page
 	      else if (hash === 'top') scrollTo(null);
 	    }
 	
@@ -5146,13 +5200,13 @@
 	      : {};
 	}
 	
-	var $$CoreAnimateJsProvider = function() {
+	var $$CoreAnimateJsProvider = /** @this */ function() {
 	  this.$get = noop;
 	};
 	
 	// this is prefixed with Core since it conflicts with
 	// the animateQueueProvider defined in ngAnimate/animateQueue.js
-	var $$CoreAnimateQueueProvider = function() {
+	var $$CoreAnimateQueueProvider = /** @this */ function() {
 	  var postDigestQueue = new HashMap();
 	  var postDigestElements = [];
 	
@@ -5165,17 +5219,23 @@
 	      pin: noop,
 	
 	      push: function(element, event, options, domOperation) {
-	        domOperation        && domOperation();
+	        if (domOperation) {
+	          domOperation();
+	        }
 	
 	        options = options || {};
-	        options.from        && element.css(options.from);
-	        options.to          && element.css(options.to);
+	        if (options.from) {
+	          element.css(options.from);
+	        }
+	        if (options.to) {
+	          element.css(options.to);
+	        }
 	
 	        if (options.addClass || options.removeClass) {
 	          addRemoveClassesPostDigest(element, options.addClass, options.removeClass);
 	        }
 	
-	        var runner = new $$AnimateRunner(); // jshint ignore:line
+	        var runner = new $$AnimateRunner();
 	
 	        // since there are no animations to run the runner needs to be
 	        // notified that the animation call is complete.
@@ -5219,8 +5279,12 @@
 	          });
 	
 	          forEach(element, function(elm) {
-	            toAdd    && jqLiteAddClass(elm, toAdd);
-	            toRemove && jqLiteRemoveClass(elm, toRemove);
+	            if (toAdd) {
+	              jqLiteAddClass(elm, toAdd);
+	            }
+	            if (toRemove) {
+	              jqLiteRemoveClass(elm, toRemove);
+	            }
 	          });
 	          postDigestQueue.remove(element);
 	        }
@@ -5260,7 +5324,7 @@
 	 *
 	 * To see the functional implementation check out `src/ngAnimate/animate.js`.
 	 */
-	var $AnimateProvider = ['$provide', function($provide) {
+	var $AnimateProvider = ['$provide', /** @this */ function($provide) {
 	  var provider = this;
 	
 	  this.$$registeredAnimations = Object.create(null);
@@ -5306,7 +5370,7 @@
 	   */
 	  this.register = function(name, factory) {
 	    if (name && name.charAt(0) !== '.') {
-	      throw $animateMinErr('notcsel', "Expecting class selector starting with '.' got '{0}'.", name);
+	      throw $animateMinErr('notcsel', 'Expecting class selector starting with \'.\' got \'{0}\'.', name);
 	    }
 	
 	    var key = name + '-animation';
@@ -5332,7 +5396,7 @@
 	    if (arguments.length === 1) {
 	      this.$$classNameFilter = (expression instanceof RegExp) ? expression : null;
 	      if (this.$$classNameFilter) {
-	        var reservedRegex = new RegExp("(\\s+|\\/)" + NG_ANIMATE_CLASSNAME + "(\\s+|\\/)");
+	        var reservedRegex = new RegExp('(\\s+|\\/)' + NG_ANIMATE_CLASSNAME + '(\\s+|\\/)');
 	        if (reservedRegex.test(this.$$classNameFilter.toString())) {
 	          throw $animateMinErr('nongcls','$animateProvider.classNameFilter(regex) prohibits accepting a regex value which matches/contains the "{0}" CSS class.', NG_ANIMATE_CLASSNAME);
 	
@@ -5353,7 +5417,11 @@
 	          afterElement = null;
 	        }
 	      }
-	      afterElement ? afterElement.after(element) : parentElement.prepend(element);
+	      if (afterElement) {
+	        afterElement.after(element);
+	      } else {
+	        parentElement.prepend(element);
+	      }
 	    }
 	
 	    /**
@@ -5496,7 +5564,9 @@
 	       * @param {Promise} animationPromise The animation promise that is returned when an animation is started.
 	       */
 	      cancel: function(runner) {
-	        runner.end && runner.end();
+	        if (runner.end) {
+	          runner.end();
+	        }
 	      },
 	
 	      /**
@@ -5733,7 +5803,7 @@
 	  }];
 	}];
 	
-	var $$AnimateAsyncRunFactoryProvider = function() {
+	var $$AnimateAsyncRunFactoryProvider = /** @this */ function() {
 	  this.$get = ['$$rAF', function($$rAF) {
 	    var waitQueue = [];
 	
@@ -5754,13 +5824,17 @@
 	        passed = true;
 	      });
 	      return function(callback) {
-	        passed ? callback() : waitForTick(callback);
+	        if (passed) {
+	          callback();
+	        } else {
+	          waitForTick(callback);
+	        }
 	      };
 	    };
 	  }];
 	};
 	
-	var $$AnimateRunnerFactoryProvider = function() {
+	var $$AnimateRunnerFactoryProvider = /** @this */ function() {
 	  this.$get = ['$q', '$sniffer', '$$animateAsyncRun', '$document', '$timeout',
 	       function($q,   $sniffer,   $$animateAsyncRun,   $document,   $timeout) {
 	
@@ -5847,7 +5921,11 @@
 	          var self = this;
 	          this.promise = $q(function(resolve, reject) {
 	            self.done(function(status) {
-	              status === false ? reject() : resolve();
+	              if (status === false) {
+	                reject();
+	              } else {
+	                resolve();
+	              }
 	            });
 	          });
 	        }
@@ -5917,10 +5995,13 @@
 	  }];
 	};
 	
+	/* exported $CoreAnimateCssProvider */
+	
 	/**
 	 * @ngdoc service
 	 * @name $animateCss
 	 * @kind object
+	 * @this
 	 *
 	 * @description
 	 * This is the core version of `$animateCss`. By default, only when the `ngAnimate` is included,
@@ -5953,7 +6034,6 @@
 	        options.from = null;
 	      }
 	
-	      /* jshint newcap: false */
 	      var closed, runner = new $$AnimateRunner();
 	      return {
 	        start: run,
@@ -6167,7 +6247,7 @@
 	      //   the new location.href if a reload happened or if there is a bug like in iOS 9 (see
 	      //   https://openradar.appspot.com/22186109).
 	      // - the replacement is a workaround for https://bugzilla.mozilla.org/show_bug.cgi?id=407172
-	      return pendingLocation || location.href.replace(/%27/g,"'");
+	      return pendingLocation || location.href.replace(/%27/g,'\'');
 	    }
 	  };
 	
@@ -6292,7 +6372,7 @@
 	   */
 	  self.baseHref = function() {
 	    var href = baseElement.attr('href');
-	    return href ? href.replace(/^(https?\:)?\/\/[^\/]*/, '') : '';
+	    return href ? href.replace(/^(https?:)?\/\/[^\/]*/, '') : '';
 	  };
 	
 	  /**
@@ -6343,6 +6423,7 @@
 	
 	}
 	
+	/** @this */
 	function $BrowserProvider() {
 	  this.$get = ['$window', '$log', '$sniffer', '$document',
 	      function($window, $log, $sniffer, $document) {
@@ -6353,6 +6434,7 @@
 	/**
 	 * @ngdoc service
 	 * @name $cacheFactory
+	 * @this
 	 *
 	 * @description
 	 * Factory that constructs {@link $cacheFactory.Cache Cache} objects and gives access to
@@ -6389,7 +6471,7 @@
 	 * - `{void}` `destroy()` — Removes references to this cache from $cacheFactory.
 	 *
 	 * @example
-	   <example module="cacheExampleApp">
+	   <example module="cacheExampleApp" name="cache-factory">
 	     <file name="index.html">
 	       <div ng-controller="CacheController">
 	         <input ng-model="newCacheKey" placeholder="Key">
@@ -6438,7 +6520,7 @@
 	
 	    function cacheFactory(cacheId, options) {
 	      if (cacheId in caches) {
-	        throw minErr('$cacheFactory')('iid', "CacheId '{0}' is already taken!", cacheId);
+	        throw minErr('$cacheFactory')('iid', 'CacheId \'{0}\' is already taken!', cacheId);
 	      }
 	
 	      var size = 0,
@@ -6488,7 +6570,7 @@
 	       *  }));
 	       * ```
 	       */
-	      return caches[cacheId] = {
+	      return (caches[cacheId] = {
 	
 	        /**
 	         * @ngdoc method
@@ -6566,8 +6648,8 @@
 	
 	            if (!lruEntry) return;
 	
-	            if (lruEntry == freshEnd) freshEnd = lruEntry.p;
-	            if (lruEntry == staleEnd) staleEnd = lruEntry.n;
+	            if (lruEntry === freshEnd) freshEnd = lruEntry.p;
+	            if (lruEntry === staleEnd) staleEnd = lruEntry.n;
 	            link(lruEntry.n,lruEntry.p);
 	
 	            delete lruHash[key];
@@ -6632,17 +6714,17 @@
 	        info: function() {
 	          return extend({}, stats, {size: size});
 	        }
-	      };
+	      });
 	
 	
 	      /**
 	       * makes the `entry` the freshEnd of the LRU linked list
 	       */
 	      function refresh(entry) {
-	        if (entry != freshEnd) {
+	        if (entry !== freshEnd) {
 	          if (!staleEnd) {
 	            staleEnd = entry;
-	          } else if (staleEnd == entry) {
+	          } else if (staleEnd === entry) {
 	            staleEnd = entry.n;
 	          }
 	
@@ -6658,7 +6740,7 @@
 	       * bidirectionally links two entries of the LRU linked list
 	       */
 	      function link(nextEntry, prevEntry) {
-	        if (nextEntry != prevEntry) {
+	        if (nextEntry !== prevEntry) {
 	          if (nextEntry) nextEntry.p = prevEntry; //p stands for previous, 'prev' didn't minify
 	          if (prevEntry) prevEntry.n = nextEntry; //n stands for next, 'next' didn't minify
 	        }
@@ -6706,6 +6788,7 @@
 	/**
 	 * @ngdoc service
 	 * @name $templateCache
+	 * @this
 	 *
 	 * @description
 	 * The first time a template is used, it is loaded in the template cache for quick retrieval. You
@@ -6804,8 +6887,9 @@
 	 * There are many different options for a directive.
 	 *
 	 * The difference resides in the return value of the factory function.
-	 * You can either return a "Directive Definition Object" (see below) that defines the directive properties,
-	 * or just the `postLink` function (all other properties will have the default values).
+	 * You can either return a {@link $compile#directive-definition-object Directive Definition Object (see below)}
+	 * that defines the directive properties, or just the `postLink` function (all other properties will have
+	 * the default values).
 	 *
 	 * <div class="alert alert-success">
 	 * **Best Practice:** It's recommended to use the "directive definition object" form.
@@ -6869,6 +6953,125 @@
 	 *   });
 	 * ```
 	 *
+	 * ### Life-cycle hooks
+	 * Directive controllers can provide the following methods that are called by Angular at points in the life-cycle of the
+	 * directive:
+	 * * `$onInit()` - Called on each controller after all the controllers on an element have been constructed and
+	 *   had their bindings initialized (and before the pre &amp; post linking functions for the directives on
+	 *   this element). This is a good place to put initialization code for your controller.
+	 * * `$onChanges(changesObj)` - Called whenever one-way (`<`) or interpolation (`@`) bindings are updated. The
+	 *   `changesObj` is a hash whose keys are the names of the bound properties that have changed, and the values are an
+	 *   object of the form `{ currentValue, previousValue, isFirstChange() }`. Use this hook to trigger updates within a
+	 *   component such as cloning the bound value to prevent accidental mutation of the outer value.
+	 * * `$doCheck()` - Called on each turn of the digest cycle. Provides an opportunity to detect and act on
+	 *   changes. Any actions that you wish to take in response to the changes that you detect must be
+	 *   invoked from this hook; implementing this has no effect on when `$onChanges` is called. For example, this hook
+	 *   could be useful if you wish to perform a deep equality check, or to check a Date object, changes to which would not
+	 *   be detected by Angular's change detector and thus not trigger `$onChanges`. This hook is invoked with no arguments;
+	 *   if detecting changes, you must store the previous value(s) for comparison to the current values.
+	 * * `$onDestroy()` - Called on a controller when its containing scope is destroyed. Use this hook for releasing
+	 *   external resources, watches and event handlers. Note that components have their `$onDestroy()` hooks called in
+	 *   the same order as the `$scope.$broadcast` events are triggered, which is top down. This means that parent
+	 *   components will have their `$onDestroy()` hook called before child components.
+	 * * `$postLink()` - Called after this controller's element and its children have been linked. Similar to the post-link
+	 *   function this hook can be used to set up DOM event handlers and do direct DOM manipulation.
+	 *   Note that child elements that contain `templateUrl` directives will not have been compiled and linked since
+	 *   they are waiting for their template to load asynchronously and their own compilation and linking has been
+	 *   suspended until that occurs.
+	 *
+	 * #### Comparison with Angular 2 life-cycle hooks
+	 * Angular 2 also uses life-cycle hooks for its components. While the Angular 1 life-cycle hooks are similar there are
+	 * some differences that you should be aware of, especially when it comes to moving your code from Angular 1 to Angular 2:
+	 *
+	 * * Angular 1 hooks are prefixed with `$`, such as `$onInit`. Angular 2 hooks are prefixed with `ng`, such as `ngOnInit`.
+	 * * Angular 1 hooks can be defined on the controller prototype or added to the controller inside its constructor.
+	 *   In Angular 2 you can only define hooks on the prototype of the Component class.
+	 * * Due to the differences in change-detection, you may get many more calls to `$doCheck` in Angular 1 than you would to
+	 *   `ngDoCheck` in Angular 2
+	 * * Changes to the model inside `$doCheck` will trigger new turns of the digest loop, which will cause the changes to be
+	 *   propagated throughout the application.
+	 *   Angular 2 does not allow the `ngDoCheck` hook to trigger a change outside of the component. It will either throw an
+	 *   error or do nothing depending upon the state of `enableProdMode()`.
+	 *
+	 * #### Life-cycle hook examples
+	 *
+	 * This example shows how you can check for mutations to a Date object even though the identity of the object
+	 * has not changed.
+	 *
+	 * <example name="doCheckDateExample" module="do-check-module">
+	 *   <file name="app.js">
+	 *     angular.module('do-check-module', [])
+	 *       .component('app', {
+	 *         template:
+	 *           'Month: <input ng-model="$ctrl.month" ng-change="$ctrl.updateDate()">' +
+	 *           'Date: {{ $ctrl.date }}' +
+	 *           '<test date="$ctrl.date"></test>',
+	 *         controller: function() {
+	 *           this.date = new Date();
+	 *           this.month = this.date.getMonth();
+	 *           this.updateDate = function() {
+	 *             this.date.setMonth(this.month);
+	 *           };
+	 *         }
+	 *       })
+	 *       .component('test', {
+	 *         bindings: { date: '<' },
+	 *         template:
+	 *           '<pre>{{ $ctrl.log | json }}</pre>',
+	 *         controller: function() {
+	 *           var previousValue;
+	 *           this.log = [];
+	 *           this.$doCheck = function() {
+	 *             var currentValue = this.date && this.date.valueOf();
+	 *             if (previousValue !== currentValue) {
+	 *               this.log.push('doCheck: date mutated: ' + this.date);
+	 *               previousValue = currentValue;
+	 *             }
+	 *           };
+	 *         }
+	 *       });
+	 *   </file>
+	 *   <file name="index.html">
+	 *     <app></app>
+	 *   </file>
+	 * </example>
+	 *
+	 * This example show how you might use `$doCheck` to trigger changes in your component's inputs even if the
+	 * actual identity of the component doesn't change. (Be aware that cloning and deep equality checks on large
+	 * arrays or objects can have a negative impact on your application performance)
+	 *
+	 * <example name="doCheckArrayExample" module="do-check-module">
+	 *   <file name="index.html">
+	 *     <div ng-init="items = []">
+	 *       <button ng-click="items.push(items.length)">Add Item</button>
+	 *       <button ng-click="items = []">Reset Items</button>
+	 *       <pre>{{ items }}</pre>
+	 *       <test items="items"></test>
+	 *     </div>
+	 *   </file>
+	 *   <file name="app.js">
+	 *      angular.module('do-check-module', [])
+	 *        .component('test', {
+	 *          bindings: { items: '<' },
+	 *          template:
+	 *            '<pre>{{ $ctrl.log | json }}</pre>',
+	 *          controller: function() {
+	 *            this.log = [];
+	 *
+	 *            this.$doCheck = function() {
+	 *              if (this.items_ref !== this.items) {
+	 *                this.log.push('doCheck: items changed');
+	 *                this.items_ref = this.items;
+	 *              }
+	 *              if (!angular.equals(this.items_clone, this.items)) {
+	 *                this.log.push('doCheck: items mutated');
+	 *                this.items_clone = angular.copy(this.items);
+	 *              }
+	 *            };
+	 *          }
+	 *        });
+	 *   </file>
+	 * </example>
 	 *
 	 *
 	 * ### Directive Definition Object
@@ -7043,25 +7246,6 @@
 	 *      then the default translusion is provided.
 	 *    The `$transclude` function also has a method on it, `$transclude.isSlotFilled(slotName)`, which returns
 	 *    `true` if the specified slot contains content (i.e. one or more DOM nodes).
-	 *
-	 * The controller can provide the following methods that act as life-cycle hooks:
-	 * * `$onInit()` - Called on each controller after all the controllers on an element have been constructed and
-	 *   had their bindings initialized (and before the pre &amp; post linking functions for the directives on
-	 *   this element). This is a good place to put initialization code for your controller.
-	 * * `$onChanges(changesObj)` - Called whenever one-way (`<`) or interpolation (`@`) bindings are updated. The
-	 *   `changesObj` is a hash whose keys are the names of the bound properties that have changed, and the values are an
-	 *   object of the form `{ currentValue, previousValue, isFirstChange() }`. Use this hook to trigger updates within a
-	 *   component such as cloning the bound value to prevent accidental mutation of the outer value.
-	 * * `$onDestroy()` - Called on a controller when its containing scope is destroyed. Use this hook for releasing
-	 *   external resources, watches and event handlers. Note that components have their `$onDestroy()` hooks called in
-	 *   the same order as the `$scope.$broadcast` events are triggered, which is top down. This means that parent
-	 *   components will have their `$onDestroy()` hook called before child components.
-	 * * `$postLink()` - Called after this controller's element and its children have been linked. Similar to the post-link
-	 *   function this hook can be used to set up DOM event handlers and do direct DOM manipulation.
-	 *   Note that child elements that contain `templateUrl` directives will not have been compiled and linked since
-	 *   they are waiting for their template to load asynchronously and their own compilation and linking has been
-	 *   suspended until that occurs.
-	 *
 	 *
 	 * #### `require`
 	 * Require another directive and inject its controller as the fourth argument to the linking function. The
@@ -7260,8 +7444,8 @@
 	 *     any other controller.
 	 *
 	 *   * `transcludeFn` - A transclude linking function pre-bound to the correct transclusion scope.
-	 *     This is the same as the `$transclude`
-	 *     parameter of directive controllers, see there for details.
+	 *     This is the same as the `$transclude` parameter of directive controllers,
+	 *     see {@link ng.$compile#-controller- the controller section for details}.
 	 *     `function([scope], cloneLinkingFn, futureParentElement)`.
 	 *
 	 * #### Pre-linking function
@@ -7466,7 +7650,7 @@
 	 * to illustrate how `$compile` works.
 	 * </div>
 	 *
-	 <example module="compileExample">
+	 <example module="compileExample" name="compile">
 	   <file name="index.html">
 	    <script>
 	      angular.module('compileExample', [], function($compileProvider) {
@@ -7609,11 +7793,12 @@
 	 * @description
 	 */
 	$CompileProvider.$inject = ['$provide', '$$sanitizeUriProvider'];
+	/** @this */
 	function $CompileProvider($provide, $$sanitizeUriProvider) {
 	  var hasDirectives = {},
 	      Suffix = 'Directive',
-	      COMMENT_DIRECTIVE_REGEXP = /^\s*directive\:\s*([\w\-]+)\s+(.*)$/,
-	      CLASS_DIRECTIVE_REGEXP = /(([\w\-]+)(?:\:([^;]+))?;?)/,
+	      COMMENT_DIRECTIVE_REGEXP = /^\s*directive:\s*([\w\-]+)\s+(.*)$/,
+	      CLASS_DIRECTIVE_REGEXP = /(([\w\-]+)(?::([^;]+))?;?)/,
 	      ALL_OR_NOTHING_ATTRS = makeMap('ngSrc,ngSrcset,src,srcset'),
 	      REQUIRE_PREFIX_REGEXP = /^(?:(\^\^?)?(\?)?(\^\^?)?)?/;
 	
@@ -7637,11 +7822,11 @@
 	
 	      if (!match) {
 	        throw $compileMinErr('iscp',
-	            "Invalid {3} for directive '{0}'." +
-	            " Definition: {... {1}: '{2}' ...}",
+	            'Invalid {3} for directive \'{0}\'.' +
+	            ' Definition: {... {1}: \'{2}\' ...}',
 	            directiveName, scopeName, definition,
-	            (isController ? "controller bindings definition" :
-	            "isolate scope definition"));
+	            (isController ? 'controller bindings definition' :
+	            'isolate scope definition'));
 	      }
 	
 	      bindings[scopeName] = {
@@ -7683,12 +7868,12 @@
 	      if (!controller) {
 	        // There is no controller, there may or may not be a controllerAs property
 	        throw $compileMinErr('noctrl',
-	              "Cannot bind to controller without directive '{0}'s controller.",
+	              'Cannot bind to controller without directive \'{0}\'s controller.',
 	              directiveName);
 	      } else if (!identifierForController(controller, controllerAs)) {
 	        // There is a controller, but no identifier or controllerAs property
 	        throw $compileMinErr('noident',
-	              "Cannot bind to controller without identifier for directive '{0}'.",
+	              'Cannot bind to controller without identifier for directive \'{0}\'.',
 	              directiveName);
 	      }
 	    }
@@ -7698,11 +7883,11 @@
 	  function assertValidDirectiveName(name) {
 	    var letter = name.charAt(0);
 	    if (!letter || letter !== lowercase(letter)) {
-	      throw $compileMinErr('baddir', "Directive/Component name '{0}' is invalid. The first character must be a lowercase letter", name);
+	      throw $compileMinErr('baddir', 'Directive/Component name \'{0}\' is invalid. The first character must be a lowercase letter', name);
 	    }
 	    if (name !== name.trim()) {
 	      throw $compileMinErr('baddir',
-	            "Directive/Component name '{0}' is invalid. The name should not contain leading or trailing whitespaces",
+	            'Directive/Component name \'{0}\' is invalid. The name should not contain leading or trailing whitespaces',
 	            name);
 	    }
 	  }
@@ -7867,7 +8052,7 @@
 	    function factory($injector) {
 	      function makeInjectable(fn) {
 	        if (isFunction(fn) || isArray(fn)) {
-	          return function(tElement, tAttrs) {
+	          return /** @this */ function(tElement, tAttrs) {
 	            return $injector.invoke(fn, this, {$element: tElement, $attrs: tAttrs});
 	          };
 	        } else {
@@ -8037,6 +8222,63 @@
 	    return TTL;
 	  };
 	
+	  var commentDirectivesEnabledConfig = true;
+	  /**
+	   * @ngdoc method
+	   * @name $compileProvider#commentDirectivesEnabled
+	   * @description
+	   *
+	   * It indicates to the compiler
+	   * whether or not directives on comments should be compiled.
+	   * Defaults to `true`.
+	   *
+	   * Calling this function with false disables the compilation of directives
+	   * on comments for the whole application.
+	   * This results in a compilation performance gain,
+	   * as the compiler doesn't have to check comments when looking for directives.
+	   * This should however only be used if you are sure that no comment directives are used in
+	   * the application (including any 3rd party directives).
+	   *
+	   * @param {boolean} enabled `false` if the compiler may ignore directives on comments
+	   * @returns {boolean|object} the current value (or `this` if called as a setter for chaining)
+	   */
+	  this.commentDirectivesEnabled = function(value) {
+	    if (arguments.length) {
+	      commentDirectivesEnabledConfig = value;
+	      return this;
+	    }
+	    return commentDirectivesEnabledConfig;
+	  };
+	
+	
+	  var cssClassDirectivesEnabledConfig = true;
+	  /**
+	   * @ngdoc method
+	   * @name $compileProvider#cssClassDirectivesEnabled
+	   * @description
+	   *
+	   * It indicates to the compiler
+	   * whether or not directives on element classes should be compiled.
+	   * Defaults to `true`.
+	   *
+	   * Calling this function with false disables the compilation of directives
+	   * on element classes for the whole application.
+	   * This results in a compilation performance gain,
+	   * as the compiler doesn't have to check element classes when looking for directives.
+	   * This should however only be used if you are sure that no class directives are used in
+	   * the application (including any 3rd party directives).
+	   *
+	   * @param {boolean} enabled `false` if the compiler may ignore directives on element classes
+	   * @returns {boolean|object} the current value (or `this` if called as a setter for chaining)
+	   */
+	  this.cssClassDirectivesEnabled = function(value) {
+	    if (arguments.length) {
+	      cssClassDirectivesEnabledConfig = value;
+	      return this;
+	    }
+	    return cssClassDirectivesEnabledConfig;
+	  };
+	
 	  this.$get = [
 	            '$injector', '$interpolate', '$exceptionHandler', '$templateRequest', '$parse',
 	            '$controller', '$rootScope', '$sce', '$animate', '$$sanitizeUri',
@@ -8046,6 +8288,9 @@
 	    var SIMPLE_ATTR_NAME = /^\w/;
 	    var specialAttrHolder = window.document.createElement('div');
 	
+	
+	    var commentDirectivesEnabled = commentDirectivesEnabledConfig;
+	    var cssClassDirectivesEnabled = cssClassDirectivesEnabledConfig;
 	
 	
 	    var onChangesTtl = TTL;
@@ -8224,7 +8469,7 @@
 	          this[key] = value = $$sanitizeUri(value, key === 'src');
 	        } else if (nodeName === 'img' && key === 'srcset' && isDefined(value)) {
 	          // sanitize img[srcset] values
-	          var result = "";
+	          var result = '';
 	
 	          // first check if there are spaces because it's not the same pattern
 	          var trimmedSrcset = trim(value);
@@ -8242,7 +8487,7 @@
 	            // sanitize the uri
 	            result += $$sanitizeUri(trim(rawUris[innerIdx]), true);
 	            // add the descriptor
-	            result += (" " + trim(rawUris[innerIdx + 1]));
+	            result += (' ' + trim(rawUris[innerIdx + 1]));
 	          }
 	
 	          // split the last item into uri and descriptor
@@ -8253,7 +8498,7 @@
 	
 	          // and add the last descriptor if any
 	          if (lastTuple.length === 2) {
-	            result += (" " + trim(lastTuple[1]));
+	            result += (' ' + trim(lastTuple[1]));
 	          }
 	          this[key] = value = result;
 	        }
@@ -8272,13 +8517,15 @@
 	
 	        // fire observers
 	        var $$observers = this.$$observers;
-	        $$observers && forEach($$observers[observer], function(fn) {
-	          try {
-	            fn(value);
-	          } catch (e) {
-	            $exceptionHandler(e);
-	          }
-	        });
+	        if ($$observers) {
+	          forEach($$observers[observer], function(fn) {
+	            try {
+	              fn(value);
+	            } catch (e) {
+	              $exceptionHandler(e);
+	            }
+	          });
+	        }
 	      },
 	
 	
@@ -8324,7 +8571,7 @@
 	      // Attributes names that do not start with letters (such as `(click)`) cannot be set using `setAttribute`
 	      // so we have to jump through some hoops to get such an attribute
 	      // https://github.com/angular/angular.js/pull/13318
-	      specialAttrHolder.innerHTML = "<span " + attrName + ">";
+	      specialAttrHolder.innerHTML = '<span ' + attrName + '>';
 	      var attributes = specialAttrHolder.firstChild.attributes;
 	      var attribute = attributes[0];
 	      // We have to remove the attribute from its container element before we can add it to the destination element
@@ -8345,7 +8592,7 @@
 	
 	    var startSymbol = $interpolate.startSymbol(),
 	        endSymbol = $interpolate.endSymbol(),
-	        denormalizeTemplate = (startSymbol == '{{' && endSymbol  == '}}')
+	        denormalizeTemplate = (startSymbol === '{{' && endSymbol  === '}}')
 	            ? identity
 	            : function denormalizeTemplate(template) {
 	              return template.replace(/\{\{/g, startSymbol).replace(/}}/g, endSymbol);
@@ -8555,7 +8802,7 @@
 	          stableNodeList = new Array(nodeListLength);
 	
 	          // create a sparse array by only copying the elements which have a linkFn
-	          for (i = 0; i < linkFns.length; i+=3) {
+	          for (i = 0; i < linkFns.length; i += 3) {
 	            idx = linkFns[i];
 	            stableNodeList[idx] = nodeList[idx];
 	          }
@@ -8642,13 +8889,17 @@
 	      var nodeType = node.nodeType,
 	          attrsMap = attrs.$attr,
 	          match,
+	          nodeName,
 	          className;
 	
 	      switch (nodeType) {
 	        case NODE_TYPE_ELEMENT: /* Element */
+	
+	          nodeName = nodeName_(node);
+	
 	          // use the node name: <directive>
 	          addDirective(directives,
-	              directiveNormalize(nodeName_(node)), 'E', maxPriority, ignoreDirective);
+	              directiveNormalize(nodeName), 'E', maxPriority, ignoreDirective);
 	
 	          // iterate over the attributes
 	          for (var attr, name, nName, ngAttrName, value, isNgAttr, nAttrs = node.attributes,
@@ -8662,7 +8913,8 @@
 	
 	            // support ngAttr attribute binding
 	            ngAttrName = directiveNormalize(name);
-	            if (isNgAttr = NG_ATTR_BINDING.test(ngAttrName)) {
+	            isNgAttr = NG_ATTR_BINDING.test(ngAttrName);
+	            if (isNgAttr) {
 	              name = name.replace(PREFIX_REGEXP, '')
 	                .substr(8).replace(/_(.)/g, function(match, letter) {
 	                  return letter.toUpperCase();
@@ -8689,14 +8941,21 @@
 	                          attrEndName);
 	          }
 	
+	          if (nodeName === 'input' && node.getAttribute('type') === 'hidden') {
+	            // Hidden input elements can have strange behaviour when navigating back to the page
+	            // This tells the browser not to try to cache and reinstate previous values
+	            node.setAttribute('autocomplete', 'off');
+	          }
+	
 	          // use class as directive
+	          if (!cssClassDirectivesEnabled) break;
 	          className = node.className;
 	          if (isObject(className)) {
 	              // Maybe SVGAnimatedString
 	              className = className.animVal;
 	          }
 	          if (isString(className) && className !== '') {
-	            while (match = CLASS_DIRECTIVE_REGEXP.exec(className)) {
+	            while ((match = CLASS_DIRECTIVE_REGEXP.exec(className))) {
 	              nName = directiveNormalize(match[2]);
 	              if (addDirective(directives, nName, 'C', maxPriority, ignoreDirective)) {
 	                attrs[nName] = trim(match[3]);
@@ -8716,24 +8975,31 @@
 	          addTextInterpolateDirective(directives, node.nodeValue);
 	          break;
 	        case NODE_TYPE_COMMENT: /* Comment */
-	          try {
-	            match = COMMENT_DIRECTIVE_REGEXP.exec(node.nodeValue);
-	            if (match) {
-	              nName = directiveNormalize(match[1]);
-	              if (addDirective(directives, nName, 'M', maxPriority, ignoreDirective)) {
-	                attrs[nName] = trim(match[2]);
-	              }
-	            }
-	          } catch (e) {
-	            // turns out that under some circumstances IE9 throws errors when one attempts to read
-	            // comment's node value.
-	            // Just ignore it and continue. (Can't seem to reproduce in test case.)
-	          }
+	          if (!commentDirectivesEnabled) break;
+	          collectCommentDirectives(node, directives, attrs, maxPriority, ignoreDirective);
 	          break;
 	      }
 	
 	      directives.sort(byPriority);
 	      return directives;
+	    }
+	
+	    function collectCommentDirectives(node, directives, attrs, maxPriority, ignoreDirective) {
+	      // function created because of performance, try/catch disables
+	      // the optimization of the whole function #14848
+	      try {
+	        var match = COMMENT_DIRECTIVE_REGEXP.exec(node.nodeValue);
+	        if (match) {
+	          var nName = directiveNormalize(match[1]);
+	          if (addDirective(directives, nName, 'M', maxPriority, ignoreDirective)) {
+	            attrs[nName] = trim(match[2]);
+	          }
+	        }
+	      } catch (e) {
+	        // turns out that under some circumstances IE9 throws errors when one attempts to read
+	        // comment's node value.
+	        // Just ignore it and continue. (Can't seem to reproduce in test case.)
+	      }
 	    }
 	
 	    /**
@@ -8751,10 +9017,10 @@
 	        do {
 	          if (!node) {
 	            throw $compileMinErr('uterdir',
-	                      "Unterminated attribute, found '{0}' but no matching '{1}' found.",
+	                      'Unterminated attribute, found \'{0}\' but no matching \'{1}\' found.',
 	                      attrStart, attrEnd);
 	          }
-	          if (node.nodeType == NODE_TYPE_ELEMENT) {
+	          if (node.nodeType === NODE_TYPE_ELEMENT) {
 	            if (node.hasAttribute(attrStart)) depth++;
 	            if (node.hasAttribute(attrEnd)) depth--;
 	          }
@@ -8800,7 +9066,7 @@
 	      if (eager) {
 	        return compile($compileNodes, transcludeFn, maxPriority, ignoreDirective, previousCompileContext);
 	      }
-	      return function lazyCompilation() {
+	      return /** @this */ function lazyCompilation() {
 	        if (!compiled) {
 	          compiled = compile($compileNodes, transcludeFn, maxPriority, ignoreDirective, previousCompileContext);
 	
@@ -8876,7 +9142,9 @@
 	          break; // prevent further processing of directives
 	        }
 	
-	        if (directiveValue = directive.scope) {
+	        directiveValue = directive.scope;
+	
+	        if (directiveValue) {
 	
 	          // skip the check for directives with async templates, we'll check the derived sync
 	          // directive when the template arrives
@@ -8910,7 +9178,7 @@
 	            || (directive.transclude && !directive.$$tlb))) {
 	                var candidateDirective;
 	
-	                for (var scanningIndex = i + 1; candidateDirective = directives[scanningIndex++];) {
+	                for (var scanningIndex = i + 1; (candidateDirective = directives[scanningIndex++]);) {
 	                    if ((candidateDirective.transclude && !candidateDirective.$$tlb)
 	                        || (candidateDirective.replace && (candidateDirective.templateUrl || candidateDirective.template))) {
 	                        mightHaveMultipleTransclusionError = true;
@@ -8924,12 +9192,14 @@
 	        if (!directive.templateUrl && directive.controller) {
 	          directiveValue = directive.controller;
 	          controllerDirectives = controllerDirectives || createMap();
-	          assertNoDuplicate("'" + directiveName + "' controller",
+	          assertNoDuplicate('\'' + directiveName + '\' controller',
 	              controllerDirectives[directiveName], directive, $compileNode);
 	          controllerDirectives[directiveName] = directive;
 	        }
 	
-	        if (directiveValue = directive.transclude) {
+	        directiveValue = directive.transclude;
+	
+	        if (directiveValue) {
 	          hasTranscludeDirective = true;
 	
 	          // Special case ngIf and ngRepeat so that we don't complain about duplicate transclusion.
@@ -8940,7 +9210,7 @@
 	            nonTlbTranscludeDirective = directive;
 	          }
 	
-	          if (directiveValue == 'element') {
+	          if (directiveValue === 'element') {
 	            hasElementTranscludeDirective = true;
 	            terminalPriority = directive.priority;
 	            $template = $compileNode;
@@ -9058,9 +9328,9 @@
 	            }
 	            compileNode = $template[0];
 	
-	            if ($template.length != 1 || compileNode.nodeType !== NODE_TYPE_ELEMENT) {
+	            if ($template.length !== 1 || compileNode.nodeType !== NODE_TYPE_ELEMENT) {
 	              throw $compileMinErr('tplrt',
-	                  "Template for directive '{0}' must have exactly one root element. {1}",
+	                  'Template for directive \'{0}\' must have exactly one root element. {1}',
 	                  directiveName, '');
 	            }
 	
@@ -9100,9 +9370,8 @@
 	            replaceDirective = directive;
 	          }
 	
-	          /* jshint -W021 */
+	          // eslint-disable-next-line no-func-assign
 	          nodeLinkFn = compileTemplateUrl(directives.splice(i, directives.length - i), $compileNode,
-	          /* jshint +W021 */
 	              templateAttrs, jqCollection, hasTranscludeDirective && childTranscludeFn, preLinkFns, postLinkFns, {
 	                controllerDirectives: controllerDirectives,
 	                newScopeDirective: (newScopeDirective !== directive) && newScopeDirective,
@@ -9233,7 +9502,9 @@
 	            // from setupControllers
 	            controller.instance = controllerResult;
 	            $element.data('$' + controllerDirective.name + 'Controller', controllerResult);
-	            controller.bindingInfo.removeWatches && controller.bindingInfo.removeWatches();
+	            if (controller.bindingInfo.removeWatches) {
+	              controller.bindingInfo.removeWatches();
+	            }
 	            controller.bindingInfo =
 	              initializeDirectiveBindings(controllerScope, attrs, controller.instance, bindings, controllerDirective);
 	          }
@@ -9264,6 +9535,10 @@
 	              $exceptionHandler(e);
 	            }
 	          }
+	          if (isFunction(controllerInstance.$doCheck)) {
+	            controllerScope.$watch(function() { controllerInstance.$doCheck(); });
+	            controllerInstance.$doCheck();
+	          }
 	          if (isFunction(controllerInstance.$onDestroy)) {
 	            controllerScope.$on('$destroy', function callOnDestroyHook() {
 	              controllerInstance.$onDestroy();
@@ -9290,7 +9565,9 @@
 	        if (newIsolateScopeDirective && (newIsolateScopeDirective.template || newIsolateScopeDirective.templateUrl === null)) {
 	          scopeToChild = isolateScope;
 	        }
-	        childLinkFn && childLinkFn(scopeToChild, linkNode.childNodes, undefined, boundTranscludeFn);
+	        if (childLinkFn) {
+	          childLinkFn(scopeToChild, linkNode.childNodes, undefined, boundTranscludeFn);
+	        }
 	
 	        // POSTLINKING
 	        for (i = postLinkFns.length - 1; i >= 0; i--) {
@@ -9377,7 +9654,7 @@
 	
 	        if (!value && !optional) {
 	          throw $compileMinErr('ctreq',
-	              "Controller '{0}', required by directive '{1}', can't be found!",
+	              'Controller \'{0}\', required by directive \'{1}\', can\'t be found!',
 	              name, directiveName);
 	        }
 	      } else if (isArray(require)) {
@@ -9407,7 +9684,7 @@
 	        };
 	
 	        var controller = directive.controller;
-	        if (controller == '@') {
+	        if (controller === '@') {
 	          controller = attrs[directive.name];
 	        }
 	
@@ -9459,7 +9736,7 @@
 	          try {
 	            directive = directives[i];
 	            if ((isUndefined(maxPriority) || maxPriority > directive.priority) &&
-	                 directive.restrict.indexOf(location) != -1) {
+	                 directive.restrict.indexOf(location) !== -1) {
 	              if (startAttrName) {
 	                directive = inherit(directive, {$$start: startAttrName, $$end: endAttrName});
 	              }
@@ -9511,12 +9788,11 @@
 	     */
 	    function mergeTemplateAttributes(dst, src) {
 	      var srcAttr = src.$attr,
-	          dstAttr = dst.$attr,
-	          $element = dst.$$element;
+	          dstAttr = dst.$attr;
 	
 	      // reapply the old attributes to the new element
 	      forEach(dst, function(value, key) {
-	        if (key.charAt(0) != '$') {
+	        if (key.charAt(0) !== '$') {
 	          if (src[key] && src[key] !== value) {
 	            value += (key === 'style' ? ';' : ' ') + src[key];
 	          }
@@ -9572,9 +9848,9 @@
 	            }
 	            compileNode = $template[0];
 	
-	            if ($template.length != 1 || compileNode.nodeType !== NODE_TYPE_ELEMENT) {
+	            if ($template.length !== 1 || compileNode.nodeType !== NODE_TYPE_ELEMENT) {
 	              throw $compileMinErr('tplrt',
-	                  "Template for directive '{0}' must have exactly one root element. {1}",
+	                  'Template for directive \'{0}\' must have exactly one root element. {1}',
 	                  origAsyncDirective.name, templateUrl);
 	            }
 	
@@ -9600,7 +9876,7 @@
 	              childTranscludeFn, $compileNode, origAsyncDirective, preLinkFns, postLinkFns,
 	              previousCompileContext);
 	          forEach($rootElement, function(node, i) {
-	            if (node == compileNode) {
+	            if (node === compileNode) {
 	              $rootElement[i] = $compileNode[0];
 	            }
 	          });
@@ -9725,15 +10001,20 @@
 	
 	
 	    function getTrustedContext(node, attrNormalizedName) {
-	      if (attrNormalizedName == "srcdoc") {
+	      if (attrNormalizedName === 'srcdoc') {
 	        return $sce.HTML;
 	      }
 	      var tag = nodeName_(node);
+	      // All tags with src attributes require a RESOURCE_URL value, except for
+	      // img and various html5 media tags.
+	      if (attrNormalizedName === 'src' || attrNormalizedName === 'ngSrc') {
+	        if (['img', 'video', 'audio', 'source', 'track'].indexOf(tag) === -1) {
+	          return $sce.RESOURCE_URL;
+	        }
 	      // maction[xlink:href] can source SVG.  It's not limited to <maction>.
-	      if (attrNormalizedName == "xlinkHref" ||
-	          (tag == "form" && attrNormalizedName == "action") ||
-	          (tag != "img" && (attrNormalizedName == "src" ||
-	                            attrNormalizedName == "ngSrc"))) {
+	      } else if (attrNormalizedName === 'xlinkHref' ||
+	          (tag === 'form' && attrNormalizedName === 'action')
+	      ) {
 	        return $sce.RESOURCE_URL;
 	      }
 	    }
@@ -9749,9 +10030,9 @@
 	      if (!interpolateFn) return;
 	
 	
-	      if (name === "multiple" && nodeName_(node) === "select") {
-	        throw $compileMinErr("selmulti",
-	            "Binding to the 'multiple' attribute is not supported. Element: {0}",
+	      if (name === 'multiple' && nodeName_(node) === 'select') {
+	        throw $compileMinErr('selmulti',
+	            'Binding to the \'multiple\' attribute is not supported. Element: {0}',
 	            startingTag(node));
 	      }
 	
@@ -9764,8 +10045,8 @@
 	
 	                if (EVENT_HANDLER_ATTR_REGEXP.test(name)) {
 	                  throw $compileMinErr('nodomevents',
-	                      "Interpolations for HTML DOM event attributes are disallowed.  Please use the " +
-	                          "ng- versions (such as ng-click instead of onclick) instead.");
+	                      'Interpolations for HTML DOM event attributes are disallowed.  Please use the ' +
+	                          'ng- versions (such as ng-click instead of onclick) instead.');
 	                }
 	
 	                // If the attribute has changed since last $interpolate()ed
@@ -9796,7 +10077,7 @@
 	                    //skip animations when the first digest occurs (when
 	                    //both the new and the old values are the same) since
 	                    //the CSS classes are the non-interpolated values
-	                    if (name === 'class' && newValue != oldValue) {
+	                    if (name === 'class' && newValue !== oldValue) {
 	                      attr.$updateClass(newValue, oldValue);
 	                    } else {
 	                      attr.$set(name, newValue);
@@ -9827,7 +10108,7 @@
 	
 	      if ($rootElement) {
 	        for (i = 0, ii = $rootElement.length; i < ii; i++) {
-	          if ($rootElement[i] == firstElementToRemove) {
+	          if ($rootElement[i] === firstElementToRemove) {
 	            $rootElement[i++] = newNode;
 	            for (var j = i, j2 = j + removeCount - 1,
 	                     jj = $rootElement.length;
@@ -9910,7 +10191,7 @@
 	      forEach(bindings, function initializeBinding(definition, scopeName) {
 	        var attrName = definition.attrName,
 	        optional = definition.optional,
-	        mode = definition.mode, // @, =, or &
+	        mode = definition.mode, // @, =, <, or &
 	        lastValue,
 	        parentGet, parentSet, compare, removeWatch;
 	
@@ -9918,7 +10199,7 @@
 	
 	          case '@':
 	            if (!optional && !hasOwnProperty.call(attrs, attrName)) {
-	              destination[scopeName] = attrs[attrName] = void 0;
+	              destination[scopeName] = attrs[attrName] = undefined;
 	            }
 	            attrs.$observe(attrName, function(value) {
 	              if (isString(value) || isBoolean(value)) {
@@ -9944,7 +10225,7 @@
 	          case '=':
 	            if (!hasOwnProperty.call(attrs, attrName)) {
 	              if (optional) break;
-	              attrs[attrName] = void 0;
+	              attrs[attrName] = undefined;
 	            }
 	            if (optional && !attrs[attrName]) break;
 	
@@ -9952,13 +10233,14 @@
 	            if (parentGet.literal) {
 	              compare = equals;
 	            } else {
+	              // eslint-disable-next-line no-self-compare
 	              compare = function simpleCompare(a, b) { return a === b || (a !== a && b !== b); };
 	            }
 	            parentSet = parentGet.assign || function() {
 	              // reset the change, or we will throw this exception on every $digest
 	              lastValue = destination[scopeName] = parentGet(scope);
 	              throw $compileMinErr('nonassign',
-	                  "Expression '{0}' in attribute '{1}' used with directive '{2}' is non-assignable!",
+	                  'Expression \'{0}\' in attribute \'{1}\' used with directive \'{2}\' is non-assignable!',
 	                  attrs[attrName], attrName, directive.name);
 	            };
 	            lastValue = destination[scopeName] = parentGet(scope);
@@ -9973,7 +10255,8 @@
 	                  parentSet(scope, parentValue = destination[scopeName]);
 	                }
 	              }
-	              return lastValue = parentValue;
+	              lastValue = parentValue;
+	              return lastValue;
 	            };
 	            parentValueWatch.$stateful = true;
 	            if (definition.collection) {
@@ -9987,7 +10270,7 @@
 	          case '<':
 	            if (!hasOwnProperty.call(attrs, attrName)) {
 	              if (optional) break;
-	              attrs[attrName] = void 0;
+	              attrs[attrName] = undefined;
 	            }
 	            if (optional && !attrs[attrName]) break;
 	
@@ -10068,7 +10351,7 @@
 	SimpleChange.prototype.isFirstChange = function() { return this.previousValue === _UNINITIALIZED_VALUE; };
 	
 	
-	var PREFIX_REGEXP = /^((?:x|data)[\:\-_])/i;
+	var PREFIX_REGEXP = /^((?:x|data)[:\-_])/i;
 	/**
 	 * Converts all accepted directives format into proper directive name.
 	 * @param name Name to normalize
@@ -10146,7 +10429,7 @@
 	  for (var i = 0; i < tokens1.length; i++) {
 	    var token = tokens1[i];
 	    for (var j = 0; j < tokens2.length; j++) {
-	      if (token == tokens2[j]) continue outer;
+	      if (token === tokens2[j]) continue outer;
 	    }
 	    values += (values.length > 0 ? ' ' : '') + token;
 	  }
@@ -10186,6 +10469,8 @@
 	/**
 	 * @ngdoc provider
 	 * @name $controllerProvider
+	 * @this
+	 *
 	 * @description
 	 * The {@link ng.$controller $controller service} is used by Angular to create new
 	 * controllers.
@@ -10280,10 +10565,10 @@
 	        match = expression.match(CNTRL_REG);
 	        if (!match) {
 	          throw $controllerMinErr('ctrlfmt',
-	            "Badly formed controller string '{0}'. " +
-	            "Must match `__name__ as __id__` or `__name__`.", expression);
+	            'Badly formed controller string \'{0}\'. ' +
+	            'Must match `__name__ as __id__` or `__name__`.', expression);
 	        }
-	        constructor = match[1],
+	        constructor = match[1];
 	        identifier = identifier || match[3];
 	        expression = controllers.hasOwnProperty(constructor)
 	            ? controllers[constructor]
@@ -10312,8 +10597,7 @@
 	          addIdentifier(locals, identifier, instance, constructor || expression.name);
 	        }
 	
-	        var instantiate;
-	        return instantiate = extend(function $controllerInit() {
+	        return extend(function $controllerInit() {
 	          var result = $injector.invoke(expression, instance, locals, constructor);
 	          if (result !== instance && (isObject(result) || isFunction(result))) {
 	            instance = result;
@@ -10341,7 +10625,7 @@
 	    function addIdentifier(locals, identifier, instance, name) {
 	      if (!(locals && isObject(locals.$scope))) {
 	        throw minErr('$controller')('noscp',
-	          "Cannot export controller '{0}' as '{1}'! No $scope object provided via `locals`.",
+	          'Cannot export controller \'{0}\' as \'{1}\'! No $scope object provided via `locals`.',
 	          name, identifier);
 	      }
 	
@@ -10354,12 +10638,13 @@
 	 * @ngdoc service
 	 * @name $document
 	 * @requires $window
+	 * @this
 	 *
 	 * @description
 	 * A {@link angular.element jQuery or jqLite} wrapper for the browser's `window.document` object.
 	 *
 	 * @example
-	   <example module="documentExample">
+	   <example module="documentExample" name="document">
 	     <file name="index.html">
 	       <div ng-controller="ExampleController">
 	         <p>$document title: <b ng-bind="title"></b></p>
@@ -10385,6 +10670,7 @@
 	 * @ngdoc service
 	 * @name $exceptionHandler
 	 * @requires ng.$log
+	 * @this
 	 *
 	 * @description
 	 * Any uncaught exception in angular expressions is delegated to this service.
@@ -10408,7 +10694,7 @@
 	 *         logErrorsToBackend(exception, cause);
 	 *         $log.warn(exception, cause);
 	 *       };
-	 *     });
+	 *     }]);
 	 * ```
 	 *
 	 * <hr />
@@ -10432,7 +10718,7 @@
 	  }];
 	}
 	
-	var $$ForceReflowProvider = function() {
+	var $$ForceReflowProvider = /** @this */ function() {
 	  this.$get = ['$document', function($document) {
 	    return function(domNode) {
 	      //the line below will force the browser to perform a repaint so
@@ -10478,6 +10764,7 @@
 	}
 	
 	
+	/** @this */
 	function $HttpParamSerializerProvider() {
 	  /**
 	   * @ngdoc service
@@ -10490,7 +10777,7 @@
 	   * * `{'foo': 'bar'}` results in `foo=bar`
 	   * * `{'foo': Date.now()}` results in `foo=2015-04-01T09%3A50%3A49.262Z` (`toISOString()` and encoded representation of a Date object)
 	   * * `{'foo': ['bar', 'baz']}` results in `foo=bar&foo=baz` (repeated key for each array element)
-	   * * `{'foo': {'bar':'baz'}}` results in `foo=%7B%22bar%22%3A%22baz%22%7D"` (stringified and encoded representation of an object)
+	   * * `{'foo': {'bar':'baz'}}` results in `foo=%7B%22bar%22%3A%22baz%22%7D` (stringified and encoded representation of an object)
 	   *
 	   * Note that serializer will sort the request parameters alphabetically.
 	   * */
@@ -10515,10 +10802,12 @@
 	  };
 	}
 	
+	/** @this */
 	function $HttpParamSerializerJQLikeProvider() {
 	  /**
 	   * @ngdoc service
 	   * @name $httpParamSerializerJQLike
+	   *
 	   * @description
 	   *
 	   * Alternative {@link $http `$http`} params serializer that follows
@@ -10658,7 +10947,7 @@
 	
 	    if (name) {
 	      var value = headersObj[lowercase(name)];
-	      if (value === void 0) {
+	      if (value === undefined) {
 	        value = null;
 	      }
 	      return value;
@@ -10701,6 +10990,8 @@
 	/**
 	 * @ngdoc provider
 	 * @name $httpProvider
+	 * @this
+	 *
 	 * @description
 	 * Use `$httpProvider` to change the default behavior of the {@link ng.$http $http} service.
 	 * */
@@ -11041,7 +11332,7 @@
 	     *
 	     * ### Overriding the Default Transformations Per Request
 	     *
-	     * If you wish override the request/response transformations only for a single request then provide
+	     * If you wish to override the request/response transformations only for a single request then provide
 	     * `transformRequest` and/or `transformResponse` properties on the configuration object passed
 	     * into `$http`.
 	     *
@@ -11084,7 +11375,7 @@
 	     *   * cache a specific response - set config.cache value to TRUE or to a cache object
 	     *
 	     * If caching is enabled, but neither the default cache nor config.cache are set to a cache object,
-	     * then the default `$cacheFactory($http)` object is used.
+	     * then the default `$cacheFactory("$http")` object is used.
 	     *
 	     * The default cache value can be set by updating the
 	     * {@link ng.$http#defaults `$http.defaults.cache`} property or the
@@ -11306,7 +11597,7 @@
 	     *
 	     *
 	     * @example
-	<example module="httpExample">
+	<example module="httpExample" name="http-service">
 	<file name="index.html">
 	  <div ng-controller="FetchController">
 	    <select ng-model="method" aria-label="Request method">
@@ -11345,7 +11636,7 @@
 	              $scope.status = response.status;
 	              $scope.data = response.data;
 	            }, function(response) {
-	              $scope.data = response.data || "Request failed";
+	              $scope.data = response.data || 'Request failed';
 	              $scope.status = response.status;
 	          });
 	        };
@@ -11364,7 +11655,6 @@
 	  var data = element(by.binding('data'));
 	  var fetchBtn = element(by.id('fetchbtn'));
 	  var sampleGetBtn = element(by.id('samplegetbtn'));
-	  var sampleJsonpBtn = element(by.id('samplejsonpbtn'));
 	  var invalidJsonpBtn = element(by.id('invalidjsonpbtn'));
 	
 	  it('should make an xhr GET request', function() {
@@ -11376,6 +11666,7 @@
 	
 	// Commented out due to flakes. See https://github.com/angular/angular.js/issues/9185
 	// it('should make a JSONP request to angularjs.org', function() {
+	//   var sampleJsonpBtn = element(by.id('samplejsonpbtn'));
 	//   sampleJsonpBtn.click();
 	//   fetchBtn.click();
 	//   expect(status.getText()).toMatch('200');
@@ -11412,48 +11703,25 @@
 	      config.headers = mergeHeaders(requestConfig);
 	      config.method = uppercase(config.method);
 	      config.paramSerializer = isString(config.paramSerializer) ?
-	        $injector.get(config.paramSerializer) : config.paramSerializer;
+	          $injector.get(config.paramSerializer) : config.paramSerializer;
 	
-	      var serverRequest = function(config) {
-	        var headers = config.headers;
-	        var reqData = transformData(config.data, headersGetter(headers), undefined, config.transformRequest);
-	
-	        // strip content-type if data is undefined
-	        if (isUndefined(reqData)) {
-	          forEach(headers, function(value, header) {
-	            if (lowercase(header) === 'content-type') {
-	                delete headers[header];
-	            }
-	          });
-	        }
-	
-	        if (isUndefined(config.withCredentials) && !isUndefined(defaults.withCredentials)) {
-	          config.withCredentials = defaults.withCredentials;
-	        }
-	
-	        // send request
-	        return sendReq(config, reqData).then(transformResponse, transformResponse);
-	      };
-	
-	      var chain = [serverRequest, undefined];
+	      var requestInterceptors = [];
+	      var responseInterceptors = [];
 	      var promise = $q.when(config);
 	
 	      // apply interceptors
 	      forEach(reversedInterceptors, function(interceptor) {
 	        if (interceptor.request || interceptor.requestError) {
-	          chain.unshift(interceptor.request, interceptor.requestError);
+	          requestInterceptors.unshift(interceptor.request, interceptor.requestError);
 	        }
 	        if (interceptor.response || interceptor.responseError) {
-	          chain.push(interceptor.response, interceptor.responseError);
+	          responseInterceptors.push(interceptor.response, interceptor.responseError);
 	        }
 	      });
 	
-	      while (chain.length) {
-	        var thenFn = chain.shift();
-	        var rejectFn = chain.shift();
-	
-	        promise = promise.then(thenFn, rejectFn);
-	      }
+	      promise = chainInterceptors(promise, requestInterceptors);
+	      promise = promise.then(serverRequest);
+	      promise = chainInterceptors(promise, responseInterceptors);
 	
 	      if (useLegacyPromise) {
 	        promise.success = function(fn) {
@@ -11480,14 +11748,18 @@
 	
 	      return promise;
 	
-	      function transformResponse(response) {
-	        // make a copy since the response must be cacheable
-	        var resp = extend({}, response);
-	        resp.data = transformData(response.data, response.headers, response.status,
-	                                  config.transformResponse);
-	        return (isSuccess(response.status))
-	          ? resp
-	          : $q.reject(resp);
+	
+	      function chainInterceptors(promise, interceptors) {
+	        for (var i = 0, ii = interceptors.length; i < ii;) {
+	          var thenFn = interceptors[i++];
+	          var rejectFn = interceptors[i++];
+	
+	          promise = promise.then(thenFn, rejectFn);
+	        }
+	
+	        interceptors.length = 0;
+	
+	        return promise;
 	      }
 	
 	      function executeHeaderFns(headers, config) {
@@ -11530,6 +11802,37 @@
 	
 	        // execute if header value is a function for merged headers
 	        return executeHeaderFns(reqHeaders, shallowCopy(config));
+	      }
+	
+	      function serverRequest(config) {
+	        var headers = config.headers;
+	        var reqData = transformData(config.data, headersGetter(headers), undefined, config.transformRequest);
+	
+	        // strip content-type if data is undefined
+	        if (isUndefined(reqData)) {
+	          forEach(headers, function(value, header) {
+	            if (lowercase(header) === 'content-type') {
+	              delete headers[header];
+	            }
+	          });
+	        }
+	
+	        if (isUndefined(config.withCredentials) && !isUndefined(defaults.withCredentials)) {
+	          config.withCredentials = defaults.withCredentials;
+	        }
+	
+	        // send request
+	        return sendReq(config, reqData).then(transformResponse, transformResponse);
+	      }
+	
+	      function transformResponse(response) {
+	        // make a copy since the response must be cacheable
+	        var resp = extend({}, response);
+	        resp.data = transformData(response.data, response.headers, response.status,
+	                                  config.transformResponse);
+	        return (isSuccess(response.status))
+	          ? resp
+	          : $q.reject(resp);
 	      }
 	    }
 	
@@ -11577,6 +11880,8 @@
 	     *
 	     * @description
 	     * Shortcut method to perform `JSONP` request.
+	     * If you would like to customise where and how the callbacks are stored then try overriding
+	     * or decorating the {@link $jsonpCallbacks} service.
 	     *
 	     * @param {string} url Relative or absolute URL specifying the destination of the request.
 	     *                     The name of the callback should be the string `JSON_CALLBACK`.
@@ -11811,7 +12116,7 @@
 	
 	    function buildUrl(url, serializedParams) {
 	      if (serializedParams.length > 0) {
-	        url += ((url.indexOf('?') == -1) ? '?' : '&') + serializedParams;
+	        url += ((url.indexOf('?') === -1) ? '?' : '&') + serializedParams;
 	      }
 	      return url;
 	    }
@@ -11821,6 +12126,7 @@
 	/**
 	 * @ngdoc service
 	 * @name $xhrFactory
+	 * @this
 	 *
 	 * @description
 	 * Factory function used to create XMLHttpRequest objects.
@@ -11850,9 +12156,10 @@
 	/**
 	 * @ngdoc service
 	 * @name $httpBackend
-	 * @requires $window
+	 * @requires $jsonpCallbacks
 	 * @requires $document
 	 * @requires $xhrFactory
+	 * @this
 	 *
 	 * @description
 	 * HTTP backend used by the {@link ng.$http service} that delegates to
@@ -11865,8 +12172,8 @@
 	 * $httpBackend} which can be trained with responses.
 	 */
 	function $HttpBackendProvider() {
-	  this.$get = ['$browser', '$window', '$document', '$xhrFactory', function($browser, $window, $document, $xhrFactory) {
-	    return createHttpBackend($browser, $xhrFactory, $browser.defer, $window.angular.callbacks, $document[0]);
+	  this.$get = ['$browser', '$jsonpCallbacks', '$document', '$xhrFactory', function($browser, $jsonpCallbacks, $document, $xhrFactory) {
+	    return createHttpBackend($browser, $xhrFactory, $browser.defer, $jsonpCallbacks, $document[0]);
 	  }];
 	}
 	
@@ -11876,17 +12183,13 @@
 	    $browser.$$incOutstandingRequestCount();
 	    url = url || $browser.url();
 	
-	    if (lowercase(method) == 'jsonp') {
-	      var callbackId = '_' + (callbacks.counter++).toString(36);
-	      callbacks[callbackId] = function(data) {
-	        callbacks[callbackId].data = data;
-	        callbacks[callbackId].called = true;
-	      };
-	
-	      var jsonpDone = jsonpReq(url.replace('JSON_CALLBACK', 'angular.callbacks.' + callbackId),
-	          callbackId, function(status, text) {
-	        completeRequest(callback, status, callbacks[callbackId].data, "", text);
-	        callbacks[callbackId] = noop;
+	    if (lowercase(method) === 'jsonp') {
+	      var callbackPath = callbacks.createCallback(url);
+	      var jsonpDone = jsonpReq(url, callbackPath, function(status, text) {
+	        // jsonpReq only ever sets status to 200 (OK), 404 (ERROR) or -1 (WAITING)
+	        var response = (status === 200) && callbacks.getResponse(callbackPath);
+	        completeRequest(callback, status, response, '', text);
+	        callbacks.removeCallback(callbackPath);
 	      });
 	    } else {
 	
@@ -11913,7 +12216,7 @@
 	        // Occurs when accessing file resources or on Android 4.1 stock browser
 	        // while retrieving files from application cache.
 	        if (status === 0) {
-	          status = response ? 200 : urlResolve(url).protocol == 'file' ? 404 : 0;
+	          status = response ? 200 : urlResolve(url).protocol === 'file' ? 404 : 0;
 	        }
 	
 	        completeRequest(callback,
@@ -11931,6 +12234,7 @@
 	
 	      xhr.onerror = requestError;
 	      xhr.onabort = requestError;
+	      xhr.ontimeout = requestError;
 	
 	      forEach(eventHandlers, function(value, key) {
 	          xhr.addEventListener(key, value);
@@ -11972,8 +12276,12 @@
 	
 	
 	    function timeoutRequest() {
-	      jsonpDone && jsonpDone();
-	      xhr && xhr.abort();
+	      if (jsonpDone) {
+	        jsonpDone();
+	      }
+	      if (xhr) {
+	        xhr.abort();
+	      }
 	    }
 	
 	    function completeRequest(callback, status, response, headersString, statusText) {
@@ -11988,29 +12296,30 @@
 	    }
 	  };
 	
-	  function jsonpReq(url, callbackId, done) {
+	  function jsonpReq(url, callbackPath, done) {
+	    url = url.replace('JSON_CALLBACK', callbackPath);
 	    // we can't use jQuery/jqLite here because jQuery does crazy stuff with script elements, e.g.:
 	    // - fetches local scripts via XHR and evals them
 	    // - adds and immediately removes script elements from the document
 	    var script = rawDocument.createElement('script'), callback = null;
-	    script.type = "text/javascript";
+	    script.type = 'text/javascript';
 	    script.src = url;
 	    script.async = true;
 	
 	    callback = function(event) {
-	      removeEventListenerFn(script, "load", callback);
-	      removeEventListenerFn(script, "error", callback);
+	      removeEventListenerFn(script, 'load', callback);
+	      removeEventListenerFn(script, 'error', callback);
 	      rawDocument.body.removeChild(script);
 	      script = null;
 	      var status = -1;
-	      var text = "unknown";
+	      var text = 'unknown';
 	
 	      if (event) {
-	        if (event.type === "load" && !callbacks[callbackId].called) {
-	          event = { type: "error" };
+	        if (event.type === 'load' && !callbacks.wasCalled(callbackPath)) {
+	          event = { type: 'error' };
 	        }
 	        text = event.type;
-	        status = event.type === "error" ? 404 : 200;
+	        status = event.type === 'error' ? 404 : 200;
 	      }
 	
 	      if (done) {
@@ -12018,8 +12327,8 @@
 	      }
 	    };
 	
-	    addEventListenerFn(script, "load", callback);
-	    addEventListenerFn(script, "error", callback);
+	    addEventListenerFn(script, 'load', callback);
+	    addEventListenerFn(script, 'error', callback);
 	    rawDocument.body.appendChild(script);
 	    return callback;
 	  }
@@ -12028,18 +12337,19 @@
 	var $interpolateMinErr = angular.$interpolateMinErr = minErr('$interpolate');
 	$interpolateMinErr.throwNoconcat = function(text) {
 	  throw $interpolateMinErr('noconcat',
-	      "Error while interpolating: {0}\nStrict Contextual Escaping disallows " +
-	      "interpolations that concatenate multiple expressions when a trusted value is " +
-	      "required.  See http://docs.angularjs.org/api/ng.$sce", text);
+	      'Error while interpolating: {0}\nStrict Contextual Escaping disallows ' +
+	      'interpolations that concatenate multiple expressions when a trusted value is ' +
+	      'required.  See http://docs.angularjs.org/api/ng.$sce', text);
 	};
 	
 	$interpolateMinErr.interr = function(text, err) {
-	  return $interpolateMinErr('interr', "Can't interpolate: {0}\n{1}", text, err.toString());
+	  return $interpolateMinErr('interr', 'Can\'t interpolate: {0}\n{1}', text, err.toString());
 	};
 	
 	/**
 	 * @ngdoc provider
 	 * @name $interpolateProvider
+	 * @this
 	 *
 	 * @description
 	 *
@@ -12153,13 +12463,13 @@
 	      return value;
 	    }
 	
-	    //TODO: this is the same as the constantWatchDelegate in parse.js
+	    // TODO: this is the same as the constantWatchDelegate in parse.js
 	    function constantWatchDelegate(scope, listener, objectEquality, constantInterp) {
-	      var unwatch;
-	      return unwatch = scope.$watch(function constantInterpolateWatch(scope) {
+	      var unwatch = scope.$watch(function constantInterpolateWatch(scope) {
 	        unwatch();
 	        return constantInterp(scope);
 	      }, listener, objectEquality);
+	      return unwatch;
 	    }
 	
 	    /**
@@ -12205,7 +12515,7 @@
 	     *
 	     * `allOrNothing` is useful for interpolating URLs. `ngSrc` and `ngSrcset` use this behavior.
 	     *
-	     * ####Escaped Interpolation
+	     * #### Escaped Interpolation
 	     * $interpolate provides a mechanism for escaping interpolation markers. Start and end markers
 	     * can be escaped by preceding each of their characters with a REVERSE SOLIDUS U+005C (backslash).
 	     * It will be rendered as a regular start/end marker, and will not be interpreted as an expression
@@ -12226,7 +12536,7 @@
 	     * this is typically useful only when user-data is used in rendering a template from the server, or
 	     * when otherwise untrusted data is used by a directive.
 	     *
-	     * <example>
+	     * <example name="interpolation">
 	     *  <file name="index.html">
 	     *    <div ng-init="username='A user'">
 	     *      <p ng-init="apptitle='Escaping demo'">{{apptitle}}: \{\{ username = "defaced value"; \}\}
@@ -12306,8 +12616,8 @@
 	          expressionPositions = [];
 	
 	      while (index < textLength) {
-	        if (((startIndex = text.indexOf(startSymbol, index)) != -1) &&
-	             ((endIndex = text.indexOf(endSymbol, startIndex + startSymbolLength)) != -1)) {
+	        if (((startIndex = text.indexOf(startSymbol, index)) !== -1) &&
+	             ((endIndex = text.indexOf(endSymbol, startIndex + startSymbolLength)) !== -1)) {
 	          if (index !== startIndex) {
 	            concat.push(unescapeText(text.substring(index, startIndex)));
 	          }
@@ -12372,7 +12682,7 @@
 	          expressions: expressions,
 	          $$watchDelegate: function(scope, listener) {
 	            var lastValue;
-	            return scope.$watchGroup(parseFns, function interpolateFnWatcher(values, oldValues) {
+	            return scope.$watchGroup(parseFns, /** @this */ function interpolateFnWatcher(values, oldValues) {
 	              var currValue = compute(values);
 	              if (isFunction(listener)) {
 	                listener.call(this, currValue, values !== oldValues ? lastValue : currValue, scope);
@@ -12429,6 +12739,7 @@
 	  }];
 	}
 	
+	/** @this */
 	function $IntervalProvider() {
 	  this.$get = ['$rootScope', '$window', '$q', '$$q', '$browser',
 	       function($rootScope,   $window,   $q,   $$q,   $browser) {
@@ -12471,7 +12782,7 @@
 	      * @returns {promise} A promise which will be notified on each iteration.
 	      *
 	      * @example
-	      * <example module="intervalExample">
+	      * <example module="intervalExample" name="interval-service">
 	      * <file name="index.html">
 	      *   <script>
 	      *     angular.module('intervalExample', [])
@@ -12630,6 +12941,87 @@
 	
 	/**
 	 * @ngdoc service
+	 * @name $jsonpCallbacks
+	 * @requires $window
+	 * @description
+	 * This service handles the lifecycle of callbacks to handle JSONP requests.
+	 * Override this service if you wish to customise where the callbacks are stored and
+	 * how they vary compared to the requested url.
+	 */
+	var $jsonpCallbacksProvider = /** @this */ function() {
+	  this.$get = ['$window', function($window) {
+	    var callbacks = $window.angular.callbacks;
+	    var callbackMap = {};
+	
+	    function createCallback(callbackId) {
+	      var callback = function(data) {
+	        callback.data = data;
+	        callback.called = true;
+	      };
+	      callback.id = callbackId;
+	      return callback;
+	    }
+	
+	    return {
+	      /**
+	       * @ngdoc method
+	       * @name $jsonpCallbacks#createCallback
+	       * @param {string} url the url of the JSONP request
+	       * @returns {string} the callback path to send to the server as part of the JSONP request
+	       * @description
+	       * {@link $httpBackend} calls this method to create a callback and get hold of the path to the callback
+	       * to pass to the server, which will be used to call the callback with its payload in the JSONP response.
+	       */
+	      createCallback: function(url) {
+	        var callbackId = '_' + (callbacks.$$counter++).toString(36);
+	        var callbackPath = 'angular.callbacks.' + callbackId;
+	        var callback = createCallback(callbackId);
+	        callbackMap[callbackPath] = callbacks[callbackId] = callback;
+	        return callbackPath;
+	      },
+	      /**
+	       * @ngdoc method
+	       * @name $jsonpCallbacks#wasCalled
+	       * @param {string} callbackPath the path to the callback that was sent in the JSONP request
+	       * @returns {boolean} whether the callback has been called, as a result of the JSONP response
+	       * @description
+	       * {@link $httpBackend} calls this method to find out whether the JSONP response actually called the
+	       * callback that was passed in the request.
+	       */
+	      wasCalled: function(callbackPath) {
+	        return callbackMap[callbackPath].called;
+	      },
+	      /**
+	       * @ngdoc method
+	       * @name $jsonpCallbacks#getResponse
+	       * @param {string} callbackPath the path to the callback that was sent in the JSONP request
+	       * @returns {*} the data received from the response via the registered callback
+	       * @description
+	       * {@link $httpBackend} calls this method to get hold of the data that was provided to the callback
+	       * in the JSONP response.
+	       */
+	      getResponse: function(callbackPath) {
+	        return callbackMap[callbackPath].data;
+	      },
+	      /**
+	       * @ngdoc method
+	       * @name $jsonpCallbacks#removeCallback
+	       * @param {string} callbackPath the path to the callback that was sent in the JSONP request
+	       * @description
+	       * {@link $httpBackend} calls this method to remove the callback after the JSONP request has
+	       * completed or timed-out.
+	       */
+	      removeCallback: function(callbackPath) {
+	        var callback = callbackMap[callbackPath];
+	        delete callbacks[callback.id];
+	        delete callbackMap[callbackPath];
+	      }
+	    };
+	  }];
+	};
+	
+	/**
+	 * @ngdoc service
 	 * @name $locale
 	 *
 	 * @description
@@ -12669,20 +13061,25 @@
 	  locationObj.$$port = toInt(parsedUrl.port) || DEFAULT_PORTS[parsedUrl.protocol] || null;
 	}
 	
+	var DOUBLE_SLASH_REGEX = /^\s*[\\/]{2,}/;
+	function parseAppUrl(url, locationObj) {
 	
-	function parseAppUrl(relativeUrl, locationObj) {
-	  var prefixed = (relativeUrl.charAt(0) !== '/');
-	  if (prefixed) {
-	    relativeUrl = '/' + relativeUrl;
+	  if (DOUBLE_SLASH_REGEX.test(url)) {
+	    throw $locationMinErr('badpath', 'Invalid url "{0}".', url);
 	  }
-	  var match = urlResolve(relativeUrl);
+	
+	  var prefixed = (url.charAt(0) !== '/');
+	  if (prefixed) {
+	    url = '/' + url;
+	  }
+	  var match = urlResolve(url);
 	  locationObj.$$path = decodeURIComponent(prefixed && match.pathname.charAt(0) === '/' ?
 	      match.pathname.substring(1) : match.pathname);
 	  locationObj.$$search = parseKeyValue(match.search);
 	  locationObj.$$hash = decodeURIComponent(match.hash);
 	
 	  // make sure path starts with '/';
-	  if (locationObj.$$path && locationObj.$$path.charAt(0) != '/') {
+	  if (locationObj.$$path && locationObj.$$path.charAt(0) !== '/') {
 	    locationObj.$$path = '/' + locationObj.$$path;
 	  }
 	}
@@ -12707,7 +13104,7 @@
 	
 	function stripHash(url) {
 	  var index = url.indexOf('#');
-	  return index == -1 ? url : url.substr(0, index);
+	  return index === -1 ? url : url.substr(0, index);
 	}
 	
 	function trimEmptyHash(url) {
@@ -12783,16 +13180,17 @@
 	    var appUrl, prevAppUrl;
 	    var rewrittenUrl;
 	
+	
 	    if (isDefined(appUrl = stripBaseUrl(appBase, url))) {
 	      prevAppUrl = appUrl;
-	      if (isDefined(appUrl = stripBaseUrl(basePrefix, appUrl))) {
+	      if (basePrefix && isDefined(appUrl = stripBaseUrl(basePrefix, appUrl))) {
 	        rewrittenUrl = appBaseNoFile + (stripBaseUrl('/', appUrl) || appUrl);
 	      } else {
 	        rewrittenUrl = appBase + prevAppUrl;
 	      }
 	    } else if (isDefined(appUrl = stripBaseUrl(appBaseNoFile, url))) {
 	      rewrittenUrl = appBaseNoFile + appUrl;
-	    } else if (appBaseNoFile == url + '/') {
+	    } else if (appBaseNoFile === url + '/') {
 	      rewrittenUrl = appBaseNoFile;
 	    }
 	    if (rewrittenUrl) {
@@ -12906,7 +13304,7 @@
 	  };
 	
 	  this.$$parseLinkUrl = function(url, relHref) {
-	    if (stripHash(appBase) == stripHash(url)) {
+	    if (stripHash(appBase) === stripHash(url)) {
 	      this.$$parse(url);
 	      return true;
 	    }
@@ -12940,7 +13338,7 @@
 	    var rewrittenUrl;
 	    var appUrl;
 	
-	    if (appBase == stripHash(url)) {
+	    if (appBase === stripHash(url)) {
 	      rewrittenUrl = url;
 	    } else if ((appUrl = stripBaseUrl(appBaseNoFile, url))) {
 	      rewrittenUrl = appBase + hashPrefix + appUrl;
@@ -13134,7 +13532,7 @@
 	   */
 	  path: locationGetterSetter('$$path', function(path) {
 	    path = path !== null ? path.toString() : '';
-	    return path.charAt(0) == '/' ? path : '/' + path;
+	    return path.charAt(0) === '/' ? path : '/' + path;
 	  }),
 	
 	  /**
@@ -13296,14 +13694,14 @@
 	
 	
 	function locationGetter(property) {
-	  return function() {
+	  return /** @this */ function() {
 	    return this[property];
 	  };
 	}
 	
 	
 	function locationGetterSetter(property, preprocess) {
-	  return function(value) {
+	  return /** @this */ function(value) {
 	    if (isUndefined(value)) {
 	      return this[property];
 	    }
@@ -13345,6 +13743,8 @@
 	/**
 	 * @ngdoc provider
 	 * @name $locationProvider
+	 * @this
+	 *
 	 * @description
 	 * Use the `$locationProvider` to configure how the application deep linking paths are stored.
 	 */
@@ -13465,7 +13865,7 @@
 	    if (html5Mode.enabled) {
 	      if (!baseHref && html5Mode.requireBase) {
 	        throw $locationMinErr('nobase',
-	          "$location in HTML5 mode requires a <base> tag to be present!");
+	          '$location in HTML5 mode requires a <base> tag to be present!');
 	      }
 	      appBase = serverBase(initialUrl) + (baseHref || '/');
 	      LocationMode = $sniffer.history ? LocationHtml5Url : LocationHashbangInHtml5Url;
@@ -13505,7 +13905,7 @@
 	      // TODO(vojta): rewrite link when opening in new tab/window (in legacy browser)
 	      // currently we open nice url link and redirect then
 	
-	      if (!html5Mode.rewriteLinks || event.ctrlKey || event.metaKey || event.shiftKey || event.which == 2 || event.button == 2) return;
+	      if (!html5Mode.rewriteLinks || event.ctrlKey || event.metaKey || event.shiftKey || event.which === 2 || event.button === 2) return;
 	
 	      var elm = jqLite(event.target);
 	
@@ -13536,7 +13936,7 @@
 	          // getting double entries in the location history.
 	          event.preventDefault();
 	          // update location manually
-	          if ($location.absUrl() != $browser.url()) {
+	          if ($location.absUrl() !== $browser.url()) {
 	            $rootScope.$apply();
 	            // hack to work around FF6 bug 684208 when scenario runner clicks on links
 	            $window.angular['ff-684208-preventDefault'] = true;
@@ -13547,7 +13947,7 @@
 	
 	
 	    // rewrite hashbang url <> html5 url
-	    if (trimEmptyHash($location.absUrl()) != trimEmptyHash(initialUrl)) {
+	    if (trimEmptyHash($location.absUrl()) !== trimEmptyHash(initialUrl)) {
 	      $browser.url($location.absUrl(), true);
 	    }
 	
@@ -13653,7 +14053,7 @@
 	 * {@link ng.$logProvider ng.$logProvider#debugEnabled} to change this.
 	 *
 	 * @example
-	   <example module="logExample">
+	   <example module="logExample" name="log-service">
 	     <file name="script.js">
 	       angular.module('logExample', [])
 	         .controller('LogController', ['$scope', '$log', function($scope, $log) {
@@ -13679,6 +14079,8 @@
 	/**
 	 * @ngdoc provider
 	 * @name $logProvider
+	 * @this
+	 *
 	 * @description
 	 * Use the `$logProvider` to configure how the application logs messages
 	 */
@@ -13755,7 +14157,7 @@
 	            fn.apply(self, arguments);
 	          }
 	        };
-	      }())
+	      })()
 	    };
 	
 	    function formatError(arg) {
@@ -13780,7 +14182,7 @@
 	      // The reason behind this is that console.log has type "object" in IE8...
 	      try {
 	        hasApply = !!logFn.apply;
-	      } catch (e) {}
+	      } catch (e) { /* empty */ }
 	
 	      if (hasApply) {
 	        return function() {
@@ -13814,6 +14216,25 @@
 	
 	var $parseMinErr = minErr('$parse');
 	
+	var ARRAY_CTOR = [].constructor;
+	var BOOLEAN_CTOR = (false).constructor;
+	var FUNCTION_CTOR = Function.constructor;
+	var NUMBER_CTOR = (0).constructor;
+	var OBJECT_CTOR = {}.constructor;
+	var STRING_CTOR = ''.constructor;
+	var ARRAY_CTOR_PROTO = ARRAY_CTOR.prototype;
+	var BOOLEAN_CTOR_PROTO = BOOLEAN_CTOR.prototype;
+	var FUNCTION_CTOR_PROTO = FUNCTION_CTOR.prototype;
+	var NUMBER_CTOR_PROTO = NUMBER_CTOR.prototype;
+	var OBJECT_CTOR_PROTO = OBJECT_CTOR.prototype;
+	var STRING_CTOR_PROTO = STRING_CTOR.prototype;
+	
+	var CALL = FUNCTION_CTOR_PROTO.call;
+	var APPLY = FUNCTION_CTOR_PROTO.apply;
+	var BIND = FUNCTION_CTOR_PROTO.bind;
+	
+	var objectValueOf = OBJECT_CTOR_PROTO.valueOf;
+	
 	// Sandboxing Angular Expressions
 	// ------------------------------
 	// Angular expressions are generally considered safe because these expressions only have direct
@@ -13839,9 +14260,9 @@
 	
 	
 	function ensureSafeMemberName(name, fullExpression) {
-	  if (name === "__defineGetter__" || name === "__defineSetter__"
-	      || name === "__lookupGetter__" || name === "__lookupSetter__"
-	      || name === "__proto__") {
+	  if (name === '__defineGetter__' || name === '__defineSetter__'
+	      || name === '__lookupGetter__' || name === '__lookupSetter__'
+	      || name === '__proto__') {
 	    throw $parseMinErr('isecfld',
 	        'Attempting to access a disallowed field in Angular expressions! '
 	        + 'Expression: {0}', fullExpression);
@@ -13894,10 +14315,6 @@
 	  return obj;
 	}
 	
-	var CALL = Function.prototype.call;
-	var APPLY = Function.prototype.apply;
-	var BIND = Function.prototype.bind;
-	
 	function ensureSafeFunction(obj, fullExpression) {
 	  if (obj) {
 	    if (obj.constructor === obj) {
@@ -13914,17 +14331,28 @@
 	
 	function ensureSafeAssignContext(obj, fullExpression) {
 	  if (obj) {
-	    if (obj === (0).constructor || obj === (false).constructor || obj === ''.constructor ||
-	        obj === {}.constructor || obj === [].constructor || obj === Function.constructor) {
+	    if (obj === ARRAY_CTOR ||
+	        obj === BOOLEAN_CTOR ||
+	        obj === FUNCTION_CTOR ||
+	        obj === NUMBER_CTOR ||
+	        obj === OBJECT_CTOR ||
+	        obj === STRING_CTOR ||
+	        obj === ARRAY_CTOR_PROTO ||
+	        obj === BOOLEAN_CTOR_PROTO ||
+	        obj === FUNCTION_CTOR_PROTO ||
+	        obj === NUMBER_CTOR_PROTO ||
+	        obj === OBJECT_CTOR_PROTO ||
+	        obj === STRING_CTOR_PROTO) {
 	      throw $parseMinErr('isecaf',
-	        'Assigning to a constructor is disallowed! Expression: {0}', fullExpression);
+	        'Assigning to a constructor or its prototype is disallowed! Expression: {0}',
+	        fullExpression);
 	    }
 	  }
 	}
 	
 	var OPERATORS = createMap();
 	forEach('+ - * / % === !== == != < > <= >= && || ! = |'.split(' '), function(operator) { OPERATORS[operator] = true; });
-	var ESCAPE = {"n":"\n", "f":"\f", "r":"\r", "t":"\t", "v":"\v", "'":"'", '"':'"'};
+	var ESCAPE = {'n':'\n', 'f':'\f', 'r':'\r', 't':'\t', 'v':'\v', '\'':'\'', '"':'"'};
 	
 	
 	/////////////////////////////////////////
@@ -13933,7 +14361,7 @@
 	/**
 	 * @constructor
 	 */
-	var Lexer = function(options) {
+	var Lexer = function Lexer(options) {
 	  this.options = options;
 	};
 	
@@ -13947,7 +14375,7 @@
 	
 	    while (this.index < this.text.length) {
 	      var ch = this.text.charAt(this.index);
-	      if (ch === '"' || ch === "'") {
+	      if (ch === '"' || ch === '\'') {
 	        this.readString(ch);
 	      } else if (this.isNumber(ch) || ch === '.' && this.isNumber(this.peek())) {
 	        this.readNumber();
@@ -13986,7 +14414,7 @@
 	  },
 	
 	  isNumber: function(ch) {
-	    return ('0' <= ch && ch <= '9') && typeof ch === "string";
+	    return ('0' <= ch && ch <= '9') && typeof ch === 'string';
 	  },
 	
 	  isWhitespace: function(ch) {
@@ -14019,9 +14447,8 @@
 	
 	  codePointAt: function(ch) {
 	    if (ch.length === 1) return ch.charCodeAt(0);
-	    /*jshint bitwise: false*/
+	    // eslint-disable-next-line no-bitwise
 	    return (ch.charCodeAt(0) << 10) + ch.charCodeAt(1) - 0x35FDC00;
-	    /*jshint bitwise: true*/
 	  },
 	
 	  peekMultichar: function() {
@@ -14056,19 +14483,19 @@
 	    var start = this.index;
 	    while (this.index < this.text.length) {
 	      var ch = lowercase(this.text.charAt(this.index));
-	      if (ch == '.' || this.isNumber(ch)) {
+	      if (ch === '.' || this.isNumber(ch)) {
 	        number += ch;
 	      } else {
 	        var peekCh = this.peek();
-	        if (ch == 'e' && this.isExpOperator(peekCh)) {
+	        if (ch === 'e' && this.isExpOperator(peekCh)) {
 	          number += ch;
 	        } else if (this.isExpOperator(ch) &&
 	            peekCh && this.isNumber(peekCh) &&
-	            number.charAt(number.length - 1) == 'e') {
+	            number.charAt(number.length - 1) === 'e') {
 	          number += ch;
 	        } else if (this.isExpOperator(ch) &&
 	            (!peekCh || !this.isNumber(peekCh)) &&
-	            number.charAt(number.length - 1) == 'e') {
+	            number.charAt(number.length - 1) === 'e') {
 	          this.throwError('Invalid exponent');
 	        } else {
 	          break;
@@ -14143,7 +14570,7 @@
 	  }
 	};
 	
-	var AST = function(lexer, options) {
+	var AST = function AST(lexer, options) {
 	  this.lexer = lexer;
 	  this.options = options;
 	};
@@ -14199,8 +14626,7 @@
 	
 	  filterChain: function() {
 	    var left = this.expression();
-	    var token;
-	    while ((token = this.expect('|'))) {
+	    while (this.expect('|')) {
 	      left = this.filter(left);
 	    }
 	    return left;
@@ -14412,7 +14838,7 @@
 	          this.consume(':');
 	          property.value = this.expression();
 	        } else {
-	          this.throwError("invalid key", this.peek());
+	          this.throwError('invalid key', this.peek());
 	        }
 	        properties.push(property);
 	      } while (this.expect(','));
@@ -14496,6 +14922,7 @@
 	function findConstantAndWatchExpressions(ast, $filter) {
 	  var allConstants;
 	  var argsToWatch;
+	  var isStatelessFilter;
 	  switch (ast.type) {
 	  case AST.Program:
 	    allConstants = true;
@@ -14546,7 +14973,8 @@
 	    ast.toWatch = [ast];
 	    break;
 	  case AST.CallExpression:
-	    allConstants = ast.filter ? isStateless($filter, ast.callee.name) : false;
+	    isStatelessFilter = ast.filter ? isStateless($filter, ast.callee.name) : false;
+	    allConstants = isStatelessFilter;
 	    argsToWatch = [];
 	    forEach(ast.arguments, function(expr) {
 	      findConstantAndWatchExpressions(expr, $filter);
@@ -14556,7 +14984,7 @@
 	      }
 	    });
 	    ast.constant = allConstants;
-	    ast.toWatch = ast.filter && isStateless($filter, ast.callee.name) ? argsToWatch : [ast];
+	    ast.toWatch = isStatelessFilter ? argsToWatch : [ast];
 	    break;
 	  case AST.AssignmentExpression:
 	    findConstantAndWatchExpressions(ast.left, $filter);
@@ -14602,7 +15030,7 @@
 	}
 	
 	function getInputs(body) {
-	  if (body.length != 1) return;
+	  if (body.length !== 1) return;
 	  var lastExpression = body[0].expression;
 	  var candidate = lastExpression.toWatch;
 	  if (candidate.length !== 1) return candidate;
@@ -14684,7 +15112,7 @@
 	      this.watchFns() +
 	      'return fn;';
 	
-	    /* jshint -W054 */
+	    // eslint-disable-next-line no-new-func
 	    var fn = (new Function('$filter',
 	        'ensureSafeMemberName',
 	        'ensureSafeObject',
@@ -14704,7 +15132,6 @@
 	          ifDefined,
 	          plusFn,
 	          expression);
-	    /* jshint +W054 */
 	    this.state = this.stage = undefined;
 	    fn.literal = isLiteral(ast);
 	    fn.constant = isConstant(ast);
@@ -15061,7 +15488,7 @@
 	  },
 	
 	  nonComputedMember: function(left, right) {
-	    var SAFE_IDENTIFIER = /[$_a-zA-Z][$_a-zA-Z0-9]*/;
+	    var SAFE_IDENTIFIER = /^[$_a-zA-Z][$_a-zA-Z0-9]*$/;
 	    var UNSAFE_CHARACTERS = /[^$_a-zA-Z0-9]/g;
 	    if (SAFE_IDENTIFIER.test(right)) {
 	      return left + '.' + right;
@@ -15136,7 +15563,7 @@
 	  },
 	
 	  escape: function(value) {
-	    if (isString(value)) return "'" + value.replace(this.stringEscapeRegex, this.stringEscapeFn) + "'";
+	    if (isString(value)) return '\'' + value.replace(this.stringEscapeRegex, this.stringEscapeFn) + '\'';
 	    if (isNumber(value)) return value.toString();
 	    if (value === true) return 'true';
 	    if (value === false) return 'false';
@@ -15215,7 +15642,7 @@
 	  },
 	
 	  recurse: function(ast, context, create) {
-	    var left, right, self = this, args, expression;
+	    var left, right, self = this, args;
 	    if (ast.input) {
 	      return this.inputs(ast.input, ast.watchId);
 	    }
@@ -15427,12 +15854,14 @@
 	  },
 	  'binary==': function(left, right, context) {
 	    return function(scope, locals, assign, inputs) {
+	      // eslint-disable-next-line eqeqeq
 	      var arg = left(scope, locals, assign, inputs) == right(scope, locals, assign, inputs);
 	      return context ? {value: arg} : arg;
 	    };
 	  },
 	  'binary!=': function(left, right, context) {
 	    return function(scope, locals, assign, inputs) {
+	      // eslint-disable-next-line eqeqeq
 	      var arg = left(scope, locals, assign, inputs) != right(scope, locals, assign, inputs);
 	      return context ? {value: arg} : arg;
 	    };
@@ -15555,7 +15984,7 @@
 	/**
 	 * @constructor
 	 */
-	var Parser = function(lexer, $filter, options) {
+	var Parser = function Parser(lexer, $filter, options) {
 	  this.lexer = lexer;
 	  this.$filter = $filter;
 	  this.options = options;
@@ -15573,10 +16002,8 @@
 	};
 	
 	function isPossiblyDangerousMemberName(name) {
-	  return name == 'constructor';
+	  return name === 'constructor';
 	}
-	
-	var objectValueOf = Object.prototype.valueOf;
 	
 	function getValueOf(value) {
 	  return isFunction(value.valueOf) ? value.valueOf() : objectValueOf.call(value);
@@ -15628,6 +16055,7 @@
 	/**
 	 * @ngdoc provider
 	 * @name $parseProvider
+	 * @this
 	 *
 	 * @description
 	 * `$parseProvider` can be used for configuring the default behavior of the {@link ng.$parse $parse}
@@ -15662,6 +16090,7 @@
 	 /**
 	  * @ngdoc method
 	  * @name $parseProvider#setIdentifierFns
+	  *
 	  * @description
 	  *
 	  * Allows defining the set of characters that are allowed in Angular expressions. The function
@@ -15803,6 +16232,7 @@
 	      }
 	
 	      //Primitive or NaN
+	      // eslint-disable-next-line no-self-compare
 	      return newValue === oldValueOfValue || (newValue !== newValue && oldValueOfValue !== oldValueOfValue);
 	    }
 	
@@ -15851,9 +16281,9 @@
 	
 	    function oneTimeWatchDelegate(scope, listener, objectEquality, parsedExpression) {
 	      var unwatch, lastValue;
-	      return unwatch = scope.$watch(function oneTimeWatch(scope) {
+	      unwatch = scope.$watch(function oneTimeWatch(scope) {
 	        return parsedExpression(scope);
-	      }, function oneTimeListener(value, old, scope) {
+	      }, /** @this */ function oneTimeListener(value, old, scope) {
 	        lastValue = value;
 	        if (isFunction(listener)) {
 	          listener.apply(this, arguments);
@@ -15866,13 +16296,14 @@
 	          });
 	        }
 	      }, objectEquality);
+	      return unwatch;
 	    }
 	
 	    function oneTimeLiteralWatchDelegate(scope, listener, objectEquality, parsedExpression) {
 	      var unwatch, lastValue;
-	      return unwatch = scope.$watch(function oneTimeWatch(scope) {
+	      unwatch = scope.$watch(function oneTimeWatch(scope) {
 	        return parsedExpression(scope);
-	      }, function oneTimeListener(value, old, scope) {
+	      }, /** @this */ function oneTimeListener(value, old, scope) {
 	        lastValue = value;
 	        if (isFunction(listener)) {
 	          listener.call(this, value, old, scope);
@@ -15884,6 +16315,8 @@
 	        }
 	      }, objectEquality);
 	
+	      return unwatch;
+	
 	      function isAllDefined(value) {
 	        var allDefined = true;
 	        forEach(value, function(val) {
@@ -15894,11 +16327,11 @@
 	    }
 	
 	    function constantWatchDelegate(scope, listener, objectEquality, parsedExpression) {
-	      var unwatch;
-	      return unwatch = scope.$watch(function constantWatch(scope) {
+	      var unwatch = scope.$watch(function constantWatch(scope) {
 	        unwatch();
 	        return parsedExpression(scope);
 	      }, listener, objectEquality);
+	      return unwatch;
 	    }
 	
 	    function addInterceptor(parsedExpression, interceptorFn) {
@@ -15942,6 +16375,7 @@
 	 * @ngdoc service
 	 * @name $q
 	 * @requires $rootScope
+	 * @this
 	 *
 	 * @description
 	 * A service that helps you run functions asynchronously, and use their return values (or exceptions)
@@ -16073,7 +16507,7 @@
 	 *
 	 * **Methods**
 	 *
-	 * - `then(successCallback, errorCallback, notifyCallback)` – regardless of when the promise was or
+	 * - `then(successCallback, [errorCallback], [notifyCallback])` – regardless of when the promise was or
 	 *   will be resolved or rejected, `then` calls one of the success or error callbacks asynchronously
 	 *   as soon as the result is available. The callbacks are called with a single argument: the result
 	 *   or rejection reason. Additionally, the notify callback may be called zero or more times to
@@ -16084,7 +16518,8 @@
 	 *   with the value which is resolved in that promise using
 	 *   [promise chaining](http://www.html5rocks.com/en/tutorials/es6/promises/#toc-promises-queues)).
 	 *   It also notifies via the return value of the `notifyCallback` method. The promise cannot be
-	 *   resolved or rejected from the notifyCallback method.
+	 *   resolved or rejected from the notifyCallback method. The errorCallback and notifyCallback
+	 *   arguments are optional.
 	 *
 	 * - `catch(errorCallback)` – shorthand for `promise.then(null, errorCallback)`
 	 *
@@ -16163,6 +16598,7 @@
 	  }];
 	}
 	
+	/** @this */
 	function $$QProvider() {
 	  this.$get = ['$browser', '$exceptionHandler', function($browser, $exceptionHandler) {
 	    return qFactory(function(callback) {
@@ -16219,11 +16655,11 @@
 	      return result.promise;
 	    },
 	
-	    "catch": function(callback) {
+	    'catch': function(callback) {
 	      return this.then(null, callback);
 	    },
 	
-	    "finally": function(callback, progressBack) {
+	    'finally': function(callback, progressBack) {
 	      return this.then(function(value) {
 	        return handleCallback(value, true, callback);
 	      }, function(error) {
@@ -16279,7 +16715,7 @@
 	      if (val === this.promise) {
 	        this.$$reject($qMinErr(
 	          'qcycle',
-	          "Expected promise to be resolved with value other than itself '{0}'",
+	          'Expected promise to be resolved with value other than itself \'{0}\'',
 	          val));
 	      } else {
 	        this.$$resolve(val);
@@ -16499,9 +16935,33 @@
 	    return deferred.promise;
 	  }
 	
+	  /**
+	   * @ngdoc method
+	   * @name $q#race
+	   * @kind function
+	   *
+	   * @description
+	   * Returns a promise that resolves or rejects as soon as one of those promises
+	   * resolves or rejects, with the value or reason from that promise.
+	   *
+	   * @param {Array.<Promise>|Object.<Promise>} promises An array or hash of promises.
+	   * @returns {Promise} a promise that resolves or rejects as soon as one of the `promises`
+	   * resolves or rejects, with the value or reason from that promise.
+	   */
+	
+	  function race(promises) {
+	    var deferred = defer();
+	
+	    forEach(promises, function(promise) {
+	      when(promise).then(deferred.resolve, deferred.reject);
+	    });
+	
+	    return deferred.promise;
+	  }
+	
 	  var $Q = function Q(resolver) {
 	    if (!isFunction(resolver)) {
-	      throw $qMinErr('norslvr', "Expected resolverFn, got '{0}'", resolver);
+	      throw $qMinErr('norslvr', 'Expected resolverFn, got \'{0}\'', resolver);
 	    }
 	
 	    var deferred = new Deferred();
@@ -16528,10 +16988,12 @@
 	  $Q.when = when;
 	  $Q.resolve = resolve;
 	  $Q.all = all;
+	  $Q.race = race;
 	
 	  return $Q;
 	}
 	
+	/** @this */
 	function $$RAFProvider() { //rAF
 	  this.$get = ['$window', '$timeout', function($window, $timeout) {
 	    var requestAnimationFrame = $window.requestAnimationFrame ||
@@ -16621,6 +17083,8 @@
 	/**
 	 * @ngdoc service
 	 * @name $rootScope
+	 * @this
+	 *
 	 * @description
 	 *
 	 * Every application has a single root {@link ng.$rootScope.Scope scope}.
@@ -16671,8 +17135,12 @@
 	        // all this scopes children
 	        //
 	        // See issue https://github.com/angular/angular.js/issues/10706
-	        $scope.$$childHead && cleanUpScope($scope.$$childHead);
-	        $scope.$$nextSibling && cleanUpScope($scope.$$nextSibling);
+	        if ($scope.$$childHead) {
+	          cleanUpScope($scope.$$childHead);
+	        }
+	        if ($scope.$$nextSibling) {
+	          cleanUpScope($scope.$$nextSibling);
+	        }
 	      }
 	
 	      // The code below works around IE9 and V8's memory leaks
@@ -16824,7 +17292,7 @@
 	        // prototypically. In all other cases, this property needs to be set
 	        // when the parent scope is destroyed.
 	        // The listener needs to be added after the parent is set
-	        if (isolate || parent != this) child.$on('$destroy', destroyChildScope);
+	        if (isolate || parent !== this) child.$on('$destroy', destroyChildScope);
 	
 	        return child;
 	      },
@@ -17174,6 +17642,7 @@
 	              oldItem = oldValue[i];
 	              newItem = newValue[i];
 	
+	              // eslint-disable-next-line no-self-compare
 	              bothNaN = (oldItem !== oldItem) && (newItem !== newItem);
 	              if (!bothNaN && (oldItem !== newItem)) {
 	                changeDetected++;
@@ -17196,6 +17665,7 @@
 	                oldItem = oldValue[key];
 	
 	                if (key in oldValue) {
+	                  // eslint-disable-next-line no-self-compare
 	                  bothNaN = (oldItem !== oldItem) && (newItem !== newItem);
 	                  if (!bothNaN && (oldItem !== newItem)) {
 	                    changeDetected++;
@@ -17360,8 +17830,7 @@
 	                    if ((value = get(current)) !== (last = watch.last) &&
 	                        !(watch.eq
 	                            ? equals(value, last)
-	                            : (typeof value === 'number' && typeof last === 'number'
-	                               && isNaN(value) && isNaN(last)))) {
+	                            : (isNumberNaN(value) && isNumberNaN(last)))) {
 	                      dirty = true;
 	                      lastDirtyWatch = watch;
 	                      watch.last = watch.eq ? copy(value, null) : value;
@@ -17480,8 +17949,8 @@
 	
 	        // sever all the references to parent scopes (after this cleanup, the current scope should
 	        // not be retained by any of our references and should be eligible for garbage collection)
-	        if (parent && parent.$$childHead == this) parent.$$childHead = this.$$nextSibling;
-	        if (parent && parent.$$childTail == this) parent.$$childTail = this.$$prevSibling;
+	        if (parent && parent.$$childHead === this) parent.$$childHead = this.$$nextSibling;
+	        if (parent && parent.$$childTail === this) parent.$$childTail = this.$$prevSibling;
 	        if (this.$$prevSibling) this.$$prevSibling.$$nextSibling = this.$$nextSibling;
 	        if (this.$$nextSibling) this.$$nextSibling.$$prevSibling = this.$$prevSibling;
 	
@@ -17635,6 +18104,7 @@
 	            $rootScope.$digest();
 	          } catch (e) {
 	            $exceptionHandler(e);
+	            // eslint-disable-next-line no-unsafe-finally
 	            throw e;
 	          }
 	        }
@@ -17659,7 +18129,9 @@
 	       */
 	      $applyAsync: function(expr) {
 	        var scope = this;
-	        expr && applyAsyncQueue.push($applyAsyncExpression);
+	        if (expr) {
+	          applyAsyncQueue.push($applyAsyncExpression);
+	        }
 	        expr = $parse(expr);
 	        scheduleApplyAsync();
 	
@@ -17953,6 +18425,7 @@
 	// the implementation is in angular.bootstrap
 	
 	/**
+	 * @this
 	 * @description
 	 * Private service to sanitize uris for links and images. Used by $compile and $sanitize.
 	 */
@@ -18032,6 +18505,8 @@
 	 *    Or allows for someone to change the prototype of built-in objects?   *
 	 *     Or gives undesired access to variables likes document or window?    *
 	 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+	
+	/* exported $SceProvider, $SceDelegateProvider */
 	
 	var $sceMinErr = minErr('$sce');
 	
@@ -18116,6 +18591,8 @@
 	/**
 	 * @ngdoc provider
 	 * @name $sceDelegateProvider
+	 * @this
+	 *
 	 * @description
 	 *
 	 * The `$sceDelegateProvider` provider allows developers to configure the {@link ng.$sceDelegate
@@ -18131,7 +18608,7 @@
 	 *
 	 * - your app is hosted at url `http://myapp.example.com/`
 	 * - but some of your templates are hosted on other domains you control such as
-	 *   `http://srv01.assets.example.com/`,  `http://srv02.assets.example.com/`, etc.
+	 *   `http://srv01.assets.example.com/`, `http://srv02.assets.example.com/`, etc.
 	 * - and you have an open redirect at `http://myapp.example.com/clickThru?...`.
 	 *
 	 * Here is what a secure configuration for this scenario might look like:
@@ -18412,6 +18889,8 @@
 	/**
 	 * @ngdoc provider
 	 * @name $sceProvider
+	 * @this
+	 *
 	 * @description
 	 *
 	 * The $sceProvider provider allows developers to configure the {@link ng.$sce $sce} service.
@@ -18420,8 +18899,6 @@
 	 *
 	 * Read more about {@link ng.$sce Strict Contextual Escaping (SCE)}.
 	 */
-	
-	/* jshint maxlen: false*/
 	
 	/**
 	 * @ngdoc service
@@ -18555,7 +19032,7 @@
 	 * | `$sce.HTML`         | For HTML that's safe to source into the application.  The {@link ng.directive:ngBindHtml ngBindHtml} directive uses this context for bindings. If an unsafe value is encountered and the {@link ngSanitize $sanitize} module is present this will sanitize the value instead of throwing an error. |
 	 * | `$sce.CSS`          | For CSS that's safe to source into the application.  Currently unused.  Feel free to use it in your own directives. |
 	 * | `$sce.URL`          | For URLs that are safe to follow as links.  Currently unused (`<a href=` and `<img src=` sanitize their urls and don't constitute an SCE context. |
-	 * | `$sce.RESOURCE_URL` | For URLs that are not only safe to follow as links, but whose contents are also safe to include in your application.  Examples include `ng-include`, `src` / `ngSrc` bindings for tags other than `IMG` (e.g. `IFRAME`, `OBJECT`, etc.)  <br><br>Note that `$sce.RESOURCE_URL` makes a stronger statement about the URL than `$sce.URL` does and therefore contexts requiring values trusted for `$sce.RESOURCE_URL` can be used anywhere that values trusted for `$sce.URL` are required. |
+	 * | `$sce.RESOURCE_URL` | For URLs that are not only safe to follow as links, but whose contents are also safe to include in your application.  Examples include `ng-include`, `src` / `ngSrc` bindings for tags other than `IMG`, `VIDEO`, `AUDIO`, `SOURCE`, and `TRACK` (e.g. `IFRAME`, `OBJECT`, etc.)  <br><br>Note that `$sce.RESOURCE_URL` makes a stronger statement about the URL than `$sce.URL` does and therefore contexts requiring values trusted for `$sce.RESOURCE_URL` can be used anywhere that values trusted for `$sce.URL` are required. |
 	 * | `$sce.JS`           | For JavaScript that is safe to execute in your application's context.  Currently unused.  Feel free to use it in your own directives. |
 	 *
 	 * ## Format of items in {@link ng.$sceDelegateProvider#resourceUrlWhitelist resourceUrlWhitelist}/{@link ng.$sceDelegateProvider#resourceUrlBlacklist Blacklist} <a name="resourceUrlPatternItem"></a>
@@ -18607,7 +19084,7 @@
 	 *
 	 * ## Show me an example using SCE.
 	 *
-	 * <example module="mySceApp" deps="angular-sanitize.js">
+	 * <example module="mySceApp" deps="angular-sanitize.js" name="sce-service">
 	 * <file name="index.html">
 	 *   <div ng-controller="AppController as myCtrl">
 	 *     <i ng-bind-html="myCtrl.explicitlyTrustedHtml" id="explicitlyTrustedHtml"></i><br><br>
@@ -18628,9 +19105,9 @@
 	 * <file name="script.js">
 	 *   angular.module('mySceApp', ['ngSanitize'])
 	 *     .controller('AppController', ['$http', '$templateCache', '$sce',
-	 *       function($http, $templateCache, $sce) {
+	 *       function AppController($http, $templateCache, $sce) {
 	 *         var self = this;
-	 *         $http.get("test_data.json", {cache: $templateCache}).success(function(userComments) {
+	 *         $http.get('test_data.json', {cache: $templateCache}).success(function(userComments) {
 	 *           self.userComments = userComments;
 	 *         });
 	 *         self.explicitlyTrustedHtml = $sce.trustAsHtml(
@@ -18654,12 +19131,12 @@
 	 * <file name="protractor.js" type="protractor">
 	 *   describe('SCE doc demo', function() {
 	 *     it('should sanitize untrusted values', function() {
-	 *       expect(element.all(by.css('.htmlComment')).first().getInnerHtml())
+	 *       expect(element.all(by.css('.htmlComment')).first().getAttribute('innerHTML'))
 	 *           .toBe('<span>Is <i>anyone</i> reading this?</span>');
 	 *     });
 	 *
 	 *     it('should NOT sanitize explicitly trusted values', function() {
-	 *       expect(element(by.id('explicitlyTrustedHtml')).getInnerHtml()).toBe(
+	 *       expect(element(by.id('explicitlyTrustedHtml')).getAttribute('innerHTML')).toBe(
 	 *           '<span onmouseover="this.textContent=&quot;Explicitly trusted HTML bypasses ' +
 	 *           'sanitization.&quot;">Hover over this text.</span>');
 	 *     });
@@ -18688,7 +19165,6 @@
 	 * ```
 	 *
 	 */
-	/* jshint maxlen: 100 */
 	
 	function $SceProvider() {
 	  var enabled = true;
@@ -19073,13 +19549,13 @@
 	
 	    forEach(SCE_CONTEXTS, function(enumValue, name) {
 	      var lName = lowercase(name);
-	      sce[camelCase("parse_as_" + lName)] = function(expr) {
+	      sce[camelCase('parse_as_' + lName)] = function(expr) {
 	        return parse(enumValue, expr);
 	      };
-	      sce[camelCase("get_trusted_" + lName)] = function(value) {
+	      sce[camelCase('get_trusted_' + lName)] = function(value) {
 	        return getTrusted(enumValue, value);
 	      };
-	      sce[camelCase("trust_as_" + lName)] = function(value) {
+	      sce[camelCase('trust_as_' + lName)] = function(value) {
 	        return trustAs(enumValue, value);
 	      };
 	    });
@@ -19088,12 +19564,15 @@
 	  }];
 	}
 	
+	/* exported $SnifferProvider */
+	
 	/**
 	 * !!! This is an undocumented "private" service !!!
 	 *
 	 * @name $sniffer
 	 * @requires $window
 	 * @requires $document
+	 * @this
 	 *
 	 * @property {boolean} history Does the browser support html5 history api ?
 	 * @property {boolean} transitions Does the browser support CSS transition events ?
@@ -19105,9 +19584,15 @@
 	function $SnifferProvider() {
 	  this.$get = ['$window', '$document', function($window, $document) {
 	    var eventSupport = {},
-	        // Chrome Packaged Apps are not allowed to access `history.pushState`. They can be detected by
-	        // the presence of `chrome.app.runtime` (see https://developer.chrome.com/apps/api_index)
-	        isChromePackagedApp = $window.chrome && $window.chrome.app && $window.chrome.app.runtime,
+	        // Chrome Packaged Apps are not allowed to access `history.pushState`.
+	        // If not sandboxed, they can be detected by the presence of `chrome.app.runtime`
+	        // (see https://developer.chrome.com/apps/api_index). If sandboxed, they can be detected by
+	        // the presence of an extension runtime ID and the absence of other Chrome runtime APIs
+	        // (see https://developer.chrome.com/apps/manifest/sandbox).
+	        isChromePackagedApp =
+	            $window.chrome &&
+	            ($window.chrome.app && $window.chrome.app.runtime ||
+	                !$window.chrome.app && $window.chrome.runtime && $window.chrome.runtime.id),
 	        hasHistoryPushState = !isChromePackagedApp && $window.history && $window.history.pushState,
 	        android =
 	          toInt((/android (\d+)/.exec(lowercase(($window.navigator || {}).userAgent)) || [])[1]),
@@ -19122,7 +19607,7 @@
 	
 	    if (bodyStyle) {
 	      for (var prop in bodyStyle) {
-	        if (match = vendorRegex.exec(prop)) {
+	        if ((match = vendorRegex.exec(prop))) {
 	          vendorPrefix = match[0];
 	          vendorPrefix = vendorPrefix[0].toUpperCase() + vendorPrefix.substr(1);
 	          break;
@@ -19152,9 +19637,7 @@
 	      // older webkit browser (533.9) on Boxee box has exactly the same problem as Android has
 	      // so let's not use the history API also
 	      // We are purposefully using `!(android < 4)` to cover the case when `android` is undefined
-	      // jshint -W018
 	      history: !!(hasHistoryPushState && !(android < 4) && !boxee),
-	      // jshint +W018
 	      hasEvent: function(event) {
 	        // IE9 implements 'input' event it's so fubared that we rather pretend that it doesn't have
 	        // it. In particular the event is not fired when backspace or delete key are pressed or
@@ -19184,6 +19667,8 @@
 	/**
 	 * @ngdoc provider
 	 * @name $templateRequestProvider
+	 * @this
+	 *
 	 * @description
 	 * Used to configure the options passed to the {@link $http} service when making a template request.
 	 *
@@ -19264,8 +19749,8 @@
 	      return $http.get(tpl, extend({
 	          cache: $templateCache,
 	          transformResponse: transformResponse
-	        }, httpOptions))
-	        ['finally'](function() {
+	        }, httpOptions)
+	        )['finally'](function() {
 	          handleRequestFn.totalPendingRequests--;
 	        })
 	        .then(function(response) {
@@ -19288,6 +19773,7 @@
 	  }];
 	}
 	
+	/** @this */
 	function $$TestabilityProvider() {
 	  this.$get = ['$rootScope', '$browser', '$location',
 	       function($rootScope,   $browser,   $location) {
@@ -19326,7 +19812,7 @@
 	                matches.push(binding);
 	              }
 	            } else {
-	              if (bindingName.indexOf(expression) != -1) {
+	              if (bindingName.indexOf(expression) !== -1) {
 	                matches.push(binding);
 	              }
 	            }
@@ -19403,6 +19889,7 @@
 	  }];
 	}
 	
+	/** @this */
 	function $TimeoutProvider() {
 	  this.$get = ['$rootScope', '$browser', '$q', '$$q', '$exceptionHandler',
 	       function($rootScope,   $browser,   $q,   $$q,   $exceptionHandler) {
@@ -19458,8 +19945,7 @@
 	        } catch (e) {
 	          deferred.reject(e);
 	          $exceptionHandler(e);
-	        }
-	        finally {
+	        } finally {
 	          delete deferreds[promise.$$timeoutId];
 	        }
 	
@@ -19505,7 +19991,7 @@
 	// doesn't know about mocked locations and resolves URLs to the real document - which is
 	// exactly the behavior needed here.  There is little value is mocking these out for this
 	// service.
-	var urlParsingNode = window.document.createElement("a");
+	var urlParsingNode = window.document.createElement('a');
 	var originUrl = urlResolve(window.location.href);
 	
 	
@@ -19560,7 +20046,7 @@
 	  if (msie) {
 	    // Normalize before parse.  Refer Implementation Notes on why this is
 	    // done in two steps on IE.
-	    urlParsingNode.setAttribute("href", href);
+	    urlParsingNode.setAttribute('href', href);
 	    href = urlParsingNode.href;
 	  }
 	
@@ -19597,6 +20083,7 @@
 	/**
 	 * @ngdoc service
 	 * @name $window
+	 * @this
 	 *
 	 * @description
 	 * A reference to the browser's `window` object. While `window`
@@ -19610,7 +20097,7 @@
 	 * expression.
 	 *
 	 * @example
-	   <example module="windowExample">
+	   <example module="windowExample" name="window-service">
 	     <file name="index.html">
 	       <script>
 	         angular.module('windowExample', [])
@@ -19690,6 +20177,7 @@
 	
 	$$CookieReader.$inject = ['$document'];
 	
+	/** @this */
 	function $$CookieReaderProvider() {
 	  this.$get = $$CookieReader;
 	}
@@ -19769,9 +20257,15 @@
 	 * @description
 	 * Filters are used for formatting data displayed to the user.
 	 *
+	 * They can be used in view templates, controllers or services.Angular comes
+	 * with a collection of [built-in filters](api/ng/filter), but it is easy to
+	 * define your own as well.
+	 *
 	 * The general syntax in templates is as follows:
 	 *
-	 *         {{ expression [| filter_name[:parameter_value] ... ] }}
+	 * ```html
+	 * {{ expression [| filter_name[:parameter_value] ... ] }}
+	 * ```
 	 *
 	 * @param {String} name Name of the filter function to retrieve
 	 * @return {Function} the filter function
@@ -19794,6 +20288,7 @@
 	   </example>
 	  */
 	$FilterProvider.$inject = ['$provide'];
+	/** @this */
 	function $FilterProvider($provide) {
 	  var suffix = 'Filter';
 	
@@ -19843,7 +20338,7 @@
 	    lowercaseFilter: false,
 	    numberFilter: false,
 	    orderByFilter: false,
-	    uppercaseFilter: false,
+	    uppercaseFilter: false
 	  */
 	
 	  register('currency', currencyFilter);
@@ -19879,10 +20374,11 @@
 	 *   - `Object`: A pattern object can be used to filter specific properties on objects contained
 	 *     by `array`. For example `{name:"M", phone:"1"}` predicate will return an array of items
 	 *     which have property `name` containing "M" and property `phone` containing "1". A special
-	 *     property name `$` can be used (as in `{$:"text"}`) to accept a match against any
-	 *     property of the object or its nested object properties. That's equivalent to the simple
-	 *     substring match with a `string` as described above. The predicate can be negated by prefixing
-	 *     the string with `!`.
+	 *     property name (`$` by default) can be used (e.g. as in `{$: "text"}`) to accept a match
+	 *     against any property of the object or its nested object properties. That's equivalent to the
+	 *     simple substring match with a `string` as described above. The special property name can be
+	 *     overwritten, using the `anyPropertyKey` parameter.
+	 *     The predicate can be negated by prefixing the string with `!`.
 	 *     For example `{name: "!M"}` predicate will return an array of items which have property `name`
 	 *     not containing "M".
 	 *
@@ -19916,8 +20412,11 @@
 	 *     Primitive values are converted to strings. Objects are not compared against primitives,
 	 *     unless they have a custom `toString` method (e.g. `Date` objects).
 	 *
+	 * @param {string=} anyPropertyKey The special property name that matches against any property.
+	 *     By default `$`.
+	 *
 	 * @example
-	   <example>
+	   <example name="filter-filter">
 	     <file name="index.html">
 	       <div ng-init="friends = [{name:'John', phone:'555-1276'},
 	                                {name:'Mary', phone:'800-BIG-MARY'},
@@ -19984,8 +20483,9 @@
 	     </file>
 	   </example>
 	 */
+	
 	function filterFilter() {
-	  return function(array, expression, comparator) {
+	  return function(array, expression, comparator, anyPropertyKey) {
 	    if (!isArrayLike(array)) {
 	      if (array == null) {
 	        return array;
@@ -19994,6 +20494,7 @@
 	      }
 	    }
 	
+	    anyPropertyKey = anyPropertyKey || '$';
 	    var expressionType = getTypeForFilter(expression);
 	    var predicateFn;
 	    var matchAgainstAnyProp;
@@ -20007,10 +20508,9 @@
 	      case 'number':
 	      case 'string':
 	        matchAgainstAnyProp = true;
-	        //jshint -W086
+	        // falls through
 	      case 'object':
-	        //jshint +W086
-	        predicateFn = createPredicateFn(expression, comparator, matchAgainstAnyProp);
+	        predicateFn = createPredicateFn(expression, comparator, anyPropertyKey, matchAgainstAnyProp);
 	        break;
 	      default:
 	        return array;
@@ -20021,8 +20521,8 @@
 	}
 	
 	// Helper functions for `filterFilter`
-	function createPredicateFn(expression, comparator, matchAgainstAnyProp) {
-	  var shouldMatchPrimitives = isObject(expression) && ('$' in expression);
+	function createPredicateFn(expression, comparator, anyPropertyKey, matchAgainstAnyProp) {
+	  var shouldMatchPrimitives = isObject(expression) && (anyPropertyKey in expression);
 	  var predicateFn;
 	
 	  if (comparator === true) {
@@ -20050,25 +20550,25 @@
 	
 	  predicateFn = function(item) {
 	    if (shouldMatchPrimitives && !isObject(item)) {
-	      return deepCompare(item, expression.$, comparator, false);
+	      return deepCompare(item, expression[anyPropertyKey], comparator, anyPropertyKey, false);
 	    }
-	    return deepCompare(item, expression, comparator, matchAgainstAnyProp);
+	    return deepCompare(item, expression, comparator, anyPropertyKey, matchAgainstAnyProp);
 	  };
 	
 	  return predicateFn;
 	}
 	
-	function deepCompare(actual, expected, comparator, matchAgainstAnyProp, dontMatchWholeObject) {
+	function deepCompare(actual, expected, comparator, anyPropertyKey, matchAgainstAnyProp, dontMatchWholeObject) {
 	  var actualType = getTypeForFilter(actual);
 	  var expectedType = getTypeForFilter(expected);
 	
 	  if ((expectedType === 'string') && (expected.charAt(0) === '!')) {
-	    return !deepCompare(actual, expected.substring(1), comparator, matchAgainstAnyProp);
+	    return !deepCompare(actual, expected.substring(1), comparator, anyPropertyKey, matchAgainstAnyProp);
 	  } else if (isArray(actual)) {
 	    // In case `actual` is an array, consider it a match
 	    // if ANY of it's items matches `expected`
 	    return actual.some(function(item) {
-	      return deepCompare(item, expected, comparator, matchAgainstAnyProp);
+	      return deepCompare(item, expected, comparator, anyPropertyKey, matchAgainstAnyProp);
 	    });
 	  }
 	
@@ -20077,11 +20577,11 @@
 	      var key;
 	      if (matchAgainstAnyProp) {
 	        for (key in actual) {
-	          if ((key.charAt(0) !== '$') && deepCompare(actual[key], expected, comparator, true)) {
+	          if ((key.charAt(0) !== '$') && deepCompare(actual[key], expected, comparator, anyPropertyKey, true)) {
 	            return true;
 	          }
 	        }
-	        return dontMatchWholeObject ? false : deepCompare(actual, expected, comparator, false);
+	        return dontMatchWholeObject ? false : deepCompare(actual, expected, comparator, anyPropertyKey, false);
 	      } else if (expectedType === 'object') {
 	        for (key in expected) {
 	          var expectedVal = expected[key];
@@ -20089,9 +20589,9 @@
 	            continue;
 	          }
 	
-	          var matchAnyProperty = key === '$';
+	          var matchAnyProperty = key === anyPropertyKey;
 	          var actualVal = matchAnyProperty ? actual : actual[key];
-	          if (!deepCompare(actualVal, expectedVal, comparator, matchAnyProperty, matchAnyProperty)) {
+	          if (!deepCompare(actualVal, expectedVal, comparator, anyPropertyKey, matchAnyProperty, matchAnyProperty)) {
 	            return false;
 	          }
 	        }
@@ -20099,7 +20599,6 @@
 	      } else {
 	        return comparator(actual, expected);
 	      }
-	      break;
 	    case 'function':
 	      return false;
 	    default:
@@ -20132,7 +20631,7 @@
 	 *
 	 *
 	 * @example
-	   <example module="currencyExample">
+	   <example module="currencyExample" name="currency-filter">
 	     <file name="index.html">
 	       <script>
 	         angular.module('currencyExample', [])
@@ -20154,7 +20653,7 @@
 	         expect(element(by.id('currency-no-fractions')).getText()).toBe('USD$1,235');
 	       });
 	       it('should update', function() {
-	         if (browser.params.browser == 'safari') {
+	         if (browser.params.browser === 'safari') {
 	           // Safari does not understand the minus key. See
 	           // https://github.com/angular/protractor/issues/481
 	           return;
@@ -20210,7 +20709,7 @@
 	 *                   include "," group separators after each third digit).
 	 *
 	 * @example
-	   <example module="numberFilterExample">
+	   <example module="numberFilterExample" name="number-filter">
 	     <file name="index.html">
 	       <script>
 	         angular.module('numberFilterExample', [])
@@ -20289,16 +20788,16 @@
 	  }
 	
 	  // Count the number of leading zeros.
-	  for (i = 0; numStr.charAt(i) == ZERO_CHAR; i++) {/* jshint noempty: false */}
+	  for (i = 0; numStr.charAt(i) === ZERO_CHAR; i++) { /* empty */ }
 	
-	  if (i == (zeros = numStr.length)) {
+	  if (i === (zeros = numStr.length)) {
 	    // The digits are all zero.
 	    digits = [0];
 	    numberOfIntegerDigits = 1;
 	  } else {
 	    // Count the number of trailing zeros
 	    zeros--;
-	    while (numStr.charAt(zeros) == ZERO_CHAR) zeros--;
+	    while (numStr.charAt(zeros) === ZERO_CHAR) zeros--;
 	
 	    // Trailing zeros are insignificant so ignore them
 	    numberOfIntegerDigits -= i;
@@ -20490,7 +20989,7 @@
 	    if (offset > 0 || value > -offset) {
 	      value += offset;
 	    }
-	    if (value === 0 && offset == -12) value = 12;
+	    if (value === 0 && offset === -12) value = 12;
 	    return padNumber(value, size, trim, negWrap);
 	  };
 	}
@@ -20507,7 +21006,7 @@
 	
 	function timeZoneGetter(date, formats, offset) {
 	  var zone = -1 * offset;
-	  var paddedZone = (zone >= 0) ? "+" : "";
+	  var paddedZone = (zone >= 0) ? '+' : '';
 	
 	  paddedZone += padNumber(Math[zone > 0 ? 'floor' : 'ceil'](zone / 60), 2) +
 	                padNumber(Math.abs(zone % 60), 2);
@@ -20659,7 +21158,7 @@
 	 * @returns {string} Formatted string or the input if input is not recognized as date/millis.
 	 *
 	 * @example
-	   <example>
+	   <example name="filter-date">
 	     <file name="index.html">
 	       <span ng-non-bindable>{{1288323623006 | date:'medium'}}</span>:
 	           <span>{{1288323623006 | date:'medium'}}</span><br>
@@ -20692,7 +21191,7 @@
 	                     // 1        2       3         4          5          6          7          8  9     10      11
 	  function jsonStringToDate(string) {
 	    var match;
-	    if (match = string.match(R_ISO8601_STR)) {
+	    if ((match = string.match(R_ISO8601_STR))) {
 	      var date = new Date(0),
 	          tzHour = 0,
 	          tzMin  = 0,
@@ -20753,7 +21252,7 @@
 	    forEach(parts, function(value) {
 	      fn = DATE_FORMATS[value];
 	      text += fn ? fn(date, $locale.DATETIME_FORMATS, dateTimezoneOffset)
-	                 : value === "''" ? "'" : value.replace(/(^'|'$)/g, '').replace(/''/g, "'");
+	                 : value === '\'\'' ? '\'' : value.replace(/(^'|'$)/g, '').replace(/''/g, '\'');
 	    });
 	
 	    return text;
@@ -20778,15 +21277,15 @@
 	 *
 	 *
 	 * @example
-	   <example>
+	   <example name="filter-json">
 	     <file name="index.html">
 	       <pre id="default-spacing">{{ {'name':'value'} | json }}</pre>
 	       <pre id="custom-spacing">{{ {'name':'value'} | json:4 }}</pre>
 	     </file>
 	     <file name="protractor.js" type="protractor">
 	       it('should jsonify filtered objects', function() {
-	         expect(element(by.id('default-spacing')).getText()).toMatch(/\{\n  "name": ?"value"\n}/);
-	         expect(element(by.id('custom-spacing')).getText()).toMatch(/\{\n    "name": ?"value"\n}/);
+	         expect(element(by.id('default-spacing')).getText()).toMatch(/\{\n {2}"name": ?"value"\n}/);
+	         expect(element(by.id('custom-spacing')).getText()).toMatch(/\{\n {4}"name": ?"value"\n}/);
 	       });
 	     </file>
 	   </example>
@@ -20847,7 +21346,7 @@
 	 *     less than `limit` elements.
 	 *
 	 * @example
-	   <example module="limitToExample">
+	   <example module="limitToExample" name="limit-to-filter">
 	     <file name="index.html">
 	       <script>
 	         angular.module('limitToExample', [])
@@ -20929,7 +21428,7 @@
 	    } else {
 	      limit = toInt(limit);
 	    }
-	    if (isNaN(limit)) return input;
+	    if (isNumberNaN(limit)) return input;
 	
 	    if (isNumber(input)) input = input.toString();
 	    if (!isArrayLike(input)) return input;
@@ -21562,8 +22061,8 @@
 	      if (isFunction(predicate)) {
 	        get = predicate;
 	      } else if (isString(predicate)) {
-	        if ((predicate.charAt(0) == '+' || predicate.charAt(0) == '-')) {
-	          descending = predicate.charAt(0) == '-' ? -1 : 1;
+	        if ((predicate.charAt(0) === '+' || predicate.charAt(0) === '-')) {
+	          descending = predicate.charAt(0) === '-' ? -1 : 1;
 	          predicate = predicate.substring(1);
 	        }
 	        if (predicate !== '') {
@@ -21721,7 +22220,7 @@
 	 * @example
 	 * This example shows various combinations of `href`, `ng-href` and `ng-click` attributes
 	 * in links and their different behaviors:
-	    <example>
+	    <example name="ng-href">
 	      <file name="index.html">
 	        <input ng-model="value" /><br />
 	        <a id="link-1" href ng-click="value = 1">link 1</a> (link, don't reload)<br />
@@ -21857,7 +22356,7 @@
 	 * attribute. See the {@link guide/interpolation interpolation guide} for more info.
 	 *
 	 * @example
-	    <example>
+	    <example name="ng-disabled">
 	      <file name="index.html">
 	        <label>Click me to toggle: <input type="checkbox" ng-model="checked"></label><br/>
 	        <button ng-model="button" ng-disabled="checked">Button</button>
@@ -21893,7 +22392,7 @@
 	 * attribute. See the {@link guide/interpolation interpolation guide} for more info.
 	 *
 	 * @example
-	    <example>
+	    <example name="ng-checked">
 	      <file name="index.html">
 	        <label>Check me to check both: <input type="checkbox" ng-model="master"></label><br/>
 	        <input id="checkSlave" type="checkbox" ng-checked="master" aria-label="Slave input">
@@ -21921,13 +22420,15 @@
 	 *
 	 * @description
 	 *
-	 * Sets the `readOnly` attribute on the element, if the expression inside `ngReadonly` is truthy.
+	 * Sets the `readonly` attribute on the element, if the expression inside `ngReadonly` is truthy.
+	 * Note that `readonly` applies only to `input` elements with specific types. [See the input docs on
+	 * MDN](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input#attr-readonly) for more information.
 	 *
-	 * A special directive is necessary because we cannot use interpolation inside the `readOnly`
+	 * A special directive is necessary because we cannot use interpolation inside the `readonly`
 	 * attribute. See the {@link guide/interpolation interpolation guide} for more info.
 	 *
 	 * @example
-	    <example>
+	    <example name="ng-readonly">
 	      <file name="index.html">
 	        <label>Check me to make text readonly: <input type="checkbox" ng-model="checked"></label><br/>
 	        <input type="text" ng-readonly="checked" value="I'm Angular" aria-label="Readonly field" />
@@ -21960,8 +22461,15 @@
 	 * A special directive is necessary because we cannot use interpolation inside the `selected`
 	 * attribute. See the {@link guide/interpolation interpolation guide} for more info.
 	 *
+	 * <div class="alert alert-warning">
+	 *   **Note:** `ngSelected` does not interact with the `select` and `ngModel` directives, it only
+	 *   sets the `selected` attribute on the element. If you are using `ngModel` on the select, you
+	 *   should not use `ngSelected` on the options, as `ngModel` will set the select value and
+	 *   selected options.
+	 * </div>
+	 *
 	 * @example
-	    <example>
+	    <example name="ng-selected">
 	      <file name="index.html">
 	        <label>Check me to select: <input type="checkbox" ng-model="selected"></label><br/>
 	        <select aria-label="ngSelected demo">
@@ -21996,8 +22504,13 @@
 	 * A special directive is necessary because we cannot use interpolation inside the `open`
 	 * attribute. See the {@link guide/interpolation interpolation guide} for more info.
 	 *
+	 * ## A note about browser compatibility
+	 *
+	 * Edge, Firefox, and Internet Explorer do not support the `details` element, it is
+	 * recommended to use {@link ng.ngShow} and {@link ng.ngHide} instead.
+	 *
 	 * @example
-	     <example>
+	     <example name="ng-open">
 	       <file name="index.html">
 	         <label>Check me check multiple: <input type="checkbox" ng-model="open"></label><br/>
 	         <details id="details" ng-open="open">
@@ -22023,7 +22536,7 @@
 	// boolean attrs are evaluated
 	forEach(BOOLEAN_ATTR, function(propName, attrName) {
 	  // binding to multiple is not supported
-	  if (propName == "multiple") return;
+	  if (propName === 'multiple') return;
 	
 	  function defaultLinkFn(scope, element, attr) {
 	    scope.$watch(attr[normalized], function ngBooleanAttrWatchAction(value) {
@@ -22060,10 +22573,10 @@
 	      link: function(scope, element, attr) {
 	        //special case ngPattern when a literal regular expression value
 	        //is used as the expression (this way we don't have to watch anything).
-	        if (ngAttr === "ngPattern" && attr.ngPattern.charAt(0) == "/") {
+	        if (ngAttr === 'ngPattern' && attr.ngPattern.charAt(0) === '/') {
 	          var match = attr.ngPattern.match(REGEX_STRING_REGEXP);
 	          if (match) {
-	            attr.$set("ngPattern", new RegExp(match[1], match[2]));
+	            attr.$set('ngPattern', new RegExp(match[1], match[2]));
 	            return;
 	          }
 	        }
@@ -22366,9 +22879,11 @@
 	   * @description
 	   * Sets the form to its pristine state.
 	   *
-	   * This method can be called to remove the 'ng-dirty' class and set the form to its pristine
-	   * state (ng-pristine class). This method will also propagate to all the controls contained
-	   * in this form.
+	   * This method sets the form's `$pristine` state to true, the `$dirty` state to false, removes
+	   * the `ng-dirty` class and adds the `ng-pristine` class. Additionally, it sets the `$submitted`
+	   * state to false.
+	   *
+	   * This method will also propagate to all the controls contained in this form.
 	   *
 	   * Setting a form back to a pristine state is often useful when we want to 'reuse' a form after
 	   * saving or resetting it.
@@ -22524,7 +23039,7 @@
 	 * </pre>
 	 *
 	 * @example
-	    <example deps="angular-animate.js" animations="true" fixBase="true" module="formExample">
+	    <example name="ng-form" deps="angular-animate.js" animations="true" fixBase="true" module="formExample">
 	      <file name="index.html">
 	       <script>
 	         angular.module('formExample', [])
@@ -22662,13 +23177,12 @@
 	var formDirective = formDirectiveFactory();
 	var ngFormDirective = formDirectiveFactory(true);
 	
-	/* global VALID_CLASS: false,
+	/* global
+	  VALID_CLASS: false,
 	  INVALID_CLASS: false,
 	  PRISTINE_CLASS: false,
 	  DIRTY_CLASS: false,
-	  UNTOUCHED_CLASS: false,
-	  TOUCHED_CLASS: false,
-	  ngModelMinErr: false,
+	  ngModelMinErr: false
 	*/
 	
 	// Regex code was initially obtained from SO prior to modification: https://stackoverflow.com/questions/3143070/javascript-regex-iso-datetime#answer-3143231
@@ -22686,9 +23200,8 @@
 	//   9. Fragment
 	//                 1111111111111111 222   333333    44444        555555555555555555555555    666     77777777     8888888     999
 	var URL_REGEXP = /^[a-z][a-z\d.+-]*:\/*(?:[^:@]+(?::[^@]+)?@)?(?:[^\s:/?#]+|\[[a-f\d:]+\])(?::\d+)?(?:\/[^?#]*)?(?:\?[^#]*)?(?:#.*)?$/i;
-	/* jshint maxlen:220 */
+	// eslint-disable-next-line max-len
 	var EMAIL_REGEXP = /^(?=.{1,254}$)(?=.{1,64}@)[-!#$%&'*+\/0-9=?A-Z^_`a-z{|}~]+(\.[-!#$%&'*+\/0-9=?A-Z^_`a-z{|}~]+)*@[A-Za-z0-9]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?(\.[A-Za-z0-9]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?)*$/;
-	/* jshint maxlen:200 */
 	var NUMBER_REGEXP = /^\s*(\-|\+)?(\d+|(\d*(\.\d*)))([eE][+-]?\d+)?\s*$/;
 	var DATE_REGEXP = /^(\d{4,})-(\d{2})-(\d{2})$/;
 	var DATETIMELOCAL_REGEXP = /^(\d{4,})-(\d\d)-(\d\d)T(\d\d):(\d\d)(?::(\d\d)(\.\d{1,3})?)?$/;
@@ -22869,7 +23382,6 @@
 	     <file name="protractor.js" type="protractor">
 	        var value = element(by.binding('example.value | date: "yyyy-MM-dd"'));
 	        var valid = element(by.binding('myForm.input.$valid'));
-	        var input = element(by.model('example.value'));
 	
 	        // currently protractor/webdriver does not support
 	        // sending keys to all known HTML5 input controls
@@ -22972,7 +23484,6 @@
 	    <file name="protractor.js" type="protractor">
 	      var value = element(by.binding('example.value | date: "yyyy-MM-ddTHH:mm:ss"'));
 	      var valid = element(by.binding('myForm.input.$valid'));
-	      var input = element(by.model('example.value'));
 	
 	      // currently protractor/webdriver does not support
 	      // sending keys to all known HTML5 input controls
@@ -23076,7 +23587,6 @@
 	   <file name="protractor.js" type="protractor">
 	      var value = element(by.binding('example.value | date: "HH:mm:ss"'));
 	      var valid = element(by.binding('myForm.input.$valid'));
-	      var input = element(by.model('example.value'));
 	
 	      // currently protractor/webdriver does not support
 	      // sending keys to all known HTML5 input controls
@@ -23181,7 +23691,6 @@
 	    <file name="protractor.js" type="protractor">
 	      var value = element(by.binding('example.value | date: "yyyy-Www"'));
 	      var valid = element(by.binding('myForm.input.$valid'));
-	      var input = element(by.model('example.value'));
 	
 	      // currently protractor/webdriver does not support
 	      // sending keys to all known HTML5 input controls
@@ -23285,7 +23794,6 @@
 	   <file name="protractor.js" type="protractor">
 	      var value = element(by.binding('example.value | date: "yyyy-MM"'));
 	      var valid = element(by.binding('myForm.input.$valid'));
-	      var input = element(by.model('example.value'));
 	
 	      // currently protractor/webdriver does not support
 	      // sending keys to all known HTML5 input controls
@@ -23680,19 +24188,161 @@
 	        </file>
 	        <file name="protractor.js" type="protractor">
 	          it('should change state', function() {
+	            var inputs = element.all(by.model('color.name'));
 	            var color = element(by.binding('color.name'));
 	
 	            expect(color.getText()).toContain('blue');
 	
-	            element.all(by.model('color.name')).get(0).click();
-	
+	            inputs.get(0).click();
 	            expect(color.getText()).toContain('red');
+	
+	            inputs.get(1).click();
+	            expect(color.getText()).toContain('green');
 	          });
 	        </file>
 	      </example>
 	   */
 	  'radio': radioInputType,
 	
+	  /**
+	   * @ngdoc input
+	   * @name input[range]
+	   *
+	   * @description
+	   * Native range input with validation and transformation.
+	   *
+	   * <div class="alert alert-warning">
+	   *   <p>
+	   *     In v1.5.9+, in order to avoid interfering with already existing, custom directives for
+	   *     `input[range]`, you need to let Angular know that you want to enable its built-in support.
+	   *     You can do this by adding the `ng-input-range` attribute to the input element. E.g.:
+	   *     `<input type="range" ng-input-range ... />`
+	   *   </p><br />
+	   *   <p>
+	   *     Input elements without the `ng-input-range` attibute will continue to be treated the same
+	   *     as in previous versions (e.g. their model value will be a string not a number and Angular
+	   *     will not take `min`/`max`/`step` attributes and properties into account).
+	   *   </p><br />
+	   *   <p>
+	   *     **Note:** From v1.6.x onwards, the support for `input[range]` will be always enabled and
+	   *     the `ng-input-range` attribute will have no effect.
+	   *   </p><br />
+	   *   <p>
+	   *     This documentation page refers to elements which have the built-in support enabled; i.e.
+	   *     elements _with_ the `ng-input-range` attribute.
+	   *   </p>
+	   * </div>
+	   *
+	   * The model for the range input must always be a `Number`.
+	   *
+	   * IE9 and other browsers that do not support the `range` type fall back
+	   * to a text input without any default values for `min`, `max` and `step`. Model binding,
+	   * validation and number parsing are nevertheless supported.
+	   *
+	   * Browsers that support range (latest Chrome, Safari, Firefox, Edge) treat `input[range]`
+	   * in a way that never allows the input to hold an invalid value. That means:
+	   * - any non-numerical value is set to `(max + min) / 2`.
+	   * - any numerical value that is less than the current min val, or greater than the current max val
+	   * is set to the min / max val respectively.
+	   * - additionally, the current `step` is respected, so the nearest value that satisfies a step
+	   * is used.
+	   *
+	   * See the [HTML Spec on input[type=range]](https://www.w3.org/TR/html5/forms.html#range-state-(type=range))
+	   * for more info.
+	   *
+	   * This has the following consequences for Angular:
+	   *
+	   * Since the element value should always reflect the current model value, a range input
+	   * will set the bound ngModel expression to the value that the browser has set for the
+	   * input element. For example, in the following input `<input type="range" ng-input-range ng-model="model.value">`,
+	   * if the application sets `model.value = null`, the browser will set the input to `'50'`.
+	   * Angular will then set the model to `50`, to prevent input and model value being out of sync.
+	   *
+	   * That means the model for range will immediately be set to `50` after `ngModel` has been
+	   * initialized. It also means a range input can never have the required error.
+	   *
+	   * This does not only affect changes to the model value, but also to the values of the `min`,
+	   * `max`, and `step` attributes. When these change in a way that will cause the browser to modify
+	   * the input value, Angular will also update the model value.
+	   *
+	   * Automatic value adjustment also means that a range input element can never have the `required`,
+	   * `min`, or `max` errors.
+	   *
+	   * However, `step` is currently only fully implemented by Firefox. Other browsers have problems
+	   * when the step value changes dynamically - they do not adjust the element value correctly, but
+	   * instead may set the `stepMismatch` error. If that's the case, the Angular will set the `step`
+	   * error on the input, and set the model to `undefined`.
+	   *
+	   * Note that `input[range]` is not compatible with `ngMax`, `ngMin`, and `ngStep`, because they do
+	   * not set the `min` and `max` attributes, which means that the browser won't automatically adjust
+	   * the input value based on their values, and will always assume min = 0, max = 100, and step = 1.
+	   *
+	   * @param           ngInputRange The presense of this attribute enables the built-in support for
+	   *                  `input[range]`.
+	   * @param {string}  ngModel Assignable angular expression to data-bind to.
+	   * @param {string=} name Property name of the form under which the control is published.
+	   * @param {string=} min Sets the `min` validation to ensure that the value entered is greater
+	   *                  than `min`. Can be interpolated.
+	   * @param {string=} max Sets the `max` validation to ensure that the value entered is less than `max`.
+	   *                  Can be interpolated.
+	   * @param {string=} step Sets the `step` validation to ensure that the value entered matches the `step`
+	   *                  Can be interpolated.
+	   * @param {string=} ngChange Angular expression to be executed when the ngModel value changes due
+	   *                  to user interaction with the input element.
+	   *
+	   * @example
+	      <example name="range-input-directive" module="rangeExample">
+	        <file name="index.html">
+	          <script>
+	            angular.module('rangeExample', [])
+	              .controller('ExampleController', ['$scope', function($scope) {
+	                $scope.value = 75;
+	                $scope.min = 10;
+	                $scope.max = 90;
+	              }]);
+	          </script>
+	          <form name="myForm" ng-controller="ExampleController">
+	
+	            Model as range: <input type="range" ng-input-range name="range" ng-model="value" min="{{min}}"  max="{{max}}">
+	            <hr>
+	            Model as number: <input type="number" ng-model="value"><br>
+	            Min: <input type="number" ng-model="min"><br>
+	            Max: <input type="number" ng-model="max"><br>
+	            value = <code>{{value}}</code><br/>
+	            myForm.range.$valid = <code>{{myForm.range.$valid}}</code><br/>
+	            myForm.range.$error = <code>{{myForm.range.$error}}</code>
+	          </form>
+	        </file>
+	      </example>
+	
+	   * ## Range Input with ngMin & ngMax attributes
+	
+	   * @example
+	      <example name="range-input-directive-ng" module="rangeExample">
+	        <file name="index.html">
+	          <script>
+	            angular.module('rangeExample', [])
+	              .controller('ExampleController', ['$scope', function($scope) {
+	                $scope.value = 75;
+	                $scope.min = 10;
+	                $scope.max = 90;
+	              }]);
+	          </script>
+	          <form name="myForm" ng-controller="ExampleController">
+	            Model as range: <input type="range" ng-input-range name="range" ng-model="value" ng-min="min" ng-max="max">
+	            <hr>
+	            Model as number: <input type="number" ng-model="value"><br>
+	            Min: <input type="number" ng-model="min"><br>
+	            Max: <input type="number" ng-model="max"><br>
+	            value = <code>{{value}}</code><br/>
+	            myForm.range.$valid = <code>{{myForm.range.$valid}}</code><br/>
+	            myForm.range.$error = <code>{{myForm.range.$error}}</code>
+	          </form>
+	        </file>
+	      </example>
+	
+	   */
+	  'range': rangeInputType,
 	
 	  /**
 	   * @ngdoc input
@@ -23830,7 +24480,7 @@
 	      }
 	    };
 	
-	    element.on('keydown', function(event) {
+	    element.on('keydown', /** @this */ function(event) {
 	      var key = event.keyCode;
 	
 	      // ignore
@@ -23855,7 +24505,7 @@
 	  // For these event types, when native validators are present and the browser supports the type,
 	  // check for validity changes on various DOM events.
 	  if (PARTIAL_VALIDATION_TYPES[type] && ctrl.$$hasNativeValidators && type === attr.type) {
-	    element.on(PARTIAL_VALIDATION_EVENTS, function(ev) {
+	    element.on(PARTIAL_VALIDATION_EVENTS, /** @this */ function(ev) {
 	      if (!timeout) {
 	        var validity = this[VALIDITY_STATE_PROPERTY];
 	        var origBadInput = validity.badInput;
@@ -23923,7 +24573,7 @@
 	      // When a date is JSON'ified to wraps itself inside of an extra
 	      // set of double quotes. This makes the date parsing code unable
 	      // to match the date string and parse it as a date.
-	      if (iso.charAt(0) == '"' && iso.charAt(iso.length - 1) == '"') {
+	      if (iso.charAt(0) === '"' && iso.charAt(iso.length - 1) === '"') {
 	        iso = iso.substring(1, iso.length - 1);
 	      }
 	      if (ISO_DATE_REGEXP.test(iso)) {
@@ -24044,10 +24694,7 @@
 	  }
 	}
 	
-	function numberInputType(scope, element, attr, ctrl, $sniffer, $browser) {
-	  badInputChecker(scope, element, attr, ctrl);
-	  baseInputType(scope, element, attr, ctrl, $sniffer, $browser);
-	
+	function numberFormatterParser(ctrl) {
 	  ctrl.$$parserName = 'number';
 	  ctrl.$parsers.push(function(value) {
 	    if (ctrl.$isEmpty(value))      return null;
@@ -24064,37 +24711,226 @@
 	    }
 	    return value;
 	  });
+	}
+	
+	function parseNumberAttrVal(val) {
+	  if (isDefined(val) && !isNumber(val)) {
+	    val = parseFloat(val);
+	  }
+	  return !isNumberNaN(val) ? val : undefined;
+	}
+	
+	function isNumberInteger(num) {
+	  // See http://stackoverflow.com/questions/14636536/how-to-check-if-a-variable-is-an-integer-in-javascript#14794066
+	  // (minus the assumption that `num` is a number)
+	
+	  // eslint-disable-next-line no-bitwise
+	  return (num | 0) === num;
+	}
+	
+	function countDecimals(num) {
+	  var numString = num.toString();
+	  var decimalSymbolIndex = numString.indexOf('.');
+	
+	  if (decimalSymbolIndex === -1) {
+	    if (-1 < num && num < 1) {
+	      // It may be in the exponential notation format (`1e-X`)
+	      var match = /e-(\d+)$/.exec(numString);
+	
+	      if (match) {
+	        return Number(match[1]);
+	      }
+	    }
+	
+	    return 0;
+	  }
+	
+	  return numString.length - decimalSymbolIndex - 1;
+	}
+	
+	function isValidForStep(viewValue, stepBase, step) {
+	  // At this point `stepBase` and `step` are expected to be non-NaN values
+	  // and `viewValue` is expected to be a valid stringified number.
+	  var value = Number(viewValue);
+	
+	  // Due to limitations in Floating Point Arithmetic (e.g. `0.3 - 0.2 !== 0.1` or
+	  // `0.5 % 0.1 !== 0`), we need to convert all numbers to integers.
+	  if (!isNumberInteger(value) || !isNumberInteger(stepBase) || !isNumberInteger(step)) {
+	    var decimalCount = Math.max(countDecimals(value), countDecimals(stepBase), countDecimals(step));
+	    var multiplier = Math.pow(10, decimalCount);
+	
+	    value = value * multiplier;
+	    stepBase = stepBase * multiplier;
+	    step = step * multiplier;
+	  }
+	
+	  return (value - stepBase) % step === 0;
+	}
+	
+	function numberInputType(scope, element, attr, ctrl, $sniffer, $browser) {
+	  badInputChecker(scope, element, attr, ctrl);
+	  baseInputType(scope, element, attr, ctrl, $sniffer, $browser);
+	  numberFormatterParser(ctrl);
+	
+	  var minVal;
+	  var maxVal;
 	
 	  if (isDefined(attr.min) || attr.ngMin) {
-	    var minVal;
 	    ctrl.$validators.min = function(value) {
 	      return ctrl.$isEmpty(value) || isUndefined(minVal) || value >= minVal;
 	    };
 	
 	    attr.$observe('min', function(val) {
-	      if (isDefined(val) && !isNumber(val)) {
-	        val = parseFloat(val, 10);
-	      }
-	      minVal = isNumber(val) && !isNaN(val) ? val : undefined;
+	      minVal = parseNumberAttrVal(val);
 	      // TODO(matsko): implement validateLater to reduce number of validations
 	      ctrl.$validate();
 	    });
 	  }
 	
 	  if (isDefined(attr.max) || attr.ngMax) {
-	    var maxVal;
 	    ctrl.$validators.max = function(value) {
 	      return ctrl.$isEmpty(value) || isUndefined(maxVal) || value <= maxVal;
 	    };
 	
 	    attr.$observe('max', function(val) {
-	      if (isDefined(val) && !isNumber(val)) {
-	        val = parseFloat(val, 10);
-	      }
-	      maxVal = isNumber(val) && !isNaN(val) ? val : undefined;
+	      maxVal = parseNumberAttrVal(val);
 	      // TODO(matsko): implement validateLater to reduce number of validations
 	      ctrl.$validate();
 	    });
+	  }
+	}
+	
+	function rangeInputType(scope, element, attr, ctrl, $sniffer, $browser) {
+	  badInputChecker(scope, element, attr, ctrl);
+	  numberFormatterParser(ctrl);
+	  baseInputType(scope, element, attr, ctrl, $sniffer, $browser);
+	
+	  var supportsRange = ctrl.$$hasNativeValidators && element[0].type === 'range',
+	      minVal = supportsRange ? 0 : undefined,
+	      maxVal = supportsRange ? 100 : undefined,
+	      stepVal = supportsRange ? 1 : undefined,
+	      validity = element[0].validity,
+	      hasMinAttr = isDefined(attr.min),
+	      hasMaxAttr = isDefined(attr.max),
+	      hasStepAttr = isDefined(attr.step);
+	
+	  var originalRender = ctrl.$render;
+	
+	  ctrl.$render = supportsRange && isDefined(validity.rangeUnderflow) && isDefined(validity.rangeOverflow) ?
+	    //Browsers that implement range will set these values automatically, but reading the adjusted values after
+	    //$render would cause the min / max validators to be applied with the wrong value
+	    function rangeRender() {
+	      originalRender();
+	      ctrl.$setViewValue(element.val());
+	    } :
+	    originalRender;
+	
+	  if (hasMinAttr) {
+	    ctrl.$validators.min = supportsRange ?
+	      // Since all browsers set the input to a valid value, we don't need to check validity
+	      function noopMinValidator() { return true; } :
+	      // non-support browsers validate the min val
+	      function minValidator(modelValue, viewValue) {
+	        return ctrl.$isEmpty(viewValue) || isUndefined(minVal) || viewValue >= minVal;
+	      };
+	
+	    setInitialValueAndObserver('min', minChange);
+	  }
+	
+	  if (hasMaxAttr) {
+	    ctrl.$validators.max = supportsRange ?
+	      // Since all browsers set the input to a valid value, we don't need to check validity
+	      function noopMaxValidator() { return true; } :
+	      // non-support browsers validate the max val
+	      function maxValidator(modelValue, viewValue) {
+	        return ctrl.$isEmpty(viewValue) || isUndefined(maxVal) || viewValue <= maxVal;
+	      };
+	
+	    setInitialValueAndObserver('max', maxChange);
+	  }
+	
+	  if (hasStepAttr) {
+	    ctrl.$validators.step = supportsRange ?
+	      function nativeStepValidator() {
+	        // Currently, only FF implements the spec on step change correctly (i.e. adjusting the
+	        // input element value to a valid value). It's possible that other browsers set the stepMismatch
+	        // validity error instead, so we can at least report an error in that case.
+	        return !validity.stepMismatch;
+	      } :
+	      // ngStep doesn't set the setp attr, so the browser doesn't adjust the input value as setting step would
+	      function stepValidator(modelValue, viewValue) {
+	        return ctrl.$isEmpty(viewValue) || isUndefined(stepVal) ||
+	               isValidForStep(viewValue, minVal || 0, stepVal);
+	      };
+	
+	    setInitialValueAndObserver('step', stepChange);
+	  }
+	
+	  function setInitialValueAndObserver(htmlAttrName, changeFn) {
+	    // interpolated attributes set the attribute value only after a digest, but we need the
+	    // attribute value when the input is first rendered, so that the browser can adjust the
+	    // input value based on the min/max value
+	    element.attr(htmlAttrName, attr[htmlAttrName]);
+	    attr.$observe(htmlAttrName, changeFn);
+	  }
+	
+	  function minChange(val) {
+	    minVal = parseNumberAttrVal(val);
+	    // ignore changes before model is initialized
+	    if (isNumberNaN(ctrl.$modelValue)) {
+	      return;
+	    }
+	
+	    if (supportsRange) {
+	      var elVal = element.val();
+	      // IE11 doesn't set the el val correctly if the minVal is greater than the element value
+	      if (minVal > elVal) {
+	        elVal = minVal;
+	        element.val(elVal);
+	      }
+	      ctrl.$setViewValue(elVal);
+	    } else {
+	      // TODO(matsko): implement validateLater to reduce number of validations
+	      ctrl.$validate();
+	    }
+	  }
+	
+	  function maxChange(val) {
+	    maxVal = parseNumberAttrVal(val);
+	    // ignore changes before model is initialized
+	    if (isNumberNaN(ctrl.$modelValue)) {
+	      return;
+	    }
+	
+	    if (supportsRange) {
+	      var elVal = element.val();
+	      // IE11 doesn't set the el val correctly if the maxVal is less than the element value
+	      if (maxVal < elVal) {
+	        element.val(maxVal);
+	        // IE11 and Chrome don't set the value to the minVal when max < min
+	        elVal = maxVal < minVal ? minVal : maxVal;
+	      }
+	      ctrl.$setViewValue(elVal);
+	    } else {
+	      // TODO(matsko): implement validateLater to reduce number of validations
+	      ctrl.$validate();
+	    }
+	  }
+	
+	  function stepChange(val) {
+	    stepVal = parseNumberAttrVal(val);
+	    // ignore changes before model is initialized
+	    if (isNumberNaN(ctrl.$modelValue)) {
+	      return;
+	    }
+	
+	    // Some browsers don't adjust the input value correctly, but set the stepMismatch error
+	    if (supportsRange && ctrl.$viewValue !== element.val()) {
+	      ctrl.$setViewValue(element.val());
+	    } else {
+	      // TODO(matsko): implement validateLater to reduce number of validations
+	      ctrl.$validate();
+	    }
 	  }
 	}
 	
@@ -24140,7 +24976,7 @@
 	
 	  ctrl.$render = function() {
 	    var value = attr.value;
-	    element[0].checked = (value == ctrl.$viewValue);
+	    element[0].checked = (value === ctrl.$viewValue);
 	  };
 	
 	  attr.$observe('value', ctrl.$render);
@@ -24223,6 +25059,20 @@
 	 * @param {string=} ngChange Angular expression to be executed when input changes due to user
 	 *    interaction with the input element.
 	 * @param {boolean=} [ngTrim=true] If set to false Angular will not automatically trim the input.
+	 *
+	 * @knownIssue
+	 *
+	 * When specifying the `placeholder` attribute of `<textarea>`, Internet Explorer will temporarily
+	 * insert the placeholder value as the textarea's content. If the placeholder value contains
+	 * interpolation (`{{ ... }}`), an error will be logged in the console when Angular tries to update
+	 * the value of the by-then-removed text node. This doesn't affect the functionality of the
+	 * textarea, but can be undesirable.
+	 *
+	 * You can work around this Internet Explorer issue by using `ng-attr-placeholder` instead of
+	 * `placeholder` on textareas, whenever you need interpolation in the placeholder value. You can
+	 * find more details on `ngAttr` in the
+	 * [Interpolation](guide/interpolation#-ngattr-for-binding-to-arbitrary-attributes) section of the
+	 * Developer Guide.
 	 */
 	
 	
@@ -24371,7 +25221,11 @@
 	    link: {
 	      pre: function(scope, element, attr, ctrls) {
 	        if (ctrls[0]) {
-	          (inputType[lowercase(attr.type)] || inputType.text)(scope, element, attr, ctrls[0], $sniffer,
+	          var type = lowercase(attr.type);
+	          if ((type === 'range') && !attr.hasOwnProperty('ngInputRange')) {
+	            type = 'text';
+	          }
+	          (inputType[type] || inputType.text)(scope, element, attr, ctrls[0], $sniffer,
 	                                                              $browser, $filter, $parse);
 	        }
 	      }
@@ -24485,7 +25339,7 @@
 	 *
 	 * @example
 	 * Enter a name in the Live Preview text box; the greeting below the text box changes instantly.
-	   <example module="bindExample">
+	   <example module="bindExample" name="ng-bind">
 	     <file name="index.html">
 	       <script>
 	         angular.module('bindExample', [])
@@ -24545,7 +25399,7 @@
 	 *
 	 * @example
 	 * Try it here: enter text in text box and watch the greeting change.
-	   <example module="bindExample">
+	   <example module="bindExample" name="ng-bind-template">
 	     <file name="index.html">
 	       <script>
 	         angular.module('bindExample', [])
@@ -24618,7 +25472,7 @@
 	 *
 	 * @example
 	
-	   <example module="bindHtmlExample" deps="angular-sanitize.js">
+	   <example module="bindHtmlExample" deps="angular-sanitize.js" name="ng-bind-html">
 	     <file name="index.html">
 	       <div ng-controller="ExampleController">
 	        <p ng-bind-html="myHTML"></p>
@@ -24743,6 +25597,12 @@
 	  }
 	});
 	
+	/* exported
+	  ngClassDirective,
+	  ngClassEvenDirective,
+	  ngClassOddDirective
+	*/
+	
 	function classDirective(name, selector) {
 	  name = 'ngClass' + name;
 	  return ['$animate', function($animate) {
@@ -24760,14 +25620,17 @@
 	
 	        if (name !== 'ngClass') {
 	          scope.$watch('$index', function($index, old$index) {
-	            // jshint bitwise: false
+	            /* eslint-disable no-bitwise */
 	            var mod = $index & 1;
 	            if (mod !== (old$index & 1)) {
 	              var classes = arrayClasses(scope.$eval(attr[name]));
-	              mod === selector ?
-	                addClasses(classes) :
+	              if (mod === selector) {
+	                addClasses(classes);
+	              } else {
 	                removeClasses(classes);
+	              }
 	            }
+	            /* eslint-enable */
 	          });
 	        }
 	
@@ -24812,9 +25675,8 @@
 	        }
 	
 	        function ngClassWatchAction(newVal) {
-	          // jshint bitwise: false
+	          // eslint-disable-next-line no-bitwise
 	          if (selector === true || (scope.$index & 1) === selector) {
-	          // jshint bitwise: true
 	            var newClasses = arrayClasses(newVal || []);
 	            if (!oldVal) {
 	              addClasses(newClasses);
@@ -24839,7 +25701,7 @@
 	      for (var i = 0; i < tokens1.length; i++) {
 	        var token = tokens1[i];
 	        for (var j = 0; j < tokens2.length; j++) {
-	          if (token == tokens2[j]) continue outer;
+	          if (token === tokens2[j]) continue outer;
 	        }
 	        values.push(token);
 	      }
@@ -24896,6 +25758,11 @@
 	 * When the expression changes, the previously added classes are removed and only then are the
 	 * new classes added.
 	 *
+	 * @knownIssue
+	 * You should not use {@link guide/interpolation interpolation} in the value of the `class`
+	 * attribute, when using the `ngClass` directive on the same element.
+	 * See {@link guide/interpolation#known-issues here} for more info.
+	 *
 	 * @animations
 	 * | Animation                        | Occurs                              |
 	 * |----------------------------------|-------------------------------------|
@@ -24910,7 +25777,7 @@
 	 *   element.
 	 *
 	 * @example Example that demonstrates basic bindings via ngClass directive.
-	   <example>
+	   <example name="ng-class">
 	     <file name="index.html">
 	       <p ng-class="{strike: deleted, bold: important, 'has-error': error}">Map Syntax Example</p>
 	       <label>
@@ -25003,7 +25870,7 @@
 	
 	   The example below demonstrates how to perform animations using ngClass.
 	
-	   <example module="ngAnimate" deps="angular-animate.js" animations="true">
+	   <example module="ngAnimate" deps="angular-animate.js" animations="true" name="ng-class">
 	     <file name="index.html">
 	      <input id="setbtn" type="button" value="set" ng-click="myVar='my-class'">
 	      <input id="clearbtn" type="button" value="clear" ng-click="myVar=''">
@@ -25066,7 +25933,7 @@
 	 *   of the evaluation can be a string representing space delimited class names or an array.
 	 *
 	 * @example
-	   <example>
+	   <example name="ng-class-odd">
 	     <file name="index.html">
 	        <ol ng-init="names=['John', 'Mary', 'Cate', 'Suz']">
 	          <li ng-repeat="name in names">
@@ -25114,7 +25981,7 @@
 	 *   result of the evaluation can be a string representing space delimited class names or an array.
 	 *
 	 * @example
-	   <example>
+	   <example name="ng-class-even">
 	     <file name="index.html">
 	        <ol ng-init="names=['John', 'Mary', 'Cate', 'Suz']">
 	          <li ng-repeat="name in names">
@@ -25180,7 +26047,7 @@
 	 * @element ANY
 	 *
 	 * @example
-	   <example>
+	   <example name="ng-cloak">
 	     <file name="index.html">
 	        <div id="template1" ng-cloak>{{ 'hello' }}</div>
 	        <div id="template2" class="ng-cloak">{{ 'world' }}</div>
@@ -25289,10 +26156,11 @@
 	 *      .controller('SettingsController1', SettingsController1);
 	 *
 	 *    function SettingsController1() {
-	 *      this.name = "John Smith";
+	 *      this.name = 'John Smith';
 	 *      this.contacts = [
 	 *        {type: 'phone', value: '408 555 1212'},
-	 *        {type: 'email', value: 'john.smith@example.org'} ];
+	 *        {type: 'email', value: 'john.smith@example.org'}
+	 *      ];
 	 *    }
 	 *
 	 *    SettingsController1.prototype.greet = function() {
@@ -25372,10 +26240,11 @@
 	 *     .controller('SettingsController2', ['$scope', SettingsController2]);
 	 *
 	 *   function SettingsController2($scope) {
-	 *     $scope.name = "John Smith";
+	 *     $scope.name = 'John Smith';
 	 *     $scope.contacts = [
 	 *       {type:'phone', value:'408 555 1212'},
-	 *       {type:'email', value:'john.smith@example.org'} ];
+	 *       {type:'email', value:'john.smith@example.org'}
+	 *     ];
 	 *
 	 *     $scope.greet = function() {
 	 *       alert($scope.name);
@@ -25540,15 +26409,14 @@
 	        </file>
 	        <file name="script.js">
 	           angular.module('cspExample', [])
-	             .controller('MainController', function() {
+	             .controller('MainController', function MainController() {
 	                this.counter = 0;
 	                this.inc = function() {
 	                  this.counter++;
 	                };
 	                this.evil = function() {
-	                  // jshint evil:true
 	                  try {
-	                    eval('1+2');
+	                    eval('1+2'); // eslint-disable-line no-eval
 	                  } catch (e) {
 	                    this.evilError = e.message;
 	                  }
@@ -25600,7 +26468,7 @@
 	
 	          beforeEach(function() {
 	            util = require('util');
-	            webdriver = require('protractor/node_modules/selenium-webdriver');
+	            webdriver = require('selenium-webdriver');
 	          });
 	
 	          // For now, we only test on Chrome,
@@ -25655,7 +26523,7 @@
 	 * click. ({@link guide/expression#-event- Event object is available as `$event`})
 	 *
 	 * @example
-	   <example>
+	   <example name="ng-click">
 	     <file name="index.html">
 	      <button ng-click="count = count + 1" ng-init="count=0">
 	        Increment
@@ -25730,7 +26598,7 @@
 	 * a dblclick. (The Event object is available as `$event`)
 	 *
 	 * @example
-	   <example>
+	   <example name="ng-dblclick">
 	     <file name="index.html">
 	      <button ng-dblclick="count = count + 1" ng-init="count=0">
 	        Increment (on double click)
@@ -25754,7 +26622,7 @@
 	 * mousedown. ({@link guide/expression#-event- Event object is available as `$event`})
 	 *
 	 * @example
-	   <example>
+	   <example name="ng-mousedown">
 	     <file name="index.html">
 	      <button ng-mousedown="count = count + 1" ng-init="count=0">
 	        Increment (on mouse down)
@@ -25778,7 +26646,7 @@
 	 * mouseup. ({@link guide/expression#-event- Event object is available as `$event`})
 	 *
 	 * @example
-	   <example>
+	   <example name="ng-mouseup">
 	     <file name="index.html">
 	      <button ng-mouseup="count = count + 1" ng-init="count=0">
 	        Increment (on mouse up)
@@ -25801,7 +26669,7 @@
 	 * mouseover. ({@link guide/expression#-event- Event object is available as `$event`})
 	 *
 	 * @example
-	   <example>
+	   <example name="ng-mouseover">
 	     <file name="index.html">
 	      <button ng-mouseover="count = count + 1" ng-init="count=0">
 	        Increment (when mouse is over)
@@ -25825,7 +26693,7 @@
 	 * mouseenter. ({@link guide/expression#-event- Event object is available as `$event`})
 	 *
 	 * @example
-	   <example>
+	   <example name="ng-mouseenter">
 	     <file name="index.html">
 	      <button ng-mouseenter="count = count + 1" ng-init="count=0">
 	        Increment (when mouse enters)
@@ -25849,7 +26717,7 @@
 	 * mouseleave. ({@link guide/expression#-event- Event object is available as `$event`})
 	 *
 	 * @example
-	   <example>
+	   <example name="ng-mouseleave">
 	     <file name="index.html">
 	      <button ng-mouseleave="count = count + 1" ng-init="count=0">
 	        Increment (when mouse leaves)
@@ -25873,7 +26741,7 @@
 	 * mousemove. ({@link guide/expression#-event- Event object is available as `$event`})
 	 *
 	 * @example
-	   <example>
+	   <example name="ng-mousemove">
 	     <file name="index.html">
 	      <button ng-mousemove="count = count + 1" ng-init="count=0">
 	        Increment (when mouse moves)
@@ -25897,7 +26765,7 @@
 	 * keydown. (Event object is available as `$event` and can be interrogated for keyCode, altKey, etc.)
 	 *
 	 * @example
-	   <example>
+	   <example name="ng-keydown">
 	     <file name="index.html">
 	      <input ng-keydown="count = count + 1" ng-init="count=0">
 	      key down count: {{count}}
@@ -25919,7 +26787,7 @@
 	 * keyup. (Event object is available as `$event` and can be interrogated for keyCode, altKey, etc.)
 	 *
 	 * @example
-	   <example>
+	   <example name="ng-keyup">
 	     <file name="index.html">
 	       <p>Typing in the input box below updates the key count</p>
 	       <input ng-keyup="count = count + 1" ng-init="count=0"> key up count: {{count}}
@@ -25946,7 +26814,7 @@
 	 * and can be interrogated for keyCode, altKey, etc.)
 	 *
 	 * @example
-	   <example>
+	   <example name="ng-keypress">
 	     <file name="index.html">
 	      <input ng-keypress="count = count + 1" ng-init="count=0">
 	      key press count: {{count}}
@@ -25979,7 +26847,7 @@
 	 * ({@link guide/expression#-event- Event object is available as `$event`})
 	 *
 	 * @example
-	   <example module="submitExample">
+	   <example module="submitExample" name="ng-submit">
 	     <file name="index.html">
 	      <script>
 	        angular.module('submitExample', [])
@@ -26075,7 +26943,7 @@
 	 * copy. ({@link guide/expression#-event- Event object is available as `$event`})
 	 *
 	 * @example
-	   <example>
+	   <example name="ng-copy">
 	     <file name="index.html">
 	      <input ng-copy="copied=true" ng-init="copied=false; value='copy me'" ng-model="value">
 	      copied: {{copied}}
@@ -26096,7 +26964,7 @@
 	 * cut. ({@link guide/expression#-event- Event object is available as `$event`})
 	 *
 	 * @example
-	   <example>
+	   <example name="ng-cut">
 	     <file name="index.html">
 	      <input ng-cut="cut=true" ng-init="cut=false; value='cut me'" ng-model="value">
 	      cut: {{cut}}
@@ -26117,7 +26985,7 @@
 	 * paste. ({@link guide/expression#-event- Event object is available as `$event`})
 	 *
 	 * @example
-	   <example>
+	   <example name="ng-paste">
 	     <file name="index.html">
 	      <input ng-paste="paste=true" ng-init="paste=false" placeholder='paste here'>
 	      pasted: {{paste}}
@@ -26172,7 +27040,7 @@
 	 *     element is added to the DOM tree.
 	 *
 	 * @example
-	  <example module="ngAnimate" deps="angular-animate.js" animations="true">
+	  <example module="ngAnimate" deps="angular-animate.js" animations="true" name="ng-if">
 	    <file name="index.html">
 	      <label>Click me: <input type="checkbox" ng-model="checked" ng-init="checked=true" /></label><br/>
 	      Show when checked:
@@ -26302,7 +27170,7 @@
 	 *                  - Otherwise enable scrolling only if the expression evaluates to truthy value.
 	 *
 	 * @example
-	  <example module="includeExample" deps="angular-animate.js" animations="true">
+	  <example module="includeExample" deps="angular-animate.js" animations="true" name="ng-include">
 	    <file name="index.html">
 	     <div ng-controller="ExampleController">
 	       <select ng-model="template" ng-options="t.name for t in templates">
@@ -26319,8 +27187,8 @@
 	      angular.module('includeExample', ['ngAnimate'])
 	        .controller('ExampleController', ['$scope', function($scope) {
 	          $scope.templates =
-	            [ { name: 'template1.html', url: 'template1.html'},
-	              { name: 'template2.html', url: 'template2.html'} ];
+	            [{ name: 'template1.html', url: 'template1.html'},
+	             { name: 'template2.html', url: 'template2.html'}];
 	          $scope.template = $scope.templates[0];
 	        }]);
 	     </file>
@@ -26378,7 +27246,7 @@
 	      });
 	
 	      it('should load template2.html', function() {
-	        if (browser.params.browser == 'firefox') {
+	        if (browser.params.browser === 'firefox') {
 	          // Firefox can't handle using selects
 	          // See https://github.com/angular/protractor/issues/480
 	          return;
@@ -26389,7 +27257,7 @@
 	      });
 	
 	      it('should change to blank', function() {
-	        if (browser.params.browser == 'firefox') {
+	        if (browser.params.browser === 'firefox') {
 	          // Firefox can't handle using selects
 	          return;
 	        }
@@ -26587,7 +27455,7 @@
 	 * @param {expression} ngInit {@link guide/expression Expression} to eval.
 	 *
 	 * @example
-	   <example module="initExample">
+	   <example module="initExample" name="ng-init">
 	     <file name="index.html">
 	   <script>
 	     angular.module('initExample', [])
@@ -26758,7 +27626,7 @@
 	  PRISTINE_CLASS: true,
 	  DIRTY_CLASS: true,
 	  UNTOUCHED_CLASS: true,
-	  TOUCHED_CLASS: true,
+	  TOUCHED_CLASS: true
 	*/
 	
 	var VALID_CLASS = 'ng-valid',
@@ -26931,7 +27799,7 @@
 	                var html = element.html();
 	                // When we clear the content editable the browser leaves a <br> behind
 	                // If strip-br attribute is provided then we strip this out
-	                if ( attrs.stripBr && html == '<br>' ) {
+	                if (attrs.stripBr && html === '<br>') {
 	                  html = '';
 	                }
 	                ngModel.$setViewValue(html);
@@ -26953,7 +27821,7 @@
 	    </file>
 	    <file name="protractor.js" type="protractor">
 	    it('should data-bind and become invalid', function() {
-	      if (browser.params.browser == 'safari' || browser.params.browser == 'firefox') {
+	      if (browser.params.browser === 'safari' || browser.params.browser === 'firefox') {
 	        // SafariDriver can't handle contenteditable
 	        // and Firefox driver can't clear contenteditables very well
 	        return;
@@ -26974,7 +27842,7 @@
 	 *
 	 */
 	var NgModelController = ['$scope', '$exceptionHandler', '$attrs', '$element', '$parse', '$animate', '$timeout', '$rootScope', '$q', '$interpolate',
-	    function($scope, $exceptionHandler, $attr, $element, $parse, $animate, $timeout, $rootScope, $q, $interpolate) {
+	    /** @this */ function($scope, $exceptionHandler, $attr, $element, $parse, $animate, $timeout, $rootScope, $q, $interpolate) {
 	  this.$viewValue = Number.NaN;
 	  this.$modelValue = Number.NaN;
 	  this.$$rawModelValue = undefined; // stores the parsed modelValue / model set from scope regardless of validity.
@@ -27024,7 +27892,7 @@
 	        }
 	      };
 	    } else if (!parsedNgModel.assign) {
-	      throw ngModelMinErr('nonassign', "Expression '{0}' is non-assignable. Element: {1}",
+	      throw ngModelMinErr('nonassign', 'Expression \'{0}\' is non-assignable. Element: {1}',
 	          $attr.ngModel, startingTag($element));
 	    }
 	  };
@@ -27070,6 +27938,7 @@
 	   * @returns {boolean} True if `value` is "empty".
 	   */
 	  this.$isEmpty = function(value) {
+	    // eslint-disable-next-line no-self-compare
 	    return isUndefined(value) || value === '' || value === null || value !== value;
 	  };
 	
@@ -27224,7 +28093,7 @@
 	   *       $scope.model = {};
 	   *
 	   *       $scope.setEmpty = function(e, value, rollback) {
-	   *         if (e.keyCode == 27) {
+	   *         if (e.keyCode === 27) {
 	   *           e.preventDefault();
 	   *           if (rollback) {
 	   *             $scope.myForm[value].$rollbackViewValue();
@@ -27300,7 +28169,7 @@
 	   */
 	  this.$validate = function() {
 	    // ignore $validate before model is initialized
-	    if (isNumber(ctrl.$modelValue) && isNaN(ctrl.$modelValue)) {
+	    if (isNumberNaN(ctrl.$modelValue)) {
 	      return;
 	    }
 	
@@ -27392,7 +28261,7 @@
 	        var promise = validator(modelValue, viewValue);
 	        if (!isPromiseLike(promise)) {
 	          throw ngModelMinErr('nopromise',
-	            "Expected asynchronous validator to return a promise but got '{0}' instead.", promise);
+	            'Expected asynchronous validator to return a promise but got \'{0}\' instead.', promise);
 	        }
 	        setValidity(name, undefined);
 	        validatorPromises.push(promise.then(function() {
@@ -27471,7 +28340,7 @@
 	        }
 	      }
 	    }
-	    if (isNumber(ctrl.$modelValue) && isNaN(ctrl.$modelValue)) {
+	    if (isNumberNaN(ctrl.$modelValue)) {
 	      // ctrl.$modelValue has not been touched yet...
 	      ctrl.$modelValue = ngModelGet($scope);
 	    }
@@ -27617,6 +28486,7 @@
 	    // TODO(perf): why not move this to the action fn?
 	    if (modelValue !== ctrl.$modelValue &&
 	       // checks for NaN is needed to allow setting the model to NaN when there's an asyncValidator
+	        // eslint-disable-next-line no-self-compare
 	       (ctrl.$modelValue === ctrl.$modelValue || modelValue === modelValue)
 	    ) {
 	      ctrl.$modelValue = ctrl.$$rawModelValue = modelValue;
@@ -27634,7 +28504,8 @@
 	        ctrl.$viewValue = ctrl.$$lastCommittedViewValue = viewValue;
 	        ctrl.$render();
 	
-	        ctrl.$$runValidators(modelValue, viewValue, noop);
+	        // It is possible that model and view value have been updated during render
+	        ctrl.$$runValidators(ctrl.$modelValue, ctrl.$viewValue, noop);
 	      }
 	    }
 	
@@ -27750,7 +28621,7 @@
 	 * </pre>
 	 *
 	 * @example
-	 * <example deps="angular-animate.js" animations="true" fixBase="true" module="inputExample">
+	 * <example deps="angular-animate.js" animations="true" fixBase="true" module="inputExample" name="ng-model">
 	     <file name="index.html">
 	       <script>
 	        angular.module('inputExample', [])
@@ -27886,6 +28757,8 @@
 	  };
 	}];
 	
+	
+	
 	var DEFAULT_REGEXP = /(\s+|^)default(\s+|$)/;
 	
 	/**
@@ -27961,7 +28834,7 @@
 	          $scope.user = { name: 'John', data: '' };
 	
 	          $scope.cancel = function(e) {
-	            if (e.keyCode == 27) {
+	            if (e.keyCode === 27) {
 	              $scope.userForm.userName.$rollbackViewValue();
 	            }
 	          };
@@ -28052,7 +28925,7 @@
 	var ngModelOptionsDirective = function() {
 	  return {
 	    restrict: 'A',
-	    controller: ['$scope', '$attrs', function($scope, $attrs) {
+	    controller: ['$scope', '$attrs', function NgModelOptionsController($scope, $attrs) {
 	      var that = this;
 	      this.$options = copy($scope.$eval($attrs.ngModelOptions));
 	      // Allow adding/overriding bound events
@@ -28197,7 +29070,7 @@
 	 * but the one wrapped in `ngNonBindable` is left alone.
 	 *
 	 * @example
-	    <example>
+	    <example name="ng-non-bindable">
 	      <file name="index.html">
 	        <div>Normal: {{1 + 2}}</div>
 	        <div ng-non-bindable>Ignored: {{1 + 2}}</div>
@@ -28211,6 +29084,8 @@
 	    </example>
 	 */
 	var ngNonBindableDirective = ngDirective({ terminal: true, priority: 1000 });
+	
+	/* exported ngOptionsDirective */
 	
 	/* global jqLiteRemove */
 	
@@ -28369,7 +29244,7 @@
 	 *      even when the options are recreated (e.g. reloaded from the server).
 	 *
 	 * @example
-	    <example module="selectExample">
+	    <example module="selectExample" name="select">
 	      <file name="index.html">
 	        <script>
 	        angular.module('selectExample', [])
@@ -28442,7 +29317,7 @@
 	    </example>
 	 */
 	
-	// jshint maxlen: false
+	/* eslint-disable max-len */
 	//                     //00001111111111000000000002222222222000000000000000000000333333333300000000000000000000000004444444444400000000000005555555555555550000000006666666666666660000000777777777777777000000000000000888888888800000000000000000009999999999
 	var NG_OPTIONS_REGEXP = /^\s*([\s\S]+?)(?:\s+as\s+([\s\S]+?))?(?:\s+group\s+by\s+([\s\S]+?))?(?:\s+disable\s+when\s+([\s\S]+?))?\s+for\s+(?:([\$\w][\$\w]*)|(?:\(\s*([\$\w][\$\w]*)\s*,\s*([\$\w][\$\w]*)\s*\)))\s+in\s+([\s\S]+?)(?:\s+track\s+by\s+([\s\S]+?))?$/;
 	                        // 1: value expression (valueFn)
@@ -28454,7 +29329,7 @@
 	                        // 7: object item value variable name
 	                        // 8: collection expression
 	                        // 9: track by expression
-	// jshint maxlen: 100
+	/* eslint-enable */
 	
 	
 	var ngOptionsDirective = ['$compile', '$document', '$parse', function($compile, $document, $parse) {
@@ -28464,9 +29339,9 @@
 	    var match = optionsExp.match(NG_OPTIONS_REGEXP);
 	    if (!(match)) {
 	      throw ngOptionsMinErr('iexp',
-	        "Expected expression in form of " +
-	        "'_select_ (as _label_)? for (_key_,)?_value_ in _collection_'" +
-	        " but got '{0}'. Element: {1}",
+	        'Expected expression in form of ' +
+	        '\'_select_ (as _label_)? for (_key_,)?_value_ in _collection_\'' +
+	        ' but got \'{0}\'. Element: {1}',
 	        optionsExp, startingTag(selectElement));
 	    }
 	
@@ -28661,9 +29536,10 @@
 	      var removeEmptyOption = function() {
 	        if (!providedEmptyOption) {
 	          emptyOption.remove();
+	        } else {
+	          emptyOption.removeAttr('selected');
 	        }
 	      };
-	
 	
 	      var renderUnknownOption = function() {
 	        selectElement.prepend(unknownOption);
@@ -28680,7 +29556,12 @@
 	      if (!multiple) {
 	
 	        selectCtrl.writeValue = function writeNgOptionsValue(value) {
+	          var selectedOption = options.selectValueMap[selectElement.val()];
 	          var option = options.getOptionFromViewValue(value);
+	
+	          // Make sure to remove the selected attribute from the previously selected option
+	          // Otherwise, screen readers might get confused
+	          if (selectedOption) selectedOption.element.removeAttribute('selected');
 	
 	          if (option) {
 	            // Don't update the option when it is already selected.
@@ -28722,6 +29603,7 @@
 	
 	        // If we are using `track by` then we must watch the tracked value on the model
 	        // since ngModel only watches for object identity change
+	        // FIXME: When a user selects an option, this watch will fire needlessly
 	        if (ngOptions.trackBy) {
 	          scope.$watch(
 	            function() { return ngOptions.getTrackByValue(ngModelCtrl.$viewValue); },
@@ -28841,7 +29723,7 @@
 	
 	          for (var i = options.items.length - 1; i >= 0; i--) {
 	            var option = options.items[i];
-	            if (option.group) {
+	            if (isDefined(option.group)) {
 	              jqLiteRemove(option.element.parentNode);
 	            } else {
 	              jqLiteRemove(option.element);
@@ -28873,7 +29755,8 @@
 	              listFragment.appendChild(groupElement);
 	
 	              // Update the label on the group element
-	              groupElement.label = option.group;
+	              // "null" is special cased because of Safari
+	              groupElement.label = option.group === null ? 'null' : option.group;
 	
 	              // Store it for use later
 	              groupElementMap[option.group] = groupElement;
@@ -29013,7 +29896,7 @@
 	 * @param {number=} offset Offset to deduct from the total number.
 	 *
 	 * @example
-	    <example module="pluralizeExample">
+	    <example module="pluralizeExample" name="ng-pluralize">
 	      <file name="index.html">
 	        <script>
 	          angular.module('pluralizeExample', [])
@@ -29127,7 +30010,7 @@
 	
 	      scope.$watch(numberExp, function ngPluralizeWatchAction(newVal) {
 	        var count = parseFloat(newVal);
-	        var countIsNaN = isNaN(count);
+	        var countIsNaN = isNumberNaN(count);
 	
 	        if (!countIsNaN && !(count in whens)) {
 	          // If an explicit number rule such as 1, 2, 3... is defined, just use it.
@@ -29137,12 +30020,12 @@
 	
 	        // If both `count` and `lastCount` are NaN, we don't need to re-register a watch.
 	        // In JS `NaN !== NaN`, so we have to explicitly check.
-	        if ((count !== lastCount) && !(countIsNaN && isNumber(lastCount) && isNaN(lastCount))) {
+	        if ((count !== lastCount) && !(countIsNaN && isNumberNaN(lastCount))) {
 	          watchRemover();
 	          var whenExpFn = whensExpFns[count];
 	          if (isUndefined(whenExpFn)) {
 	            if (newVal != null) {
-	              $log.debug("ngPluralize: no rule defined for '" + count + "' in " + whenExp);
+	              $log.debug('ngPluralize: no rule defined for \'' + count + '\' in ' + whenExp);
 	            }
 	            watchRemover = noop;
 	            updateElementText();
@@ -29159,6 +30042,8 @@
 	    }
 	  };
 	}];
+	
+	/* exported ngRepeatDirective */
 	
 	/**
 	 * @ngdoc directive
@@ -29392,7 +30277,7 @@
 	 * @example
 	 * This example uses `ngRepeat` to display a list of people. A filter is used to restrict the displayed
 	 * results by name. New (entering) and removed (leaving) items are animated.
-	  <example module="ngRepeat" name="ngRepeat" deps="angular-animate.js" animations="true">
+	  <example module="ngRepeat" name="ngRepeat" deps="angular-animate.js" animations="true" name="ng-repeat">
 	    <file name="index.html">
 	      <div ng-controller="repeatController">
 	        I have {{friends.length}} friends. They are:
@@ -29401,7 +30286,7 @@
 	          <li class="animate-repeat" ng-repeat="friend in friends | filter:q as results">
 	            [{{$index + 1}}] {{friend.name}} who is {{friend.age}} years old.
 	          </li>
-	          <li class="animate-repeat" ng-if="results.length == 0">
+	          <li class="animate-repeat" ng-if="results.length === 0">
 	            <strong>No results found...</strong>
 	          </li>
 	        </ul>
@@ -29494,9 +30379,8 @@
 	    scope.$first = (index === 0);
 	    scope.$last = (index === (arrayLength - 1));
 	    scope.$middle = !(scope.$first || scope.$last);
-	    // jshint bitwise: false
-	    scope.$odd = !(scope.$even = (index&1) === 0);
-	    // jshint bitwise: true
+	    // eslint-disable-next-line no-bitwise
+	    scope.$odd = !(scope.$even = (index & 1) === 0);
 	  };
 	
 	  var getBlockStart = function(block) {
@@ -29522,7 +30406,7 @@
 	      var match = expression.match(/^\s*([\s\S]+?)\s+in\s+([\s\S]+?)(?:\s+as\s+([\s\S]+?))?(?:\s+track\s+by\s+([\s\S]+?))?\s*$/);
 	
 	      if (!match) {
-	        throw ngRepeatMinErr('iexp', "Expected expression in form of '_item_ in _collection_[ track by _id_]' but got '{0}'.",
+	        throw ngRepeatMinErr('iexp', 'Expected expression in form of \'_item_ in _collection_[ track by _id_]\' but got \'{0}\'.',
 	            expression);
 	      }
 	
@@ -29534,7 +30418,7 @@
 	      match = lhs.match(/^(?:(\s*[\$\w]+)|\(\s*([\$\w]+)\s*,\s*([\$\w]+)\s*\))$/);
 	
 	      if (!match) {
-	        throw ngRepeatMinErr('iidexp', "'_item_' in '_item_ in _collection_' should be an identifier or '(_key_, _value_)' expression, but got '{0}'.",
+	        throw ngRepeatMinErr('iidexp', '\'_item_\' in \'_item_ in _collection_\' should be an identifier or \'(_key_, _value_)\' expression, but got \'{0}\'.',
 	            lhs);
 	      }
 	      var valueIdentifier = match[3] || match[1];
@@ -29542,7 +30426,7 @@
 	
 	      if (aliasAs && (!/^[$a-zA-Z_][$a-zA-Z0-9_]*$/.test(aliasAs) ||
 	          /^(null|undefined|this|\$index|\$first|\$middle|\$last|\$even|\$odd|\$parent|\$root|\$id)$/.test(aliasAs))) {
-	        throw ngRepeatMinErr('badident', "alias '{0}' is invalid --- must be a valid JS identifier which is not a reserved name.",
+	        throw ngRepeatMinErr('badident', 'alias \'{0}\' is invalid --- must be a valid JS identifier which is not a reserved name.',
 	          aliasAs);
 	      }
 	
@@ -29638,7 +30522,7 @@
 	                if (block && block.scope) lastBlockMap[block.id] = block;
 	              });
 	              throw ngRepeatMinErr('dupes',
-	                  "Duplicates in a repeater are not allowed. Use 'track by' expression to specify unique keys. Repeater: {0}, Duplicate key: {1}, Duplicate value: {2}",
+	                  'Duplicates in a repeater are not allowed. Use \'track by\' expression to specify unique keys. Repeater: {0}, Duplicate key: {1}, Duplicate value: {2}',
 	                  expression, trackById, value);
 	            } else {
 	              // new never before seen block
@@ -29679,7 +30563,7 @@
 	                nextNode = nextNode.nextSibling;
 	              } while (nextNode && nextNode[NG_REMOVED]);
 	
-	              if (getBlockStart(block) != nextNode) {
+	              if (getBlockStart(block) !== nextNode) {
 	                // existing item which got moved
 	                $animate.move(getBlockNodes(block.clone), null, previousNode);
 	              }
@@ -29810,7 +30694,7 @@
 	 *     then the element is shown or hidden respectively.
 	 *
 	 * @example
-	  <example module="ngAnimate" deps="angular-animate.js" animations="true">
+	  <example module="ngAnimate" deps="angular-animate.js" animations="true" name="ng-show">
 	    <file name="index.html">
 	      Click me: <input type="checkbox" ng-model="checked" aria-label="Toggle ngHide"><br/>
 	      <div>
@@ -29977,7 +30861,7 @@
 	 *     the element is shown or hidden respectively.
 	 *
 	 * @example
-	  <example module="ngAnimate" deps="angular-animate.js" animations="true">
+	  <example module="ngAnimate" deps="angular-animate.js" animations="true" name="ng-hide">
 	    <file name="index.html">
 	      Click me: <input type="checkbox" ng-model="checked" aria-label="Toggle ngShow"><br/>
 	      <div>
@@ -30058,6 +30942,11 @@
 	 * @description
 	 * The `ngStyle` directive allows you to set CSS style on an HTML element conditionally.
 	 *
+	 * @knownIssue
+	 * You should not use {@link guide/interpolation interpolation} in the value of the `style`
+	 * attribute, when using the `ngStyle` directive on the same element.
+	 * See {@link guide/interpolation#known-issues here} for more info.
+	 *
 	 * @element ANY
 	 * @param {expression} ngStyle
 	 *
@@ -30069,7 +30958,7 @@
 	 * See the 'background-color' style in the example below.
 	 *
 	 * @example
-	   <example>
+	   <example name="ng-style">
 	     <file name="index.html">
 	        <input type="button" value="set color" ng-click="myStyle={color:'red'}">
 	        <input type="button" value="set background" ng-click="myStyle={'background-color':'blue'}">
@@ -30162,7 +31051,7 @@
 	 *
 	 *
 	 * @example
-	  <example module="switchExample" deps="angular-animate.js" animations="true">
+	  <example module="switchExample" deps="angular-animate.js" animations="true" name="ng-switch">
 	    <file name="index.html">
 	      <div ng-controller="ExampleController">
 	        <select ng-model="selection" ng-options="item for item in items">
@@ -30239,7 +31128,7 @@
 	    require: 'ngSwitch',
 	
 	    // asks for $scope to fool the BC controller module
-	    controller: ['$scope', function ngSwitchController() {
+	    controller: ['$scope', function NgSwitchController() {
 	     this.cases = {};
 	    }],
 	    link: function(scope, element, attr, ngSwitchController) {
@@ -30379,7 +31268,7 @@
 	 * This example shows how to use `NgTransclude` with fallback content, that
 	 * is displayed if no transcluded content is provided.
 	 *
-	 * <example module="transcludeFallbackContentExample">
+	 * <example module="transcludeFallbackContentExample" name="ng-transclude">
 	 * <file name="index.html">
 	 * <script>
 	 * angular.module('transcludeFallbackContentExample', [])
@@ -30432,7 +31321,7 @@
 	 *   </file>
 	 *   <file name="app.js">
 	 *    angular.module('multiSlotTranscludeExample', [])
-	 *     .directive('pane', function(){
+	 *     .directive('pane', function() {
 	 *        return {
 	 *          restrict: 'E',
 	 *          transclude: {
@@ -30449,7 +31338,7 @@
 	 *    })
 	 *    .controller('ExampleController', ['$scope', function($scope) {
 	 *      $scope.title = 'Lorem Ipsum';
-	 *      $scope.link = "https://google.com";
+	 *      $scope.link = 'https://google.com';
 	 *      $scope.text = 'Neque porro quisquam est qui dolorem ipsum quia dolor...';
 	 *    }]);
 	 *   </file>
@@ -30469,37 +31358,63 @@
 	 * </example>
 	 */
 	var ngTranscludeMinErr = minErr('ngTransclude');
-	var ngTranscludeDirective = ngDirective({
-	  restrict: 'EAC',
-	  link: function($scope, $element, $attrs, controller, $transclude) {
+	var ngTranscludeDirective = ['$compile', function($compile) {
+	  return {
+	    restrict: 'EAC',
+	    terminal: true,
+	    compile: function ngTranscludeCompile(tElement) {
 	
-	    if ($attrs.ngTransclude === $attrs.$attr.ngTransclude) {
-	      // If the attribute is of the form: `ng-transclude="ng-transclude"`
-	      // then treat it like the default
-	      $attrs.ngTransclude = '';
+	      // Remove and cache any original content to act as a fallback
+	      var fallbackLinkFn = $compile(tElement.contents());
+	      tElement.empty();
+	
+	      return function ngTranscludePostLink($scope, $element, $attrs, controller, $transclude) {
+	
+	        if (!$transclude) {
+	          throw ngTranscludeMinErr('orphan',
+	          'Illegal use of ngTransclude directive in the template! ' +
+	          'No parent directive that requires a transclusion found. ' +
+	          'Element: {0}',
+	          startingTag($element));
+	        }
+	
+	
+	        // If the attribute is of the form: `ng-transclude="ng-transclude"` then treat it like the default
+	        if ($attrs.ngTransclude === $attrs.$attr.ngTransclude) {
+	          $attrs.ngTransclude = '';
+	        }
+	        var slotName = $attrs.ngTransclude || $attrs.ngTranscludeSlot;
+	
+	        // If the slot is required and no transclusion content is provided then this call will throw an error
+	        $transclude(ngTranscludeCloneAttachFn, null, slotName);
+	
+	        // If the slot is optional and no transclusion content is provided then use the fallback content
+	        if (slotName && !$transclude.isSlotFilled(slotName)) {
+	          useFallbackContent();
+	        }
+	
+	        function ngTranscludeCloneAttachFn(clone, transcludedScope) {
+	          if (clone.length) {
+	            $element.append(clone);
+	          } else {
+	            useFallbackContent();
+	            // There is nothing linked against the transcluded scope since no content was available,
+	            // so it should be safe to clean up the generated scope.
+	            transcludedScope.$destroy();
+	          }
+	        }
+	
+	        function useFallbackContent() {
+	          // Since this is the fallback content rather than the transcluded content,
+	          // we link against the scope of this directive rather than the transcluded scope
+	          fallbackLinkFn($scope, function(clone) {
+	            $element.append(clone);
+	          });
+	        }
+	      };
 	    }
-	
-	    function ngTranscludeCloneAttachFn(clone) {
-	      if (clone.length) {
-	        $element.empty();
-	        $element.append(clone);
-	      }
-	    }
-	
-	    if (!$transclude) {
-	      throw ngTranscludeMinErr('orphan',
-	       'Illegal use of ngTransclude directive in the template! ' +
-	       'No parent directive that requires a transclusion found. ' +
-	       'Element: {0}',
-	       startingTag($element));
-	    }
-	
-	    // If there is no slot name defined or the slot name is not optional
-	    // then transclude the slot
-	    var slotName = $attrs.ngTransclude || $attrs.ngTranscludeSlot;
-	    $transclude(ngTranscludeCloneAttachFn, null, slotName);
-	  }
-	});
+	  };
+	}];
 	
 	/**
 	 * @ngdoc directive
@@ -30517,7 +31432,7 @@
 	 * @param {string} id Cache name of the template.
 	 *
 	 * @example
-	  <example>
+	  <example  name="script-tag">
 	    <file name="index.html">
 	      <script type="text/ng-template" id="/tpl.html">
 	        Content of the template.
@@ -30539,7 +31454,7 @@
 	    restrict: 'E',
 	    terminal: true,
 	    compile: function(element, attr) {
-	      if (attr.type == 'text/ng-template') {
+	      if (attr.type === 'text/ng-template') {
 	        var templateUrl = attr.id,
 	            text = element[0].text;
 	
@@ -30548,6 +31463,8 @@
 	    }
 	  };
 	}];
+	
+	/* exported selectDirective, optionDirective */
 	
 	var noopNgModelController = { $setViewValue: noop, $render: noop };
 	
@@ -30569,7 +31486,7 @@
 	 * added `<option>` elements, perhaps by an `ngRepeat` directive.
 	 */
 	var SelectController =
-	        ['$element', '$scope', function($element, $scope) {
+	        ['$element', '$scope', /** @this */ function($element, $scope) {
 	
 	  var self = this,
 	      optionsMap = new HashMap();
@@ -30789,7 +31706,7 @@
 	 *      $scope.data = {
 	 *       singleSelect: null,
 	 *       multipleSelect: [],
-	 *       option1: 'option-1',
+	 *       option1: 'option-1'
 	 *      };
 	 *
 	 *      $scope.forceUnknownOption = function() {
@@ -30822,7 +31739,7 @@
 	 *         {id: '1', name: 'Option A'},
 	 *         {id: '2', name: 'Option B'},
 	 *         {id: '3', name: 'Option C'}
-	 *       ],
+	 *       ]
 	 *      };
 	 *   }]);
 	 * </file>
@@ -30893,7 +31810,6 @@
 	 *   </file>
 	 *   <file name="protractor.js" type="protractor">
 	 *     it('should initialize to model', function() {
-	 *       var select = element(by.css('select'));
 	 *       expect(element(by.model('model.id')).$('option:checked').getText()).toEqual('Two');
 	 *     });
 	 *   </file>
@@ -31031,11 +31947,6 @@
 	    }
 	  };
 	}];
-	
-	var styleDirective = valueFn({
-	  restrict: 'E',
-	  terminal: false
-	});
 	
 	/**
 	 * @ngdoc directive
@@ -31297,7 +32208,7 @@
 	      var maxlength = -1;
 	      attr.$observe('maxlength', function(value) {
 	        var intVal = toInt(value);
-	        maxlength = isNaN(intVal) ? -1 : intVal;
+	        maxlength = isNumberNaN(intVal) ? -1 : intVal;
 	        ctrl.$validate();
 	      });
 	      ctrl.$validators.maxlength = function(modelValue, viewValue) {
@@ -31568,7 +32479,7 @@
 /***/ function(module, exports) {
 
 	/**
-	 * @license AngularJS v1.5.8
+	 * @license AngularJS v1.5.9
 	 * (c) 2010-2016 Google, Inc. http://angularjs.org
 	 * License: MIT
 	 */
@@ -31598,7 +32509,7 @@
 	// Also, the only modern browser that uses vendor prefixes for transitions/keyframes is webkit
 	// therefore there is no reason to test anymore for other vendor prefixes:
 	// http://caniuse.com/#search=transition
-	if ((window.ontransitionend === void 0) && (window.onwebkittransitionend !== void 0)) {
+	if ((window.ontransitionend === undefined) && (window.onwebkittransitionend !== undefined)) {
 	  CSS_PREFIX = '-webkit-';
 	  TRANSITION_PROP = 'WebkitTransition';
 	  TRANSITIONEND_EVENT = 'webkitTransitionEnd transitionend';
@@ -31607,7 +32518,7 @@
 	  TRANSITIONEND_EVENT = 'transitionend';
 	}
 	
-	if ((window.onanimationend === void 0) && (window.onwebkitanimationend !== void 0)) {
+	if ((window.onanimationend === undefined) && (window.onwebkitanimationend !== undefined)) {
 	  CSS_PREFIX = '-webkit-';
 	  ANIMATION_PROP = 'WebkitAnimation';
 	  ANIMATIONEND_EVENT = 'webkitAnimationEnd animationend';
@@ -31632,7 +32543,7 @@
 	var ngMinErr = angular.$$minErr('ng');
 	function assertArg(arg, name, reason) {
 	  if (!arg) {
-	    throw ngMinErr('areq', "Argument '{0}' is {1}", (name || '?'), (reason || "required"));
+	    throw ngMinErr('areq', 'Argument \'{0}\' is {1}', (name || '?'), (reason || 'required'));
 	  }
 	  return arg;
 	}
@@ -31708,7 +32619,7 @@
 	  if (!element[0]) return element;
 	  for (var i = 0; i < element.length; i++) {
 	    var elm = element[i];
-	    if (elm.nodeType == ELEMENT_NODE) {
+	    if (elm.nodeType === ELEMENT_NODE) {
 	      return elm;
 	    }
 	  }
@@ -32001,7 +32912,7 @@
 	 * @example
 	 * <example module="ngAnimateChildren" name="ngAnimateChildren" deps="angular-animate.js" animations="true">
 	     <file name="index.html">
-	       <div ng-controller="mainController as main">
+	       <div ng-controller="MainController as main">
 	         <label>Show container? <input type="checkbox" ng-model="main.enterElement" /></label>
 	         <label>Animate children? <input type="checkbox" ng-model="main.animateChildren" /></label>
 	         <hr>
@@ -32051,7 +32962,7 @@
 	    </file>
 	    <file name="script.js">
 	      angular.module('ngAnimateChildren', ['ngAnimate'])
-	        .controller('mainController', function() {
+	        .controller('MainController', function MainController() {
 	          this.animateChildren = false;
 	          this.enterElement = false;
 	        });
@@ -32078,6 +32989,8 @@
 	    }
 	  };
 	}];
+	
+	/* exported $AnimateCssProvider */
 	
 	var ANIMATE_TIMER_KEY = '$$animateCss';
 	
@@ -32296,7 +33209,6 @@
 	 * * `end` - This method will cancel the animation and remove all applied CSS classes and styles.
 	 */
 	var ONE_SECOND = 1000;
-	var BASE_TEN = 10;
 	
 	var ELAPSED_TIME_MAX_DECIMAL_PLACES = 3;
 	var CLOSING_TIME_BUFFER = 1.5;
@@ -32358,7 +33270,7 @@
 	  forEach(values, function(value) {
 	    // it's always safe to consider only second values and omit `ms` values since
 	    // getComputedStyle will always handle the conversion for us
-	    if (value.charAt(value.length - 1) == 's') {
+	    if (value.charAt(value.length - 1) === 's') {
 	      value = value.substring(0, value.length - 1);
 	    }
 	    value = parseFloat(value) || 0;
@@ -32426,7 +33338,7 @@
 	  });
 	}
 	
-	var $AnimateCssProvider = ['$animateProvider', function($animateProvider) {
+	var $AnimateCssProvider = ['$animateProvider', /** @this */ function($animateProvider) {
 	  var gcsLookup = createLocalCacheLookup();
 	  var gcsStaggerLookup = createLocalCacheLookup();
 	
@@ -32439,7 +33351,7 @@
 	
 	    var parentCounter = 0;
 	    function gcsHashFn(node, extraClasses) {
-	      var KEY = "$$ngAnimateParentKey";
+	      var KEY = '$$ngAnimateParentKey';
 	      var parentNode = node.parentNode;
 	      var parentID = parentNode[KEY] || (parentNode[KEY] = ++parentCounter);
 	      return parentID + '-' + node.getAttribute('class') + '-' + extraClasses;
@@ -32490,7 +33402,6 @@
 	      return stagger || {};
 	    }
 	
-	    var cancelLastRAFRequest;
 	    var rafWaitQueue = [];
 	    function waitUntilQuiet(callback) {
 	      rafWaitQueue.push(callback);
@@ -32679,7 +33590,7 @@
 	      var flags = {};
 	      flags.hasTransitions          = timings.transitionDuration > 0;
 	      flags.hasAnimations           = timings.animationDuration > 0;
-	      flags.hasTransitionAll        = flags.hasTransitions && timings.transitionProperty == 'all';
+	      flags.hasTransitionAll        = flags.hasTransitions && timings.transitionProperty === 'all';
 	      flags.applyTransitionDuration = hasToStyles && (
 	                                        (flags.hasTransitions && !flags.hasTransitionAll)
 	                                         || (flags.hasAnimations && !flags.hasTransitions));
@@ -32711,7 +33622,7 @@
 	
 	      if (options.delay != null) {
 	        var delayStyle;
-	        if (typeof options.delay !== "boolean") {
+	        if (typeof options.delay !== 'boolean') {
 	          delayStyle = parseFloat(options.delay);
 	          // number in options.delay means we have to recalculate the delay for the closing timeout
 	          maxDelay = Math.max(delayStyle, 0);
@@ -32789,7 +33700,7 @@
 	        close(true);
 	      }
 	
-	      function close(rejected) { // jshint ignore:line
+	      function close(rejected) {
 	        // if the promise has been called already then we shouldn't close
 	        // the animation again
 	        if (animationClosed || (animationCompleted && animationPaused)) return;
@@ -32816,8 +33727,11 @@
 	
 	        if (Object.keys(restoreStyles).length) {
 	          forEach(restoreStyles, function(value, prop) {
-	            value ? node.style.setProperty(prop, value)
-	                  : node.style.removeProperty(prop);
+	            if (value) {
+	              node.style.setProperty(prop, value);
+	            } else {
+	              node.style.removeProperty(prop);
+	            }
 	          });
 	        }
 	
@@ -32920,9 +33834,11 @@
 	            animationPaused = !playAnimation;
 	            if (timings.animationDuration) {
 	              var value = blockKeyframeAnimations(node, animationPaused);
-	              animationPaused
-	                  ? temporaryStyles.push(value)
-	                  : removeFromArray(temporaryStyles, value);
+	              if (animationPaused) {
+	                temporaryStyles.push(value);
+	              } else {
+	                removeFromArray(temporaryStyles, value);
+	              }
 	            }
 	          } else if (animationPaused && playAnimation) {
 	            animationPaused = false;
@@ -32989,7 +33905,7 @@
 	          }
 	
 	          if (flags.applyAnimationDelay) {
-	            relativeDelay = typeof options.delay !== "boolean" && truthyTimingValue(options.delay)
+	            relativeDelay = typeof options.delay !== 'boolean' && truthyTimingValue(options.delay)
 	                  ? parseFloat(options.delay)
 	                  : relativeDelay;
 	
@@ -33081,7 +33997,7 @@
 	  }];
 	}];
 	
-	var $$AnimateCssDriverProvider = ['$$animationProvider', function($$animationProvider) {
+	var $$AnimateCssDriverProvider = ['$$animationProvider', /** @this */ function($$animationProvider) {
 	  $$animationProvider.drivers.push('$$animateCssDriver');
 	
 	  var NG_ANIMATE_SHIM_CLASS_NAME = 'ng-animate-shim';
@@ -33109,8 +34025,6 @@
 	      // appends the $rootElement to the body after the app has been bootstrapped
 	      isDocumentFragment(rootNode) || bodyNode.contains(rootNode) ? rootNode : bodyNode
 	    );
-	
-	    var applyAnimationClasses = applyAnimationClassesFactory($$jqLite);
 	
 	    return function initDriverFn(animationDetails) {
 	      return animationDetails.from && animationDetails.to
@@ -33353,7 +34267,7 @@
 	// TODO(matsko): add documentation
 	//  by the time...
 	
-	var $$AnimateJsProvider = ['$animateProvider', function($animateProvider) {
+	var $$AnimateJsProvider = ['$animateProvider', /** @this */ function($animateProvider) {
 	  this.$get = ['$injector', '$$AnimateRunner', '$$jqLite',
 	       function($injector,   $$AnimateRunner,   $$jqLite) {
 	
@@ -33392,7 +34306,7 @@
 	      var before, after;
 	      if (animations.length) {
 	        var afterFn, beforeFn;
-	        if (event == 'leave') {
+	        if (event === 'leave') {
 	          beforeFn = 'leave';
 	          afterFn = 'afterLeave'; // TODO(matsko): get rid of this
 	        } else {
@@ -33577,7 +34491,7 @@
 	      function packageAnimations(element, event, options, animations, fnName) {
 	        var operations = groupEventedAnimations(element, event, options, animations, fnName);
 	        if (operations.length === 0) {
-	          var a,b;
+	          var a, b;
 	          if (fnName === 'beforeSetClass') {
 	            a = groupEventedAnimations(element, 'removeClass', options, animations, 'beforeRemoveClass');
 	            b = groupEventedAnimations(element, 'addClass', options, animations, 'beforeAddClass');
@@ -33605,11 +34519,19 @@
 	            });
 	          }
 	
-	          runners.length ? $$AnimateRunner.all(runners, callback) : callback();
+	          if (runners.length) {
+	            $$AnimateRunner.all(runners, callback);
+	          }  else {
+	            callback();
+	          }
 	
 	          return function endFn(reject) {
 	            forEach(runners, function(runner) {
-	              reject ? runner.cancel() : runner.end();
+	              if (reject) {
+	                runner.cancel();
+	              } else {
+	                runner.end();
+	              }
 	            });
 	          };
 	        };
@@ -33619,7 +34541,7 @@
 	    function lookupAnimations(classes) {
 	      classes = isArray(classes) ? classes : classes.split(' ');
 	      var matches = [], flagMap = {};
-	      for (var i=0; i < classes.length; i++) {
+	      for (var i = 0; i < classes.length; i++) {
 	        var klass = classes[i],
 	            animationFactory = $animateProvider.$$registeredAnimations[klass];
 	        if (animationFactory && !flagMap[klass]) {
@@ -33632,7 +34554,7 @@
 	  }];
 	}];
 	
-	var $$AnimateJsDriverProvider = ['$$animationProvider', function($$animationProvider) {
+	var $$AnimateJsDriverProvider = ['$$animationProvider', /** @this */ function($$animationProvider) {
 	  $$animationProvider.drivers.push('$$animateJsDriver');
 	  this.$get = ['$$animateJs', '$$AnimateRunner', function($$animateJs, $$AnimateRunner) {
 	    return function initDriverFn(animationDetails) {
@@ -33694,7 +34616,7 @@
 	
 	var NG_ANIMATE_ATTR_NAME = 'data-ng-animate';
 	var NG_ANIMATE_PIN_DATA = '$ngAnimatePin';
-	var $$AnimateQueueProvider = ['$animateProvider', function($animateProvider) {
+	var $$AnimateQueueProvider = ['$animateProvider', /** @this */ function($animateProvider) {
 	  var PRE_DIGEST_STATE = 1;
 	  var RUNNING_STATE = 2;
 	  var ONE_SPACE = ' ';
@@ -33754,7 +34676,7 @@
 	  rules.skip.push(function(element, newAnimation, currentAnimation) {
 	    // why should we trigger a new structural animation if the element will
 	    // be removed from the DOM anyway?
-	    return currentAnimation.event == 'leave' && newAnimation.structural;
+	    return currentAnimation.event === 'leave' && newAnimation.structural;
 	  });
 	
 	  rules.skip.push(function(element, newAnimation, currentAnimation) {
@@ -33866,10 +34788,9 @@
 	    }
 	
 	    // IE9-11 has no method "contains" in SVG element and in Node.prototype. Bug #10259.
-	    var contains = window.Node.prototype.contains || function(arg) {
-	      // jshint bitwise: false
+	    var contains = window.Node.prototype.contains || /** @this */ function(arg) {
+	      // eslint-disable-next-line no-bitwise
 	      return this === arg || !!(this.compareDocumentPosition(arg) & 16);
-	      // jshint bitwise: true
 	    };
 	
 	    function findCallbacks(parent, element, event) {
@@ -34071,7 +34992,7 @@
 	
 	      // there is no point in traversing the same collection of parent ancestors if a followup
 	      // animation will be run on the same element that already did all that checking work
-	      if (!skipAnimations && (!hasExistingAnimation || existingAnimation.state != PRE_DIGEST_STATE)) {
+	      if (!skipAnimations && (!hasExistingAnimation || existingAnimation.state !== PRE_DIGEST_STATE)) {
 	        skipAnimations = !areAnimationsAllowed(element, parent, event);
 	      }
 	
@@ -34267,7 +35188,7 @@
 	        runner.progress(event, phase, data);
 	      }
 	
-	      function close(reject) { // jshint ignore:line
+	      function close(reject) {
 	        clearGeneratedClasses(element, options);
 	        applyAnimationClasses(element, options);
 	        applyAnimationStyles(element, options);
@@ -34280,7 +35201,7 @@
 	      var node = getDomNode(element);
 	      var children = node.querySelectorAll('[' + NG_ANIMATE_ATTR_NAME + ']');
 	      forEach(children, function(child) {
-	        var state = parseInt(child.getAttribute(NG_ANIMATE_ATTR_NAME));
+	        var state = parseInt(child.getAttribute(NG_ANIMATE_ATTR_NAME), 10);
 	        var animationDetails = activeAnimationsLookup.get(child);
 	        if (animationDetails) {
 	          switch (state) {
@@ -34413,7 +35334,9 @@
 	  }];
 	}];
 	
-	var $$AnimationProvider = ['$animateProvider', function($animateProvider) {
+	/* exported $$AnimationProvider */
+	
+	var $$AnimationProvider = ['$animateProvider', /** @this */ function($animateProvider) {
 	  var NG_ANIMATE_REF_ATTR = 'ng-animate-ref';
 	
 	  var drivers = this.drivers = [];
@@ -34801,7 +35724,7 @@
 	        }
 	      }
 	
-	      function close(rejected) { // jshint ignore:line
+	      function close(rejected) {
 	        element.off('$destroy', handleDestroyedElement);
 	        removeRunner(element);
 	
@@ -35487,22 +36410,23 @@
 	        }])
 	        .run(['$rootScope', function($rootScope) {
 	          $rootScope.records = [
-	            { id:1, title: "Miss Beulah Roob" },
-	            { id:2, title: "Trent Morissette" },
-	            { id:3, title: "Miss Ava Pouros" },
-	            { id:4, title: "Rod Pouros" },
-	            { id:5, title: "Abdul Rice" },
-	            { id:6, title: "Laurie Rutherford Sr." },
-	            { id:7, title: "Nakia McLaughlin" },
-	            { id:8, title: "Jordon Blanda DVM" },
-	            { id:9, title: "Rhoda Hand" },
-	            { id:10, title: "Alexandrea Sauer" }
+	            { id: 1, title: 'Miss Beulah Roob' },
+	            { id: 2, title: 'Trent Morissette' },
+	            { id: 3, title: 'Miss Ava Pouros' },
+	            { id: 4, title: 'Rod Pouros' },
+	            { id: 5, title: 'Abdul Rice' },
+	            { id: 6, title: 'Laurie Rutherford Sr.' },
+	            { id: 7, title: 'Nakia McLaughlin' },
+	            { id: 8, title: 'Jordon Blanda DVM' },
+	            { id: 9, title: 'Rhoda Hand' },
+	            { id: 10, title: 'Alexandrea Sauer' }
 	          ];
 	        }])
 	        .controller('HomeController', [function() {
 	          //empty
 	        }])
-	        .controller('ProfileController', ['$rootScope', '$routeParams', function($rootScope, $routeParams) {
+	        .controller('ProfileController', ['$rootScope', '$routeParams',
+	            function ProfileController($rootScope, $routeParams) {
 	          var index = parseInt($routeParams.id, 10);
 	          var record = $rootScope.records[index - 1];
 	
@@ -35714,7 +36638,7 @@
 
 	/**
 	 * State-based routing for AngularJS
-	 * @version v0.3.1
+	 * @version v0.3.2
 	 * @link http://angular-ui.github.com/
 	 * @license MIT License, http://www.opensource.org/licenses/MIT
 	 */
@@ -35934,6 +36858,11 @@
 	    result[i] = callback(val, i);
 	  });
 	  return result;
+	}
+	
+	// issue #2676 #2889
+	function silenceUncaughtInPromise (promise) {
+	  return promise.then(undefined, function() {}) && promise;
 	}
 	
 	/**
@@ -36980,8 +37909,8 @@
 	  // If the slashes are simply URLEncoded, the browser can choose to pre-decode them,
 	  // and bidirectional encoding/decoding fails.
 	  // Tilde was chosen because it's not a RFC 3986 section 2.2 Reserved Character
-	  function valToString(val) { return val != null ? val.toString().replace(/~/g, "~~").replace(/\//g, "~2F") : val; }
-	  function valFromString(val) { return val != null ? val.toString().replace(/~2F/g, "/").replace(/~~/g, "~") : val; }
+	  function valToString(val) { return val != null ? val.toString().replace(/(~|\/)/g, function (m) { return {'~':'~~', '/':'~2F'}[m]; }) : val; }
+	  function valFromString(val) { return val != null ? val.toString().replace(/(~~|~2F)/g, function (m) { return {'~~':'~', '~2F':'/'}[m]; }) : val; }
 	
 	  var $types = {}, enqueue = true, typeQueue = [], injector, defaultTypes = {
 	    "string": {
@@ -38615,10 +39544,12 @@
 	  $get.$inject = ['$rootScope', '$q', '$view', '$injector', '$resolve', '$stateParams', '$urlRouter', '$location', '$urlMatcherFactory'];
 	  function $get(   $rootScope,   $q,   $view,   $injector,   $resolve,   $stateParams,   $urlRouter,   $location,   $urlMatcherFactory) {
 	
-	    var TransitionSuperseded = $q.reject(new Error('transition superseded'));
-	    var TransitionPrevented = $q.reject(new Error('transition prevented'));
-	    var TransitionAborted = $q.reject(new Error('transition aborted'));
-	    var TransitionFailed = $q.reject(new Error('transition failed'));
+	    var TransitionSupersededError = new Error('transition superseded');
+	
+	    var TransitionSuperseded = silenceUncaughtInPromise($q.reject(TransitionSupersededError));
+	    var TransitionPrevented = silenceUncaughtInPromise($q.reject(new Error('transition prevented')));
+	    var TransitionAborted = silenceUncaughtInPromise($q.reject(new Error('transition aborted')));
+	    var TransitionFailed = silenceUncaughtInPromise($q.reject(new Error('transition failed')));
 	
 	    // Handles the case where a state which is the target of a transition is not found, and the user
 	    // can optionally retry or defer the transition
@@ -38674,7 +39605,10 @@
 	      var retryTransition = $state.transition = $q.when(evt.retry);
 	
 	      retryTransition.then(function() {
-	        if (retryTransition !== $state.transition) return TransitionSuperseded;
+	        if (retryTransition !== $state.transition) {
+	          $rootScope.$broadcast('$stateChangeCancel', redirect.to, redirect.toParams, state, params);
+	          return TransitionSuperseded;
+	        }
 	        redirect.options.$retry = true;
 	        return $state.transitionTo(redirect.to, redirect.toParams, redirect.options);
 	      }, function() {
@@ -39013,7 +39947,10 @@
 	      var transition = $state.transition = resolved.then(function () {
 	        var l, entering, exiting;
 	
-	        if ($state.transition !== transition) return TransitionSuperseded;
+	        if ($state.transition !== transition) {
+	          $rootScope.$broadcast('$stateChangeCancel', to.self, toParams, from.self, fromParams);
+	          return TransitionSuperseded;
+	        }
 	
 	        // Exit 'from' states not kept
 	        for (l = fromPath.length - 1; l >= keep; l--) {
@@ -39034,7 +39971,10 @@
 	        }
 	
 	        // Run it again, to catch any transitions in callbacks
-	        if ($state.transition !== transition) return TransitionSuperseded;
+	        if ($state.transition !== transition) {
+	          $rootScope.$broadcast('$stateChangeCancel', to.self, toParams, from.self, fromParams);
+	          return TransitionSuperseded;
+	        }
 	
 	        // Update globals in $state
 	        $state.$current = to;
@@ -39070,7 +40010,14 @@
 	
 	        return $state.current;
 	      }).then(null, function (error) {
-	        if ($state.transition !== transition) return TransitionSuperseded;
+	        // propagate TransitionSuperseded error without emitting $stateChangeCancel
+	        // as it was already emitted in the success handler above
+	        if (error === TransitionSupersededError) return TransitionSuperseded;
+	
+	        if ($state.transition !== transition) {
+	          $rootScope.$broadcast('$stateChangeCancel', to.self, toParams, from.self, fromParams);
+	          return TransitionSuperseded;
+	        }
 	
 	        $state.transition = null;
 	        /**
@@ -39094,7 +40041,7 @@
 	        evt = $rootScope.$broadcast('$stateChangeError', to.self, toParams, from.self, fromParams, error);
 	
 	        if (!evt.defaultPrevented) {
-	            $urlRouter.update();
+	          $urlRouter.update();
 	        }
 	
 	        return $q.reject(error);
@@ -39209,7 +40156,17 @@
 	      var state = findState(stateOrName, options.relative);
 	      if (!isDefined(state)) { return undefined; }
 	      if (!isDefined($state.$current.includes[state.name])) { return false; }
-	      return params ? equalForKeys(state.params.$$values(params), $stateParams, objectKeys(params)) : true;
+	      if (!params) { return true; }
+	
+	      var keys = objectKeys(params);
+	      for (var i = 0; i < keys.length; i++) {
+	        var key = keys[i], paramDef = state.params[key];
+	        if (paramDef && !paramDef.type.equals($stateParams[key], params[key])) {
+	          return false;
+	        }
+	      }
+	
+	      return true;
 	    };
 	
 	
@@ -39982,9 +40939,9 @@
 	
 	      if (!type.clickable) return;
 	      hookFn = clickHook(element, $state, $timeout, type, function() { return def; });
-	      element.bind("click", hookFn);
+	      element[element.on ? 'on' : 'bind']("click", hookFn);
 	      scope.$on('$destroy', function() {
-	        element.unbind("click", hookFn);
+	        element[element.off ? 'off' : 'unbind']("click", hookFn);
 	      });
 	    }
 	  };
@@ -40034,9 +40991,9 @@
 	
 	      if (!type.clickable) return;
 	      hookFn = clickHook(element, $state, $timeout, type, function() { return def; });
-	      element.bind("click", hookFn);
+	      element[element.on ? 'on' : 'bind']("click", hookFn);
 	      scope.$on('$destroy', function() {
-	        element.unbind("click", hookFn);
+	        element[element.off ? 'off' : 'unbind']("click", hookFn);
 	      });
 	    }
 	  };
@@ -40345,7 +41302,7 @@
 	exports.i(__webpack_require__(12), "");
 	
 	// module
-	exports.push([module.id, "@charset \"UTF-8\";\n.wordwrap {\n  white-space: pre;\n  /* CSS 2.0 */\n  white-space: pre-wrap;\n  /* CSS 2.1 */\n  white-space: pre-line;\n  /* CSS 3.0 */\n  white-space: -pre-wrap;\n  /* Opera 4-6 */\n  white-space: -o-pre-wrap;\n  /* Opera 7 */\n  white-space: -moz-pre-wrap;\n  /* Mozilla */\n  word-wrap: break-word;\n  /* IE 5+ */ }\n\n/* ================================================================== */\n/* Font selection */\nhtml {\n  font-family: \"Charter\", serif;\n  line-height: 1.4; }\n\nh1,\nh2,\nh3,\nnav,\n.toc {\n  font-family: \"Fira Sans\", sans-serif; }\n  h1 i,\n  h2 i,\n  h3 i,\n  nav i,\n  .toc i {\n    margin-right: 10px; }\n\npre,\ncode {\n  font-family: \"Source Code Pro\", monospace; }\n\n/* ================================================================== */\n/* Document structure */\nhtml {\n  color: #1c1c1c;\n  background-color: #fff; }\n\npre {\n  background-color: #f2f2f2; }\n\nhr {\n  border: 0px;\n  border-top: 1px solid #c1c1c1;\n  margin: 2rem 0; }\n\n.measurement .measurement-info {\n  margin-top: 18px;\n  margin-bottom: 18px;\n  padding: 18px 22px;\n  background-color: #f2f2f2; }\n\n.measurement .result {\n  text-align: center;\n  color: #f2f2f2;\n  font-family: 'Fira Sans'; }\n  .measurement .result .anomalous-result {\n    padding: 18px;\n    background-color: #B83564; }\n  .measurement .result .normal-result {\n    padding: 18px;\n    background-color: #4FD156; }\n\n.measurement i.ooni {\n  font-size: 20px; }\n\n.measurement .description {\n  margin-top: 18px; }\n  .measurement .description .detail {\n    color: #0588CB; }\n  .measurement .description h1:first-of-type {\n    display: none; }\n\n.measurement .detail {\n  font-family: 'Fira Sans';\n  color: #c1c1c1;\n  font-size: 16px; }\n\nbutton.btn, a.btn {\n  background-color: #fff;\n  color: #0588CB;\n  border: 1px solid #0588CB; }\n\n.ooni-logo {\n  background: url(" + __webpack_require__(18) + "); }\n\n/* Fonts */\n@font-face {\n  font-family: \"Charter\";\n  src: url(" + __webpack_require__(19) + "); }\n\n@font-face {\n  font-family: \"Charter\";\n  src: url(" + __webpack_require__(20) + ");\n  font-weight: bold; }\n\n@font-face {\n  font-family: \"Charter\";\n  src: url(" + __webpack_require__(21) + ");\n  font-style: italic; }\n\n@font-face {\n  font-family: \"Charter\";\n  src: url(" + __webpack_require__(22) + ");\n  font-weight: bold;\n  font-style: italic; }\n\n@font-face {\n  font-family: \"Fira Sans\";\n  src: url(" + __webpack_require__(23) + ");\n  font-weight: bold; }\n\n@font-face {\n  font-family: \"Fira Sans\";\n  src: url(" + __webpack_require__(24) + ");\n  font-weight: 500; }\n\n@font-face {\n  font-family: \"Fira Sans\";\n  src: url(" + __webpack_require__(25) + ");\n  font-weight: 300; }\n\n@font-face {\n  font-family: \"Source Code Pro\";\n  src: url(" + __webpack_require__(26) + "); }\n\n@font-face {\n  font-family: \"Source Code Pro\";\n  src: url(" + __webpack_require__(27) + ");\n  font-weight: bold; }\n\n/*!\n *  Font Awesome 4.6.3 by @davegandy - http://fontawesome.io - @fontawesome\n *  License - http://fontawesome.io/license (Font: SIL OFL 1.1, CSS: MIT License)\n */\n/* FONT PATH\n * -------------------------- */\n@font-face {\n  font-family: 'FontAwesome';\n  src: url(" + __webpack_require__(28) + ");\n  src: url(" + __webpack_require__(29) + "?#iefix&v=4.6.3) format(\"embedded-opentype\"), url(" + __webpack_require__(30) + ") format(\"woff2\"), url(" + __webpack_require__(31) + ") format(\"woff\"), url(" + __webpack_require__(32) + ") format(\"truetype\"), url(" + __webpack_require__(33) + "#fontawesomeregular) format(\"svg\");\n  font-weight: normal;\n  font-style: normal; }\n\n.fa {\n  display: inline-block;\n  font: normal normal normal 14px/1 FontAwesome;\n  font-size: inherit;\n  text-rendering: auto;\n  -webkit-font-smoothing: antialiased;\n  -moz-osx-font-smoothing: grayscale; }\n\n/* makes the font 33% larger relative to the icon container */\n.fa-lg {\n  font-size: 1.33333em;\n  line-height: 0.75em;\n  vertical-align: -15%; }\n\n.fa-2x {\n  font-size: 2em; }\n\n.fa-3x {\n  font-size: 3em; }\n\n.fa-4x {\n  font-size: 4em; }\n\n.fa-5x {\n  font-size: 5em; }\n\n.fa-fw {\n  width: 1.28571em;\n  text-align: center; }\n\n.fa-ul {\n  padding-left: 0;\n  margin-left: 2.14286em;\n  list-style-type: none; }\n  .fa-ul > li {\n    position: relative; }\n\n.fa-li {\n  position: absolute;\n  left: -2.14286em;\n  width: 2.14286em;\n  top: 0.14286em;\n  text-align: center; }\n  .fa-li.fa-lg {\n    left: -1.85714em; }\n\n.fa-border {\n  padding: .2em .25em .15em;\n  border: solid 0.08em #eee;\n  border-radius: .1em; }\n\n.fa-pull-left {\n  float: left; }\n\n.fa-pull-right {\n  float: right; }\n\n.fa.fa-pull-left {\n  margin-right: .3em; }\n\n.fa.fa-pull-right {\n  margin-left: .3em; }\n\n/* Deprecated as of 4.4.0 */\n.pull-right {\n  float: right; }\n\n.pull-left {\n  float: left; }\n\n.fa.pull-left {\n  margin-right: .3em; }\n\n.fa.pull-right {\n  margin-left: .3em; }\n\n.fa-spin {\n  -webkit-animation: fa-spin 2s infinite linear;\n  animation: fa-spin 2s infinite linear; }\n\n.fa-pulse {\n  -webkit-animation: fa-spin 1s infinite steps(8);\n  animation: fa-spin 1s infinite steps(8); }\n\n@-webkit-keyframes fa-spin {\n  0% {\n    -webkit-transform: rotate(0deg);\n    transform: rotate(0deg); }\n  100% {\n    -webkit-transform: rotate(359deg);\n    transform: rotate(359deg); } }\n\n@keyframes fa-spin {\n  0% {\n    -webkit-transform: rotate(0deg);\n    transform: rotate(0deg); }\n  100% {\n    -webkit-transform: rotate(359deg);\n    transform: rotate(359deg); } }\n\n.fa-rotate-90 {\n  -ms-filter: \"progid:DXImageTransform.Microsoft.BasicImage(rotation=1)\";\n  -webkit-transform: rotate(90deg);\n  -ms-transform: rotate(90deg);\n  transform: rotate(90deg); }\n\n.fa-rotate-180 {\n  -ms-filter: \"progid:DXImageTransform.Microsoft.BasicImage(rotation=2)\";\n  -webkit-transform: rotate(180deg);\n  -ms-transform: rotate(180deg);\n  transform: rotate(180deg); }\n\n.fa-rotate-270 {\n  -ms-filter: \"progid:DXImageTransform.Microsoft.BasicImage(rotation=3)\";\n  -webkit-transform: rotate(270deg);\n  -ms-transform: rotate(270deg);\n  transform: rotate(270deg); }\n\n.fa-flip-horizontal {\n  -ms-filter: \"progid:DXImageTransform.Microsoft.BasicImage(rotation=0, mirror=1)\";\n  -webkit-transform: scale(-1, 1);\n  -ms-transform: scale(-1, 1);\n  transform: scale(-1, 1); }\n\n.fa-flip-vertical {\n  -ms-filter: \"progid:DXImageTransform.Microsoft.BasicImage(rotation=2, mirror=1)\";\n  -webkit-transform: scale(1, -1);\n  -ms-transform: scale(1, -1);\n  transform: scale(1, -1); }\n\n:root .fa-rotate-90,\n:root .fa-rotate-180,\n:root .fa-rotate-270,\n:root .fa-flip-horizontal,\n:root .fa-flip-vertical {\n  filter: none; }\n\n.fa-stack {\n  position: relative;\n  display: inline-block;\n  width: 2em;\n  height: 2em;\n  line-height: 2em;\n  vertical-align: middle; }\n\n.fa-stack-1x, .fa-stack-2x {\n  position: absolute;\n  left: 0;\n  width: 100%;\n  text-align: center; }\n\n.fa-stack-1x {\n  line-height: inherit; }\n\n.fa-stack-2x {\n  font-size: 2em; }\n\n.fa-inverse {\n  color: #fff; }\n\n/* Font Awesome uses the Unicode Private Use Area (PUA) to ensure screen\n   readers do not read off random characters that represent icons */\n.fa-glass:before {\n  content: \"\\F000\"; }\n\n.fa-music:before {\n  content: \"\\F001\"; }\n\n.fa-search:before {\n  content: \"\\F002\"; }\n\n.fa-envelope-o:before {\n  content: \"\\F003\"; }\n\n.fa-heart:before {\n  content: \"\\F004\"; }\n\n.fa-star:before {\n  content: \"\\F005\"; }\n\n.fa-star-o:before {\n  content: \"\\F006\"; }\n\n.fa-user:before {\n  content: \"\\F007\"; }\n\n.fa-film:before {\n  content: \"\\F008\"; }\n\n.fa-th-large:before {\n  content: \"\\F009\"; }\n\n.fa-th:before {\n  content: \"\\F00A\"; }\n\n.fa-th-list:before {\n  content: \"\\F00B\"; }\n\n.fa-check:before {\n  content: \"\\F00C\"; }\n\n.fa-remove:before,\n.fa-close:before,\n.fa-times:before {\n  content: \"\\F00D\"; }\n\n.fa-search-plus:before {\n  content: \"\\F00E\"; }\n\n.fa-search-minus:before {\n  content: \"\\F010\"; }\n\n.fa-power-off:before {\n  content: \"\\F011\"; }\n\n.fa-signal:before {\n  content: \"\\F012\"; }\n\n.fa-gear:before,\n.fa-cog:before {\n  content: \"\\F013\"; }\n\n.fa-trash-o:before {\n  content: \"\\F014\"; }\n\n.fa-home:before {\n  content: \"\\F015\"; }\n\n.fa-file-o:before {\n  content: \"\\F016\"; }\n\n.fa-clock-o:before {\n  content: \"\\F017\"; }\n\n.fa-road:before {\n  content: \"\\F018\"; }\n\n.fa-download:before {\n  content: \"\\F019\"; }\n\n.fa-arrow-circle-o-down:before {\n  content: \"\\F01A\"; }\n\n.fa-arrow-circle-o-up:before {\n  content: \"\\F01B\"; }\n\n.fa-inbox:before {\n  content: \"\\F01C\"; }\n\n.fa-play-circle-o:before {\n  content: \"\\F01D\"; }\n\n.fa-rotate-right:before,\n.fa-repeat:before {\n  content: \"\\F01E\"; }\n\n.fa-refresh:before {\n  content: \"\\F021\"; }\n\n.fa-list-alt:before {\n  content: \"\\F022\"; }\n\n.fa-lock:before {\n  content: \"\\F023\"; }\n\n.fa-flag:before {\n  content: \"\\F024\"; }\n\n.fa-headphones:before {\n  content: \"\\F025\"; }\n\n.fa-volume-off:before {\n  content: \"\\F026\"; }\n\n.fa-volume-down:before {\n  content: \"\\F027\"; }\n\n.fa-volume-up:before {\n  content: \"\\F028\"; }\n\n.fa-qrcode:before {\n  content: \"\\F029\"; }\n\n.fa-barcode:before {\n  content: \"\\F02A\"; }\n\n.fa-tag:before {\n  content: \"\\F02B\"; }\n\n.fa-tags:before {\n  content: \"\\F02C\"; }\n\n.fa-book:before {\n  content: \"\\F02D\"; }\n\n.fa-bookmark:before {\n  content: \"\\F02E\"; }\n\n.fa-print:before {\n  content: \"\\F02F\"; }\n\n.fa-camera:before {\n  content: \"\\F030\"; }\n\n.fa-font:before {\n  content: \"\\F031\"; }\n\n.fa-bold:before {\n  content: \"\\F032\"; }\n\n.fa-italic:before {\n  content: \"\\F033\"; }\n\n.fa-text-height:before {\n  content: \"\\F034\"; }\n\n.fa-text-width:before {\n  content: \"\\F035\"; }\n\n.fa-align-left:before {\n  content: \"\\F036\"; }\n\n.fa-align-center:before {\n  content: \"\\F037\"; }\n\n.fa-align-right:before {\n  content: \"\\F038\"; }\n\n.fa-align-justify:before {\n  content: \"\\F039\"; }\n\n.fa-list:before {\n  content: \"\\F03A\"; }\n\n.fa-dedent:before,\n.fa-outdent:before {\n  content: \"\\F03B\"; }\n\n.fa-indent:before {\n  content: \"\\F03C\"; }\n\n.fa-video-camera:before {\n  content: \"\\F03D\"; }\n\n.fa-photo:before,\n.fa-image:before,\n.fa-picture-o:before {\n  content: \"\\F03E\"; }\n\n.fa-pencil:before {\n  content: \"\\F040\"; }\n\n.fa-map-marker:before {\n  content: \"\\F041\"; }\n\n.fa-adjust:before {\n  content: \"\\F042\"; }\n\n.fa-tint:before {\n  content: \"\\F043\"; }\n\n.fa-edit:before,\n.fa-pencil-square-o:before {\n  content: \"\\F044\"; }\n\n.fa-share-square-o:before {\n  content: \"\\F045\"; }\n\n.fa-check-square-o:before {\n  content: \"\\F046\"; }\n\n.fa-arrows:before {\n  content: \"\\F047\"; }\n\n.fa-step-backward:before {\n  content: \"\\F048\"; }\n\n.fa-fast-backward:before {\n  content: \"\\F049\"; }\n\n.fa-backward:before {\n  content: \"\\F04A\"; }\n\n.fa-play:before {\n  content: \"\\F04B\"; }\n\n.fa-pause:before {\n  content: \"\\F04C\"; }\n\n.fa-stop:before {\n  content: \"\\F04D\"; }\n\n.fa-forward:before {\n  content: \"\\F04E\"; }\n\n.fa-fast-forward:before {\n  content: \"\\F050\"; }\n\n.fa-step-forward:before {\n  content: \"\\F051\"; }\n\n.fa-eject:before {\n  content: \"\\F052\"; }\n\n.fa-chevron-left:before {\n  content: \"\\F053\"; }\n\n.fa-chevron-right:before {\n  content: \"\\F054\"; }\n\n.fa-plus-circle:before {\n  content: \"\\F055\"; }\n\n.fa-minus-circle:before {\n  content: \"\\F056\"; }\n\n.fa-times-circle:before {\n  content: \"\\F057\"; }\n\n.fa-check-circle:before {\n  content: \"\\F058\"; }\n\n.fa-question-circle:before {\n  content: \"\\F059\"; }\n\n.fa-info-circle:before {\n  content: \"\\F05A\"; }\n\n.fa-crosshairs:before {\n  content: \"\\F05B\"; }\n\n.fa-times-circle-o:before {\n  content: \"\\F05C\"; }\n\n.fa-check-circle-o:before {\n  content: \"\\F05D\"; }\n\n.fa-ban:before {\n  content: \"\\F05E\"; }\n\n.fa-arrow-left:before {\n  content: \"\\F060\"; }\n\n.fa-arrow-right:before {\n  content: \"\\F061\"; }\n\n.fa-arrow-up:before {\n  content: \"\\F062\"; }\n\n.fa-arrow-down:before {\n  content: \"\\F063\"; }\n\n.fa-mail-forward:before,\n.fa-share:before {\n  content: \"\\F064\"; }\n\n.fa-expand:before {\n  content: \"\\F065\"; }\n\n.fa-compress:before {\n  content: \"\\F066\"; }\n\n.fa-plus:before {\n  content: \"\\F067\"; }\n\n.fa-minus:before {\n  content: \"\\F068\"; }\n\n.fa-asterisk:before {\n  content: \"\\F069\"; }\n\n.fa-exclamation-circle:before {\n  content: \"\\F06A\"; }\n\n.fa-gift:before {\n  content: \"\\F06B\"; }\n\n.fa-leaf:before {\n  content: \"\\F06C\"; }\n\n.fa-fire:before {\n  content: \"\\F06D\"; }\n\n.fa-eye:before {\n  content: \"\\F06E\"; }\n\n.fa-eye-slash:before {\n  content: \"\\F070\"; }\n\n.fa-warning:before,\n.fa-exclamation-triangle:before {\n  content: \"\\F071\"; }\n\n.fa-plane:before {\n  content: \"\\F072\"; }\n\n.fa-calendar:before {\n  content: \"\\F073\"; }\n\n.fa-random:before {\n  content: \"\\F074\"; }\n\n.fa-comment:before {\n  content: \"\\F075\"; }\n\n.fa-magnet:before {\n  content: \"\\F076\"; }\n\n.fa-chevron-up:before {\n  content: \"\\F077\"; }\n\n.fa-chevron-down:before {\n  content: \"\\F078\"; }\n\n.fa-retweet:before {\n  content: \"\\F079\"; }\n\n.fa-shopping-cart:before {\n  content: \"\\F07A\"; }\n\n.fa-folder:before {\n  content: \"\\F07B\"; }\n\n.fa-folder-open:before {\n  content: \"\\F07C\"; }\n\n.fa-arrows-v:before {\n  content: \"\\F07D\"; }\n\n.fa-arrows-h:before {\n  content: \"\\F07E\"; }\n\n.fa-bar-chart-o:before,\n.fa-bar-chart:before {\n  content: \"\\F080\"; }\n\n.fa-twitter-square:before {\n  content: \"\\F081\"; }\n\n.fa-facebook-square:before {\n  content: \"\\F082\"; }\n\n.fa-camera-retro:before {\n  content: \"\\F083\"; }\n\n.fa-key:before {\n  content: \"\\F084\"; }\n\n.fa-gears:before,\n.fa-cogs:before {\n  content: \"\\F085\"; }\n\n.fa-comments:before {\n  content: \"\\F086\"; }\n\n.fa-thumbs-o-up:before {\n  content: \"\\F087\"; }\n\n.fa-thumbs-o-down:before {\n  content: \"\\F088\"; }\n\n.fa-star-half:before {\n  content: \"\\F089\"; }\n\n.fa-heart-o:before {\n  content: \"\\F08A\"; }\n\n.fa-sign-out:before {\n  content: \"\\F08B\"; }\n\n.fa-linkedin-square:before {\n  content: \"\\F08C\"; }\n\n.fa-thumb-tack:before {\n  content: \"\\F08D\"; }\n\n.fa-external-link:before {\n  content: \"\\F08E\"; }\n\n.fa-sign-in:before {\n  content: \"\\F090\"; }\n\n.fa-trophy:before {\n  content: \"\\F091\"; }\n\n.fa-github-square:before {\n  content: \"\\F092\"; }\n\n.fa-upload:before {\n  content: \"\\F093\"; }\n\n.fa-lemon-o:before {\n  content: \"\\F094\"; }\n\n.fa-phone:before {\n  content: \"\\F095\"; }\n\n.fa-square-o:before {\n  content: \"\\F096\"; }\n\n.fa-bookmark-o:before {\n  content: \"\\F097\"; }\n\n.fa-phone-square:before {\n  content: \"\\F098\"; }\n\n.fa-twitter:before {\n  content: \"\\F099\"; }\n\n.fa-facebook-f:before,\n.fa-facebook:before {\n  content: \"\\F09A\"; }\n\n.fa-github:before {\n  content: \"\\F09B\"; }\n\n.fa-unlock:before {\n  content: \"\\F09C\"; }\n\n.fa-credit-card:before {\n  content: \"\\F09D\"; }\n\n.fa-feed:before,\n.fa-rss:before {\n  content: \"\\F09E\"; }\n\n.fa-hdd-o:before {\n  content: \"\\F0A0\"; }\n\n.fa-bullhorn:before {\n  content: \"\\F0A1\"; }\n\n.fa-bell:before {\n  content: \"\\F0F3\"; }\n\n.fa-certificate:before {\n  content: \"\\F0A3\"; }\n\n.fa-hand-o-right:before {\n  content: \"\\F0A4\"; }\n\n.fa-hand-o-left:before {\n  content: \"\\F0A5\"; }\n\n.fa-hand-o-up:before {\n  content: \"\\F0A6\"; }\n\n.fa-hand-o-down:before {\n  content: \"\\F0A7\"; }\n\n.fa-arrow-circle-left:before {\n  content: \"\\F0A8\"; }\n\n.fa-arrow-circle-right:before {\n  content: \"\\F0A9\"; }\n\n.fa-arrow-circle-up:before {\n  content: \"\\F0AA\"; }\n\n.fa-arrow-circle-down:before {\n  content: \"\\F0AB\"; }\n\n.fa-globe:before {\n  content: \"\\F0AC\"; }\n\n.fa-wrench:before {\n  content: \"\\F0AD\"; }\n\n.fa-tasks:before {\n  content: \"\\F0AE\"; }\n\n.fa-filter:before {\n  content: \"\\F0B0\"; }\n\n.fa-briefcase:before {\n  content: \"\\F0B1\"; }\n\n.fa-arrows-alt:before {\n  content: \"\\F0B2\"; }\n\n.fa-group:before,\n.fa-users:before {\n  content: \"\\F0C0\"; }\n\n.fa-chain:before,\n.fa-link:before {\n  content: \"\\F0C1\"; }\n\n.fa-cloud:before {\n  content: \"\\F0C2\"; }\n\n.fa-flask:before {\n  content: \"\\F0C3\"; }\n\n.fa-cut:before,\n.fa-scissors:before {\n  content: \"\\F0C4\"; }\n\n.fa-copy:before,\n.fa-files-o:before {\n  content: \"\\F0C5\"; }\n\n.fa-paperclip:before {\n  content: \"\\F0C6\"; }\n\n.fa-save:before,\n.fa-floppy-o:before {\n  content: \"\\F0C7\"; }\n\n.fa-square:before {\n  content: \"\\F0C8\"; }\n\n.fa-navicon:before,\n.fa-reorder:before,\n.fa-bars:before {\n  content: \"\\F0C9\"; }\n\n.fa-list-ul:before {\n  content: \"\\F0CA\"; }\n\n.fa-list-ol:before {\n  content: \"\\F0CB\"; }\n\n.fa-strikethrough:before {\n  content: \"\\F0CC\"; }\n\n.fa-underline:before {\n  content: \"\\F0CD\"; }\n\n.fa-table:before {\n  content: \"\\F0CE\"; }\n\n.fa-magic:before {\n  content: \"\\F0D0\"; }\n\n.fa-truck:before {\n  content: \"\\F0D1\"; }\n\n.fa-pinterest:before {\n  content: \"\\F0D2\"; }\n\n.fa-pinterest-square:before {\n  content: \"\\F0D3\"; }\n\n.fa-google-plus-square:before {\n  content: \"\\F0D4\"; }\n\n.fa-google-plus:before {\n  content: \"\\F0D5\"; }\n\n.fa-money:before {\n  content: \"\\F0D6\"; }\n\n.fa-caret-down:before {\n  content: \"\\F0D7\"; }\n\n.fa-caret-up:before {\n  content: \"\\F0D8\"; }\n\n.fa-caret-left:before {\n  content: \"\\F0D9\"; }\n\n.fa-caret-right:before {\n  content: \"\\F0DA\"; }\n\n.fa-columns:before {\n  content: \"\\F0DB\"; }\n\n.fa-unsorted:before,\n.fa-sort:before {\n  content: \"\\F0DC\"; }\n\n.fa-sort-down:before,\n.fa-sort-desc:before {\n  content: \"\\F0DD\"; }\n\n.fa-sort-up:before,\n.fa-sort-asc:before {\n  content: \"\\F0DE\"; }\n\n.fa-envelope:before {\n  content: \"\\F0E0\"; }\n\n.fa-linkedin:before {\n  content: \"\\F0E1\"; }\n\n.fa-rotate-left:before,\n.fa-undo:before {\n  content: \"\\F0E2\"; }\n\n.fa-legal:before,\n.fa-gavel:before {\n  content: \"\\F0E3\"; }\n\n.fa-dashboard:before,\n.fa-tachometer:before {\n  content: \"\\F0E4\"; }\n\n.fa-comment-o:before {\n  content: \"\\F0E5\"; }\n\n.fa-comments-o:before {\n  content: \"\\F0E6\"; }\n\n.fa-flash:before,\n.fa-bolt:before {\n  content: \"\\F0E7\"; }\n\n.fa-sitemap:before {\n  content: \"\\F0E8\"; }\n\n.fa-umbrella:before {\n  content: \"\\F0E9\"; }\n\n.fa-paste:before,\n.fa-clipboard:before {\n  content: \"\\F0EA\"; }\n\n.fa-lightbulb-o:before {\n  content: \"\\F0EB\"; }\n\n.fa-exchange:before {\n  content: \"\\F0EC\"; }\n\n.fa-cloud-download:before {\n  content: \"\\F0ED\"; }\n\n.fa-cloud-upload:before {\n  content: \"\\F0EE\"; }\n\n.fa-user-md:before {\n  content: \"\\F0F0\"; }\n\n.fa-stethoscope:before {\n  content: \"\\F0F1\"; }\n\n.fa-suitcase:before {\n  content: \"\\F0F2\"; }\n\n.fa-bell-o:before {\n  content: \"\\F0A2\"; }\n\n.fa-coffee:before {\n  content: \"\\F0F4\"; }\n\n.fa-cutlery:before {\n  content: \"\\F0F5\"; }\n\n.fa-file-text-o:before {\n  content: \"\\F0F6\"; }\n\n.fa-building-o:before {\n  content: \"\\F0F7\"; }\n\n.fa-hospital-o:before {\n  content: \"\\F0F8\"; }\n\n.fa-ambulance:before {\n  content: \"\\F0F9\"; }\n\n.fa-medkit:before {\n  content: \"\\F0FA\"; }\n\n.fa-fighter-jet:before {\n  content: \"\\F0FB\"; }\n\n.fa-beer:before {\n  content: \"\\F0FC\"; }\n\n.fa-h-square:before {\n  content: \"\\F0FD\"; }\n\n.fa-plus-square:before {\n  content: \"\\F0FE\"; }\n\n.fa-angle-double-left:before {\n  content: \"\\F100\"; }\n\n.fa-angle-double-right:before {\n  content: \"\\F101\"; }\n\n.fa-angle-double-up:before {\n  content: \"\\F102\"; }\n\n.fa-angle-double-down:before {\n  content: \"\\F103\"; }\n\n.fa-angle-left:before {\n  content: \"\\F104\"; }\n\n.fa-angle-right:before {\n  content: \"\\F105\"; }\n\n.fa-angle-up:before {\n  content: \"\\F106\"; }\n\n.fa-angle-down:before {\n  content: \"\\F107\"; }\n\n.fa-desktop:before {\n  content: \"\\F108\"; }\n\n.fa-laptop:before {\n  content: \"\\F109\"; }\n\n.fa-tablet:before {\n  content: \"\\F10A\"; }\n\n.fa-mobile-phone:before,\n.fa-mobile:before {\n  content: \"\\F10B\"; }\n\n.fa-circle-o:before {\n  content: \"\\F10C\"; }\n\n.fa-quote-left:before {\n  content: \"\\F10D\"; }\n\n.fa-quote-right:before {\n  content: \"\\F10E\"; }\n\n.fa-spinner:before {\n  content: \"\\F110\"; }\n\n.fa-circle:before {\n  content: \"\\F111\"; }\n\n.fa-mail-reply:before,\n.fa-reply:before {\n  content: \"\\F112\"; }\n\n.fa-github-alt:before {\n  content: \"\\F113\"; }\n\n.fa-folder-o:before {\n  content: \"\\F114\"; }\n\n.fa-folder-open-o:before {\n  content: \"\\F115\"; }\n\n.fa-smile-o:before {\n  content: \"\\F118\"; }\n\n.fa-frown-o:before {\n  content: \"\\F119\"; }\n\n.fa-meh-o:before {\n  content: \"\\F11A\"; }\n\n.fa-gamepad:before {\n  content: \"\\F11B\"; }\n\n.fa-keyboard-o:before {\n  content: \"\\F11C\"; }\n\n.fa-flag-o:before {\n  content: \"\\F11D\"; }\n\n.fa-flag-checkered:before {\n  content: \"\\F11E\"; }\n\n.fa-terminal:before {\n  content: \"\\F120\"; }\n\n.fa-code:before {\n  content: \"\\F121\"; }\n\n.fa-mail-reply-all:before,\n.fa-reply-all:before {\n  content: \"\\F122\"; }\n\n.fa-star-half-empty:before,\n.fa-star-half-full:before,\n.fa-star-half-o:before {\n  content: \"\\F123\"; }\n\n.fa-location-arrow:before {\n  content: \"\\F124\"; }\n\n.fa-crop:before {\n  content: \"\\F125\"; }\n\n.fa-code-fork:before {\n  content: \"\\F126\"; }\n\n.fa-unlink:before,\n.fa-chain-broken:before {\n  content: \"\\F127\"; }\n\n.fa-question:before {\n  content: \"\\F128\"; }\n\n.fa-info:before {\n  content: \"\\F129\"; }\n\n.fa-exclamation:before {\n  content: \"\\F12A\"; }\n\n.fa-superscript:before {\n  content: \"\\F12B\"; }\n\n.fa-subscript:before {\n  content: \"\\F12C\"; }\n\n.fa-eraser:before {\n  content: \"\\F12D\"; }\n\n.fa-puzzle-piece:before {\n  content: \"\\F12E\"; }\n\n.fa-microphone:before {\n  content: \"\\F130\"; }\n\n.fa-microphone-slash:before {\n  content: \"\\F131\"; }\n\n.fa-shield:before {\n  content: \"\\F132\"; }\n\n.fa-calendar-o:before {\n  content: \"\\F133\"; }\n\n.fa-fire-extinguisher:before {\n  content: \"\\F134\"; }\n\n.fa-rocket:before {\n  content: \"\\F135\"; }\n\n.fa-maxcdn:before {\n  content: \"\\F136\"; }\n\n.fa-chevron-circle-left:before {\n  content: \"\\F137\"; }\n\n.fa-chevron-circle-right:before {\n  content: \"\\F138\"; }\n\n.fa-chevron-circle-up:before {\n  content: \"\\F139\"; }\n\n.fa-chevron-circle-down:before {\n  content: \"\\F13A\"; }\n\n.fa-html5:before {\n  content: \"\\F13B\"; }\n\n.fa-css3:before {\n  content: \"\\F13C\"; }\n\n.fa-anchor:before {\n  content: \"\\F13D\"; }\n\n.fa-unlock-alt:before {\n  content: \"\\F13E\"; }\n\n.fa-bullseye:before {\n  content: \"\\F140\"; }\n\n.fa-ellipsis-h:before {\n  content: \"\\F141\"; }\n\n.fa-ellipsis-v:before {\n  content: \"\\F142\"; }\n\n.fa-rss-square:before {\n  content: \"\\F143\"; }\n\n.fa-play-circle:before {\n  content: \"\\F144\"; }\n\n.fa-ticket:before {\n  content: \"\\F145\"; }\n\n.fa-minus-square:before {\n  content: \"\\F146\"; }\n\n.fa-minus-square-o:before {\n  content: \"\\F147\"; }\n\n.fa-level-up:before {\n  content: \"\\F148\"; }\n\n.fa-level-down:before {\n  content: \"\\F149\"; }\n\n.fa-check-square:before {\n  content: \"\\F14A\"; }\n\n.fa-pencil-square:before {\n  content: \"\\F14B\"; }\n\n.fa-external-link-square:before {\n  content: \"\\F14C\"; }\n\n.fa-share-square:before {\n  content: \"\\F14D\"; }\n\n.fa-compass:before {\n  content: \"\\F14E\"; }\n\n.fa-toggle-down:before,\n.fa-caret-square-o-down:before {\n  content: \"\\F150\"; }\n\n.fa-toggle-up:before,\n.fa-caret-square-o-up:before {\n  content: \"\\F151\"; }\n\n.fa-toggle-right:before,\n.fa-caret-square-o-right:before {\n  content: \"\\F152\"; }\n\n.fa-euro:before,\n.fa-eur:before {\n  content: \"\\F153\"; }\n\n.fa-gbp:before {\n  content: \"\\F154\"; }\n\n.fa-dollar:before,\n.fa-usd:before {\n  content: \"\\F155\"; }\n\n.fa-rupee:before,\n.fa-inr:before {\n  content: \"\\F156\"; }\n\n.fa-cny:before,\n.fa-rmb:before,\n.fa-yen:before,\n.fa-jpy:before {\n  content: \"\\F157\"; }\n\n.fa-ruble:before,\n.fa-rouble:before,\n.fa-rub:before {\n  content: \"\\F158\"; }\n\n.fa-won:before,\n.fa-krw:before {\n  content: \"\\F159\"; }\n\n.fa-bitcoin:before,\n.fa-btc:before {\n  content: \"\\F15A\"; }\n\n.fa-file:before {\n  content: \"\\F15B\"; }\n\n.fa-file-text:before {\n  content: \"\\F15C\"; }\n\n.fa-sort-alpha-asc:before {\n  content: \"\\F15D\"; }\n\n.fa-sort-alpha-desc:before {\n  content: \"\\F15E\"; }\n\n.fa-sort-amount-asc:before {\n  content: \"\\F160\"; }\n\n.fa-sort-amount-desc:before {\n  content: \"\\F161\"; }\n\n.fa-sort-numeric-asc:before {\n  content: \"\\F162\"; }\n\n.fa-sort-numeric-desc:before {\n  content: \"\\F163\"; }\n\n.fa-thumbs-up:before {\n  content: \"\\F164\"; }\n\n.fa-thumbs-down:before {\n  content: \"\\F165\"; }\n\n.fa-youtube-square:before {\n  content: \"\\F166\"; }\n\n.fa-youtube:before {\n  content: \"\\F167\"; }\n\n.fa-xing:before {\n  content: \"\\F168\"; }\n\n.fa-xing-square:before {\n  content: \"\\F169\"; }\n\n.fa-youtube-play:before {\n  content: \"\\F16A\"; }\n\n.fa-dropbox:before {\n  content: \"\\F16B\"; }\n\n.fa-stack-overflow:before {\n  content: \"\\F16C\"; }\n\n.fa-instagram:before {\n  content: \"\\F16D\"; }\n\n.fa-flickr:before {\n  content: \"\\F16E\"; }\n\n.fa-adn:before {\n  content: \"\\F170\"; }\n\n.fa-bitbucket:before {\n  content: \"\\F171\"; }\n\n.fa-bitbucket-square:before {\n  content: \"\\F172\"; }\n\n.fa-tumblr:before {\n  content: \"\\F173\"; }\n\n.fa-tumblr-square:before {\n  content: \"\\F174\"; }\n\n.fa-long-arrow-down:before {\n  content: \"\\F175\"; }\n\n.fa-long-arrow-up:before {\n  content: \"\\F176\"; }\n\n.fa-long-arrow-left:before {\n  content: \"\\F177\"; }\n\n.fa-long-arrow-right:before {\n  content: \"\\F178\"; }\n\n.fa-apple:before {\n  content: \"\\F179\"; }\n\n.fa-windows:before {\n  content: \"\\F17A\"; }\n\n.fa-android:before {\n  content: \"\\F17B\"; }\n\n.fa-linux:before {\n  content: \"\\F17C\"; }\n\n.fa-dribbble:before {\n  content: \"\\F17D\"; }\n\n.fa-skype:before {\n  content: \"\\F17E\"; }\n\n.fa-foursquare:before {\n  content: \"\\F180\"; }\n\n.fa-trello:before {\n  content: \"\\F181\"; }\n\n.fa-female:before {\n  content: \"\\F182\"; }\n\n.fa-male:before {\n  content: \"\\F183\"; }\n\n.fa-gittip:before,\n.fa-gratipay:before {\n  content: \"\\F184\"; }\n\n.fa-sun-o:before {\n  content: \"\\F185\"; }\n\n.fa-moon-o:before {\n  content: \"\\F186\"; }\n\n.fa-archive:before {\n  content: \"\\F187\"; }\n\n.fa-bug:before {\n  content: \"\\F188\"; }\n\n.fa-vk:before {\n  content: \"\\F189\"; }\n\n.fa-weibo:before {\n  content: \"\\F18A\"; }\n\n.fa-renren:before {\n  content: \"\\F18B\"; }\n\n.fa-pagelines:before {\n  content: \"\\F18C\"; }\n\n.fa-stack-exchange:before {\n  content: \"\\F18D\"; }\n\n.fa-arrow-circle-o-right:before {\n  content: \"\\F18E\"; }\n\n.fa-arrow-circle-o-left:before {\n  content: \"\\F190\"; }\n\n.fa-toggle-left:before,\n.fa-caret-square-o-left:before {\n  content: \"\\F191\"; }\n\n.fa-dot-circle-o:before {\n  content: \"\\F192\"; }\n\n.fa-wheelchair:before {\n  content: \"\\F193\"; }\n\n.fa-vimeo-square:before {\n  content: \"\\F194\"; }\n\n.fa-turkish-lira:before,\n.fa-try:before {\n  content: \"\\F195\"; }\n\n.fa-plus-square-o:before {\n  content: \"\\F196\"; }\n\n.fa-space-shuttle:before {\n  content: \"\\F197\"; }\n\n.fa-slack:before {\n  content: \"\\F198\"; }\n\n.fa-envelope-square:before {\n  content: \"\\F199\"; }\n\n.fa-wordpress:before {\n  content: \"\\F19A\"; }\n\n.fa-openid:before {\n  content: \"\\F19B\"; }\n\n.fa-institution:before,\n.fa-bank:before,\n.fa-university:before {\n  content: \"\\F19C\"; }\n\n.fa-mortar-board:before,\n.fa-graduation-cap:before {\n  content: \"\\F19D\"; }\n\n.fa-yahoo:before {\n  content: \"\\F19E\"; }\n\n.fa-google:before {\n  content: \"\\F1A0\"; }\n\n.fa-reddit:before {\n  content: \"\\F1A1\"; }\n\n.fa-reddit-square:before {\n  content: \"\\F1A2\"; }\n\n.fa-stumbleupon-circle:before {\n  content: \"\\F1A3\"; }\n\n.fa-stumbleupon:before {\n  content: \"\\F1A4\"; }\n\n.fa-delicious:before {\n  content: \"\\F1A5\"; }\n\n.fa-digg:before {\n  content: \"\\F1A6\"; }\n\n.fa-pied-piper-pp:before {\n  content: \"\\F1A7\"; }\n\n.fa-pied-piper-alt:before {\n  content: \"\\F1A8\"; }\n\n.fa-drupal:before {\n  content: \"\\F1A9\"; }\n\n.fa-joomla:before {\n  content: \"\\F1AA\"; }\n\n.fa-language:before {\n  content: \"\\F1AB\"; }\n\n.fa-fax:before {\n  content: \"\\F1AC\"; }\n\n.fa-building:before {\n  content: \"\\F1AD\"; }\n\n.fa-child:before {\n  content: \"\\F1AE\"; }\n\n.fa-paw:before {\n  content: \"\\F1B0\"; }\n\n.fa-spoon:before {\n  content: \"\\F1B1\"; }\n\n.fa-cube:before {\n  content: \"\\F1B2\"; }\n\n.fa-cubes:before {\n  content: \"\\F1B3\"; }\n\n.fa-behance:before {\n  content: \"\\F1B4\"; }\n\n.fa-behance-square:before {\n  content: \"\\F1B5\"; }\n\n.fa-steam:before {\n  content: \"\\F1B6\"; }\n\n.fa-steam-square:before {\n  content: \"\\F1B7\"; }\n\n.fa-recycle:before {\n  content: \"\\F1B8\"; }\n\n.fa-automobile:before,\n.fa-car:before {\n  content: \"\\F1B9\"; }\n\n.fa-cab:before,\n.fa-taxi:before {\n  content: \"\\F1BA\"; }\n\n.fa-tree:before {\n  content: \"\\F1BB\"; }\n\n.fa-spotify:before {\n  content: \"\\F1BC\"; }\n\n.fa-deviantart:before {\n  content: \"\\F1BD\"; }\n\n.fa-soundcloud:before {\n  content: \"\\F1BE\"; }\n\n.fa-database:before {\n  content: \"\\F1C0\"; }\n\n.fa-file-pdf-o:before {\n  content: \"\\F1C1\"; }\n\n.fa-file-word-o:before {\n  content: \"\\F1C2\"; }\n\n.fa-file-excel-o:before {\n  content: \"\\F1C3\"; }\n\n.fa-file-powerpoint-o:before {\n  content: \"\\F1C4\"; }\n\n.fa-file-photo-o:before,\n.fa-file-picture-o:before,\n.fa-file-image-o:before {\n  content: \"\\F1C5\"; }\n\n.fa-file-zip-o:before,\n.fa-file-archive-o:before {\n  content: \"\\F1C6\"; }\n\n.fa-file-sound-o:before,\n.fa-file-audio-o:before {\n  content: \"\\F1C7\"; }\n\n.fa-file-movie-o:before,\n.fa-file-video-o:before {\n  content: \"\\F1C8\"; }\n\n.fa-file-code-o:before {\n  content: \"\\F1C9\"; }\n\n.fa-vine:before {\n  content: \"\\F1CA\"; }\n\n.fa-codepen:before {\n  content: \"\\F1CB\"; }\n\n.fa-jsfiddle:before {\n  content: \"\\F1CC\"; }\n\n.fa-life-bouy:before,\n.fa-life-buoy:before,\n.fa-life-saver:before,\n.fa-support:before,\n.fa-life-ring:before {\n  content: \"\\F1CD\"; }\n\n.fa-circle-o-notch:before {\n  content: \"\\F1CE\"; }\n\n.fa-ra:before,\n.fa-resistance:before,\n.fa-rebel:before {\n  content: \"\\F1D0\"; }\n\n.fa-ge:before,\n.fa-empire:before {\n  content: \"\\F1D1\"; }\n\n.fa-git-square:before {\n  content: \"\\F1D2\"; }\n\n.fa-git:before {\n  content: \"\\F1D3\"; }\n\n.fa-y-combinator-square:before,\n.fa-yc-square:before,\n.fa-hacker-news:before {\n  content: \"\\F1D4\"; }\n\n.fa-tencent-weibo:before {\n  content: \"\\F1D5\"; }\n\n.fa-qq:before {\n  content: \"\\F1D6\"; }\n\n.fa-wechat:before,\n.fa-weixin:before {\n  content: \"\\F1D7\"; }\n\n.fa-send:before,\n.fa-paper-plane:before {\n  content: \"\\F1D8\"; }\n\n.fa-send-o:before,\n.fa-paper-plane-o:before {\n  content: \"\\F1D9\"; }\n\n.fa-history:before {\n  content: \"\\F1DA\"; }\n\n.fa-circle-thin:before {\n  content: \"\\F1DB\"; }\n\n.fa-header:before {\n  content: \"\\F1DC\"; }\n\n.fa-paragraph:before {\n  content: \"\\F1DD\"; }\n\n.fa-sliders:before {\n  content: \"\\F1DE\"; }\n\n.fa-share-alt:before {\n  content: \"\\F1E0\"; }\n\n.fa-share-alt-square:before {\n  content: \"\\F1E1\"; }\n\n.fa-bomb:before {\n  content: \"\\F1E2\"; }\n\n.fa-soccer-ball-o:before,\n.fa-futbol-o:before {\n  content: \"\\F1E3\"; }\n\n.fa-tty:before {\n  content: \"\\F1E4\"; }\n\n.fa-binoculars:before {\n  content: \"\\F1E5\"; }\n\n.fa-plug:before {\n  content: \"\\F1E6\"; }\n\n.fa-slideshare:before {\n  content: \"\\F1E7\"; }\n\n.fa-twitch:before {\n  content: \"\\F1E8\"; }\n\n.fa-yelp:before {\n  content: \"\\F1E9\"; }\n\n.fa-newspaper-o:before {\n  content: \"\\F1EA\"; }\n\n.fa-wifi:before {\n  content: \"\\F1EB\"; }\n\n.fa-calculator:before {\n  content: \"\\F1EC\"; }\n\n.fa-paypal:before {\n  content: \"\\F1ED\"; }\n\n.fa-google-wallet:before {\n  content: \"\\F1EE\"; }\n\n.fa-cc-visa:before {\n  content: \"\\F1F0\"; }\n\n.fa-cc-mastercard:before {\n  content: \"\\F1F1\"; }\n\n.fa-cc-discover:before {\n  content: \"\\F1F2\"; }\n\n.fa-cc-amex:before {\n  content: \"\\F1F3\"; }\n\n.fa-cc-paypal:before {\n  content: \"\\F1F4\"; }\n\n.fa-cc-stripe:before {\n  content: \"\\F1F5\"; }\n\n.fa-bell-slash:before {\n  content: \"\\F1F6\"; }\n\n.fa-bell-slash-o:before {\n  content: \"\\F1F7\"; }\n\n.fa-trash:before {\n  content: \"\\F1F8\"; }\n\n.fa-copyright:before {\n  content: \"\\F1F9\"; }\n\n.fa-at:before {\n  content: \"\\F1FA\"; }\n\n.fa-eyedropper:before {\n  content: \"\\F1FB\"; }\n\n.fa-paint-brush:before {\n  content: \"\\F1FC\"; }\n\n.fa-birthday-cake:before {\n  content: \"\\F1FD\"; }\n\n.fa-area-chart:before {\n  content: \"\\F1FE\"; }\n\n.fa-pie-chart:before {\n  content: \"\\F200\"; }\n\n.fa-line-chart:before {\n  content: \"\\F201\"; }\n\n.fa-lastfm:before {\n  content: \"\\F202\"; }\n\n.fa-lastfm-square:before {\n  content: \"\\F203\"; }\n\n.fa-toggle-off:before {\n  content: \"\\F204\"; }\n\n.fa-toggle-on:before {\n  content: \"\\F205\"; }\n\n.fa-bicycle:before {\n  content: \"\\F206\"; }\n\n.fa-bus:before {\n  content: \"\\F207\"; }\n\n.fa-ioxhost:before {\n  content: \"\\F208\"; }\n\n.fa-angellist:before {\n  content: \"\\F209\"; }\n\n.fa-cc:before {\n  content: \"\\F20A\"; }\n\n.fa-shekel:before,\n.fa-sheqel:before,\n.fa-ils:before {\n  content: \"\\F20B\"; }\n\n.fa-meanpath:before {\n  content: \"\\F20C\"; }\n\n.fa-buysellads:before {\n  content: \"\\F20D\"; }\n\n.fa-connectdevelop:before {\n  content: \"\\F20E\"; }\n\n.fa-dashcube:before {\n  content: \"\\F210\"; }\n\n.fa-forumbee:before {\n  content: \"\\F211\"; }\n\n.fa-leanpub:before {\n  content: \"\\F212\"; }\n\n.fa-sellsy:before {\n  content: \"\\F213\"; }\n\n.fa-shirtsinbulk:before {\n  content: \"\\F214\"; }\n\n.fa-simplybuilt:before {\n  content: \"\\F215\"; }\n\n.fa-skyatlas:before {\n  content: \"\\F216\"; }\n\n.fa-cart-plus:before {\n  content: \"\\F217\"; }\n\n.fa-cart-arrow-down:before {\n  content: \"\\F218\"; }\n\n.fa-diamond:before {\n  content: \"\\F219\"; }\n\n.fa-ship:before {\n  content: \"\\F21A\"; }\n\n.fa-user-secret:before {\n  content: \"\\F21B\"; }\n\n.fa-motorcycle:before {\n  content: \"\\F21C\"; }\n\n.fa-street-view:before {\n  content: \"\\F21D\"; }\n\n.fa-heartbeat:before {\n  content: \"\\F21E\"; }\n\n.fa-venus:before {\n  content: \"\\F221\"; }\n\n.fa-mars:before {\n  content: \"\\F222\"; }\n\n.fa-mercury:before {\n  content: \"\\F223\"; }\n\n.fa-intersex:before,\n.fa-transgender:before {\n  content: \"\\F224\"; }\n\n.fa-transgender-alt:before {\n  content: \"\\F225\"; }\n\n.fa-venus-double:before {\n  content: \"\\F226\"; }\n\n.fa-mars-double:before {\n  content: \"\\F227\"; }\n\n.fa-venus-mars:before {\n  content: \"\\F228\"; }\n\n.fa-mars-stroke:before {\n  content: \"\\F229\"; }\n\n.fa-mars-stroke-v:before {\n  content: \"\\F22A\"; }\n\n.fa-mars-stroke-h:before {\n  content: \"\\F22B\"; }\n\n.fa-neuter:before {\n  content: \"\\F22C\"; }\n\n.fa-genderless:before {\n  content: \"\\F22D\"; }\n\n.fa-facebook-official:before {\n  content: \"\\F230\"; }\n\n.fa-pinterest-p:before {\n  content: \"\\F231\"; }\n\n.fa-whatsapp:before {\n  content: \"\\F232\"; }\n\n.fa-server:before {\n  content: \"\\F233\"; }\n\n.fa-user-plus:before {\n  content: \"\\F234\"; }\n\n.fa-user-times:before {\n  content: \"\\F235\"; }\n\n.fa-hotel:before,\n.fa-bed:before {\n  content: \"\\F236\"; }\n\n.fa-viacoin:before {\n  content: \"\\F237\"; }\n\n.fa-train:before {\n  content: \"\\F238\"; }\n\n.fa-subway:before {\n  content: \"\\F239\"; }\n\n.fa-medium:before {\n  content: \"\\F23A\"; }\n\n.fa-yc:before,\n.fa-y-combinator:before {\n  content: \"\\F23B\"; }\n\n.fa-optin-monster:before {\n  content: \"\\F23C\"; }\n\n.fa-opencart:before {\n  content: \"\\F23D\"; }\n\n.fa-expeditedssl:before {\n  content: \"\\F23E\"; }\n\n.fa-battery-4:before,\n.fa-battery-full:before {\n  content: \"\\F240\"; }\n\n.fa-battery-3:before,\n.fa-battery-three-quarters:before {\n  content: \"\\F241\"; }\n\n.fa-battery-2:before,\n.fa-battery-half:before {\n  content: \"\\F242\"; }\n\n.fa-battery-1:before,\n.fa-battery-quarter:before {\n  content: \"\\F243\"; }\n\n.fa-battery-0:before,\n.fa-battery-empty:before {\n  content: \"\\F244\"; }\n\n.fa-mouse-pointer:before {\n  content: \"\\F245\"; }\n\n.fa-i-cursor:before {\n  content: \"\\F246\"; }\n\n.fa-object-group:before {\n  content: \"\\F247\"; }\n\n.fa-object-ungroup:before {\n  content: \"\\F248\"; }\n\n.fa-sticky-note:before {\n  content: \"\\F249\"; }\n\n.fa-sticky-note-o:before {\n  content: \"\\F24A\"; }\n\n.fa-cc-jcb:before {\n  content: \"\\F24B\"; }\n\n.fa-cc-diners-club:before {\n  content: \"\\F24C\"; }\n\n.fa-clone:before {\n  content: \"\\F24D\"; }\n\n.fa-balance-scale:before {\n  content: \"\\F24E\"; }\n\n.fa-hourglass-o:before {\n  content: \"\\F250\"; }\n\n.fa-hourglass-1:before,\n.fa-hourglass-start:before {\n  content: \"\\F251\"; }\n\n.fa-hourglass-2:before,\n.fa-hourglass-half:before {\n  content: \"\\F252\"; }\n\n.fa-hourglass-3:before,\n.fa-hourglass-end:before {\n  content: \"\\F253\"; }\n\n.fa-hourglass:before {\n  content: \"\\F254\"; }\n\n.fa-hand-grab-o:before,\n.fa-hand-rock-o:before {\n  content: \"\\F255\"; }\n\n.fa-hand-stop-o:before,\n.fa-hand-paper-o:before {\n  content: \"\\F256\"; }\n\n.fa-hand-scissors-o:before {\n  content: \"\\F257\"; }\n\n.fa-hand-lizard-o:before {\n  content: \"\\F258\"; }\n\n.fa-hand-spock-o:before {\n  content: \"\\F259\"; }\n\n.fa-hand-pointer-o:before {\n  content: \"\\F25A\"; }\n\n.fa-hand-peace-o:before {\n  content: \"\\F25B\"; }\n\n.fa-trademark:before {\n  content: \"\\F25C\"; }\n\n.fa-registered:before {\n  content: \"\\F25D\"; }\n\n.fa-creative-commons:before {\n  content: \"\\F25E\"; }\n\n.fa-gg:before {\n  content: \"\\F260\"; }\n\n.fa-gg-circle:before {\n  content: \"\\F261\"; }\n\n.fa-tripadvisor:before {\n  content: \"\\F262\"; }\n\n.fa-odnoklassniki:before {\n  content: \"\\F263\"; }\n\n.fa-odnoklassniki-square:before {\n  content: \"\\F264\"; }\n\n.fa-get-pocket:before {\n  content: \"\\F265\"; }\n\n.fa-wikipedia-w:before {\n  content: \"\\F266\"; }\n\n.fa-safari:before {\n  content: \"\\F267\"; }\n\n.fa-chrome:before {\n  content: \"\\F268\"; }\n\n.fa-firefox:before {\n  content: \"\\F269\"; }\n\n.fa-opera:before {\n  content: \"\\F26A\"; }\n\n.fa-internet-explorer:before {\n  content: \"\\F26B\"; }\n\n.fa-tv:before,\n.fa-television:before {\n  content: \"\\F26C\"; }\n\n.fa-contao:before {\n  content: \"\\F26D\"; }\n\n.fa-500px:before {\n  content: \"\\F26E\"; }\n\n.fa-amazon:before {\n  content: \"\\F270\"; }\n\n.fa-calendar-plus-o:before {\n  content: \"\\F271\"; }\n\n.fa-calendar-minus-o:before {\n  content: \"\\F272\"; }\n\n.fa-calendar-times-o:before {\n  content: \"\\F273\"; }\n\n.fa-calendar-check-o:before {\n  content: \"\\F274\"; }\n\n.fa-industry:before {\n  content: \"\\F275\"; }\n\n.fa-map-pin:before {\n  content: \"\\F276\"; }\n\n.fa-map-signs:before {\n  content: \"\\F277\"; }\n\n.fa-map-o:before {\n  content: \"\\F278\"; }\n\n.fa-map:before {\n  content: \"\\F279\"; }\n\n.fa-commenting:before {\n  content: \"\\F27A\"; }\n\n.fa-commenting-o:before {\n  content: \"\\F27B\"; }\n\n.fa-houzz:before {\n  content: \"\\F27C\"; }\n\n.fa-vimeo:before {\n  content: \"\\F27D\"; }\n\n.fa-black-tie:before {\n  content: \"\\F27E\"; }\n\n.fa-fonticons:before {\n  content: \"\\F280\"; }\n\n.fa-reddit-alien:before {\n  content: \"\\F281\"; }\n\n.fa-edge:before {\n  content: \"\\F282\"; }\n\n.fa-credit-card-alt:before {\n  content: \"\\F283\"; }\n\n.fa-codiepie:before {\n  content: \"\\F284\"; }\n\n.fa-modx:before {\n  content: \"\\F285\"; }\n\n.fa-fort-awesome:before {\n  content: \"\\F286\"; }\n\n.fa-usb:before {\n  content: \"\\F287\"; }\n\n.fa-product-hunt:before {\n  content: \"\\F288\"; }\n\n.fa-mixcloud:before {\n  content: \"\\F289\"; }\n\n.fa-scribd:before {\n  content: \"\\F28A\"; }\n\n.fa-pause-circle:before {\n  content: \"\\F28B\"; }\n\n.fa-pause-circle-o:before {\n  content: \"\\F28C\"; }\n\n.fa-stop-circle:before {\n  content: \"\\F28D\"; }\n\n.fa-stop-circle-o:before {\n  content: \"\\F28E\"; }\n\n.fa-shopping-bag:before {\n  content: \"\\F290\"; }\n\n.fa-shopping-basket:before {\n  content: \"\\F291\"; }\n\n.fa-hashtag:before {\n  content: \"\\F292\"; }\n\n.fa-bluetooth:before {\n  content: \"\\F293\"; }\n\n.fa-bluetooth-b:before {\n  content: \"\\F294\"; }\n\n.fa-percent:before {\n  content: \"\\F295\"; }\n\n.fa-gitlab:before {\n  content: \"\\F296\"; }\n\n.fa-wpbeginner:before {\n  content: \"\\F297\"; }\n\n.fa-wpforms:before {\n  content: \"\\F298\"; }\n\n.fa-envira:before {\n  content: \"\\F299\"; }\n\n.fa-universal-access:before {\n  content: \"\\F29A\"; }\n\n.fa-wheelchair-alt:before {\n  content: \"\\F29B\"; }\n\n.fa-question-circle-o:before {\n  content: \"\\F29C\"; }\n\n.fa-blind:before {\n  content: \"\\F29D\"; }\n\n.fa-audio-description:before {\n  content: \"\\F29E\"; }\n\n.fa-volume-control-phone:before {\n  content: \"\\F2A0\"; }\n\n.fa-braille:before {\n  content: \"\\F2A1\"; }\n\n.fa-assistive-listening-systems:before {\n  content: \"\\F2A2\"; }\n\n.fa-asl-interpreting:before,\n.fa-american-sign-language-interpreting:before {\n  content: \"\\F2A3\"; }\n\n.fa-deafness:before,\n.fa-hard-of-hearing:before,\n.fa-deaf:before {\n  content: \"\\F2A4\"; }\n\n.fa-glide:before {\n  content: \"\\F2A5\"; }\n\n.fa-glide-g:before {\n  content: \"\\F2A6\"; }\n\n.fa-signing:before,\n.fa-sign-language:before {\n  content: \"\\F2A7\"; }\n\n.fa-low-vision:before {\n  content: \"\\F2A8\"; }\n\n.fa-viadeo:before {\n  content: \"\\F2A9\"; }\n\n.fa-viadeo-square:before {\n  content: \"\\F2AA\"; }\n\n.fa-snapchat:before {\n  content: \"\\F2AB\"; }\n\n.fa-snapchat-ghost:before {\n  content: \"\\F2AC\"; }\n\n.fa-snapchat-square:before {\n  content: \"\\F2AD\"; }\n\n.fa-pied-piper:before {\n  content: \"\\F2AE\"; }\n\n.fa-first-order:before {\n  content: \"\\F2B0\"; }\n\n.fa-yoast:before {\n  content: \"\\F2B1\"; }\n\n.fa-themeisle:before {\n  content: \"\\F2B2\"; }\n\n.fa-google-plus-circle:before,\n.fa-google-plus-official:before {\n  content: \"\\F2B3\"; }\n\n.fa-fa:before,\n.fa-font-awesome:before {\n  content: \"\\F2B4\"; }\n\n.sr-only {\n  position: absolute;\n  width: 1px;\n  height: 1px;\n  padding: 0;\n  margin: -1px;\n  overflow: hidden;\n  clip: rect(0, 0, 0, 0);\n  border: 0; }\n\n.sr-only-focusable:active, .sr-only-focusable:focus {\n  position: static;\n  width: auto;\n  height: auto;\n  margin: 0;\n  overflow: visible;\n  clip: auto; }\n\n.icon {\n  display: inline-block;\n  font: normal normal normal 14px/1 FontAwesome;\n  font-size: inherit;\n  text-rendering: auto;\n  -webkit-font-smoothing: antialiased;\n  -moz-osx-font-smoothing: grayscale;\n  font-size: 20px; }\n\n.icon-not-ok:before {\n  content: \"\\F05C\"; }\n\n.icon-not-ok {\n  color: #cc0000; }\n\n.icon-ok:before {\n  content: \"\\F05D\"; }\n\n.icon-ok {\n  color: #4FD156; }\n\n.icon-unknown:before {\n  content: \"\\F29C\"; }\n\n.icon-unknown {\n  color: #c1c1c1; }\n\n@font-face {\n  font-family: 'ooni-icons';\n  src: url(" + __webpack_require__(34) + ");\n  src: url(" + __webpack_require__(34) + ") format(\"embedded-opentype\"), url(" + __webpack_require__(35) + ") format(\"truetype\"), url(" + __webpack_require__(36) + ") format(\"woff\"), url(" + __webpack_require__(37) + ") format(\"svg\");\n  font-weight: normal;\n  font-style: normal; }\n\n.ooni {\n  /* use !important to prevent issues with browser extensions that change fonts */\n  font-family: 'ooni-icons' !important;\n  speak: none;\n  font-style: normal;\n  font-weight: normal;\n  font-variant: normal;\n  text-transform: none;\n  line-height: 1;\n  /* Better Font Rendering =========== */\n  -webkit-font-smoothing: antialiased;\n  -moz-osx-font-smoothing: grayscale; }\n\n.icon-analysis:before {\n  content: \"\\E900\"; }\n\n.icon-censorship-tampering:before {\n  content: \"\\E901\"; }\n\n.icon-censorship-vendor:before {\n  content: \"\\E902\"; }\n\n.icon-censorship-confirmed:before {\n  content: \"\\E903\"; }\n\n.icon-country-statistics:before {\n  content: \"\\E904\"; }\n\n.icon-decentralization:before {\n  content: \"\\E905\"; }\n\n.icon-distributed:before {\n  content: \"\\E906\"; }\n\n.icon-http-body:before {\n  content: \"\\E907\"; }\n\n.icon-http-headers:before {\n  content: \"\\E908\"; }\n\n.icon-measurement:before {\n  content: \"\\E909\"; }\n\n.icon-progress:before {\n  content: \"\\E90A\"; }\n\n.icon-research:before {\n  content: \"\\E90B\"; }\n\n.icon-server:before {\n  content: \"\\E90C\"; }\n\n.icon-tor:before {\n  content: \"\\E90D\"; }\n", ""]);
+	exports.push([module.id, "@charset \"UTF-8\";\n.wordwrap {\n  white-space: pre;\n  /* CSS 2.0 */\n  white-space: pre-wrap;\n  /* CSS 2.1 */\n  white-space: pre-line;\n  /* CSS 3.0 */\n  white-space: -pre-wrap;\n  /* Opera 4-6 */\n  white-space: -o-pre-wrap;\n  /* Opera 7 */\n  white-space: -moz-pre-wrap;\n  /* Mozilla */\n  word-wrap: break-word;\n  /* IE 5+ */ }\n\n/* ================================================================== */\n/* Font selection */\nhtml {\n  font-family: \"Charter\", serif;\n  line-height: 1.4; }\n\nh1,\nh2,\nh3,\nnav,\n.toc {\n  font-family: \"Fira Sans\", sans-serif; }\n  h1 i,\n  h2 i,\n  h3 i,\n  nav i,\n  .toc i {\n    margin-right: 10px; }\n\npre,\ncode {\n  font-family: \"Source Code Pro\", monospace; }\n\n/* ================================================================== */\n/* Document structure */\nhtml {\n  color: #1c1c1c;\n  background-color: #fff; }\n\npre {\n  background-color: #f2f2f2; }\n\nhr {\n  border: 0px;\n  border-top: 1px solid #c1c1c1;\n  margin: 2rem 0; }\n\n.measurement .measurement-info {\n  margin-top: 18px;\n  margin-bottom: 18px;\n  padding: 18px 22px;\n  background-color: #f2f2f2; }\n\n.measurement .result {\n  text-align: center;\n  color: #f2f2f2;\n  font-family: 'Fira Sans'; }\n  .measurement .result .anomalous-result {\n    padding: 18px;\n    background-color: #B83564; }\n  .measurement .result .normal-result {\n    padding: 18px;\n    background-color: #4FD156; }\n\n.measurement i.ooni {\n  font-size: 20px; }\n\n.measurement .description {\n  margin-top: 18px; }\n  .measurement .description .detail {\n    color: #0588CB; }\n  .measurement .description h1:first-of-type {\n    display: none; }\n\n.measurement .detail {\n  font-family: 'Fira Sans';\n  color: #c1c1c1;\n  font-size: 16px; }\n\nbutton.btn, a.btn {\n  background-color: #fff;\n  color: #0588CB;\n  border: 1px solid #0588CB; }\n\n.ooni-logo {\n  background: url(" + __webpack_require__(18) + "); }\n\n/* Fonts */\n@font-face {\n  font-family: \"Charter\";\n  src: url(" + __webpack_require__(19) + "); }\n\n@font-face {\n  font-family: \"Charter\";\n  src: url(" + __webpack_require__(20) + ");\n  font-weight: bold; }\n\n@font-face {\n  font-family: \"Charter\";\n  src: url(" + __webpack_require__(21) + ");\n  font-style: italic; }\n\n@font-face {\n  font-family: \"Charter\";\n  src: url(" + __webpack_require__(22) + ");\n  font-weight: bold;\n  font-style: italic; }\n\n@font-face {\n  font-family: \"Fira Sans\";\n  src: url(" + __webpack_require__(23) + ");\n  font-weight: bold; }\n\n@font-face {\n  font-family: \"Fira Sans\";\n  src: url(" + __webpack_require__(24) + ");\n  font-weight: 500; }\n\n@font-face {\n  font-family: \"Fira Sans\";\n  src: url(" + __webpack_require__(25) + ");\n  font-weight: 300; }\n\n@font-face {\n  font-family: \"Source Code Pro\";\n  src: url(" + __webpack_require__(26) + "); }\n\n@font-face {\n  font-family: \"Source Code Pro\";\n  src: url(" + __webpack_require__(27) + ");\n  font-weight: bold; }\n\n/*!\n *  Font Awesome 4.7.0 by @davegandy - http://fontawesome.io - @fontawesome\n *  License - http://fontawesome.io/license (Font: SIL OFL 1.1, CSS: MIT License)\n */\n/* FONT PATH\n * -------------------------- */\n@font-face {\n  font-family: 'FontAwesome';\n  src: url(" + __webpack_require__(28) + ");\n  src: url(" + __webpack_require__(29) + "?#iefix&v=4.7.0) format(\"embedded-opentype\"), url(" + __webpack_require__(30) + ") format(\"woff2\"), url(" + __webpack_require__(31) + ") format(\"woff\"), url(" + __webpack_require__(32) + ") format(\"truetype\"), url(" + __webpack_require__(33) + "#fontawesomeregular) format(\"svg\");\n  font-weight: normal;\n  font-style: normal; }\n\n.fa {\n  display: inline-block;\n  font: normal normal normal 14px/1 FontAwesome;\n  font-size: inherit;\n  text-rendering: auto;\n  -webkit-font-smoothing: antialiased;\n  -moz-osx-font-smoothing: grayscale; }\n\n/* makes the font 33% larger relative to the icon container */\n.fa-lg {\n  font-size: 1.33333em;\n  line-height: 0.75em;\n  vertical-align: -15%; }\n\n.fa-2x {\n  font-size: 2em; }\n\n.fa-3x {\n  font-size: 3em; }\n\n.fa-4x {\n  font-size: 4em; }\n\n.fa-5x {\n  font-size: 5em; }\n\n.fa-fw {\n  width: 1.28571em;\n  text-align: center; }\n\n.fa-ul {\n  padding-left: 0;\n  margin-left: 2.14286em;\n  list-style-type: none; }\n  .fa-ul > li {\n    position: relative; }\n\n.fa-li {\n  position: absolute;\n  left: -2.14286em;\n  width: 2.14286em;\n  top: 0.14286em;\n  text-align: center; }\n  .fa-li.fa-lg {\n    left: -1.85714em; }\n\n.fa-border {\n  padding: .2em .25em .15em;\n  border: solid 0.08em #eee;\n  border-radius: .1em; }\n\n.fa-pull-left {\n  float: left; }\n\n.fa-pull-right {\n  float: right; }\n\n.fa.fa-pull-left {\n  margin-right: .3em; }\n\n.fa.fa-pull-right {\n  margin-left: .3em; }\n\n/* Deprecated as of 4.4.0 */\n.pull-right {\n  float: right; }\n\n.pull-left {\n  float: left; }\n\n.fa.pull-left {\n  margin-right: .3em; }\n\n.fa.pull-right {\n  margin-left: .3em; }\n\n.fa-spin {\n  -webkit-animation: fa-spin 2s infinite linear;\n  animation: fa-spin 2s infinite linear; }\n\n.fa-pulse {\n  -webkit-animation: fa-spin 1s infinite steps(8);\n  animation: fa-spin 1s infinite steps(8); }\n\n@-webkit-keyframes fa-spin {\n  0% {\n    -webkit-transform: rotate(0deg);\n    transform: rotate(0deg); }\n  100% {\n    -webkit-transform: rotate(359deg);\n    transform: rotate(359deg); } }\n\n@keyframes fa-spin {\n  0% {\n    -webkit-transform: rotate(0deg);\n    transform: rotate(0deg); }\n  100% {\n    -webkit-transform: rotate(359deg);\n    transform: rotate(359deg); } }\n\n.fa-rotate-90 {\n  -ms-filter: \"progid:DXImageTransform.Microsoft.BasicImage(rotation=1)\";\n  -webkit-transform: rotate(90deg);\n  -ms-transform: rotate(90deg);\n  transform: rotate(90deg); }\n\n.fa-rotate-180 {\n  -ms-filter: \"progid:DXImageTransform.Microsoft.BasicImage(rotation=2)\";\n  -webkit-transform: rotate(180deg);\n  -ms-transform: rotate(180deg);\n  transform: rotate(180deg); }\n\n.fa-rotate-270 {\n  -ms-filter: \"progid:DXImageTransform.Microsoft.BasicImage(rotation=3)\";\n  -webkit-transform: rotate(270deg);\n  -ms-transform: rotate(270deg);\n  transform: rotate(270deg); }\n\n.fa-flip-horizontal {\n  -ms-filter: \"progid:DXImageTransform.Microsoft.BasicImage(rotation=0, mirror=1)\";\n  -webkit-transform: scale(-1, 1);\n  -ms-transform: scale(-1, 1);\n  transform: scale(-1, 1); }\n\n.fa-flip-vertical {\n  -ms-filter: \"progid:DXImageTransform.Microsoft.BasicImage(rotation=2, mirror=1)\";\n  -webkit-transform: scale(1, -1);\n  -ms-transform: scale(1, -1);\n  transform: scale(1, -1); }\n\n:root .fa-rotate-90,\n:root .fa-rotate-180,\n:root .fa-rotate-270,\n:root .fa-flip-horizontal,\n:root .fa-flip-vertical {\n  filter: none; }\n\n.fa-stack {\n  position: relative;\n  display: inline-block;\n  width: 2em;\n  height: 2em;\n  line-height: 2em;\n  vertical-align: middle; }\n\n.fa-stack-1x, .fa-stack-2x {\n  position: absolute;\n  left: 0;\n  width: 100%;\n  text-align: center; }\n\n.fa-stack-1x {\n  line-height: inherit; }\n\n.fa-stack-2x {\n  font-size: 2em; }\n\n.fa-inverse {\n  color: #fff; }\n\n/* Font Awesome uses the Unicode Private Use Area (PUA) to ensure screen\n   readers do not read off random characters that represent icons */\n.fa-glass:before {\n  content: \"\\F000\"; }\n\n.fa-music:before {\n  content: \"\\F001\"; }\n\n.fa-search:before {\n  content: \"\\F002\"; }\n\n.fa-envelope-o:before {\n  content: \"\\F003\"; }\n\n.fa-heart:before {\n  content: \"\\F004\"; }\n\n.fa-star:before {\n  content: \"\\F005\"; }\n\n.fa-star-o:before {\n  content: \"\\F006\"; }\n\n.fa-user:before {\n  content: \"\\F007\"; }\n\n.fa-film:before {\n  content: \"\\F008\"; }\n\n.fa-th-large:before {\n  content: \"\\F009\"; }\n\n.fa-th:before {\n  content: \"\\F00A\"; }\n\n.fa-th-list:before {\n  content: \"\\F00B\"; }\n\n.fa-check:before {\n  content: \"\\F00C\"; }\n\n.fa-remove:before,\n.fa-close:before,\n.fa-times:before {\n  content: \"\\F00D\"; }\n\n.fa-search-plus:before {\n  content: \"\\F00E\"; }\n\n.fa-search-minus:before {\n  content: \"\\F010\"; }\n\n.fa-power-off:before {\n  content: \"\\F011\"; }\n\n.fa-signal:before {\n  content: \"\\F012\"; }\n\n.fa-gear:before,\n.fa-cog:before {\n  content: \"\\F013\"; }\n\n.fa-trash-o:before {\n  content: \"\\F014\"; }\n\n.fa-home:before {\n  content: \"\\F015\"; }\n\n.fa-file-o:before {\n  content: \"\\F016\"; }\n\n.fa-clock-o:before {\n  content: \"\\F017\"; }\n\n.fa-road:before {\n  content: \"\\F018\"; }\n\n.fa-download:before {\n  content: \"\\F019\"; }\n\n.fa-arrow-circle-o-down:before {\n  content: \"\\F01A\"; }\n\n.fa-arrow-circle-o-up:before {\n  content: \"\\F01B\"; }\n\n.fa-inbox:before {\n  content: \"\\F01C\"; }\n\n.fa-play-circle-o:before {\n  content: \"\\F01D\"; }\n\n.fa-rotate-right:before,\n.fa-repeat:before {\n  content: \"\\F01E\"; }\n\n.fa-refresh:before {\n  content: \"\\F021\"; }\n\n.fa-list-alt:before {\n  content: \"\\F022\"; }\n\n.fa-lock:before {\n  content: \"\\F023\"; }\n\n.fa-flag:before {\n  content: \"\\F024\"; }\n\n.fa-headphones:before {\n  content: \"\\F025\"; }\n\n.fa-volume-off:before {\n  content: \"\\F026\"; }\n\n.fa-volume-down:before {\n  content: \"\\F027\"; }\n\n.fa-volume-up:before {\n  content: \"\\F028\"; }\n\n.fa-qrcode:before {\n  content: \"\\F029\"; }\n\n.fa-barcode:before {\n  content: \"\\F02A\"; }\n\n.fa-tag:before {\n  content: \"\\F02B\"; }\n\n.fa-tags:before {\n  content: \"\\F02C\"; }\n\n.fa-book:before {\n  content: \"\\F02D\"; }\n\n.fa-bookmark:before {\n  content: \"\\F02E\"; }\n\n.fa-print:before {\n  content: \"\\F02F\"; }\n\n.fa-camera:before {\n  content: \"\\F030\"; }\n\n.fa-font:before {\n  content: \"\\F031\"; }\n\n.fa-bold:before {\n  content: \"\\F032\"; }\n\n.fa-italic:before {\n  content: \"\\F033\"; }\n\n.fa-text-height:before {\n  content: \"\\F034\"; }\n\n.fa-text-width:before {\n  content: \"\\F035\"; }\n\n.fa-align-left:before {\n  content: \"\\F036\"; }\n\n.fa-align-center:before {\n  content: \"\\F037\"; }\n\n.fa-align-right:before {\n  content: \"\\F038\"; }\n\n.fa-align-justify:before {\n  content: \"\\F039\"; }\n\n.fa-list:before {\n  content: \"\\F03A\"; }\n\n.fa-dedent:before,\n.fa-outdent:before {\n  content: \"\\F03B\"; }\n\n.fa-indent:before {\n  content: \"\\F03C\"; }\n\n.fa-video-camera:before {\n  content: \"\\F03D\"; }\n\n.fa-photo:before,\n.fa-image:before,\n.fa-picture-o:before {\n  content: \"\\F03E\"; }\n\n.fa-pencil:before {\n  content: \"\\F040\"; }\n\n.fa-map-marker:before {\n  content: \"\\F041\"; }\n\n.fa-adjust:before {\n  content: \"\\F042\"; }\n\n.fa-tint:before {\n  content: \"\\F043\"; }\n\n.fa-edit:before,\n.fa-pencil-square-o:before {\n  content: \"\\F044\"; }\n\n.fa-share-square-o:before {\n  content: \"\\F045\"; }\n\n.fa-check-square-o:before {\n  content: \"\\F046\"; }\n\n.fa-arrows:before {\n  content: \"\\F047\"; }\n\n.fa-step-backward:before {\n  content: \"\\F048\"; }\n\n.fa-fast-backward:before {\n  content: \"\\F049\"; }\n\n.fa-backward:before {\n  content: \"\\F04A\"; }\n\n.fa-play:before {\n  content: \"\\F04B\"; }\n\n.fa-pause:before {\n  content: \"\\F04C\"; }\n\n.fa-stop:before {\n  content: \"\\F04D\"; }\n\n.fa-forward:before {\n  content: \"\\F04E\"; }\n\n.fa-fast-forward:before {\n  content: \"\\F050\"; }\n\n.fa-step-forward:before {\n  content: \"\\F051\"; }\n\n.fa-eject:before {\n  content: \"\\F052\"; }\n\n.fa-chevron-left:before {\n  content: \"\\F053\"; }\n\n.fa-chevron-right:before {\n  content: \"\\F054\"; }\n\n.fa-plus-circle:before {\n  content: \"\\F055\"; }\n\n.fa-minus-circle:before {\n  content: \"\\F056\"; }\n\n.fa-times-circle:before {\n  content: \"\\F057\"; }\n\n.fa-check-circle:before {\n  content: \"\\F058\"; }\n\n.fa-question-circle:before {\n  content: \"\\F059\"; }\n\n.fa-info-circle:before {\n  content: \"\\F05A\"; }\n\n.fa-crosshairs:before {\n  content: \"\\F05B\"; }\n\n.fa-times-circle-o:before {\n  content: \"\\F05C\"; }\n\n.fa-check-circle-o:before {\n  content: \"\\F05D\"; }\n\n.fa-ban:before {\n  content: \"\\F05E\"; }\n\n.fa-arrow-left:before {\n  content: \"\\F060\"; }\n\n.fa-arrow-right:before {\n  content: \"\\F061\"; }\n\n.fa-arrow-up:before {\n  content: \"\\F062\"; }\n\n.fa-arrow-down:before {\n  content: \"\\F063\"; }\n\n.fa-mail-forward:before,\n.fa-share:before {\n  content: \"\\F064\"; }\n\n.fa-expand:before {\n  content: \"\\F065\"; }\n\n.fa-compress:before {\n  content: \"\\F066\"; }\n\n.fa-plus:before {\n  content: \"\\F067\"; }\n\n.fa-minus:before {\n  content: \"\\F068\"; }\n\n.fa-asterisk:before {\n  content: \"\\F069\"; }\n\n.fa-exclamation-circle:before {\n  content: \"\\F06A\"; }\n\n.fa-gift:before {\n  content: \"\\F06B\"; }\n\n.fa-leaf:before {\n  content: \"\\F06C\"; }\n\n.fa-fire:before {\n  content: \"\\F06D\"; }\n\n.fa-eye:before {\n  content: \"\\F06E\"; }\n\n.fa-eye-slash:before {\n  content: \"\\F070\"; }\n\n.fa-warning:before,\n.fa-exclamation-triangle:before {\n  content: \"\\F071\"; }\n\n.fa-plane:before {\n  content: \"\\F072\"; }\n\n.fa-calendar:before {\n  content: \"\\F073\"; }\n\n.fa-random:before {\n  content: \"\\F074\"; }\n\n.fa-comment:before {\n  content: \"\\F075\"; }\n\n.fa-magnet:before {\n  content: \"\\F076\"; }\n\n.fa-chevron-up:before {\n  content: \"\\F077\"; }\n\n.fa-chevron-down:before {\n  content: \"\\F078\"; }\n\n.fa-retweet:before {\n  content: \"\\F079\"; }\n\n.fa-shopping-cart:before {\n  content: \"\\F07A\"; }\n\n.fa-folder:before {\n  content: \"\\F07B\"; }\n\n.fa-folder-open:before {\n  content: \"\\F07C\"; }\n\n.fa-arrows-v:before {\n  content: \"\\F07D\"; }\n\n.fa-arrows-h:before {\n  content: \"\\F07E\"; }\n\n.fa-bar-chart-o:before,\n.fa-bar-chart:before {\n  content: \"\\F080\"; }\n\n.fa-twitter-square:before {\n  content: \"\\F081\"; }\n\n.fa-facebook-square:before {\n  content: \"\\F082\"; }\n\n.fa-camera-retro:before {\n  content: \"\\F083\"; }\n\n.fa-key:before {\n  content: \"\\F084\"; }\n\n.fa-gears:before,\n.fa-cogs:before {\n  content: \"\\F085\"; }\n\n.fa-comments:before {\n  content: \"\\F086\"; }\n\n.fa-thumbs-o-up:before {\n  content: \"\\F087\"; }\n\n.fa-thumbs-o-down:before {\n  content: \"\\F088\"; }\n\n.fa-star-half:before {\n  content: \"\\F089\"; }\n\n.fa-heart-o:before {\n  content: \"\\F08A\"; }\n\n.fa-sign-out:before {\n  content: \"\\F08B\"; }\n\n.fa-linkedin-square:before {\n  content: \"\\F08C\"; }\n\n.fa-thumb-tack:before {\n  content: \"\\F08D\"; }\n\n.fa-external-link:before {\n  content: \"\\F08E\"; }\n\n.fa-sign-in:before {\n  content: \"\\F090\"; }\n\n.fa-trophy:before {\n  content: \"\\F091\"; }\n\n.fa-github-square:before {\n  content: \"\\F092\"; }\n\n.fa-upload:before {\n  content: \"\\F093\"; }\n\n.fa-lemon-o:before {\n  content: \"\\F094\"; }\n\n.fa-phone:before {\n  content: \"\\F095\"; }\n\n.fa-square-o:before {\n  content: \"\\F096\"; }\n\n.fa-bookmark-o:before {\n  content: \"\\F097\"; }\n\n.fa-phone-square:before {\n  content: \"\\F098\"; }\n\n.fa-twitter:before {\n  content: \"\\F099\"; }\n\n.fa-facebook-f:before,\n.fa-facebook:before {\n  content: \"\\F09A\"; }\n\n.fa-github:before {\n  content: \"\\F09B\"; }\n\n.fa-unlock:before {\n  content: \"\\F09C\"; }\n\n.fa-credit-card:before {\n  content: \"\\F09D\"; }\n\n.fa-feed:before,\n.fa-rss:before {\n  content: \"\\F09E\"; }\n\n.fa-hdd-o:before {\n  content: \"\\F0A0\"; }\n\n.fa-bullhorn:before {\n  content: \"\\F0A1\"; }\n\n.fa-bell:before {\n  content: \"\\F0F3\"; }\n\n.fa-certificate:before {\n  content: \"\\F0A3\"; }\n\n.fa-hand-o-right:before {\n  content: \"\\F0A4\"; }\n\n.fa-hand-o-left:before {\n  content: \"\\F0A5\"; }\n\n.fa-hand-o-up:before {\n  content: \"\\F0A6\"; }\n\n.fa-hand-o-down:before {\n  content: \"\\F0A7\"; }\n\n.fa-arrow-circle-left:before {\n  content: \"\\F0A8\"; }\n\n.fa-arrow-circle-right:before {\n  content: \"\\F0A9\"; }\n\n.fa-arrow-circle-up:before {\n  content: \"\\F0AA\"; }\n\n.fa-arrow-circle-down:before {\n  content: \"\\F0AB\"; }\n\n.fa-globe:before {\n  content: \"\\F0AC\"; }\n\n.fa-wrench:before {\n  content: \"\\F0AD\"; }\n\n.fa-tasks:before {\n  content: \"\\F0AE\"; }\n\n.fa-filter:before {\n  content: \"\\F0B0\"; }\n\n.fa-briefcase:before {\n  content: \"\\F0B1\"; }\n\n.fa-arrows-alt:before {\n  content: \"\\F0B2\"; }\n\n.fa-group:before,\n.fa-users:before {\n  content: \"\\F0C0\"; }\n\n.fa-chain:before,\n.fa-link:before {\n  content: \"\\F0C1\"; }\n\n.fa-cloud:before {\n  content: \"\\F0C2\"; }\n\n.fa-flask:before {\n  content: \"\\F0C3\"; }\n\n.fa-cut:before,\n.fa-scissors:before {\n  content: \"\\F0C4\"; }\n\n.fa-copy:before,\n.fa-files-o:before {\n  content: \"\\F0C5\"; }\n\n.fa-paperclip:before {\n  content: \"\\F0C6\"; }\n\n.fa-save:before,\n.fa-floppy-o:before {\n  content: \"\\F0C7\"; }\n\n.fa-square:before {\n  content: \"\\F0C8\"; }\n\n.fa-navicon:before,\n.fa-reorder:before,\n.fa-bars:before {\n  content: \"\\F0C9\"; }\n\n.fa-list-ul:before {\n  content: \"\\F0CA\"; }\n\n.fa-list-ol:before {\n  content: \"\\F0CB\"; }\n\n.fa-strikethrough:before {\n  content: \"\\F0CC\"; }\n\n.fa-underline:before {\n  content: \"\\F0CD\"; }\n\n.fa-table:before {\n  content: \"\\F0CE\"; }\n\n.fa-magic:before {\n  content: \"\\F0D0\"; }\n\n.fa-truck:before {\n  content: \"\\F0D1\"; }\n\n.fa-pinterest:before {\n  content: \"\\F0D2\"; }\n\n.fa-pinterest-square:before {\n  content: \"\\F0D3\"; }\n\n.fa-google-plus-square:before {\n  content: \"\\F0D4\"; }\n\n.fa-google-plus:before {\n  content: \"\\F0D5\"; }\n\n.fa-money:before {\n  content: \"\\F0D6\"; }\n\n.fa-caret-down:before {\n  content: \"\\F0D7\"; }\n\n.fa-caret-up:before {\n  content: \"\\F0D8\"; }\n\n.fa-caret-left:before {\n  content: \"\\F0D9\"; }\n\n.fa-caret-right:before {\n  content: \"\\F0DA\"; }\n\n.fa-columns:before {\n  content: \"\\F0DB\"; }\n\n.fa-unsorted:before,\n.fa-sort:before {\n  content: \"\\F0DC\"; }\n\n.fa-sort-down:before,\n.fa-sort-desc:before {\n  content: \"\\F0DD\"; }\n\n.fa-sort-up:before,\n.fa-sort-asc:before {\n  content: \"\\F0DE\"; }\n\n.fa-envelope:before {\n  content: \"\\F0E0\"; }\n\n.fa-linkedin:before {\n  content: \"\\F0E1\"; }\n\n.fa-rotate-left:before,\n.fa-undo:before {\n  content: \"\\F0E2\"; }\n\n.fa-legal:before,\n.fa-gavel:before {\n  content: \"\\F0E3\"; }\n\n.fa-dashboard:before,\n.fa-tachometer:before {\n  content: \"\\F0E4\"; }\n\n.fa-comment-o:before {\n  content: \"\\F0E5\"; }\n\n.fa-comments-o:before {\n  content: \"\\F0E6\"; }\n\n.fa-flash:before,\n.fa-bolt:before {\n  content: \"\\F0E7\"; }\n\n.fa-sitemap:before {\n  content: \"\\F0E8\"; }\n\n.fa-umbrella:before {\n  content: \"\\F0E9\"; }\n\n.fa-paste:before,\n.fa-clipboard:before {\n  content: \"\\F0EA\"; }\n\n.fa-lightbulb-o:before {\n  content: \"\\F0EB\"; }\n\n.fa-exchange:before {\n  content: \"\\F0EC\"; }\n\n.fa-cloud-download:before {\n  content: \"\\F0ED\"; }\n\n.fa-cloud-upload:before {\n  content: \"\\F0EE\"; }\n\n.fa-user-md:before {\n  content: \"\\F0F0\"; }\n\n.fa-stethoscope:before {\n  content: \"\\F0F1\"; }\n\n.fa-suitcase:before {\n  content: \"\\F0F2\"; }\n\n.fa-bell-o:before {\n  content: \"\\F0A2\"; }\n\n.fa-coffee:before {\n  content: \"\\F0F4\"; }\n\n.fa-cutlery:before {\n  content: \"\\F0F5\"; }\n\n.fa-file-text-o:before {\n  content: \"\\F0F6\"; }\n\n.fa-building-o:before {\n  content: \"\\F0F7\"; }\n\n.fa-hospital-o:before {\n  content: \"\\F0F8\"; }\n\n.fa-ambulance:before {\n  content: \"\\F0F9\"; }\n\n.fa-medkit:before {\n  content: \"\\F0FA\"; }\n\n.fa-fighter-jet:before {\n  content: \"\\F0FB\"; }\n\n.fa-beer:before {\n  content: \"\\F0FC\"; }\n\n.fa-h-square:before {\n  content: \"\\F0FD\"; }\n\n.fa-plus-square:before {\n  content: \"\\F0FE\"; }\n\n.fa-angle-double-left:before {\n  content: \"\\F100\"; }\n\n.fa-angle-double-right:before {\n  content: \"\\F101\"; }\n\n.fa-angle-double-up:before {\n  content: \"\\F102\"; }\n\n.fa-angle-double-down:before {\n  content: \"\\F103\"; }\n\n.fa-angle-left:before {\n  content: \"\\F104\"; }\n\n.fa-angle-right:before {\n  content: \"\\F105\"; }\n\n.fa-angle-up:before {\n  content: \"\\F106\"; }\n\n.fa-angle-down:before {\n  content: \"\\F107\"; }\n\n.fa-desktop:before {\n  content: \"\\F108\"; }\n\n.fa-laptop:before {\n  content: \"\\F109\"; }\n\n.fa-tablet:before {\n  content: \"\\F10A\"; }\n\n.fa-mobile-phone:before,\n.fa-mobile:before {\n  content: \"\\F10B\"; }\n\n.fa-circle-o:before {\n  content: \"\\F10C\"; }\n\n.fa-quote-left:before {\n  content: \"\\F10D\"; }\n\n.fa-quote-right:before {\n  content: \"\\F10E\"; }\n\n.fa-spinner:before {\n  content: \"\\F110\"; }\n\n.fa-circle:before {\n  content: \"\\F111\"; }\n\n.fa-mail-reply:before,\n.fa-reply:before {\n  content: \"\\F112\"; }\n\n.fa-github-alt:before {\n  content: \"\\F113\"; }\n\n.fa-folder-o:before {\n  content: \"\\F114\"; }\n\n.fa-folder-open-o:before {\n  content: \"\\F115\"; }\n\n.fa-smile-o:before {\n  content: \"\\F118\"; }\n\n.fa-frown-o:before {\n  content: \"\\F119\"; }\n\n.fa-meh-o:before {\n  content: \"\\F11A\"; }\n\n.fa-gamepad:before {\n  content: \"\\F11B\"; }\n\n.fa-keyboard-o:before {\n  content: \"\\F11C\"; }\n\n.fa-flag-o:before {\n  content: \"\\F11D\"; }\n\n.fa-flag-checkered:before {\n  content: \"\\F11E\"; }\n\n.fa-terminal:before {\n  content: \"\\F120\"; }\n\n.fa-code:before {\n  content: \"\\F121\"; }\n\n.fa-mail-reply-all:before,\n.fa-reply-all:before {\n  content: \"\\F122\"; }\n\n.fa-star-half-empty:before,\n.fa-star-half-full:before,\n.fa-star-half-o:before {\n  content: \"\\F123\"; }\n\n.fa-location-arrow:before {\n  content: \"\\F124\"; }\n\n.fa-crop:before {\n  content: \"\\F125\"; }\n\n.fa-code-fork:before {\n  content: \"\\F126\"; }\n\n.fa-unlink:before,\n.fa-chain-broken:before {\n  content: \"\\F127\"; }\n\n.fa-question:before {\n  content: \"\\F128\"; }\n\n.fa-info:before {\n  content: \"\\F129\"; }\n\n.fa-exclamation:before {\n  content: \"\\F12A\"; }\n\n.fa-superscript:before {\n  content: \"\\F12B\"; }\n\n.fa-subscript:before {\n  content: \"\\F12C\"; }\n\n.fa-eraser:before {\n  content: \"\\F12D\"; }\n\n.fa-puzzle-piece:before {\n  content: \"\\F12E\"; }\n\n.fa-microphone:before {\n  content: \"\\F130\"; }\n\n.fa-microphone-slash:before {\n  content: \"\\F131\"; }\n\n.fa-shield:before {\n  content: \"\\F132\"; }\n\n.fa-calendar-o:before {\n  content: \"\\F133\"; }\n\n.fa-fire-extinguisher:before {\n  content: \"\\F134\"; }\n\n.fa-rocket:before {\n  content: \"\\F135\"; }\n\n.fa-maxcdn:before {\n  content: \"\\F136\"; }\n\n.fa-chevron-circle-left:before {\n  content: \"\\F137\"; }\n\n.fa-chevron-circle-right:before {\n  content: \"\\F138\"; }\n\n.fa-chevron-circle-up:before {\n  content: \"\\F139\"; }\n\n.fa-chevron-circle-down:before {\n  content: \"\\F13A\"; }\n\n.fa-html5:before {\n  content: \"\\F13B\"; }\n\n.fa-css3:before {\n  content: \"\\F13C\"; }\n\n.fa-anchor:before {\n  content: \"\\F13D\"; }\n\n.fa-unlock-alt:before {\n  content: \"\\F13E\"; }\n\n.fa-bullseye:before {\n  content: \"\\F140\"; }\n\n.fa-ellipsis-h:before {\n  content: \"\\F141\"; }\n\n.fa-ellipsis-v:before {\n  content: \"\\F142\"; }\n\n.fa-rss-square:before {\n  content: \"\\F143\"; }\n\n.fa-play-circle:before {\n  content: \"\\F144\"; }\n\n.fa-ticket:before {\n  content: \"\\F145\"; }\n\n.fa-minus-square:before {\n  content: \"\\F146\"; }\n\n.fa-minus-square-o:before {\n  content: \"\\F147\"; }\n\n.fa-level-up:before {\n  content: \"\\F148\"; }\n\n.fa-level-down:before {\n  content: \"\\F149\"; }\n\n.fa-check-square:before {\n  content: \"\\F14A\"; }\n\n.fa-pencil-square:before {\n  content: \"\\F14B\"; }\n\n.fa-external-link-square:before {\n  content: \"\\F14C\"; }\n\n.fa-share-square:before {\n  content: \"\\F14D\"; }\n\n.fa-compass:before {\n  content: \"\\F14E\"; }\n\n.fa-toggle-down:before,\n.fa-caret-square-o-down:before {\n  content: \"\\F150\"; }\n\n.fa-toggle-up:before,\n.fa-caret-square-o-up:before {\n  content: \"\\F151\"; }\n\n.fa-toggle-right:before,\n.fa-caret-square-o-right:before {\n  content: \"\\F152\"; }\n\n.fa-euro:before,\n.fa-eur:before {\n  content: \"\\F153\"; }\n\n.fa-gbp:before {\n  content: \"\\F154\"; }\n\n.fa-dollar:before,\n.fa-usd:before {\n  content: \"\\F155\"; }\n\n.fa-rupee:before,\n.fa-inr:before {\n  content: \"\\F156\"; }\n\n.fa-cny:before,\n.fa-rmb:before,\n.fa-yen:before,\n.fa-jpy:before {\n  content: \"\\F157\"; }\n\n.fa-ruble:before,\n.fa-rouble:before,\n.fa-rub:before {\n  content: \"\\F158\"; }\n\n.fa-won:before,\n.fa-krw:before {\n  content: \"\\F159\"; }\n\n.fa-bitcoin:before,\n.fa-btc:before {\n  content: \"\\F15A\"; }\n\n.fa-file:before {\n  content: \"\\F15B\"; }\n\n.fa-file-text:before {\n  content: \"\\F15C\"; }\n\n.fa-sort-alpha-asc:before {\n  content: \"\\F15D\"; }\n\n.fa-sort-alpha-desc:before {\n  content: \"\\F15E\"; }\n\n.fa-sort-amount-asc:before {\n  content: \"\\F160\"; }\n\n.fa-sort-amount-desc:before {\n  content: \"\\F161\"; }\n\n.fa-sort-numeric-asc:before {\n  content: \"\\F162\"; }\n\n.fa-sort-numeric-desc:before {\n  content: \"\\F163\"; }\n\n.fa-thumbs-up:before {\n  content: \"\\F164\"; }\n\n.fa-thumbs-down:before {\n  content: \"\\F165\"; }\n\n.fa-youtube-square:before {\n  content: \"\\F166\"; }\n\n.fa-youtube:before {\n  content: \"\\F167\"; }\n\n.fa-xing:before {\n  content: \"\\F168\"; }\n\n.fa-xing-square:before {\n  content: \"\\F169\"; }\n\n.fa-youtube-play:before {\n  content: \"\\F16A\"; }\n\n.fa-dropbox:before {\n  content: \"\\F16B\"; }\n\n.fa-stack-overflow:before {\n  content: \"\\F16C\"; }\n\n.fa-instagram:before {\n  content: \"\\F16D\"; }\n\n.fa-flickr:before {\n  content: \"\\F16E\"; }\n\n.fa-adn:before {\n  content: \"\\F170\"; }\n\n.fa-bitbucket:before {\n  content: \"\\F171\"; }\n\n.fa-bitbucket-square:before {\n  content: \"\\F172\"; }\n\n.fa-tumblr:before {\n  content: \"\\F173\"; }\n\n.fa-tumblr-square:before {\n  content: \"\\F174\"; }\n\n.fa-long-arrow-down:before {\n  content: \"\\F175\"; }\n\n.fa-long-arrow-up:before {\n  content: \"\\F176\"; }\n\n.fa-long-arrow-left:before {\n  content: \"\\F177\"; }\n\n.fa-long-arrow-right:before {\n  content: \"\\F178\"; }\n\n.fa-apple:before {\n  content: \"\\F179\"; }\n\n.fa-windows:before {\n  content: \"\\F17A\"; }\n\n.fa-android:before {\n  content: \"\\F17B\"; }\n\n.fa-linux:before {\n  content: \"\\F17C\"; }\n\n.fa-dribbble:before {\n  content: \"\\F17D\"; }\n\n.fa-skype:before {\n  content: \"\\F17E\"; }\n\n.fa-foursquare:before {\n  content: \"\\F180\"; }\n\n.fa-trello:before {\n  content: \"\\F181\"; }\n\n.fa-female:before {\n  content: \"\\F182\"; }\n\n.fa-male:before {\n  content: \"\\F183\"; }\n\n.fa-gittip:before,\n.fa-gratipay:before {\n  content: \"\\F184\"; }\n\n.fa-sun-o:before {\n  content: \"\\F185\"; }\n\n.fa-moon-o:before {\n  content: \"\\F186\"; }\n\n.fa-archive:before {\n  content: \"\\F187\"; }\n\n.fa-bug:before {\n  content: \"\\F188\"; }\n\n.fa-vk:before {\n  content: \"\\F189\"; }\n\n.fa-weibo:before {\n  content: \"\\F18A\"; }\n\n.fa-renren:before {\n  content: \"\\F18B\"; }\n\n.fa-pagelines:before {\n  content: \"\\F18C\"; }\n\n.fa-stack-exchange:before {\n  content: \"\\F18D\"; }\n\n.fa-arrow-circle-o-right:before {\n  content: \"\\F18E\"; }\n\n.fa-arrow-circle-o-left:before {\n  content: \"\\F190\"; }\n\n.fa-toggle-left:before,\n.fa-caret-square-o-left:before {\n  content: \"\\F191\"; }\n\n.fa-dot-circle-o:before {\n  content: \"\\F192\"; }\n\n.fa-wheelchair:before {\n  content: \"\\F193\"; }\n\n.fa-vimeo-square:before {\n  content: \"\\F194\"; }\n\n.fa-turkish-lira:before,\n.fa-try:before {\n  content: \"\\F195\"; }\n\n.fa-plus-square-o:before {\n  content: \"\\F196\"; }\n\n.fa-space-shuttle:before {\n  content: \"\\F197\"; }\n\n.fa-slack:before {\n  content: \"\\F198\"; }\n\n.fa-envelope-square:before {\n  content: \"\\F199\"; }\n\n.fa-wordpress:before {\n  content: \"\\F19A\"; }\n\n.fa-openid:before {\n  content: \"\\F19B\"; }\n\n.fa-institution:before,\n.fa-bank:before,\n.fa-university:before {\n  content: \"\\F19C\"; }\n\n.fa-mortar-board:before,\n.fa-graduation-cap:before {\n  content: \"\\F19D\"; }\n\n.fa-yahoo:before {\n  content: \"\\F19E\"; }\n\n.fa-google:before {\n  content: \"\\F1A0\"; }\n\n.fa-reddit:before {\n  content: \"\\F1A1\"; }\n\n.fa-reddit-square:before {\n  content: \"\\F1A2\"; }\n\n.fa-stumbleupon-circle:before {\n  content: \"\\F1A3\"; }\n\n.fa-stumbleupon:before {\n  content: \"\\F1A4\"; }\n\n.fa-delicious:before {\n  content: \"\\F1A5\"; }\n\n.fa-digg:before {\n  content: \"\\F1A6\"; }\n\n.fa-pied-piper-pp:before {\n  content: \"\\F1A7\"; }\n\n.fa-pied-piper-alt:before {\n  content: \"\\F1A8\"; }\n\n.fa-drupal:before {\n  content: \"\\F1A9\"; }\n\n.fa-joomla:before {\n  content: \"\\F1AA\"; }\n\n.fa-language:before {\n  content: \"\\F1AB\"; }\n\n.fa-fax:before {\n  content: \"\\F1AC\"; }\n\n.fa-building:before {\n  content: \"\\F1AD\"; }\n\n.fa-child:before {\n  content: \"\\F1AE\"; }\n\n.fa-paw:before {\n  content: \"\\F1B0\"; }\n\n.fa-spoon:before {\n  content: \"\\F1B1\"; }\n\n.fa-cube:before {\n  content: \"\\F1B2\"; }\n\n.fa-cubes:before {\n  content: \"\\F1B3\"; }\n\n.fa-behance:before {\n  content: \"\\F1B4\"; }\n\n.fa-behance-square:before {\n  content: \"\\F1B5\"; }\n\n.fa-steam:before {\n  content: \"\\F1B6\"; }\n\n.fa-steam-square:before {\n  content: \"\\F1B7\"; }\n\n.fa-recycle:before {\n  content: \"\\F1B8\"; }\n\n.fa-automobile:before,\n.fa-car:before {\n  content: \"\\F1B9\"; }\n\n.fa-cab:before,\n.fa-taxi:before {\n  content: \"\\F1BA\"; }\n\n.fa-tree:before {\n  content: \"\\F1BB\"; }\n\n.fa-spotify:before {\n  content: \"\\F1BC\"; }\n\n.fa-deviantart:before {\n  content: \"\\F1BD\"; }\n\n.fa-soundcloud:before {\n  content: \"\\F1BE\"; }\n\n.fa-database:before {\n  content: \"\\F1C0\"; }\n\n.fa-file-pdf-o:before {\n  content: \"\\F1C1\"; }\n\n.fa-file-word-o:before {\n  content: \"\\F1C2\"; }\n\n.fa-file-excel-o:before {\n  content: \"\\F1C3\"; }\n\n.fa-file-powerpoint-o:before {\n  content: \"\\F1C4\"; }\n\n.fa-file-photo-o:before,\n.fa-file-picture-o:before,\n.fa-file-image-o:before {\n  content: \"\\F1C5\"; }\n\n.fa-file-zip-o:before,\n.fa-file-archive-o:before {\n  content: \"\\F1C6\"; }\n\n.fa-file-sound-o:before,\n.fa-file-audio-o:before {\n  content: \"\\F1C7\"; }\n\n.fa-file-movie-o:before,\n.fa-file-video-o:before {\n  content: \"\\F1C8\"; }\n\n.fa-file-code-o:before {\n  content: \"\\F1C9\"; }\n\n.fa-vine:before {\n  content: \"\\F1CA\"; }\n\n.fa-codepen:before {\n  content: \"\\F1CB\"; }\n\n.fa-jsfiddle:before {\n  content: \"\\F1CC\"; }\n\n.fa-life-bouy:before,\n.fa-life-buoy:before,\n.fa-life-saver:before,\n.fa-support:before,\n.fa-life-ring:before {\n  content: \"\\F1CD\"; }\n\n.fa-circle-o-notch:before {\n  content: \"\\F1CE\"; }\n\n.fa-ra:before,\n.fa-resistance:before,\n.fa-rebel:before {\n  content: \"\\F1D0\"; }\n\n.fa-ge:before,\n.fa-empire:before {\n  content: \"\\F1D1\"; }\n\n.fa-git-square:before {\n  content: \"\\F1D2\"; }\n\n.fa-git:before {\n  content: \"\\F1D3\"; }\n\n.fa-y-combinator-square:before,\n.fa-yc-square:before,\n.fa-hacker-news:before {\n  content: \"\\F1D4\"; }\n\n.fa-tencent-weibo:before {\n  content: \"\\F1D5\"; }\n\n.fa-qq:before {\n  content: \"\\F1D6\"; }\n\n.fa-wechat:before,\n.fa-weixin:before {\n  content: \"\\F1D7\"; }\n\n.fa-send:before,\n.fa-paper-plane:before {\n  content: \"\\F1D8\"; }\n\n.fa-send-o:before,\n.fa-paper-plane-o:before {\n  content: \"\\F1D9\"; }\n\n.fa-history:before {\n  content: \"\\F1DA\"; }\n\n.fa-circle-thin:before {\n  content: \"\\F1DB\"; }\n\n.fa-header:before {\n  content: \"\\F1DC\"; }\n\n.fa-paragraph:before {\n  content: \"\\F1DD\"; }\n\n.fa-sliders:before {\n  content: \"\\F1DE\"; }\n\n.fa-share-alt:before {\n  content: \"\\F1E0\"; }\n\n.fa-share-alt-square:before {\n  content: \"\\F1E1\"; }\n\n.fa-bomb:before {\n  content: \"\\F1E2\"; }\n\n.fa-soccer-ball-o:before,\n.fa-futbol-o:before {\n  content: \"\\F1E3\"; }\n\n.fa-tty:before {\n  content: \"\\F1E4\"; }\n\n.fa-binoculars:before {\n  content: \"\\F1E5\"; }\n\n.fa-plug:before {\n  content: \"\\F1E6\"; }\n\n.fa-slideshare:before {\n  content: \"\\F1E7\"; }\n\n.fa-twitch:before {\n  content: \"\\F1E8\"; }\n\n.fa-yelp:before {\n  content: \"\\F1E9\"; }\n\n.fa-newspaper-o:before {\n  content: \"\\F1EA\"; }\n\n.fa-wifi:before {\n  content: \"\\F1EB\"; }\n\n.fa-calculator:before {\n  content: \"\\F1EC\"; }\n\n.fa-paypal:before {\n  content: \"\\F1ED\"; }\n\n.fa-google-wallet:before {\n  content: \"\\F1EE\"; }\n\n.fa-cc-visa:before {\n  content: \"\\F1F0\"; }\n\n.fa-cc-mastercard:before {\n  content: \"\\F1F1\"; }\n\n.fa-cc-discover:before {\n  content: \"\\F1F2\"; }\n\n.fa-cc-amex:before {\n  content: \"\\F1F3\"; }\n\n.fa-cc-paypal:before {\n  content: \"\\F1F4\"; }\n\n.fa-cc-stripe:before {\n  content: \"\\F1F5\"; }\n\n.fa-bell-slash:before {\n  content: \"\\F1F6\"; }\n\n.fa-bell-slash-o:before {\n  content: \"\\F1F7\"; }\n\n.fa-trash:before {\n  content: \"\\F1F8\"; }\n\n.fa-copyright:before {\n  content: \"\\F1F9\"; }\n\n.fa-at:before {\n  content: \"\\F1FA\"; }\n\n.fa-eyedropper:before {\n  content: \"\\F1FB\"; }\n\n.fa-paint-brush:before {\n  content: \"\\F1FC\"; }\n\n.fa-birthday-cake:before {\n  content: \"\\F1FD\"; }\n\n.fa-area-chart:before {\n  content: \"\\F1FE\"; }\n\n.fa-pie-chart:before {\n  content: \"\\F200\"; }\n\n.fa-line-chart:before {\n  content: \"\\F201\"; }\n\n.fa-lastfm:before {\n  content: \"\\F202\"; }\n\n.fa-lastfm-square:before {\n  content: \"\\F203\"; }\n\n.fa-toggle-off:before {\n  content: \"\\F204\"; }\n\n.fa-toggle-on:before {\n  content: \"\\F205\"; }\n\n.fa-bicycle:before {\n  content: \"\\F206\"; }\n\n.fa-bus:before {\n  content: \"\\F207\"; }\n\n.fa-ioxhost:before {\n  content: \"\\F208\"; }\n\n.fa-angellist:before {\n  content: \"\\F209\"; }\n\n.fa-cc:before {\n  content: \"\\F20A\"; }\n\n.fa-shekel:before,\n.fa-sheqel:before,\n.fa-ils:before {\n  content: \"\\F20B\"; }\n\n.fa-meanpath:before {\n  content: \"\\F20C\"; }\n\n.fa-buysellads:before {\n  content: \"\\F20D\"; }\n\n.fa-connectdevelop:before {\n  content: \"\\F20E\"; }\n\n.fa-dashcube:before {\n  content: \"\\F210\"; }\n\n.fa-forumbee:before {\n  content: \"\\F211\"; }\n\n.fa-leanpub:before {\n  content: \"\\F212\"; }\n\n.fa-sellsy:before {\n  content: \"\\F213\"; }\n\n.fa-shirtsinbulk:before {\n  content: \"\\F214\"; }\n\n.fa-simplybuilt:before {\n  content: \"\\F215\"; }\n\n.fa-skyatlas:before {\n  content: \"\\F216\"; }\n\n.fa-cart-plus:before {\n  content: \"\\F217\"; }\n\n.fa-cart-arrow-down:before {\n  content: \"\\F218\"; }\n\n.fa-diamond:before {\n  content: \"\\F219\"; }\n\n.fa-ship:before {\n  content: \"\\F21A\"; }\n\n.fa-user-secret:before {\n  content: \"\\F21B\"; }\n\n.fa-motorcycle:before {\n  content: \"\\F21C\"; }\n\n.fa-street-view:before {\n  content: \"\\F21D\"; }\n\n.fa-heartbeat:before {\n  content: \"\\F21E\"; }\n\n.fa-venus:before {\n  content: \"\\F221\"; }\n\n.fa-mars:before {\n  content: \"\\F222\"; }\n\n.fa-mercury:before {\n  content: \"\\F223\"; }\n\n.fa-intersex:before,\n.fa-transgender:before {\n  content: \"\\F224\"; }\n\n.fa-transgender-alt:before {\n  content: \"\\F225\"; }\n\n.fa-venus-double:before {\n  content: \"\\F226\"; }\n\n.fa-mars-double:before {\n  content: \"\\F227\"; }\n\n.fa-venus-mars:before {\n  content: \"\\F228\"; }\n\n.fa-mars-stroke:before {\n  content: \"\\F229\"; }\n\n.fa-mars-stroke-v:before {\n  content: \"\\F22A\"; }\n\n.fa-mars-stroke-h:before {\n  content: \"\\F22B\"; }\n\n.fa-neuter:before {\n  content: \"\\F22C\"; }\n\n.fa-genderless:before {\n  content: \"\\F22D\"; }\n\n.fa-facebook-official:before {\n  content: \"\\F230\"; }\n\n.fa-pinterest-p:before {\n  content: \"\\F231\"; }\n\n.fa-whatsapp:before {\n  content: \"\\F232\"; }\n\n.fa-server:before {\n  content: \"\\F233\"; }\n\n.fa-user-plus:before {\n  content: \"\\F234\"; }\n\n.fa-user-times:before {\n  content: \"\\F235\"; }\n\n.fa-hotel:before,\n.fa-bed:before {\n  content: \"\\F236\"; }\n\n.fa-viacoin:before {\n  content: \"\\F237\"; }\n\n.fa-train:before {\n  content: \"\\F238\"; }\n\n.fa-subway:before {\n  content: \"\\F239\"; }\n\n.fa-medium:before {\n  content: \"\\F23A\"; }\n\n.fa-yc:before,\n.fa-y-combinator:before {\n  content: \"\\F23B\"; }\n\n.fa-optin-monster:before {\n  content: \"\\F23C\"; }\n\n.fa-opencart:before {\n  content: \"\\F23D\"; }\n\n.fa-expeditedssl:before {\n  content: \"\\F23E\"; }\n\n.fa-battery-4:before,\n.fa-battery:before,\n.fa-battery-full:before {\n  content: \"\\F240\"; }\n\n.fa-battery-3:before,\n.fa-battery-three-quarters:before {\n  content: \"\\F241\"; }\n\n.fa-battery-2:before,\n.fa-battery-half:before {\n  content: \"\\F242\"; }\n\n.fa-battery-1:before,\n.fa-battery-quarter:before {\n  content: \"\\F243\"; }\n\n.fa-battery-0:before,\n.fa-battery-empty:before {\n  content: \"\\F244\"; }\n\n.fa-mouse-pointer:before {\n  content: \"\\F245\"; }\n\n.fa-i-cursor:before {\n  content: \"\\F246\"; }\n\n.fa-object-group:before {\n  content: \"\\F247\"; }\n\n.fa-object-ungroup:before {\n  content: \"\\F248\"; }\n\n.fa-sticky-note:before {\n  content: \"\\F249\"; }\n\n.fa-sticky-note-o:before {\n  content: \"\\F24A\"; }\n\n.fa-cc-jcb:before {\n  content: \"\\F24B\"; }\n\n.fa-cc-diners-club:before {\n  content: \"\\F24C\"; }\n\n.fa-clone:before {\n  content: \"\\F24D\"; }\n\n.fa-balance-scale:before {\n  content: \"\\F24E\"; }\n\n.fa-hourglass-o:before {\n  content: \"\\F250\"; }\n\n.fa-hourglass-1:before,\n.fa-hourglass-start:before {\n  content: \"\\F251\"; }\n\n.fa-hourglass-2:before,\n.fa-hourglass-half:before {\n  content: \"\\F252\"; }\n\n.fa-hourglass-3:before,\n.fa-hourglass-end:before {\n  content: \"\\F253\"; }\n\n.fa-hourglass:before {\n  content: \"\\F254\"; }\n\n.fa-hand-grab-o:before,\n.fa-hand-rock-o:before {\n  content: \"\\F255\"; }\n\n.fa-hand-stop-o:before,\n.fa-hand-paper-o:before {\n  content: \"\\F256\"; }\n\n.fa-hand-scissors-o:before {\n  content: \"\\F257\"; }\n\n.fa-hand-lizard-o:before {\n  content: \"\\F258\"; }\n\n.fa-hand-spock-o:before {\n  content: \"\\F259\"; }\n\n.fa-hand-pointer-o:before {\n  content: \"\\F25A\"; }\n\n.fa-hand-peace-o:before {\n  content: \"\\F25B\"; }\n\n.fa-trademark:before {\n  content: \"\\F25C\"; }\n\n.fa-registered:before {\n  content: \"\\F25D\"; }\n\n.fa-creative-commons:before {\n  content: \"\\F25E\"; }\n\n.fa-gg:before {\n  content: \"\\F260\"; }\n\n.fa-gg-circle:before {\n  content: \"\\F261\"; }\n\n.fa-tripadvisor:before {\n  content: \"\\F262\"; }\n\n.fa-odnoklassniki:before {\n  content: \"\\F263\"; }\n\n.fa-odnoklassniki-square:before {\n  content: \"\\F264\"; }\n\n.fa-get-pocket:before {\n  content: \"\\F265\"; }\n\n.fa-wikipedia-w:before {\n  content: \"\\F266\"; }\n\n.fa-safari:before {\n  content: \"\\F267\"; }\n\n.fa-chrome:before {\n  content: \"\\F268\"; }\n\n.fa-firefox:before {\n  content: \"\\F269\"; }\n\n.fa-opera:before {\n  content: \"\\F26A\"; }\n\n.fa-internet-explorer:before {\n  content: \"\\F26B\"; }\n\n.fa-tv:before,\n.fa-television:before {\n  content: \"\\F26C\"; }\n\n.fa-contao:before {\n  content: \"\\F26D\"; }\n\n.fa-500px:before {\n  content: \"\\F26E\"; }\n\n.fa-amazon:before {\n  content: \"\\F270\"; }\n\n.fa-calendar-plus-o:before {\n  content: \"\\F271\"; }\n\n.fa-calendar-minus-o:before {\n  content: \"\\F272\"; }\n\n.fa-calendar-times-o:before {\n  content: \"\\F273\"; }\n\n.fa-calendar-check-o:before {\n  content: \"\\F274\"; }\n\n.fa-industry:before {\n  content: \"\\F275\"; }\n\n.fa-map-pin:before {\n  content: \"\\F276\"; }\n\n.fa-map-signs:before {\n  content: \"\\F277\"; }\n\n.fa-map-o:before {\n  content: \"\\F278\"; }\n\n.fa-map:before {\n  content: \"\\F279\"; }\n\n.fa-commenting:before {\n  content: \"\\F27A\"; }\n\n.fa-commenting-o:before {\n  content: \"\\F27B\"; }\n\n.fa-houzz:before {\n  content: \"\\F27C\"; }\n\n.fa-vimeo:before {\n  content: \"\\F27D\"; }\n\n.fa-black-tie:before {\n  content: \"\\F27E\"; }\n\n.fa-fonticons:before {\n  content: \"\\F280\"; }\n\n.fa-reddit-alien:before {\n  content: \"\\F281\"; }\n\n.fa-edge:before {\n  content: \"\\F282\"; }\n\n.fa-credit-card-alt:before {\n  content: \"\\F283\"; }\n\n.fa-codiepie:before {\n  content: \"\\F284\"; }\n\n.fa-modx:before {\n  content: \"\\F285\"; }\n\n.fa-fort-awesome:before {\n  content: \"\\F286\"; }\n\n.fa-usb:before {\n  content: \"\\F287\"; }\n\n.fa-product-hunt:before {\n  content: \"\\F288\"; }\n\n.fa-mixcloud:before {\n  content: \"\\F289\"; }\n\n.fa-scribd:before {\n  content: \"\\F28A\"; }\n\n.fa-pause-circle:before {\n  content: \"\\F28B\"; }\n\n.fa-pause-circle-o:before {\n  content: \"\\F28C\"; }\n\n.fa-stop-circle:before {\n  content: \"\\F28D\"; }\n\n.fa-stop-circle-o:before {\n  content: \"\\F28E\"; }\n\n.fa-shopping-bag:before {\n  content: \"\\F290\"; }\n\n.fa-shopping-basket:before {\n  content: \"\\F291\"; }\n\n.fa-hashtag:before {\n  content: \"\\F292\"; }\n\n.fa-bluetooth:before {\n  content: \"\\F293\"; }\n\n.fa-bluetooth-b:before {\n  content: \"\\F294\"; }\n\n.fa-percent:before {\n  content: \"\\F295\"; }\n\n.fa-gitlab:before {\n  content: \"\\F296\"; }\n\n.fa-wpbeginner:before {\n  content: \"\\F297\"; }\n\n.fa-wpforms:before {\n  content: \"\\F298\"; }\n\n.fa-envira:before {\n  content: \"\\F299\"; }\n\n.fa-universal-access:before {\n  content: \"\\F29A\"; }\n\n.fa-wheelchair-alt:before {\n  content: \"\\F29B\"; }\n\n.fa-question-circle-o:before {\n  content: \"\\F29C\"; }\n\n.fa-blind:before {\n  content: \"\\F29D\"; }\n\n.fa-audio-description:before {\n  content: \"\\F29E\"; }\n\n.fa-volume-control-phone:before {\n  content: \"\\F2A0\"; }\n\n.fa-braille:before {\n  content: \"\\F2A1\"; }\n\n.fa-assistive-listening-systems:before {\n  content: \"\\F2A2\"; }\n\n.fa-asl-interpreting:before,\n.fa-american-sign-language-interpreting:before {\n  content: \"\\F2A3\"; }\n\n.fa-deafness:before,\n.fa-hard-of-hearing:before,\n.fa-deaf:before {\n  content: \"\\F2A4\"; }\n\n.fa-glide:before {\n  content: \"\\F2A5\"; }\n\n.fa-glide-g:before {\n  content: \"\\F2A6\"; }\n\n.fa-signing:before,\n.fa-sign-language:before {\n  content: \"\\F2A7\"; }\n\n.fa-low-vision:before {\n  content: \"\\F2A8\"; }\n\n.fa-viadeo:before {\n  content: \"\\F2A9\"; }\n\n.fa-viadeo-square:before {\n  content: \"\\F2AA\"; }\n\n.fa-snapchat:before {\n  content: \"\\F2AB\"; }\n\n.fa-snapchat-ghost:before {\n  content: \"\\F2AC\"; }\n\n.fa-snapchat-square:before {\n  content: \"\\F2AD\"; }\n\n.fa-pied-piper:before {\n  content: \"\\F2AE\"; }\n\n.fa-first-order:before {\n  content: \"\\F2B0\"; }\n\n.fa-yoast:before {\n  content: \"\\F2B1\"; }\n\n.fa-themeisle:before {\n  content: \"\\F2B2\"; }\n\n.fa-google-plus-circle:before,\n.fa-google-plus-official:before {\n  content: \"\\F2B3\"; }\n\n.fa-fa:before,\n.fa-font-awesome:before {\n  content: \"\\F2B4\"; }\n\n.fa-handshake-o:before {\n  content: \"\\F2B5\"; }\n\n.fa-envelope-open:before {\n  content: \"\\F2B6\"; }\n\n.fa-envelope-open-o:before {\n  content: \"\\F2B7\"; }\n\n.fa-linode:before {\n  content: \"\\F2B8\"; }\n\n.fa-address-book:before {\n  content: \"\\F2B9\"; }\n\n.fa-address-book-o:before {\n  content: \"\\F2BA\"; }\n\n.fa-vcard:before,\n.fa-address-card:before {\n  content: \"\\F2BB\"; }\n\n.fa-vcard-o:before,\n.fa-address-card-o:before {\n  content: \"\\F2BC\"; }\n\n.fa-user-circle:before {\n  content: \"\\F2BD\"; }\n\n.fa-user-circle-o:before {\n  content: \"\\F2BE\"; }\n\n.fa-user-o:before {\n  content: \"\\F2C0\"; }\n\n.fa-id-badge:before {\n  content: \"\\F2C1\"; }\n\n.fa-drivers-license:before,\n.fa-id-card:before {\n  content: \"\\F2C2\"; }\n\n.fa-drivers-license-o:before,\n.fa-id-card-o:before {\n  content: \"\\F2C3\"; }\n\n.fa-quora:before {\n  content: \"\\F2C4\"; }\n\n.fa-free-code-camp:before {\n  content: \"\\F2C5\"; }\n\n.fa-telegram:before {\n  content: \"\\F2C6\"; }\n\n.fa-thermometer-4:before,\n.fa-thermometer:before,\n.fa-thermometer-full:before {\n  content: \"\\F2C7\"; }\n\n.fa-thermometer-3:before,\n.fa-thermometer-three-quarters:before {\n  content: \"\\F2C8\"; }\n\n.fa-thermometer-2:before,\n.fa-thermometer-half:before {\n  content: \"\\F2C9\"; }\n\n.fa-thermometer-1:before,\n.fa-thermometer-quarter:before {\n  content: \"\\F2CA\"; }\n\n.fa-thermometer-0:before,\n.fa-thermometer-empty:before {\n  content: \"\\F2CB\"; }\n\n.fa-shower:before {\n  content: \"\\F2CC\"; }\n\n.fa-bathtub:before,\n.fa-s15:before,\n.fa-bath:before {\n  content: \"\\F2CD\"; }\n\n.fa-podcast:before {\n  content: \"\\F2CE\"; }\n\n.fa-window-maximize:before {\n  content: \"\\F2D0\"; }\n\n.fa-window-minimize:before {\n  content: \"\\F2D1\"; }\n\n.fa-window-restore:before {\n  content: \"\\F2D2\"; }\n\n.fa-times-rectangle:before,\n.fa-window-close:before {\n  content: \"\\F2D3\"; }\n\n.fa-times-rectangle-o:before,\n.fa-window-close-o:before {\n  content: \"\\F2D4\"; }\n\n.fa-bandcamp:before {\n  content: \"\\F2D5\"; }\n\n.fa-grav:before {\n  content: \"\\F2D6\"; }\n\n.fa-etsy:before {\n  content: \"\\F2D7\"; }\n\n.fa-imdb:before {\n  content: \"\\F2D8\"; }\n\n.fa-ravelry:before {\n  content: \"\\F2D9\"; }\n\n.fa-eercast:before {\n  content: \"\\F2DA\"; }\n\n.fa-microchip:before {\n  content: \"\\F2DB\"; }\n\n.fa-snowflake-o:before {\n  content: \"\\F2DC\"; }\n\n.fa-superpowers:before {\n  content: \"\\F2DD\"; }\n\n.fa-wpexplorer:before {\n  content: \"\\F2DE\"; }\n\n.fa-meetup:before {\n  content: \"\\F2E0\"; }\n\n.sr-only {\n  position: absolute;\n  width: 1px;\n  height: 1px;\n  padding: 0;\n  margin: -1px;\n  overflow: hidden;\n  clip: rect(0, 0, 0, 0);\n  border: 0; }\n\n.sr-only-focusable:active, .sr-only-focusable:focus {\n  position: static;\n  width: auto;\n  height: auto;\n  margin: 0;\n  overflow: visible;\n  clip: auto; }\n\n.icon {\n  display: inline-block;\n  font: normal normal normal 14px/1 FontAwesome;\n  font-size: inherit;\n  text-rendering: auto;\n  -webkit-font-smoothing: antialiased;\n  -moz-osx-font-smoothing: grayscale;\n  font-size: 20px; }\n\n.icon-not-ok:before {\n  content: \"\\F05C\"; }\n\n.icon-not-ok {\n  color: #cc0000; }\n\n.icon-ok:before {\n  content: \"\\F05D\"; }\n\n.icon-ok {\n  color: #4FD156; }\n\n.icon-unknown:before {\n  content: \"\\F29C\"; }\n\n.icon-unknown {\n  color: #c1c1c1; }\n\n@font-face {\n  font-family: 'ooni-icons';\n  src: url(" + __webpack_require__(34) + ");\n  src: url(" + __webpack_require__(34) + ") format(\"embedded-opentype\"), url(" + __webpack_require__(35) + ") format(\"truetype\"), url(" + __webpack_require__(36) + ") format(\"woff\"), url(" + __webpack_require__(37) + ") format(\"svg\");\n  font-weight: normal;\n  font-style: normal; }\n\n.ooni {\n  /* use !important to prevent issues with browser extensions that change fonts */\n  font-family: 'ooni-icons' !important;\n  speak: none;\n  font-style: normal;\n  font-weight: normal;\n  font-variant: normal;\n  text-transform: none;\n  line-height: 1;\n  /* Better Font Rendering =========== */\n  -webkit-font-smoothing: antialiased;\n  -moz-osx-font-smoothing: grayscale; }\n\n.icon-analysis:before {\n  content: \"\\E900\"; }\n\n.icon-censorship-tampering:before {\n  content: \"\\E901\"; }\n\n.icon-censorship-vendor:before {\n  content: \"\\E902\"; }\n\n.icon-censorship-confirmed:before {\n  content: \"\\E903\"; }\n\n.icon-country-statistics:before {\n  content: \"\\E904\"; }\n\n.icon-decentralization:before {\n  content: \"\\E905\"; }\n\n.icon-distributed:before {\n  content: \"\\E906\"; }\n\n.icon-http-body:before {\n  content: \"\\E907\"; }\n\n.icon-http-headers:before {\n  content: \"\\E908\"; }\n\n.icon-measurement:before {\n  content: \"\\E909\"; }\n\n.icon-progress:before {\n  content: \"\\E90A\"; }\n\n.icon-research:before {\n  content: \"\\E90B\"; }\n\n.icon-server:before {\n  content: \"\\E90C\"; }\n\n.icon-tor:before {\n  content: \"\\E90D\"; }\n", ""]);
 	
 	// exports
 
@@ -40415,7 +41372,7 @@
 	
 	
 	// module
-	exports.push([module.id, "/*!\n * Bootstrap v3.3.6 (http://getbootstrap.com)\n * Copyright 2011-2015 Twitter, Inc.\n * Licensed under MIT (https://github.com/twbs/bootstrap/blob/master/LICENSE)\n */\n/*! normalize.css v3.0.3 | MIT License | github.com/necolas/normalize.css */\nhtml {\n  font-family: sans-serif;\n  -webkit-text-size-adjust: 100%;\n      -ms-text-size-adjust: 100%;\n}\nbody {\n  margin: 0;\n}\narticle,\naside,\ndetails,\nfigcaption,\nfigure,\nfooter,\nheader,\nhgroup,\nmain,\nmenu,\nnav,\nsection,\nsummary {\n  display: block;\n}\naudio,\ncanvas,\nprogress,\nvideo {\n  display: inline-block;\n  vertical-align: baseline;\n}\naudio:not([controls]) {\n  display: none;\n  height: 0;\n}\n[hidden],\ntemplate {\n  display: none;\n}\na {\n  background-color: transparent;\n}\na:active,\na:hover {\n  outline: 0;\n}\nabbr[title] {\n  border-bottom: 1px dotted;\n}\nb,\nstrong {\n  font-weight: bold;\n}\ndfn {\n  font-style: italic;\n}\nh1 {\n  margin: .67em 0;\n  font-size: 2em;\n}\nmark {\n  color: #000;\n  background: #ff0;\n}\nsmall {\n  font-size: 80%;\n}\nsub,\nsup {\n  position: relative;\n  font-size: 75%;\n  line-height: 0;\n  vertical-align: baseline;\n}\nsup {\n  top: -.5em;\n}\nsub {\n  bottom: -.25em;\n}\nimg {\n  border: 0;\n}\nsvg:not(:root) {\n  overflow: hidden;\n}\nfigure {\n  margin: 1em 40px;\n}\nhr {\n  height: 0;\n  -webkit-box-sizing: content-box;\n     -moz-box-sizing: content-box;\n          box-sizing: content-box;\n}\npre {\n  overflow: auto;\n}\ncode,\nkbd,\npre,\nsamp {\n  font-family: monospace, monospace;\n  font-size: 1em;\n}\nbutton,\ninput,\noptgroup,\nselect,\ntextarea {\n  margin: 0;\n  font: inherit;\n  color: inherit;\n}\nbutton {\n  overflow: visible;\n}\nbutton,\nselect {\n  text-transform: none;\n}\nbutton,\nhtml input[type=\"button\"],\ninput[type=\"reset\"],\ninput[type=\"submit\"] {\n  -webkit-appearance: button;\n  cursor: pointer;\n}\nbutton[disabled],\nhtml input[disabled] {\n  cursor: default;\n}\nbutton::-moz-focus-inner,\ninput::-moz-focus-inner {\n  padding: 0;\n  border: 0;\n}\ninput {\n  line-height: normal;\n}\ninput[type=\"checkbox\"],\ninput[type=\"radio\"] {\n  -webkit-box-sizing: border-box;\n     -moz-box-sizing: border-box;\n          box-sizing: border-box;\n  padding: 0;\n}\ninput[type=\"number\"]::-webkit-inner-spin-button,\ninput[type=\"number\"]::-webkit-outer-spin-button {\n  height: auto;\n}\ninput[type=\"search\"] {\n  -webkit-box-sizing: content-box;\n     -moz-box-sizing: content-box;\n          box-sizing: content-box;\n  -webkit-appearance: textfield;\n}\ninput[type=\"search\"]::-webkit-search-cancel-button,\ninput[type=\"search\"]::-webkit-search-decoration {\n  -webkit-appearance: none;\n}\nfieldset {\n  padding: .35em .625em .75em;\n  margin: 0 2px;\n  border: 1px solid #c0c0c0;\n}\nlegend {\n  padding: 0;\n  border: 0;\n}\ntextarea {\n  overflow: auto;\n}\noptgroup {\n  font-weight: bold;\n}\ntable {\n  border-spacing: 0;\n  border-collapse: collapse;\n}\ntd,\nth {\n  padding: 0;\n}\n/*! Source: https://github.com/h5bp/html5-boilerplate/blob/master/src/css/main.css */\n@media print {\n  *,\n  *:before,\n  *:after {\n    color: #000 !important;\n    text-shadow: none !important;\n    background: transparent !important;\n    -webkit-box-shadow: none !important;\n            box-shadow: none !important;\n  }\n  a,\n  a:visited {\n    text-decoration: underline;\n  }\n  a[href]:after {\n    content: \" (\" attr(href) \")\";\n  }\n  abbr[title]:after {\n    content: \" (\" attr(title) \")\";\n  }\n  a[href^=\"#\"]:after,\n  a[href^=\"javascript:\"]:after {\n    content: \"\";\n  }\n  pre,\n  blockquote {\n    border: 1px solid #999;\n\n    page-break-inside: avoid;\n  }\n  thead {\n    display: table-header-group;\n  }\n  tr,\n  img {\n    page-break-inside: avoid;\n  }\n  img {\n    max-width: 100% !important;\n  }\n  p,\n  h2,\n  h3 {\n    orphans: 3;\n    widows: 3;\n  }\n  h2,\n  h3 {\n    page-break-after: avoid;\n  }\n  .navbar {\n    display: none;\n  }\n  .btn > .caret,\n  .dropup > .btn > .caret {\n    border-top-color: #000 !important;\n  }\n  .label {\n    border: 1px solid #000;\n  }\n  .table {\n    border-collapse: collapse !important;\n  }\n  .table td,\n  .table th {\n    background-color: #fff !important;\n  }\n  .table-bordered th,\n  .table-bordered td {\n    border: 1px solid #ddd !important;\n  }\n}\n@font-face {\n  font-family: 'Glyphicons Halflings';\n\n  src: url(" + __webpack_require__(13) + ");\n  src: url(" + __webpack_require__(13) + "?#iefix) format('embedded-opentype'), url(" + __webpack_require__(14) + ") format('woff2'), url(" + __webpack_require__(15) + ") format('woff'), url(" + __webpack_require__(16) + ") format('truetype'), url(" + __webpack_require__(17) + "#glyphicons_halflingsregular) format('svg');\n}\n.glyphicon {\n  position: relative;\n  top: 1px;\n  display: inline-block;\n  font-family: 'Glyphicons Halflings';\n  font-style: normal;\n  font-weight: normal;\n  line-height: 1;\n\n  -webkit-font-smoothing: antialiased;\n  -moz-osx-font-smoothing: grayscale;\n}\n.glyphicon-asterisk:before {\n  content: \"*\";\n}\n.glyphicon-plus:before {\n  content: \"+\";\n}\n.glyphicon-euro:before,\n.glyphicon-eur:before {\n  content: \"\\20AC\";\n}\n.glyphicon-minus:before {\n  content: \"\\2212\";\n}\n.glyphicon-cloud:before {\n  content: \"\\2601\";\n}\n.glyphicon-envelope:before {\n  content: \"\\2709\";\n}\n.glyphicon-pencil:before {\n  content: \"\\270F\";\n}\n.glyphicon-glass:before {\n  content: \"\\E001\";\n}\n.glyphicon-music:before {\n  content: \"\\E002\";\n}\n.glyphicon-search:before {\n  content: \"\\E003\";\n}\n.glyphicon-heart:before {\n  content: \"\\E005\";\n}\n.glyphicon-star:before {\n  content: \"\\E006\";\n}\n.glyphicon-star-empty:before {\n  content: \"\\E007\";\n}\n.glyphicon-user:before {\n  content: \"\\E008\";\n}\n.glyphicon-film:before {\n  content: \"\\E009\";\n}\n.glyphicon-th-large:before {\n  content: \"\\E010\";\n}\n.glyphicon-th:before {\n  content: \"\\E011\";\n}\n.glyphicon-th-list:before {\n  content: \"\\E012\";\n}\n.glyphicon-ok:before {\n  content: \"\\E013\";\n}\n.glyphicon-remove:before {\n  content: \"\\E014\";\n}\n.glyphicon-zoom-in:before {\n  content: \"\\E015\";\n}\n.glyphicon-zoom-out:before {\n  content: \"\\E016\";\n}\n.glyphicon-off:before {\n  content: \"\\E017\";\n}\n.glyphicon-signal:before {\n  content: \"\\E018\";\n}\n.glyphicon-cog:before {\n  content: \"\\E019\";\n}\n.glyphicon-trash:before {\n  content: \"\\E020\";\n}\n.glyphicon-home:before {\n  content: \"\\E021\";\n}\n.glyphicon-file:before {\n  content: \"\\E022\";\n}\n.glyphicon-time:before {\n  content: \"\\E023\";\n}\n.glyphicon-road:before {\n  content: \"\\E024\";\n}\n.glyphicon-download-alt:before {\n  content: \"\\E025\";\n}\n.glyphicon-download:before {\n  content: \"\\E026\";\n}\n.glyphicon-upload:before {\n  content: \"\\E027\";\n}\n.glyphicon-inbox:before {\n  content: \"\\E028\";\n}\n.glyphicon-play-circle:before {\n  content: \"\\E029\";\n}\n.glyphicon-repeat:before {\n  content: \"\\E030\";\n}\n.glyphicon-refresh:before {\n  content: \"\\E031\";\n}\n.glyphicon-list-alt:before {\n  content: \"\\E032\";\n}\n.glyphicon-lock:before {\n  content: \"\\E033\";\n}\n.glyphicon-flag:before {\n  content: \"\\E034\";\n}\n.glyphicon-headphones:before {\n  content: \"\\E035\";\n}\n.glyphicon-volume-off:before {\n  content: \"\\E036\";\n}\n.glyphicon-volume-down:before {\n  content: \"\\E037\";\n}\n.glyphicon-volume-up:before {\n  content: \"\\E038\";\n}\n.glyphicon-qrcode:before {\n  content: \"\\E039\";\n}\n.glyphicon-barcode:before {\n  content: \"\\E040\";\n}\n.glyphicon-tag:before {\n  content: \"\\E041\";\n}\n.glyphicon-tags:before {\n  content: \"\\E042\";\n}\n.glyphicon-book:before {\n  content: \"\\E043\";\n}\n.glyphicon-bookmark:before {\n  content: \"\\E044\";\n}\n.glyphicon-print:before {\n  content: \"\\E045\";\n}\n.glyphicon-camera:before {\n  content: \"\\E046\";\n}\n.glyphicon-font:before {\n  content: \"\\E047\";\n}\n.glyphicon-bold:before {\n  content: \"\\E048\";\n}\n.glyphicon-italic:before {\n  content: \"\\E049\";\n}\n.glyphicon-text-height:before {\n  content: \"\\E050\";\n}\n.glyphicon-text-width:before {\n  content: \"\\E051\";\n}\n.glyphicon-align-left:before {\n  content: \"\\E052\";\n}\n.glyphicon-align-center:before {\n  content: \"\\E053\";\n}\n.glyphicon-align-right:before {\n  content: \"\\E054\";\n}\n.glyphicon-align-justify:before {\n  content: \"\\E055\";\n}\n.glyphicon-list:before {\n  content: \"\\E056\";\n}\n.glyphicon-indent-left:before {\n  content: \"\\E057\";\n}\n.glyphicon-indent-right:before {\n  content: \"\\E058\";\n}\n.glyphicon-facetime-video:before {\n  content: \"\\E059\";\n}\n.glyphicon-picture:before {\n  content: \"\\E060\";\n}\n.glyphicon-map-marker:before {\n  content: \"\\E062\";\n}\n.glyphicon-adjust:before {\n  content: \"\\E063\";\n}\n.glyphicon-tint:before {\n  content: \"\\E064\";\n}\n.glyphicon-edit:before {\n  content: \"\\E065\";\n}\n.glyphicon-share:before {\n  content: \"\\E066\";\n}\n.glyphicon-check:before {\n  content: \"\\E067\";\n}\n.glyphicon-move:before {\n  content: \"\\E068\";\n}\n.glyphicon-step-backward:before {\n  content: \"\\E069\";\n}\n.glyphicon-fast-backward:before {\n  content: \"\\E070\";\n}\n.glyphicon-backward:before {\n  content: \"\\E071\";\n}\n.glyphicon-play:before {\n  content: \"\\E072\";\n}\n.glyphicon-pause:before {\n  content: \"\\E073\";\n}\n.glyphicon-stop:before {\n  content: \"\\E074\";\n}\n.glyphicon-forward:before {\n  content: \"\\E075\";\n}\n.glyphicon-fast-forward:before {\n  content: \"\\E076\";\n}\n.glyphicon-step-forward:before {\n  content: \"\\E077\";\n}\n.glyphicon-eject:before {\n  content: \"\\E078\";\n}\n.glyphicon-chevron-left:before {\n  content: \"\\E079\";\n}\n.glyphicon-chevron-right:before {\n  content: \"\\E080\";\n}\n.glyphicon-plus-sign:before {\n  content: \"\\E081\";\n}\n.glyphicon-minus-sign:before {\n  content: \"\\E082\";\n}\n.glyphicon-remove-sign:before {\n  content: \"\\E083\";\n}\n.glyphicon-ok-sign:before {\n  content: \"\\E084\";\n}\n.glyphicon-question-sign:before {\n  content: \"\\E085\";\n}\n.glyphicon-info-sign:before {\n  content: \"\\E086\";\n}\n.glyphicon-screenshot:before {\n  content: \"\\E087\";\n}\n.glyphicon-remove-circle:before {\n  content: \"\\E088\";\n}\n.glyphicon-ok-circle:before {\n  content: \"\\E089\";\n}\n.glyphicon-ban-circle:before {\n  content: \"\\E090\";\n}\n.glyphicon-arrow-left:before {\n  content: \"\\E091\";\n}\n.glyphicon-arrow-right:before {\n  content: \"\\E092\";\n}\n.glyphicon-arrow-up:before {\n  content: \"\\E093\";\n}\n.glyphicon-arrow-down:before {\n  content: \"\\E094\";\n}\n.glyphicon-share-alt:before {\n  content: \"\\E095\";\n}\n.glyphicon-resize-full:before {\n  content: \"\\E096\";\n}\n.glyphicon-resize-small:before {\n  content: \"\\E097\";\n}\n.glyphicon-exclamation-sign:before {\n  content: \"\\E101\";\n}\n.glyphicon-gift:before {\n  content: \"\\E102\";\n}\n.glyphicon-leaf:before {\n  content: \"\\E103\";\n}\n.glyphicon-fire:before {\n  content: \"\\E104\";\n}\n.glyphicon-eye-open:before {\n  content: \"\\E105\";\n}\n.glyphicon-eye-close:before {\n  content: \"\\E106\";\n}\n.glyphicon-warning-sign:before {\n  content: \"\\E107\";\n}\n.glyphicon-plane:before {\n  content: \"\\E108\";\n}\n.glyphicon-calendar:before {\n  content: \"\\E109\";\n}\n.glyphicon-random:before {\n  content: \"\\E110\";\n}\n.glyphicon-comment:before {\n  content: \"\\E111\";\n}\n.glyphicon-magnet:before {\n  content: \"\\E112\";\n}\n.glyphicon-chevron-up:before {\n  content: \"\\E113\";\n}\n.glyphicon-chevron-down:before {\n  content: \"\\E114\";\n}\n.glyphicon-retweet:before {\n  content: \"\\E115\";\n}\n.glyphicon-shopping-cart:before {\n  content: \"\\E116\";\n}\n.glyphicon-folder-close:before {\n  content: \"\\E117\";\n}\n.glyphicon-folder-open:before {\n  content: \"\\E118\";\n}\n.glyphicon-resize-vertical:before {\n  content: \"\\E119\";\n}\n.glyphicon-resize-horizontal:before {\n  content: \"\\E120\";\n}\n.glyphicon-hdd:before {\n  content: \"\\E121\";\n}\n.glyphicon-bullhorn:before {\n  content: \"\\E122\";\n}\n.glyphicon-bell:before {\n  content: \"\\E123\";\n}\n.glyphicon-certificate:before {\n  content: \"\\E124\";\n}\n.glyphicon-thumbs-up:before {\n  content: \"\\E125\";\n}\n.glyphicon-thumbs-down:before {\n  content: \"\\E126\";\n}\n.glyphicon-hand-right:before {\n  content: \"\\E127\";\n}\n.glyphicon-hand-left:before {\n  content: \"\\E128\";\n}\n.glyphicon-hand-up:before {\n  content: \"\\E129\";\n}\n.glyphicon-hand-down:before {\n  content: \"\\E130\";\n}\n.glyphicon-circle-arrow-right:before {\n  content: \"\\E131\";\n}\n.glyphicon-circle-arrow-left:before {\n  content: \"\\E132\";\n}\n.glyphicon-circle-arrow-up:before {\n  content: \"\\E133\";\n}\n.glyphicon-circle-arrow-down:before {\n  content: \"\\E134\";\n}\n.glyphicon-globe:before {\n  content: \"\\E135\";\n}\n.glyphicon-wrench:before {\n  content: \"\\E136\";\n}\n.glyphicon-tasks:before {\n  content: \"\\E137\";\n}\n.glyphicon-filter:before {\n  content: \"\\E138\";\n}\n.glyphicon-briefcase:before {\n  content: \"\\E139\";\n}\n.glyphicon-fullscreen:before {\n  content: \"\\E140\";\n}\n.glyphicon-dashboard:before {\n  content: \"\\E141\";\n}\n.glyphicon-paperclip:before {\n  content: \"\\E142\";\n}\n.glyphicon-heart-empty:before {\n  content: \"\\E143\";\n}\n.glyphicon-link:before {\n  content: \"\\E144\";\n}\n.glyphicon-phone:before {\n  content: \"\\E145\";\n}\n.glyphicon-pushpin:before {\n  content: \"\\E146\";\n}\n.glyphicon-usd:before {\n  content: \"\\E148\";\n}\n.glyphicon-gbp:before {\n  content: \"\\E149\";\n}\n.glyphicon-sort:before {\n  content: \"\\E150\";\n}\n.glyphicon-sort-by-alphabet:before {\n  content: \"\\E151\";\n}\n.glyphicon-sort-by-alphabet-alt:before {\n  content: \"\\E152\";\n}\n.glyphicon-sort-by-order:before {\n  content: \"\\E153\";\n}\n.glyphicon-sort-by-order-alt:before {\n  content: \"\\E154\";\n}\n.glyphicon-sort-by-attributes:before {\n  content: \"\\E155\";\n}\n.glyphicon-sort-by-attributes-alt:before {\n  content: \"\\E156\";\n}\n.glyphicon-unchecked:before {\n  content: \"\\E157\";\n}\n.glyphicon-expand:before {\n  content: \"\\E158\";\n}\n.glyphicon-collapse-down:before {\n  content: \"\\E159\";\n}\n.glyphicon-collapse-up:before {\n  content: \"\\E160\";\n}\n.glyphicon-log-in:before {\n  content: \"\\E161\";\n}\n.glyphicon-flash:before {\n  content: \"\\E162\";\n}\n.glyphicon-log-out:before {\n  content: \"\\E163\";\n}\n.glyphicon-new-window:before {\n  content: \"\\E164\";\n}\n.glyphicon-record:before {\n  content: \"\\E165\";\n}\n.glyphicon-save:before {\n  content: \"\\E166\";\n}\n.glyphicon-open:before {\n  content: \"\\E167\";\n}\n.glyphicon-saved:before {\n  content: \"\\E168\";\n}\n.glyphicon-import:before {\n  content: \"\\E169\";\n}\n.glyphicon-export:before {\n  content: \"\\E170\";\n}\n.glyphicon-send:before {\n  content: \"\\E171\";\n}\n.glyphicon-floppy-disk:before {\n  content: \"\\E172\";\n}\n.glyphicon-floppy-saved:before {\n  content: \"\\E173\";\n}\n.glyphicon-floppy-remove:before {\n  content: \"\\E174\";\n}\n.glyphicon-floppy-save:before {\n  content: \"\\E175\";\n}\n.glyphicon-floppy-open:before {\n  content: \"\\E176\";\n}\n.glyphicon-credit-card:before {\n  content: \"\\E177\";\n}\n.glyphicon-transfer:before {\n  content: \"\\E178\";\n}\n.glyphicon-cutlery:before {\n  content: \"\\E179\";\n}\n.glyphicon-header:before {\n  content: \"\\E180\";\n}\n.glyphicon-compressed:before {\n  content: \"\\E181\";\n}\n.glyphicon-earphone:before {\n  content: \"\\E182\";\n}\n.glyphicon-phone-alt:before {\n  content: \"\\E183\";\n}\n.glyphicon-tower:before {\n  content: \"\\E184\";\n}\n.glyphicon-stats:before {\n  content: \"\\E185\";\n}\n.glyphicon-sd-video:before {\n  content: \"\\E186\";\n}\n.glyphicon-hd-video:before {\n  content: \"\\E187\";\n}\n.glyphicon-subtitles:before {\n  content: \"\\E188\";\n}\n.glyphicon-sound-stereo:before {\n  content: \"\\E189\";\n}\n.glyphicon-sound-dolby:before {\n  content: \"\\E190\";\n}\n.glyphicon-sound-5-1:before {\n  content: \"\\E191\";\n}\n.glyphicon-sound-6-1:before {\n  content: \"\\E192\";\n}\n.glyphicon-sound-7-1:before {\n  content: \"\\E193\";\n}\n.glyphicon-copyright-mark:before {\n  content: \"\\E194\";\n}\n.glyphicon-registration-mark:before {\n  content: \"\\E195\";\n}\n.glyphicon-cloud-download:before {\n  content: \"\\E197\";\n}\n.glyphicon-cloud-upload:before {\n  content: \"\\E198\";\n}\n.glyphicon-tree-conifer:before {\n  content: \"\\E199\";\n}\n.glyphicon-tree-deciduous:before {\n  content: \"\\E200\";\n}\n.glyphicon-cd:before {\n  content: \"\\E201\";\n}\n.glyphicon-save-file:before {\n  content: \"\\E202\";\n}\n.glyphicon-open-file:before {\n  content: \"\\E203\";\n}\n.glyphicon-level-up:before {\n  content: \"\\E204\";\n}\n.glyphicon-copy:before {\n  content: \"\\E205\";\n}\n.glyphicon-paste:before {\n  content: \"\\E206\";\n}\n.glyphicon-alert:before {\n  content: \"\\E209\";\n}\n.glyphicon-equalizer:before {\n  content: \"\\E210\";\n}\n.glyphicon-king:before {\n  content: \"\\E211\";\n}\n.glyphicon-queen:before {\n  content: \"\\E212\";\n}\n.glyphicon-pawn:before {\n  content: \"\\E213\";\n}\n.glyphicon-bishop:before {\n  content: \"\\E214\";\n}\n.glyphicon-knight:before {\n  content: \"\\E215\";\n}\n.glyphicon-baby-formula:before {\n  content: \"\\E216\";\n}\n.glyphicon-tent:before {\n  content: \"\\26FA\";\n}\n.glyphicon-blackboard:before {\n  content: \"\\E218\";\n}\n.glyphicon-bed:before {\n  content: \"\\E219\";\n}\n.glyphicon-apple:before {\n  content: \"\\F8FF\";\n}\n.glyphicon-erase:before {\n  content: \"\\E221\";\n}\n.glyphicon-hourglass:before {\n  content: \"\\231B\";\n}\n.glyphicon-lamp:before {\n  content: \"\\E223\";\n}\n.glyphicon-duplicate:before {\n  content: \"\\E224\";\n}\n.glyphicon-piggy-bank:before {\n  content: \"\\E225\";\n}\n.glyphicon-scissors:before {\n  content: \"\\E226\";\n}\n.glyphicon-bitcoin:before {\n  content: \"\\E227\";\n}\n.glyphicon-btc:before {\n  content: \"\\E227\";\n}\n.glyphicon-xbt:before {\n  content: \"\\E227\";\n}\n.glyphicon-yen:before {\n  content: \"\\A5\";\n}\n.glyphicon-jpy:before {\n  content: \"\\A5\";\n}\n.glyphicon-ruble:before {\n  content: \"\\20BD\";\n}\n.glyphicon-rub:before {\n  content: \"\\20BD\";\n}\n.glyphicon-scale:before {\n  content: \"\\E230\";\n}\n.glyphicon-ice-lolly:before {\n  content: \"\\E231\";\n}\n.glyphicon-ice-lolly-tasted:before {\n  content: \"\\E232\";\n}\n.glyphicon-education:before {\n  content: \"\\E233\";\n}\n.glyphicon-option-horizontal:before {\n  content: \"\\E234\";\n}\n.glyphicon-option-vertical:before {\n  content: \"\\E235\";\n}\n.glyphicon-menu-hamburger:before {\n  content: \"\\E236\";\n}\n.glyphicon-modal-window:before {\n  content: \"\\E237\";\n}\n.glyphicon-oil:before {\n  content: \"\\E238\";\n}\n.glyphicon-grain:before {\n  content: \"\\E239\";\n}\n.glyphicon-sunglasses:before {\n  content: \"\\E240\";\n}\n.glyphicon-text-size:before {\n  content: \"\\E241\";\n}\n.glyphicon-text-color:before {\n  content: \"\\E242\";\n}\n.glyphicon-text-background:before {\n  content: \"\\E243\";\n}\n.glyphicon-object-align-top:before {\n  content: \"\\E244\";\n}\n.glyphicon-object-align-bottom:before {\n  content: \"\\E245\";\n}\n.glyphicon-object-align-horizontal:before {\n  content: \"\\E246\";\n}\n.glyphicon-object-align-left:before {\n  content: \"\\E247\";\n}\n.glyphicon-object-align-vertical:before {\n  content: \"\\E248\";\n}\n.glyphicon-object-align-right:before {\n  content: \"\\E249\";\n}\n.glyphicon-triangle-right:before {\n  content: \"\\E250\";\n}\n.glyphicon-triangle-left:before {\n  content: \"\\E251\";\n}\n.glyphicon-triangle-bottom:before {\n  content: \"\\E252\";\n}\n.glyphicon-triangle-top:before {\n  content: \"\\E253\";\n}\n.glyphicon-console:before {\n  content: \"\\E254\";\n}\n.glyphicon-superscript:before {\n  content: \"\\E255\";\n}\n.glyphicon-subscript:before {\n  content: \"\\E256\";\n}\n.glyphicon-menu-left:before {\n  content: \"\\E257\";\n}\n.glyphicon-menu-right:before {\n  content: \"\\E258\";\n}\n.glyphicon-menu-down:before {\n  content: \"\\E259\";\n}\n.glyphicon-menu-up:before {\n  content: \"\\E260\";\n}\n* {\n  -webkit-box-sizing: border-box;\n     -moz-box-sizing: border-box;\n          box-sizing: border-box;\n}\n*:before,\n*:after {\n  -webkit-box-sizing: border-box;\n     -moz-box-sizing: border-box;\n          box-sizing: border-box;\n}\nhtml {\n  font-size: 10px;\n\n  -webkit-tap-highlight-color: rgba(0, 0, 0, 0);\n}\nbody {\n  font-family: \"Helvetica Neue\", Helvetica, Arial, sans-serif;\n  font-size: 14px;\n  line-height: 1.42857143;\n  color: #333;\n  background-color: #fff;\n}\ninput,\nbutton,\nselect,\ntextarea {\n  font-family: inherit;\n  font-size: inherit;\n  line-height: inherit;\n}\na {\n  color: #337ab7;\n  text-decoration: none;\n}\na:hover,\na:focus {\n  color: #23527c;\n  text-decoration: underline;\n}\na:focus {\n  outline: thin dotted;\n  outline: 5px auto -webkit-focus-ring-color;\n  outline-offset: -2px;\n}\nfigure {\n  margin: 0;\n}\nimg {\n  vertical-align: middle;\n}\n.img-responsive,\n.thumbnail > img,\n.thumbnail a > img,\n.carousel-inner > .item > img,\n.carousel-inner > .item > a > img {\n  display: block;\n  max-width: 100%;\n  height: auto;\n}\n.img-rounded {\n  border-radius: 6px;\n}\n.img-thumbnail {\n  display: inline-block;\n  max-width: 100%;\n  height: auto;\n  padding: 4px;\n  line-height: 1.42857143;\n  background-color: #fff;\n  border: 1px solid #ddd;\n  border-radius: 4px;\n  -webkit-transition: all .2s ease-in-out;\n       -o-transition: all .2s ease-in-out;\n          transition: all .2s ease-in-out;\n}\n.img-circle {\n  border-radius: 50%;\n}\nhr {\n  margin-top: 20px;\n  margin-bottom: 20px;\n  border: 0;\n  border-top: 1px solid #eee;\n}\n.sr-only {\n  position: absolute;\n  width: 1px;\n  height: 1px;\n  padding: 0;\n  margin: -1px;\n  overflow: hidden;\n  clip: rect(0, 0, 0, 0);\n  border: 0;\n}\n.sr-only-focusable:active,\n.sr-only-focusable:focus {\n  position: static;\n  width: auto;\n  height: auto;\n  margin: 0;\n  overflow: visible;\n  clip: auto;\n}\n[role=\"button\"] {\n  cursor: pointer;\n}\nh1,\nh2,\nh3,\nh4,\nh5,\nh6,\n.h1,\n.h2,\n.h3,\n.h4,\n.h5,\n.h6 {\n  font-family: inherit;\n  font-weight: 500;\n  line-height: 1.1;\n  color: inherit;\n}\nh1 small,\nh2 small,\nh3 small,\nh4 small,\nh5 small,\nh6 small,\n.h1 small,\n.h2 small,\n.h3 small,\n.h4 small,\n.h5 small,\n.h6 small,\nh1 .small,\nh2 .small,\nh3 .small,\nh4 .small,\nh5 .small,\nh6 .small,\n.h1 .small,\n.h2 .small,\n.h3 .small,\n.h4 .small,\n.h5 .small,\n.h6 .small {\n  font-weight: normal;\n  line-height: 1;\n  color: #777;\n}\nh1,\n.h1,\nh2,\n.h2,\nh3,\n.h3 {\n  margin-top: 20px;\n  margin-bottom: 10px;\n}\nh1 small,\n.h1 small,\nh2 small,\n.h2 small,\nh3 small,\n.h3 small,\nh1 .small,\n.h1 .small,\nh2 .small,\n.h2 .small,\nh3 .small,\n.h3 .small {\n  font-size: 65%;\n}\nh4,\n.h4,\nh5,\n.h5,\nh6,\n.h6 {\n  margin-top: 10px;\n  margin-bottom: 10px;\n}\nh4 small,\n.h4 small,\nh5 small,\n.h5 small,\nh6 small,\n.h6 small,\nh4 .small,\n.h4 .small,\nh5 .small,\n.h5 .small,\nh6 .small,\n.h6 .small {\n  font-size: 75%;\n}\nh1,\n.h1 {\n  font-size: 36px;\n}\nh2,\n.h2 {\n  font-size: 30px;\n}\nh3,\n.h3 {\n  font-size: 24px;\n}\nh4,\n.h4 {\n  font-size: 18px;\n}\nh5,\n.h5 {\n  font-size: 14px;\n}\nh6,\n.h6 {\n  font-size: 12px;\n}\np {\n  margin: 0 0 10px;\n}\n.lead {\n  margin-bottom: 20px;\n  font-size: 16px;\n  font-weight: 300;\n  line-height: 1.4;\n}\n@media (min-width: 768px) {\n  .lead {\n    font-size: 21px;\n  }\n}\nsmall,\n.small {\n  font-size: 85%;\n}\nmark,\n.mark {\n  padding: .2em;\n  background-color: #fcf8e3;\n}\n.text-left {\n  text-align: left;\n}\n.text-right {\n  text-align: right;\n}\n.text-center {\n  text-align: center;\n}\n.text-justify {\n  text-align: justify;\n}\n.text-nowrap {\n  white-space: nowrap;\n}\n.text-lowercase {\n  text-transform: lowercase;\n}\n.text-uppercase {\n  text-transform: uppercase;\n}\n.text-capitalize {\n  text-transform: capitalize;\n}\n.text-muted {\n  color: #777;\n}\n.text-primary {\n  color: #337ab7;\n}\na.text-primary:hover,\na.text-primary:focus {\n  color: #286090;\n}\n.text-success {\n  color: #3c763d;\n}\na.text-success:hover,\na.text-success:focus {\n  color: #2b542c;\n}\n.text-info {\n  color: #31708f;\n}\na.text-info:hover,\na.text-info:focus {\n  color: #245269;\n}\n.text-warning {\n  color: #8a6d3b;\n}\na.text-warning:hover,\na.text-warning:focus {\n  color: #66512c;\n}\n.text-danger {\n  color: #a94442;\n}\na.text-danger:hover,\na.text-danger:focus {\n  color: #843534;\n}\n.bg-primary {\n  color: #fff;\n  background-color: #337ab7;\n}\na.bg-primary:hover,\na.bg-primary:focus {\n  background-color: #286090;\n}\n.bg-success {\n  background-color: #dff0d8;\n}\na.bg-success:hover,\na.bg-success:focus {\n  background-color: #c1e2b3;\n}\n.bg-info {\n  background-color: #d9edf7;\n}\na.bg-info:hover,\na.bg-info:focus {\n  background-color: #afd9ee;\n}\n.bg-warning {\n  background-color: #fcf8e3;\n}\na.bg-warning:hover,\na.bg-warning:focus {\n  background-color: #f7ecb5;\n}\n.bg-danger {\n  background-color: #f2dede;\n}\na.bg-danger:hover,\na.bg-danger:focus {\n  background-color: #e4b9b9;\n}\n.page-header {\n  padding-bottom: 9px;\n  margin: 40px 0 20px;\n  border-bottom: 1px solid #eee;\n}\nul,\nol {\n  margin-top: 0;\n  margin-bottom: 10px;\n}\nul ul,\nol ul,\nul ol,\nol ol {\n  margin-bottom: 0;\n}\n.list-unstyled {\n  padding-left: 0;\n  list-style: none;\n}\n.list-inline {\n  padding-left: 0;\n  margin-left: -5px;\n  list-style: none;\n}\n.list-inline > li {\n  display: inline-block;\n  padding-right: 5px;\n  padding-left: 5px;\n}\ndl {\n  margin-top: 0;\n  margin-bottom: 20px;\n}\ndt,\ndd {\n  line-height: 1.42857143;\n}\ndt {\n  font-weight: bold;\n}\ndd {\n  margin-left: 0;\n}\n@media (min-width: 768px) {\n  .dl-horizontal dt {\n    float: left;\n    width: 160px;\n    overflow: hidden;\n    clear: left;\n    text-align: right;\n    text-overflow: ellipsis;\n    white-space: nowrap;\n  }\n  .dl-horizontal dd {\n    margin-left: 180px;\n  }\n}\nabbr[title],\nabbr[data-original-title] {\n  cursor: help;\n  border-bottom: 1px dotted #777;\n}\n.initialism {\n  font-size: 90%;\n  text-transform: uppercase;\n}\nblockquote {\n  padding: 10px 20px;\n  margin: 0 0 20px;\n  font-size: 17.5px;\n  border-left: 5px solid #eee;\n}\nblockquote p:last-child,\nblockquote ul:last-child,\nblockquote ol:last-child {\n  margin-bottom: 0;\n}\nblockquote footer,\nblockquote small,\nblockquote .small {\n  display: block;\n  font-size: 80%;\n  line-height: 1.42857143;\n  color: #777;\n}\nblockquote footer:before,\nblockquote small:before,\nblockquote .small:before {\n  content: '\\2014   \\A0';\n}\n.blockquote-reverse,\nblockquote.pull-right {\n  padding-right: 15px;\n  padding-left: 0;\n  text-align: right;\n  border-right: 5px solid #eee;\n  border-left: 0;\n}\n.blockquote-reverse footer:before,\nblockquote.pull-right footer:before,\n.blockquote-reverse small:before,\nblockquote.pull-right small:before,\n.blockquote-reverse .small:before,\nblockquote.pull-right .small:before {\n  content: '';\n}\n.blockquote-reverse footer:after,\nblockquote.pull-right footer:after,\n.blockquote-reverse small:after,\nblockquote.pull-right small:after,\n.blockquote-reverse .small:after,\nblockquote.pull-right .small:after {\n  content: '\\A0   \\2014';\n}\naddress {\n  margin-bottom: 20px;\n  font-style: normal;\n  line-height: 1.42857143;\n}\ncode,\nkbd,\npre,\nsamp {\n  font-family: Menlo, Monaco, Consolas, \"Courier New\", monospace;\n}\ncode {\n  padding: 2px 4px;\n  font-size: 90%;\n  color: #c7254e;\n  background-color: #f9f2f4;\n  border-radius: 4px;\n}\nkbd {\n  padding: 2px 4px;\n  font-size: 90%;\n  color: #fff;\n  background-color: #333;\n  border-radius: 3px;\n  -webkit-box-shadow: inset 0 -1px 0 rgba(0, 0, 0, .25);\n          box-shadow: inset 0 -1px 0 rgba(0, 0, 0, .25);\n}\nkbd kbd {\n  padding: 0;\n  font-size: 100%;\n  font-weight: bold;\n  -webkit-box-shadow: none;\n          box-shadow: none;\n}\npre {\n  display: block;\n  padding: 9.5px;\n  margin: 0 0 10px;\n  font-size: 13px;\n  line-height: 1.42857143;\n  color: #333;\n  word-break: break-all;\n  word-wrap: break-word;\n  background-color: #f5f5f5;\n  border: 1px solid #ccc;\n  border-radius: 4px;\n}\npre code {\n  padding: 0;\n  font-size: inherit;\n  color: inherit;\n  white-space: pre-wrap;\n  background-color: transparent;\n  border-radius: 0;\n}\n.pre-scrollable {\n  max-height: 340px;\n  overflow-y: scroll;\n}\n.container {\n  padding-right: 15px;\n  padding-left: 15px;\n  margin-right: auto;\n  margin-left: auto;\n}\n@media (min-width: 768px) {\n  .container {\n    width: 750px;\n  }\n}\n@media (min-width: 992px) {\n  .container {\n    width: 970px;\n  }\n}\n@media (min-width: 1200px) {\n  .container {\n    width: 1170px;\n  }\n}\n.container-fluid {\n  padding-right: 15px;\n  padding-left: 15px;\n  margin-right: auto;\n  margin-left: auto;\n}\n.row {\n  margin-right: -15px;\n  margin-left: -15px;\n}\n.col-xs-1, .col-sm-1, .col-md-1, .col-lg-1, .col-xs-2, .col-sm-2, .col-md-2, .col-lg-2, .col-xs-3, .col-sm-3, .col-md-3, .col-lg-3, .col-xs-4, .col-sm-4, .col-md-4, .col-lg-4, .col-xs-5, .col-sm-5, .col-md-5, .col-lg-5, .col-xs-6, .col-sm-6, .col-md-6, .col-lg-6, .col-xs-7, .col-sm-7, .col-md-7, .col-lg-7, .col-xs-8, .col-sm-8, .col-md-8, .col-lg-8, .col-xs-9, .col-sm-9, .col-md-9, .col-lg-9, .col-xs-10, .col-sm-10, .col-md-10, .col-lg-10, .col-xs-11, .col-sm-11, .col-md-11, .col-lg-11, .col-xs-12, .col-sm-12, .col-md-12, .col-lg-12 {\n  position: relative;\n  min-height: 1px;\n  padding-right: 15px;\n  padding-left: 15px;\n}\n.col-xs-1, .col-xs-2, .col-xs-3, .col-xs-4, .col-xs-5, .col-xs-6, .col-xs-7, .col-xs-8, .col-xs-9, .col-xs-10, .col-xs-11, .col-xs-12 {\n  float: left;\n}\n.col-xs-12 {\n  width: 100%;\n}\n.col-xs-11 {\n  width: 91.66666667%;\n}\n.col-xs-10 {\n  width: 83.33333333%;\n}\n.col-xs-9 {\n  width: 75%;\n}\n.col-xs-8 {\n  width: 66.66666667%;\n}\n.col-xs-7 {\n  width: 58.33333333%;\n}\n.col-xs-6 {\n  width: 50%;\n}\n.col-xs-5 {\n  width: 41.66666667%;\n}\n.col-xs-4 {\n  width: 33.33333333%;\n}\n.col-xs-3 {\n  width: 25%;\n}\n.col-xs-2 {\n  width: 16.66666667%;\n}\n.col-xs-1 {\n  width: 8.33333333%;\n}\n.col-xs-pull-12 {\n  right: 100%;\n}\n.col-xs-pull-11 {\n  right: 91.66666667%;\n}\n.col-xs-pull-10 {\n  right: 83.33333333%;\n}\n.col-xs-pull-9 {\n  right: 75%;\n}\n.col-xs-pull-8 {\n  right: 66.66666667%;\n}\n.col-xs-pull-7 {\n  right: 58.33333333%;\n}\n.col-xs-pull-6 {\n  right: 50%;\n}\n.col-xs-pull-5 {\n  right: 41.66666667%;\n}\n.col-xs-pull-4 {\n  right: 33.33333333%;\n}\n.col-xs-pull-3 {\n  right: 25%;\n}\n.col-xs-pull-2 {\n  right: 16.66666667%;\n}\n.col-xs-pull-1 {\n  right: 8.33333333%;\n}\n.col-xs-pull-0 {\n  right: auto;\n}\n.col-xs-push-12 {\n  left: 100%;\n}\n.col-xs-push-11 {\n  left: 91.66666667%;\n}\n.col-xs-push-10 {\n  left: 83.33333333%;\n}\n.col-xs-push-9 {\n  left: 75%;\n}\n.col-xs-push-8 {\n  left: 66.66666667%;\n}\n.col-xs-push-7 {\n  left: 58.33333333%;\n}\n.col-xs-push-6 {\n  left: 50%;\n}\n.col-xs-push-5 {\n  left: 41.66666667%;\n}\n.col-xs-push-4 {\n  left: 33.33333333%;\n}\n.col-xs-push-3 {\n  left: 25%;\n}\n.col-xs-push-2 {\n  left: 16.66666667%;\n}\n.col-xs-push-1 {\n  left: 8.33333333%;\n}\n.col-xs-push-0 {\n  left: auto;\n}\n.col-xs-offset-12 {\n  margin-left: 100%;\n}\n.col-xs-offset-11 {\n  margin-left: 91.66666667%;\n}\n.col-xs-offset-10 {\n  margin-left: 83.33333333%;\n}\n.col-xs-offset-9 {\n  margin-left: 75%;\n}\n.col-xs-offset-8 {\n  margin-left: 66.66666667%;\n}\n.col-xs-offset-7 {\n  margin-left: 58.33333333%;\n}\n.col-xs-offset-6 {\n  margin-left: 50%;\n}\n.col-xs-offset-5 {\n  margin-left: 41.66666667%;\n}\n.col-xs-offset-4 {\n  margin-left: 33.33333333%;\n}\n.col-xs-offset-3 {\n  margin-left: 25%;\n}\n.col-xs-offset-2 {\n  margin-left: 16.66666667%;\n}\n.col-xs-offset-1 {\n  margin-left: 8.33333333%;\n}\n.col-xs-offset-0 {\n  margin-left: 0;\n}\n@media (min-width: 768px) {\n  .col-sm-1, .col-sm-2, .col-sm-3, .col-sm-4, .col-sm-5, .col-sm-6, .col-sm-7, .col-sm-8, .col-sm-9, .col-sm-10, .col-sm-11, .col-sm-12 {\n    float: left;\n  }\n  .col-sm-12 {\n    width: 100%;\n  }\n  .col-sm-11 {\n    width: 91.66666667%;\n  }\n  .col-sm-10 {\n    width: 83.33333333%;\n  }\n  .col-sm-9 {\n    width: 75%;\n  }\n  .col-sm-8 {\n    width: 66.66666667%;\n  }\n  .col-sm-7 {\n    width: 58.33333333%;\n  }\n  .col-sm-6 {\n    width: 50%;\n  }\n  .col-sm-5 {\n    width: 41.66666667%;\n  }\n  .col-sm-4 {\n    width: 33.33333333%;\n  }\n  .col-sm-3 {\n    width: 25%;\n  }\n  .col-sm-2 {\n    width: 16.66666667%;\n  }\n  .col-sm-1 {\n    width: 8.33333333%;\n  }\n  .col-sm-pull-12 {\n    right: 100%;\n  }\n  .col-sm-pull-11 {\n    right: 91.66666667%;\n  }\n  .col-sm-pull-10 {\n    right: 83.33333333%;\n  }\n  .col-sm-pull-9 {\n    right: 75%;\n  }\n  .col-sm-pull-8 {\n    right: 66.66666667%;\n  }\n  .col-sm-pull-7 {\n    right: 58.33333333%;\n  }\n  .col-sm-pull-6 {\n    right: 50%;\n  }\n  .col-sm-pull-5 {\n    right: 41.66666667%;\n  }\n  .col-sm-pull-4 {\n    right: 33.33333333%;\n  }\n  .col-sm-pull-3 {\n    right: 25%;\n  }\n  .col-sm-pull-2 {\n    right: 16.66666667%;\n  }\n  .col-sm-pull-1 {\n    right: 8.33333333%;\n  }\n  .col-sm-pull-0 {\n    right: auto;\n  }\n  .col-sm-push-12 {\n    left: 100%;\n  }\n  .col-sm-push-11 {\n    left: 91.66666667%;\n  }\n  .col-sm-push-10 {\n    left: 83.33333333%;\n  }\n  .col-sm-push-9 {\n    left: 75%;\n  }\n  .col-sm-push-8 {\n    left: 66.66666667%;\n  }\n  .col-sm-push-7 {\n    left: 58.33333333%;\n  }\n  .col-sm-push-6 {\n    left: 50%;\n  }\n  .col-sm-push-5 {\n    left: 41.66666667%;\n  }\n  .col-sm-push-4 {\n    left: 33.33333333%;\n  }\n  .col-sm-push-3 {\n    left: 25%;\n  }\n  .col-sm-push-2 {\n    left: 16.66666667%;\n  }\n  .col-sm-push-1 {\n    left: 8.33333333%;\n  }\n  .col-sm-push-0 {\n    left: auto;\n  }\n  .col-sm-offset-12 {\n    margin-left: 100%;\n  }\n  .col-sm-offset-11 {\n    margin-left: 91.66666667%;\n  }\n  .col-sm-offset-10 {\n    margin-left: 83.33333333%;\n  }\n  .col-sm-offset-9 {\n    margin-left: 75%;\n  }\n  .col-sm-offset-8 {\n    margin-left: 66.66666667%;\n  }\n  .col-sm-offset-7 {\n    margin-left: 58.33333333%;\n  }\n  .col-sm-offset-6 {\n    margin-left: 50%;\n  }\n  .col-sm-offset-5 {\n    margin-left: 41.66666667%;\n  }\n  .col-sm-offset-4 {\n    margin-left: 33.33333333%;\n  }\n  .col-sm-offset-3 {\n    margin-left: 25%;\n  }\n  .col-sm-offset-2 {\n    margin-left: 16.66666667%;\n  }\n  .col-sm-offset-1 {\n    margin-left: 8.33333333%;\n  }\n  .col-sm-offset-0 {\n    margin-left: 0;\n  }\n}\n@media (min-width: 992px) {\n  .col-md-1, .col-md-2, .col-md-3, .col-md-4, .col-md-5, .col-md-6, .col-md-7, .col-md-8, .col-md-9, .col-md-10, .col-md-11, .col-md-12 {\n    float: left;\n  }\n  .col-md-12 {\n    width: 100%;\n  }\n  .col-md-11 {\n    width: 91.66666667%;\n  }\n  .col-md-10 {\n    width: 83.33333333%;\n  }\n  .col-md-9 {\n    width: 75%;\n  }\n  .col-md-8 {\n    width: 66.66666667%;\n  }\n  .col-md-7 {\n    width: 58.33333333%;\n  }\n  .col-md-6 {\n    width: 50%;\n  }\n  .col-md-5 {\n    width: 41.66666667%;\n  }\n  .col-md-4 {\n    width: 33.33333333%;\n  }\n  .col-md-3 {\n    width: 25%;\n  }\n  .col-md-2 {\n    width: 16.66666667%;\n  }\n  .col-md-1 {\n    width: 8.33333333%;\n  }\n  .col-md-pull-12 {\n    right: 100%;\n  }\n  .col-md-pull-11 {\n    right: 91.66666667%;\n  }\n  .col-md-pull-10 {\n    right: 83.33333333%;\n  }\n  .col-md-pull-9 {\n    right: 75%;\n  }\n  .col-md-pull-8 {\n    right: 66.66666667%;\n  }\n  .col-md-pull-7 {\n    right: 58.33333333%;\n  }\n  .col-md-pull-6 {\n    right: 50%;\n  }\n  .col-md-pull-5 {\n    right: 41.66666667%;\n  }\n  .col-md-pull-4 {\n    right: 33.33333333%;\n  }\n  .col-md-pull-3 {\n    right: 25%;\n  }\n  .col-md-pull-2 {\n    right: 16.66666667%;\n  }\n  .col-md-pull-1 {\n    right: 8.33333333%;\n  }\n  .col-md-pull-0 {\n    right: auto;\n  }\n  .col-md-push-12 {\n    left: 100%;\n  }\n  .col-md-push-11 {\n    left: 91.66666667%;\n  }\n  .col-md-push-10 {\n    left: 83.33333333%;\n  }\n  .col-md-push-9 {\n    left: 75%;\n  }\n  .col-md-push-8 {\n    left: 66.66666667%;\n  }\n  .col-md-push-7 {\n    left: 58.33333333%;\n  }\n  .col-md-push-6 {\n    left: 50%;\n  }\n  .col-md-push-5 {\n    left: 41.66666667%;\n  }\n  .col-md-push-4 {\n    left: 33.33333333%;\n  }\n  .col-md-push-3 {\n    left: 25%;\n  }\n  .col-md-push-2 {\n    left: 16.66666667%;\n  }\n  .col-md-push-1 {\n    left: 8.33333333%;\n  }\n  .col-md-push-0 {\n    left: auto;\n  }\n  .col-md-offset-12 {\n    margin-left: 100%;\n  }\n  .col-md-offset-11 {\n    margin-left: 91.66666667%;\n  }\n  .col-md-offset-10 {\n    margin-left: 83.33333333%;\n  }\n  .col-md-offset-9 {\n    margin-left: 75%;\n  }\n  .col-md-offset-8 {\n    margin-left: 66.66666667%;\n  }\n  .col-md-offset-7 {\n    margin-left: 58.33333333%;\n  }\n  .col-md-offset-6 {\n    margin-left: 50%;\n  }\n  .col-md-offset-5 {\n    margin-left: 41.66666667%;\n  }\n  .col-md-offset-4 {\n    margin-left: 33.33333333%;\n  }\n  .col-md-offset-3 {\n    margin-left: 25%;\n  }\n  .col-md-offset-2 {\n    margin-left: 16.66666667%;\n  }\n  .col-md-offset-1 {\n    margin-left: 8.33333333%;\n  }\n  .col-md-offset-0 {\n    margin-left: 0;\n  }\n}\n@media (min-width: 1200px) {\n  .col-lg-1, .col-lg-2, .col-lg-3, .col-lg-4, .col-lg-5, .col-lg-6, .col-lg-7, .col-lg-8, .col-lg-9, .col-lg-10, .col-lg-11, .col-lg-12 {\n    float: left;\n  }\n  .col-lg-12 {\n    width: 100%;\n  }\n  .col-lg-11 {\n    width: 91.66666667%;\n  }\n  .col-lg-10 {\n    width: 83.33333333%;\n  }\n  .col-lg-9 {\n    width: 75%;\n  }\n  .col-lg-8 {\n    width: 66.66666667%;\n  }\n  .col-lg-7 {\n    width: 58.33333333%;\n  }\n  .col-lg-6 {\n    width: 50%;\n  }\n  .col-lg-5 {\n    width: 41.66666667%;\n  }\n  .col-lg-4 {\n    width: 33.33333333%;\n  }\n  .col-lg-3 {\n    width: 25%;\n  }\n  .col-lg-2 {\n    width: 16.66666667%;\n  }\n  .col-lg-1 {\n    width: 8.33333333%;\n  }\n  .col-lg-pull-12 {\n    right: 100%;\n  }\n  .col-lg-pull-11 {\n    right: 91.66666667%;\n  }\n  .col-lg-pull-10 {\n    right: 83.33333333%;\n  }\n  .col-lg-pull-9 {\n    right: 75%;\n  }\n  .col-lg-pull-8 {\n    right: 66.66666667%;\n  }\n  .col-lg-pull-7 {\n    right: 58.33333333%;\n  }\n  .col-lg-pull-6 {\n    right: 50%;\n  }\n  .col-lg-pull-5 {\n    right: 41.66666667%;\n  }\n  .col-lg-pull-4 {\n    right: 33.33333333%;\n  }\n  .col-lg-pull-3 {\n    right: 25%;\n  }\n  .col-lg-pull-2 {\n    right: 16.66666667%;\n  }\n  .col-lg-pull-1 {\n    right: 8.33333333%;\n  }\n  .col-lg-pull-0 {\n    right: auto;\n  }\n  .col-lg-push-12 {\n    left: 100%;\n  }\n  .col-lg-push-11 {\n    left: 91.66666667%;\n  }\n  .col-lg-push-10 {\n    left: 83.33333333%;\n  }\n  .col-lg-push-9 {\n    left: 75%;\n  }\n  .col-lg-push-8 {\n    left: 66.66666667%;\n  }\n  .col-lg-push-7 {\n    left: 58.33333333%;\n  }\n  .col-lg-push-6 {\n    left: 50%;\n  }\n  .col-lg-push-5 {\n    left: 41.66666667%;\n  }\n  .col-lg-push-4 {\n    left: 33.33333333%;\n  }\n  .col-lg-push-3 {\n    left: 25%;\n  }\n  .col-lg-push-2 {\n    left: 16.66666667%;\n  }\n  .col-lg-push-1 {\n    left: 8.33333333%;\n  }\n  .col-lg-push-0 {\n    left: auto;\n  }\n  .col-lg-offset-12 {\n    margin-left: 100%;\n  }\n  .col-lg-offset-11 {\n    margin-left: 91.66666667%;\n  }\n  .col-lg-offset-10 {\n    margin-left: 83.33333333%;\n  }\n  .col-lg-offset-9 {\n    margin-left: 75%;\n  }\n  .col-lg-offset-8 {\n    margin-left: 66.66666667%;\n  }\n  .col-lg-offset-7 {\n    margin-left: 58.33333333%;\n  }\n  .col-lg-offset-6 {\n    margin-left: 50%;\n  }\n  .col-lg-offset-5 {\n    margin-left: 41.66666667%;\n  }\n  .col-lg-offset-4 {\n    margin-left: 33.33333333%;\n  }\n  .col-lg-offset-3 {\n    margin-left: 25%;\n  }\n  .col-lg-offset-2 {\n    margin-left: 16.66666667%;\n  }\n  .col-lg-offset-1 {\n    margin-left: 8.33333333%;\n  }\n  .col-lg-offset-0 {\n    margin-left: 0;\n  }\n}\ntable {\n  background-color: transparent;\n}\ncaption {\n  padding-top: 8px;\n  padding-bottom: 8px;\n  color: #777;\n  text-align: left;\n}\nth {\n  text-align: left;\n}\n.table {\n  width: 100%;\n  max-width: 100%;\n  margin-bottom: 20px;\n}\n.table > thead > tr > th,\n.table > tbody > tr > th,\n.table > tfoot > tr > th,\n.table > thead > tr > td,\n.table > tbody > tr > td,\n.table > tfoot > tr > td {\n  padding: 8px;\n  line-height: 1.42857143;\n  vertical-align: top;\n  border-top: 1px solid #ddd;\n}\n.table > thead > tr > th {\n  vertical-align: bottom;\n  border-bottom: 2px solid #ddd;\n}\n.table > caption + thead > tr:first-child > th,\n.table > colgroup + thead > tr:first-child > th,\n.table > thead:first-child > tr:first-child > th,\n.table > caption + thead > tr:first-child > td,\n.table > colgroup + thead > tr:first-child > td,\n.table > thead:first-child > tr:first-child > td {\n  border-top: 0;\n}\n.table > tbody + tbody {\n  border-top: 2px solid #ddd;\n}\n.table .table {\n  background-color: #fff;\n}\n.table-condensed > thead > tr > th,\n.table-condensed > tbody > tr > th,\n.table-condensed > tfoot > tr > th,\n.table-condensed > thead > tr > td,\n.table-condensed > tbody > tr > td,\n.table-condensed > tfoot > tr > td {\n  padding: 5px;\n}\n.table-bordered {\n  border: 1px solid #ddd;\n}\n.table-bordered > thead > tr > th,\n.table-bordered > tbody > tr > th,\n.table-bordered > tfoot > tr > th,\n.table-bordered > thead > tr > td,\n.table-bordered > tbody > tr > td,\n.table-bordered > tfoot > tr > td {\n  border: 1px solid #ddd;\n}\n.table-bordered > thead > tr > th,\n.table-bordered > thead > tr > td {\n  border-bottom-width: 2px;\n}\n.table-striped > tbody > tr:nth-of-type(odd) {\n  background-color: #f9f9f9;\n}\n.table-hover > tbody > tr:hover {\n  background-color: #f5f5f5;\n}\ntable col[class*=\"col-\"] {\n  position: static;\n  display: table-column;\n  float: none;\n}\ntable td[class*=\"col-\"],\ntable th[class*=\"col-\"] {\n  position: static;\n  display: table-cell;\n  float: none;\n}\n.table > thead > tr > td.active,\n.table > tbody > tr > td.active,\n.table > tfoot > tr > td.active,\n.table > thead > tr > th.active,\n.table > tbody > tr > th.active,\n.table > tfoot > tr > th.active,\n.table > thead > tr.active > td,\n.table > tbody > tr.active > td,\n.table > tfoot > tr.active > td,\n.table > thead > tr.active > th,\n.table > tbody > tr.active > th,\n.table > tfoot > tr.active > th {\n  background-color: #f5f5f5;\n}\n.table-hover > tbody > tr > td.active:hover,\n.table-hover > tbody > tr > th.active:hover,\n.table-hover > tbody > tr.active:hover > td,\n.table-hover > tbody > tr:hover > .active,\n.table-hover > tbody > tr.active:hover > th {\n  background-color: #e8e8e8;\n}\n.table > thead > tr > td.success,\n.table > tbody > tr > td.success,\n.table > tfoot > tr > td.success,\n.table > thead > tr > th.success,\n.table > tbody > tr > th.success,\n.table > tfoot > tr > th.success,\n.table > thead > tr.success > td,\n.table > tbody > tr.success > td,\n.table > tfoot > tr.success > td,\n.table > thead > tr.success > th,\n.table > tbody > tr.success > th,\n.table > tfoot > tr.success > th {\n  background-color: #dff0d8;\n}\n.table-hover > tbody > tr > td.success:hover,\n.table-hover > tbody > tr > th.success:hover,\n.table-hover > tbody > tr.success:hover > td,\n.table-hover > tbody > tr:hover > .success,\n.table-hover > tbody > tr.success:hover > th {\n  background-color: #d0e9c6;\n}\n.table > thead > tr > td.info,\n.table > tbody > tr > td.info,\n.table > tfoot > tr > td.info,\n.table > thead > tr > th.info,\n.table > tbody > tr > th.info,\n.table > tfoot > tr > th.info,\n.table > thead > tr.info > td,\n.table > tbody > tr.info > td,\n.table > tfoot > tr.info > td,\n.table > thead > tr.info > th,\n.table > tbody > tr.info > th,\n.table > tfoot > tr.info > th {\n  background-color: #d9edf7;\n}\n.table-hover > tbody > tr > td.info:hover,\n.table-hover > tbody > tr > th.info:hover,\n.table-hover > tbody > tr.info:hover > td,\n.table-hover > tbody > tr:hover > .info,\n.table-hover > tbody > tr.info:hover > th {\n  background-color: #c4e3f3;\n}\n.table > thead > tr > td.warning,\n.table > tbody > tr > td.warning,\n.table > tfoot > tr > td.warning,\n.table > thead > tr > th.warning,\n.table > tbody > tr > th.warning,\n.table > tfoot > tr > th.warning,\n.table > thead > tr.warning > td,\n.table > tbody > tr.warning > td,\n.table > tfoot > tr.warning > td,\n.table > thead > tr.warning > th,\n.table > tbody > tr.warning > th,\n.table > tfoot > tr.warning > th {\n  background-color: #fcf8e3;\n}\n.table-hover > tbody > tr > td.warning:hover,\n.table-hover > tbody > tr > th.warning:hover,\n.table-hover > tbody > tr.warning:hover > td,\n.table-hover > tbody > tr:hover > .warning,\n.table-hover > tbody > tr.warning:hover > th {\n  background-color: #faf2cc;\n}\n.table > thead > tr > td.danger,\n.table > tbody > tr > td.danger,\n.table > tfoot > tr > td.danger,\n.table > thead > tr > th.danger,\n.table > tbody > tr > th.danger,\n.table > tfoot > tr > th.danger,\n.table > thead > tr.danger > td,\n.table > tbody > tr.danger > td,\n.table > tfoot > tr.danger > td,\n.table > thead > tr.danger > th,\n.table > tbody > tr.danger > th,\n.table > tfoot > tr.danger > th {\n  background-color: #f2dede;\n}\n.table-hover > tbody > tr > td.danger:hover,\n.table-hover > tbody > tr > th.danger:hover,\n.table-hover > tbody > tr.danger:hover > td,\n.table-hover > tbody > tr:hover > .danger,\n.table-hover > tbody > tr.danger:hover > th {\n  background-color: #ebcccc;\n}\n.table-responsive {\n  min-height: .01%;\n  overflow-x: auto;\n}\n@media screen and (max-width: 767px) {\n  .table-responsive {\n    width: 100%;\n    margin-bottom: 15px;\n    overflow-y: hidden;\n    -ms-overflow-style: -ms-autohiding-scrollbar;\n    border: 1px solid #ddd;\n  }\n  .table-responsive > .table {\n    margin-bottom: 0;\n  }\n  .table-responsive > .table > thead > tr > th,\n  .table-responsive > .table > tbody > tr > th,\n  .table-responsive > .table > tfoot > tr > th,\n  .table-responsive > .table > thead > tr > td,\n  .table-responsive > .table > tbody > tr > td,\n  .table-responsive > .table > tfoot > tr > td {\n    white-space: nowrap;\n  }\n  .table-responsive > .table-bordered {\n    border: 0;\n  }\n  .table-responsive > .table-bordered > thead > tr > th:first-child,\n  .table-responsive > .table-bordered > tbody > tr > th:first-child,\n  .table-responsive > .table-bordered > tfoot > tr > th:first-child,\n  .table-responsive > .table-bordered > thead > tr > td:first-child,\n  .table-responsive > .table-bordered > tbody > tr > td:first-child,\n  .table-responsive > .table-bordered > tfoot > tr > td:first-child {\n    border-left: 0;\n  }\n  .table-responsive > .table-bordered > thead > tr > th:last-child,\n  .table-responsive > .table-bordered > tbody > tr > th:last-child,\n  .table-responsive > .table-bordered > tfoot > tr > th:last-child,\n  .table-responsive > .table-bordered > thead > tr > td:last-child,\n  .table-responsive > .table-bordered > tbody > tr > td:last-child,\n  .table-responsive > .table-bordered > tfoot > tr > td:last-child {\n    border-right: 0;\n  }\n  .table-responsive > .table-bordered > tbody > tr:last-child > th,\n  .table-responsive > .table-bordered > tfoot > tr:last-child > th,\n  .table-responsive > .table-bordered > tbody > tr:last-child > td,\n  .table-responsive > .table-bordered > tfoot > tr:last-child > td {\n    border-bottom: 0;\n  }\n}\nfieldset {\n  min-width: 0;\n  padding: 0;\n  margin: 0;\n  border: 0;\n}\nlegend {\n  display: block;\n  width: 100%;\n  padding: 0;\n  margin-bottom: 20px;\n  font-size: 21px;\n  line-height: inherit;\n  color: #333;\n  border: 0;\n  border-bottom: 1px solid #e5e5e5;\n}\nlabel {\n  display: inline-block;\n  max-width: 100%;\n  margin-bottom: 5px;\n  font-weight: bold;\n}\ninput[type=\"search\"] {\n  -webkit-box-sizing: border-box;\n     -moz-box-sizing: border-box;\n          box-sizing: border-box;\n}\ninput[type=\"radio\"],\ninput[type=\"checkbox\"] {\n  margin: 4px 0 0;\n  margin-top: 1px \\9;\n  line-height: normal;\n}\ninput[type=\"file\"] {\n  display: block;\n}\ninput[type=\"range\"] {\n  display: block;\n  width: 100%;\n}\nselect[multiple],\nselect[size] {\n  height: auto;\n}\ninput[type=\"file\"]:focus,\ninput[type=\"radio\"]:focus,\ninput[type=\"checkbox\"]:focus {\n  outline: thin dotted;\n  outline: 5px auto -webkit-focus-ring-color;\n  outline-offset: -2px;\n}\noutput {\n  display: block;\n  padding-top: 7px;\n  font-size: 14px;\n  line-height: 1.42857143;\n  color: #555;\n}\n.form-control {\n  display: block;\n  width: 100%;\n  height: 34px;\n  padding: 6px 12px;\n  font-size: 14px;\n  line-height: 1.42857143;\n  color: #555;\n  background-color: #fff;\n  background-image: none;\n  border: 1px solid #ccc;\n  border-radius: 4px;\n  -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);\n          box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);\n  -webkit-transition: border-color ease-in-out .15s, -webkit-box-shadow ease-in-out .15s;\n       -o-transition: border-color ease-in-out .15s, box-shadow ease-in-out .15s;\n          transition: border-color ease-in-out .15s, box-shadow ease-in-out .15s;\n}\n.form-control:focus {\n  border-color: #66afe9;\n  outline: 0;\n  -webkit-box-shadow: inset 0 1px 1px rgba(0,0,0,.075), 0 0 8px rgba(102, 175, 233, .6);\n          box-shadow: inset 0 1px 1px rgba(0,0,0,.075), 0 0 8px rgba(102, 175, 233, .6);\n}\n.form-control::-moz-placeholder {\n  color: #999;\n  opacity: 1;\n}\n.form-control:-ms-input-placeholder {\n  color: #999;\n}\n.form-control::-webkit-input-placeholder {\n  color: #999;\n}\n.form-control::-ms-expand {\n  background-color: transparent;\n  border: 0;\n}\n.form-control[disabled],\n.form-control[readonly],\nfieldset[disabled] .form-control {\n  background-color: #eee;\n  opacity: 1;\n}\n.form-control[disabled],\nfieldset[disabled] .form-control {\n  cursor: not-allowed;\n}\ntextarea.form-control {\n  height: auto;\n}\ninput[type=\"search\"] {\n  -webkit-appearance: none;\n}\n@media screen and (-webkit-min-device-pixel-ratio: 0) {\n  input[type=\"date\"].form-control,\n  input[type=\"time\"].form-control,\n  input[type=\"datetime-local\"].form-control,\n  input[type=\"month\"].form-control {\n    line-height: 34px;\n  }\n  input[type=\"date\"].input-sm,\n  input[type=\"time\"].input-sm,\n  input[type=\"datetime-local\"].input-sm,\n  input[type=\"month\"].input-sm,\n  .input-group-sm input[type=\"date\"],\n  .input-group-sm input[type=\"time\"],\n  .input-group-sm input[type=\"datetime-local\"],\n  .input-group-sm input[type=\"month\"] {\n    line-height: 30px;\n  }\n  input[type=\"date\"].input-lg,\n  input[type=\"time\"].input-lg,\n  input[type=\"datetime-local\"].input-lg,\n  input[type=\"month\"].input-lg,\n  .input-group-lg input[type=\"date\"],\n  .input-group-lg input[type=\"time\"],\n  .input-group-lg input[type=\"datetime-local\"],\n  .input-group-lg input[type=\"month\"] {\n    line-height: 46px;\n  }\n}\n.form-group {\n  margin-bottom: 15px;\n}\n.radio,\n.checkbox {\n  position: relative;\n  display: block;\n  margin-top: 10px;\n  margin-bottom: 10px;\n}\n.radio label,\n.checkbox label {\n  min-height: 20px;\n  padding-left: 20px;\n  margin-bottom: 0;\n  font-weight: normal;\n  cursor: pointer;\n}\n.radio input[type=\"radio\"],\n.radio-inline input[type=\"radio\"],\n.checkbox input[type=\"checkbox\"],\n.checkbox-inline input[type=\"checkbox\"] {\n  position: absolute;\n  margin-top: 4px \\9;\n  margin-left: -20px;\n}\n.radio + .radio,\n.checkbox + .checkbox {\n  margin-top: -5px;\n}\n.radio-inline,\n.checkbox-inline {\n  position: relative;\n  display: inline-block;\n  padding-left: 20px;\n  margin-bottom: 0;\n  font-weight: normal;\n  vertical-align: middle;\n  cursor: pointer;\n}\n.radio-inline + .radio-inline,\n.checkbox-inline + .checkbox-inline {\n  margin-top: 0;\n  margin-left: 10px;\n}\ninput[type=\"radio\"][disabled],\ninput[type=\"checkbox\"][disabled],\ninput[type=\"radio\"].disabled,\ninput[type=\"checkbox\"].disabled,\nfieldset[disabled] input[type=\"radio\"],\nfieldset[disabled] input[type=\"checkbox\"] {\n  cursor: not-allowed;\n}\n.radio-inline.disabled,\n.checkbox-inline.disabled,\nfieldset[disabled] .radio-inline,\nfieldset[disabled] .checkbox-inline {\n  cursor: not-allowed;\n}\n.radio.disabled label,\n.checkbox.disabled label,\nfieldset[disabled] .radio label,\nfieldset[disabled] .checkbox label {\n  cursor: not-allowed;\n}\n.form-control-static {\n  min-height: 34px;\n  padding-top: 7px;\n  padding-bottom: 7px;\n  margin-bottom: 0;\n}\n.form-control-static.input-lg,\n.form-control-static.input-sm {\n  padding-right: 0;\n  padding-left: 0;\n}\n.input-sm {\n  height: 30px;\n  padding: 5px 10px;\n  font-size: 12px;\n  line-height: 1.5;\n  border-radius: 3px;\n}\nselect.input-sm {\n  height: 30px;\n  line-height: 30px;\n}\ntextarea.input-sm,\nselect[multiple].input-sm {\n  height: auto;\n}\n.form-group-sm .form-control {\n  height: 30px;\n  padding: 5px 10px;\n  font-size: 12px;\n  line-height: 1.5;\n  border-radius: 3px;\n}\n.form-group-sm select.form-control {\n  height: 30px;\n  line-height: 30px;\n}\n.form-group-sm textarea.form-control,\n.form-group-sm select[multiple].form-control {\n  height: auto;\n}\n.form-group-sm .form-control-static {\n  height: 30px;\n  min-height: 32px;\n  padding: 6px 10px;\n  font-size: 12px;\n  line-height: 1.5;\n}\n.input-lg {\n  height: 46px;\n  padding: 10px 16px;\n  font-size: 18px;\n  line-height: 1.3333333;\n  border-radius: 6px;\n}\nselect.input-lg {\n  height: 46px;\n  line-height: 46px;\n}\ntextarea.input-lg,\nselect[multiple].input-lg {\n  height: auto;\n}\n.form-group-lg .form-control {\n  height: 46px;\n  padding: 10px 16px;\n  font-size: 18px;\n  line-height: 1.3333333;\n  border-radius: 6px;\n}\n.form-group-lg select.form-control {\n  height: 46px;\n  line-height: 46px;\n}\n.form-group-lg textarea.form-control,\n.form-group-lg select[multiple].form-control {\n  height: auto;\n}\n.form-group-lg .form-control-static {\n  height: 46px;\n  min-height: 38px;\n  padding: 11px 16px;\n  font-size: 18px;\n  line-height: 1.3333333;\n}\n.has-feedback {\n  position: relative;\n}\n.has-feedback .form-control {\n  padding-right: 42.5px;\n}\n.form-control-feedback {\n  position: absolute;\n  top: 0;\n  right: 0;\n  z-index: 2;\n  display: block;\n  width: 34px;\n  height: 34px;\n  line-height: 34px;\n  text-align: center;\n  pointer-events: none;\n}\n.input-lg + .form-control-feedback,\n.input-group-lg + .form-control-feedback,\n.form-group-lg .form-control + .form-control-feedback {\n  width: 46px;\n  height: 46px;\n  line-height: 46px;\n}\n.input-sm + .form-control-feedback,\n.input-group-sm + .form-control-feedback,\n.form-group-sm .form-control + .form-control-feedback {\n  width: 30px;\n  height: 30px;\n  line-height: 30px;\n}\n.has-success .help-block,\n.has-success .control-label,\n.has-success .radio,\n.has-success .checkbox,\n.has-success .radio-inline,\n.has-success .checkbox-inline,\n.has-success.radio label,\n.has-success.checkbox label,\n.has-success.radio-inline label,\n.has-success.checkbox-inline label {\n  color: #3c763d;\n}\n.has-success .form-control {\n  border-color: #3c763d;\n  -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);\n          box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);\n}\n.has-success .form-control:focus {\n  border-color: #2b542c;\n  -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075), 0 0 6px #67b168;\n          box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075), 0 0 6px #67b168;\n}\n.has-success .input-group-addon {\n  color: #3c763d;\n  background-color: #dff0d8;\n  border-color: #3c763d;\n}\n.has-success .form-control-feedback {\n  color: #3c763d;\n}\n.has-warning .help-block,\n.has-warning .control-label,\n.has-warning .radio,\n.has-warning .checkbox,\n.has-warning .radio-inline,\n.has-warning .checkbox-inline,\n.has-warning.radio label,\n.has-warning.checkbox label,\n.has-warning.radio-inline label,\n.has-warning.checkbox-inline label {\n  color: #8a6d3b;\n}\n.has-warning .form-control {\n  border-color: #8a6d3b;\n  -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);\n          box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);\n}\n.has-warning .form-control:focus {\n  border-color: #66512c;\n  -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075), 0 0 6px #c0a16b;\n          box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075), 0 0 6px #c0a16b;\n}\n.has-warning .input-group-addon {\n  color: #8a6d3b;\n  background-color: #fcf8e3;\n  border-color: #8a6d3b;\n}\n.has-warning .form-control-feedback {\n  color: #8a6d3b;\n}\n.has-error .help-block,\n.has-error .control-label,\n.has-error .radio,\n.has-error .checkbox,\n.has-error .radio-inline,\n.has-error .checkbox-inline,\n.has-error.radio label,\n.has-error.checkbox label,\n.has-error.radio-inline label,\n.has-error.checkbox-inline label {\n  color: #a94442;\n}\n.has-error .form-control {\n  border-color: #a94442;\n  -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);\n          box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);\n}\n.has-error .form-control:focus {\n  border-color: #843534;\n  -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075), 0 0 6px #ce8483;\n          box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075), 0 0 6px #ce8483;\n}\n.has-error .input-group-addon {\n  color: #a94442;\n  background-color: #f2dede;\n  border-color: #a94442;\n}\n.has-error .form-control-feedback {\n  color: #a94442;\n}\n.has-feedback label ~ .form-control-feedback {\n  top: 25px;\n}\n.has-feedback label.sr-only ~ .form-control-feedback {\n  top: 0;\n}\n.help-block {\n  display: block;\n  margin-top: 5px;\n  margin-bottom: 10px;\n  color: #737373;\n}\n@media (min-width: 768px) {\n  .form-inline .form-group {\n    display: inline-block;\n    margin-bottom: 0;\n    vertical-align: middle;\n  }\n  .form-inline .form-control {\n    display: inline-block;\n    width: auto;\n    vertical-align: middle;\n  }\n  .form-inline .form-control-static {\n    display: inline-block;\n  }\n  .form-inline .input-group {\n    display: inline-table;\n    vertical-align: middle;\n  }\n  .form-inline .input-group .input-group-addon,\n  .form-inline .input-group .input-group-btn,\n  .form-inline .input-group .form-control {\n    width: auto;\n  }\n  .form-inline .input-group > .form-control {\n    width: 100%;\n  }\n  .form-inline .control-label {\n    margin-bottom: 0;\n    vertical-align: middle;\n  }\n  .form-inline .radio,\n  .form-inline .checkbox {\n    display: inline-block;\n    margin-top: 0;\n    margin-bottom: 0;\n    vertical-align: middle;\n  }\n  .form-inline .radio label,\n  .form-inline .checkbox label {\n    padding-left: 0;\n  }\n  .form-inline .radio input[type=\"radio\"],\n  .form-inline .checkbox input[type=\"checkbox\"] {\n    position: relative;\n    margin-left: 0;\n  }\n  .form-inline .has-feedback .form-control-feedback {\n    top: 0;\n  }\n}\n.form-horizontal .radio,\n.form-horizontal .checkbox,\n.form-horizontal .radio-inline,\n.form-horizontal .checkbox-inline {\n  padding-top: 7px;\n  margin-top: 0;\n  margin-bottom: 0;\n}\n.form-horizontal .radio,\n.form-horizontal .checkbox {\n  min-height: 27px;\n}\n.form-horizontal .form-group {\n  margin-right: -15px;\n  margin-left: -15px;\n}\n@media (min-width: 768px) {\n  .form-horizontal .control-label {\n    padding-top: 7px;\n    margin-bottom: 0;\n    text-align: right;\n  }\n}\n.form-horizontal .has-feedback .form-control-feedback {\n  right: 15px;\n}\n@media (min-width: 768px) {\n  .form-horizontal .form-group-lg .control-label {\n    padding-top: 11px;\n    font-size: 18px;\n  }\n}\n@media (min-width: 768px) {\n  .form-horizontal .form-group-sm .control-label {\n    padding-top: 6px;\n    font-size: 12px;\n  }\n}\n.btn {\n  display: inline-block;\n  padding: 6px 12px;\n  margin-bottom: 0;\n  font-size: 14px;\n  font-weight: normal;\n  line-height: 1.42857143;\n  text-align: center;\n  white-space: nowrap;\n  vertical-align: middle;\n  -ms-touch-action: manipulation;\n      touch-action: manipulation;\n  cursor: pointer;\n  -webkit-user-select: none;\n     -moz-user-select: none;\n      -ms-user-select: none;\n          user-select: none;\n  background-image: none;\n  border: 1px solid transparent;\n  border-radius: 4px;\n}\n.btn:focus,\n.btn:active:focus,\n.btn.active:focus,\n.btn.focus,\n.btn:active.focus,\n.btn.active.focus {\n  outline: thin dotted;\n  outline: 5px auto -webkit-focus-ring-color;\n  outline-offset: -2px;\n}\n.btn:hover,\n.btn:focus,\n.btn.focus {\n  color: #333;\n  text-decoration: none;\n}\n.btn:active,\n.btn.active {\n  background-image: none;\n  outline: 0;\n  -webkit-box-shadow: inset 0 3px 5px rgba(0, 0, 0, .125);\n          box-shadow: inset 0 3px 5px rgba(0, 0, 0, .125);\n}\n.btn.disabled,\n.btn[disabled],\nfieldset[disabled] .btn {\n  cursor: not-allowed;\n  filter: alpha(opacity=65);\n  -webkit-box-shadow: none;\n          box-shadow: none;\n  opacity: .65;\n}\na.btn.disabled,\nfieldset[disabled] a.btn {\n  pointer-events: none;\n}\n.btn-default {\n  color: #333;\n  background-color: #fff;\n  border-color: #ccc;\n}\n.btn-default:focus,\n.btn-default.focus {\n  color: #333;\n  background-color: #e6e6e6;\n  border-color: #8c8c8c;\n}\n.btn-default:hover {\n  color: #333;\n  background-color: #e6e6e6;\n  border-color: #adadad;\n}\n.btn-default:active,\n.btn-default.active,\n.open > .dropdown-toggle.btn-default {\n  color: #333;\n  background-color: #e6e6e6;\n  border-color: #adadad;\n}\n.btn-default:active:hover,\n.btn-default.active:hover,\n.open > .dropdown-toggle.btn-default:hover,\n.btn-default:active:focus,\n.btn-default.active:focus,\n.open > .dropdown-toggle.btn-default:focus,\n.btn-default:active.focus,\n.btn-default.active.focus,\n.open > .dropdown-toggle.btn-default.focus {\n  color: #333;\n  background-color: #d4d4d4;\n  border-color: #8c8c8c;\n}\n.btn-default:active,\n.btn-default.active,\n.open > .dropdown-toggle.btn-default {\n  background-image: none;\n}\n.btn-default.disabled:hover,\n.btn-default[disabled]:hover,\nfieldset[disabled] .btn-default:hover,\n.btn-default.disabled:focus,\n.btn-default[disabled]:focus,\nfieldset[disabled] .btn-default:focus,\n.btn-default.disabled.focus,\n.btn-default[disabled].focus,\nfieldset[disabled] .btn-default.focus {\n  background-color: #fff;\n  border-color: #ccc;\n}\n.btn-default .badge {\n  color: #fff;\n  background-color: #333;\n}\n.btn-primary {\n  color: #fff;\n  background-color: #337ab7;\n  border-color: #2e6da4;\n}\n.btn-primary:focus,\n.btn-primary.focus {\n  color: #fff;\n  background-color: #286090;\n  border-color: #122b40;\n}\n.btn-primary:hover {\n  color: #fff;\n  background-color: #286090;\n  border-color: #204d74;\n}\n.btn-primary:active,\n.btn-primary.active,\n.open > .dropdown-toggle.btn-primary {\n  color: #fff;\n  background-color: #286090;\n  border-color: #204d74;\n}\n.btn-primary:active:hover,\n.btn-primary.active:hover,\n.open > .dropdown-toggle.btn-primary:hover,\n.btn-primary:active:focus,\n.btn-primary.active:focus,\n.open > .dropdown-toggle.btn-primary:focus,\n.btn-primary:active.focus,\n.btn-primary.active.focus,\n.open > .dropdown-toggle.btn-primary.focus {\n  color: #fff;\n  background-color: #204d74;\n  border-color: #122b40;\n}\n.btn-primary:active,\n.btn-primary.active,\n.open > .dropdown-toggle.btn-primary {\n  background-image: none;\n}\n.btn-primary.disabled:hover,\n.btn-primary[disabled]:hover,\nfieldset[disabled] .btn-primary:hover,\n.btn-primary.disabled:focus,\n.btn-primary[disabled]:focus,\nfieldset[disabled] .btn-primary:focus,\n.btn-primary.disabled.focus,\n.btn-primary[disabled].focus,\nfieldset[disabled] .btn-primary.focus {\n  background-color: #337ab7;\n  border-color: #2e6da4;\n}\n.btn-primary .badge {\n  color: #337ab7;\n  background-color: #fff;\n}\n.btn-success {\n  color: #fff;\n  background-color: #5cb85c;\n  border-color: #4cae4c;\n}\n.btn-success:focus,\n.btn-success.focus {\n  color: #fff;\n  background-color: #449d44;\n  border-color: #255625;\n}\n.btn-success:hover {\n  color: #fff;\n  background-color: #449d44;\n  border-color: #398439;\n}\n.btn-success:active,\n.btn-success.active,\n.open > .dropdown-toggle.btn-success {\n  color: #fff;\n  background-color: #449d44;\n  border-color: #398439;\n}\n.btn-success:active:hover,\n.btn-success.active:hover,\n.open > .dropdown-toggle.btn-success:hover,\n.btn-success:active:focus,\n.btn-success.active:focus,\n.open > .dropdown-toggle.btn-success:focus,\n.btn-success:active.focus,\n.btn-success.active.focus,\n.open > .dropdown-toggle.btn-success.focus {\n  color: #fff;\n  background-color: #398439;\n  border-color: #255625;\n}\n.btn-success:active,\n.btn-success.active,\n.open > .dropdown-toggle.btn-success {\n  background-image: none;\n}\n.btn-success.disabled:hover,\n.btn-success[disabled]:hover,\nfieldset[disabled] .btn-success:hover,\n.btn-success.disabled:focus,\n.btn-success[disabled]:focus,\nfieldset[disabled] .btn-success:focus,\n.btn-success.disabled.focus,\n.btn-success[disabled].focus,\nfieldset[disabled] .btn-success.focus {\n  background-color: #5cb85c;\n  border-color: #4cae4c;\n}\n.btn-success .badge {\n  color: #5cb85c;\n  background-color: #fff;\n}\n.btn-info {\n  color: #fff;\n  background-color: #5bc0de;\n  border-color: #46b8da;\n}\n.btn-info:focus,\n.btn-info.focus {\n  color: #fff;\n  background-color: #31b0d5;\n  border-color: #1b6d85;\n}\n.btn-info:hover {\n  color: #fff;\n  background-color: #31b0d5;\n  border-color: #269abc;\n}\n.btn-info:active,\n.btn-info.active,\n.open > .dropdown-toggle.btn-info {\n  color: #fff;\n  background-color: #31b0d5;\n  border-color: #269abc;\n}\n.btn-info:active:hover,\n.btn-info.active:hover,\n.open > .dropdown-toggle.btn-info:hover,\n.btn-info:active:focus,\n.btn-info.active:focus,\n.open > .dropdown-toggle.btn-info:focus,\n.btn-info:active.focus,\n.btn-info.active.focus,\n.open > .dropdown-toggle.btn-info.focus {\n  color: #fff;\n  background-color: #269abc;\n  border-color: #1b6d85;\n}\n.btn-info:active,\n.btn-info.active,\n.open > .dropdown-toggle.btn-info {\n  background-image: none;\n}\n.btn-info.disabled:hover,\n.btn-info[disabled]:hover,\nfieldset[disabled] .btn-info:hover,\n.btn-info.disabled:focus,\n.btn-info[disabled]:focus,\nfieldset[disabled] .btn-info:focus,\n.btn-info.disabled.focus,\n.btn-info[disabled].focus,\nfieldset[disabled] .btn-info.focus {\n  background-color: #5bc0de;\n  border-color: #46b8da;\n}\n.btn-info .badge {\n  color: #5bc0de;\n  background-color: #fff;\n}\n.btn-warning {\n  color: #fff;\n  background-color: #f0ad4e;\n  border-color: #eea236;\n}\n.btn-warning:focus,\n.btn-warning.focus {\n  color: #fff;\n  background-color: #ec971f;\n  border-color: #985f0d;\n}\n.btn-warning:hover {\n  color: #fff;\n  background-color: #ec971f;\n  border-color: #d58512;\n}\n.btn-warning:active,\n.btn-warning.active,\n.open > .dropdown-toggle.btn-warning {\n  color: #fff;\n  background-color: #ec971f;\n  border-color: #d58512;\n}\n.btn-warning:active:hover,\n.btn-warning.active:hover,\n.open > .dropdown-toggle.btn-warning:hover,\n.btn-warning:active:focus,\n.btn-warning.active:focus,\n.open > .dropdown-toggle.btn-warning:focus,\n.btn-warning:active.focus,\n.btn-warning.active.focus,\n.open > .dropdown-toggle.btn-warning.focus {\n  color: #fff;\n  background-color: #d58512;\n  border-color: #985f0d;\n}\n.btn-warning:active,\n.btn-warning.active,\n.open > .dropdown-toggle.btn-warning {\n  background-image: none;\n}\n.btn-warning.disabled:hover,\n.btn-warning[disabled]:hover,\nfieldset[disabled] .btn-warning:hover,\n.btn-warning.disabled:focus,\n.btn-warning[disabled]:focus,\nfieldset[disabled] .btn-warning:focus,\n.btn-warning.disabled.focus,\n.btn-warning[disabled].focus,\nfieldset[disabled] .btn-warning.focus {\n  background-color: #f0ad4e;\n  border-color: #eea236;\n}\n.btn-warning .badge {\n  color: #f0ad4e;\n  background-color: #fff;\n}\n.btn-danger {\n  color: #fff;\n  background-color: #d9534f;\n  border-color: #d43f3a;\n}\n.btn-danger:focus,\n.btn-danger.focus {\n  color: #fff;\n  background-color: #c9302c;\n  border-color: #761c19;\n}\n.btn-danger:hover {\n  color: #fff;\n  background-color: #c9302c;\n  border-color: #ac2925;\n}\n.btn-danger:active,\n.btn-danger.active,\n.open > .dropdown-toggle.btn-danger {\n  color: #fff;\n  background-color: #c9302c;\n  border-color: #ac2925;\n}\n.btn-danger:active:hover,\n.btn-danger.active:hover,\n.open > .dropdown-toggle.btn-danger:hover,\n.btn-danger:active:focus,\n.btn-danger.active:focus,\n.open > .dropdown-toggle.btn-danger:focus,\n.btn-danger:active.focus,\n.btn-danger.active.focus,\n.open > .dropdown-toggle.btn-danger.focus {\n  color: #fff;\n  background-color: #ac2925;\n  border-color: #761c19;\n}\n.btn-danger:active,\n.btn-danger.active,\n.open > .dropdown-toggle.btn-danger {\n  background-image: none;\n}\n.btn-danger.disabled:hover,\n.btn-danger[disabled]:hover,\nfieldset[disabled] .btn-danger:hover,\n.btn-danger.disabled:focus,\n.btn-danger[disabled]:focus,\nfieldset[disabled] .btn-danger:focus,\n.btn-danger.disabled.focus,\n.btn-danger[disabled].focus,\nfieldset[disabled] .btn-danger.focus {\n  background-color: #d9534f;\n  border-color: #d43f3a;\n}\n.btn-danger .badge {\n  color: #d9534f;\n  background-color: #fff;\n}\n.btn-link {\n  font-weight: normal;\n  color: #337ab7;\n  border-radius: 0;\n}\n.btn-link,\n.btn-link:active,\n.btn-link.active,\n.btn-link[disabled],\nfieldset[disabled] .btn-link {\n  background-color: transparent;\n  -webkit-box-shadow: none;\n          box-shadow: none;\n}\n.btn-link,\n.btn-link:hover,\n.btn-link:focus,\n.btn-link:active {\n  border-color: transparent;\n}\n.btn-link:hover,\n.btn-link:focus {\n  color: #23527c;\n  text-decoration: underline;\n  background-color: transparent;\n}\n.btn-link[disabled]:hover,\nfieldset[disabled] .btn-link:hover,\n.btn-link[disabled]:focus,\nfieldset[disabled] .btn-link:focus {\n  color: #777;\n  text-decoration: none;\n}\n.btn-lg,\n.btn-group-lg > .btn {\n  padding: 10px 16px;\n  font-size: 18px;\n  line-height: 1.3333333;\n  border-radius: 6px;\n}\n.btn-sm,\n.btn-group-sm > .btn {\n  padding: 5px 10px;\n  font-size: 12px;\n  line-height: 1.5;\n  border-radius: 3px;\n}\n.btn-xs,\n.btn-group-xs > .btn {\n  padding: 1px 5px;\n  font-size: 12px;\n  line-height: 1.5;\n  border-radius: 3px;\n}\n.btn-block {\n  display: block;\n  width: 100%;\n}\n.btn-block + .btn-block {\n  margin-top: 5px;\n}\ninput[type=\"submit\"].btn-block,\ninput[type=\"reset\"].btn-block,\ninput[type=\"button\"].btn-block {\n  width: 100%;\n}\n.fade {\n  opacity: 0;\n  -webkit-transition: opacity .15s linear;\n       -o-transition: opacity .15s linear;\n          transition: opacity .15s linear;\n}\n.fade.in {\n  opacity: 1;\n}\n.collapse {\n  display: none;\n}\n.collapse.in {\n  display: block;\n}\ntr.collapse.in {\n  display: table-row;\n}\ntbody.collapse.in {\n  display: table-row-group;\n}\n.collapsing {\n  position: relative;\n  height: 0;\n  overflow: hidden;\n  -webkit-transition-timing-function: ease;\n       -o-transition-timing-function: ease;\n          transition-timing-function: ease;\n  -webkit-transition-duration: .35s;\n       -o-transition-duration: .35s;\n          transition-duration: .35s;\n  -webkit-transition-property: height, visibility;\n       -o-transition-property: height, visibility;\n          transition-property: height, visibility;\n}\n.caret {\n  display: inline-block;\n  width: 0;\n  height: 0;\n  margin-left: 2px;\n  vertical-align: middle;\n  border-top: 4px dashed;\n  border-top: 4px solid \\9;\n  border-right: 4px solid transparent;\n  border-left: 4px solid transparent;\n}\n.dropup,\n.dropdown {\n  position: relative;\n}\n.dropdown-toggle:focus {\n  outline: 0;\n}\n.dropdown-menu {\n  position: absolute;\n  top: 100%;\n  left: 0;\n  z-index: 1000;\n  display: none;\n  float: left;\n  min-width: 160px;\n  padding: 5px 0;\n  margin: 2px 0 0;\n  font-size: 14px;\n  text-align: left;\n  list-style: none;\n  background-color: #fff;\n  -webkit-background-clip: padding-box;\n          background-clip: padding-box;\n  border: 1px solid #ccc;\n  border: 1px solid rgba(0, 0, 0, .15);\n  border-radius: 4px;\n  -webkit-box-shadow: 0 6px 12px rgba(0, 0, 0, .175);\n          box-shadow: 0 6px 12px rgba(0, 0, 0, .175);\n}\n.dropdown-menu.pull-right {\n  right: 0;\n  left: auto;\n}\n.dropdown-menu .divider {\n  height: 1px;\n  margin: 9px 0;\n  overflow: hidden;\n  background-color: #e5e5e5;\n}\n.dropdown-menu > li > a {\n  display: block;\n  padding: 3px 20px;\n  clear: both;\n  font-weight: normal;\n  line-height: 1.42857143;\n  color: #333;\n  white-space: nowrap;\n}\n.dropdown-menu > li > a:hover,\n.dropdown-menu > li > a:focus {\n  color: #262626;\n  text-decoration: none;\n  background-color: #f5f5f5;\n}\n.dropdown-menu > .active > a,\n.dropdown-menu > .active > a:hover,\n.dropdown-menu > .active > a:focus {\n  color: #fff;\n  text-decoration: none;\n  background-color: #337ab7;\n  outline: 0;\n}\n.dropdown-menu > .disabled > a,\n.dropdown-menu > .disabled > a:hover,\n.dropdown-menu > .disabled > a:focus {\n  color: #777;\n}\n.dropdown-menu > .disabled > a:hover,\n.dropdown-menu > .disabled > a:focus {\n  text-decoration: none;\n  cursor: not-allowed;\n  background-color: transparent;\n  background-image: none;\n  filter: progid:DXImageTransform.Microsoft.gradient(enabled = false);\n}\n.open > .dropdown-menu {\n  display: block;\n}\n.open > a {\n  outline: 0;\n}\n.dropdown-menu-right {\n  right: 0;\n  left: auto;\n}\n.dropdown-menu-left {\n  right: auto;\n  left: 0;\n}\n.dropdown-header {\n  display: block;\n  padding: 3px 20px;\n  font-size: 12px;\n  line-height: 1.42857143;\n  color: #777;\n  white-space: nowrap;\n}\n.dropdown-backdrop {\n  position: fixed;\n  top: 0;\n  right: 0;\n  bottom: 0;\n  left: 0;\n  z-index: 990;\n}\n.pull-right > .dropdown-menu {\n  right: 0;\n  left: auto;\n}\n.dropup .caret,\n.navbar-fixed-bottom .dropdown .caret {\n  content: \"\";\n  border-top: 0;\n  border-bottom: 4px dashed;\n  border-bottom: 4px solid \\9;\n}\n.dropup .dropdown-menu,\n.navbar-fixed-bottom .dropdown .dropdown-menu {\n  top: auto;\n  bottom: 100%;\n  margin-bottom: 2px;\n}\n@media (min-width: 768px) {\n  .navbar-right .dropdown-menu {\n    right: 0;\n    left: auto;\n  }\n  .navbar-right .dropdown-menu-left {\n    right: auto;\n    left: 0;\n  }\n}\n.btn-group,\n.btn-group-vertical {\n  position: relative;\n  display: inline-block;\n  vertical-align: middle;\n}\n.btn-group > .btn,\n.btn-group-vertical > .btn {\n  position: relative;\n  float: left;\n}\n.btn-group > .btn:hover,\n.btn-group-vertical > .btn:hover,\n.btn-group > .btn:focus,\n.btn-group-vertical > .btn:focus,\n.btn-group > .btn:active,\n.btn-group-vertical > .btn:active,\n.btn-group > .btn.active,\n.btn-group-vertical > .btn.active {\n  z-index: 2;\n}\n.btn-group .btn + .btn,\n.btn-group .btn + .btn-group,\n.btn-group .btn-group + .btn,\n.btn-group .btn-group + .btn-group {\n  margin-left: -1px;\n}\n.btn-toolbar {\n  margin-left: -5px;\n}\n.btn-toolbar .btn,\n.btn-toolbar .btn-group,\n.btn-toolbar .input-group {\n  float: left;\n}\n.btn-toolbar > .btn,\n.btn-toolbar > .btn-group,\n.btn-toolbar > .input-group {\n  margin-left: 5px;\n}\n.btn-group > .btn:not(:first-child):not(:last-child):not(.dropdown-toggle) {\n  border-radius: 0;\n}\n.btn-group > .btn:first-child {\n  margin-left: 0;\n}\n.btn-group > .btn:first-child:not(:last-child):not(.dropdown-toggle) {\n  border-top-right-radius: 0;\n  border-bottom-right-radius: 0;\n}\n.btn-group > .btn:last-child:not(:first-child),\n.btn-group > .dropdown-toggle:not(:first-child) {\n  border-top-left-radius: 0;\n  border-bottom-left-radius: 0;\n}\n.btn-group > .btn-group {\n  float: left;\n}\n.btn-group > .btn-group:not(:first-child):not(:last-child) > .btn {\n  border-radius: 0;\n}\n.btn-group > .btn-group:first-child:not(:last-child) > .btn:last-child,\n.btn-group > .btn-group:first-child:not(:last-child) > .dropdown-toggle {\n  border-top-right-radius: 0;\n  border-bottom-right-radius: 0;\n}\n.btn-group > .btn-group:last-child:not(:first-child) > .btn:first-child {\n  border-top-left-radius: 0;\n  border-bottom-left-radius: 0;\n}\n.btn-group .dropdown-toggle:active,\n.btn-group.open .dropdown-toggle {\n  outline: 0;\n}\n.btn-group > .btn + .dropdown-toggle {\n  padding-right: 8px;\n  padding-left: 8px;\n}\n.btn-group > .btn-lg + .dropdown-toggle {\n  padding-right: 12px;\n  padding-left: 12px;\n}\n.btn-group.open .dropdown-toggle {\n  -webkit-box-shadow: inset 0 3px 5px rgba(0, 0, 0, .125);\n          box-shadow: inset 0 3px 5px rgba(0, 0, 0, .125);\n}\n.btn-group.open .dropdown-toggle.btn-link {\n  -webkit-box-shadow: none;\n          box-shadow: none;\n}\n.btn .caret {\n  margin-left: 0;\n}\n.btn-lg .caret {\n  border-width: 5px 5px 0;\n  border-bottom-width: 0;\n}\n.dropup .btn-lg .caret {\n  border-width: 0 5px 5px;\n}\n.btn-group-vertical > .btn,\n.btn-group-vertical > .btn-group,\n.btn-group-vertical > .btn-group > .btn {\n  display: block;\n  float: none;\n  width: 100%;\n  max-width: 100%;\n}\n.btn-group-vertical > .btn-group > .btn {\n  float: none;\n}\n.btn-group-vertical > .btn + .btn,\n.btn-group-vertical > .btn + .btn-group,\n.btn-group-vertical > .btn-group + .btn,\n.btn-group-vertical > .btn-group + .btn-group {\n  margin-top: -1px;\n  margin-left: 0;\n}\n.btn-group-vertical > .btn:not(:first-child):not(:last-child) {\n  border-radius: 0;\n}\n.btn-group-vertical > .btn:first-child:not(:last-child) {\n  border-top-left-radius: 4px;\n  border-top-right-radius: 4px;\n  border-bottom-right-radius: 0;\n  border-bottom-left-radius: 0;\n}\n.btn-group-vertical > .btn:last-child:not(:first-child) {\n  border-top-left-radius: 0;\n  border-top-right-radius: 0;\n  border-bottom-right-radius: 4px;\n  border-bottom-left-radius: 4px;\n}\n.btn-group-vertical > .btn-group:not(:first-child):not(:last-child) > .btn {\n  border-radius: 0;\n}\n.btn-group-vertical > .btn-group:first-child:not(:last-child) > .btn:last-child,\n.btn-group-vertical > .btn-group:first-child:not(:last-child) > .dropdown-toggle {\n  border-bottom-right-radius: 0;\n  border-bottom-left-radius: 0;\n}\n.btn-group-vertical > .btn-group:last-child:not(:first-child) > .btn:first-child {\n  border-top-left-radius: 0;\n  border-top-right-radius: 0;\n}\n.btn-group-justified {\n  display: table;\n  width: 100%;\n  table-layout: fixed;\n  border-collapse: separate;\n}\n.btn-group-justified > .btn,\n.btn-group-justified > .btn-group {\n  display: table-cell;\n  float: none;\n  width: 1%;\n}\n.btn-group-justified > .btn-group .btn {\n  width: 100%;\n}\n.btn-group-justified > .btn-group .dropdown-menu {\n  left: auto;\n}\n[data-toggle=\"buttons\"] > .btn input[type=\"radio\"],\n[data-toggle=\"buttons\"] > .btn-group > .btn input[type=\"radio\"],\n[data-toggle=\"buttons\"] > .btn input[type=\"checkbox\"],\n[data-toggle=\"buttons\"] > .btn-group > .btn input[type=\"checkbox\"] {\n  position: absolute;\n  clip: rect(0, 0, 0, 0);\n  pointer-events: none;\n}\n.input-group {\n  position: relative;\n  display: table;\n  border-collapse: separate;\n}\n.input-group[class*=\"col-\"] {\n  float: none;\n  padding-right: 0;\n  padding-left: 0;\n}\n.input-group .form-control {\n  position: relative;\n  z-index: 2;\n  float: left;\n  width: 100%;\n  margin-bottom: 0;\n}\n.input-group .form-control:focus {\n  z-index: 3;\n}\n.input-group-lg > .form-control,\n.input-group-lg > .input-group-addon,\n.input-group-lg > .input-group-btn > .btn {\n  height: 46px;\n  padding: 10px 16px;\n  font-size: 18px;\n  line-height: 1.3333333;\n  border-radius: 6px;\n}\nselect.input-group-lg > .form-control,\nselect.input-group-lg > .input-group-addon,\nselect.input-group-lg > .input-group-btn > .btn {\n  height: 46px;\n  line-height: 46px;\n}\ntextarea.input-group-lg > .form-control,\ntextarea.input-group-lg > .input-group-addon,\ntextarea.input-group-lg > .input-group-btn > .btn,\nselect[multiple].input-group-lg > .form-control,\nselect[multiple].input-group-lg > .input-group-addon,\nselect[multiple].input-group-lg > .input-group-btn > .btn {\n  height: auto;\n}\n.input-group-sm > .form-control,\n.input-group-sm > .input-group-addon,\n.input-group-sm > .input-group-btn > .btn {\n  height: 30px;\n  padding: 5px 10px;\n  font-size: 12px;\n  line-height: 1.5;\n  border-radius: 3px;\n}\nselect.input-group-sm > .form-control,\nselect.input-group-sm > .input-group-addon,\nselect.input-group-sm > .input-group-btn > .btn {\n  height: 30px;\n  line-height: 30px;\n}\ntextarea.input-group-sm > .form-control,\ntextarea.input-group-sm > .input-group-addon,\ntextarea.input-group-sm > .input-group-btn > .btn,\nselect[multiple].input-group-sm > .form-control,\nselect[multiple].input-group-sm > .input-group-addon,\nselect[multiple].input-group-sm > .input-group-btn > .btn {\n  height: auto;\n}\n.input-group-addon,\n.input-group-btn,\n.input-group .form-control {\n  display: table-cell;\n}\n.input-group-addon:not(:first-child):not(:last-child),\n.input-group-btn:not(:first-child):not(:last-child),\n.input-group .form-control:not(:first-child):not(:last-child) {\n  border-radius: 0;\n}\n.input-group-addon,\n.input-group-btn {\n  width: 1%;\n  white-space: nowrap;\n  vertical-align: middle;\n}\n.input-group-addon {\n  padding: 6px 12px;\n  font-size: 14px;\n  font-weight: normal;\n  line-height: 1;\n  color: #555;\n  text-align: center;\n  background-color: #eee;\n  border: 1px solid #ccc;\n  border-radius: 4px;\n}\n.input-group-addon.input-sm {\n  padding: 5px 10px;\n  font-size: 12px;\n  border-radius: 3px;\n}\n.input-group-addon.input-lg {\n  padding: 10px 16px;\n  font-size: 18px;\n  border-radius: 6px;\n}\n.input-group-addon input[type=\"radio\"],\n.input-group-addon input[type=\"checkbox\"] {\n  margin-top: 0;\n}\n.input-group .form-control:first-child,\n.input-group-addon:first-child,\n.input-group-btn:first-child > .btn,\n.input-group-btn:first-child > .btn-group > .btn,\n.input-group-btn:first-child > .dropdown-toggle,\n.input-group-btn:last-child > .btn:not(:last-child):not(.dropdown-toggle),\n.input-group-btn:last-child > .btn-group:not(:last-child) > .btn {\n  border-top-right-radius: 0;\n  border-bottom-right-radius: 0;\n}\n.input-group-addon:first-child {\n  border-right: 0;\n}\n.input-group .form-control:last-child,\n.input-group-addon:last-child,\n.input-group-btn:last-child > .btn,\n.input-group-btn:last-child > .btn-group > .btn,\n.input-group-btn:last-child > .dropdown-toggle,\n.input-group-btn:first-child > .btn:not(:first-child),\n.input-group-btn:first-child > .btn-group:not(:first-child) > .btn {\n  border-top-left-radius: 0;\n  border-bottom-left-radius: 0;\n}\n.input-group-addon:last-child {\n  border-left: 0;\n}\n.input-group-btn {\n  position: relative;\n  font-size: 0;\n  white-space: nowrap;\n}\n.input-group-btn > .btn {\n  position: relative;\n}\n.input-group-btn > .btn + .btn {\n  margin-left: -1px;\n}\n.input-group-btn > .btn:hover,\n.input-group-btn > .btn:focus,\n.input-group-btn > .btn:active {\n  z-index: 2;\n}\n.input-group-btn:first-child > .btn,\n.input-group-btn:first-child > .btn-group {\n  margin-right: -1px;\n}\n.input-group-btn:last-child > .btn,\n.input-group-btn:last-child > .btn-group {\n  z-index: 2;\n  margin-left: -1px;\n}\n.nav {\n  padding-left: 0;\n  margin-bottom: 0;\n  list-style: none;\n}\n.nav > li {\n  position: relative;\n  display: block;\n}\n.nav > li > a {\n  position: relative;\n  display: block;\n  padding: 10px 15px;\n}\n.nav > li > a:hover,\n.nav > li > a:focus {\n  text-decoration: none;\n  background-color: #eee;\n}\n.nav > li.disabled > a {\n  color: #777;\n}\n.nav > li.disabled > a:hover,\n.nav > li.disabled > a:focus {\n  color: #777;\n  text-decoration: none;\n  cursor: not-allowed;\n  background-color: transparent;\n}\n.nav .open > a,\n.nav .open > a:hover,\n.nav .open > a:focus {\n  background-color: #eee;\n  border-color: #337ab7;\n}\n.nav .nav-divider {\n  height: 1px;\n  margin: 9px 0;\n  overflow: hidden;\n  background-color: #e5e5e5;\n}\n.nav > li > a > img {\n  max-width: none;\n}\n.nav-tabs {\n  border-bottom: 1px solid #ddd;\n}\n.nav-tabs > li {\n  float: left;\n  margin-bottom: -1px;\n}\n.nav-tabs > li > a {\n  margin-right: 2px;\n  line-height: 1.42857143;\n  border: 1px solid transparent;\n  border-radius: 4px 4px 0 0;\n}\n.nav-tabs > li > a:hover {\n  border-color: #eee #eee #ddd;\n}\n.nav-tabs > li.active > a,\n.nav-tabs > li.active > a:hover,\n.nav-tabs > li.active > a:focus {\n  color: #555;\n  cursor: default;\n  background-color: #fff;\n  border: 1px solid #ddd;\n  border-bottom-color: transparent;\n}\n.nav-tabs.nav-justified {\n  width: 100%;\n  border-bottom: 0;\n}\n.nav-tabs.nav-justified > li {\n  float: none;\n}\n.nav-tabs.nav-justified > li > a {\n  margin-bottom: 5px;\n  text-align: center;\n}\n.nav-tabs.nav-justified > .dropdown .dropdown-menu {\n  top: auto;\n  left: auto;\n}\n@media (min-width: 768px) {\n  .nav-tabs.nav-justified > li {\n    display: table-cell;\n    width: 1%;\n  }\n  .nav-tabs.nav-justified > li > a {\n    margin-bottom: 0;\n  }\n}\n.nav-tabs.nav-justified > li > a {\n  margin-right: 0;\n  border-radius: 4px;\n}\n.nav-tabs.nav-justified > .active > a,\n.nav-tabs.nav-justified > .active > a:hover,\n.nav-tabs.nav-justified > .active > a:focus {\n  border: 1px solid #ddd;\n}\n@media (min-width: 768px) {\n  .nav-tabs.nav-justified > li > a {\n    border-bottom: 1px solid #ddd;\n    border-radius: 4px 4px 0 0;\n  }\n  .nav-tabs.nav-justified > .active > a,\n  .nav-tabs.nav-justified > .active > a:hover,\n  .nav-tabs.nav-justified > .active > a:focus {\n    border-bottom-color: #fff;\n  }\n}\n.nav-pills > li {\n  float: left;\n}\n.nav-pills > li > a {\n  border-radius: 4px;\n}\n.nav-pills > li + li {\n  margin-left: 2px;\n}\n.nav-pills > li.active > a,\n.nav-pills > li.active > a:hover,\n.nav-pills > li.active > a:focus {\n  color: #fff;\n  background-color: #337ab7;\n}\n.nav-stacked > li {\n  float: none;\n}\n.nav-stacked > li + li {\n  margin-top: 2px;\n  margin-left: 0;\n}\n.nav-justified {\n  width: 100%;\n}\n.nav-justified > li {\n  float: none;\n}\n.nav-justified > li > a {\n  margin-bottom: 5px;\n  text-align: center;\n}\n.nav-justified > .dropdown .dropdown-menu {\n  top: auto;\n  left: auto;\n}\n@media (min-width: 768px) {\n  .nav-justified > li {\n    display: table-cell;\n    width: 1%;\n  }\n  .nav-justified > li > a {\n    margin-bottom: 0;\n  }\n}\n.nav-tabs-justified {\n  border-bottom: 0;\n}\n.nav-tabs-justified > li > a {\n  margin-right: 0;\n  border-radius: 4px;\n}\n.nav-tabs-justified > .active > a,\n.nav-tabs-justified > .active > a:hover,\n.nav-tabs-justified > .active > a:focus {\n  border: 1px solid #ddd;\n}\n@media (min-width: 768px) {\n  .nav-tabs-justified > li > a {\n    border-bottom: 1px solid #ddd;\n    border-radius: 4px 4px 0 0;\n  }\n  .nav-tabs-justified > .active > a,\n  .nav-tabs-justified > .active > a:hover,\n  .nav-tabs-justified > .active > a:focus {\n    border-bottom-color: #fff;\n  }\n}\n.tab-content > .tab-pane {\n  display: none;\n}\n.tab-content > .active {\n  display: block;\n}\n.nav-tabs .dropdown-menu {\n  margin-top: -1px;\n  border-top-left-radius: 0;\n  border-top-right-radius: 0;\n}\n.navbar {\n  position: relative;\n  min-height: 50px;\n  margin-bottom: 20px;\n  border: 1px solid transparent;\n}\n@media (min-width: 768px) {\n  .navbar {\n    border-radius: 4px;\n  }\n}\n@media (min-width: 768px) {\n  .navbar-header {\n    float: left;\n  }\n}\n.navbar-collapse {\n  padding-right: 15px;\n  padding-left: 15px;\n  overflow-x: visible;\n  -webkit-overflow-scrolling: touch;\n  border-top: 1px solid transparent;\n  -webkit-box-shadow: inset 0 1px 0 rgba(255, 255, 255, .1);\n          box-shadow: inset 0 1px 0 rgba(255, 255, 255, .1);\n}\n.navbar-collapse.in {\n  overflow-y: auto;\n}\n@media (min-width: 768px) {\n  .navbar-collapse {\n    width: auto;\n    border-top: 0;\n    -webkit-box-shadow: none;\n            box-shadow: none;\n  }\n  .navbar-collapse.collapse {\n    display: block !important;\n    height: auto !important;\n    padding-bottom: 0;\n    overflow: visible !important;\n  }\n  .navbar-collapse.in {\n    overflow-y: visible;\n  }\n  .navbar-fixed-top .navbar-collapse,\n  .navbar-static-top .navbar-collapse,\n  .navbar-fixed-bottom .navbar-collapse {\n    padding-right: 0;\n    padding-left: 0;\n  }\n}\n.navbar-fixed-top .navbar-collapse,\n.navbar-fixed-bottom .navbar-collapse {\n  max-height: 340px;\n}\n@media (max-device-width: 480px) and (orientation: landscape) {\n  .navbar-fixed-top .navbar-collapse,\n  .navbar-fixed-bottom .navbar-collapse {\n    max-height: 200px;\n  }\n}\n.container > .navbar-header,\n.container-fluid > .navbar-header,\n.container > .navbar-collapse,\n.container-fluid > .navbar-collapse {\n  margin-right: -15px;\n  margin-left: -15px;\n}\n@media (min-width: 768px) {\n  .container > .navbar-header,\n  .container-fluid > .navbar-header,\n  .container > .navbar-collapse,\n  .container-fluid > .navbar-collapse {\n    margin-right: 0;\n    margin-left: 0;\n  }\n}\n.navbar-static-top {\n  z-index: 1000;\n  border-width: 0 0 1px;\n}\n@media (min-width: 768px) {\n  .navbar-static-top {\n    border-radius: 0;\n  }\n}\n.navbar-fixed-top,\n.navbar-fixed-bottom {\n  position: fixed;\n  right: 0;\n  left: 0;\n  z-index: 1030;\n}\n@media (min-width: 768px) {\n  .navbar-fixed-top,\n  .navbar-fixed-bottom {\n    border-radius: 0;\n  }\n}\n.navbar-fixed-top {\n  top: 0;\n  border-width: 0 0 1px;\n}\n.navbar-fixed-bottom {\n  bottom: 0;\n  margin-bottom: 0;\n  border-width: 1px 0 0;\n}\n.navbar-brand {\n  float: left;\n  height: 50px;\n  padding: 15px 15px;\n  font-size: 18px;\n  line-height: 20px;\n}\n.navbar-brand:hover,\n.navbar-brand:focus {\n  text-decoration: none;\n}\n.navbar-brand > img {\n  display: block;\n}\n@media (min-width: 768px) {\n  .navbar > .container .navbar-brand,\n  .navbar > .container-fluid .navbar-brand {\n    margin-left: -15px;\n  }\n}\n.navbar-toggle {\n  position: relative;\n  float: right;\n  padding: 9px 10px;\n  margin-top: 8px;\n  margin-right: 15px;\n  margin-bottom: 8px;\n  background-color: transparent;\n  background-image: none;\n  border: 1px solid transparent;\n  border-radius: 4px;\n}\n.navbar-toggle:focus {\n  outline: 0;\n}\n.navbar-toggle .icon-bar {\n  display: block;\n  width: 22px;\n  height: 2px;\n  border-radius: 1px;\n}\n.navbar-toggle .icon-bar + .icon-bar {\n  margin-top: 4px;\n}\n@media (min-width: 768px) {\n  .navbar-toggle {\n    display: none;\n  }\n}\n.navbar-nav {\n  margin: 7.5px -15px;\n}\n.navbar-nav > li > a {\n  padding-top: 10px;\n  padding-bottom: 10px;\n  line-height: 20px;\n}\n@media (max-width: 767px) {\n  .navbar-nav .open .dropdown-menu {\n    position: static;\n    float: none;\n    width: auto;\n    margin-top: 0;\n    background-color: transparent;\n    border: 0;\n    -webkit-box-shadow: none;\n            box-shadow: none;\n  }\n  .navbar-nav .open .dropdown-menu > li > a,\n  .navbar-nav .open .dropdown-menu .dropdown-header {\n    padding: 5px 15px 5px 25px;\n  }\n  .navbar-nav .open .dropdown-menu > li > a {\n    line-height: 20px;\n  }\n  .navbar-nav .open .dropdown-menu > li > a:hover,\n  .navbar-nav .open .dropdown-menu > li > a:focus {\n    background-image: none;\n  }\n}\n@media (min-width: 768px) {\n  .navbar-nav {\n    float: left;\n    margin: 0;\n  }\n  .navbar-nav > li {\n    float: left;\n  }\n  .navbar-nav > li > a {\n    padding-top: 15px;\n    padding-bottom: 15px;\n  }\n}\n.navbar-form {\n  padding: 10px 15px;\n  margin-top: 8px;\n  margin-right: -15px;\n  margin-bottom: 8px;\n  margin-left: -15px;\n  border-top: 1px solid transparent;\n  border-bottom: 1px solid transparent;\n  -webkit-box-shadow: inset 0 1px 0 rgba(255, 255, 255, .1), 0 1px 0 rgba(255, 255, 255, .1);\n          box-shadow: inset 0 1px 0 rgba(255, 255, 255, .1), 0 1px 0 rgba(255, 255, 255, .1);\n}\n@media (min-width: 768px) {\n  .navbar-form .form-group {\n    display: inline-block;\n    margin-bottom: 0;\n    vertical-align: middle;\n  }\n  .navbar-form .form-control {\n    display: inline-block;\n    width: auto;\n    vertical-align: middle;\n  }\n  .navbar-form .form-control-static {\n    display: inline-block;\n  }\n  .navbar-form .input-group {\n    display: inline-table;\n    vertical-align: middle;\n  }\n  .navbar-form .input-group .input-group-addon,\n  .navbar-form .input-group .input-group-btn,\n  .navbar-form .input-group .form-control {\n    width: auto;\n  }\n  .navbar-form .input-group > .form-control {\n    width: 100%;\n  }\n  .navbar-form .control-label {\n    margin-bottom: 0;\n    vertical-align: middle;\n  }\n  .navbar-form .radio,\n  .navbar-form .checkbox {\n    display: inline-block;\n    margin-top: 0;\n    margin-bottom: 0;\n    vertical-align: middle;\n  }\n  .navbar-form .radio label,\n  .navbar-form .checkbox label {\n    padding-left: 0;\n  }\n  .navbar-form .radio input[type=\"radio\"],\n  .navbar-form .checkbox input[type=\"checkbox\"] {\n    position: relative;\n    margin-left: 0;\n  }\n  .navbar-form .has-feedback .form-control-feedback {\n    top: 0;\n  }\n}\n@media (max-width: 767px) {\n  .navbar-form .form-group {\n    margin-bottom: 5px;\n  }\n  .navbar-form .form-group:last-child {\n    margin-bottom: 0;\n  }\n}\n@media (min-width: 768px) {\n  .navbar-form {\n    width: auto;\n    padding-top: 0;\n    padding-bottom: 0;\n    margin-right: 0;\n    margin-left: 0;\n    border: 0;\n    -webkit-box-shadow: none;\n            box-shadow: none;\n  }\n}\n.navbar-nav > li > .dropdown-menu {\n  margin-top: 0;\n  border-top-left-radius: 0;\n  border-top-right-radius: 0;\n}\n.navbar-fixed-bottom .navbar-nav > li > .dropdown-menu {\n  margin-bottom: 0;\n  border-top-left-radius: 4px;\n  border-top-right-radius: 4px;\n  border-bottom-right-radius: 0;\n  border-bottom-left-radius: 0;\n}\n.navbar-btn {\n  margin-top: 8px;\n  margin-bottom: 8px;\n}\n.navbar-btn.btn-sm {\n  margin-top: 10px;\n  margin-bottom: 10px;\n}\n.navbar-btn.btn-xs {\n  margin-top: 14px;\n  margin-bottom: 14px;\n}\n.navbar-text {\n  margin-top: 15px;\n  margin-bottom: 15px;\n}\n@media (min-width: 768px) {\n  .navbar-text {\n    float: left;\n    margin-right: 15px;\n    margin-left: 15px;\n  }\n}\n@media (min-width: 768px) {\n  .navbar-left {\n    float: left !important;\n  }\n  .navbar-right {\n    float: right !important;\n    margin-right: -15px;\n  }\n  .navbar-right ~ .navbar-right {\n    margin-right: 0;\n  }\n}\n.navbar-default {\n  background-color: #f8f8f8;\n  border-color: #e7e7e7;\n}\n.navbar-default .navbar-brand {\n  color: #777;\n}\n.navbar-default .navbar-brand:hover,\n.navbar-default .navbar-brand:focus {\n  color: #5e5e5e;\n  background-color: transparent;\n}\n.navbar-default .navbar-text {\n  color: #777;\n}\n.navbar-default .navbar-nav > li > a {\n  color: #777;\n}\n.navbar-default .navbar-nav > li > a:hover,\n.navbar-default .navbar-nav > li > a:focus {\n  color: #333;\n  background-color: transparent;\n}\n.navbar-default .navbar-nav > .active > a,\n.navbar-default .navbar-nav > .active > a:hover,\n.navbar-default .navbar-nav > .active > a:focus {\n  color: #555;\n  background-color: #e7e7e7;\n}\n.navbar-default .navbar-nav > .disabled > a,\n.navbar-default .navbar-nav > .disabled > a:hover,\n.navbar-default .navbar-nav > .disabled > a:focus {\n  color: #ccc;\n  background-color: transparent;\n}\n.navbar-default .navbar-toggle {\n  border-color: #ddd;\n}\n.navbar-default .navbar-toggle:hover,\n.navbar-default .navbar-toggle:focus {\n  background-color: #ddd;\n}\n.navbar-default .navbar-toggle .icon-bar {\n  background-color: #888;\n}\n.navbar-default .navbar-collapse,\n.navbar-default .navbar-form {\n  border-color: #e7e7e7;\n}\n.navbar-default .navbar-nav > .open > a,\n.navbar-default .navbar-nav > .open > a:hover,\n.navbar-default .navbar-nav > .open > a:focus {\n  color: #555;\n  background-color: #e7e7e7;\n}\n@media (max-width: 767px) {\n  .navbar-default .navbar-nav .open .dropdown-menu > li > a {\n    color: #777;\n  }\n  .navbar-default .navbar-nav .open .dropdown-menu > li > a:hover,\n  .navbar-default .navbar-nav .open .dropdown-menu > li > a:focus {\n    color: #333;\n    background-color: transparent;\n  }\n  .navbar-default .navbar-nav .open .dropdown-menu > .active > a,\n  .navbar-default .navbar-nav .open .dropdown-menu > .active > a:hover,\n  .navbar-default .navbar-nav .open .dropdown-menu > .active > a:focus {\n    color: #555;\n    background-color: #e7e7e7;\n  }\n  .navbar-default .navbar-nav .open .dropdown-menu > .disabled > a,\n  .navbar-default .navbar-nav .open .dropdown-menu > .disabled > a:hover,\n  .navbar-default .navbar-nav .open .dropdown-menu > .disabled > a:focus {\n    color: #ccc;\n    background-color: transparent;\n  }\n}\n.navbar-default .navbar-link {\n  color: #777;\n}\n.navbar-default .navbar-link:hover {\n  color: #333;\n}\n.navbar-default .btn-link {\n  color: #777;\n}\n.navbar-default .btn-link:hover,\n.navbar-default .btn-link:focus {\n  color: #333;\n}\n.navbar-default .btn-link[disabled]:hover,\nfieldset[disabled] .navbar-default .btn-link:hover,\n.navbar-default .btn-link[disabled]:focus,\nfieldset[disabled] .navbar-default .btn-link:focus {\n  color: #ccc;\n}\n.navbar-inverse {\n  background-color: #222;\n  border-color: #080808;\n}\n.navbar-inverse .navbar-brand {\n  color: #9d9d9d;\n}\n.navbar-inverse .navbar-brand:hover,\n.navbar-inverse .navbar-brand:focus {\n  color: #fff;\n  background-color: transparent;\n}\n.navbar-inverse .navbar-text {\n  color: #9d9d9d;\n}\n.navbar-inverse .navbar-nav > li > a {\n  color: #9d9d9d;\n}\n.navbar-inverse .navbar-nav > li > a:hover,\n.navbar-inverse .navbar-nav > li > a:focus {\n  color: #fff;\n  background-color: transparent;\n}\n.navbar-inverse .navbar-nav > .active > a,\n.navbar-inverse .navbar-nav > .active > a:hover,\n.navbar-inverse .navbar-nav > .active > a:focus {\n  color: #fff;\n  background-color: #080808;\n}\n.navbar-inverse .navbar-nav > .disabled > a,\n.navbar-inverse .navbar-nav > .disabled > a:hover,\n.navbar-inverse .navbar-nav > .disabled > a:focus {\n  color: #444;\n  background-color: transparent;\n}\n.navbar-inverse .navbar-toggle {\n  border-color: #333;\n}\n.navbar-inverse .navbar-toggle:hover,\n.navbar-inverse .navbar-toggle:focus {\n  background-color: #333;\n}\n.navbar-inverse .navbar-toggle .icon-bar {\n  background-color: #fff;\n}\n.navbar-inverse .navbar-collapse,\n.navbar-inverse .navbar-form {\n  border-color: #101010;\n}\n.navbar-inverse .navbar-nav > .open > a,\n.navbar-inverse .navbar-nav > .open > a:hover,\n.navbar-inverse .navbar-nav > .open > a:focus {\n  color: #fff;\n  background-color: #080808;\n}\n@media (max-width: 767px) {\n  .navbar-inverse .navbar-nav .open .dropdown-menu > .dropdown-header {\n    border-color: #080808;\n  }\n  .navbar-inverse .navbar-nav .open .dropdown-menu .divider {\n    background-color: #080808;\n  }\n  .navbar-inverse .navbar-nav .open .dropdown-menu > li > a {\n    color: #9d9d9d;\n  }\n  .navbar-inverse .navbar-nav .open .dropdown-menu > li > a:hover,\n  .navbar-inverse .navbar-nav .open .dropdown-menu > li > a:focus {\n    color: #fff;\n    background-color: transparent;\n  }\n  .navbar-inverse .navbar-nav .open .dropdown-menu > .active > a,\n  .navbar-inverse .navbar-nav .open .dropdown-menu > .active > a:hover,\n  .navbar-inverse .navbar-nav .open .dropdown-menu > .active > a:focus {\n    color: #fff;\n    background-color: #080808;\n  }\n  .navbar-inverse .navbar-nav .open .dropdown-menu > .disabled > a,\n  .navbar-inverse .navbar-nav .open .dropdown-menu > .disabled > a:hover,\n  .navbar-inverse .navbar-nav .open .dropdown-menu > .disabled > a:focus {\n    color: #444;\n    background-color: transparent;\n  }\n}\n.navbar-inverse .navbar-link {\n  color: #9d9d9d;\n}\n.navbar-inverse .navbar-link:hover {\n  color: #fff;\n}\n.navbar-inverse .btn-link {\n  color: #9d9d9d;\n}\n.navbar-inverse .btn-link:hover,\n.navbar-inverse .btn-link:focus {\n  color: #fff;\n}\n.navbar-inverse .btn-link[disabled]:hover,\nfieldset[disabled] .navbar-inverse .btn-link:hover,\n.navbar-inverse .btn-link[disabled]:focus,\nfieldset[disabled] .navbar-inverse .btn-link:focus {\n  color: #444;\n}\n.breadcrumb {\n  padding: 8px 15px;\n  margin-bottom: 20px;\n  list-style: none;\n  background-color: #f5f5f5;\n  border-radius: 4px;\n}\n.breadcrumb > li {\n  display: inline-block;\n}\n.breadcrumb > li + li:before {\n  padding: 0 5px;\n  color: #ccc;\n  content: \"/\\A0\";\n}\n.breadcrumb > .active {\n  color: #777;\n}\n.pagination {\n  display: inline-block;\n  padding-left: 0;\n  margin: 20px 0;\n  border-radius: 4px;\n}\n.pagination > li {\n  display: inline;\n}\n.pagination > li > a,\n.pagination > li > span {\n  position: relative;\n  float: left;\n  padding: 6px 12px;\n  margin-left: -1px;\n  line-height: 1.42857143;\n  color: #337ab7;\n  text-decoration: none;\n  background-color: #fff;\n  border: 1px solid #ddd;\n}\n.pagination > li:first-child > a,\n.pagination > li:first-child > span {\n  margin-left: 0;\n  border-top-left-radius: 4px;\n  border-bottom-left-radius: 4px;\n}\n.pagination > li:last-child > a,\n.pagination > li:last-child > span {\n  border-top-right-radius: 4px;\n  border-bottom-right-radius: 4px;\n}\n.pagination > li > a:hover,\n.pagination > li > span:hover,\n.pagination > li > a:focus,\n.pagination > li > span:focus {\n  z-index: 2;\n  color: #23527c;\n  background-color: #eee;\n  border-color: #ddd;\n}\n.pagination > .active > a,\n.pagination > .active > span,\n.pagination > .active > a:hover,\n.pagination > .active > span:hover,\n.pagination > .active > a:focus,\n.pagination > .active > span:focus {\n  z-index: 3;\n  color: #fff;\n  cursor: default;\n  background-color: #337ab7;\n  border-color: #337ab7;\n}\n.pagination > .disabled > span,\n.pagination > .disabled > span:hover,\n.pagination > .disabled > span:focus,\n.pagination > .disabled > a,\n.pagination > .disabled > a:hover,\n.pagination > .disabled > a:focus {\n  color: #777;\n  cursor: not-allowed;\n  background-color: #fff;\n  border-color: #ddd;\n}\n.pagination-lg > li > a,\n.pagination-lg > li > span {\n  padding: 10px 16px;\n  font-size: 18px;\n  line-height: 1.3333333;\n}\n.pagination-lg > li:first-child > a,\n.pagination-lg > li:first-child > span {\n  border-top-left-radius: 6px;\n  border-bottom-left-radius: 6px;\n}\n.pagination-lg > li:last-child > a,\n.pagination-lg > li:last-child > span {\n  border-top-right-radius: 6px;\n  border-bottom-right-radius: 6px;\n}\n.pagination-sm > li > a,\n.pagination-sm > li > span {\n  padding: 5px 10px;\n  font-size: 12px;\n  line-height: 1.5;\n}\n.pagination-sm > li:first-child > a,\n.pagination-sm > li:first-child > span {\n  border-top-left-radius: 3px;\n  border-bottom-left-radius: 3px;\n}\n.pagination-sm > li:last-child > a,\n.pagination-sm > li:last-child > span {\n  border-top-right-radius: 3px;\n  border-bottom-right-radius: 3px;\n}\n.pager {\n  padding-left: 0;\n  margin: 20px 0;\n  text-align: center;\n  list-style: none;\n}\n.pager li {\n  display: inline;\n}\n.pager li > a,\n.pager li > span {\n  display: inline-block;\n  padding: 5px 14px;\n  background-color: #fff;\n  border: 1px solid #ddd;\n  border-radius: 15px;\n}\n.pager li > a:hover,\n.pager li > a:focus {\n  text-decoration: none;\n  background-color: #eee;\n}\n.pager .next > a,\n.pager .next > span {\n  float: right;\n}\n.pager .previous > a,\n.pager .previous > span {\n  float: left;\n}\n.pager .disabled > a,\n.pager .disabled > a:hover,\n.pager .disabled > a:focus,\n.pager .disabled > span {\n  color: #777;\n  cursor: not-allowed;\n  background-color: #fff;\n}\n.label {\n  display: inline;\n  padding: .2em .6em .3em;\n  font-size: 75%;\n  font-weight: bold;\n  line-height: 1;\n  color: #fff;\n  text-align: center;\n  white-space: nowrap;\n  vertical-align: baseline;\n  border-radius: .25em;\n}\na.label:hover,\na.label:focus {\n  color: #fff;\n  text-decoration: none;\n  cursor: pointer;\n}\n.label:empty {\n  display: none;\n}\n.btn .label {\n  position: relative;\n  top: -1px;\n}\n.label-default {\n  background-color: #777;\n}\n.label-default[href]:hover,\n.label-default[href]:focus {\n  background-color: #5e5e5e;\n}\n.label-primary {\n  background-color: #337ab7;\n}\n.label-primary[href]:hover,\n.label-primary[href]:focus {\n  background-color: #286090;\n}\n.label-success {\n  background-color: #5cb85c;\n}\n.label-success[href]:hover,\n.label-success[href]:focus {\n  background-color: #449d44;\n}\n.label-info {\n  background-color: #5bc0de;\n}\n.label-info[href]:hover,\n.label-info[href]:focus {\n  background-color: #31b0d5;\n}\n.label-warning {\n  background-color: #f0ad4e;\n}\n.label-warning[href]:hover,\n.label-warning[href]:focus {\n  background-color: #ec971f;\n}\n.label-danger {\n  background-color: #d9534f;\n}\n.label-danger[href]:hover,\n.label-danger[href]:focus {\n  background-color: #c9302c;\n}\n.badge {\n  display: inline-block;\n  min-width: 10px;\n  padding: 3px 7px;\n  font-size: 12px;\n  font-weight: bold;\n  line-height: 1;\n  color: #fff;\n  text-align: center;\n  white-space: nowrap;\n  vertical-align: middle;\n  background-color: #777;\n  border-radius: 10px;\n}\n.badge:empty {\n  display: none;\n}\n.btn .badge {\n  position: relative;\n  top: -1px;\n}\n.btn-xs .badge,\n.btn-group-xs > .btn .badge {\n  top: 0;\n  padding: 1px 5px;\n}\na.badge:hover,\na.badge:focus {\n  color: #fff;\n  text-decoration: none;\n  cursor: pointer;\n}\n.list-group-item.active > .badge,\n.nav-pills > .active > a > .badge {\n  color: #337ab7;\n  background-color: #fff;\n}\n.list-group-item > .badge {\n  float: right;\n}\n.list-group-item > .badge + .badge {\n  margin-right: 5px;\n}\n.nav-pills > li > a > .badge {\n  margin-left: 3px;\n}\n.jumbotron {\n  padding-top: 30px;\n  padding-bottom: 30px;\n  margin-bottom: 30px;\n  color: inherit;\n  background-color: #eee;\n}\n.jumbotron h1,\n.jumbotron .h1 {\n  color: inherit;\n}\n.jumbotron p {\n  margin-bottom: 15px;\n  font-size: 21px;\n  font-weight: 200;\n}\n.jumbotron > hr {\n  border-top-color: #d5d5d5;\n}\n.container .jumbotron,\n.container-fluid .jumbotron {\n  padding-right: 15px;\n  padding-left: 15px;\n  border-radius: 6px;\n}\n.jumbotron .container {\n  max-width: 100%;\n}\n@media screen and (min-width: 768px) {\n  .jumbotron {\n    padding-top: 48px;\n    padding-bottom: 48px;\n  }\n  .container .jumbotron,\n  .container-fluid .jumbotron {\n    padding-right: 60px;\n    padding-left: 60px;\n  }\n  .jumbotron h1,\n  .jumbotron .h1 {\n    font-size: 63px;\n  }\n}\n.thumbnail {\n  display: block;\n  padding: 4px;\n  margin-bottom: 20px;\n  line-height: 1.42857143;\n  background-color: #fff;\n  border: 1px solid #ddd;\n  border-radius: 4px;\n  -webkit-transition: border .2s ease-in-out;\n       -o-transition: border .2s ease-in-out;\n          transition: border .2s ease-in-out;\n}\n.thumbnail > img,\n.thumbnail a > img {\n  margin-right: auto;\n  margin-left: auto;\n}\na.thumbnail:hover,\na.thumbnail:focus,\na.thumbnail.active {\n  border-color: #337ab7;\n}\n.thumbnail .caption {\n  padding: 9px;\n  color: #333;\n}\n.alert {\n  padding: 15px;\n  margin-bottom: 20px;\n  border: 1px solid transparent;\n  border-radius: 4px;\n}\n.alert h4 {\n  margin-top: 0;\n  color: inherit;\n}\n.alert .alert-link {\n  font-weight: bold;\n}\n.alert > p,\n.alert > ul {\n  margin-bottom: 0;\n}\n.alert > p + p {\n  margin-top: 5px;\n}\n.alert-dismissable,\n.alert-dismissible {\n  padding-right: 35px;\n}\n.alert-dismissable .close,\n.alert-dismissible .close {\n  position: relative;\n  top: -2px;\n  right: -21px;\n  color: inherit;\n}\n.alert-success {\n  color: #3c763d;\n  background-color: #dff0d8;\n  border-color: #d6e9c6;\n}\n.alert-success hr {\n  border-top-color: #c9e2b3;\n}\n.alert-success .alert-link {\n  color: #2b542c;\n}\n.alert-info {\n  color: #31708f;\n  background-color: #d9edf7;\n  border-color: #bce8f1;\n}\n.alert-info hr {\n  border-top-color: #a6e1ec;\n}\n.alert-info .alert-link {\n  color: #245269;\n}\n.alert-warning {\n  color: #8a6d3b;\n  background-color: #fcf8e3;\n  border-color: #faebcc;\n}\n.alert-warning hr {\n  border-top-color: #f7e1b5;\n}\n.alert-warning .alert-link {\n  color: #66512c;\n}\n.alert-danger {\n  color: #a94442;\n  background-color: #f2dede;\n  border-color: #ebccd1;\n}\n.alert-danger hr {\n  border-top-color: #e4b9c0;\n}\n.alert-danger .alert-link {\n  color: #843534;\n}\n@-webkit-keyframes progress-bar-stripes {\n  from {\n    background-position: 40px 0;\n  }\n  to {\n    background-position: 0 0;\n  }\n}\n@-o-keyframes progress-bar-stripes {\n  from {\n    background-position: 40px 0;\n  }\n  to {\n    background-position: 0 0;\n  }\n}\n@keyframes progress-bar-stripes {\n  from {\n    background-position: 40px 0;\n  }\n  to {\n    background-position: 0 0;\n  }\n}\n.progress {\n  height: 20px;\n  margin-bottom: 20px;\n  overflow: hidden;\n  background-color: #f5f5f5;\n  border-radius: 4px;\n  -webkit-box-shadow: inset 0 1px 2px rgba(0, 0, 0, .1);\n          box-shadow: inset 0 1px 2px rgba(0, 0, 0, .1);\n}\n.progress-bar {\n  float: left;\n  width: 0;\n  height: 100%;\n  font-size: 12px;\n  line-height: 20px;\n  color: #fff;\n  text-align: center;\n  background-color: #337ab7;\n  -webkit-box-shadow: inset 0 -1px 0 rgba(0, 0, 0, .15);\n          box-shadow: inset 0 -1px 0 rgba(0, 0, 0, .15);\n  -webkit-transition: width .6s ease;\n       -o-transition: width .6s ease;\n          transition: width .6s ease;\n}\n.progress-striped .progress-bar,\n.progress-bar-striped {\n  background-image: -webkit-linear-gradient(45deg, rgba(255, 255, 255, .15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, .15) 50%, rgba(255, 255, 255, .15) 75%, transparent 75%, transparent);\n  background-image:      -o-linear-gradient(45deg, rgba(255, 255, 255, .15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, .15) 50%, rgba(255, 255, 255, .15) 75%, transparent 75%, transparent);\n  background-image:         linear-gradient(45deg, rgba(255, 255, 255, .15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, .15) 50%, rgba(255, 255, 255, .15) 75%, transparent 75%, transparent);\n  -webkit-background-size: 40px 40px;\n          background-size: 40px 40px;\n}\n.progress.active .progress-bar,\n.progress-bar.active {\n  -webkit-animation: progress-bar-stripes 2s linear infinite;\n       -o-animation: progress-bar-stripes 2s linear infinite;\n          animation: progress-bar-stripes 2s linear infinite;\n}\n.progress-bar-success {\n  background-color: #5cb85c;\n}\n.progress-striped .progress-bar-success {\n  background-image: -webkit-linear-gradient(45deg, rgba(255, 255, 255, .15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, .15) 50%, rgba(255, 255, 255, .15) 75%, transparent 75%, transparent);\n  background-image:      -o-linear-gradient(45deg, rgba(255, 255, 255, .15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, .15) 50%, rgba(255, 255, 255, .15) 75%, transparent 75%, transparent);\n  background-image:         linear-gradient(45deg, rgba(255, 255, 255, .15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, .15) 50%, rgba(255, 255, 255, .15) 75%, transparent 75%, transparent);\n}\n.progress-bar-info {\n  background-color: #5bc0de;\n}\n.progress-striped .progress-bar-info {\n  background-image: -webkit-linear-gradient(45deg, rgba(255, 255, 255, .15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, .15) 50%, rgba(255, 255, 255, .15) 75%, transparent 75%, transparent);\n  background-image:      -o-linear-gradient(45deg, rgba(255, 255, 255, .15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, .15) 50%, rgba(255, 255, 255, .15) 75%, transparent 75%, transparent);\n  background-image:         linear-gradient(45deg, rgba(255, 255, 255, .15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, .15) 50%, rgba(255, 255, 255, .15) 75%, transparent 75%, transparent);\n}\n.progress-bar-warning {\n  background-color: #f0ad4e;\n}\n.progress-striped .progress-bar-warning {\n  background-image: -webkit-linear-gradient(45deg, rgba(255, 255, 255, .15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, .15) 50%, rgba(255, 255, 255, .15) 75%, transparent 75%, transparent);\n  background-image:      -o-linear-gradient(45deg, rgba(255, 255, 255, .15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, .15) 50%, rgba(255, 255, 255, .15) 75%, transparent 75%, transparent);\n  background-image:         linear-gradient(45deg, rgba(255, 255, 255, .15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, .15) 50%, rgba(255, 255, 255, .15) 75%, transparent 75%, transparent);\n}\n.progress-bar-danger {\n  background-color: #d9534f;\n}\n.progress-striped .progress-bar-danger {\n  background-image: -webkit-linear-gradient(45deg, rgba(255, 255, 255, .15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, .15) 50%, rgba(255, 255, 255, .15) 75%, transparent 75%, transparent);\n  background-image:      -o-linear-gradient(45deg, rgba(255, 255, 255, .15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, .15) 50%, rgba(255, 255, 255, .15) 75%, transparent 75%, transparent);\n  background-image:         linear-gradient(45deg, rgba(255, 255, 255, .15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, .15) 50%, rgba(255, 255, 255, .15) 75%, transparent 75%, transparent);\n}\n.media {\n  margin-top: 15px;\n}\n.media:first-child {\n  margin-top: 0;\n}\n.media,\n.media-body {\n  overflow: hidden;\n  zoom: 1;\n}\n.media-body {\n  width: 10000px;\n}\n.media-object {\n  display: block;\n}\n.media-object.img-thumbnail {\n  max-width: none;\n}\n.media-right,\n.media > .pull-right {\n  padding-left: 10px;\n}\n.media-left,\n.media > .pull-left {\n  padding-right: 10px;\n}\n.media-left,\n.media-right,\n.media-body {\n  display: table-cell;\n  vertical-align: top;\n}\n.media-middle {\n  vertical-align: middle;\n}\n.media-bottom {\n  vertical-align: bottom;\n}\n.media-heading {\n  margin-top: 0;\n  margin-bottom: 5px;\n}\n.media-list {\n  padding-left: 0;\n  list-style: none;\n}\n.list-group {\n  padding-left: 0;\n  margin-bottom: 20px;\n}\n.list-group-item {\n  position: relative;\n  display: block;\n  padding: 10px 15px;\n  margin-bottom: -1px;\n  background-color: #fff;\n  border: 1px solid #ddd;\n}\n.list-group-item:first-child {\n  border-top-left-radius: 4px;\n  border-top-right-radius: 4px;\n}\n.list-group-item:last-child {\n  margin-bottom: 0;\n  border-bottom-right-radius: 4px;\n  border-bottom-left-radius: 4px;\n}\na.list-group-item,\nbutton.list-group-item {\n  color: #555;\n}\na.list-group-item .list-group-item-heading,\nbutton.list-group-item .list-group-item-heading {\n  color: #333;\n}\na.list-group-item:hover,\nbutton.list-group-item:hover,\na.list-group-item:focus,\nbutton.list-group-item:focus {\n  color: #555;\n  text-decoration: none;\n  background-color: #f5f5f5;\n}\nbutton.list-group-item {\n  width: 100%;\n  text-align: left;\n}\n.list-group-item.disabled,\n.list-group-item.disabled:hover,\n.list-group-item.disabled:focus {\n  color: #777;\n  cursor: not-allowed;\n  background-color: #eee;\n}\n.list-group-item.disabled .list-group-item-heading,\n.list-group-item.disabled:hover .list-group-item-heading,\n.list-group-item.disabled:focus .list-group-item-heading {\n  color: inherit;\n}\n.list-group-item.disabled .list-group-item-text,\n.list-group-item.disabled:hover .list-group-item-text,\n.list-group-item.disabled:focus .list-group-item-text {\n  color: #777;\n}\n.list-group-item.active,\n.list-group-item.active:hover,\n.list-group-item.active:focus {\n  z-index: 2;\n  color: #fff;\n  background-color: #337ab7;\n  border-color: #337ab7;\n}\n.list-group-item.active .list-group-item-heading,\n.list-group-item.active:hover .list-group-item-heading,\n.list-group-item.active:focus .list-group-item-heading,\n.list-group-item.active .list-group-item-heading > small,\n.list-group-item.active:hover .list-group-item-heading > small,\n.list-group-item.active:focus .list-group-item-heading > small,\n.list-group-item.active .list-group-item-heading > .small,\n.list-group-item.active:hover .list-group-item-heading > .small,\n.list-group-item.active:focus .list-group-item-heading > .small {\n  color: inherit;\n}\n.list-group-item.active .list-group-item-text,\n.list-group-item.active:hover .list-group-item-text,\n.list-group-item.active:focus .list-group-item-text {\n  color: #c7ddef;\n}\n.list-group-item-success {\n  color: #3c763d;\n  background-color: #dff0d8;\n}\na.list-group-item-success,\nbutton.list-group-item-success {\n  color: #3c763d;\n}\na.list-group-item-success .list-group-item-heading,\nbutton.list-group-item-success .list-group-item-heading {\n  color: inherit;\n}\na.list-group-item-success:hover,\nbutton.list-group-item-success:hover,\na.list-group-item-success:focus,\nbutton.list-group-item-success:focus {\n  color: #3c763d;\n  background-color: #d0e9c6;\n}\na.list-group-item-success.active,\nbutton.list-group-item-success.active,\na.list-group-item-success.active:hover,\nbutton.list-group-item-success.active:hover,\na.list-group-item-success.active:focus,\nbutton.list-group-item-success.active:focus {\n  color: #fff;\n  background-color: #3c763d;\n  border-color: #3c763d;\n}\n.list-group-item-info {\n  color: #31708f;\n  background-color: #d9edf7;\n}\na.list-group-item-info,\nbutton.list-group-item-info {\n  color: #31708f;\n}\na.list-group-item-info .list-group-item-heading,\nbutton.list-group-item-info .list-group-item-heading {\n  color: inherit;\n}\na.list-group-item-info:hover,\nbutton.list-group-item-info:hover,\na.list-group-item-info:focus,\nbutton.list-group-item-info:focus {\n  color: #31708f;\n  background-color: #c4e3f3;\n}\na.list-group-item-info.active,\nbutton.list-group-item-info.active,\na.list-group-item-info.active:hover,\nbutton.list-group-item-info.active:hover,\na.list-group-item-info.active:focus,\nbutton.list-group-item-info.active:focus {\n  color: #fff;\n  background-color: #31708f;\n  border-color: #31708f;\n}\n.list-group-item-warning {\n  color: #8a6d3b;\n  background-color: #fcf8e3;\n}\na.list-group-item-warning,\nbutton.list-group-item-warning {\n  color: #8a6d3b;\n}\na.list-group-item-warning .list-group-item-heading,\nbutton.list-group-item-warning .list-group-item-heading {\n  color: inherit;\n}\na.list-group-item-warning:hover,\nbutton.list-group-item-warning:hover,\na.list-group-item-warning:focus,\nbutton.list-group-item-warning:focus {\n  color: #8a6d3b;\n  background-color: #faf2cc;\n}\na.list-group-item-warning.active,\nbutton.list-group-item-warning.active,\na.list-group-item-warning.active:hover,\nbutton.list-group-item-warning.active:hover,\na.list-group-item-warning.active:focus,\nbutton.list-group-item-warning.active:focus {\n  color: #fff;\n  background-color: #8a6d3b;\n  border-color: #8a6d3b;\n}\n.list-group-item-danger {\n  color: #a94442;\n  background-color: #f2dede;\n}\na.list-group-item-danger,\nbutton.list-group-item-danger {\n  color: #a94442;\n}\na.list-group-item-danger .list-group-item-heading,\nbutton.list-group-item-danger .list-group-item-heading {\n  color: inherit;\n}\na.list-group-item-danger:hover,\nbutton.list-group-item-danger:hover,\na.list-group-item-danger:focus,\nbutton.list-group-item-danger:focus {\n  color: #a94442;\n  background-color: #ebcccc;\n}\na.list-group-item-danger.active,\nbutton.list-group-item-danger.active,\na.list-group-item-danger.active:hover,\nbutton.list-group-item-danger.active:hover,\na.list-group-item-danger.active:focus,\nbutton.list-group-item-danger.active:focus {\n  color: #fff;\n  background-color: #a94442;\n  border-color: #a94442;\n}\n.list-group-item-heading {\n  margin-top: 0;\n  margin-bottom: 5px;\n}\n.list-group-item-text {\n  margin-bottom: 0;\n  line-height: 1.3;\n}\n.panel {\n  margin-bottom: 20px;\n  background-color: #fff;\n  border: 1px solid transparent;\n  border-radius: 4px;\n  -webkit-box-shadow: 0 1px 1px rgba(0, 0, 0, .05);\n          box-shadow: 0 1px 1px rgba(0, 0, 0, .05);\n}\n.panel-body {\n  padding: 15px;\n}\n.panel-heading {\n  padding: 10px 15px;\n  border-bottom: 1px solid transparent;\n  border-top-left-radius: 3px;\n  border-top-right-radius: 3px;\n}\n.panel-heading > .dropdown .dropdown-toggle {\n  color: inherit;\n}\n.panel-title {\n  margin-top: 0;\n  margin-bottom: 0;\n  font-size: 16px;\n  color: inherit;\n}\n.panel-title > a,\n.panel-title > small,\n.panel-title > .small,\n.panel-title > small > a,\n.panel-title > .small > a {\n  color: inherit;\n}\n.panel-footer {\n  padding: 10px 15px;\n  background-color: #f5f5f5;\n  border-top: 1px solid #ddd;\n  border-bottom-right-radius: 3px;\n  border-bottom-left-radius: 3px;\n}\n.panel > .list-group,\n.panel > .panel-collapse > .list-group {\n  margin-bottom: 0;\n}\n.panel > .list-group .list-group-item,\n.panel > .panel-collapse > .list-group .list-group-item {\n  border-width: 1px 0;\n  border-radius: 0;\n}\n.panel > .list-group:first-child .list-group-item:first-child,\n.panel > .panel-collapse > .list-group:first-child .list-group-item:first-child {\n  border-top: 0;\n  border-top-left-radius: 3px;\n  border-top-right-radius: 3px;\n}\n.panel > .list-group:last-child .list-group-item:last-child,\n.panel > .panel-collapse > .list-group:last-child .list-group-item:last-child {\n  border-bottom: 0;\n  border-bottom-right-radius: 3px;\n  border-bottom-left-radius: 3px;\n}\n.panel > .panel-heading + .panel-collapse > .list-group .list-group-item:first-child {\n  border-top-left-radius: 0;\n  border-top-right-radius: 0;\n}\n.panel-heading + .list-group .list-group-item:first-child {\n  border-top-width: 0;\n}\n.list-group + .panel-footer {\n  border-top-width: 0;\n}\n.panel > .table,\n.panel > .table-responsive > .table,\n.panel > .panel-collapse > .table {\n  margin-bottom: 0;\n}\n.panel > .table caption,\n.panel > .table-responsive > .table caption,\n.panel > .panel-collapse > .table caption {\n  padding-right: 15px;\n  padding-left: 15px;\n}\n.panel > .table:first-child,\n.panel > .table-responsive:first-child > .table:first-child {\n  border-top-left-radius: 3px;\n  border-top-right-radius: 3px;\n}\n.panel > .table:first-child > thead:first-child > tr:first-child,\n.panel > .table-responsive:first-child > .table:first-child > thead:first-child > tr:first-child,\n.panel > .table:first-child > tbody:first-child > tr:first-child,\n.panel > .table-responsive:first-child > .table:first-child > tbody:first-child > tr:first-child {\n  border-top-left-radius: 3px;\n  border-top-right-radius: 3px;\n}\n.panel > .table:first-child > thead:first-child > tr:first-child td:first-child,\n.panel > .table-responsive:first-child > .table:first-child > thead:first-child > tr:first-child td:first-child,\n.panel > .table:first-child > tbody:first-child > tr:first-child td:first-child,\n.panel > .table-responsive:first-child > .table:first-child > tbody:first-child > tr:first-child td:first-child,\n.panel > .table:first-child > thead:first-child > tr:first-child th:first-child,\n.panel > .table-responsive:first-child > .table:first-child > thead:first-child > tr:first-child th:first-child,\n.panel > .table:first-child > tbody:first-child > tr:first-child th:first-child,\n.panel > .table-responsive:first-child > .table:first-child > tbody:first-child > tr:first-child th:first-child {\n  border-top-left-radius: 3px;\n}\n.panel > .table:first-child > thead:first-child > tr:first-child td:last-child,\n.panel > .table-responsive:first-child > .table:first-child > thead:first-child > tr:first-child td:last-child,\n.panel > .table:first-child > tbody:first-child > tr:first-child td:last-child,\n.panel > .table-responsive:first-child > .table:first-child > tbody:first-child > tr:first-child td:last-child,\n.panel > .table:first-child > thead:first-child > tr:first-child th:last-child,\n.panel > .table-responsive:first-child > .table:first-child > thead:first-child > tr:first-child th:last-child,\n.panel > .table:first-child > tbody:first-child > tr:first-child th:last-child,\n.panel > .table-responsive:first-child > .table:first-child > tbody:first-child > tr:first-child th:last-child {\n  border-top-right-radius: 3px;\n}\n.panel > .table:last-child,\n.panel > .table-responsive:last-child > .table:last-child {\n  border-bottom-right-radius: 3px;\n  border-bottom-left-radius: 3px;\n}\n.panel > .table:last-child > tbody:last-child > tr:last-child,\n.panel > .table-responsive:last-child > .table:last-child > tbody:last-child > tr:last-child,\n.panel > .table:last-child > tfoot:last-child > tr:last-child,\n.panel > .table-responsive:last-child > .table:last-child > tfoot:last-child > tr:last-child {\n  border-bottom-right-radius: 3px;\n  border-bottom-left-radius: 3px;\n}\n.panel > .table:last-child > tbody:last-child > tr:last-child td:first-child,\n.panel > .table-responsive:last-child > .table:last-child > tbody:last-child > tr:last-child td:first-child,\n.panel > .table:last-child > tfoot:last-child > tr:last-child td:first-child,\n.panel > .table-responsive:last-child > .table:last-child > tfoot:last-child > tr:last-child td:first-child,\n.panel > .table:last-child > tbody:last-child > tr:last-child th:first-child,\n.panel > .table-responsive:last-child > .table:last-child > tbody:last-child > tr:last-child th:first-child,\n.panel > .table:last-child > tfoot:last-child > tr:last-child th:first-child,\n.panel > .table-responsive:last-child > .table:last-child > tfoot:last-child > tr:last-child th:first-child {\n  border-bottom-left-radius: 3px;\n}\n.panel > .table:last-child > tbody:last-child > tr:last-child td:last-child,\n.panel > .table-responsive:last-child > .table:last-child > tbody:last-child > tr:last-child td:last-child,\n.panel > .table:last-child > tfoot:last-child > tr:last-child td:last-child,\n.panel > .table-responsive:last-child > .table:last-child > tfoot:last-child > tr:last-child td:last-child,\n.panel > .table:last-child > tbody:last-child > tr:last-child th:last-child,\n.panel > .table-responsive:last-child > .table:last-child > tbody:last-child > tr:last-child th:last-child,\n.panel > .table:last-child > tfoot:last-child > tr:last-child th:last-child,\n.panel > .table-responsive:last-child > .table:last-child > tfoot:last-child > tr:last-child th:last-child {\n  border-bottom-right-radius: 3px;\n}\n.panel > .panel-body + .table,\n.panel > .panel-body + .table-responsive,\n.panel > .table + .panel-body,\n.panel > .table-responsive + .panel-body {\n  border-top: 1px solid #ddd;\n}\n.panel > .table > tbody:first-child > tr:first-child th,\n.panel > .table > tbody:first-child > tr:first-child td {\n  border-top: 0;\n}\n.panel > .table-bordered,\n.panel > .table-responsive > .table-bordered {\n  border: 0;\n}\n.panel > .table-bordered > thead > tr > th:first-child,\n.panel > .table-responsive > .table-bordered > thead > tr > th:first-child,\n.panel > .table-bordered > tbody > tr > th:first-child,\n.panel > .table-responsive > .table-bordered > tbody > tr > th:first-child,\n.panel > .table-bordered > tfoot > tr > th:first-child,\n.panel > .table-responsive > .table-bordered > tfoot > tr > th:first-child,\n.panel > .table-bordered > thead > tr > td:first-child,\n.panel > .table-responsive > .table-bordered > thead > tr > td:first-child,\n.panel > .table-bordered > tbody > tr > td:first-child,\n.panel > .table-responsive > .table-bordered > tbody > tr > td:first-child,\n.panel > .table-bordered > tfoot > tr > td:first-child,\n.panel > .table-responsive > .table-bordered > tfoot > tr > td:first-child {\n  border-left: 0;\n}\n.panel > .table-bordered > thead > tr > th:last-child,\n.panel > .table-responsive > .table-bordered > thead > tr > th:last-child,\n.panel > .table-bordered > tbody > tr > th:last-child,\n.panel > .table-responsive > .table-bordered > tbody > tr > th:last-child,\n.panel > .table-bordered > tfoot > tr > th:last-child,\n.panel > .table-responsive > .table-bordered > tfoot > tr > th:last-child,\n.panel > .table-bordered > thead > tr > td:last-child,\n.panel > .table-responsive > .table-bordered > thead > tr > td:last-child,\n.panel > .table-bordered > tbody > tr > td:last-child,\n.panel > .table-responsive > .table-bordered > tbody > tr > td:last-child,\n.panel > .table-bordered > tfoot > tr > td:last-child,\n.panel > .table-responsive > .table-bordered > tfoot > tr > td:last-child {\n  border-right: 0;\n}\n.panel > .table-bordered > thead > tr:first-child > td,\n.panel > .table-responsive > .table-bordered > thead > tr:first-child > td,\n.panel > .table-bordered > tbody > tr:first-child > td,\n.panel > .table-responsive > .table-bordered > tbody > tr:first-child > td,\n.panel > .table-bordered > thead > tr:first-child > th,\n.panel > .table-responsive > .table-bordered > thead > tr:first-child > th,\n.panel > .table-bordered > tbody > tr:first-child > th,\n.panel > .table-responsive > .table-bordered > tbody > tr:first-child > th {\n  border-bottom: 0;\n}\n.panel > .table-bordered > tbody > tr:last-child > td,\n.panel > .table-responsive > .table-bordered > tbody > tr:last-child > td,\n.panel > .table-bordered > tfoot > tr:last-child > td,\n.panel > .table-responsive > .table-bordered > tfoot > tr:last-child > td,\n.panel > .table-bordered > tbody > tr:last-child > th,\n.panel > .table-responsive > .table-bordered > tbody > tr:last-child > th,\n.panel > .table-bordered > tfoot > tr:last-child > th,\n.panel > .table-responsive > .table-bordered > tfoot > tr:last-child > th {\n  border-bottom: 0;\n}\n.panel > .table-responsive {\n  margin-bottom: 0;\n  border: 0;\n}\n.panel-group {\n  margin-bottom: 20px;\n}\n.panel-group .panel {\n  margin-bottom: 0;\n  border-radius: 4px;\n}\n.panel-group .panel + .panel {\n  margin-top: 5px;\n}\n.panel-group .panel-heading {\n  border-bottom: 0;\n}\n.panel-group .panel-heading + .panel-collapse > .panel-body,\n.panel-group .panel-heading + .panel-collapse > .list-group {\n  border-top: 1px solid #ddd;\n}\n.panel-group .panel-footer {\n  border-top: 0;\n}\n.panel-group .panel-footer + .panel-collapse .panel-body {\n  border-bottom: 1px solid #ddd;\n}\n.panel-default {\n  border-color: #ddd;\n}\n.panel-default > .panel-heading {\n  color: #333;\n  background-color: #f5f5f5;\n  border-color: #ddd;\n}\n.panel-default > .panel-heading + .panel-collapse > .panel-body {\n  border-top-color: #ddd;\n}\n.panel-default > .panel-heading .badge {\n  color: #f5f5f5;\n  background-color: #333;\n}\n.panel-default > .panel-footer + .panel-collapse > .panel-body {\n  border-bottom-color: #ddd;\n}\n.panel-primary {\n  border-color: #337ab7;\n}\n.panel-primary > .panel-heading {\n  color: #fff;\n  background-color: #337ab7;\n  border-color: #337ab7;\n}\n.panel-primary > .panel-heading + .panel-collapse > .panel-body {\n  border-top-color: #337ab7;\n}\n.panel-primary > .panel-heading .badge {\n  color: #337ab7;\n  background-color: #fff;\n}\n.panel-primary > .panel-footer + .panel-collapse > .panel-body {\n  border-bottom-color: #337ab7;\n}\n.panel-success {\n  border-color: #d6e9c6;\n}\n.panel-success > .panel-heading {\n  color: #3c763d;\n  background-color: #dff0d8;\n  border-color: #d6e9c6;\n}\n.panel-success > .panel-heading + .panel-collapse > .panel-body {\n  border-top-color: #d6e9c6;\n}\n.panel-success > .panel-heading .badge {\n  color: #dff0d8;\n  background-color: #3c763d;\n}\n.panel-success > .panel-footer + .panel-collapse > .panel-body {\n  border-bottom-color: #d6e9c6;\n}\n.panel-info {\n  border-color: #bce8f1;\n}\n.panel-info > .panel-heading {\n  color: #31708f;\n  background-color: #d9edf7;\n  border-color: #bce8f1;\n}\n.panel-info > .panel-heading + .panel-collapse > .panel-body {\n  border-top-color: #bce8f1;\n}\n.panel-info > .panel-heading .badge {\n  color: #d9edf7;\n  background-color: #31708f;\n}\n.panel-info > .panel-footer + .panel-collapse > .panel-body {\n  border-bottom-color: #bce8f1;\n}\n.panel-warning {\n  border-color: #faebcc;\n}\n.panel-warning > .panel-heading {\n  color: #8a6d3b;\n  background-color: #fcf8e3;\n  border-color: #faebcc;\n}\n.panel-warning > .panel-heading + .panel-collapse > .panel-body {\n  border-top-color: #faebcc;\n}\n.panel-warning > .panel-heading .badge {\n  color: #fcf8e3;\n  background-color: #8a6d3b;\n}\n.panel-warning > .panel-footer + .panel-collapse > .panel-body {\n  border-bottom-color: #faebcc;\n}\n.panel-danger {\n  border-color: #ebccd1;\n}\n.panel-danger > .panel-heading {\n  color: #a94442;\n  background-color: #f2dede;\n  border-color: #ebccd1;\n}\n.panel-danger > .panel-heading + .panel-collapse > .panel-body {\n  border-top-color: #ebccd1;\n}\n.panel-danger > .panel-heading .badge {\n  color: #f2dede;\n  background-color: #a94442;\n}\n.panel-danger > .panel-footer + .panel-collapse > .panel-body {\n  border-bottom-color: #ebccd1;\n}\n.embed-responsive {\n  position: relative;\n  display: block;\n  height: 0;\n  padding: 0;\n  overflow: hidden;\n}\n.embed-responsive .embed-responsive-item,\n.embed-responsive iframe,\n.embed-responsive embed,\n.embed-responsive object,\n.embed-responsive video {\n  position: absolute;\n  top: 0;\n  bottom: 0;\n  left: 0;\n  width: 100%;\n  height: 100%;\n  border: 0;\n}\n.embed-responsive-16by9 {\n  padding-bottom: 56.25%;\n}\n.embed-responsive-4by3 {\n  padding-bottom: 75%;\n}\n.well {\n  min-height: 20px;\n  padding: 19px;\n  margin-bottom: 20px;\n  background-color: #f5f5f5;\n  border: 1px solid #e3e3e3;\n  border-radius: 4px;\n  -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, .05);\n          box-shadow: inset 0 1px 1px rgba(0, 0, 0, .05);\n}\n.well blockquote {\n  border-color: #ddd;\n  border-color: rgba(0, 0, 0, .15);\n}\n.well-lg {\n  padding: 24px;\n  border-radius: 6px;\n}\n.well-sm {\n  padding: 9px;\n  border-radius: 3px;\n}\n.close {\n  float: right;\n  font-size: 21px;\n  font-weight: bold;\n  line-height: 1;\n  color: #000;\n  text-shadow: 0 1px 0 #fff;\n  filter: alpha(opacity=20);\n  opacity: .2;\n}\n.close:hover,\n.close:focus {\n  color: #000;\n  text-decoration: none;\n  cursor: pointer;\n  filter: alpha(opacity=50);\n  opacity: .5;\n}\nbutton.close {\n  -webkit-appearance: none;\n  padding: 0;\n  cursor: pointer;\n  background: transparent;\n  border: 0;\n}\n.modal-open {\n  overflow: hidden;\n}\n.modal {\n  position: fixed;\n  top: 0;\n  right: 0;\n  bottom: 0;\n  left: 0;\n  z-index: 1050;\n  display: none;\n  overflow: hidden;\n  -webkit-overflow-scrolling: touch;\n  outline: 0;\n}\n.modal.fade .modal-dialog {\n  -webkit-transition: -webkit-transform .3s ease-out;\n       -o-transition:      -o-transform .3s ease-out;\n          transition:         transform .3s ease-out;\n  -webkit-transform: translate(0, -25%);\n      -ms-transform: translate(0, -25%);\n       -o-transform: translate(0, -25%);\n          transform: translate(0, -25%);\n}\n.modal.in .modal-dialog {\n  -webkit-transform: translate(0, 0);\n      -ms-transform: translate(0, 0);\n       -o-transform: translate(0, 0);\n          transform: translate(0, 0);\n}\n.modal-open .modal {\n  overflow-x: hidden;\n  overflow-y: auto;\n}\n.modal-dialog {\n  position: relative;\n  width: auto;\n  margin: 10px;\n}\n.modal-content {\n  position: relative;\n  background-color: #fff;\n  -webkit-background-clip: padding-box;\n          background-clip: padding-box;\n  border: 1px solid #999;\n  border: 1px solid rgba(0, 0, 0, .2);\n  border-radius: 6px;\n  outline: 0;\n  -webkit-box-shadow: 0 3px 9px rgba(0, 0, 0, .5);\n          box-shadow: 0 3px 9px rgba(0, 0, 0, .5);\n}\n.modal-backdrop {\n  position: fixed;\n  top: 0;\n  right: 0;\n  bottom: 0;\n  left: 0;\n  z-index: 1040;\n  background-color: #000;\n}\n.modal-backdrop.fade {\n  filter: alpha(opacity=0);\n  opacity: 0;\n}\n.modal-backdrop.in {\n  filter: alpha(opacity=50);\n  opacity: .5;\n}\n.modal-header {\n  padding: 15px;\n  border-bottom: 1px solid #e5e5e5;\n}\n.modal-header .close {\n  margin-top: -2px;\n}\n.modal-title {\n  margin: 0;\n  line-height: 1.42857143;\n}\n.modal-body {\n  position: relative;\n  padding: 15px;\n}\n.modal-footer {\n  padding: 15px;\n  text-align: right;\n  border-top: 1px solid #e5e5e5;\n}\n.modal-footer .btn + .btn {\n  margin-bottom: 0;\n  margin-left: 5px;\n}\n.modal-footer .btn-group .btn + .btn {\n  margin-left: -1px;\n}\n.modal-footer .btn-block + .btn-block {\n  margin-left: 0;\n}\n.modal-scrollbar-measure {\n  position: absolute;\n  top: -9999px;\n  width: 50px;\n  height: 50px;\n  overflow: scroll;\n}\n@media (min-width: 768px) {\n  .modal-dialog {\n    width: 600px;\n    margin: 30px auto;\n  }\n  .modal-content {\n    -webkit-box-shadow: 0 5px 15px rgba(0, 0, 0, .5);\n            box-shadow: 0 5px 15px rgba(0, 0, 0, .5);\n  }\n  .modal-sm {\n    width: 300px;\n  }\n}\n@media (min-width: 992px) {\n  .modal-lg {\n    width: 900px;\n  }\n}\n.tooltip {\n  position: absolute;\n  z-index: 1070;\n  display: block;\n  font-family: \"Helvetica Neue\", Helvetica, Arial, sans-serif;\n  font-size: 12px;\n  font-style: normal;\n  font-weight: normal;\n  line-height: 1.42857143;\n  text-align: left;\n  text-align: start;\n  text-decoration: none;\n  text-shadow: none;\n  text-transform: none;\n  letter-spacing: normal;\n  word-break: normal;\n  word-spacing: normal;\n  word-wrap: normal;\n  white-space: normal;\n  filter: alpha(opacity=0);\n  opacity: 0;\n\n  line-break: auto;\n}\n.tooltip.in {\n  filter: alpha(opacity=90);\n  opacity: .9;\n}\n.tooltip.top {\n  padding: 5px 0;\n  margin-top: -3px;\n}\n.tooltip.right {\n  padding: 0 5px;\n  margin-left: 3px;\n}\n.tooltip.bottom {\n  padding: 5px 0;\n  margin-top: 3px;\n}\n.tooltip.left {\n  padding: 0 5px;\n  margin-left: -3px;\n}\n.tooltip-inner {\n  max-width: 200px;\n  padding: 3px 8px;\n  color: #fff;\n  text-align: center;\n  background-color: #000;\n  border-radius: 4px;\n}\n.tooltip-arrow {\n  position: absolute;\n  width: 0;\n  height: 0;\n  border-color: transparent;\n  border-style: solid;\n}\n.tooltip.top .tooltip-arrow {\n  bottom: 0;\n  left: 50%;\n  margin-left: -5px;\n  border-width: 5px 5px 0;\n  border-top-color: #000;\n}\n.tooltip.top-left .tooltip-arrow {\n  right: 5px;\n  bottom: 0;\n  margin-bottom: -5px;\n  border-width: 5px 5px 0;\n  border-top-color: #000;\n}\n.tooltip.top-right .tooltip-arrow {\n  bottom: 0;\n  left: 5px;\n  margin-bottom: -5px;\n  border-width: 5px 5px 0;\n  border-top-color: #000;\n}\n.tooltip.right .tooltip-arrow {\n  top: 50%;\n  left: 0;\n  margin-top: -5px;\n  border-width: 5px 5px 5px 0;\n  border-right-color: #000;\n}\n.tooltip.left .tooltip-arrow {\n  top: 50%;\n  right: 0;\n  margin-top: -5px;\n  border-width: 5px 0 5px 5px;\n  border-left-color: #000;\n}\n.tooltip.bottom .tooltip-arrow {\n  top: 0;\n  left: 50%;\n  margin-left: -5px;\n  border-width: 0 5px 5px;\n  border-bottom-color: #000;\n}\n.tooltip.bottom-left .tooltip-arrow {\n  top: 0;\n  right: 5px;\n  margin-top: -5px;\n  border-width: 0 5px 5px;\n  border-bottom-color: #000;\n}\n.tooltip.bottom-right .tooltip-arrow {\n  top: 0;\n  left: 5px;\n  margin-top: -5px;\n  border-width: 0 5px 5px;\n  border-bottom-color: #000;\n}\n.popover {\n  position: absolute;\n  top: 0;\n  left: 0;\n  z-index: 1060;\n  display: none;\n  max-width: 276px;\n  padding: 1px;\n  font-family: \"Helvetica Neue\", Helvetica, Arial, sans-serif;\n  font-size: 14px;\n  font-style: normal;\n  font-weight: normal;\n  line-height: 1.42857143;\n  text-align: left;\n  text-align: start;\n  text-decoration: none;\n  text-shadow: none;\n  text-transform: none;\n  letter-spacing: normal;\n  word-break: normal;\n  word-spacing: normal;\n  word-wrap: normal;\n  white-space: normal;\n  background-color: #fff;\n  -webkit-background-clip: padding-box;\n          background-clip: padding-box;\n  border: 1px solid #ccc;\n  border: 1px solid rgba(0, 0, 0, .2);\n  border-radius: 6px;\n  -webkit-box-shadow: 0 5px 10px rgba(0, 0, 0, .2);\n          box-shadow: 0 5px 10px rgba(0, 0, 0, .2);\n\n  line-break: auto;\n}\n.popover.top {\n  margin-top: -10px;\n}\n.popover.right {\n  margin-left: 10px;\n}\n.popover.bottom {\n  margin-top: 10px;\n}\n.popover.left {\n  margin-left: -10px;\n}\n.popover-title {\n  padding: 8px 14px;\n  margin: 0;\n  font-size: 14px;\n  background-color: #f7f7f7;\n  border-bottom: 1px solid #ebebeb;\n  border-radius: 5px 5px 0 0;\n}\n.popover-content {\n  padding: 9px 14px;\n}\n.popover > .arrow,\n.popover > .arrow:after {\n  position: absolute;\n  display: block;\n  width: 0;\n  height: 0;\n  border-color: transparent;\n  border-style: solid;\n}\n.popover > .arrow {\n  border-width: 11px;\n}\n.popover > .arrow:after {\n  content: \"\";\n  border-width: 10px;\n}\n.popover.top > .arrow {\n  bottom: -11px;\n  left: 50%;\n  margin-left: -11px;\n  border-top-color: #999;\n  border-top-color: rgba(0, 0, 0, .25);\n  border-bottom-width: 0;\n}\n.popover.top > .arrow:after {\n  bottom: 1px;\n  margin-left: -10px;\n  content: \" \";\n  border-top-color: #fff;\n  border-bottom-width: 0;\n}\n.popover.right > .arrow {\n  top: 50%;\n  left: -11px;\n  margin-top: -11px;\n  border-right-color: #999;\n  border-right-color: rgba(0, 0, 0, .25);\n  border-left-width: 0;\n}\n.popover.right > .arrow:after {\n  bottom: -10px;\n  left: 1px;\n  content: \" \";\n  border-right-color: #fff;\n  border-left-width: 0;\n}\n.popover.bottom > .arrow {\n  top: -11px;\n  left: 50%;\n  margin-left: -11px;\n  border-top-width: 0;\n  border-bottom-color: #999;\n  border-bottom-color: rgba(0, 0, 0, .25);\n}\n.popover.bottom > .arrow:after {\n  top: 1px;\n  margin-left: -10px;\n  content: \" \";\n  border-top-width: 0;\n  border-bottom-color: #fff;\n}\n.popover.left > .arrow {\n  top: 50%;\n  right: -11px;\n  margin-top: -11px;\n  border-right-width: 0;\n  border-left-color: #999;\n  border-left-color: rgba(0, 0, 0, .25);\n}\n.popover.left > .arrow:after {\n  right: 1px;\n  bottom: -10px;\n  content: \" \";\n  border-right-width: 0;\n  border-left-color: #fff;\n}\n.carousel {\n  position: relative;\n}\n.carousel-inner {\n  position: relative;\n  width: 100%;\n  overflow: hidden;\n}\n.carousel-inner > .item {\n  position: relative;\n  display: none;\n  -webkit-transition: .6s ease-in-out left;\n       -o-transition: .6s ease-in-out left;\n          transition: .6s ease-in-out left;\n}\n.carousel-inner > .item > img,\n.carousel-inner > .item > a > img {\n  line-height: 1;\n}\n@media all and (transform-3d), (-webkit-transform-3d) {\n  .carousel-inner > .item {\n    -webkit-transition: -webkit-transform .6s ease-in-out;\n         -o-transition:      -o-transform .6s ease-in-out;\n            transition:         transform .6s ease-in-out;\n\n    -webkit-backface-visibility: hidden;\n            backface-visibility: hidden;\n    -webkit-perspective: 1000px;\n            perspective: 1000px;\n  }\n  .carousel-inner > .item.next,\n  .carousel-inner > .item.active.right {\n    left: 0;\n    -webkit-transform: translate3d(100%, 0, 0);\n            transform: translate3d(100%, 0, 0);\n  }\n  .carousel-inner > .item.prev,\n  .carousel-inner > .item.active.left {\n    left: 0;\n    -webkit-transform: translate3d(-100%, 0, 0);\n            transform: translate3d(-100%, 0, 0);\n  }\n  .carousel-inner > .item.next.left,\n  .carousel-inner > .item.prev.right,\n  .carousel-inner > .item.active {\n    left: 0;\n    -webkit-transform: translate3d(0, 0, 0);\n            transform: translate3d(0, 0, 0);\n  }\n}\n.carousel-inner > .active,\n.carousel-inner > .next,\n.carousel-inner > .prev {\n  display: block;\n}\n.carousel-inner > .active {\n  left: 0;\n}\n.carousel-inner > .next,\n.carousel-inner > .prev {\n  position: absolute;\n  top: 0;\n  width: 100%;\n}\n.carousel-inner > .next {\n  left: 100%;\n}\n.carousel-inner > .prev {\n  left: -100%;\n}\n.carousel-inner > .next.left,\n.carousel-inner > .prev.right {\n  left: 0;\n}\n.carousel-inner > .active.left {\n  left: -100%;\n}\n.carousel-inner > .active.right {\n  left: 100%;\n}\n.carousel-control {\n  position: absolute;\n  top: 0;\n  bottom: 0;\n  left: 0;\n  width: 15%;\n  font-size: 20px;\n  color: #fff;\n  text-align: center;\n  text-shadow: 0 1px 2px rgba(0, 0, 0, .6);\n  background-color: rgba(0, 0, 0, 0);\n  filter: alpha(opacity=50);\n  opacity: .5;\n}\n.carousel-control.left {\n  background-image: -webkit-linear-gradient(left, rgba(0, 0, 0, .5) 0%, rgba(0, 0, 0, .0001) 100%);\n  background-image:      -o-linear-gradient(left, rgba(0, 0, 0, .5) 0%, rgba(0, 0, 0, .0001) 100%);\n  background-image: -webkit-gradient(linear, left top, right top, from(rgba(0, 0, 0, .5)), to(rgba(0, 0, 0, .0001)));\n  background-image:         linear-gradient(to right, rgba(0, 0, 0, .5) 0%, rgba(0, 0, 0, .0001) 100%);\n  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#80000000', endColorstr='#00000000', GradientType=1);\n  background-repeat: repeat-x;\n}\n.carousel-control.right {\n  right: 0;\n  left: auto;\n  background-image: -webkit-linear-gradient(left, rgba(0, 0, 0, .0001) 0%, rgba(0, 0, 0, .5) 100%);\n  background-image:      -o-linear-gradient(left, rgba(0, 0, 0, .0001) 0%, rgba(0, 0, 0, .5) 100%);\n  background-image: -webkit-gradient(linear, left top, right top, from(rgba(0, 0, 0, .0001)), to(rgba(0, 0, 0, .5)));\n  background-image:         linear-gradient(to right, rgba(0, 0, 0, .0001) 0%, rgba(0, 0, 0, .5) 100%);\n  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#00000000', endColorstr='#80000000', GradientType=1);\n  background-repeat: repeat-x;\n}\n.carousel-control:hover,\n.carousel-control:focus {\n  color: #fff;\n  text-decoration: none;\n  filter: alpha(opacity=90);\n  outline: 0;\n  opacity: .9;\n}\n.carousel-control .icon-prev,\n.carousel-control .icon-next,\n.carousel-control .glyphicon-chevron-left,\n.carousel-control .glyphicon-chevron-right {\n  position: absolute;\n  top: 50%;\n  z-index: 5;\n  display: inline-block;\n  margin-top: -10px;\n}\n.carousel-control .icon-prev,\n.carousel-control .glyphicon-chevron-left {\n  left: 50%;\n  margin-left: -10px;\n}\n.carousel-control .icon-next,\n.carousel-control .glyphicon-chevron-right {\n  right: 50%;\n  margin-right: -10px;\n}\n.carousel-control .icon-prev,\n.carousel-control .icon-next {\n  width: 20px;\n  height: 20px;\n  font-family: serif;\n  line-height: 1;\n}\n.carousel-control .icon-prev:before {\n  content: '\\2039';\n}\n.carousel-control .icon-next:before {\n  content: '\\203A';\n}\n.carousel-indicators {\n  position: absolute;\n  bottom: 10px;\n  left: 50%;\n  z-index: 15;\n  width: 60%;\n  padding-left: 0;\n  margin-left: -30%;\n  text-align: center;\n  list-style: none;\n}\n.carousel-indicators li {\n  display: inline-block;\n  width: 10px;\n  height: 10px;\n  margin: 1px;\n  text-indent: -999px;\n  cursor: pointer;\n  background-color: #000 \\9;\n  background-color: rgba(0, 0, 0, 0);\n  border: 1px solid #fff;\n  border-radius: 10px;\n}\n.carousel-indicators .active {\n  width: 12px;\n  height: 12px;\n  margin: 0;\n  background-color: #fff;\n}\n.carousel-caption {\n  position: absolute;\n  right: 15%;\n  bottom: 20px;\n  left: 15%;\n  z-index: 10;\n  padding-top: 20px;\n  padding-bottom: 20px;\n  color: #fff;\n  text-align: center;\n  text-shadow: 0 1px 2px rgba(0, 0, 0, .6);\n}\n.carousel-caption .btn {\n  text-shadow: none;\n}\n@media screen and (min-width: 768px) {\n  .carousel-control .glyphicon-chevron-left,\n  .carousel-control .glyphicon-chevron-right,\n  .carousel-control .icon-prev,\n  .carousel-control .icon-next {\n    width: 30px;\n    height: 30px;\n    margin-top: -10px;\n    font-size: 30px;\n  }\n  .carousel-control .glyphicon-chevron-left,\n  .carousel-control .icon-prev {\n    margin-left: -10px;\n  }\n  .carousel-control .glyphicon-chevron-right,\n  .carousel-control .icon-next {\n    margin-right: -10px;\n  }\n  .carousel-caption {\n    right: 20%;\n    left: 20%;\n    padding-bottom: 30px;\n  }\n  .carousel-indicators {\n    bottom: 20px;\n  }\n}\n.clearfix:before,\n.clearfix:after,\n.dl-horizontal dd:before,\n.dl-horizontal dd:after,\n.container:before,\n.container:after,\n.container-fluid:before,\n.container-fluid:after,\n.row:before,\n.row:after,\n.form-horizontal .form-group:before,\n.form-horizontal .form-group:after,\n.btn-toolbar:before,\n.btn-toolbar:after,\n.btn-group-vertical > .btn-group:before,\n.btn-group-vertical > .btn-group:after,\n.nav:before,\n.nav:after,\n.navbar:before,\n.navbar:after,\n.navbar-header:before,\n.navbar-header:after,\n.navbar-collapse:before,\n.navbar-collapse:after,\n.pager:before,\n.pager:after,\n.panel-body:before,\n.panel-body:after,\n.modal-header:before,\n.modal-header:after,\n.modal-footer:before,\n.modal-footer:after {\n  display: table;\n  content: \" \";\n}\n.clearfix:after,\n.dl-horizontal dd:after,\n.container:after,\n.container-fluid:after,\n.row:after,\n.form-horizontal .form-group:after,\n.btn-toolbar:after,\n.btn-group-vertical > .btn-group:after,\n.nav:after,\n.navbar:after,\n.navbar-header:after,\n.navbar-collapse:after,\n.pager:after,\n.panel-body:after,\n.modal-header:after,\n.modal-footer:after {\n  clear: both;\n}\n.center-block {\n  display: block;\n  margin-right: auto;\n  margin-left: auto;\n}\n.pull-right {\n  float: right !important;\n}\n.pull-left {\n  float: left !important;\n}\n.hide {\n  display: none !important;\n}\n.show {\n  display: block !important;\n}\n.invisible {\n  visibility: hidden;\n}\n.text-hide {\n  font: 0/0 a;\n  color: transparent;\n  text-shadow: none;\n  background-color: transparent;\n  border: 0;\n}\n.hidden {\n  display: none !important;\n}\n.affix {\n  position: fixed;\n}\n@-ms-viewport {\n  width: device-width;\n}\n.visible-xs,\n.visible-sm,\n.visible-md,\n.visible-lg {\n  display: none !important;\n}\n.visible-xs-block,\n.visible-xs-inline,\n.visible-xs-inline-block,\n.visible-sm-block,\n.visible-sm-inline,\n.visible-sm-inline-block,\n.visible-md-block,\n.visible-md-inline,\n.visible-md-inline-block,\n.visible-lg-block,\n.visible-lg-inline,\n.visible-lg-inline-block {\n  display: none !important;\n}\n@media (max-width: 767px) {\n  .visible-xs {\n    display: block !important;\n  }\n  table.visible-xs {\n    display: table !important;\n  }\n  tr.visible-xs {\n    display: table-row !important;\n  }\n  th.visible-xs,\n  td.visible-xs {\n    display: table-cell !important;\n  }\n}\n@media (max-width: 767px) {\n  .visible-xs-block {\n    display: block !important;\n  }\n}\n@media (max-width: 767px) {\n  .visible-xs-inline {\n    display: inline !important;\n  }\n}\n@media (max-width: 767px) {\n  .visible-xs-inline-block {\n    display: inline-block !important;\n  }\n}\n@media (min-width: 768px) and (max-width: 991px) {\n  .visible-sm {\n    display: block !important;\n  }\n  table.visible-sm {\n    display: table !important;\n  }\n  tr.visible-sm {\n    display: table-row !important;\n  }\n  th.visible-sm,\n  td.visible-sm {\n    display: table-cell !important;\n  }\n}\n@media (min-width: 768px) and (max-width: 991px) {\n  .visible-sm-block {\n    display: block !important;\n  }\n}\n@media (min-width: 768px) and (max-width: 991px) {\n  .visible-sm-inline {\n    display: inline !important;\n  }\n}\n@media (min-width: 768px) and (max-width: 991px) {\n  .visible-sm-inline-block {\n    display: inline-block !important;\n  }\n}\n@media (min-width: 992px) and (max-width: 1199px) {\n  .visible-md {\n    display: block !important;\n  }\n  table.visible-md {\n    display: table !important;\n  }\n  tr.visible-md {\n    display: table-row !important;\n  }\n  th.visible-md,\n  td.visible-md {\n    display: table-cell !important;\n  }\n}\n@media (min-width: 992px) and (max-width: 1199px) {\n  .visible-md-block {\n    display: block !important;\n  }\n}\n@media (min-width: 992px) and (max-width: 1199px) {\n  .visible-md-inline {\n    display: inline !important;\n  }\n}\n@media (min-width: 992px) and (max-width: 1199px) {\n  .visible-md-inline-block {\n    display: inline-block !important;\n  }\n}\n@media (min-width: 1200px) {\n  .visible-lg {\n    display: block !important;\n  }\n  table.visible-lg {\n    display: table !important;\n  }\n  tr.visible-lg {\n    display: table-row !important;\n  }\n  th.visible-lg,\n  td.visible-lg {\n    display: table-cell !important;\n  }\n}\n@media (min-width: 1200px) {\n  .visible-lg-block {\n    display: block !important;\n  }\n}\n@media (min-width: 1200px) {\n  .visible-lg-inline {\n    display: inline !important;\n  }\n}\n@media (min-width: 1200px) {\n  .visible-lg-inline-block {\n    display: inline-block !important;\n  }\n}\n@media (max-width: 767px) {\n  .hidden-xs {\n    display: none !important;\n  }\n}\n@media (min-width: 768px) and (max-width: 991px) {\n  .hidden-sm {\n    display: none !important;\n  }\n}\n@media (min-width: 992px) and (max-width: 1199px) {\n  .hidden-md {\n    display: none !important;\n  }\n}\n@media (min-width: 1200px) {\n  .hidden-lg {\n    display: none !important;\n  }\n}\n.visible-print {\n  display: none !important;\n}\n@media print {\n  .visible-print {\n    display: block !important;\n  }\n  table.visible-print {\n    display: table !important;\n  }\n  tr.visible-print {\n    display: table-row !important;\n  }\n  th.visible-print,\n  td.visible-print {\n    display: table-cell !important;\n  }\n}\n.visible-print-block {\n  display: none !important;\n}\n@media print {\n  .visible-print-block {\n    display: block !important;\n  }\n}\n.visible-print-inline {\n  display: none !important;\n}\n@media print {\n  .visible-print-inline {\n    display: inline !important;\n  }\n}\n.visible-print-inline-block {\n  display: none !important;\n}\n@media print {\n  .visible-print-inline-block {\n    display: inline-block !important;\n  }\n}\n@media print {\n  .hidden-print {\n    display: none !important;\n  }\n}\n/*# sourceMappingURL=bootstrap.css.map */\n", ""]);
+	exports.push([module.id, "/*!\n * Bootstrap v3.3.7 (http://getbootstrap.com)\n * Copyright 2011-2016 Twitter, Inc.\n * Licensed under MIT (https://github.com/twbs/bootstrap/blob/master/LICENSE)\n */\n/*! normalize.css v3.0.3 | MIT License | github.com/necolas/normalize.css */\nhtml {\n  font-family: sans-serif;\n  -webkit-text-size-adjust: 100%;\n      -ms-text-size-adjust: 100%;\n}\nbody {\n  margin: 0;\n}\narticle,\naside,\ndetails,\nfigcaption,\nfigure,\nfooter,\nheader,\nhgroup,\nmain,\nmenu,\nnav,\nsection,\nsummary {\n  display: block;\n}\naudio,\ncanvas,\nprogress,\nvideo {\n  display: inline-block;\n  vertical-align: baseline;\n}\naudio:not([controls]) {\n  display: none;\n  height: 0;\n}\n[hidden],\ntemplate {\n  display: none;\n}\na {\n  background-color: transparent;\n}\na:active,\na:hover {\n  outline: 0;\n}\nabbr[title] {\n  border-bottom: 1px dotted;\n}\nb,\nstrong {\n  font-weight: bold;\n}\ndfn {\n  font-style: italic;\n}\nh1 {\n  margin: .67em 0;\n  font-size: 2em;\n}\nmark {\n  color: #000;\n  background: #ff0;\n}\nsmall {\n  font-size: 80%;\n}\nsub,\nsup {\n  position: relative;\n  font-size: 75%;\n  line-height: 0;\n  vertical-align: baseline;\n}\nsup {\n  top: -.5em;\n}\nsub {\n  bottom: -.25em;\n}\nimg {\n  border: 0;\n}\nsvg:not(:root) {\n  overflow: hidden;\n}\nfigure {\n  margin: 1em 40px;\n}\nhr {\n  height: 0;\n  -webkit-box-sizing: content-box;\n     -moz-box-sizing: content-box;\n          box-sizing: content-box;\n}\npre {\n  overflow: auto;\n}\ncode,\nkbd,\npre,\nsamp {\n  font-family: monospace, monospace;\n  font-size: 1em;\n}\nbutton,\ninput,\noptgroup,\nselect,\ntextarea {\n  margin: 0;\n  font: inherit;\n  color: inherit;\n}\nbutton {\n  overflow: visible;\n}\nbutton,\nselect {\n  text-transform: none;\n}\nbutton,\nhtml input[type=\"button\"],\ninput[type=\"reset\"],\ninput[type=\"submit\"] {\n  -webkit-appearance: button;\n  cursor: pointer;\n}\nbutton[disabled],\nhtml input[disabled] {\n  cursor: default;\n}\nbutton::-moz-focus-inner,\ninput::-moz-focus-inner {\n  padding: 0;\n  border: 0;\n}\ninput {\n  line-height: normal;\n}\ninput[type=\"checkbox\"],\ninput[type=\"radio\"] {\n  -webkit-box-sizing: border-box;\n     -moz-box-sizing: border-box;\n          box-sizing: border-box;\n  padding: 0;\n}\ninput[type=\"number\"]::-webkit-inner-spin-button,\ninput[type=\"number\"]::-webkit-outer-spin-button {\n  height: auto;\n}\ninput[type=\"search\"] {\n  -webkit-box-sizing: content-box;\n     -moz-box-sizing: content-box;\n          box-sizing: content-box;\n  -webkit-appearance: textfield;\n}\ninput[type=\"search\"]::-webkit-search-cancel-button,\ninput[type=\"search\"]::-webkit-search-decoration {\n  -webkit-appearance: none;\n}\nfieldset {\n  padding: .35em .625em .75em;\n  margin: 0 2px;\n  border: 1px solid #c0c0c0;\n}\nlegend {\n  padding: 0;\n  border: 0;\n}\ntextarea {\n  overflow: auto;\n}\noptgroup {\n  font-weight: bold;\n}\ntable {\n  border-spacing: 0;\n  border-collapse: collapse;\n}\ntd,\nth {\n  padding: 0;\n}\n/*! Source: https://github.com/h5bp/html5-boilerplate/blob/master/src/css/main.css */\n@media print {\n  *,\n  *:before,\n  *:after {\n    color: #000 !important;\n    text-shadow: none !important;\n    background: transparent !important;\n    -webkit-box-shadow: none !important;\n            box-shadow: none !important;\n  }\n  a,\n  a:visited {\n    text-decoration: underline;\n  }\n  a[href]:after {\n    content: \" (\" attr(href) \")\";\n  }\n  abbr[title]:after {\n    content: \" (\" attr(title) \")\";\n  }\n  a[href^=\"#\"]:after,\n  a[href^=\"javascript:\"]:after {\n    content: \"\";\n  }\n  pre,\n  blockquote {\n    border: 1px solid #999;\n\n    page-break-inside: avoid;\n  }\n  thead {\n    display: table-header-group;\n  }\n  tr,\n  img {\n    page-break-inside: avoid;\n  }\n  img {\n    max-width: 100% !important;\n  }\n  p,\n  h2,\n  h3 {\n    orphans: 3;\n    widows: 3;\n  }\n  h2,\n  h3 {\n    page-break-after: avoid;\n  }\n  .navbar {\n    display: none;\n  }\n  .btn > .caret,\n  .dropup > .btn > .caret {\n    border-top-color: #000 !important;\n  }\n  .label {\n    border: 1px solid #000;\n  }\n  .table {\n    border-collapse: collapse !important;\n  }\n  .table td,\n  .table th {\n    background-color: #fff !important;\n  }\n  .table-bordered th,\n  .table-bordered td {\n    border: 1px solid #ddd !important;\n  }\n}\n@font-face {\n  font-family: 'Glyphicons Halflings';\n\n  src: url(" + __webpack_require__(13) + ");\n  src: url(" + __webpack_require__(13) + "?#iefix) format('embedded-opentype'), url(" + __webpack_require__(14) + ") format('woff2'), url(" + __webpack_require__(15) + ") format('woff'), url(" + __webpack_require__(16) + ") format('truetype'), url(" + __webpack_require__(17) + "#glyphicons_halflingsregular) format('svg');\n}\n.glyphicon {\n  position: relative;\n  top: 1px;\n  display: inline-block;\n  font-family: 'Glyphicons Halflings';\n  font-style: normal;\n  font-weight: normal;\n  line-height: 1;\n\n  -webkit-font-smoothing: antialiased;\n  -moz-osx-font-smoothing: grayscale;\n}\n.glyphicon-asterisk:before {\n  content: \"*\";\n}\n.glyphicon-plus:before {\n  content: \"+\";\n}\n.glyphicon-euro:before,\n.glyphicon-eur:before {\n  content: \"\\20AC\";\n}\n.glyphicon-minus:before {\n  content: \"\\2212\";\n}\n.glyphicon-cloud:before {\n  content: \"\\2601\";\n}\n.glyphicon-envelope:before {\n  content: \"\\2709\";\n}\n.glyphicon-pencil:before {\n  content: \"\\270F\";\n}\n.glyphicon-glass:before {\n  content: \"\\E001\";\n}\n.glyphicon-music:before {\n  content: \"\\E002\";\n}\n.glyphicon-search:before {\n  content: \"\\E003\";\n}\n.glyphicon-heart:before {\n  content: \"\\E005\";\n}\n.glyphicon-star:before {\n  content: \"\\E006\";\n}\n.glyphicon-star-empty:before {\n  content: \"\\E007\";\n}\n.glyphicon-user:before {\n  content: \"\\E008\";\n}\n.glyphicon-film:before {\n  content: \"\\E009\";\n}\n.glyphicon-th-large:before {\n  content: \"\\E010\";\n}\n.glyphicon-th:before {\n  content: \"\\E011\";\n}\n.glyphicon-th-list:before {\n  content: \"\\E012\";\n}\n.glyphicon-ok:before {\n  content: \"\\E013\";\n}\n.glyphicon-remove:before {\n  content: \"\\E014\";\n}\n.glyphicon-zoom-in:before {\n  content: \"\\E015\";\n}\n.glyphicon-zoom-out:before {\n  content: \"\\E016\";\n}\n.glyphicon-off:before {\n  content: \"\\E017\";\n}\n.glyphicon-signal:before {\n  content: \"\\E018\";\n}\n.glyphicon-cog:before {\n  content: \"\\E019\";\n}\n.glyphicon-trash:before {\n  content: \"\\E020\";\n}\n.glyphicon-home:before {\n  content: \"\\E021\";\n}\n.glyphicon-file:before {\n  content: \"\\E022\";\n}\n.glyphicon-time:before {\n  content: \"\\E023\";\n}\n.glyphicon-road:before {\n  content: \"\\E024\";\n}\n.glyphicon-download-alt:before {\n  content: \"\\E025\";\n}\n.glyphicon-download:before {\n  content: \"\\E026\";\n}\n.glyphicon-upload:before {\n  content: \"\\E027\";\n}\n.glyphicon-inbox:before {\n  content: \"\\E028\";\n}\n.glyphicon-play-circle:before {\n  content: \"\\E029\";\n}\n.glyphicon-repeat:before {\n  content: \"\\E030\";\n}\n.glyphicon-refresh:before {\n  content: \"\\E031\";\n}\n.glyphicon-list-alt:before {\n  content: \"\\E032\";\n}\n.glyphicon-lock:before {\n  content: \"\\E033\";\n}\n.glyphicon-flag:before {\n  content: \"\\E034\";\n}\n.glyphicon-headphones:before {\n  content: \"\\E035\";\n}\n.glyphicon-volume-off:before {\n  content: \"\\E036\";\n}\n.glyphicon-volume-down:before {\n  content: \"\\E037\";\n}\n.glyphicon-volume-up:before {\n  content: \"\\E038\";\n}\n.glyphicon-qrcode:before {\n  content: \"\\E039\";\n}\n.glyphicon-barcode:before {\n  content: \"\\E040\";\n}\n.glyphicon-tag:before {\n  content: \"\\E041\";\n}\n.glyphicon-tags:before {\n  content: \"\\E042\";\n}\n.glyphicon-book:before {\n  content: \"\\E043\";\n}\n.glyphicon-bookmark:before {\n  content: \"\\E044\";\n}\n.glyphicon-print:before {\n  content: \"\\E045\";\n}\n.glyphicon-camera:before {\n  content: \"\\E046\";\n}\n.glyphicon-font:before {\n  content: \"\\E047\";\n}\n.glyphicon-bold:before {\n  content: \"\\E048\";\n}\n.glyphicon-italic:before {\n  content: \"\\E049\";\n}\n.glyphicon-text-height:before {\n  content: \"\\E050\";\n}\n.glyphicon-text-width:before {\n  content: \"\\E051\";\n}\n.glyphicon-align-left:before {\n  content: \"\\E052\";\n}\n.glyphicon-align-center:before {\n  content: \"\\E053\";\n}\n.glyphicon-align-right:before {\n  content: \"\\E054\";\n}\n.glyphicon-align-justify:before {\n  content: \"\\E055\";\n}\n.glyphicon-list:before {\n  content: \"\\E056\";\n}\n.glyphicon-indent-left:before {\n  content: \"\\E057\";\n}\n.glyphicon-indent-right:before {\n  content: \"\\E058\";\n}\n.glyphicon-facetime-video:before {\n  content: \"\\E059\";\n}\n.glyphicon-picture:before {\n  content: \"\\E060\";\n}\n.glyphicon-map-marker:before {\n  content: \"\\E062\";\n}\n.glyphicon-adjust:before {\n  content: \"\\E063\";\n}\n.glyphicon-tint:before {\n  content: \"\\E064\";\n}\n.glyphicon-edit:before {\n  content: \"\\E065\";\n}\n.glyphicon-share:before {\n  content: \"\\E066\";\n}\n.glyphicon-check:before {\n  content: \"\\E067\";\n}\n.glyphicon-move:before {\n  content: \"\\E068\";\n}\n.glyphicon-step-backward:before {\n  content: \"\\E069\";\n}\n.glyphicon-fast-backward:before {\n  content: \"\\E070\";\n}\n.glyphicon-backward:before {\n  content: \"\\E071\";\n}\n.glyphicon-play:before {\n  content: \"\\E072\";\n}\n.glyphicon-pause:before {\n  content: \"\\E073\";\n}\n.glyphicon-stop:before {\n  content: \"\\E074\";\n}\n.glyphicon-forward:before {\n  content: \"\\E075\";\n}\n.glyphicon-fast-forward:before {\n  content: \"\\E076\";\n}\n.glyphicon-step-forward:before {\n  content: \"\\E077\";\n}\n.glyphicon-eject:before {\n  content: \"\\E078\";\n}\n.glyphicon-chevron-left:before {\n  content: \"\\E079\";\n}\n.glyphicon-chevron-right:before {\n  content: \"\\E080\";\n}\n.glyphicon-plus-sign:before {\n  content: \"\\E081\";\n}\n.glyphicon-minus-sign:before {\n  content: \"\\E082\";\n}\n.glyphicon-remove-sign:before {\n  content: \"\\E083\";\n}\n.glyphicon-ok-sign:before {\n  content: \"\\E084\";\n}\n.glyphicon-question-sign:before {\n  content: \"\\E085\";\n}\n.glyphicon-info-sign:before {\n  content: \"\\E086\";\n}\n.glyphicon-screenshot:before {\n  content: \"\\E087\";\n}\n.glyphicon-remove-circle:before {\n  content: \"\\E088\";\n}\n.glyphicon-ok-circle:before {\n  content: \"\\E089\";\n}\n.glyphicon-ban-circle:before {\n  content: \"\\E090\";\n}\n.glyphicon-arrow-left:before {\n  content: \"\\E091\";\n}\n.glyphicon-arrow-right:before {\n  content: \"\\E092\";\n}\n.glyphicon-arrow-up:before {\n  content: \"\\E093\";\n}\n.glyphicon-arrow-down:before {\n  content: \"\\E094\";\n}\n.glyphicon-share-alt:before {\n  content: \"\\E095\";\n}\n.glyphicon-resize-full:before {\n  content: \"\\E096\";\n}\n.glyphicon-resize-small:before {\n  content: \"\\E097\";\n}\n.glyphicon-exclamation-sign:before {\n  content: \"\\E101\";\n}\n.glyphicon-gift:before {\n  content: \"\\E102\";\n}\n.glyphicon-leaf:before {\n  content: \"\\E103\";\n}\n.glyphicon-fire:before {\n  content: \"\\E104\";\n}\n.glyphicon-eye-open:before {\n  content: \"\\E105\";\n}\n.glyphicon-eye-close:before {\n  content: \"\\E106\";\n}\n.glyphicon-warning-sign:before {\n  content: \"\\E107\";\n}\n.glyphicon-plane:before {\n  content: \"\\E108\";\n}\n.glyphicon-calendar:before {\n  content: \"\\E109\";\n}\n.glyphicon-random:before {\n  content: \"\\E110\";\n}\n.glyphicon-comment:before {\n  content: \"\\E111\";\n}\n.glyphicon-magnet:before {\n  content: \"\\E112\";\n}\n.glyphicon-chevron-up:before {\n  content: \"\\E113\";\n}\n.glyphicon-chevron-down:before {\n  content: \"\\E114\";\n}\n.glyphicon-retweet:before {\n  content: \"\\E115\";\n}\n.glyphicon-shopping-cart:before {\n  content: \"\\E116\";\n}\n.glyphicon-folder-close:before {\n  content: \"\\E117\";\n}\n.glyphicon-folder-open:before {\n  content: \"\\E118\";\n}\n.glyphicon-resize-vertical:before {\n  content: \"\\E119\";\n}\n.glyphicon-resize-horizontal:before {\n  content: \"\\E120\";\n}\n.glyphicon-hdd:before {\n  content: \"\\E121\";\n}\n.glyphicon-bullhorn:before {\n  content: \"\\E122\";\n}\n.glyphicon-bell:before {\n  content: \"\\E123\";\n}\n.glyphicon-certificate:before {\n  content: \"\\E124\";\n}\n.glyphicon-thumbs-up:before {\n  content: \"\\E125\";\n}\n.glyphicon-thumbs-down:before {\n  content: \"\\E126\";\n}\n.glyphicon-hand-right:before {\n  content: \"\\E127\";\n}\n.glyphicon-hand-left:before {\n  content: \"\\E128\";\n}\n.glyphicon-hand-up:before {\n  content: \"\\E129\";\n}\n.glyphicon-hand-down:before {\n  content: \"\\E130\";\n}\n.glyphicon-circle-arrow-right:before {\n  content: \"\\E131\";\n}\n.glyphicon-circle-arrow-left:before {\n  content: \"\\E132\";\n}\n.glyphicon-circle-arrow-up:before {\n  content: \"\\E133\";\n}\n.glyphicon-circle-arrow-down:before {\n  content: \"\\E134\";\n}\n.glyphicon-globe:before {\n  content: \"\\E135\";\n}\n.glyphicon-wrench:before {\n  content: \"\\E136\";\n}\n.glyphicon-tasks:before {\n  content: \"\\E137\";\n}\n.glyphicon-filter:before {\n  content: \"\\E138\";\n}\n.glyphicon-briefcase:before {\n  content: \"\\E139\";\n}\n.glyphicon-fullscreen:before {\n  content: \"\\E140\";\n}\n.glyphicon-dashboard:before {\n  content: \"\\E141\";\n}\n.glyphicon-paperclip:before {\n  content: \"\\E142\";\n}\n.glyphicon-heart-empty:before {\n  content: \"\\E143\";\n}\n.glyphicon-link:before {\n  content: \"\\E144\";\n}\n.glyphicon-phone:before {\n  content: \"\\E145\";\n}\n.glyphicon-pushpin:before {\n  content: \"\\E146\";\n}\n.glyphicon-usd:before {\n  content: \"\\E148\";\n}\n.glyphicon-gbp:before {\n  content: \"\\E149\";\n}\n.glyphicon-sort:before {\n  content: \"\\E150\";\n}\n.glyphicon-sort-by-alphabet:before {\n  content: \"\\E151\";\n}\n.glyphicon-sort-by-alphabet-alt:before {\n  content: \"\\E152\";\n}\n.glyphicon-sort-by-order:before {\n  content: \"\\E153\";\n}\n.glyphicon-sort-by-order-alt:before {\n  content: \"\\E154\";\n}\n.glyphicon-sort-by-attributes:before {\n  content: \"\\E155\";\n}\n.glyphicon-sort-by-attributes-alt:before {\n  content: \"\\E156\";\n}\n.glyphicon-unchecked:before {\n  content: \"\\E157\";\n}\n.glyphicon-expand:before {\n  content: \"\\E158\";\n}\n.glyphicon-collapse-down:before {\n  content: \"\\E159\";\n}\n.glyphicon-collapse-up:before {\n  content: \"\\E160\";\n}\n.glyphicon-log-in:before {\n  content: \"\\E161\";\n}\n.glyphicon-flash:before {\n  content: \"\\E162\";\n}\n.glyphicon-log-out:before {\n  content: \"\\E163\";\n}\n.glyphicon-new-window:before {\n  content: \"\\E164\";\n}\n.glyphicon-record:before {\n  content: \"\\E165\";\n}\n.glyphicon-save:before {\n  content: \"\\E166\";\n}\n.glyphicon-open:before {\n  content: \"\\E167\";\n}\n.glyphicon-saved:before {\n  content: \"\\E168\";\n}\n.glyphicon-import:before {\n  content: \"\\E169\";\n}\n.glyphicon-export:before {\n  content: \"\\E170\";\n}\n.glyphicon-send:before {\n  content: \"\\E171\";\n}\n.glyphicon-floppy-disk:before {\n  content: \"\\E172\";\n}\n.glyphicon-floppy-saved:before {\n  content: \"\\E173\";\n}\n.glyphicon-floppy-remove:before {\n  content: \"\\E174\";\n}\n.glyphicon-floppy-save:before {\n  content: \"\\E175\";\n}\n.glyphicon-floppy-open:before {\n  content: \"\\E176\";\n}\n.glyphicon-credit-card:before {\n  content: \"\\E177\";\n}\n.glyphicon-transfer:before {\n  content: \"\\E178\";\n}\n.glyphicon-cutlery:before {\n  content: \"\\E179\";\n}\n.glyphicon-header:before {\n  content: \"\\E180\";\n}\n.glyphicon-compressed:before {\n  content: \"\\E181\";\n}\n.glyphicon-earphone:before {\n  content: \"\\E182\";\n}\n.glyphicon-phone-alt:before {\n  content: \"\\E183\";\n}\n.glyphicon-tower:before {\n  content: \"\\E184\";\n}\n.glyphicon-stats:before {\n  content: \"\\E185\";\n}\n.glyphicon-sd-video:before {\n  content: \"\\E186\";\n}\n.glyphicon-hd-video:before {\n  content: \"\\E187\";\n}\n.glyphicon-subtitles:before {\n  content: \"\\E188\";\n}\n.glyphicon-sound-stereo:before {\n  content: \"\\E189\";\n}\n.glyphicon-sound-dolby:before {\n  content: \"\\E190\";\n}\n.glyphicon-sound-5-1:before {\n  content: \"\\E191\";\n}\n.glyphicon-sound-6-1:before {\n  content: \"\\E192\";\n}\n.glyphicon-sound-7-1:before {\n  content: \"\\E193\";\n}\n.glyphicon-copyright-mark:before {\n  content: \"\\E194\";\n}\n.glyphicon-registration-mark:before {\n  content: \"\\E195\";\n}\n.glyphicon-cloud-download:before {\n  content: \"\\E197\";\n}\n.glyphicon-cloud-upload:before {\n  content: \"\\E198\";\n}\n.glyphicon-tree-conifer:before {\n  content: \"\\E199\";\n}\n.glyphicon-tree-deciduous:before {\n  content: \"\\E200\";\n}\n.glyphicon-cd:before {\n  content: \"\\E201\";\n}\n.glyphicon-save-file:before {\n  content: \"\\E202\";\n}\n.glyphicon-open-file:before {\n  content: \"\\E203\";\n}\n.glyphicon-level-up:before {\n  content: \"\\E204\";\n}\n.glyphicon-copy:before {\n  content: \"\\E205\";\n}\n.glyphicon-paste:before {\n  content: \"\\E206\";\n}\n.glyphicon-alert:before {\n  content: \"\\E209\";\n}\n.glyphicon-equalizer:before {\n  content: \"\\E210\";\n}\n.glyphicon-king:before {\n  content: \"\\E211\";\n}\n.glyphicon-queen:before {\n  content: \"\\E212\";\n}\n.glyphicon-pawn:before {\n  content: \"\\E213\";\n}\n.glyphicon-bishop:before {\n  content: \"\\E214\";\n}\n.glyphicon-knight:before {\n  content: \"\\E215\";\n}\n.glyphicon-baby-formula:before {\n  content: \"\\E216\";\n}\n.glyphicon-tent:before {\n  content: \"\\26FA\";\n}\n.glyphicon-blackboard:before {\n  content: \"\\E218\";\n}\n.glyphicon-bed:before {\n  content: \"\\E219\";\n}\n.glyphicon-apple:before {\n  content: \"\\F8FF\";\n}\n.glyphicon-erase:before {\n  content: \"\\E221\";\n}\n.glyphicon-hourglass:before {\n  content: \"\\231B\";\n}\n.glyphicon-lamp:before {\n  content: \"\\E223\";\n}\n.glyphicon-duplicate:before {\n  content: \"\\E224\";\n}\n.glyphicon-piggy-bank:before {\n  content: \"\\E225\";\n}\n.glyphicon-scissors:before {\n  content: \"\\E226\";\n}\n.glyphicon-bitcoin:before {\n  content: \"\\E227\";\n}\n.glyphicon-btc:before {\n  content: \"\\E227\";\n}\n.glyphicon-xbt:before {\n  content: \"\\E227\";\n}\n.glyphicon-yen:before {\n  content: \"\\A5\";\n}\n.glyphicon-jpy:before {\n  content: \"\\A5\";\n}\n.glyphicon-ruble:before {\n  content: \"\\20BD\";\n}\n.glyphicon-rub:before {\n  content: \"\\20BD\";\n}\n.glyphicon-scale:before {\n  content: \"\\E230\";\n}\n.glyphicon-ice-lolly:before {\n  content: \"\\E231\";\n}\n.glyphicon-ice-lolly-tasted:before {\n  content: \"\\E232\";\n}\n.glyphicon-education:before {\n  content: \"\\E233\";\n}\n.glyphicon-option-horizontal:before {\n  content: \"\\E234\";\n}\n.glyphicon-option-vertical:before {\n  content: \"\\E235\";\n}\n.glyphicon-menu-hamburger:before {\n  content: \"\\E236\";\n}\n.glyphicon-modal-window:before {\n  content: \"\\E237\";\n}\n.glyphicon-oil:before {\n  content: \"\\E238\";\n}\n.glyphicon-grain:before {\n  content: \"\\E239\";\n}\n.glyphicon-sunglasses:before {\n  content: \"\\E240\";\n}\n.glyphicon-text-size:before {\n  content: \"\\E241\";\n}\n.glyphicon-text-color:before {\n  content: \"\\E242\";\n}\n.glyphicon-text-background:before {\n  content: \"\\E243\";\n}\n.glyphicon-object-align-top:before {\n  content: \"\\E244\";\n}\n.glyphicon-object-align-bottom:before {\n  content: \"\\E245\";\n}\n.glyphicon-object-align-horizontal:before {\n  content: \"\\E246\";\n}\n.glyphicon-object-align-left:before {\n  content: \"\\E247\";\n}\n.glyphicon-object-align-vertical:before {\n  content: \"\\E248\";\n}\n.glyphicon-object-align-right:before {\n  content: \"\\E249\";\n}\n.glyphicon-triangle-right:before {\n  content: \"\\E250\";\n}\n.glyphicon-triangle-left:before {\n  content: \"\\E251\";\n}\n.glyphicon-triangle-bottom:before {\n  content: \"\\E252\";\n}\n.glyphicon-triangle-top:before {\n  content: \"\\E253\";\n}\n.glyphicon-console:before {\n  content: \"\\E254\";\n}\n.glyphicon-superscript:before {\n  content: \"\\E255\";\n}\n.glyphicon-subscript:before {\n  content: \"\\E256\";\n}\n.glyphicon-menu-left:before {\n  content: \"\\E257\";\n}\n.glyphicon-menu-right:before {\n  content: \"\\E258\";\n}\n.glyphicon-menu-down:before {\n  content: \"\\E259\";\n}\n.glyphicon-menu-up:before {\n  content: \"\\E260\";\n}\n* {\n  -webkit-box-sizing: border-box;\n     -moz-box-sizing: border-box;\n          box-sizing: border-box;\n}\n*:before,\n*:after {\n  -webkit-box-sizing: border-box;\n     -moz-box-sizing: border-box;\n          box-sizing: border-box;\n}\nhtml {\n  font-size: 10px;\n\n  -webkit-tap-highlight-color: rgba(0, 0, 0, 0);\n}\nbody {\n  font-family: \"Helvetica Neue\", Helvetica, Arial, sans-serif;\n  font-size: 14px;\n  line-height: 1.42857143;\n  color: #333;\n  background-color: #fff;\n}\ninput,\nbutton,\nselect,\ntextarea {\n  font-family: inherit;\n  font-size: inherit;\n  line-height: inherit;\n}\na {\n  color: #337ab7;\n  text-decoration: none;\n}\na:hover,\na:focus {\n  color: #23527c;\n  text-decoration: underline;\n}\na:focus {\n  outline: 5px auto -webkit-focus-ring-color;\n  outline-offset: -2px;\n}\nfigure {\n  margin: 0;\n}\nimg {\n  vertical-align: middle;\n}\n.img-responsive,\n.thumbnail > img,\n.thumbnail a > img,\n.carousel-inner > .item > img,\n.carousel-inner > .item > a > img {\n  display: block;\n  max-width: 100%;\n  height: auto;\n}\n.img-rounded {\n  border-radius: 6px;\n}\n.img-thumbnail {\n  display: inline-block;\n  max-width: 100%;\n  height: auto;\n  padding: 4px;\n  line-height: 1.42857143;\n  background-color: #fff;\n  border: 1px solid #ddd;\n  border-radius: 4px;\n  -webkit-transition: all .2s ease-in-out;\n       -o-transition: all .2s ease-in-out;\n          transition: all .2s ease-in-out;\n}\n.img-circle {\n  border-radius: 50%;\n}\nhr {\n  margin-top: 20px;\n  margin-bottom: 20px;\n  border: 0;\n  border-top: 1px solid #eee;\n}\n.sr-only {\n  position: absolute;\n  width: 1px;\n  height: 1px;\n  padding: 0;\n  margin: -1px;\n  overflow: hidden;\n  clip: rect(0, 0, 0, 0);\n  border: 0;\n}\n.sr-only-focusable:active,\n.sr-only-focusable:focus {\n  position: static;\n  width: auto;\n  height: auto;\n  margin: 0;\n  overflow: visible;\n  clip: auto;\n}\n[role=\"button\"] {\n  cursor: pointer;\n}\nh1,\nh2,\nh3,\nh4,\nh5,\nh6,\n.h1,\n.h2,\n.h3,\n.h4,\n.h5,\n.h6 {\n  font-family: inherit;\n  font-weight: 500;\n  line-height: 1.1;\n  color: inherit;\n}\nh1 small,\nh2 small,\nh3 small,\nh4 small,\nh5 small,\nh6 small,\n.h1 small,\n.h2 small,\n.h3 small,\n.h4 small,\n.h5 small,\n.h6 small,\nh1 .small,\nh2 .small,\nh3 .small,\nh4 .small,\nh5 .small,\nh6 .small,\n.h1 .small,\n.h2 .small,\n.h3 .small,\n.h4 .small,\n.h5 .small,\n.h6 .small {\n  font-weight: normal;\n  line-height: 1;\n  color: #777;\n}\nh1,\n.h1,\nh2,\n.h2,\nh3,\n.h3 {\n  margin-top: 20px;\n  margin-bottom: 10px;\n}\nh1 small,\n.h1 small,\nh2 small,\n.h2 small,\nh3 small,\n.h3 small,\nh1 .small,\n.h1 .small,\nh2 .small,\n.h2 .small,\nh3 .small,\n.h3 .small {\n  font-size: 65%;\n}\nh4,\n.h4,\nh5,\n.h5,\nh6,\n.h6 {\n  margin-top: 10px;\n  margin-bottom: 10px;\n}\nh4 small,\n.h4 small,\nh5 small,\n.h5 small,\nh6 small,\n.h6 small,\nh4 .small,\n.h4 .small,\nh5 .small,\n.h5 .small,\nh6 .small,\n.h6 .small {\n  font-size: 75%;\n}\nh1,\n.h1 {\n  font-size: 36px;\n}\nh2,\n.h2 {\n  font-size: 30px;\n}\nh3,\n.h3 {\n  font-size: 24px;\n}\nh4,\n.h4 {\n  font-size: 18px;\n}\nh5,\n.h5 {\n  font-size: 14px;\n}\nh6,\n.h6 {\n  font-size: 12px;\n}\np {\n  margin: 0 0 10px;\n}\n.lead {\n  margin-bottom: 20px;\n  font-size: 16px;\n  font-weight: 300;\n  line-height: 1.4;\n}\n@media (min-width: 768px) {\n  .lead {\n    font-size: 21px;\n  }\n}\nsmall,\n.small {\n  font-size: 85%;\n}\nmark,\n.mark {\n  padding: .2em;\n  background-color: #fcf8e3;\n}\n.text-left {\n  text-align: left;\n}\n.text-right {\n  text-align: right;\n}\n.text-center {\n  text-align: center;\n}\n.text-justify {\n  text-align: justify;\n}\n.text-nowrap {\n  white-space: nowrap;\n}\n.text-lowercase {\n  text-transform: lowercase;\n}\n.text-uppercase {\n  text-transform: uppercase;\n}\n.text-capitalize {\n  text-transform: capitalize;\n}\n.text-muted {\n  color: #777;\n}\n.text-primary {\n  color: #337ab7;\n}\na.text-primary:hover,\na.text-primary:focus {\n  color: #286090;\n}\n.text-success {\n  color: #3c763d;\n}\na.text-success:hover,\na.text-success:focus {\n  color: #2b542c;\n}\n.text-info {\n  color: #31708f;\n}\na.text-info:hover,\na.text-info:focus {\n  color: #245269;\n}\n.text-warning {\n  color: #8a6d3b;\n}\na.text-warning:hover,\na.text-warning:focus {\n  color: #66512c;\n}\n.text-danger {\n  color: #a94442;\n}\na.text-danger:hover,\na.text-danger:focus {\n  color: #843534;\n}\n.bg-primary {\n  color: #fff;\n  background-color: #337ab7;\n}\na.bg-primary:hover,\na.bg-primary:focus {\n  background-color: #286090;\n}\n.bg-success {\n  background-color: #dff0d8;\n}\na.bg-success:hover,\na.bg-success:focus {\n  background-color: #c1e2b3;\n}\n.bg-info {\n  background-color: #d9edf7;\n}\na.bg-info:hover,\na.bg-info:focus {\n  background-color: #afd9ee;\n}\n.bg-warning {\n  background-color: #fcf8e3;\n}\na.bg-warning:hover,\na.bg-warning:focus {\n  background-color: #f7ecb5;\n}\n.bg-danger {\n  background-color: #f2dede;\n}\na.bg-danger:hover,\na.bg-danger:focus {\n  background-color: #e4b9b9;\n}\n.page-header {\n  padding-bottom: 9px;\n  margin: 40px 0 20px;\n  border-bottom: 1px solid #eee;\n}\nul,\nol {\n  margin-top: 0;\n  margin-bottom: 10px;\n}\nul ul,\nol ul,\nul ol,\nol ol {\n  margin-bottom: 0;\n}\n.list-unstyled {\n  padding-left: 0;\n  list-style: none;\n}\n.list-inline {\n  padding-left: 0;\n  margin-left: -5px;\n  list-style: none;\n}\n.list-inline > li {\n  display: inline-block;\n  padding-right: 5px;\n  padding-left: 5px;\n}\ndl {\n  margin-top: 0;\n  margin-bottom: 20px;\n}\ndt,\ndd {\n  line-height: 1.42857143;\n}\ndt {\n  font-weight: bold;\n}\ndd {\n  margin-left: 0;\n}\n@media (min-width: 768px) {\n  .dl-horizontal dt {\n    float: left;\n    width: 160px;\n    overflow: hidden;\n    clear: left;\n    text-align: right;\n    text-overflow: ellipsis;\n    white-space: nowrap;\n  }\n  .dl-horizontal dd {\n    margin-left: 180px;\n  }\n}\nabbr[title],\nabbr[data-original-title] {\n  cursor: help;\n  border-bottom: 1px dotted #777;\n}\n.initialism {\n  font-size: 90%;\n  text-transform: uppercase;\n}\nblockquote {\n  padding: 10px 20px;\n  margin: 0 0 20px;\n  font-size: 17.5px;\n  border-left: 5px solid #eee;\n}\nblockquote p:last-child,\nblockquote ul:last-child,\nblockquote ol:last-child {\n  margin-bottom: 0;\n}\nblockquote footer,\nblockquote small,\nblockquote .small {\n  display: block;\n  font-size: 80%;\n  line-height: 1.42857143;\n  color: #777;\n}\nblockquote footer:before,\nblockquote small:before,\nblockquote .small:before {\n  content: '\\2014   \\A0';\n}\n.blockquote-reverse,\nblockquote.pull-right {\n  padding-right: 15px;\n  padding-left: 0;\n  text-align: right;\n  border-right: 5px solid #eee;\n  border-left: 0;\n}\n.blockquote-reverse footer:before,\nblockquote.pull-right footer:before,\n.blockquote-reverse small:before,\nblockquote.pull-right small:before,\n.blockquote-reverse .small:before,\nblockquote.pull-right .small:before {\n  content: '';\n}\n.blockquote-reverse footer:after,\nblockquote.pull-right footer:after,\n.blockquote-reverse small:after,\nblockquote.pull-right small:after,\n.blockquote-reverse .small:after,\nblockquote.pull-right .small:after {\n  content: '\\A0   \\2014';\n}\naddress {\n  margin-bottom: 20px;\n  font-style: normal;\n  line-height: 1.42857143;\n}\ncode,\nkbd,\npre,\nsamp {\n  font-family: Menlo, Monaco, Consolas, \"Courier New\", monospace;\n}\ncode {\n  padding: 2px 4px;\n  font-size: 90%;\n  color: #c7254e;\n  background-color: #f9f2f4;\n  border-radius: 4px;\n}\nkbd {\n  padding: 2px 4px;\n  font-size: 90%;\n  color: #fff;\n  background-color: #333;\n  border-radius: 3px;\n  -webkit-box-shadow: inset 0 -1px 0 rgba(0, 0, 0, .25);\n          box-shadow: inset 0 -1px 0 rgba(0, 0, 0, .25);\n}\nkbd kbd {\n  padding: 0;\n  font-size: 100%;\n  font-weight: bold;\n  -webkit-box-shadow: none;\n          box-shadow: none;\n}\npre {\n  display: block;\n  padding: 9.5px;\n  margin: 0 0 10px;\n  font-size: 13px;\n  line-height: 1.42857143;\n  color: #333;\n  word-break: break-all;\n  word-wrap: break-word;\n  background-color: #f5f5f5;\n  border: 1px solid #ccc;\n  border-radius: 4px;\n}\npre code {\n  padding: 0;\n  font-size: inherit;\n  color: inherit;\n  white-space: pre-wrap;\n  background-color: transparent;\n  border-radius: 0;\n}\n.pre-scrollable {\n  max-height: 340px;\n  overflow-y: scroll;\n}\n.container {\n  padding-right: 15px;\n  padding-left: 15px;\n  margin-right: auto;\n  margin-left: auto;\n}\n@media (min-width: 768px) {\n  .container {\n    width: 750px;\n  }\n}\n@media (min-width: 992px) {\n  .container {\n    width: 970px;\n  }\n}\n@media (min-width: 1200px) {\n  .container {\n    width: 1170px;\n  }\n}\n.container-fluid {\n  padding-right: 15px;\n  padding-left: 15px;\n  margin-right: auto;\n  margin-left: auto;\n}\n.row {\n  margin-right: -15px;\n  margin-left: -15px;\n}\n.col-xs-1, .col-sm-1, .col-md-1, .col-lg-1, .col-xs-2, .col-sm-2, .col-md-2, .col-lg-2, .col-xs-3, .col-sm-3, .col-md-3, .col-lg-3, .col-xs-4, .col-sm-4, .col-md-4, .col-lg-4, .col-xs-5, .col-sm-5, .col-md-5, .col-lg-5, .col-xs-6, .col-sm-6, .col-md-6, .col-lg-6, .col-xs-7, .col-sm-7, .col-md-7, .col-lg-7, .col-xs-8, .col-sm-8, .col-md-8, .col-lg-8, .col-xs-9, .col-sm-9, .col-md-9, .col-lg-9, .col-xs-10, .col-sm-10, .col-md-10, .col-lg-10, .col-xs-11, .col-sm-11, .col-md-11, .col-lg-11, .col-xs-12, .col-sm-12, .col-md-12, .col-lg-12 {\n  position: relative;\n  min-height: 1px;\n  padding-right: 15px;\n  padding-left: 15px;\n}\n.col-xs-1, .col-xs-2, .col-xs-3, .col-xs-4, .col-xs-5, .col-xs-6, .col-xs-7, .col-xs-8, .col-xs-9, .col-xs-10, .col-xs-11, .col-xs-12 {\n  float: left;\n}\n.col-xs-12 {\n  width: 100%;\n}\n.col-xs-11 {\n  width: 91.66666667%;\n}\n.col-xs-10 {\n  width: 83.33333333%;\n}\n.col-xs-9 {\n  width: 75%;\n}\n.col-xs-8 {\n  width: 66.66666667%;\n}\n.col-xs-7 {\n  width: 58.33333333%;\n}\n.col-xs-6 {\n  width: 50%;\n}\n.col-xs-5 {\n  width: 41.66666667%;\n}\n.col-xs-4 {\n  width: 33.33333333%;\n}\n.col-xs-3 {\n  width: 25%;\n}\n.col-xs-2 {\n  width: 16.66666667%;\n}\n.col-xs-1 {\n  width: 8.33333333%;\n}\n.col-xs-pull-12 {\n  right: 100%;\n}\n.col-xs-pull-11 {\n  right: 91.66666667%;\n}\n.col-xs-pull-10 {\n  right: 83.33333333%;\n}\n.col-xs-pull-9 {\n  right: 75%;\n}\n.col-xs-pull-8 {\n  right: 66.66666667%;\n}\n.col-xs-pull-7 {\n  right: 58.33333333%;\n}\n.col-xs-pull-6 {\n  right: 50%;\n}\n.col-xs-pull-5 {\n  right: 41.66666667%;\n}\n.col-xs-pull-4 {\n  right: 33.33333333%;\n}\n.col-xs-pull-3 {\n  right: 25%;\n}\n.col-xs-pull-2 {\n  right: 16.66666667%;\n}\n.col-xs-pull-1 {\n  right: 8.33333333%;\n}\n.col-xs-pull-0 {\n  right: auto;\n}\n.col-xs-push-12 {\n  left: 100%;\n}\n.col-xs-push-11 {\n  left: 91.66666667%;\n}\n.col-xs-push-10 {\n  left: 83.33333333%;\n}\n.col-xs-push-9 {\n  left: 75%;\n}\n.col-xs-push-8 {\n  left: 66.66666667%;\n}\n.col-xs-push-7 {\n  left: 58.33333333%;\n}\n.col-xs-push-6 {\n  left: 50%;\n}\n.col-xs-push-5 {\n  left: 41.66666667%;\n}\n.col-xs-push-4 {\n  left: 33.33333333%;\n}\n.col-xs-push-3 {\n  left: 25%;\n}\n.col-xs-push-2 {\n  left: 16.66666667%;\n}\n.col-xs-push-1 {\n  left: 8.33333333%;\n}\n.col-xs-push-0 {\n  left: auto;\n}\n.col-xs-offset-12 {\n  margin-left: 100%;\n}\n.col-xs-offset-11 {\n  margin-left: 91.66666667%;\n}\n.col-xs-offset-10 {\n  margin-left: 83.33333333%;\n}\n.col-xs-offset-9 {\n  margin-left: 75%;\n}\n.col-xs-offset-8 {\n  margin-left: 66.66666667%;\n}\n.col-xs-offset-7 {\n  margin-left: 58.33333333%;\n}\n.col-xs-offset-6 {\n  margin-left: 50%;\n}\n.col-xs-offset-5 {\n  margin-left: 41.66666667%;\n}\n.col-xs-offset-4 {\n  margin-left: 33.33333333%;\n}\n.col-xs-offset-3 {\n  margin-left: 25%;\n}\n.col-xs-offset-2 {\n  margin-left: 16.66666667%;\n}\n.col-xs-offset-1 {\n  margin-left: 8.33333333%;\n}\n.col-xs-offset-0 {\n  margin-left: 0;\n}\n@media (min-width: 768px) {\n  .col-sm-1, .col-sm-2, .col-sm-3, .col-sm-4, .col-sm-5, .col-sm-6, .col-sm-7, .col-sm-8, .col-sm-9, .col-sm-10, .col-sm-11, .col-sm-12 {\n    float: left;\n  }\n  .col-sm-12 {\n    width: 100%;\n  }\n  .col-sm-11 {\n    width: 91.66666667%;\n  }\n  .col-sm-10 {\n    width: 83.33333333%;\n  }\n  .col-sm-9 {\n    width: 75%;\n  }\n  .col-sm-8 {\n    width: 66.66666667%;\n  }\n  .col-sm-7 {\n    width: 58.33333333%;\n  }\n  .col-sm-6 {\n    width: 50%;\n  }\n  .col-sm-5 {\n    width: 41.66666667%;\n  }\n  .col-sm-4 {\n    width: 33.33333333%;\n  }\n  .col-sm-3 {\n    width: 25%;\n  }\n  .col-sm-2 {\n    width: 16.66666667%;\n  }\n  .col-sm-1 {\n    width: 8.33333333%;\n  }\n  .col-sm-pull-12 {\n    right: 100%;\n  }\n  .col-sm-pull-11 {\n    right: 91.66666667%;\n  }\n  .col-sm-pull-10 {\n    right: 83.33333333%;\n  }\n  .col-sm-pull-9 {\n    right: 75%;\n  }\n  .col-sm-pull-8 {\n    right: 66.66666667%;\n  }\n  .col-sm-pull-7 {\n    right: 58.33333333%;\n  }\n  .col-sm-pull-6 {\n    right: 50%;\n  }\n  .col-sm-pull-5 {\n    right: 41.66666667%;\n  }\n  .col-sm-pull-4 {\n    right: 33.33333333%;\n  }\n  .col-sm-pull-3 {\n    right: 25%;\n  }\n  .col-sm-pull-2 {\n    right: 16.66666667%;\n  }\n  .col-sm-pull-1 {\n    right: 8.33333333%;\n  }\n  .col-sm-pull-0 {\n    right: auto;\n  }\n  .col-sm-push-12 {\n    left: 100%;\n  }\n  .col-sm-push-11 {\n    left: 91.66666667%;\n  }\n  .col-sm-push-10 {\n    left: 83.33333333%;\n  }\n  .col-sm-push-9 {\n    left: 75%;\n  }\n  .col-sm-push-8 {\n    left: 66.66666667%;\n  }\n  .col-sm-push-7 {\n    left: 58.33333333%;\n  }\n  .col-sm-push-6 {\n    left: 50%;\n  }\n  .col-sm-push-5 {\n    left: 41.66666667%;\n  }\n  .col-sm-push-4 {\n    left: 33.33333333%;\n  }\n  .col-sm-push-3 {\n    left: 25%;\n  }\n  .col-sm-push-2 {\n    left: 16.66666667%;\n  }\n  .col-sm-push-1 {\n    left: 8.33333333%;\n  }\n  .col-sm-push-0 {\n    left: auto;\n  }\n  .col-sm-offset-12 {\n    margin-left: 100%;\n  }\n  .col-sm-offset-11 {\n    margin-left: 91.66666667%;\n  }\n  .col-sm-offset-10 {\n    margin-left: 83.33333333%;\n  }\n  .col-sm-offset-9 {\n    margin-left: 75%;\n  }\n  .col-sm-offset-8 {\n    margin-left: 66.66666667%;\n  }\n  .col-sm-offset-7 {\n    margin-left: 58.33333333%;\n  }\n  .col-sm-offset-6 {\n    margin-left: 50%;\n  }\n  .col-sm-offset-5 {\n    margin-left: 41.66666667%;\n  }\n  .col-sm-offset-4 {\n    margin-left: 33.33333333%;\n  }\n  .col-sm-offset-3 {\n    margin-left: 25%;\n  }\n  .col-sm-offset-2 {\n    margin-left: 16.66666667%;\n  }\n  .col-sm-offset-1 {\n    margin-left: 8.33333333%;\n  }\n  .col-sm-offset-0 {\n    margin-left: 0;\n  }\n}\n@media (min-width: 992px) {\n  .col-md-1, .col-md-2, .col-md-3, .col-md-4, .col-md-5, .col-md-6, .col-md-7, .col-md-8, .col-md-9, .col-md-10, .col-md-11, .col-md-12 {\n    float: left;\n  }\n  .col-md-12 {\n    width: 100%;\n  }\n  .col-md-11 {\n    width: 91.66666667%;\n  }\n  .col-md-10 {\n    width: 83.33333333%;\n  }\n  .col-md-9 {\n    width: 75%;\n  }\n  .col-md-8 {\n    width: 66.66666667%;\n  }\n  .col-md-7 {\n    width: 58.33333333%;\n  }\n  .col-md-6 {\n    width: 50%;\n  }\n  .col-md-5 {\n    width: 41.66666667%;\n  }\n  .col-md-4 {\n    width: 33.33333333%;\n  }\n  .col-md-3 {\n    width: 25%;\n  }\n  .col-md-2 {\n    width: 16.66666667%;\n  }\n  .col-md-1 {\n    width: 8.33333333%;\n  }\n  .col-md-pull-12 {\n    right: 100%;\n  }\n  .col-md-pull-11 {\n    right: 91.66666667%;\n  }\n  .col-md-pull-10 {\n    right: 83.33333333%;\n  }\n  .col-md-pull-9 {\n    right: 75%;\n  }\n  .col-md-pull-8 {\n    right: 66.66666667%;\n  }\n  .col-md-pull-7 {\n    right: 58.33333333%;\n  }\n  .col-md-pull-6 {\n    right: 50%;\n  }\n  .col-md-pull-5 {\n    right: 41.66666667%;\n  }\n  .col-md-pull-4 {\n    right: 33.33333333%;\n  }\n  .col-md-pull-3 {\n    right: 25%;\n  }\n  .col-md-pull-2 {\n    right: 16.66666667%;\n  }\n  .col-md-pull-1 {\n    right: 8.33333333%;\n  }\n  .col-md-pull-0 {\n    right: auto;\n  }\n  .col-md-push-12 {\n    left: 100%;\n  }\n  .col-md-push-11 {\n    left: 91.66666667%;\n  }\n  .col-md-push-10 {\n    left: 83.33333333%;\n  }\n  .col-md-push-9 {\n    left: 75%;\n  }\n  .col-md-push-8 {\n    left: 66.66666667%;\n  }\n  .col-md-push-7 {\n    left: 58.33333333%;\n  }\n  .col-md-push-6 {\n    left: 50%;\n  }\n  .col-md-push-5 {\n    left: 41.66666667%;\n  }\n  .col-md-push-4 {\n    left: 33.33333333%;\n  }\n  .col-md-push-3 {\n    left: 25%;\n  }\n  .col-md-push-2 {\n    left: 16.66666667%;\n  }\n  .col-md-push-1 {\n    left: 8.33333333%;\n  }\n  .col-md-push-0 {\n    left: auto;\n  }\n  .col-md-offset-12 {\n    margin-left: 100%;\n  }\n  .col-md-offset-11 {\n    margin-left: 91.66666667%;\n  }\n  .col-md-offset-10 {\n    margin-left: 83.33333333%;\n  }\n  .col-md-offset-9 {\n    margin-left: 75%;\n  }\n  .col-md-offset-8 {\n    margin-left: 66.66666667%;\n  }\n  .col-md-offset-7 {\n    margin-left: 58.33333333%;\n  }\n  .col-md-offset-6 {\n    margin-left: 50%;\n  }\n  .col-md-offset-5 {\n    margin-left: 41.66666667%;\n  }\n  .col-md-offset-4 {\n    margin-left: 33.33333333%;\n  }\n  .col-md-offset-3 {\n    margin-left: 25%;\n  }\n  .col-md-offset-2 {\n    margin-left: 16.66666667%;\n  }\n  .col-md-offset-1 {\n    margin-left: 8.33333333%;\n  }\n  .col-md-offset-0 {\n    margin-left: 0;\n  }\n}\n@media (min-width: 1200px) {\n  .col-lg-1, .col-lg-2, .col-lg-3, .col-lg-4, .col-lg-5, .col-lg-6, .col-lg-7, .col-lg-8, .col-lg-9, .col-lg-10, .col-lg-11, .col-lg-12 {\n    float: left;\n  }\n  .col-lg-12 {\n    width: 100%;\n  }\n  .col-lg-11 {\n    width: 91.66666667%;\n  }\n  .col-lg-10 {\n    width: 83.33333333%;\n  }\n  .col-lg-9 {\n    width: 75%;\n  }\n  .col-lg-8 {\n    width: 66.66666667%;\n  }\n  .col-lg-7 {\n    width: 58.33333333%;\n  }\n  .col-lg-6 {\n    width: 50%;\n  }\n  .col-lg-5 {\n    width: 41.66666667%;\n  }\n  .col-lg-4 {\n    width: 33.33333333%;\n  }\n  .col-lg-3 {\n    width: 25%;\n  }\n  .col-lg-2 {\n    width: 16.66666667%;\n  }\n  .col-lg-1 {\n    width: 8.33333333%;\n  }\n  .col-lg-pull-12 {\n    right: 100%;\n  }\n  .col-lg-pull-11 {\n    right: 91.66666667%;\n  }\n  .col-lg-pull-10 {\n    right: 83.33333333%;\n  }\n  .col-lg-pull-9 {\n    right: 75%;\n  }\n  .col-lg-pull-8 {\n    right: 66.66666667%;\n  }\n  .col-lg-pull-7 {\n    right: 58.33333333%;\n  }\n  .col-lg-pull-6 {\n    right: 50%;\n  }\n  .col-lg-pull-5 {\n    right: 41.66666667%;\n  }\n  .col-lg-pull-4 {\n    right: 33.33333333%;\n  }\n  .col-lg-pull-3 {\n    right: 25%;\n  }\n  .col-lg-pull-2 {\n    right: 16.66666667%;\n  }\n  .col-lg-pull-1 {\n    right: 8.33333333%;\n  }\n  .col-lg-pull-0 {\n    right: auto;\n  }\n  .col-lg-push-12 {\n    left: 100%;\n  }\n  .col-lg-push-11 {\n    left: 91.66666667%;\n  }\n  .col-lg-push-10 {\n    left: 83.33333333%;\n  }\n  .col-lg-push-9 {\n    left: 75%;\n  }\n  .col-lg-push-8 {\n    left: 66.66666667%;\n  }\n  .col-lg-push-7 {\n    left: 58.33333333%;\n  }\n  .col-lg-push-6 {\n    left: 50%;\n  }\n  .col-lg-push-5 {\n    left: 41.66666667%;\n  }\n  .col-lg-push-4 {\n    left: 33.33333333%;\n  }\n  .col-lg-push-3 {\n    left: 25%;\n  }\n  .col-lg-push-2 {\n    left: 16.66666667%;\n  }\n  .col-lg-push-1 {\n    left: 8.33333333%;\n  }\n  .col-lg-push-0 {\n    left: auto;\n  }\n  .col-lg-offset-12 {\n    margin-left: 100%;\n  }\n  .col-lg-offset-11 {\n    margin-left: 91.66666667%;\n  }\n  .col-lg-offset-10 {\n    margin-left: 83.33333333%;\n  }\n  .col-lg-offset-9 {\n    margin-left: 75%;\n  }\n  .col-lg-offset-8 {\n    margin-left: 66.66666667%;\n  }\n  .col-lg-offset-7 {\n    margin-left: 58.33333333%;\n  }\n  .col-lg-offset-6 {\n    margin-left: 50%;\n  }\n  .col-lg-offset-5 {\n    margin-left: 41.66666667%;\n  }\n  .col-lg-offset-4 {\n    margin-left: 33.33333333%;\n  }\n  .col-lg-offset-3 {\n    margin-left: 25%;\n  }\n  .col-lg-offset-2 {\n    margin-left: 16.66666667%;\n  }\n  .col-lg-offset-1 {\n    margin-left: 8.33333333%;\n  }\n  .col-lg-offset-0 {\n    margin-left: 0;\n  }\n}\ntable {\n  background-color: transparent;\n}\ncaption {\n  padding-top: 8px;\n  padding-bottom: 8px;\n  color: #777;\n  text-align: left;\n}\nth {\n  text-align: left;\n}\n.table {\n  width: 100%;\n  max-width: 100%;\n  margin-bottom: 20px;\n}\n.table > thead > tr > th,\n.table > tbody > tr > th,\n.table > tfoot > tr > th,\n.table > thead > tr > td,\n.table > tbody > tr > td,\n.table > tfoot > tr > td {\n  padding: 8px;\n  line-height: 1.42857143;\n  vertical-align: top;\n  border-top: 1px solid #ddd;\n}\n.table > thead > tr > th {\n  vertical-align: bottom;\n  border-bottom: 2px solid #ddd;\n}\n.table > caption + thead > tr:first-child > th,\n.table > colgroup + thead > tr:first-child > th,\n.table > thead:first-child > tr:first-child > th,\n.table > caption + thead > tr:first-child > td,\n.table > colgroup + thead > tr:first-child > td,\n.table > thead:first-child > tr:first-child > td {\n  border-top: 0;\n}\n.table > tbody + tbody {\n  border-top: 2px solid #ddd;\n}\n.table .table {\n  background-color: #fff;\n}\n.table-condensed > thead > tr > th,\n.table-condensed > tbody > tr > th,\n.table-condensed > tfoot > tr > th,\n.table-condensed > thead > tr > td,\n.table-condensed > tbody > tr > td,\n.table-condensed > tfoot > tr > td {\n  padding: 5px;\n}\n.table-bordered {\n  border: 1px solid #ddd;\n}\n.table-bordered > thead > tr > th,\n.table-bordered > tbody > tr > th,\n.table-bordered > tfoot > tr > th,\n.table-bordered > thead > tr > td,\n.table-bordered > tbody > tr > td,\n.table-bordered > tfoot > tr > td {\n  border: 1px solid #ddd;\n}\n.table-bordered > thead > tr > th,\n.table-bordered > thead > tr > td {\n  border-bottom-width: 2px;\n}\n.table-striped > tbody > tr:nth-of-type(odd) {\n  background-color: #f9f9f9;\n}\n.table-hover > tbody > tr:hover {\n  background-color: #f5f5f5;\n}\ntable col[class*=\"col-\"] {\n  position: static;\n  display: table-column;\n  float: none;\n}\ntable td[class*=\"col-\"],\ntable th[class*=\"col-\"] {\n  position: static;\n  display: table-cell;\n  float: none;\n}\n.table > thead > tr > td.active,\n.table > tbody > tr > td.active,\n.table > tfoot > tr > td.active,\n.table > thead > tr > th.active,\n.table > tbody > tr > th.active,\n.table > tfoot > tr > th.active,\n.table > thead > tr.active > td,\n.table > tbody > tr.active > td,\n.table > tfoot > tr.active > td,\n.table > thead > tr.active > th,\n.table > tbody > tr.active > th,\n.table > tfoot > tr.active > th {\n  background-color: #f5f5f5;\n}\n.table-hover > tbody > tr > td.active:hover,\n.table-hover > tbody > tr > th.active:hover,\n.table-hover > tbody > tr.active:hover > td,\n.table-hover > tbody > tr:hover > .active,\n.table-hover > tbody > tr.active:hover > th {\n  background-color: #e8e8e8;\n}\n.table > thead > tr > td.success,\n.table > tbody > tr > td.success,\n.table > tfoot > tr > td.success,\n.table > thead > tr > th.success,\n.table > tbody > tr > th.success,\n.table > tfoot > tr > th.success,\n.table > thead > tr.success > td,\n.table > tbody > tr.success > td,\n.table > tfoot > tr.success > td,\n.table > thead > tr.success > th,\n.table > tbody > tr.success > th,\n.table > tfoot > tr.success > th {\n  background-color: #dff0d8;\n}\n.table-hover > tbody > tr > td.success:hover,\n.table-hover > tbody > tr > th.success:hover,\n.table-hover > tbody > tr.success:hover > td,\n.table-hover > tbody > tr:hover > .success,\n.table-hover > tbody > tr.success:hover > th {\n  background-color: #d0e9c6;\n}\n.table > thead > tr > td.info,\n.table > tbody > tr > td.info,\n.table > tfoot > tr > td.info,\n.table > thead > tr > th.info,\n.table > tbody > tr > th.info,\n.table > tfoot > tr > th.info,\n.table > thead > tr.info > td,\n.table > tbody > tr.info > td,\n.table > tfoot > tr.info > td,\n.table > thead > tr.info > th,\n.table > tbody > tr.info > th,\n.table > tfoot > tr.info > th {\n  background-color: #d9edf7;\n}\n.table-hover > tbody > tr > td.info:hover,\n.table-hover > tbody > tr > th.info:hover,\n.table-hover > tbody > tr.info:hover > td,\n.table-hover > tbody > tr:hover > .info,\n.table-hover > tbody > tr.info:hover > th {\n  background-color: #c4e3f3;\n}\n.table > thead > tr > td.warning,\n.table > tbody > tr > td.warning,\n.table > tfoot > tr > td.warning,\n.table > thead > tr > th.warning,\n.table > tbody > tr > th.warning,\n.table > tfoot > tr > th.warning,\n.table > thead > tr.warning > td,\n.table > tbody > tr.warning > td,\n.table > tfoot > tr.warning > td,\n.table > thead > tr.warning > th,\n.table > tbody > tr.warning > th,\n.table > tfoot > tr.warning > th {\n  background-color: #fcf8e3;\n}\n.table-hover > tbody > tr > td.warning:hover,\n.table-hover > tbody > tr > th.warning:hover,\n.table-hover > tbody > tr.warning:hover > td,\n.table-hover > tbody > tr:hover > .warning,\n.table-hover > tbody > tr.warning:hover > th {\n  background-color: #faf2cc;\n}\n.table > thead > tr > td.danger,\n.table > tbody > tr > td.danger,\n.table > tfoot > tr > td.danger,\n.table > thead > tr > th.danger,\n.table > tbody > tr > th.danger,\n.table > tfoot > tr > th.danger,\n.table > thead > tr.danger > td,\n.table > tbody > tr.danger > td,\n.table > tfoot > tr.danger > td,\n.table > thead > tr.danger > th,\n.table > tbody > tr.danger > th,\n.table > tfoot > tr.danger > th {\n  background-color: #f2dede;\n}\n.table-hover > tbody > tr > td.danger:hover,\n.table-hover > tbody > tr > th.danger:hover,\n.table-hover > tbody > tr.danger:hover > td,\n.table-hover > tbody > tr:hover > .danger,\n.table-hover > tbody > tr.danger:hover > th {\n  background-color: #ebcccc;\n}\n.table-responsive {\n  min-height: .01%;\n  overflow-x: auto;\n}\n@media screen and (max-width: 767px) {\n  .table-responsive {\n    width: 100%;\n    margin-bottom: 15px;\n    overflow-y: hidden;\n    -ms-overflow-style: -ms-autohiding-scrollbar;\n    border: 1px solid #ddd;\n  }\n  .table-responsive > .table {\n    margin-bottom: 0;\n  }\n  .table-responsive > .table > thead > tr > th,\n  .table-responsive > .table > tbody > tr > th,\n  .table-responsive > .table > tfoot > tr > th,\n  .table-responsive > .table > thead > tr > td,\n  .table-responsive > .table > tbody > tr > td,\n  .table-responsive > .table > tfoot > tr > td {\n    white-space: nowrap;\n  }\n  .table-responsive > .table-bordered {\n    border: 0;\n  }\n  .table-responsive > .table-bordered > thead > tr > th:first-child,\n  .table-responsive > .table-bordered > tbody > tr > th:first-child,\n  .table-responsive > .table-bordered > tfoot > tr > th:first-child,\n  .table-responsive > .table-bordered > thead > tr > td:first-child,\n  .table-responsive > .table-bordered > tbody > tr > td:first-child,\n  .table-responsive > .table-bordered > tfoot > tr > td:first-child {\n    border-left: 0;\n  }\n  .table-responsive > .table-bordered > thead > tr > th:last-child,\n  .table-responsive > .table-bordered > tbody > tr > th:last-child,\n  .table-responsive > .table-bordered > tfoot > tr > th:last-child,\n  .table-responsive > .table-bordered > thead > tr > td:last-child,\n  .table-responsive > .table-bordered > tbody > tr > td:last-child,\n  .table-responsive > .table-bordered > tfoot > tr > td:last-child {\n    border-right: 0;\n  }\n  .table-responsive > .table-bordered > tbody > tr:last-child > th,\n  .table-responsive > .table-bordered > tfoot > tr:last-child > th,\n  .table-responsive > .table-bordered > tbody > tr:last-child > td,\n  .table-responsive > .table-bordered > tfoot > tr:last-child > td {\n    border-bottom: 0;\n  }\n}\nfieldset {\n  min-width: 0;\n  padding: 0;\n  margin: 0;\n  border: 0;\n}\nlegend {\n  display: block;\n  width: 100%;\n  padding: 0;\n  margin-bottom: 20px;\n  font-size: 21px;\n  line-height: inherit;\n  color: #333;\n  border: 0;\n  border-bottom: 1px solid #e5e5e5;\n}\nlabel {\n  display: inline-block;\n  max-width: 100%;\n  margin-bottom: 5px;\n  font-weight: bold;\n}\ninput[type=\"search\"] {\n  -webkit-box-sizing: border-box;\n     -moz-box-sizing: border-box;\n          box-sizing: border-box;\n}\ninput[type=\"radio\"],\ninput[type=\"checkbox\"] {\n  margin: 4px 0 0;\n  margin-top: 1px \\9;\n  line-height: normal;\n}\ninput[type=\"file\"] {\n  display: block;\n}\ninput[type=\"range\"] {\n  display: block;\n  width: 100%;\n}\nselect[multiple],\nselect[size] {\n  height: auto;\n}\ninput[type=\"file\"]:focus,\ninput[type=\"radio\"]:focus,\ninput[type=\"checkbox\"]:focus {\n  outline: 5px auto -webkit-focus-ring-color;\n  outline-offset: -2px;\n}\noutput {\n  display: block;\n  padding-top: 7px;\n  font-size: 14px;\n  line-height: 1.42857143;\n  color: #555;\n}\n.form-control {\n  display: block;\n  width: 100%;\n  height: 34px;\n  padding: 6px 12px;\n  font-size: 14px;\n  line-height: 1.42857143;\n  color: #555;\n  background-color: #fff;\n  background-image: none;\n  border: 1px solid #ccc;\n  border-radius: 4px;\n  -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);\n          box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);\n  -webkit-transition: border-color ease-in-out .15s, -webkit-box-shadow ease-in-out .15s;\n       -o-transition: border-color ease-in-out .15s, box-shadow ease-in-out .15s;\n          transition: border-color ease-in-out .15s, box-shadow ease-in-out .15s;\n}\n.form-control:focus {\n  border-color: #66afe9;\n  outline: 0;\n  -webkit-box-shadow: inset 0 1px 1px rgba(0,0,0,.075), 0 0 8px rgba(102, 175, 233, .6);\n          box-shadow: inset 0 1px 1px rgba(0,0,0,.075), 0 0 8px rgba(102, 175, 233, .6);\n}\n.form-control::-moz-placeholder {\n  color: #999;\n  opacity: 1;\n}\n.form-control:-ms-input-placeholder {\n  color: #999;\n}\n.form-control::-webkit-input-placeholder {\n  color: #999;\n}\n.form-control::-ms-expand {\n  background-color: transparent;\n  border: 0;\n}\n.form-control[disabled],\n.form-control[readonly],\nfieldset[disabled] .form-control {\n  background-color: #eee;\n  opacity: 1;\n}\n.form-control[disabled],\nfieldset[disabled] .form-control {\n  cursor: not-allowed;\n}\ntextarea.form-control {\n  height: auto;\n}\ninput[type=\"search\"] {\n  -webkit-appearance: none;\n}\n@media screen and (-webkit-min-device-pixel-ratio: 0) {\n  input[type=\"date\"].form-control,\n  input[type=\"time\"].form-control,\n  input[type=\"datetime-local\"].form-control,\n  input[type=\"month\"].form-control {\n    line-height: 34px;\n  }\n  input[type=\"date\"].input-sm,\n  input[type=\"time\"].input-sm,\n  input[type=\"datetime-local\"].input-sm,\n  input[type=\"month\"].input-sm,\n  .input-group-sm input[type=\"date\"],\n  .input-group-sm input[type=\"time\"],\n  .input-group-sm input[type=\"datetime-local\"],\n  .input-group-sm input[type=\"month\"] {\n    line-height: 30px;\n  }\n  input[type=\"date\"].input-lg,\n  input[type=\"time\"].input-lg,\n  input[type=\"datetime-local\"].input-lg,\n  input[type=\"month\"].input-lg,\n  .input-group-lg input[type=\"date\"],\n  .input-group-lg input[type=\"time\"],\n  .input-group-lg input[type=\"datetime-local\"],\n  .input-group-lg input[type=\"month\"] {\n    line-height: 46px;\n  }\n}\n.form-group {\n  margin-bottom: 15px;\n}\n.radio,\n.checkbox {\n  position: relative;\n  display: block;\n  margin-top: 10px;\n  margin-bottom: 10px;\n}\n.radio label,\n.checkbox label {\n  min-height: 20px;\n  padding-left: 20px;\n  margin-bottom: 0;\n  font-weight: normal;\n  cursor: pointer;\n}\n.radio input[type=\"radio\"],\n.radio-inline input[type=\"radio\"],\n.checkbox input[type=\"checkbox\"],\n.checkbox-inline input[type=\"checkbox\"] {\n  position: absolute;\n  margin-top: 4px \\9;\n  margin-left: -20px;\n}\n.radio + .radio,\n.checkbox + .checkbox {\n  margin-top: -5px;\n}\n.radio-inline,\n.checkbox-inline {\n  position: relative;\n  display: inline-block;\n  padding-left: 20px;\n  margin-bottom: 0;\n  font-weight: normal;\n  vertical-align: middle;\n  cursor: pointer;\n}\n.radio-inline + .radio-inline,\n.checkbox-inline + .checkbox-inline {\n  margin-top: 0;\n  margin-left: 10px;\n}\ninput[type=\"radio\"][disabled],\ninput[type=\"checkbox\"][disabled],\ninput[type=\"radio\"].disabled,\ninput[type=\"checkbox\"].disabled,\nfieldset[disabled] input[type=\"radio\"],\nfieldset[disabled] input[type=\"checkbox\"] {\n  cursor: not-allowed;\n}\n.radio-inline.disabled,\n.checkbox-inline.disabled,\nfieldset[disabled] .radio-inline,\nfieldset[disabled] .checkbox-inline {\n  cursor: not-allowed;\n}\n.radio.disabled label,\n.checkbox.disabled label,\nfieldset[disabled] .radio label,\nfieldset[disabled] .checkbox label {\n  cursor: not-allowed;\n}\n.form-control-static {\n  min-height: 34px;\n  padding-top: 7px;\n  padding-bottom: 7px;\n  margin-bottom: 0;\n}\n.form-control-static.input-lg,\n.form-control-static.input-sm {\n  padding-right: 0;\n  padding-left: 0;\n}\n.input-sm {\n  height: 30px;\n  padding: 5px 10px;\n  font-size: 12px;\n  line-height: 1.5;\n  border-radius: 3px;\n}\nselect.input-sm {\n  height: 30px;\n  line-height: 30px;\n}\ntextarea.input-sm,\nselect[multiple].input-sm {\n  height: auto;\n}\n.form-group-sm .form-control {\n  height: 30px;\n  padding: 5px 10px;\n  font-size: 12px;\n  line-height: 1.5;\n  border-radius: 3px;\n}\n.form-group-sm select.form-control {\n  height: 30px;\n  line-height: 30px;\n}\n.form-group-sm textarea.form-control,\n.form-group-sm select[multiple].form-control {\n  height: auto;\n}\n.form-group-sm .form-control-static {\n  height: 30px;\n  min-height: 32px;\n  padding: 6px 10px;\n  font-size: 12px;\n  line-height: 1.5;\n}\n.input-lg {\n  height: 46px;\n  padding: 10px 16px;\n  font-size: 18px;\n  line-height: 1.3333333;\n  border-radius: 6px;\n}\nselect.input-lg {\n  height: 46px;\n  line-height: 46px;\n}\ntextarea.input-lg,\nselect[multiple].input-lg {\n  height: auto;\n}\n.form-group-lg .form-control {\n  height: 46px;\n  padding: 10px 16px;\n  font-size: 18px;\n  line-height: 1.3333333;\n  border-radius: 6px;\n}\n.form-group-lg select.form-control {\n  height: 46px;\n  line-height: 46px;\n}\n.form-group-lg textarea.form-control,\n.form-group-lg select[multiple].form-control {\n  height: auto;\n}\n.form-group-lg .form-control-static {\n  height: 46px;\n  min-height: 38px;\n  padding: 11px 16px;\n  font-size: 18px;\n  line-height: 1.3333333;\n}\n.has-feedback {\n  position: relative;\n}\n.has-feedback .form-control {\n  padding-right: 42.5px;\n}\n.form-control-feedback {\n  position: absolute;\n  top: 0;\n  right: 0;\n  z-index: 2;\n  display: block;\n  width: 34px;\n  height: 34px;\n  line-height: 34px;\n  text-align: center;\n  pointer-events: none;\n}\n.input-lg + .form-control-feedback,\n.input-group-lg + .form-control-feedback,\n.form-group-lg .form-control + .form-control-feedback {\n  width: 46px;\n  height: 46px;\n  line-height: 46px;\n}\n.input-sm + .form-control-feedback,\n.input-group-sm + .form-control-feedback,\n.form-group-sm .form-control + .form-control-feedback {\n  width: 30px;\n  height: 30px;\n  line-height: 30px;\n}\n.has-success .help-block,\n.has-success .control-label,\n.has-success .radio,\n.has-success .checkbox,\n.has-success .radio-inline,\n.has-success .checkbox-inline,\n.has-success.radio label,\n.has-success.checkbox label,\n.has-success.radio-inline label,\n.has-success.checkbox-inline label {\n  color: #3c763d;\n}\n.has-success .form-control {\n  border-color: #3c763d;\n  -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);\n          box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);\n}\n.has-success .form-control:focus {\n  border-color: #2b542c;\n  -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075), 0 0 6px #67b168;\n          box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075), 0 0 6px #67b168;\n}\n.has-success .input-group-addon {\n  color: #3c763d;\n  background-color: #dff0d8;\n  border-color: #3c763d;\n}\n.has-success .form-control-feedback {\n  color: #3c763d;\n}\n.has-warning .help-block,\n.has-warning .control-label,\n.has-warning .radio,\n.has-warning .checkbox,\n.has-warning .radio-inline,\n.has-warning .checkbox-inline,\n.has-warning.radio label,\n.has-warning.checkbox label,\n.has-warning.radio-inline label,\n.has-warning.checkbox-inline label {\n  color: #8a6d3b;\n}\n.has-warning .form-control {\n  border-color: #8a6d3b;\n  -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);\n          box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);\n}\n.has-warning .form-control:focus {\n  border-color: #66512c;\n  -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075), 0 0 6px #c0a16b;\n          box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075), 0 0 6px #c0a16b;\n}\n.has-warning .input-group-addon {\n  color: #8a6d3b;\n  background-color: #fcf8e3;\n  border-color: #8a6d3b;\n}\n.has-warning .form-control-feedback {\n  color: #8a6d3b;\n}\n.has-error .help-block,\n.has-error .control-label,\n.has-error .radio,\n.has-error .checkbox,\n.has-error .radio-inline,\n.has-error .checkbox-inline,\n.has-error.radio label,\n.has-error.checkbox label,\n.has-error.radio-inline label,\n.has-error.checkbox-inline label {\n  color: #a94442;\n}\n.has-error .form-control {\n  border-color: #a94442;\n  -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);\n          box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);\n}\n.has-error .form-control:focus {\n  border-color: #843534;\n  -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075), 0 0 6px #ce8483;\n          box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075), 0 0 6px #ce8483;\n}\n.has-error .input-group-addon {\n  color: #a94442;\n  background-color: #f2dede;\n  border-color: #a94442;\n}\n.has-error .form-control-feedback {\n  color: #a94442;\n}\n.has-feedback label ~ .form-control-feedback {\n  top: 25px;\n}\n.has-feedback label.sr-only ~ .form-control-feedback {\n  top: 0;\n}\n.help-block {\n  display: block;\n  margin-top: 5px;\n  margin-bottom: 10px;\n  color: #737373;\n}\n@media (min-width: 768px) {\n  .form-inline .form-group {\n    display: inline-block;\n    margin-bottom: 0;\n    vertical-align: middle;\n  }\n  .form-inline .form-control {\n    display: inline-block;\n    width: auto;\n    vertical-align: middle;\n  }\n  .form-inline .form-control-static {\n    display: inline-block;\n  }\n  .form-inline .input-group {\n    display: inline-table;\n    vertical-align: middle;\n  }\n  .form-inline .input-group .input-group-addon,\n  .form-inline .input-group .input-group-btn,\n  .form-inline .input-group .form-control {\n    width: auto;\n  }\n  .form-inline .input-group > .form-control {\n    width: 100%;\n  }\n  .form-inline .control-label {\n    margin-bottom: 0;\n    vertical-align: middle;\n  }\n  .form-inline .radio,\n  .form-inline .checkbox {\n    display: inline-block;\n    margin-top: 0;\n    margin-bottom: 0;\n    vertical-align: middle;\n  }\n  .form-inline .radio label,\n  .form-inline .checkbox label {\n    padding-left: 0;\n  }\n  .form-inline .radio input[type=\"radio\"],\n  .form-inline .checkbox input[type=\"checkbox\"] {\n    position: relative;\n    margin-left: 0;\n  }\n  .form-inline .has-feedback .form-control-feedback {\n    top: 0;\n  }\n}\n.form-horizontal .radio,\n.form-horizontal .checkbox,\n.form-horizontal .radio-inline,\n.form-horizontal .checkbox-inline {\n  padding-top: 7px;\n  margin-top: 0;\n  margin-bottom: 0;\n}\n.form-horizontal .radio,\n.form-horizontal .checkbox {\n  min-height: 27px;\n}\n.form-horizontal .form-group {\n  margin-right: -15px;\n  margin-left: -15px;\n}\n@media (min-width: 768px) {\n  .form-horizontal .control-label {\n    padding-top: 7px;\n    margin-bottom: 0;\n    text-align: right;\n  }\n}\n.form-horizontal .has-feedback .form-control-feedback {\n  right: 15px;\n}\n@media (min-width: 768px) {\n  .form-horizontal .form-group-lg .control-label {\n    padding-top: 11px;\n    font-size: 18px;\n  }\n}\n@media (min-width: 768px) {\n  .form-horizontal .form-group-sm .control-label {\n    padding-top: 6px;\n    font-size: 12px;\n  }\n}\n.btn {\n  display: inline-block;\n  padding: 6px 12px;\n  margin-bottom: 0;\n  font-size: 14px;\n  font-weight: normal;\n  line-height: 1.42857143;\n  text-align: center;\n  white-space: nowrap;\n  vertical-align: middle;\n  -ms-touch-action: manipulation;\n      touch-action: manipulation;\n  cursor: pointer;\n  -webkit-user-select: none;\n     -moz-user-select: none;\n      -ms-user-select: none;\n          user-select: none;\n  background-image: none;\n  border: 1px solid transparent;\n  border-radius: 4px;\n}\n.btn:focus,\n.btn:active:focus,\n.btn.active:focus,\n.btn.focus,\n.btn:active.focus,\n.btn.active.focus {\n  outline: 5px auto -webkit-focus-ring-color;\n  outline-offset: -2px;\n}\n.btn:hover,\n.btn:focus,\n.btn.focus {\n  color: #333;\n  text-decoration: none;\n}\n.btn:active,\n.btn.active {\n  background-image: none;\n  outline: 0;\n  -webkit-box-shadow: inset 0 3px 5px rgba(0, 0, 0, .125);\n          box-shadow: inset 0 3px 5px rgba(0, 0, 0, .125);\n}\n.btn.disabled,\n.btn[disabled],\nfieldset[disabled] .btn {\n  cursor: not-allowed;\n  filter: alpha(opacity=65);\n  -webkit-box-shadow: none;\n          box-shadow: none;\n  opacity: .65;\n}\na.btn.disabled,\nfieldset[disabled] a.btn {\n  pointer-events: none;\n}\n.btn-default {\n  color: #333;\n  background-color: #fff;\n  border-color: #ccc;\n}\n.btn-default:focus,\n.btn-default.focus {\n  color: #333;\n  background-color: #e6e6e6;\n  border-color: #8c8c8c;\n}\n.btn-default:hover {\n  color: #333;\n  background-color: #e6e6e6;\n  border-color: #adadad;\n}\n.btn-default:active,\n.btn-default.active,\n.open > .dropdown-toggle.btn-default {\n  color: #333;\n  background-color: #e6e6e6;\n  border-color: #adadad;\n}\n.btn-default:active:hover,\n.btn-default.active:hover,\n.open > .dropdown-toggle.btn-default:hover,\n.btn-default:active:focus,\n.btn-default.active:focus,\n.open > .dropdown-toggle.btn-default:focus,\n.btn-default:active.focus,\n.btn-default.active.focus,\n.open > .dropdown-toggle.btn-default.focus {\n  color: #333;\n  background-color: #d4d4d4;\n  border-color: #8c8c8c;\n}\n.btn-default:active,\n.btn-default.active,\n.open > .dropdown-toggle.btn-default {\n  background-image: none;\n}\n.btn-default.disabled:hover,\n.btn-default[disabled]:hover,\nfieldset[disabled] .btn-default:hover,\n.btn-default.disabled:focus,\n.btn-default[disabled]:focus,\nfieldset[disabled] .btn-default:focus,\n.btn-default.disabled.focus,\n.btn-default[disabled].focus,\nfieldset[disabled] .btn-default.focus {\n  background-color: #fff;\n  border-color: #ccc;\n}\n.btn-default .badge {\n  color: #fff;\n  background-color: #333;\n}\n.btn-primary {\n  color: #fff;\n  background-color: #337ab7;\n  border-color: #2e6da4;\n}\n.btn-primary:focus,\n.btn-primary.focus {\n  color: #fff;\n  background-color: #286090;\n  border-color: #122b40;\n}\n.btn-primary:hover {\n  color: #fff;\n  background-color: #286090;\n  border-color: #204d74;\n}\n.btn-primary:active,\n.btn-primary.active,\n.open > .dropdown-toggle.btn-primary {\n  color: #fff;\n  background-color: #286090;\n  border-color: #204d74;\n}\n.btn-primary:active:hover,\n.btn-primary.active:hover,\n.open > .dropdown-toggle.btn-primary:hover,\n.btn-primary:active:focus,\n.btn-primary.active:focus,\n.open > .dropdown-toggle.btn-primary:focus,\n.btn-primary:active.focus,\n.btn-primary.active.focus,\n.open > .dropdown-toggle.btn-primary.focus {\n  color: #fff;\n  background-color: #204d74;\n  border-color: #122b40;\n}\n.btn-primary:active,\n.btn-primary.active,\n.open > .dropdown-toggle.btn-primary {\n  background-image: none;\n}\n.btn-primary.disabled:hover,\n.btn-primary[disabled]:hover,\nfieldset[disabled] .btn-primary:hover,\n.btn-primary.disabled:focus,\n.btn-primary[disabled]:focus,\nfieldset[disabled] .btn-primary:focus,\n.btn-primary.disabled.focus,\n.btn-primary[disabled].focus,\nfieldset[disabled] .btn-primary.focus {\n  background-color: #337ab7;\n  border-color: #2e6da4;\n}\n.btn-primary .badge {\n  color: #337ab7;\n  background-color: #fff;\n}\n.btn-success {\n  color: #fff;\n  background-color: #5cb85c;\n  border-color: #4cae4c;\n}\n.btn-success:focus,\n.btn-success.focus {\n  color: #fff;\n  background-color: #449d44;\n  border-color: #255625;\n}\n.btn-success:hover {\n  color: #fff;\n  background-color: #449d44;\n  border-color: #398439;\n}\n.btn-success:active,\n.btn-success.active,\n.open > .dropdown-toggle.btn-success {\n  color: #fff;\n  background-color: #449d44;\n  border-color: #398439;\n}\n.btn-success:active:hover,\n.btn-success.active:hover,\n.open > .dropdown-toggle.btn-success:hover,\n.btn-success:active:focus,\n.btn-success.active:focus,\n.open > .dropdown-toggle.btn-success:focus,\n.btn-success:active.focus,\n.btn-success.active.focus,\n.open > .dropdown-toggle.btn-success.focus {\n  color: #fff;\n  background-color: #398439;\n  border-color: #255625;\n}\n.btn-success:active,\n.btn-success.active,\n.open > .dropdown-toggle.btn-success {\n  background-image: none;\n}\n.btn-success.disabled:hover,\n.btn-success[disabled]:hover,\nfieldset[disabled] .btn-success:hover,\n.btn-success.disabled:focus,\n.btn-success[disabled]:focus,\nfieldset[disabled] .btn-success:focus,\n.btn-success.disabled.focus,\n.btn-success[disabled].focus,\nfieldset[disabled] .btn-success.focus {\n  background-color: #5cb85c;\n  border-color: #4cae4c;\n}\n.btn-success .badge {\n  color: #5cb85c;\n  background-color: #fff;\n}\n.btn-info {\n  color: #fff;\n  background-color: #5bc0de;\n  border-color: #46b8da;\n}\n.btn-info:focus,\n.btn-info.focus {\n  color: #fff;\n  background-color: #31b0d5;\n  border-color: #1b6d85;\n}\n.btn-info:hover {\n  color: #fff;\n  background-color: #31b0d5;\n  border-color: #269abc;\n}\n.btn-info:active,\n.btn-info.active,\n.open > .dropdown-toggle.btn-info {\n  color: #fff;\n  background-color: #31b0d5;\n  border-color: #269abc;\n}\n.btn-info:active:hover,\n.btn-info.active:hover,\n.open > .dropdown-toggle.btn-info:hover,\n.btn-info:active:focus,\n.btn-info.active:focus,\n.open > .dropdown-toggle.btn-info:focus,\n.btn-info:active.focus,\n.btn-info.active.focus,\n.open > .dropdown-toggle.btn-info.focus {\n  color: #fff;\n  background-color: #269abc;\n  border-color: #1b6d85;\n}\n.btn-info:active,\n.btn-info.active,\n.open > .dropdown-toggle.btn-info {\n  background-image: none;\n}\n.btn-info.disabled:hover,\n.btn-info[disabled]:hover,\nfieldset[disabled] .btn-info:hover,\n.btn-info.disabled:focus,\n.btn-info[disabled]:focus,\nfieldset[disabled] .btn-info:focus,\n.btn-info.disabled.focus,\n.btn-info[disabled].focus,\nfieldset[disabled] .btn-info.focus {\n  background-color: #5bc0de;\n  border-color: #46b8da;\n}\n.btn-info .badge {\n  color: #5bc0de;\n  background-color: #fff;\n}\n.btn-warning {\n  color: #fff;\n  background-color: #f0ad4e;\n  border-color: #eea236;\n}\n.btn-warning:focus,\n.btn-warning.focus {\n  color: #fff;\n  background-color: #ec971f;\n  border-color: #985f0d;\n}\n.btn-warning:hover {\n  color: #fff;\n  background-color: #ec971f;\n  border-color: #d58512;\n}\n.btn-warning:active,\n.btn-warning.active,\n.open > .dropdown-toggle.btn-warning {\n  color: #fff;\n  background-color: #ec971f;\n  border-color: #d58512;\n}\n.btn-warning:active:hover,\n.btn-warning.active:hover,\n.open > .dropdown-toggle.btn-warning:hover,\n.btn-warning:active:focus,\n.btn-warning.active:focus,\n.open > .dropdown-toggle.btn-warning:focus,\n.btn-warning:active.focus,\n.btn-warning.active.focus,\n.open > .dropdown-toggle.btn-warning.focus {\n  color: #fff;\n  background-color: #d58512;\n  border-color: #985f0d;\n}\n.btn-warning:active,\n.btn-warning.active,\n.open > .dropdown-toggle.btn-warning {\n  background-image: none;\n}\n.btn-warning.disabled:hover,\n.btn-warning[disabled]:hover,\nfieldset[disabled] .btn-warning:hover,\n.btn-warning.disabled:focus,\n.btn-warning[disabled]:focus,\nfieldset[disabled] .btn-warning:focus,\n.btn-warning.disabled.focus,\n.btn-warning[disabled].focus,\nfieldset[disabled] .btn-warning.focus {\n  background-color: #f0ad4e;\n  border-color: #eea236;\n}\n.btn-warning .badge {\n  color: #f0ad4e;\n  background-color: #fff;\n}\n.btn-danger {\n  color: #fff;\n  background-color: #d9534f;\n  border-color: #d43f3a;\n}\n.btn-danger:focus,\n.btn-danger.focus {\n  color: #fff;\n  background-color: #c9302c;\n  border-color: #761c19;\n}\n.btn-danger:hover {\n  color: #fff;\n  background-color: #c9302c;\n  border-color: #ac2925;\n}\n.btn-danger:active,\n.btn-danger.active,\n.open > .dropdown-toggle.btn-danger {\n  color: #fff;\n  background-color: #c9302c;\n  border-color: #ac2925;\n}\n.btn-danger:active:hover,\n.btn-danger.active:hover,\n.open > .dropdown-toggle.btn-danger:hover,\n.btn-danger:active:focus,\n.btn-danger.active:focus,\n.open > .dropdown-toggle.btn-danger:focus,\n.btn-danger:active.focus,\n.btn-danger.active.focus,\n.open > .dropdown-toggle.btn-danger.focus {\n  color: #fff;\n  background-color: #ac2925;\n  border-color: #761c19;\n}\n.btn-danger:active,\n.btn-danger.active,\n.open > .dropdown-toggle.btn-danger {\n  background-image: none;\n}\n.btn-danger.disabled:hover,\n.btn-danger[disabled]:hover,\nfieldset[disabled] .btn-danger:hover,\n.btn-danger.disabled:focus,\n.btn-danger[disabled]:focus,\nfieldset[disabled] .btn-danger:focus,\n.btn-danger.disabled.focus,\n.btn-danger[disabled].focus,\nfieldset[disabled] .btn-danger.focus {\n  background-color: #d9534f;\n  border-color: #d43f3a;\n}\n.btn-danger .badge {\n  color: #d9534f;\n  background-color: #fff;\n}\n.btn-link {\n  font-weight: normal;\n  color: #337ab7;\n  border-radius: 0;\n}\n.btn-link,\n.btn-link:active,\n.btn-link.active,\n.btn-link[disabled],\nfieldset[disabled] .btn-link {\n  background-color: transparent;\n  -webkit-box-shadow: none;\n          box-shadow: none;\n}\n.btn-link,\n.btn-link:hover,\n.btn-link:focus,\n.btn-link:active {\n  border-color: transparent;\n}\n.btn-link:hover,\n.btn-link:focus {\n  color: #23527c;\n  text-decoration: underline;\n  background-color: transparent;\n}\n.btn-link[disabled]:hover,\nfieldset[disabled] .btn-link:hover,\n.btn-link[disabled]:focus,\nfieldset[disabled] .btn-link:focus {\n  color: #777;\n  text-decoration: none;\n}\n.btn-lg,\n.btn-group-lg > .btn {\n  padding: 10px 16px;\n  font-size: 18px;\n  line-height: 1.3333333;\n  border-radius: 6px;\n}\n.btn-sm,\n.btn-group-sm > .btn {\n  padding: 5px 10px;\n  font-size: 12px;\n  line-height: 1.5;\n  border-radius: 3px;\n}\n.btn-xs,\n.btn-group-xs > .btn {\n  padding: 1px 5px;\n  font-size: 12px;\n  line-height: 1.5;\n  border-radius: 3px;\n}\n.btn-block {\n  display: block;\n  width: 100%;\n}\n.btn-block + .btn-block {\n  margin-top: 5px;\n}\ninput[type=\"submit\"].btn-block,\ninput[type=\"reset\"].btn-block,\ninput[type=\"button\"].btn-block {\n  width: 100%;\n}\n.fade {\n  opacity: 0;\n  -webkit-transition: opacity .15s linear;\n       -o-transition: opacity .15s linear;\n          transition: opacity .15s linear;\n}\n.fade.in {\n  opacity: 1;\n}\n.collapse {\n  display: none;\n}\n.collapse.in {\n  display: block;\n}\ntr.collapse.in {\n  display: table-row;\n}\ntbody.collapse.in {\n  display: table-row-group;\n}\n.collapsing {\n  position: relative;\n  height: 0;\n  overflow: hidden;\n  -webkit-transition-timing-function: ease;\n       -o-transition-timing-function: ease;\n          transition-timing-function: ease;\n  -webkit-transition-duration: .35s;\n       -o-transition-duration: .35s;\n          transition-duration: .35s;\n  -webkit-transition-property: height, visibility;\n       -o-transition-property: height, visibility;\n          transition-property: height, visibility;\n}\n.caret {\n  display: inline-block;\n  width: 0;\n  height: 0;\n  margin-left: 2px;\n  vertical-align: middle;\n  border-top: 4px dashed;\n  border-top: 4px solid \\9;\n  border-right: 4px solid transparent;\n  border-left: 4px solid transparent;\n}\n.dropup,\n.dropdown {\n  position: relative;\n}\n.dropdown-toggle:focus {\n  outline: 0;\n}\n.dropdown-menu {\n  position: absolute;\n  top: 100%;\n  left: 0;\n  z-index: 1000;\n  display: none;\n  float: left;\n  min-width: 160px;\n  padding: 5px 0;\n  margin: 2px 0 0;\n  font-size: 14px;\n  text-align: left;\n  list-style: none;\n  background-color: #fff;\n  -webkit-background-clip: padding-box;\n          background-clip: padding-box;\n  border: 1px solid #ccc;\n  border: 1px solid rgba(0, 0, 0, .15);\n  border-radius: 4px;\n  -webkit-box-shadow: 0 6px 12px rgba(0, 0, 0, .175);\n          box-shadow: 0 6px 12px rgba(0, 0, 0, .175);\n}\n.dropdown-menu.pull-right {\n  right: 0;\n  left: auto;\n}\n.dropdown-menu .divider {\n  height: 1px;\n  margin: 9px 0;\n  overflow: hidden;\n  background-color: #e5e5e5;\n}\n.dropdown-menu > li > a {\n  display: block;\n  padding: 3px 20px;\n  clear: both;\n  font-weight: normal;\n  line-height: 1.42857143;\n  color: #333;\n  white-space: nowrap;\n}\n.dropdown-menu > li > a:hover,\n.dropdown-menu > li > a:focus {\n  color: #262626;\n  text-decoration: none;\n  background-color: #f5f5f5;\n}\n.dropdown-menu > .active > a,\n.dropdown-menu > .active > a:hover,\n.dropdown-menu > .active > a:focus {\n  color: #fff;\n  text-decoration: none;\n  background-color: #337ab7;\n  outline: 0;\n}\n.dropdown-menu > .disabled > a,\n.dropdown-menu > .disabled > a:hover,\n.dropdown-menu > .disabled > a:focus {\n  color: #777;\n}\n.dropdown-menu > .disabled > a:hover,\n.dropdown-menu > .disabled > a:focus {\n  text-decoration: none;\n  cursor: not-allowed;\n  background-color: transparent;\n  background-image: none;\n  filter: progid:DXImageTransform.Microsoft.gradient(enabled = false);\n}\n.open > .dropdown-menu {\n  display: block;\n}\n.open > a {\n  outline: 0;\n}\n.dropdown-menu-right {\n  right: 0;\n  left: auto;\n}\n.dropdown-menu-left {\n  right: auto;\n  left: 0;\n}\n.dropdown-header {\n  display: block;\n  padding: 3px 20px;\n  font-size: 12px;\n  line-height: 1.42857143;\n  color: #777;\n  white-space: nowrap;\n}\n.dropdown-backdrop {\n  position: fixed;\n  top: 0;\n  right: 0;\n  bottom: 0;\n  left: 0;\n  z-index: 990;\n}\n.pull-right > .dropdown-menu {\n  right: 0;\n  left: auto;\n}\n.dropup .caret,\n.navbar-fixed-bottom .dropdown .caret {\n  content: \"\";\n  border-top: 0;\n  border-bottom: 4px dashed;\n  border-bottom: 4px solid \\9;\n}\n.dropup .dropdown-menu,\n.navbar-fixed-bottom .dropdown .dropdown-menu {\n  top: auto;\n  bottom: 100%;\n  margin-bottom: 2px;\n}\n@media (min-width: 768px) {\n  .navbar-right .dropdown-menu {\n    right: 0;\n    left: auto;\n  }\n  .navbar-right .dropdown-menu-left {\n    right: auto;\n    left: 0;\n  }\n}\n.btn-group,\n.btn-group-vertical {\n  position: relative;\n  display: inline-block;\n  vertical-align: middle;\n}\n.btn-group > .btn,\n.btn-group-vertical > .btn {\n  position: relative;\n  float: left;\n}\n.btn-group > .btn:hover,\n.btn-group-vertical > .btn:hover,\n.btn-group > .btn:focus,\n.btn-group-vertical > .btn:focus,\n.btn-group > .btn:active,\n.btn-group-vertical > .btn:active,\n.btn-group > .btn.active,\n.btn-group-vertical > .btn.active {\n  z-index: 2;\n}\n.btn-group .btn + .btn,\n.btn-group .btn + .btn-group,\n.btn-group .btn-group + .btn,\n.btn-group .btn-group + .btn-group {\n  margin-left: -1px;\n}\n.btn-toolbar {\n  margin-left: -5px;\n}\n.btn-toolbar .btn,\n.btn-toolbar .btn-group,\n.btn-toolbar .input-group {\n  float: left;\n}\n.btn-toolbar > .btn,\n.btn-toolbar > .btn-group,\n.btn-toolbar > .input-group {\n  margin-left: 5px;\n}\n.btn-group > .btn:not(:first-child):not(:last-child):not(.dropdown-toggle) {\n  border-radius: 0;\n}\n.btn-group > .btn:first-child {\n  margin-left: 0;\n}\n.btn-group > .btn:first-child:not(:last-child):not(.dropdown-toggle) {\n  border-top-right-radius: 0;\n  border-bottom-right-radius: 0;\n}\n.btn-group > .btn:last-child:not(:first-child),\n.btn-group > .dropdown-toggle:not(:first-child) {\n  border-top-left-radius: 0;\n  border-bottom-left-radius: 0;\n}\n.btn-group > .btn-group {\n  float: left;\n}\n.btn-group > .btn-group:not(:first-child):not(:last-child) > .btn {\n  border-radius: 0;\n}\n.btn-group > .btn-group:first-child:not(:last-child) > .btn:last-child,\n.btn-group > .btn-group:first-child:not(:last-child) > .dropdown-toggle {\n  border-top-right-radius: 0;\n  border-bottom-right-radius: 0;\n}\n.btn-group > .btn-group:last-child:not(:first-child) > .btn:first-child {\n  border-top-left-radius: 0;\n  border-bottom-left-radius: 0;\n}\n.btn-group .dropdown-toggle:active,\n.btn-group.open .dropdown-toggle {\n  outline: 0;\n}\n.btn-group > .btn + .dropdown-toggle {\n  padding-right: 8px;\n  padding-left: 8px;\n}\n.btn-group > .btn-lg + .dropdown-toggle {\n  padding-right: 12px;\n  padding-left: 12px;\n}\n.btn-group.open .dropdown-toggle {\n  -webkit-box-shadow: inset 0 3px 5px rgba(0, 0, 0, .125);\n          box-shadow: inset 0 3px 5px rgba(0, 0, 0, .125);\n}\n.btn-group.open .dropdown-toggle.btn-link {\n  -webkit-box-shadow: none;\n          box-shadow: none;\n}\n.btn .caret {\n  margin-left: 0;\n}\n.btn-lg .caret {\n  border-width: 5px 5px 0;\n  border-bottom-width: 0;\n}\n.dropup .btn-lg .caret {\n  border-width: 0 5px 5px;\n}\n.btn-group-vertical > .btn,\n.btn-group-vertical > .btn-group,\n.btn-group-vertical > .btn-group > .btn {\n  display: block;\n  float: none;\n  width: 100%;\n  max-width: 100%;\n}\n.btn-group-vertical > .btn-group > .btn {\n  float: none;\n}\n.btn-group-vertical > .btn + .btn,\n.btn-group-vertical > .btn + .btn-group,\n.btn-group-vertical > .btn-group + .btn,\n.btn-group-vertical > .btn-group + .btn-group {\n  margin-top: -1px;\n  margin-left: 0;\n}\n.btn-group-vertical > .btn:not(:first-child):not(:last-child) {\n  border-radius: 0;\n}\n.btn-group-vertical > .btn:first-child:not(:last-child) {\n  border-top-left-radius: 4px;\n  border-top-right-radius: 4px;\n  border-bottom-right-radius: 0;\n  border-bottom-left-radius: 0;\n}\n.btn-group-vertical > .btn:last-child:not(:first-child) {\n  border-top-left-radius: 0;\n  border-top-right-radius: 0;\n  border-bottom-right-radius: 4px;\n  border-bottom-left-radius: 4px;\n}\n.btn-group-vertical > .btn-group:not(:first-child):not(:last-child) > .btn {\n  border-radius: 0;\n}\n.btn-group-vertical > .btn-group:first-child:not(:last-child) > .btn:last-child,\n.btn-group-vertical > .btn-group:first-child:not(:last-child) > .dropdown-toggle {\n  border-bottom-right-radius: 0;\n  border-bottom-left-radius: 0;\n}\n.btn-group-vertical > .btn-group:last-child:not(:first-child) > .btn:first-child {\n  border-top-left-radius: 0;\n  border-top-right-radius: 0;\n}\n.btn-group-justified {\n  display: table;\n  width: 100%;\n  table-layout: fixed;\n  border-collapse: separate;\n}\n.btn-group-justified > .btn,\n.btn-group-justified > .btn-group {\n  display: table-cell;\n  float: none;\n  width: 1%;\n}\n.btn-group-justified > .btn-group .btn {\n  width: 100%;\n}\n.btn-group-justified > .btn-group .dropdown-menu {\n  left: auto;\n}\n[data-toggle=\"buttons\"] > .btn input[type=\"radio\"],\n[data-toggle=\"buttons\"] > .btn-group > .btn input[type=\"radio\"],\n[data-toggle=\"buttons\"] > .btn input[type=\"checkbox\"],\n[data-toggle=\"buttons\"] > .btn-group > .btn input[type=\"checkbox\"] {\n  position: absolute;\n  clip: rect(0, 0, 0, 0);\n  pointer-events: none;\n}\n.input-group {\n  position: relative;\n  display: table;\n  border-collapse: separate;\n}\n.input-group[class*=\"col-\"] {\n  float: none;\n  padding-right: 0;\n  padding-left: 0;\n}\n.input-group .form-control {\n  position: relative;\n  z-index: 2;\n  float: left;\n  width: 100%;\n  margin-bottom: 0;\n}\n.input-group .form-control:focus {\n  z-index: 3;\n}\n.input-group-lg > .form-control,\n.input-group-lg > .input-group-addon,\n.input-group-lg > .input-group-btn > .btn {\n  height: 46px;\n  padding: 10px 16px;\n  font-size: 18px;\n  line-height: 1.3333333;\n  border-radius: 6px;\n}\nselect.input-group-lg > .form-control,\nselect.input-group-lg > .input-group-addon,\nselect.input-group-lg > .input-group-btn > .btn {\n  height: 46px;\n  line-height: 46px;\n}\ntextarea.input-group-lg > .form-control,\ntextarea.input-group-lg > .input-group-addon,\ntextarea.input-group-lg > .input-group-btn > .btn,\nselect[multiple].input-group-lg > .form-control,\nselect[multiple].input-group-lg > .input-group-addon,\nselect[multiple].input-group-lg > .input-group-btn > .btn {\n  height: auto;\n}\n.input-group-sm > .form-control,\n.input-group-sm > .input-group-addon,\n.input-group-sm > .input-group-btn > .btn {\n  height: 30px;\n  padding: 5px 10px;\n  font-size: 12px;\n  line-height: 1.5;\n  border-radius: 3px;\n}\nselect.input-group-sm > .form-control,\nselect.input-group-sm > .input-group-addon,\nselect.input-group-sm > .input-group-btn > .btn {\n  height: 30px;\n  line-height: 30px;\n}\ntextarea.input-group-sm > .form-control,\ntextarea.input-group-sm > .input-group-addon,\ntextarea.input-group-sm > .input-group-btn > .btn,\nselect[multiple].input-group-sm > .form-control,\nselect[multiple].input-group-sm > .input-group-addon,\nselect[multiple].input-group-sm > .input-group-btn > .btn {\n  height: auto;\n}\n.input-group-addon,\n.input-group-btn,\n.input-group .form-control {\n  display: table-cell;\n}\n.input-group-addon:not(:first-child):not(:last-child),\n.input-group-btn:not(:first-child):not(:last-child),\n.input-group .form-control:not(:first-child):not(:last-child) {\n  border-radius: 0;\n}\n.input-group-addon,\n.input-group-btn {\n  width: 1%;\n  white-space: nowrap;\n  vertical-align: middle;\n}\n.input-group-addon {\n  padding: 6px 12px;\n  font-size: 14px;\n  font-weight: normal;\n  line-height: 1;\n  color: #555;\n  text-align: center;\n  background-color: #eee;\n  border: 1px solid #ccc;\n  border-radius: 4px;\n}\n.input-group-addon.input-sm {\n  padding: 5px 10px;\n  font-size: 12px;\n  border-radius: 3px;\n}\n.input-group-addon.input-lg {\n  padding: 10px 16px;\n  font-size: 18px;\n  border-radius: 6px;\n}\n.input-group-addon input[type=\"radio\"],\n.input-group-addon input[type=\"checkbox\"] {\n  margin-top: 0;\n}\n.input-group .form-control:first-child,\n.input-group-addon:first-child,\n.input-group-btn:first-child > .btn,\n.input-group-btn:first-child > .btn-group > .btn,\n.input-group-btn:first-child > .dropdown-toggle,\n.input-group-btn:last-child > .btn:not(:last-child):not(.dropdown-toggle),\n.input-group-btn:last-child > .btn-group:not(:last-child) > .btn {\n  border-top-right-radius: 0;\n  border-bottom-right-radius: 0;\n}\n.input-group-addon:first-child {\n  border-right: 0;\n}\n.input-group .form-control:last-child,\n.input-group-addon:last-child,\n.input-group-btn:last-child > .btn,\n.input-group-btn:last-child > .btn-group > .btn,\n.input-group-btn:last-child > .dropdown-toggle,\n.input-group-btn:first-child > .btn:not(:first-child),\n.input-group-btn:first-child > .btn-group:not(:first-child) > .btn {\n  border-top-left-radius: 0;\n  border-bottom-left-radius: 0;\n}\n.input-group-addon:last-child {\n  border-left: 0;\n}\n.input-group-btn {\n  position: relative;\n  font-size: 0;\n  white-space: nowrap;\n}\n.input-group-btn > .btn {\n  position: relative;\n}\n.input-group-btn > .btn + .btn {\n  margin-left: -1px;\n}\n.input-group-btn > .btn:hover,\n.input-group-btn > .btn:focus,\n.input-group-btn > .btn:active {\n  z-index: 2;\n}\n.input-group-btn:first-child > .btn,\n.input-group-btn:first-child > .btn-group {\n  margin-right: -1px;\n}\n.input-group-btn:last-child > .btn,\n.input-group-btn:last-child > .btn-group {\n  z-index: 2;\n  margin-left: -1px;\n}\n.nav {\n  padding-left: 0;\n  margin-bottom: 0;\n  list-style: none;\n}\n.nav > li {\n  position: relative;\n  display: block;\n}\n.nav > li > a {\n  position: relative;\n  display: block;\n  padding: 10px 15px;\n}\n.nav > li > a:hover,\n.nav > li > a:focus {\n  text-decoration: none;\n  background-color: #eee;\n}\n.nav > li.disabled > a {\n  color: #777;\n}\n.nav > li.disabled > a:hover,\n.nav > li.disabled > a:focus {\n  color: #777;\n  text-decoration: none;\n  cursor: not-allowed;\n  background-color: transparent;\n}\n.nav .open > a,\n.nav .open > a:hover,\n.nav .open > a:focus {\n  background-color: #eee;\n  border-color: #337ab7;\n}\n.nav .nav-divider {\n  height: 1px;\n  margin: 9px 0;\n  overflow: hidden;\n  background-color: #e5e5e5;\n}\n.nav > li > a > img {\n  max-width: none;\n}\n.nav-tabs {\n  border-bottom: 1px solid #ddd;\n}\n.nav-tabs > li {\n  float: left;\n  margin-bottom: -1px;\n}\n.nav-tabs > li > a {\n  margin-right: 2px;\n  line-height: 1.42857143;\n  border: 1px solid transparent;\n  border-radius: 4px 4px 0 0;\n}\n.nav-tabs > li > a:hover {\n  border-color: #eee #eee #ddd;\n}\n.nav-tabs > li.active > a,\n.nav-tabs > li.active > a:hover,\n.nav-tabs > li.active > a:focus {\n  color: #555;\n  cursor: default;\n  background-color: #fff;\n  border: 1px solid #ddd;\n  border-bottom-color: transparent;\n}\n.nav-tabs.nav-justified {\n  width: 100%;\n  border-bottom: 0;\n}\n.nav-tabs.nav-justified > li {\n  float: none;\n}\n.nav-tabs.nav-justified > li > a {\n  margin-bottom: 5px;\n  text-align: center;\n}\n.nav-tabs.nav-justified > .dropdown .dropdown-menu {\n  top: auto;\n  left: auto;\n}\n@media (min-width: 768px) {\n  .nav-tabs.nav-justified > li {\n    display: table-cell;\n    width: 1%;\n  }\n  .nav-tabs.nav-justified > li > a {\n    margin-bottom: 0;\n  }\n}\n.nav-tabs.nav-justified > li > a {\n  margin-right: 0;\n  border-radius: 4px;\n}\n.nav-tabs.nav-justified > .active > a,\n.nav-tabs.nav-justified > .active > a:hover,\n.nav-tabs.nav-justified > .active > a:focus {\n  border: 1px solid #ddd;\n}\n@media (min-width: 768px) {\n  .nav-tabs.nav-justified > li > a {\n    border-bottom: 1px solid #ddd;\n    border-radius: 4px 4px 0 0;\n  }\n  .nav-tabs.nav-justified > .active > a,\n  .nav-tabs.nav-justified > .active > a:hover,\n  .nav-tabs.nav-justified > .active > a:focus {\n    border-bottom-color: #fff;\n  }\n}\n.nav-pills > li {\n  float: left;\n}\n.nav-pills > li > a {\n  border-radius: 4px;\n}\n.nav-pills > li + li {\n  margin-left: 2px;\n}\n.nav-pills > li.active > a,\n.nav-pills > li.active > a:hover,\n.nav-pills > li.active > a:focus {\n  color: #fff;\n  background-color: #337ab7;\n}\n.nav-stacked > li {\n  float: none;\n}\n.nav-stacked > li + li {\n  margin-top: 2px;\n  margin-left: 0;\n}\n.nav-justified {\n  width: 100%;\n}\n.nav-justified > li {\n  float: none;\n}\n.nav-justified > li > a {\n  margin-bottom: 5px;\n  text-align: center;\n}\n.nav-justified > .dropdown .dropdown-menu {\n  top: auto;\n  left: auto;\n}\n@media (min-width: 768px) {\n  .nav-justified > li {\n    display: table-cell;\n    width: 1%;\n  }\n  .nav-justified > li > a {\n    margin-bottom: 0;\n  }\n}\n.nav-tabs-justified {\n  border-bottom: 0;\n}\n.nav-tabs-justified > li > a {\n  margin-right: 0;\n  border-radius: 4px;\n}\n.nav-tabs-justified > .active > a,\n.nav-tabs-justified > .active > a:hover,\n.nav-tabs-justified > .active > a:focus {\n  border: 1px solid #ddd;\n}\n@media (min-width: 768px) {\n  .nav-tabs-justified > li > a {\n    border-bottom: 1px solid #ddd;\n    border-radius: 4px 4px 0 0;\n  }\n  .nav-tabs-justified > .active > a,\n  .nav-tabs-justified > .active > a:hover,\n  .nav-tabs-justified > .active > a:focus {\n    border-bottom-color: #fff;\n  }\n}\n.tab-content > .tab-pane {\n  display: none;\n}\n.tab-content > .active {\n  display: block;\n}\n.nav-tabs .dropdown-menu {\n  margin-top: -1px;\n  border-top-left-radius: 0;\n  border-top-right-radius: 0;\n}\n.navbar {\n  position: relative;\n  min-height: 50px;\n  margin-bottom: 20px;\n  border: 1px solid transparent;\n}\n@media (min-width: 768px) {\n  .navbar {\n    border-radius: 4px;\n  }\n}\n@media (min-width: 768px) {\n  .navbar-header {\n    float: left;\n  }\n}\n.navbar-collapse {\n  padding-right: 15px;\n  padding-left: 15px;\n  overflow-x: visible;\n  -webkit-overflow-scrolling: touch;\n  border-top: 1px solid transparent;\n  -webkit-box-shadow: inset 0 1px 0 rgba(255, 255, 255, .1);\n          box-shadow: inset 0 1px 0 rgba(255, 255, 255, .1);\n}\n.navbar-collapse.in {\n  overflow-y: auto;\n}\n@media (min-width: 768px) {\n  .navbar-collapse {\n    width: auto;\n    border-top: 0;\n    -webkit-box-shadow: none;\n            box-shadow: none;\n  }\n  .navbar-collapse.collapse {\n    display: block !important;\n    height: auto !important;\n    padding-bottom: 0;\n    overflow: visible !important;\n  }\n  .navbar-collapse.in {\n    overflow-y: visible;\n  }\n  .navbar-fixed-top .navbar-collapse,\n  .navbar-static-top .navbar-collapse,\n  .navbar-fixed-bottom .navbar-collapse {\n    padding-right: 0;\n    padding-left: 0;\n  }\n}\n.navbar-fixed-top .navbar-collapse,\n.navbar-fixed-bottom .navbar-collapse {\n  max-height: 340px;\n}\n@media (max-device-width: 480px) and (orientation: landscape) {\n  .navbar-fixed-top .navbar-collapse,\n  .navbar-fixed-bottom .navbar-collapse {\n    max-height: 200px;\n  }\n}\n.container > .navbar-header,\n.container-fluid > .navbar-header,\n.container > .navbar-collapse,\n.container-fluid > .navbar-collapse {\n  margin-right: -15px;\n  margin-left: -15px;\n}\n@media (min-width: 768px) {\n  .container > .navbar-header,\n  .container-fluid > .navbar-header,\n  .container > .navbar-collapse,\n  .container-fluid > .navbar-collapse {\n    margin-right: 0;\n    margin-left: 0;\n  }\n}\n.navbar-static-top {\n  z-index: 1000;\n  border-width: 0 0 1px;\n}\n@media (min-width: 768px) {\n  .navbar-static-top {\n    border-radius: 0;\n  }\n}\n.navbar-fixed-top,\n.navbar-fixed-bottom {\n  position: fixed;\n  right: 0;\n  left: 0;\n  z-index: 1030;\n}\n@media (min-width: 768px) {\n  .navbar-fixed-top,\n  .navbar-fixed-bottom {\n    border-radius: 0;\n  }\n}\n.navbar-fixed-top {\n  top: 0;\n  border-width: 0 0 1px;\n}\n.navbar-fixed-bottom {\n  bottom: 0;\n  margin-bottom: 0;\n  border-width: 1px 0 0;\n}\n.navbar-brand {\n  float: left;\n  height: 50px;\n  padding: 15px 15px;\n  font-size: 18px;\n  line-height: 20px;\n}\n.navbar-brand:hover,\n.navbar-brand:focus {\n  text-decoration: none;\n}\n.navbar-brand > img {\n  display: block;\n}\n@media (min-width: 768px) {\n  .navbar > .container .navbar-brand,\n  .navbar > .container-fluid .navbar-brand {\n    margin-left: -15px;\n  }\n}\n.navbar-toggle {\n  position: relative;\n  float: right;\n  padding: 9px 10px;\n  margin-top: 8px;\n  margin-right: 15px;\n  margin-bottom: 8px;\n  background-color: transparent;\n  background-image: none;\n  border: 1px solid transparent;\n  border-radius: 4px;\n}\n.navbar-toggle:focus {\n  outline: 0;\n}\n.navbar-toggle .icon-bar {\n  display: block;\n  width: 22px;\n  height: 2px;\n  border-radius: 1px;\n}\n.navbar-toggle .icon-bar + .icon-bar {\n  margin-top: 4px;\n}\n@media (min-width: 768px) {\n  .navbar-toggle {\n    display: none;\n  }\n}\n.navbar-nav {\n  margin: 7.5px -15px;\n}\n.navbar-nav > li > a {\n  padding-top: 10px;\n  padding-bottom: 10px;\n  line-height: 20px;\n}\n@media (max-width: 767px) {\n  .navbar-nav .open .dropdown-menu {\n    position: static;\n    float: none;\n    width: auto;\n    margin-top: 0;\n    background-color: transparent;\n    border: 0;\n    -webkit-box-shadow: none;\n            box-shadow: none;\n  }\n  .navbar-nav .open .dropdown-menu > li > a,\n  .navbar-nav .open .dropdown-menu .dropdown-header {\n    padding: 5px 15px 5px 25px;\n  }\n  .navbar-nav .open .dropdown-menu > li > a {\n    line-height: 20px;\n  }\n  .navbar-nav .open .dropdown-menu > li > a:hover,\n  .navbar-nav .open .dropdown-menu > li > a:focus {\n    background-image: none;\n  }\n}\n@media (min-width: 768px) {\n  .navbar-nav {\n    float: left;\n    margin: 0;\n  }\n  .navbar-nav > li {\n    float: left;\n  }\n  .navbar-nav > li > a {\n    padding-top: 15px;\n    padding-bottom: 15px;\n  }\n}\n.navbar-form {\n  padding: 10px 15px;\n  margin-top: 8px;\n  margin-right: -15px;\n  margin-bottom: 8px;\n  margin-left: -15px;\n  border-top: 1px solid transparent;\n  border-bottom: 1px solid transparent;\n  -webkit-box-shadow: inset 0 1px 0 rgba(255, 255, 255, .1), 0 1px 0 rgba(255, 255, 255, .1);\n          box-shadow: inset 0 1px 0 rgba(255, 255, 255, .1), 0 1px 0 rgba(255, 255, 255, .1);\n}\n@media (min-width: 768px) {\n  .navbar-form .form-group {\n    display: inline-block;\n    margin-bottom: 0;\n    vertical-align: middle;\n  }\n  .navbar-form .form-control {\n    display: inline-block;\n    width: auto;\n    vertical-align: middle;\n  }\n  .navbar-form .form-control-static {\n    display: inline-block;\n  }\n  .navbar-form .input-group {\n    display: inline-table;\n    vertical-align: middle;\n  }\n  .navbar-form .input-group .input-group-addon,\n  .navbar-form .input-group .input-group-btn,\n  .navbar-form .input-group .form-control {\n    width: auto;\n  }\n  .navbar-form .input-group > .form-control {\n    width: 100%;\n  }\n  .navbar-form .control-label {\n    margin-bottom: 0;\n    vertical-align: middle;\n  }\n  .navbar-form .radio,\n  .navbar-form .checkbox {\n    display: inline-block;\n    margin-top: 0;\n    margin-bottom: 0;\n    vertical-align: middle;\n  }\n  .navbar-form .radio label,\n  .navbar-form .checkbox label {\n    padding-left: 0;\n  }\n  .navbar-form .radio input[type=\"radio\"],\n  .navbar-form .checkbox input[type=\"checkbox\"] {\n    position: relative;\n    margin-left: 0;\n  }\n  .navbar-form .has-feedback .form-control-feedback {\n    top: 0;\n  }\n}\n@media (max-width: 767px) {\n  .navbar-form .form-group {\n    margin-bottom: 5px;\n  }\n  .navbar-form .form-group:last-child {\n    margin-bottom: 0;\n  }\n}\n@media (min-width: 768px) {\n  .navbar-form {\n    width: auto;\n    padding-top: 0;\n    padding-bottom: 0;\n    margin-right: 0;\n    margin-left: 0;\n    border: 0;\n    -webkit-box-shadow: none;\n            box-shadow: none;\n  }\n}\n.navbar-nav > li > .dropdown-menu {\n  margin-top: 0;\n  border-top-left-radius: 0;\n  border-top-right-radius: 0;\n}\n.navbar-fixed-bottom .navbar-nav > li > .dropdown-menu {\n  margin-bottom: 0;\n  border-top-left-radius: 4px;\n  border-top-right-radius: 4px;\n  border-bottom-right-radius: 0;\n  border-bottom-left-radius: 0;\n}\n.navbar-btn {\n  margin-top: 8px;\n  margin-bottom: 8px;\n}\n.navbar-btn.btn-sm {\n  margin-top: 10px;\n  margin-bottom: 10px;\n}\n.navbar-btn.btn-xs {\n  margin-top: 14px;\n  margin-bottom: 14px;\n}\n.navbar-text {\n  margin-top: 15px;\n  margin-bottom: 15px;\n}\n@media (min-width: 768px) {\n  .navbar-text {\n    float: left;\n    margin-right: 15px;\n    margin-left: 15px;\n  }\n}\n@media (min-width: 768px) {\n  .navbar-left {\n    float: left !important;\n  }\n  .navbar-right {\n    float: right !important;\n    margin-right: -15px;\n  }\n  .navbar-right ~ .navbar-right {\n    margin-right: 0;\n  }\n}\n.navbar-default {\n  background-color: #f8f8f8;\n  border-color: #e7e7e7;\n}\n.navbar-default .navbar-brand {\n  color: #777;\n}\n.navbar-default .navbar-brand:hover,\n.navbar-default .navbar-brand:focus {\n  color: #5e5e5e;\n  background-color: transparent;\n}\n.navbar-default .navbar-text {\n  color: #777;\n}\n.navbar-default .navbar-nav > li > a {\n  color: #777;\n}\n.navbar-default .navbar-nav > li > a:hover,\n.navbar-default .navbar-nav > li > a:focus {\n  color: #333;\n  background-color: transparent;\n}\n.navbar-default .navbar-nav > .active > a,\n.navbar-default .navbar-nav > .active > a:hover,\n.navbar-default .navbar-nav > .active > a:focus {\n  color: #555;\n  background-color: #e7e7e7;\n}\n.navbar-default .navbar-nav > .disabled > a,\n.navbar-default .navbar-nav > .disabled > a:hover,\n.navbar-default .navbar-nav > .disabled > a:focus {\n  color: #ccc;\n  background-color: transparent;\n}\n.navbar-default .navbar-toggle {\n  border-color: #ddd;\n}\n.navbar-default .navbar-toggle:hover,\n.navbar-default .navbar-toggle:focus {\n  background-color: #ddd;\n}\n.navbar-default .navbar-toggle .icon-bar {\n  background-color: #888;\n}\n.navbar-default .navbar-collapse,\n.navbar-default .navbar-form {\n  border-color: #e7e7e7;\n}\n.navbar-default .navbar-nav > .open > a,\n.navbar-default .navbar-nav > .open > a:hover,\n.navbar-default .navbar-nav > .open > a:focus {\n  color: #555;\n  background-color: #e7e7e7;\n}\n@media (max-width: 767px) {\n  .navbar-default .navbar-nav .open .dropdown-menu > li > a {\n    color: #777;\n  }\n  .navbar-default .navbar-nav .open .dropdown-menu > li > a:hover,\n  .navbar-default .navbar-nav .open .dropdown-menu > li > a:focus {\n    color: #333;\n    background-color: transparent;\n  }\n  .navbar-default .navbar-nav .open .dropdown-menu > .active > a,\n  .navbar-default .navbar-nav .open .dropdown-menu > .active > a:hover,\n  .navbar-default .navbar-nav .open .dropdown-menu > .active > a:focus {\n    color: #555;\n    background-color: #e7e7e7;\n  }\n  .navbar-default .navbar-nav .open .dropdown-menu > .disabled > a,\n  .navbar-default .navbar-nav .open .dropdown-menu > .disabled > a:hover,\n  .navbar-default .navbar-nav .open .dropdown-menu > .disabled > a:focus {\n    color: #ccc;\n    background-color: transparent;\n  }\n}\n.navbar-default .navbar-link {\n  color: #777;\n}\n.navbar-default .navbar-link:hover {\n  color: #333;\n}\n.navbar-default .btn-link {\n  color: #777;\n}\n.navbar-default .btn-link:hover,\n.navbar-default .btn-link:focus {\n  color: #333;\n}\n.navbar-default .btn-link[disabled]:hover,\nfieldset[disabled] .navbar-default .btn-link:hover,\n.navbar-default .btn-link[disabled]:focus,\nfieldset[disabled] .navbar-default .btn-link:focus {\n  color: #ccc;\n}\n.navbar-inverse {\n  background-color: #222;\n  border-color: #080808;\n}\n.navbar-inverse .navbar-brand {\n  color: #9d9d9d;\n}\n.navbar-inverse .navbar-brand:hover,\n.navbar-inverse .navbar-brand:focus {\n  color: #fff;\n  background-color: transparent;\n}\n.navbar-inverse .navbar-text {\n  color: #9d9d9d;\n}\n.navbar-inverse .navbar-nav > li > a {\n  color: #9d9d9d;\n}\n.navbar-inverse .navbar-nav > li > a:hover,\n.navbar-inverse .navbar-nav > li > a:focus {\n  color: #fff;\n  background-color: transparent;\n}\n.navbar-inverse .navbar-nav > .active > a,\n.navbar-inverse .navbar-nav > .active > a:hover,\n.navbar-inverse .navbar-nav > .active > a:focus {\n  color: #fff;\n  background-color: #080808;\n}\n.navbar-inverse .navbar-nav > .disabled > a,\n.navbar-inverse .navbar-nav > .disabled > a:hover,\n.navbar-inverse .navbar-nav > .disabled > a:focus {\n  color: #444;\n  background-color: transparent;\n}\n.navbar-inverse .navbar-toggle {\n  border-color: #333;\n}\n.navbar-inverse .navbar-toggle:hover,\n.navbar-inverse .navbar-toggle:focus {\n  background-color: #333;\n}\n.navbar-inverse .navbar-toggle .icon-bar {\n  background-color: #fff;\n}\n.navbar-inverse .navbar-collapse,\n.navbar-inverse .navbar-form {\n  border-color: #101010;\n}\n.navbar-inverse .navbar-nav > .open > a,\n.navbar-inverse .navbar-nav > .open > a:hover,\n.navbar-inverse .navbar-nav > .open > a:focus {\n  color: #fff;\n  background-color: #080808;\n}\n@media (max-width: 767px) {\n  .navbar-inverse .navbar-nav .open .dropdown-menu > .dropdown-header {\n    border-color: #080808;\n  }\n  .navbar-inverse .navbar-nav .open .dropdown-menu .divider {\n    background-color: #080808;\n  }\n  .navbar-inverse .navbar-nav .open .dropdown-menu > li > a {\n    color: #9d9d9d;\n  }\n  .navbar-inverse .navbar-nav .open .dropdown-menu > li > a:hover,\n  .navbar-inverse .navbar-nav .open .dropdown-menu > li > a:focus {\n    color: #fff;\n    background-color: transparent;\n  }\n  .navbar-inverse .navbar-nav .open .dropdown-menu > .active > a,\n  .navbar-inverse .navbar-nav .open .dropdown-menu > .active > a:hover,\n  .navbar-inverse .navbar-nav .open .dropdown-menu > .active > a:focus {\n    color: #fff;\n    background-color: #080808;\n  }\n  .navbar-inverse .navbar-nav .open .dropdown-menu > .disabled > a,\n  .navbar-inverse .navbar-nav .open .dropdown-menu > .disabled > a:hover,\n  .navbar-inverse .navbar-nav .open .dropdown-menu > .disabled > a:focus {\n    color: #444;\n    background-color: transparent;\n  }\n}\n.navbar-inverse .navbar-link {\n  color: #9d9d9d;\n}\n.navbar-inverse .navbar-link:hover {\n  color: #fff;\n}\n.navbar-inverse .btn-link {\n  color: #9d9d9d;\n}\n.navbar-inverse .btn-link:hover,\n.navbar-inverse .btn-link:focus {\n  color: #fff;\n}\n.navbar-inverse .btn-link[disabled]:hover,\nfieldset[disabled] .navbar-inverse .btn-link:hover,\n.navbar-inverse .btn-link[disabled]:focus,\nfieldset[disabled] .navbar-inverse .btn-link:focus {\n  color: #444;\n}\n.breadcrumb {\n  padding: 8px 15px;\n  margin-bottom: 20px;\n  list-style: none;\n  background-color: #f5f5f5;\n  border-radius: 4px;\n}\n.breadcrumb > li {\n  display: inline-block;\n}\n.breadcrumb > li + li:before {\n  padding: 0 5px;\n  color: #ccc;\n  content: \"/\\A0\";\n}\n.breadcrumb > .active {\n  color: #777;\n}\n.pagination {\n  display: inline-block;\n  padding-left: 0;\n  margin: 20px 0;\n  border-radius: 4px;\n}\n.pagination > li {\n  display: inline;\n}\n.pagination > li > a,\n.pagination > li > span {\n  position: relative;\n  float: left;\n  padding: 6px 12px;\n  margin-left: -1px;\n  line-height: 1.42857143;\n  color: #337ab7;\n  text-decoration: none;\n  background-color: #fff;\n  border: 1px solid #ddd;\n}\n.pagination > li:first-child > a,\n.pagination > li:first-child > span {\n  margin-left: 0;\n  border-top-left-radius: 4px;\n  border-bottom-left-radius: 4px;\n}\n.pagination > li:last-child > a,\n.pagination > li:last-child > span {\n  border-top-right-radius: 4px;\n  border-bottom-right-radius: 4px;\n}\n.pagination > li > a:hover,\n.pagination > li > span:hover,\n.pagination > li > a:focus,\n.pagination > li > span:focus {\n  z-index: 2;\n  color: #23527c;\n  background-color: #eee;\n  border-color: #ddd;\n}\n.pagination > .active > a,\n.pagination > .active > span,\n.pagination > .active > a:hover,\n.pagination > .active > span:hover,\n.pagination > .active > a:focus,\n.pagination > .active > span:focus {\n  z-index: 3;\n  color: #fff;\n  cursor: default;\n  background-color: #337ab7;\n  border-color: #337ab7;\n}\n.pagination > .disabled > span,\n.pagination > .disabled > span:hover,\n.pagination > .disabled > span:focus,\n.pagination > .disabled > a,\n.pagination > .disabled > a:hover,\n.pagination > .disabled > a:focus {\n  color: #777;\n  cursor: not-allowed;\n  background-color: #fff;\n  border-color: #ddd;\n}\n.pagination-lg > li > a,\n.pagination-lg > li > span {\n  padding: 10px 16px;\n  font-size: 18px;\n  line-height: 1.3333333;\n}\n.pagination-lg > li:first-child > a,\n.pagination-lg > li:first-child > span {\n  border-top-left-radius: 6px;\n  border-bottom-left-radius: 6px;\n}\n.pagination-lg > li:last-child > a,\n.pagination-lg > li:last-child > span {\n  border-top-right-radius: 6px;\n  border-bottom-right-radius: 6px;\n}\n.pagination-sm > li > a,\n.pagination-sm > li > span {\n  padding: 5px 10px;\n  font-size: 12px;\n  line-height: 1.5;\n}\n.pagination-sm > li:first-child > a,\n.pagination-sm > li:first-child > span {\n  border-top-left-radius: 3px;\n  border-bottom-left-radius: 3px;\n}\n.pagination-sm > li:last-child > a,\n.pagination-sm > li:last-child > span {\n  border-top-right-radius: 3px;\n  border-bottom-right-radius: 3px;\n}\n.pager {\n  padding-left: 0;\n  margin: 20px 0;\n  text-align: center;\n  list-style: none;\n}\n.pager li {\n  display: inline;\n}\n.pager li > a,\n.pager li > span {\n  display: inline-block;\n  padding: 5px 14px;\n  background-color: #fff;\n  border: 1px solid #ddd;\n  border-radius: 15px;\n}\n.pager li > a:hover,\n.pager li > a:focus {\n  text-decoration: none;\n  background-color: #eee;\n}\n.pager .next > a,\n.pager .next > span {\n  float: right;\n}\n.pager .previous > a,\n.pager .previous > span {\n  float: left;\n}\n.pager .disabled > a,\n.pager .disabled > a:hover,\n.pager .disabled > a:focus,\n.pager .disabled > span {\n  color: #777;\n  cursor: not-allowed;\n  background-color: #fff;\n}\n.label {\n  display: inline;\n  padding: .2em .6em .3em;\n  font-size: 75%;\n  font-weight: bold;\n  line-height: 1;\n  color: #fff;\n  text-align: center;\n  white-space: nowrap;\n  vertical-align: baseline;\n  border-radius: .25em;\n}\na.label:hover,\na.label:focus {\n  color: #fff;\n  text-decoration: none;\n  cursor: pointer;\n}\n.label:empty {\n  display: none;\n}\n.btn .label {\n  position: relative;\n  top: -1px;\n}\n.label-default {\n  background-color: #777;\n}\n.label-default[href]:hover,\n.label-default[href]:focus {\n  background-color: #5e5e5e;\n}\n.label-primary {\n  background-color: #337ab7;\n}\n.label-primary[href]:hover,\n.label-primary[href]:focus {\n  background-color: #286090;\n}\n.label-success {\n  background-color: #5cb85c;\n}\n.label-success[href]:hover,\n.label-success[href]:focus {\n  background-color: #449d44;\n}\n.label-info {\n  background-color: #5bc0de;\n}\n.label-info[href]:hover,\n.label-info[href]:focus {\n  background-color: #31b0d5;\n}\n.label-warning {\n  background-color: #f0ad4e;\n}\n.label-warning[href]:hover,\n.label-warning[href]:focus {\n  background-color: #ec971f;\n}\n.label-danger {\n  background-color: #d9534f;\n}\n.label-danger[href]:hover,\n.label-danger[href]:focus {\n  background-color: #c9302c;\n}\n.badge {\n  display: inline-block;\n  min-width: 10px;\n  padding: 3px 7px;\n  font-size: 12px;\n  font-weight: bold;\n  line-height: 1;\n  color: #fff;\n  text-align: center;\n  white-space: nowrap;\n  vertical-align: middle;\n  background-color: #777;\n  border-radius: 10px;\n}\n.badge:empty {\n  display: none;\n}\n.btn .badge {\n  position: relative;\n  top: -1px;\n}\n.btn-xs .badge,\n.btn-group-xs > .btn .badge {\n  top: 0;\n  padding: 1px 5px;\n}\na.badge:hover,\na.badge:focus {\n  color: #fff;\n  text-decoration: none;\n  cursor: pointer;\n}\n.list-group-item.active > .badge,\n.nav-pills > .active > a > .badge {\n  color: #337ab7;\n  background-color: #fff;\n}\n.list-group-item > .badge {\n  float: right;\n}\n.list-group-item > .badge + .badge {\n  margin-right: 5px;\n}\n.nav-pills > li > a > .badge {\n  margin-left: 3px;\n}\n.jumbotron {\n  padding-top: 30px;\n  padding-bottom: 30px;\n  margin-bottom: 30px;\n  color: inherit;\n  background-color: #eee;\n}\n.jumbotron h1,\n.jumbotron .h1 {\n  color: inherit;\n}\n.jumbotron p {\n  margin-bottom: 15px;\n  font-size: 21px;\n  font-weight: 200;\n}\n.jumbotron > hr {\n  border-top-color: #d5d5d5;\n}\n.container .jumbotron,\n.container-fluid .jumbotron {\n  padding-right: 15px;\n  padding-left: 15px;\n  border-radius: 6px;\n}\n.jumbotron .container {\n  max-width: 100%;\n}\n@media screen and (min-width: 768px) {\n  .jumbotron {\n    padding-top: 48px;\n    padding-bottom: 48px;\n  }\n  .container .jumbotron,\n  .container-fluid .jumbotron {\n    padding-right: 60px;\n    padding-left: 60px;\n  }\n  .jumbotron h1,\n  .jumbotron .h1 {\n    font-size: 63px;\n  }\n}\n.thumbnail {\n  display: block;\n  padding: 4px;\n  margin-bottom: 20px;\n  line-height: 1.42857143;\n  background-color: #fff;\n  border: 1px solid #ddd;\n  border-radius: 4px;\n  -webkit-transition: border .2s ease-in-out;\n       -o-transition: border .2s ease-in-out;\n          transition: border .2s ease-in-out;\n}\n.thumbnail > img,\n.thumbnail a > img {\n  margin-right: auto;\n  margin-left: auto;\n}\na.thumbnail:hover,\na.thumbnail:focus,\na.thumbnail.active {\n  border-color: #337ab7;\n}\n.thumbnail .caption {\n  padding: 9px;\n  color: #333;\n}\n.alert {\n  padding: 15px;\n  margin-bottom: 20px;\n  border: 1px solid transparent;\n  border-radius: 4px;\n}\n.alert h4 {\n  margin-top: 0;\n  color: inherit;\n}\n.alert .alert-link {\n  font-weight: bold;\n}\n.alert > p,\n.alert > ul {\n  margin-bottom: 0;\n}\n.alert > p + p {\n  margin-top: 5px;\n}\n.alert-dismissable,\n.alert-dismissible {\n  padding-right: 35px;\n}\n.alert-dismissable .close,\n.alert-dismissible .close {\n  position: relative;\n  top: -2px;\n  right: -21px;\n  color: inherit;\n}\n.alert-success {\n  color: #3c763d;\n  background-color: #dff0d8;\n  border-color: #d6e9c6;\n}\n.alert-success hr {\n  border-top-color: #c9e2b3;\n}\n.alert-success .alert-link {\n  color: #2b542c;\n}\n.alert-info {\n  color: #31708f;\n  background-color: #d9edf7;\n  border-color: #bce8f1;\n}\n.alert-info hr {\n  border-top-color: #a6e1ec;\n}\n.alert-info .alert-link {\n  color: #245269;\n}\n.alert-warning {\n  color: #8a6d3b;\n  background-color: #fcf8e3;\n  border-color: #faebcc;\n}\n.alert-warning hr {\n  border-top-color: #f7e1b5;\n}\n.alert-warning .alert-link {\n  color: #66512c;\n}\n.alert-danger {\n  color: #a94442;\n  background-color: #f2dede;\n  border-color: #ebccd1;\n}\n.alert-danger hr {\n  border-top-color: #e4b9c0;\n}\n.alert-danger .alert-link {\n  color: #843534;\n}\n@-webkit-keyframes progress-bar-stripes {\n  from {\n    background-position: 40px 0;\n  }\n  to {\n    background-position: 0 0;\n  }\n}\n@-o-keyframes progress-bar-stripes {\n  from {\n    background-position: 40px 0;\n  }\n  to {\n    background-position: 0 0;\n  }\n}\n@keyframes progress-bar-stripes {\n  from {\n    background-position: 40px 0;\n  }\n  to {\n    background-position: 0 0;\n  }\n}\n.progress {\n  height: 20px;\n  margin-bottom: 20px;\n  overflow: hidden;\n  background-color: #f5f5f5;\n  border-radius: 4px;\n  -webkit-box-shadow: inset 0 1px 2px rgba(0, 0, 0, .1);\n          box-shadow: inset 0 1px 2px rgba(0, 0, 0, .1);\n}\n.progress-bar {\n  float: left;\n  width: 0;\n  height: 100%;\n  font-size: 12px;\n  line-height: 20px;\n  color: #fff;\n  text-align: center;\n  background-color: #337ab7;\n  -webkit-box-shadow: inset 0 -1px 0 rgba(0, 0, 0, .15);\n          box-shadow: inset 0 -1px 0 rgba(0, 0, 0, .15);\n  -webkit-transition: width .6s ease;\n       -o-transition: width .6s ease;\n          transition: width .6s ease;\n}\n.progress-striped .progress-bar,\n.progress-bar-striped {\n  background-image: -webkit-linear-gradient(45deg, rgba(255, 255, 255, .15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, .15) 50%, rgba(255, 255, 255, .15) 75%, transparent 75%, transparent);\n  background-image:      -o-linear-gradient(45deg, rgba(255, 255, 255, .15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, .15) 50%, rgba(255, 255, 255, .15) 75%, transparent 75%, transparent);\n  background-image:         linear-gradient(45deg, rgba(255, 255, 255, .15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, .15) 50%, rgba(255, 255, 255, .15) 75%, transparent 75%, transparent);\n  -webkit-background-size: 40px 40px;\n          background-size: 40px 40px;\n}\n.progress.active .progress-bar,\n.progress-bar.active {\n  -webkit-animation: progress-bar-stripes 2s linear infinite;\n       -o-animation: progress-bar-stripes 2s linear infinite;\n          animation: progress-bar-stripes 2s linear infinite;\n}\n.progress-bar-success {\n  background-color: #5cb85c;\n}\n.progress-striped .progress-bar-success {\n  background-image: -webkit-linear-gradient(45deg, rgba(255, 255, 255, .15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, .15) 50%, rgba(255, 255, 255, .15) 75%, transparent 75%, transparent);\n  background-image:      -o-linear-gradient(45deg, rgba(255, 255, 255, .15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, .15) 50%, rgba(255, 255, 255, .15) 75%, transparent 75%, transparent);\n  background-image:         linear-gradient(45deg, rgba(255, 255, 255, .15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, .15) 50%, rgba(255, 255, 255, .15) 75%, transparent 75%, transparent);\n}\n.progress-bar-info {\n  background-color: #5bc0de;\n}\n.progress-striped .progress-bar-info {\n  background-image: -webkit-linear-gradient(45deg, rgba(255, 255, 255, .15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, .15) 50%, rgba(255, 255, 255, .15) 75%, transparent 75%, transparent);\n  background-image:      -o-linear-gradient(45deg, rgba(255, 255, 255, .15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, .15) 50%, rgba(255, 255, 255, .15) 75%, transparent 75%, transparent);\n  background-image:         linear-gradient(45deg, rgba(255, 255, 255, .15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, .15) 50%, rgba(255, 255, 255, .15) 75%, transparent 75%, transparent);\n}\n.progress-bar-warning {\n  background-color: #f0ad4e;\n}\n.progress-striped .progress-bar-warning {\n  background-image: -webkit-linear-gradient(45deg, rgba(255, 255, 255, .15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, .15) 50%, rgba(255, 255, 255, .15) 75%, transparent 75%, transparent);\n  background-image:      -o-linear-gradient(45deg, rgba(255, 255, 255, .15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, .15) 50%, rgba(255, 255, 255, .15) 75%, transparent 75%, transparent);\n  background-image:         linear-gradient(45deg, rgba(255, 255, 255, .15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, .15) 50%, rgba(255, 255, 255, .15) 75%, transparent 75%, transparent);\n}\n.progress-bar-danger {\n  background-color: #d9534f;\n}\n.progress-striped .progress-bar-danger {\n  background-image: -webkit-linear-gradient(45deg, rgba(255, 255, 255, .15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, .15) 50%, rgba(255, 255, 255, .15) 75%, transparent 75%, transparent);\n  background-image:      -o-linear-gradient(45deg, rgba(255, 255, 255, .15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, .15) 50%, rgba(255, 255, 255, .15) 75%, transparent 75%, transparent);\n  background-image:         linear-gradient(45deg, rgba(255, 255, 255, .15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, .15) 50%, rgba(255, 255, 255, .15) 75%, transparent 75%, transparent);\n}\n.media {\n  margin-top: 15px;\n}\n.media:first-child {\n  margin-top: 0;\n}\n.media,\n.media-body {\n  overflow: hidden;\n  zoom: 1;\n}\n.media-body {\n  width: 10000px;\n}\n.media-object {\n  display: block;\n}\n.media-object.img-thumbnail {\n  max-width: none;\n}\n.media-right,\n.media > .pull-right {\n  padding-left: 10px;\n}\n.media-left,\n.media > .pull-left {\n  padding-right: 10px;\n}\n.media-left,\n.media-right,\n.media-body {\n  display: table-cell;\n  vertical-align: top;\n}\n.media-middle {\n  vertical-align: middle;\n}\n.media-bottom {\n  vertical-align: bottom;\n}\n.media-heading {\n  margin-top: 0;\n  margin-bottom: 5px;\n}\n.media-list {\n  padding-left: 0;\n  list-style: none;\n}\n.list-group {\n  padding-left: 0;\n  margin-bottom: 20px;\n}\n.list-group-item {\n  position: relative;\n  display: block;\n  padding: 10px 15px;\n  margin-bottom: -1px;\n  background-color: #fff;\n  border: 1px solid #ddd;\n}\n.list-group-item:first-child {\n  border-top-left-radius: 4px;\n  border-top-right-radius: 4px;\n}\n.list-group-item:last-child {\n  margin-bottom: 0;\n  border-bottom-right-radius: 4px;\n  border-bottom-left-radius: 4px;\n}\na.list-group-item,\nbutton.list-group-item {\n  color: #555;\n}\na.list-group-item .list-group-item-heading,\nbutton.list-group-item .list-group-item-heading {\n  color: #333;\n}\na.list-group-item:hover,\nbutton.list-group-item:hover,\na.list-group-item:focus,\nbutton.list-group-item:focus {\n  color: #555;\n  text-decoration: none;\n  background-color: #f5f5f5;\n}\nbutton.list-group-item {\n  width: 100%;\n  text-align: left;\n}\n.list-group-item.disabled,\n.list-group-item.disabled:hover,\n.list-group-item.disabled:focus {\n  color: #777;\n  cursor: not-allowed;\n  background-color: #eee;\n}\n.list-group-item.disabled .list-group-item-heading,\n.list-group-item.disabled:hover .list-group-item-heading,\n.list-group-item.disabled:focus .list-group-item-heading {\n  color: inherit;\n}\n.list-group-item.disabled .list-group-item-text,\n.list-group-item.disabled:hover .list-group-item-text,\n.list-group-item.disabled:focus .list-group-item-text {\n  color: #777;\n}\n.list-group-item.active,\n.list-group-item.active:hover,\n.list-group-item.active:focus {\n  z-index: 2;\n  color: #fff;\n  background-color: #337ab7;\n  border-color: #337ab7;\n}\n.list-group-item.active .list-group-item-heading,\n.list-group-item.active:hover .list-group-item-heading,\n.list-group-item.active:focus .list-group-item-heading,\n.list-group-item.active .list-group-item-heading > small,\n.list-group-item.active:hover .list-group-item-heading > small,\n.list-group-item.active:focus .list-group-item-heading > small,\n.list-group-item.active .list-group-item-heading > .small,\n.list-group-item.active:hover .list-group-item-heading > .small,\n.list-group-item.active:focus .list-group-item-heading > .small {\n  color: inherit;\n}\n.list-group-item.active .list-group-item-text,\n.list-group-item.active:hover .list-group-item-text,\n.list-group-item.active:focus .list-group-item-text {\n  color: #c7ddef;\n}\n.list-group-item-success {\n  color: #3c763d;\n  background-color: #dff0d8;\n}\na.list-group-item-success,\nbutton.list-group-item-success {\n  color: #3c763d;\n}\na.list-group-item-success .list-group-item-heading,\nbutton.list-group-item-success .list-group-item-heading {\n  color: inherit;\n}\na.list-group-item-success:hover,\nbutton.list-group-item-success:hover,\na.list-group-item-success:focus,\nbutton.list-group-item-success:focus {\n  color: #3c763d;\n  background-color: #d0e9c6;\n}\na.list-group-item-success.active,\nbutton.list-group-item-success.active,\na.list-group-item-success.active:hover,\nbutton.list-group-item-success.active:hover,\na.list-group-item-success.active:focus,\nbutton.list-group-item-success.active:focus {\n  color: #fff;\n  background-color: #3c763d;\n  border-color: #3c763d;\n}\n.list-group-item-info {\n  color: #31708f;\n  background-color: #d9edf7;\n}\na.list-group-item-info,\nbutton.list-group-item-info {\n  color: #31708f;\n}\na.list-group-item-info .list-group-item-heading,\nbutton.list-group-item-info .list-group-item-heading {\n  color: inherit;\n}\na.list-group-item-info:hover,\nbutton.list-group-item-info:hover,\na.list-group-item-info:focus,\nbutton.list-group-item-info:focus {\n  color: #31708f;\n  background-color: #c4e3f3;\n}\na.list-group-item-info.active,\nbutton.list-group-item-info.active,\na.list-group-item-info.active:hover,\nbutton.list-group-item-info.active:hover,\na.list-group-item-info.active:focus,\nbutton.list-group-item-info.active:focus {\n  color: #fff;\n  background-color: #31708f;\n  border-color: #31708f;\n}\n.list-group-item-warning {\n  color: #8a6d3b;\n  background-color: #fcf8e3;\n}\na.list-group-item-warning,\nbutton.list-group-item-warning {\n  color: #8a6d3b;\n}\na.list-group-item-warning .list-group-item-heading,\nbutton.list-group-item-warning .list-group-item-heading {\n  color: inherit;\n}\na.list-group-item-warning:hover,\nbutton.list-group-item-warning:hover,\na.list-group-item-warning:focus,\nbutton.list-group-item-warning:focus {\n  color: #8a6d3b;\n  background-color: #faf2cc;\n}\na.list-group-item-warning.active,\nbutton.list-group-item-warning.active,\na.list-group-item-warning.active:hover,\nbutton.list-group-item-warning.active:hover,\na.list-group-item-warning.active:focus,\nbutton.list-group-item-warning.active:focus {\n  color: #fff;\n  background-color: #8a6d3b;\n  border-color: #8a6d3b;\n}\n.list-group-item-danger {\n  color: #a94442;\n  background-color: #f2dede;\n}\na.list-group-item-danger,\nbutton.list-group-item-danger {\n  color: #a94442;\n}\na.list-group-item-danger .list-group-item-heading,\nbutton.list-group-item-danger .list-group-item-heading {\n  color: inherit;\n}\na.list-group-item-danger:hover,\nbutton.list-group-item-danger:hover,\na.list-group-item-danger:focus,\nbutton.list-group-item-danger:focus {\n  color: #a94442;\n  background-color: #ebcccc;\n}\na.list-group-item-danger.active,\nbutton.list-group-item-danger.active,\na.list-group-item-danger.active:hover,\nbutton.list-group-item-danger.active:hover,\na.list-group-item-danger.active:focus,\nbutton.list-group-item-danger.active:focus {\n  color: #fff;\n  background-color: #a94442;\n  border-color: #a94442;\n}\n.list-group-item-heading {\n  margin-top: 0;\n  margin-bottom: 5px;\n}\n.list-group-item-text {\n  margin-bottom: 0;\n  line-height: 1.3;\n}\n.panel {\n  margin-bottom: 20px;\n  background-color: #fff;\n  border: 1px solid transparent;\n  border-radius: 4px;\n  -webkit-box-shadow: 0 1px 1px rgba(0, 0, 0, .05);\n          box-shadow: 0 1px 1px rgba(0, 0, 0, .05);\n}\n.panel-body {\n  padding: 15px;\n}\n.panel-heading {\n  padding: 10px 15px;\n  border-bottom: 1px solid transparent;\n  border-top-left-radius: 3px;\n  border-top-right-radius: 3px;\n}\n.panel-heading > .dropdown .dropdown-toggle {\n  color: inherit;\n}\n.panel-title {\n  margin-top: 0;\n  margin-bottom: 0;\n  font-size: 16px;\n  color: inherit;\n}\n.panel-title > a,\n.panel-title > small,\n.panel-title > .small,\n.panel-title > small > a,\n.panel-title > .small > a {\n  color: inherit;\n}\n.panel-footer {\n  padding: 10px 15px;\n  background-color: #f5f5f5;\n  border-top: 1px solid #ddd;\n  border-bottom-right-radius: 3px;\n  border-bottom-left-radius: 3px;\n}\n.panel > .list-group,\n.panel > .panel-collapse > .list-group {\n  margin-bottom: 0;\n}\n.panel > .list-group .list-group-item,\n.panel > .panel-collapse > .list-group .list-group-item {\n  border-width: 1px 0;\n  border-radius: 0;\n}\n.panel > .list-group:first-child .list-group-item:first-child,\n.panel > .panel-collapse > .list-group:first-child .list-group-item:first-child {\n  border-top: 0;\n  border-top-left-radius: 3px;\n  border-top-right-radius: 3px;\n}\n.panel > .list-group:last-child .list-group-item:last-child,\n.panel > .panel-collapse > .list-group:last-child .list-group-item:last-child {\n  border-bottom: 0;\n  border-bottom-right-radius: 3px;\n  border-bottom-left-radius: 3px;\n}\n.panel > .panel-heading + .panel-collapse > .list-group .list-group-item:first-child {\n  border-top-left-radius: 0;\n  border-top-right-radius: 0;\n}\n.panel-heading + .list-group .list-group-item:first-child {\n  border-top-width: 0;\n}\n.list-group + .panel-footer {\n  border-top-width: 0;\n}\n.panel > .table,\n.panel > .table-responsive > .table,\n.panel > .panel-collapse > .table {\n  margin-bottom: 0;\n}\n.panel > .table caption,\n.panel > .table-responsive > .table caption,\n.panel > .panel-collapse > .table caption {\n  padding-right: 15px;\n  padding-left: 15px;\n}\n.panel > .table:first-child,\n.panel > .table-responsive:first-child > .table:first-child {\n  border-top-left-radius: 3px;\n  border-top-right-radius: 3px;\n}\n.panel > .table:first-child > thead:first-child > tr:first-child,\n.panel > .table-responsive:first-child > .table:first-child > thead:first-child > tr:first-child,\n.panel > .table:first-child > tbody:first-child > tr:first-child,\n.panel > .table-responsive:first-child > .table:first-child > tbody:first-child > tr:first-child {\n  border-top-left-radius: 3px;\n  border-top-right-radius: 3px;\n}\n.panel > .table:first-child > thead:first-child > tr:first-child td:first-child,\n.panel > .table-responsive:first-child > .table:first-child > thead:first-child > tr:first-child td:first-child,\n.panel > .table:first-child > tbody:first-child > tr:first-child td:first-child,\n.panel > .table-responsive:first-child > .table:first-child > tbody:first-child > tr:first-child td:first-child,\n.panel > .table:first-child > thead:first-child > tr:first-child th:first-child,\n.panel > .table-responsive:first-child > .table:first-child > thead:first-child > tr:first-child th:first-child,\n.panel > .table:first-child > tbody:first-child > tr:first-child th:first-child,\n.panel > .table-responsive:first-child > .table:first-child > tbody:first-child > tr:first-child th:first-child {\n  border-top-left-radius: 3px;\n}\n.panel > .table:first-child > thead:first-child > tr:first-child td:last-child,\n.panel > .table-responsive:first-child > .table:first-child > thead:first-child > tr:first-child td:last-child,\n.panel > .table:first-child > tbody:first-child > tr:first-child td:last-child,\n.panel > .table-responsive:first-child > .table:first-child > tbody:first-child > tr:first-child td:last-child,\n.panel > .table:first-child > thead:first-child > tr:first-child th:last-child,\n.panel > .table-responsive:first-child > .table:first-child > thead:first-child > tr:first-child th:last-child,\n.panel > .table:first-child > tbody:first-child > tr:first-child th:last-child,\n.panel > .table-responsive:first-child > .table:first-child > tbody:first-child > tr:first-child th:last-child {\n  border-top-right-radius: 3px;\n}\n.panel > .table:last-child,\n.panel > .table-responsive:last-child > .table:last-child {\n  border-bottom-right-radius: 3px;\n  border-bottom-left-radius: 3px;\n}\n.panel > .table:last-child > tbody:last-child > tr:last-child,\n.panel > .table-responsive:last-child > .table:last-child > tbody:last-child > tr:last-child,\n.panel > .table:last-child > tfoot:last-child > tr:last-child,\n.panel > .table-responsive:last-child > .table:last-child > tfoot:last-child > tr:last-child {\n  border-bottom-right-radius: 3px;\n  border-bottom-left-radius: 3px;\n}\n.panel > .table:last-child > tbody:last-child > tr:last-child td:first-child,\n.panel > .table-responsive:last-child > .table:last-child > tbody:last-child > tr:last-child td:first-child,\n.panel > .table:last-child > tfoot:last-child > tr:last-child td:first-child,\n.panel > .table-responsive:last-child > .table:last-child > tfoot:last-child > tr:last-child td:first-child,\n.panel > .table:last-child > tbody:last-child > tr:last-child th:first-child,\n.panel > .table-responsive:last-child > .table:last-child > tbody:last-child > tr:last-child th:first-child,\n.panel > .table:last-child > tfoot:last-child > tr:last-child th:first-child,\n.panel > .table-responsive:last-child > .table:last-child > tfoot:last-child > tr:last-child th:first-child {\n  border-bottom-left-radius: 3px;\n}\n.panel > .table:last-child > tbody:last-child > tr:last-child td:last-child,\n.panel > .table-responsive:last-child > .table:last-child > tbody:last-child > tr:last-child td:last-child,\n.panel > .table:last-child > tfoot:last-child > tr:last-child td:last-child,\n.panel > .table-responsive:last-child > .table:last-child > tfoot:last-child > tr:last-child td:last-child,\n.panel > .table:last-child > tbody:last-child > tr:last-child th:last-child,\n.panel > .table-responsive:last-child > .table:last-child > tbody:last-child > tr:last-child th:last-child,\n.panel > .table:last-child > tfoot:last-child > tr:last-child th:last-child,\n.panel > .table-responsive:last-child > .table:last-child > tfoot:last-child > tr:last-child th:last-child {\n  border-bottom-right-radius: 3px;\n}\n.panel > .panel-body + .table,\n.panel > .panel-body + .table-responsive,\n.panel > .table + .panel-body,\n.panel > .table-responsive + .panel-body {\n  border-top: 1px solid #ddd;\n}\n.panel > .table > tbody:first-child > tr:first-child th,\n.panel > .table > tbody:first-child > tr:first-child td {\n  border-top: 0;\n}\n.panel > .table-bordered,\n.panel > .table-responsive > .table-bordered {\n  border: 0;\n}\n.panel > .table-bordered > thead > tr > th:first-child,\n.panel > .table-responsive > .table-bordered > thead > tr > th:first-child,\n.panel > .table-bordered > tbody > tr > th:first-child,\n.panel > .table-responsive > .table-bordered > tbody > tr > th:first-child,\n.panel > .table-bordered > tfoot > tr > th:first-child,\n.panel > .table-responsive > .table-bordered > tfoot > tr > th:first-child,\n.panel > .table-bordered > thead > tr > td:first-child,\n.panel > .table-responsive > .table-bordered > thead > tr > td:first-child,\n.panel > .table-bordered > tbody > tr > td:first-child,\n.panel > .table-responsive > .table-bordered > tbody > tr > td:first-child,\n.panel > .table-bordered > tfoot > tr > td:first-child,\n.panel > .table-responsive > .table-bordered > tfoot > tr > td:first-child {\n  border-left: 0;\n}\n.panel > .table-bordered > thead > tr > th:last-child,\n.panel > .table-responsive > .table-bordered > thead > tr > th:last-child,\n.panel > .table-bordered > tbody > tr > th:last-child,\n.panel > .table-responsive > .table-bordered > tbody > tr > th:last-child,\n.panel > .table-bordered > tfoot > tr > th:last-child,\n.panel > .table-responsive > .table-bordered > tfoot > tr > th:last-child,\n.panel > .table-bordered > thead > tr > td:last-child,\n.panel > .table-responsive > .table-bordered > thead > tr > td:last-child,\n.panel > .table-bordered > tbody > tr > td:last-child,\n.panel > .table-responsive > .table-bordered > tbody > tr > td:last-child,\n.panel > .table-bordered > tfoot > tr > td:last-child,\n.panel > .table-responsive > .table-bordered > tfoot > tr > td:last-child {\n  border-right: 0;\n}\n.panel > .table-bordered > thead > tr:first-child > td,\n.panel > .table-responsive > .table-bordered > thead > tr:first-child > td,\n.panel > .table-bordered > tbody > tr:first-child > td,\n.panel > .table-responsive > .table-bordered > tbody > tr:first-child > td,\n.panel > .table-bordered > thead > tr:first-child > th,\n.panel > .table-responsive > .table-bordered > thead > tr:first-child > th,\n.panel > .table-bordered > tbody > tr:first-child > th,\n.panel > .table-responsive > .table-bordered > tbody > tr:first-child > th {\n  border-bottom: 0;\n}\n.panel > .table-bordered > tbody > tr:last-child > td,\n.panel > .table-responsive > .table-bordered > tbody > tr:last-child > td,\n.panel > .table-bordered > tfoot > tr:last-child > td,\n.panel > .table-responsive > .table-bordered > tfoot > tr:last-child > td,\n.panel > .table-bordered > tbody > tr:last-child > th,\n.panel > .table-responsive > .table-bordered > tbody > tr:last-child > th,\n.panel > .table-bordered > tfoot > tr:last-child > th,\n.panel > .table-responsive > .table-bordered > tfoot > tr:last-child > th {\n  border-bottom: 0;\n}\n.panel > .table-responsive {\n  margin-bottom: 0;\n  border: 0;\n}\n.panel-group {\n  margin-bottom: 20px;\n}\n.panel-group .panel {\n  margin-bottom: 0;\n  border-radius: 4px;\n}\n.panel-group .panel + .panel {\n  margin-top: 5px;\n}\n.panel-group .panel-heading {\n  border-bottom: 0;\n}\n.panel-group .panel-heading + .panel-collapse > .panel-body,\n.panel-group .panel-heading + .panel-collapse > .list-group {\n  border-top: 1px solid #ddd;\n}\n.panel-group .panel-footer {\n  border-top: 0;\n}\n.panel-group .panel-footer + .panel-collapse .panel-body {\n  border-bottom: 1px solid #ddd;\n}\n.panel-default {\n  border-color: #ddd;\n}\n.panel-default > .panel-heading {\n  color: #333;\n  background-color: #f5f5f5;\n  border-color: #ddd;\n}\n.panel-default > .panel-heading + .panel-collapse > .panel-body {\n  border-top-color: #ddd;\n}\n.panel-default > .panel-heading .badge {\n  color: #f5f5f5;\n  background-color: #333;\n}\n.panel-default > .panel-footer + .panel-collapse > .panel-body {\n  border-bottom-color: #ddd;\n}\n.panel-primary {\n  border-color: #337ab7;\n}\n.panel-primary > .panel-heading {\n  color: #fff;\n  background-color: #337ab7;\n  border-color: #337ab7;\n}\n.panel-primary > .panel-heading + .panel-collapse > .panel-body {\n  border-top-color: #337ab7;\n}\n.panel-primary > .panel-heading .badge {\n  color: #337ab7;\n  background-color: #fff;\n}\n.panel-primary > .panel-footer + .panel-collapse > .panel-body {\n  border-bottom-color: #337ab7;\n}\n.panel-success {\n  border-color: #d6e9c6;\n}\n.panel-success > .panel-heading {\n  color: #3c763d;\n  background-color: #dff0d8;\n  border-color: #d6e9c6;\n}\n.panel-success > .panel-heading + .panel-collapse > .panel-body {\n  border-top-color: #d6e9c6;\n}\n.panel-success > .panel-heading .badge {\n  color: #dff0d8;\n  background-color: #3c763d;\n}\n.panel-success > .panel-footer + .panel-collapse > .panel-body {\n  border-bottom-color: #d6e9c6;\n}\n.panel-info {\n  border-color: #bce8f1;\n}\n.panel-info > .panel-heading {\n  color: #31708f;\n  background-color: #d9edf7;\n  border-color: #bce8f1;\n}\n.panel-info > .panel-heading + .panel-collapse > .panel-body {\n  border-top-color: #bce8f1;\n}\n.panel-info > .panel-heading .badge {\n  color: #d9edf7;\n  background-color: #31708f;\n}\n.panel-info > .panel-footer + .panel-collapse > .panel-body {\n  border-bottom-color: #bce8f1;\n}\n.panel-warning {\n  border-color: #faebcc;\n}\n.panel-warning > .panel-heading {\n  color: #8a6d3b;\n  background-color: #fcf8e3;\n  border-color: #faebcc;\n}\n.panel-warning > .panel-heading + .panel-collapse > .panel-body {\n  border-top-color: #faebcc;\n}\n.panel-warning > .panel-heading .badge {\n  color: #fcf8e3;\n  background-color: #8a6d3b;\n}\n.panel-warning > .panel-footer + .panel-collapse > .panel-body {\n  border-bottom-color: #faebcc;\n}\n.panel-danger {\n  border-color: #ebccd1;\n}\n.panel-danger > .panel-heading {\n  color: #a94442;\n  background-color: #f2dede;\n  border-color: #ebccd1;\n}\n.panel-danger > .panel-heading + .panel-collapse > .panel-body {\n  border-top-color: #ebccd1;\n}\n.panel-danger > .panel-heading .badge {\n  color: #f2dede;\n  background-color: #a94442;\n}\n.panel-danger > .panel-footer + .panel-collapse > .panel-body {\n  border-bottom-color: #ebccd1;\n}\n.embed-responsive {\n  position: relative;\n  display: block;\n  height: 0;\n  padding: 0;\n  overflow: hidden;\n}\n.embed-responsive .embed-responsive-item,\n.embed-responsive iframe,\n.embed-responsive embed,\n.embed-responsive object,\n.embed-responsive video {\n  position: absolute;\n  top: 0;\n  bottom: 0;\n  left: 0;\n  width: 100%;\n  height: 100%;\n  border: 0;\n}\n.embed-responsive-16by9 {\n  padding-bottom: 56.25%;\n}\n.embed-responsive-4by3 {\n  padding-bottom: 75%;\n}\n.well {\n  min-height: 20px;\n  padding: 19px;\n  margin-bottom: 20px;\n  background-color: #f5f5f5;\n  border: 1px solid #e3e3e3;\n  border-radius: 4px;\n  -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, .05);\n          box-shadow: inset 0 1px 1px rgba(0, 0, 0, .05);\n}\n.well blockquote {\n  border-color: #ddd;\n  border-color: rgba(0, 0, 0, .15);\n}\n.well-lg {\n  padding: 24px;\n  border-radius: 6px;\n}\n.well-sm {\n  padding: 9px;\n  border-radius: 3px;\n}\n.close {\n  float: right;\n  font-size: 21px;\n  font-weight: bold;\n  line-height: 1;\n  color: #000;\n  text-shadow: 0 1px 0 #fff;\n  filter: alpha(opacity=20);\n  opacity: .2;\n}\n.close:hover,\n.close:focus {\n  color: #000;\n  text-decoration: none;\n  cursor: pointer;\n  filter: alpha(opacity=50);\n  opacity: .5;\n}\nbutton.close {\n  -webkit-appearance: none;\n  padding: 0;\n  cursor: pointer;\n  background: transparent;\n  border: 0;\n}\n.modal-open {\n  overflow: hidden;\n}\n.modal {\n  position: fixed;\n  top: 0;\n  right: 0;\n  bottom: 0;\n  left: 0;\n  z-index: 1050;\n  display: none;\n  overflow: hidden;\n  -webkit-overflow-scrolling: touch;\n  outline: 0;\n}\n.modal.fade .modal-dialog {\n  -webkit-transition: -webkit-transform .3s ease-out;\n       -o-transition:      -o-transform .3s ease-out;\n          transition:         transform .3s ease-out;\n  -webkit-transform: translate(0, -25%);\n      -ms-transform: translate(0, -25%);\n       -o-transform: translate(0, -25%);\n          transform: translate(0, -25%);\n}\n.modal.in .modal-dialog {\n  -webkit-transform: translate(0, 0);\n      -ms-transform: translate(0, 0);\n       -o-transform: translate(0, 0);\n          transform: translate(0, 0);\n}\n.modal-open .modal {\n  overflow-x: hidden;\n  overflow-y: auto;\n}\n.modal-dialog {\n  position: relative;\n  width: auto;\n  margin: 10px;\n}\n.modal-content {\n  position: relative;\n  background-color: #fff;\n  -webkit-background-clip: padding-box;\n          background-clip: padding-box;\n  border: 1px solid #999;\n  border: 1px solid rgba(0, 0, 0, .2);\n  border-radius: 6px;\n  outline: 0;\n  -webkit-box-shadow: 0 3px 9px rgba(0, 0, 0, .5);\n          box-shadow: 0 3px 9px rgba(0, 0, 0, .5);\n}\n.modal-backdrop {\n  position: fixed;\n  top: 0;\n  right: 0;\n  bottom: 0;\n  left: 0;\n  z-index: 1040;\n  background-color: #000;\n}\n.modal-backdrop.fade {\n  filter: alpha(opacity=0);\n  opacity: 0;\n}\n.modal-backdrop.in {\n  filter: alpha(opacity=50);\n  opacity: .5;\n}\n.modal-header {\n  padding: 15px;\n  border-bottom: 1px solid #e5e5e5;\n}\n.modal-header .close {\n  margin-top: -2px;\n}\n.modal-title {\n  margin: 0;\n  line-height: 1.42857143;\n}\n.modal-body {\n  position: relative;\n  padding: 15px;\n}\n.modal-footer {\n  padding: 15px;\n  text-align: right;\n  border-top: 1px solid #e5e5e5;\n}\n.modal-footer .btn + .btn {\n  margin-bottom: 0;\n  margin-left: 5px;\n}\n.modal-footer .btn-group .btn + .btn {\n  margin-left: -1px;\n}\n.modal-footer .btn-block + .btn-block {\n  margin-left: 0;\n}\n.modal-scrollbar-measure {\n  position: absolute;\n  top: -9999px;\n  width: 50px;\n  height: 50px;\n  overflow: scroll;\n}\n@media (min-width: 768px) {\n  .modal-dialog {\n    width: 600px;\n    margin: 30px auto;\n  }\n  .modal-content {\n    -webkit-box-shadow: 0 5px 15px rgba(0, 0, 0, .5);\n            box-shadow: 0 5px 15px rgba(0, 0, 0, .5);\n  }\n  .modal-sm {\n    width: 300px;\n  }\n}\n@media (min-width: 992px) {\n  .modal-lg {\n    width: 900px;\n  }\n}\n.tooltip {\n  position: absolute;\n  z-index: 1070;\n  display: block;\n  font-family: \"Helvetica Neue\", Helvetica, Arial, sans-serif;\n  font-size: 12px;\n  font-style: normal;\n  font-weight: normal;\n  line-height: 1.42857143;\n  text-align: left;\n  text-align: start;\n  text-decoration: none;\n  text-shadow: none;\n  text-transform: none;\n  letter-spacing: normal;\n  word-break: normal;\n  word-spacing: normal;\n  word-wrap: normal;\n  white-space: normal;\n  filter: alpha(opacity=0);\n  opacity: 0;\n\n  line-break: auto;\n}\n.tooltip.in {\n  filter: alpha(opacity=90);\n  opacity: .9;\n}\n.tooltip.top {\n  padding: 5px 0;\n  margin-top: -3px;\n}\n.tooltip.right {\n  padding: 0 5px;\n  margin-left: 3px;\n}\n.tooltip.bottom {\n  padding: 5px 0;\n  margin-top: 3px;\n}\n.tooltip.left {\n  padding: 0 5px;\n  margin-left: -3px;\n}\n.tooltip-inner {\n  max-width: 200px;\n  padding: 3px 8px;\n  color: #fff;\n  text-align: center;\n  background-color: #000;\n  border-radius: 4px;\n}\n.tooltip-arrow {\n  position: absolute;\n  width: 0;\n  height: 0;\n  border-color: transparent;\n  border-style: solid;\n}\n.tooltip.top .tooltip-arrow {\n  bottom: 0;\n  left: 50%;\n  margin-left: -5px;\n  border-width: 5px 5px 0;\n  border-top-color: #000;\n}\n.tooltip.top-left .tooltip-arrow {\n  right: 5px;\n  bottom: 0;\n  margin-bottom: -5px;\n  border-width: 5px 5px 0;\n  border-top-color: #000;\n}\n.tooltip.top-right .tooltip-arrow {\n  bottom: 0;\n  left: 5px;\n  margin-bottom: -5px;\n  border-width: 5px 5px 0;\n  border-top-color: #000;\n}\n.tooltip.right .tooltip-arrow {\n  top: 50%;\n  left: 0;\n  margin-top: -5px;\n  border-width: 5px 5px 5px 0;\n  border-right-color: #000;\n}\n.tooltip.left .tooltip-arrow {\n  top: 50%;\n  right: 0;\n  margin-top: -5px;\n  border-width: 5px 0 5px 5px;\n  border-left-color: #000;\n}\n.tooltip.bottom .tooltip-arrow {\n  top: 0;\n  left: 50%;\n  margin-left: -5px;\n  border-width: 0 5px 5px;\n  border-bottom-color: #000;\n}\n.tooltip.bottom-left .tooltip-arrow {\n  top: 0;\n  right: 5px;\n  margin-top: -5px;\n  border-width: 0 5px 5px;\n  border-bottom-color: #000;\n}\n.tooltip.bottom-right .tooltip-arrow {\n  top: 0;\n  left: 5px;\n  margin-top: -5px;\n  border-width: 0 5px 5px;\n  border-bottom-color: #000;\n}\n.popover {\n  position: absolute;\n  top: 0;\n  left: 0;\n  z-index: 1060;\n  display: none;\n  max-width: 276px;\n  padding: 1px;\n  font-family: \"Helvetica Neue\", Helvetica, Arial, sans-serif;\n  font-size: 14px;\n  font-style: normal;\n  font-weight: normal;\n  line-height: 1.42857143;\n  text-align: left;\n  text-align: start;\n  text-decoration: none;\n  text-shadow: none;\n  text-transform: none;\n  letter-spacing: normal;\n  word-break: normal;\n  word-spacing: normal;\n  word-wrap: normal;\n  white-space: normal;\n  background-color: #fff;\n  -webkit-background-clip: padding-box;\n          background-clip: padding-box;\n  border: 1px solid #ccc;\n  border: 1px solid rgba(0, 0, 0, .2);\n  border-radius: 6px;\n  -webkit-box-shadow: 0 5px 10px rgba(0, 0, 0, .2);\n          box-shadow: 0 5px 10px rgba(0, 0, 0, .2);\n\n  line-break: auto;\n}\n.popover.top {\n  margin-top: -10px;\n}\n.popover.right {\n  margin-left: 10px;\n}\n.popover.bottom {\n  margin-top: 10px;\n}\n.popover.left {\n  margin-left: -10px;\n}\n.popover-title {\n  padding: 8px 14px;\n  margin: 0;\n  font-size: 14px;\n  background-color: #f7f7f7;\n  border-bottom: 1px solid #ebebeb;\n  border-radius: 5px 5px 0 0;\n}\n.popover-content {\n  padding: 9px 14px;\n}\n.popover > .arrow,\n.popover > .arrow:after {\n  position: absolute;\n  display: block;\n  width: 0;\n  height: 0;\n  border-color: transparent;\n  border-style: solid;\n}\n.popover > .arrow {\n  border-width: 11px;\n}\n.popover > .arrow:after {\n  content: \"\";\n  border-width: 10px;\n}\n.popover.top > .arrow {\n  bottom: -11px;\n  left: 50%;\n  margin-left: -11px;\n  border-top-color: #999;\n  border-top-color: rgba(0, 0, 0, .25);\n  border-bottom-width: 0;\n}\n.popover.top > .arrow:after {\n  bottom: 1px;\n  margin-left: -10px;\n  content: \" \";\n  border-top-color: #fff;\n  border-bottom-width: 0;\n}\n.popover.right > .arrow {\n  top: 50%;\n  left: -11px;\n  margin-top: -11px;\n  border-right-color: #999;\n  border-right-color: rgba(0, 0, 0, .25);\n  border-left-width: 0;\n}\n.popover.right > .arrow:after {\n  bottom: -10px;\n  left: 1px;\n  content: \" \";\n  border-right-color: #fff;\n  border-left-width: 0;\n}\n.popover.bottom > .arrow {\n  top: -11px;\n  left: 50%;\n  margin-left: -11px;\n  border-top-width: 0;\n  border-bottom-color: #999;\n  border-bottom-color: rgba(0, 0, 0, .25);\n}\n.popover.bottom > .arrow:after {\n  top: 1px;\n  margin-left: -10px;\n  content: \" \";\n  border-top-width: 0;\n  border-bottom-color: #fff;\n}\n.popover.left > .arrow {\n  top: 50%;\n  right: -11px;\n  margin-top: -11px;\n  border-right-width: 0;\n  border-left-color: #999;\n  border-left-color: rgba(0, 0, 0, .25);\n}\n.popover.left > .arrow:after {\n  right: 1px;\n  bottom: -10px;\n  content: \" \";\n  border-right-width: 0;\n  border-left-color: #fff;\n}\n.carousel {\n  position: relative;\n}\n.carousel-inner {\n  position: relative;\n  width: 100%;\n  overflow: hidden;\n}\n.carousel-inner > .item {\n  position: relative;\n  display: none;\n  -webkit-transition: .6s ease-in-out left;\n       -o-transition: .6s ease-in-out left;\n          transition: .6s ease-in-out left;\n}\n.carousel-inner > .item > img,\n.carousel-inner > .item > a > img {\n  line-height: 1;\n}\n@media all and (transform-3d), (-webkit-transform-3d) {\n  .carousel-inner > .item {\n    -webkit-transition: -webkit-transform .6s ease-in-out;\n         -o-transition:      -o-transform .6s ease-in-out;\n            transition:         transform .6s ease-in-out;\n\n    -webkit-backface-visibility: hidden;\n            backface-visibility: hidden;\n    -webkit-perspective: 1000px;\n            perspective: 1000px;\n  }\n  .carousel-inner > .item.next,\n  .carousel-inner > .item.active.right {\n    left: 0;\n    -webkit-transform: translate3d(100%, 0, 0);\n            transform: translate3d(100%, 0, 0);\n  }\n  .carousel-inner > .item.prev,\n  .carousel-inner > .item.active.left {\n    left: 0;\n    -webkit-transform: translate3d(-100%, 0, 0);\n            transform: translate3d(-100%, 0, 0);\n  }\n  .carousel-inner > .item.next.left,\n  .carousel-inner > .item.prev.right,\n  .carousel-inner > .item.active {\n    left: 0;\n    -webkit-transform: translate3d(0, 0, 0);\n            transform: translate3d(0, 0, 0);\n  }\n}\n.carousel-inner > .active,\n.carousel-inner > .next,\n.carousel-inner > .prev {\n  display: block;\n}\n.carousel-inner > .active {\n  left: 0;\n}\n.carousel-inner > .next,\n.carousel-inner > .prev {\n  position: absolute;\n  top: 0;\n  width: 100%;\n}\n.carousel-inner > .next {\n  left: 100%;\n}\n.carousel-inner > .prev {\n  left: -100%;\n}\n.carousel-inner > .next.left,\n.carousel-inner > .prev.right {\n  left: 0;\n}\n.carousel-inner > .active.left {\n  left: -100%;\n}\n.carousel-inner > .active.right {\n  left: 100%;\n}\n.carousel-control {\n  position: absolute;\n  top: 0;\n  bottom: 0;\n  left: 0;\n  width: 15%;\n  font-size: 20px;\n  color: #fff;\n  text-align: center;\n  text-shadow: 0 1px 2px rgba(0, 0, 0, .6);\n  background-color: rgba(0, 0, 0, 0);\n  filter: alpha(opacity=50);\n  opacity: .5;\n}\n.carousel-control.left {\n  background-image: -webkit-linear-gradient(left, rgba(0, 0, 0, .5) 0%, rgba(0, 0, 0, .0001) 100%);\n  background-image:      -o-linear-gradient(left, rgba(0, 0, 0, .5) 0%, rgba(0, 0, 0, .0001) 100%);\n  background-image: -webkit-gradient(linear, left top, right top, from(rgba(0, 0, 0, .5)), to(rgba(0, 0, 0, .0001)));\n  background-image:         linear-gradient(to right, rgba(0, 0, 0, .5) 0%, rgba(0, 0, 0, .0001) 100%);\n  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#80000000', endColorstr='#00000000', GradientType=1);\n  background-repeat: repeat-x;\n}\n.carousel-control.right {\n  right: 0;\n  left: auto;\n  background-image: -webkit-linear-gradient(left, rgba(0, 0, 0, .0001) 0%, rgba(0, 0, 0, .5) 100%);\n  background-image:      -o-linear-gradient(left, rgba(0, 0, 0, .0001) 0%, rgba(0, 0, 0, .5) 100%);\n  background-image: -webkit-gradient(linear, left top, right top, from(rgba(0, 0, 0, .0001)), to(rgba(0, 0, 0, .5)));\n  background-image:         linear-gradient(to right, rgba(0, 0, 0, .0001) 0%, rgba(0, 0, 0, .5) 100%);\n  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#00000000', endColorstr='#80000000', GradientType=1);\n  background-repeat: repeat-x;\n}\n.carousel-control:hover,\n.carousel-control:focus {\n  color: #fff;\n  text-decoration: none;\n  filter: alpha(opacity=90);\n  outline: 0;\n  opacity: .9;\n}\n.carousel-control .icon-prev,\n.carousel-control .icon-next,\n.carousel-control .glyphicon-chevron-left,\n.carousel-control .glyphicon-chevron-right {\n  position: absolute;\n  top: 50%;\n  z-index: 5;\n  display: inline-block;\n  margin-top: -10px;\n}\n.carousel-control .icon-prev,\n.carousel-control .glyphicon-chevron-left {\n  left: 50%;\n  margin-left: -10px;\n}\n.carousel-control .icon-next,\n.carousel-control .glyphicon-chevron-right {\n  right: 50%;\n  margin-right: -10px;\n}\n.carousel-control .icon-prev,\n.carousel-control .icon-next {\n  width: 20px;\n  height: 20px;\n  font-family: serif;\n  line-height: 1;\n}\n.carousel-control .icon-prev:before {\n  content: '\\2039';\n}\n.carousel-control .icon-next:before {\n  content: '\\203A';\n}\n.carousel-indicators {\n  position: absolute;\n  bottom: 10px;\n  left: 50%;\n  z-index: 15;\n  width: 60%;\n  padding-left: 0;\n  margin-left: -30%;\n  text-align: center;\n  list-style: none;\n}\n.carousel-indicators li {\n  display: inline-block;\n  width: 10px;\n  height: 10px;\n  margin: 1px;\n  text-indent: -999px;\n  cursor: pointer;\n  background-color: #000 \\9;\n  background-color: rgba(0, 0, 0, 0);\n  border: 1px solid #fff;\n  border-radius: 10px;\n}\n.carousel-indicators .active {\n  width: 12px;\n  height: 12px;\n  margin: 0;\n  background-color: #fff;\n}\n.carousel-caption {\n  position: absolute;\n  right: 15%;\n  bottom: 20px;\n  left: 15%;\n  z-index: 10;\n  padding-top: 20px;\n  padding-bottom: 20px;\n  color: #fff;\n  text-align: center;\n  text-shadow: 0 1px 2px rgba(0, 0, 0, .6);\n}\n.carousel-caption .btn {\n  text-shadow: none;\n}\n@media screen and (min-width: 768px) {\n  .carousel-control .glyphicon-chevron-left,\n  .carousel-control .glyphicon-chevron-right,\n  .carousel-control .icon-prev,\n  .carousel-control .icon-next {\n    width: 30px;\n    height: 30px;\n    margin-top: -10px;\n    font-size: 30px;\n  }\n  .carousel-control .glyphicon-chevron-left,\n  .carousel-control .icon-prev {\n    margin-left: -10px;\n  }\n  .carousel-control .glyphicon-chevron-right,\n  .carousel-control .icon-next {\n    margin-right: -10px;\n  }\n  .carousel-caption {\n    right: 20%;\n    left: 20%;\n    padding-bottom: 30px;\n  }\n  .carousel-indicators {\n    bottom: 20px;\n  }\n}\n.clearfix:before,\n.clearfix:after,\n.dl-horizontal dd:before,\n.dl-horizontal dd:after,\n.container:before,\n.container:after,\n.container-fluid:before,\n.container-fluid:after,\n.row:before,\n.row:after,\n.form-horizontal .form-group:before,\n.form-horizontal .form-group:after,\n.btn-toolbar:before,\n.btn-toolbar:after,\n.btn-group-vertical > .btn-group:before,\n.btn-group-vertical > .btn-group:after,\n.nav:before,\n.nav:after,\n.navbar:before,\n.navbar:after,\n.navbar-header:before,\n.navbar-header:after,\n.navbar-collapse:before,\n.navbar-collapse:after,\n.pager:before,\n.pager:after,\n.panel-body:before,\n.panel-body:after,\n.modal-header:before,\n.modal-header:after,\n.modal-footer:before,\n.modal-footer:after {\n  display: table;\n  content: \" \";\n}\n.clearfix:after,\n.dl-horizontal dd:after,\n.container:after,\n.container-fluid:after,\n.row:after,\n.form-horizontal .form-group:after,\n.btn-toolbar:after,\n.btn-group-vertical > .btn-group:after,\n.nav:after,\n.navbar:after,\n.navbar-header:after,\n.navbar-collapse:after,\n.pager:after,\n.panel-body:after,\n.modal-header:after,\n.modal-footer:after {\n  clear: both;\n}\n.center-block {\n  display: block;\n  margin-right: auto;\n  margin-left: auto;\n}\n.pull-right {\n  float: right !important;\n}\n.pull-left {\n  float: left !important;\n}\n.hide {\n  display: none !important;\n}\n.show {\n  display: block !important;\n}\n.invisible {\n  visibility: hidden;\n}\n.text-hide {\n  font: 0/0 a;\n  color: transparent;\n  text-shadow: none;\n  background-color: transparent;\n  border: 0;\n}\n.hidden {\n  display: none !important;\n}\n.affix {\n  position: fixed;\n}\n@-ms-viewport {\n  width: device-width;\n}\n.visible-xs,\n.visible-sm,\n.visible-md,\n.visible-lg {\n  display: none !important;\n}\n.visible-xs-block,\n.visible-xs-inline,\n.visible-xs-inline-block,\n.visible-sm-block,\n.visible-sm-inline,\n.visible-sm-inline-block,\n.visible-md-block,\n.visible-md-inline,\n.visible-md-inline-block,\n.visible-lg-block,\n.visible-lg-inline,\n.visible-lg-inline-block {\n  display: none !important;\n}\n@media (max-width: 767px) {\n  .visible-xs {\n    display: block !important;\n  }\n  table.visible-xs {\n    display: table !important;\n  }\n  tr.visible-xs {\n    display: table-row !important;\n  }\n  th.visible-xs,\n  td.visible-xs {\n    display: table-cell !important;\n  }\n}\n@media (max-width: 767px) {\n  .visible-xs-block {\n    display: block !important;\n  }\n}\n@media (max-width: 767px) {\n  .visible-xs-inline {\n    display: inline !important;\n  }\n}\n@media (max-width: 767px) {\n  .visible-xs-inline-block {\n    display: inline-block !important;\n  }\n}\n@media (min-width: 768px) and (max-width: 991px) {\n  .visible-sm {\n    display: block !important;\n  }\n  table.visible-sm {\n    display: table !important;\n  }\n  tr.visible-sm {\n    display: table-row !important;\n  }\n  th.visible-sm,\n  td.visible-sm {\n    display: table-cell !important;\n  }\n}\n@media (min-width: 768px) and (max-width: 991px) {\n  .visible-sm-block {\n    display: block !important;\n  }\n}\n@media (min-width: 768px) and (max-width: 991px) {\n  .visible-sm-inline {\n    display: inline !important;\n  }\n}\n@media (min-width: 768px) and (max-width: 991px) {\n  .visible-sm-inline-block {\n    display: inline-block !important;\n  }\n}\n@media (min-width: 992px) and (max-width: 1199px) {\n  .visible-md {\n    display: block !important;\n  }\n  table.visible-md {\n    display: table !important;\n  }\n  tr.visible-md {\n    display: table-row !important;\n  }\n  th.visible-md,\n  td.visible-md {\n    display: table-cell !important;\n  }\n}\n@media (min-width: 992px) and (max-width: 1199px) {\n  .visible-md-block {\n    display: block !important;\n  }\n}\n@media (min-width: 992px) and (max-width: 1199px) {\n  .visible-md-inline {\n    display: inline !important;\n  }\n}\n@media (min-width: 992px) and (max-width: 1199px) {\n  .visible-md-inline-block {\n    display: inline-block !important;\n  }\n}\n@media (min-width: 1200px) {\n  .visible-lg {\n    display: block !important;\n  }\n  table.visible-lg {\n    display: table !important;\n  }\n  tr.visible-lg {\n    display: table-row !important;\n  }\n  th.visible-lg,\n  td.visible-lg {\n    display: table-cell !important;\n  }\n}\n@media (min-width: 1200px) {\n  .visible-lg-block {\n    display: block !important;\n  }\n}\n@media (min-width: 1200px) {\n  .visible-lg-inline {\n    display: inline !important;\n  }\n}\n@media (min-width: 1200px) {\n  .visible-lg-inline-block {\n    display: inline-block !important;\n  }\n}\n@media (max-width: 767px) {\n  .hidden-xs {\n    display: none !important;\n  }\n}\n@media (min-width: 768px) and (max-width: 991px) {\n  .hidden-sm {\n    display: none !important;\n  }\n}\n@media (min-width: 992px) and (max-width: 1199px) {\n  .hidden-md {\n    display: none !important;\n  }\n}\n@media (min-width: 1200px) {\n  .hidden-lg {\n    display: none !important;\n  }\n}\n.visible-print {\n  display: none !important;\n}\n@media print {\n  .visible-print {\n    display: block !important;\n  }\n  table.visible-print {\n    display: table !important;\n  }\n  tr.visible-print {\n    display: table-row !important;\n  }\n  th.visible-print,\n  td.visible-print {\n    display: table-cell !important;\n  }\n}\n.visible-print-block {\n  display: none !important;\n}\n@media print {\n  .visible-print-block {\n    display: block !important;\n  }\n}\n.visible-print-inline {\n  display: none !important;\n}\n@media print {\n  .visible-print-inline {\n    display: inline !important;\n  }\n}\n.visible-print-inline-block {\n  display: none !important;\n}\n@media print {\n  .visible-print-inline-block {\n    display: inline-block !important;\n  }\n}\n@media print {\n  .hidden-print {\n    display: none !important;\n  }\n}\n/*# sourceMappingURL=bootstrap.css.map */\n", ""]);
 	
 	// exports
 
@@ -40514,37 +41471,37 @@
 /* 28 */
 /***/ function(module, exports, __webpack_require__) {
 
-	module.exports = __webpack_require__.p + "25a32416abee198dd821b0b17a198a8f.eot";
+	module.exports = __webpack_require__.p + "674f50d287a8c48dc19ba404d20fe713.eot";
 
 /***/ },
 /* 29 */
 /***/ function(module, exports, __webpack_require__) {
 
-	module.exports = __webpack_require__.p + "25a32416abee198dd821b0b17a198a8f.eot";
+	module.exports = __webpack_require__.p + "674f50d287a8c48dc19ba404d20fe713.eot";
 
 /***/ },
 /* 30 */
 /***/ function(module, exports, __webpack_require__) {
 
-	module.exports = __webpack_require__.p + "e6cf7c6ec7c2d6f670ae9d762604cb0b.woff2";
+	module.exports = __webpack_require__.p + "af7ae505a9eed503f8b8e6982036873e.woff2";
 
 /***/ },
 /* 31 */
 /***/ function(module, exports, __webpack_require__) {
 
-	module.exports = __webpack_require__.p + "c8ddf1e5e5bf3682bc7bebf30f394148.woff";
+	module.exports = __webpack_require__.p + "fee66e712a8a08eef5805a46892932ad.woff";
 
 /***/ },
 /* 32 */
 /***/ function(module, exports, __webpack_require__) {
 
-	module.exports = __webpack_require__.p + "1dc35d25e61d819a9c357074014867ab.ttf";
+	module.exports = __webpack_require__.p + "b06871f281fee6b241d60582ae9369b9.ttf";
 
 /***/ },
 /* 33 */
 /***/ function(module, exports, __webpack_require__) {
 
-	module.exports = __webpack_require__.p + "d7c639084f684d66a1bc66855d193ed8.svg";
+	module.exports = __webpack_require__.p + "912ec66d7572ff821749319396470bde.svg";
 
 /***/ },
 /* 34 */
@@ -40900,12 +41857,14 @@
 	var Nettest = __webpack_require__(68);
 	var Deck = __webpack_require__(80);
 	var Measurement = __webpack_require__(86);
-	var MeasurementList = __webpack_require__(101);
-	var MeasurementSummary = __webpack_require__(107);
+	var MeasurementList = __webpack_require__(109);
+	var MeasurementSummary = __webpack_require__(115);
+	var Logs = __webpack_require__(121);
 	
 	var componentsModule = angular.module("app.components", [
 	  Deck,
 	  Home,
+	  Logs,
 	  Nettest,
 	  Measurement,
 	  MeasurementList,
@@ -41269,7 +42228,7 @@
 /* 60 */
 /***/ function(module, exports) {
 
-	module.exports = "<div class=\"status-wrapper\" ng-if=\"status.initialized != false\">\n  <div class=\"container\">\n    <div class=\"row\">\n      <div class=\"pull-left\">\n        <div class=\"ooni-logo\"></div>\n      </div>\n      <div class=\"status-item\">\n        {{status.software_name}} v{{status.software_version}}\n      </div>\n      <div class=\"status-item\">\n        running:\n        <i class=\"icon icon-ok\" ng-if=\"(status.director_started && status.agent_running) == true\"></i>\n        <i class=\"icon icon-not-ok\" ng-if=\"(status.director_started && status.agent_running) == false\"></i>\n      </div>\n\n      <div class=\"status-item\">\n        <strong>Country:</strong> {{status.country_code}}\n\n        ({{status.asn}})\n      </div>\n\n      <div class=\"pull-right\">\n        <button class=\"btn status-item\" ui-sref=\"home\"\n                ui-sref-active=\"active\">home\n        </button>\n\n        <button class=\"btn status-item\" ui-sref=\"deck\"\n                ui-sref-active=\"active\">decks\n        </button>\n\n        <button class=\"btn status-item\" ui-sref=\"nettest\"\n                ui-sref-active=\"active\">nettests\n        </button>\n\n        <button class=\"btn status-item\"\n                ui-sref-active=\"active\"\n                ui-sref=\"measurement-list\">measurements\n        </button>\n      </div>\n\n    </div>\n  </div>\n</div>\n\n<notification-list>\n</notification-list>\n";
+	module.exports = "<div class=\"status-wrapper\" ng-if=\"status.initialized != false\">\n  <div class=\"container\">\n    <div class=\"row\">\n      <div class=\"pull-left\">\n        <div class=\"ooni-logo\"></div>\n      </div>\n      <div class=\"status-item\">\n        {{status.software_name}} v{{status.software_version}}\n      </div>\n      <div class=\"status-item\">\n        running:\n        <i class=\"icon icon-ok\" ng-if=\"(status.director_started && status.agent_running) == true\"></i>\n        <i class=\"icon icon-not-ok\" ng-if=\"(status.director_started && status.agent_running) == false\"></i>\n      </div>\n\n      <div class=\"status-item\">\n        <strong>Country:</strong> {{status.country_code}}\n\n        ({{status.asn}})\n      </div>\n\n      <div class=\"pull-right\">\n        <button class=\"btn status-item\" ui-sref=\"home\"\n                ui-sref-active=\"active\">home\n        </button>\n\n        <button class=\"btn status-item\" ui-sref=\"deck\"\n                ui-sref-active=\"active\">decks\n        </button>\n\n        <button class=\"btn status-item\" ui-sref=\"nettest\"\n                ui-sref-active=\"active\">nettests\n        </button>\n\n        <button class=\"btn status-item\"\n                ui-sref-active=\"active\"\n                ui-sref=\"measurement-list\">measurements\n        </button>\n        <button class=\"btn status-item\"\n                ui-sref-active=\"active\"\n                ui-sref=\"logs\">logs\n        </button>\n      </div>\n\n    </div>\n  </div>\n</div>\n\n<notification-list>\n</notification-list>\n";
 
 /***/ },
 /* 61 */
@@ -41575,7 +42534,7 @@
 /* 70 */
 /***/ function(module, exports) {
 
-	module.exports = "<nettest.detail class=\"nettest-detail\"></nettest.detail>\n<div class=\"row selected-nettest\" ng-show=\"selectedNetTest\">\n  <div>\n    <h2>{{selectedNetTest.name}}</h2>\n    <div>\n      version: <span class=\"badge badge-success\">{{selectedNetTest.version}}</span>\n      <form name=\"netTestOptions\" class=\"nettest-options\">\n        <div class=\"row\">\n\n          <div class=\"col-md-4 form-group\"\n               ng-repeat=\"(name, options) in selectedNetTest.options\">\n            <label>{{name}}</label>\n            <div class=\"input-group\" ng-if=\"options.type=='file/url'\">\n              <select class=\"form-control\"\n                  ng-model=\"selectedNetTest.arguments[name].value\">\n                <option ng-repeat=\"(id, input) in inputs\"\n                        value=\"${{id}}\">{{input.name}}\n                </option>\n              </select>\n              <div class=\"input-group-addon file-info\" ng-if=\"selectedNetTest.arguments[name].value\">\n                <button class=\"btn\"\n                        ng-click=\"showFileContents(selectedNetTest.arguments[name].value)\">\n                  <i class=\"fa fa-info-circle\"></i>\n                </button>\n              </div>\n            </div>\n\n            <input class=\"form-control\"\n                ng-if=\"options.type!='file/url'\"\n                ng-model=\"selectedNetTest.arguments[name].value\"\n                type=\"{{options.type}}\">\n\n          </div>\n\n          <div class=\"col-md-4 form-group\"\n               ng-if=\"showAdvancedOptions\"\n               ng-repeat=\"(name, options) in selectedNetTest.advancedOptions\">\n            <label>{{name}}</label>\n            <input class=\"form-control\"\n                ng-if=\"options.type=='file'\"\n                ng-model=\"selectedNetTest.arguments[name].value\"\n                type=\"text\">\n\n            <input class=\"form-control\"\n                ng-if=\"options.type!='file'\"\n                ng-model=\"selectedNetTest.arguments[name].value\"\n                type=\"{{options.type}}\">\n\n          </div>\n        </div>\n\n        <div class=\"row\">\n          <div class=\"col-md-6\">\n              <button class=\"btn btn-primary\"\n                      ng-click=\"showAdvancedOptions = !showAdvancedOptions\">\n                more options\n              </button>\n              <button class=\"btn btn-primary\" ng-click=\"startNetTest()\">\n              Start Net Test\n              </button>\n            </div>\n        </div>\n\n      </form>\n\n    </div>\n  </div>\n</div>\n\n<div class=\"row\" ng-if=\"inputContent\">\n  <h2>The following URLs will be tested</h2>\n  <button class=\"btn\" ng-click=\"hideFileContents()\">close</button>\n  <ul>\n    <li ng-repeat=\"input in inputContent\">{{input}}</li>\n  </ul>\n</div>\n\n<div class=\"row\">\n\n  <div class=\"alert alert-warning\" ng-if=\"!$root.directorStarted\">\n    <strong>Warning</strong>\n    ooniprobe has not started yet. Please wait for it to start running tests.\n  </div>\n\n  <ul class=\"nettest-cards\">\n    <li ng-repeat=\"(name, details) in supportedNetTests\">\n      <h3 class=\"nettest-name\">{{details.name}}</h3>\n      <span class=\"label nettest-category-{{details.category}}\">\n          {{details.category}}\n      </span>\n      <span class=\"label label-default\">version: {{details.version}}</span>\n      <p class=\"nettest-description\">{{details.description}}</p>\n      <button class=\"btn\"\n              ui-sref=\"nettest.detail({id: details.id})\"\n              ui-sref-active=\"active\" ui-sref-opts=\"{reload: true}\">More Info</button>\n      <button class=\"btn btn-default\"\n              ng-disabled=\"!$root.directorStarted\"\n              ng-click=\"runNetTest(details.id)\">Run</button>\n\n    </li>\n  </ul>\n\n  <button class=\"btn\" ng-if=\"false\"\n          ng-click=\"showExperimental=!showExperimental\">Show\n    experimental tests</button>\n  <ul class=\"nettest-cards\" ng-if=\"showExperimental\">\n    <li ng-repeat=\"(name, details) in experimentalNetTests\">\n      <h3 class=\"nettest-name\">{{details.name}}</h3>\n      <span class=\"label nettest-category-{{details.category}}\">\n          {{details.category}}\n      </span>\n      <span class=\"label label-default\">version: {{details.version}}</span>\n      <p class=\"nettest-description\">{{details.description}}</p>\n\n      <button class=\"btn\"\n              ui-sref=\"nettest.detail({id: details.id})\"\n              ui-sref-active=\"active\" ui-sref-opts=\"{reload: true}\">More Info</button>\n\n      <button class=\"btn btn-default\"\n              ng-disabled=\"!$root.directorStarted\"\n              ng-click=\"runNetTest(details.id)\">Run</button>\n    </li>\n  </ul>\n\n</div>\n";
+	module.exports = "<nettest.detail class=\"nettest-detail\"></nettest.detail>\n<div class=\"row selected-nettest\" ng-show=\"selectedNetTest\">\n  <div>\n    <h2>{{selectedNetTest.name}}</h2>\n    <div>\n      version: <span class=\"badge badge-success\">{{selectedNetTest.version}}</span>\n      <form name=\"netTestOptions\" class=\"nettest-options\">\n        <div class=\"row\">\n\n          <div class=\"col-md-4 form-group\"\n               ng-repeat=\"(name, options) in selectedNetTest.options\">\n            <label>{{name}}</label>\n            <div class=\"input-group\" ng-if=\"options.type=='file/url'\">\n              <select class=\"form-control\"\n                  ng-model=\"selectedNetTest.arguments[name].value\">\n                <option ng-repeat=\"(id, input) in inputs\"\n                        value=\"${{id}}\">{{input.name}}\n                </option>\n              </select>\n              <div class=\"input-group-addon file-info\" ng-if=\"selectedNetTest.arguments[name].value\">\n                <button class=\"btn\"\n                        ng-click=\"showFileContents(selectedNetTest.arguments[name].value)\">\n                  <i class=\"fa fa-info-circle\"></i>\n                </button>\n              </div>\n            </div>\n\n            <input class=\"form-control\"\n                ng-if=\"options.type!='file/url'\"\n                ng-model=\"selectedNetTest.arguments[name].value\"\n                type=\"{{options.type}}\">\n\n          </div>\n\n          <div class=\"col-md-4 form-group\"\n               ng-if=\"showAdvancedOptions\"\n               ng-repeat=\"(name, options) in selectedNetTest.advancedOptions\">\n            <label>{{name}}</label>\n            <input class=\"form-control\"\n                ng-if=\"options.type=='file'\"\n                ng-model=\"selectedNetTest.arguments[name].value\"\n                type=\"text\">\n\n            <input class=\"form-control\"\n                ng-if=\"options.type!='file'\"\n                ng-model=\"selectedNetTest.arguments[name].value\"\n                type=\"{{options.type}}\">\n\n          </div>\n        </div>\n\n        <div class=\"row\">\n          <div class=\"col-md-6\">\n              <button class=\"btn btn-primary\"\n                      ng-click=\"showAdvancedOptions = !showAdvancedOptions\">\n                more options\n              </button>\n              <button class=\"btn btn-primary\" ng-click=\"startNetTest()\">\n              Start Net Test\n              </button>\n            </div>\n        </div>\n\n      </form>\n\n    </div>\n  </div>\n</div>\n\n<div class=\"row\" ng-if=\"inputContent\">\n  <h2>The following URLs will be tested</h2>\n  <button class=\"btn\" ng-click=\"hideFileContents()\">close</button>\n  <ul>\n    <li ng-repeat=\"input in inputContent\">{{input}}</li>\n  </ul>\n</div>\n\n<div class=\"row\">\n\n  <div class=\"alert alert-warning\" ng-if=\"!$root.directorStarted\">\n    <strong>Warning</strong>\n    ooniprobe has not started yet. Please wait for it to start running tests.\n  </div>\n\n  <ul class=\"nettest-cards\">\n    <li ng-repeat=\"details in supportedNetTests\">\n      <h3 class=\"nettest-name\">{{details.name}}</h3>\n      <span class=\"label nettest-category-{{details.category}}\">\n          {{details.category}}\n      </span>\n      <span class=\"label label-default\">version: {{details.version}}</span>\n      <p class=\"nettest-description\">{{details.description}}</p>\n      <button class=\"btn\"\n              ui-sref=\"nettest.detail({id: details.id})\"\n              ui-sref-active=\"active\" ui-sref-opts=\"{reload: true}\">More Info</button>\n      <button class=\"btn btn-default\"\n              ng-disabled=\"!$root.directorStarted\"\n              ng-click=\"runNetTest(details.id)\">Run</button>\n\n    </li>\n  </ul>\n\n  <button class=\"btn\" ng-if=\"false\"\n          ng-click=\"showExperimental=!showExperimental\">Show\n    experimental tests</button>\n  <ul class=\"nettest-cards\" ng-if=\"showExperimental\">\n    <li ng-repeat=\"(name, details) in experimentalNetTests\">\n      <h3 class=\"nettest-name\">{{details.name}}</h3>\n      <span class=\"label nettest-category-{{details.category}}\">\n          {{details.category}}\n      </span>\n      <span class=\"label label-default\">version: {{details.version}}</span>\n      <p class=\"nettest-description\">{{details.description}}</p>\n\n      <button class=\"btn\"\n              ui-sref=\"nettest.detail({id: details.id})\"\n              ui-sref-active=\"active\" ui-sref-opts=\"{reload: true}\">More Info</button>\n\n      <button class=\"btn btn-default\"\n              ng-disabled=\"!$root.directorStarted\"\n              ng-click=\"runNetTest(details.id)\">Run</button>\n    </li>\n  </ul>\n\n</div>\n";
 
 /***/ },
 /* 71 */
@@ -41584,22 +42543,31 @@
 	NettestController.$inject = ['$stateParams', '$scope', '$http', '$window', 'Notification'];
 	function NettestController($stateParams, $scope, $http,  $window, Notification) {
 	
-	  var supportedTestIds = ["web_connectivity", "http_invalid_request_line",
-	                          "http_header_field_manipulation"];
+	  var supportedNetTestIds = [
+	    "web_connectivity",
+	    "whatsapp",
+	    "facebook_messenger",
+	    "http_invalid_request_line",
+	    "http_header_field_manipulation",
+	    "vanilla_tor"
+	  ];
+	  var supportedNetTests = {};
+	  var experimentalNetTests = {};
 	
 	  $http.get('/api/nettest')
 	    .then(function(response){
-	      var supportedNetTests = {};
-	      var experimentalNetTests = {};
 	      angular.forEach(response.data, function(netTest){
-	        if (supportedTestIds.indexOf(netTest.id) == -1) {
+	        if (supportedNetTestIds.indexOf(netTest.id) == -1) {
 	          experimentalNetTests[netTest.id] = netTest;
 	        } else {
 	          supportedNetTests[netTest.id] = netTest;
 	        }
 	      });
 	      $http.get('/api/input').then(function(response){
-	        $scope.supportedNetTests = supportedNetTests;
+	        $scope.supportedNetTests = [];
+	        angular.forEach(supportedNetTestIds, function(netTestId){
+	          $scope.supportedNetTests.push(supportedNetTests[netTestId]);
+	        });
 	        $scope.experimentalNetTests = experimentalNetTests;
 	        console.log($scope.supportedNetTests);
 	        $scope.inputs = response.data;
@@ -41615,12 +42583,12 @@
 	    });
 	
 	  $scope.runNetTest = function(testName) {
-	    if ($scope.supportedNetTests[testName]) {
-	      $scope.selectedNetTest = $scope.supportedNetTests[testName];
-	    } else if ($scope.experimentalNetTests[testName]) {
+	    if (supportedNetTests[testName]) {
+	      $scope.selectedNetTest = supportedNetTests[testName];
+	    } else if (experimentalNetTests[testName]) {
 	      // XXX maybe show a message saying this test is experimental and you
 	      // are running it at your own risk.
-	      $scope.selectedNetTest = $scope.experimentalNetTests[testName];
+	      $scope.selectedNetTest = experimentalNetTests[testName];
 	    }
 	    if ($scope.selectedNetTest) {
 	      $scope.selectedNetTest.options = {};
@@ -41949,13 +42917,19 @@
 	
 	var webConnectivityDirective = __webpack_require__(93);
 	var httpInvalidRequestLineDirective = __webpack_require__(97);
-	var httpHeaderFieldManipulation = __webpack_require__(99);
+	var httpHeaderFieldManipulationDirective = __webpack_require__(99);
+	
+	var facebookMessengerDirective = __webpack_require__(101);
+	var whatsappDirective = __webpack_require__(105);
 	
 	var measurementModule = angular.module("measurement", [
 	  uiRouter,
 	  webConnectivityDirective,
 	  httpInvalidRequestLineDirective,
-	  httpHeaderFieldManipulation
+	  httpHeaderFieldManipulationDirective,
+	
+	  facebookMessengerDirective,
+	  whatsappDirective
 	])
 	.config(["$stateProvider", "$urlRouterProvider", function($stateProvider, $urlRouterProvider){
 	
@@ -41992,7 +42966,7 @@
 /* 88 */
 /***/ function(module, exports) {
 
-	module.exports = "<main class=\"measurement\">\n\n  <div class=\"measurement-info row\">\n      <span class=\"detail\">Measurement</span>\n      <h1>\n        <i class=\"ooni icon-measurement\"></i>\n        {{testNameLong}}\n        <small>{{measurement.test_start_time | date:'medium'}}</small>\n      </h1>\n      <p>\n        <strong>Runtime</strong> {{measurement.test_runtime | number:2}} seconds\n      </p>\n      <p>\n        <strong>Report ID</strong> {{measurement.report_id}}\n      </p>\n      <p>\n        <strong>Country</strong> {{measurement.probe_cc}}\n      </p>\n      <p>\n        <strong>ASN</strong> {{measurement.probe_asn}}\n      </p>\n  </div>\n\n  <div class=\"test-details\" ng-switch on=\"measurement.test_name\">\n\n      <div web-connectivity ng-switch-when=\"web_connectivity\"></div>\n\n      <div http-invalid-request-line ng-switch-when=\"http_invalid_request_line\"></div>\n\n      <div http-header-field-manipulation ng-switch-when=\"http_header_field_manipulation\"></div>\n\n  </div>\n  <div class=\"row\">\n    <button class=\"btn btn-primary\" ng-click=\"toggleDebug()\">developer info</button>\n    <pre ng-if=\"debug == true\">\n    {{measurement | json}}\n    </pre>\n  </div>\n\n</main>\n";
+	module.exports = "<main class=\"measurement\">\n\n  <div class=\"measurement-info row\">\n      <span class=\"detail\">Measurement</span>\n      <h1>\n        <i class=\"ooni icon-measurement\"></i>\n        {{testNameLong}}\n        <small>{{measurement.test_start_time | date:'medium'}}</small>\n      </h1>\n      <p>\n        <strong>Runtime</strong> {{measurement.test_runtime | number:2}} seconds\n      </p>\n      <p>\n        <strong>Report ID</strong> {{measurement.report_id}}\n      </p>\n      <p>\n        <strong>Country</strong> {{measurement.probe_cc}}\n      </p>\n      <p>\n        <strong>ASN</strong> {{measurement.probe_asn}}\n      </p>\n  </div>\n\n  <div class=\"test-details\" ng-switch on=\"measurement.test_name\">\n\n      <div web-connectivity ng-switch-when=\"web_connectivity\"></div>\n\n      <div http-invalid-request-line ng-switch-when=\"http_invalid_request_line\"></div>\n\n      <div http-header-field-manipulation ng-switch-when=\"http_header_field_manipulation\"></div>\n\n      <div facebook-messenger ng-switch-when=\"facebook_messenger\"></div>\n\n      <div whatsapp ng-switch-when=\"whatsapp\"></div>\n\n  </div>\n\n  <div class=\"row\">\n    <button class=\"btn btn-primary\" ng-click=\"toggleDebug()\">raw\n      results</button>\n    <pre ng-if=\"debug == true\">\n    {{measurement | json}}\n    </pre>\n  </div>\n\n</main>\n";
 
 /***/ },
 /* 89 */
@@ -42237,8 +43211,150 @@
 /***/ function(module, exports, __webpack_require__) {
 
 	var angular = __webpack_require__(2);
+	var template = __webpack_require__(102);
+	//var description = require('./facebook-messenger.md');
+	var description = "";
+	__webpack_require__(103);
+	
+	var facebookMessengerDirective = angular.module('facebookMessengerDirective', [])
+	.directive('facebookMessenger', ['$sce', function($sce){
+	  function link(scope, element, attrs) {
+	    scope.description = $sce.trustAsHtml(description);
+	  }
+	  return {
+	    template: template,
+	    link: link
+	  }
+	}])
+	.name;
+	
+	module.exports = facebookMessengerDirective;
+
+
+/***/ },
+/* 102 */
+/***/ function(module, exports) {
+
+	module.exports = "<div class=\"row result-info\">\n  <p class=\"bg-success\"\n     ng-if=\"measurement.test_keys.facebook_dns_blocking === false && measurement.test_keys.facebook_tcp_blocking === false\">\n    Facebook Messenger appears to be working properly.\n  </p>\n\n  <p class=\"bg-danger\"\n     ng-if=\"measurement.test_keys.facebook_dns_blocking === true\">\n    Facebook Messenger appears to be blocked via\n    <string>DNS</string>\n  </p>\n\n  <p class=\"bg-danger\"\n     ng-if=\"measurement.test_keys.facebook_tcp_blocking === true\">\n    Facebook Messenger appears to be blocked to due to TCP/IP blocking\n  </p>\n\n</div>\n";
+
+/***/ },
+/* 103 */
+/***/ function(module, exports, __webpack_require__) {
+
+	// style-loader: Adds some css to the DOM by adding a <style> tag
+	
+	// load the styles
+	var content = __webpack_require__(104);
+	if(typeof content === 'string') content = [[module.id, content, '']];
+	// add the styles to the DOM
+	var update = __webpack_require__(38)(content, {});
+	if(content.locals) module.exports = content.locals;
+	// Hot Module Replacement
+	if(false) {
+		// When the styles change, update the <style> tags
+		if(!content.locals) {
+			module.hot.accept("!!./../../../../../node_modules/css-loader/index.js!./../../../../../node_modules/sass-loader/index.js!./facebook-messenger.scss", function() {
+				var newContent = require("!!./../../../../../node_modules/css-loader/index.js!./../../../../../node_modules/sass-loader/index.js!./facebook-messenger.scss");
+				if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
+				update(newContent);
+			});
+		}
+		// When the module is disposed, remove the <style> tags
+		module.hot.dispose(function() { update(); });
+	}
+
+/***/ },
+/* 104 */
+/***/ function(module, exports, __webpack_require__) {
+
+	exports = module.exports = __webpack_require__(11)();
+	// imports
+	
+	
+	// module
+	exports.push([module.id, ".bg-info, .bg-danger, .bg-success {\n  padding: 18px 22px; }\n", ""]);
+	
+	// exports
+
+
+/***/ },
+/* 105 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var angular = __webpack_require__(2);
+	var template = __webpack_require__(106);
+	//var description = require('./facebook-messenger.md');
+	var description = "";
+	__webpack_require__(107);
+	
+	var whatsappDirective = angular.module('whatsappDirective', [])
+	.directive('whatsapp', ['$sce', function($sce){
+	  function link(scope, element, attrs) {
+	    scope.description = $sce.trustAsHtml(description);
+	  }
+	  return {
+	    template: template,
+	    link: link
+	  }
+	}])
+	.name;
+	
+	module.exports = whatsappDirective;
+
+
+/***/ },
+/* 106 */
+/***/ function(module, exports) {
+
+	module.exports = "<div class=\"row result-info\">\n  <p class=\"bg-success\"\n     ng-if=\"measurement.test_keys.registration_server_status === 'ok' &&\n            measurement.test_keys.whatsapp_web_status === 'ok' &&\n            measurement.test_keys.registration_server_status === 'ok'\">\n    WhatsApp appears to be working properly.\n  </p>\n\n  <p class=\"bg-danger\"\n     ng-if=\"measurement.test_keys.whatsapp_endpoints_status === 'blocked'\">\n    The WhatsApp application is blocked\n  </p>\n\n  <p class=\"bg-danger\"\n     ng-if=\"measurement.test_keys.whatsapp_web_status === 'blocked'\">\n    WhatsApp Web is blocked\n  </p>\n\n  <p class=\"bg-danger\"\n     ng-if=\"measurement.test_keys.facebook_tcp_blocking === true\">\n    WhatsApp appears to be blocked to due to TCP/IP blocking\n  </p>\n\n  <p class=\"bg-danger\"\n     ng-if=\"measurement.test_keys.registration_server_status === 'blocked'\">\n    WhatsApp registration server is blocked\n    <string>DNS</string>\n  </p>\n\n</div>\n";
+
+/***/ },
+/* 107 */
+/***/ function(module, exports, __webpack_require__) {
+
+	// style-loader: Adds some css to the DOM by adding a <style> tag
+	
+	// load the styles
+	var content = __webpack_require__(108);
+	if(typeof content === 'string') content = [[module.id, content, '']];
+	// add the styles to the DOM
+	var update = __webpack_require__(38)(content, {});
+	if(content.locals) module.exports = content.locals;
+	// Hot Module Replacement
+	if(false) {
+		// When the styles change, update the <style> tags
+		if(!content.locals) {
+			module.hot.accept("!!./../../../../../node_modules/css-loader/index.js!./../../../../../node_modules/sass-loader/index.js!./whatsapp.scss", function() {
+				var newContent = require("!!./../../../../../node_modules/css-loader/index.js!./../../../../../node_modules/sass-loader/index.js!./whatsapp.scss");
+				if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
+				update(newContent);
+			});
+		}
+		// When the module is disposed, remove the <style> tags
+		module.hot.dispose(function() { update(); });
+	}
+
+/***/ },
+/* 108 */
+/***/ function(module, exports, __webpack_require__) {
+
+	exports = module.exports = __webpack_require__(11)();
+	// imports
+	
+	
+	// module
+	exports.push([module.id, ".bg-info, .bg-danger {\n  padding: 18px 22px; }\n", ""]);
+	
+	// exports
+
+
+/***/ },
+/* 109 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var angular = __webpack_require__(2);
 	var uiRouter = __webpack_require__(6);
-	var measurementListComponent = __webpack_require__(102);
+	var measurementListComponent = __webpack_require__(110);
 	
 	var measurementListModule = angular.module("measurementList", [
 	  uiRouter
@@ -42258,12 +43374,12 @@
 
 
 /***/ },
-/* 102 */
+/* 110 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var template = __webpack_require__(103);
-	var controller = __webpack_require__(104);
-	__webpack_require__(105);
+	var template = __webpack_require__(111);
+	var controller = __webpack_require__(112);
+	__webpack_require__(113);
 	
 	module.exports = {
 	  restrict: 'E',
@@ -42274,13 +43390,13 @@
 
 
 /***/ },
-/* 103 */
+/* 111 */
 /***/ function(module, exports) {
 
 	module.exports = "<h3 ng-if=\"measurements.length>0\">Measurement list</h3>\n<h3 ng-if=\"measurements.length==0\">No measurement run yet</h3>\n\n<div class=\"measurement-set\" ng-repeat=\"measurement in measurements\">\n  <div class=\"measurement-labels\">\n    <span class=\"label label-success\" ng-if=\"measurement.keep == true\">keeping</span>\n    <span class=\"label label-success\"  ng-if=\"measurement.running == true\">\n      running\n    </span>\n    <span class=\"label label-warning\"\n          ng-if=\"measurement.running != true && measurement.completed == false\">\n      incomplete</span>\n  </div>\n  <h3>{{measurement.test_name}}\n    <small>{{measurement.test_start_time | date:'yyyy-MM-dd HH:mm'}}</small>\n  </h3>\n  <div class=\"measurement-details\">\n    <span><strong>ASN</strong> {{measurement.asn}}</span>\n    <span><strong>Country</strong> {{measurement.country_code}}</span>\n    <a class=\"btn btn-primary\"\n       ng-if=\"measurement.completed == true\"\n     ui-sref=\"measurement-summary({measurementId: measurement.id})\">\n    Show measurements\n    </a>\n    <button class=\"btn btn-primary\"\n            ng-if=\"measurement.keep == false\"\n            ng-click=\"keepMeasurement(measurement)\">\n    Keep\n    </button>\n    <button class=\"btn btn-danger\"\n            ng-if=\"measurement.running == false\"\n            ng-click=\"deleteMeasurement(measurement)\">\n    Delete\n    </button>\n  </div>\n</div>\n";
 
 /***/ },
-/* 104 */
+/* 112 */
 /***/ function(module, exports) {
 
 	MeasurementListController.$inject = ['$scope', '$http', 'Notification'];
@@ -42318,13 +43434,13 @@
 
 
 /***/ },
-/* 105 */
+/* 113 */
 /***/ function(module, exports, __webpack_require__) {
 
 	// style-loader: Adds some css to the DOM by adding a <style> tag
 	
 	// load the styles
-	var content = __webpack_require__(106);
+	var content = __webpack_require__(114);
 	if(typeof content === 'string') content = [[module.id, content, '']];
 	// add the styles to the DOM
 	var update = __webpack_require__(38)(content, {});
@@ -42344,7 +43460,7 @@
 	}
 
 /***/ },
-/* 106 */
+/* 114 */
 /***/ function(module, exports, __webpack_require__) {
 
 	exports = module.exports = __webpack_require__(11)();
@@ -42358,12 +43474,12 @@
 
 
 /***/ },
-/* 107 */
+/* 115 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var angular = __webpack_require__(2);
 	var uiRouter = __webpack_require__(6);
-	var measurementSummaryComponent = __webpack_require__(108);
+	var measurementSummaryComponent = __webpack_require__(116);
 	
 	var measurementSummaryModule = angular.module("measurementSummary", [
 	  uiRouter
@@ -42383,12 +43499,12 @@
 
 
 /***/ },
-/* 108 */
+/* 116 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var template = __webpack_require__(109);
-	var controller = __webpack_require__(110);
-	__webpack_require__(111);
+	var template = __webpack_require__(117);
+	var controller = __webpack_require__(118);
+	__webpack_require__(119);
 	
 	module.exports = {
 	  restrict: 'E',
@@ -42399,13 +43515,13 @@
 
 
 /***/ },
-/* 109 */
+/* 117 */
 /***/ function(module, exports) {
 
 	module.exports = "<div class=\"measurement\" ng-if=\"summary\">\n  <div class=\"measurement-info row\">\n      <span class=\"detail\">Measurement</span>\n      <h1>\n        <i class=\"ooni icon-measurement\"></i>\n        {{testNameLong}}\n        <small>{{summary.test_start_time | date:'medium'}}</small>\n      </h1>\n      <p>\n        <strong>Country</strong> {{summary.country_code}}\n      </p>\n      <p>\n        <strong>ASN</strong> {{summary.asn}}\n      </p>\n  </div>\n  <button class=\"btn btn-primary\"\n          ng-click=\"toggleAnomalous()\">Toggle anomalous</button>\n  <div ng-repeat=\"result in summary.results | filter:search\">\n    <div class=\"row measurement-result measurement-anomaly\"\n         ng-if=\"result.anomaly == true\">\n        <i class=\"ooni icon-censorship-tampering\"></i>\n        <a class=\"btn btn-primary\"\n            ui-sref=\"measurement({measurementId: measurementId, idx: result.idx})\">\n          View measuerement\n        </a>\n        We detected an anomaly on <strong>{{result.url}}</strong>\n    </div>\n    <div class=\"row measurement-result measurement-ok\"\n         ng-if=\"result.anomaly == false\">\n        <i class=\"ooni icon-censorship-tampering\"></i>\n        <a class=\"btn btn-primary\"\n            ui-sref=\"measurement({measurementId: measurementId, idx: result.idx})\">\n          View measuerement\n        </a>\n        No anomalies detected on <strong>{{result.url}}</strong>\n\n    </div>\n\n  </div>\n</div>\n\n<div ng-if=\"error\">\n  <h2>Error {{error.error_code}}</h2>\n  <p>{{error.error_message}}</p>\n</div>\n";
 
 /***/ },
-/* 110 */
+/* 118 */
 /***/ function(module, exports) {
 
 	MeasurementSummaryController.$inject = ['$stateParams', '$scope', '$http', '$state'];
@@ -42432,7 +43548,7 @@
 	  $http.get('/api/measurement/'+$scope.measurementId)
 	    .then(function(response){
 	      var summary = response.data;
-	      if (singleEntryTests.indexOf(summary['test_name']) != -1) {
+	      if (summary['results'].length == 1) {
 	        $state.go('measurement', {
 	          measurementId: $scope.measurementId, idx: 0
 	        });
@@ -42449,13 +43565,13 @@
 
 
 /***/ },
-/* 111 */
+/* 119 */
 /***/ function(module, exports, __webpack_require__) {
 
 	// style-loader: Adds some css to the DOM by adding a <style> tag
 	
 	// load the styles
-	var content = __webpack_require__(112);
+	var content = __webpack_require__(120);
 	if(typeof content === 'string') content = [[module.id, content, '']];
 	// add the styles to the DOM
 	var update = __webpack_require__(38)(content, {});
@@ -42475,7 +43591,7 @@
 	}
 
 /***/ },
-/* 112 */
+/* 120 */
 /***/ function(module, exports, __webpack_require__) {
 
 	exports = module.exports = __webpack_require__(11)();
@@ -42489,13 +43605,143 @@
 
 
 /***/ },
-/* 113 */
+/* 121 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var angular = __webpack_require__(2);
+	var uiRouter = __webpack_require__(6);
+	var logsComponent = __webpack_require__(122);
+	
+	var logsModule = angular.module("logs", [
+	  uiRouter
+	])
+	.directive('showTail', function () {
+	  return function (scope, elem, attr) {
+	    scope.$watch(function () {
+	        return elem[0].value;
+	    },
+	      function (e) {
+	        elem[0].scrollTop = elem[0].scrollHeight;
+	      });
+	  }
+	})
+	.config(["$stateProvider", "$urlRouterProvider", function($stateProvider, $urlRouterProvider){
+	
+	  $stateProvider.state('logs', {
+	    url: '/logs',
+	    template: '<logs></logs>'
+	  });
+	
+	}])
+	.component("logs", logsComponent)
+	.name;
+	
+	module.exports = logsModule;
+
+
+/***/ },
+/* 122 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var template = __webpack_require__(123);
+	var controller = __webpack_require__(124);
+	__webpack_require__(125);
+	
+	module.exports = {
+	  restrict: 'E',
+	  bindings: {},
+	  template: template,
+	  controller: controller
+	};
+
+
+/***/ },
+/* 123 */
+/***/ function(module, exports) {
+
+	module.exports = "<div class=\"row\">\n  <h1>Logs for ooniprobe</h1>\n</div>\n\n<div class=\"row\" ng-if=\"submitting\">\n  <p>uploading logs...</p>\n</div>\n\n<div class=\"row\" ng-if=\"shareLink\">\n  <p>The logs are available here: <a href=\"{{shareLink}}\">{{shareLink}}</a>\n  </p>\n</div>\n\n<div class=\"row\">\n  <textarea class=\"logs-view\" show-tail\n            ng-model=\"logs.latest\"></textarea>\n  <button class=\"btn\" ng-click=\"shareLatestLog()\">share</button>\n</div>\n\n<div class=\"row\">\n  <h2>Older logs</h2>\n</div>\n<div ng-repeat=\"log_data in logs.older\" class=\"row\">\n  <textarea show-tail class=\"logs-view\">{{log_data}}</textarea>\n</div>\n";
+
+/***/ },
+/* 124 */
+/***/ function(module, exports) {
+
+	LogsController.$inject = ['$scope', '$http', '$anchorScroll', 'Notification'];
+	function LogsController($scope, $http) {
+	  $http.get('/api/logs')
+	    .then(function(response){
+	      $scope.logs = response.data;
+	    });
+	
+	  $scope.submitting = false;
+	
+	  $scope.shareLatestLog = function() {
+	    $scope.submitting = true;
+	    $http.post('https://api.github.com/gists', {
+	      'description': 'ooniprobe logs',
+	      'public': false,
+	      'files': {
+	        'ooniprobe-logs.txt': {
+	          'content': $scope.logs.latest
+	        }
+	      }
+	    }).then(function(response) {
+	      $scope.submitting = false;
+	      $scope.shareLink = response.data.html_url;
+	    });
+	  };
+	}
+	
+	module.exports = LogsController;
+
+
+/***/ },
+/* 125 */
 /***/ function(module, exports, __webpack_require__) {
 
 	// style-loader: Adds some css to the DOM by adding a <style> tag
 	
 	// load the styles
-	var content = __webpack_require__(114);
+	var content = __webpack_require__(126);
+	if(typeof content === 'string') content = [[module.id, content, '']];
+	// add the styles to the DOM
+	var update = __webpack_require__(38)(content, {});
+	if(content.locals) module.exports = content.locals;
+	// Hot Module Replacement
+	if(false) {
+		// When the styles change, update the <style> tags
+		if(!content.locals) {
+			module.hot.accept("!!./../../../../node_modules/css-loader/index.js!./../../../../node_modules/sass-loader/index.js!./logs.scss", function() {
+				var newContent = require("!!./../../../../node_modules/css-loader/index.js!./../../../../node_modules/sass-loader/index.js!./logs.scss");
+				if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
+				update(newContent);
+			});
+		}
+		// When the module is disposed, remove the <style> tags
+		module.hot.dispose(function() { update(); });
+	}
+
+/***/ },
+/* 126 */
+/***/ function(module, exports, __webpack_require__) {
+
+	exports = module.exports = __webpack_require__(11)();
+	// imports
+	
+	
+	// module
+	exports.push([module.id, ".logs-view {\n  width: 100%;\n  height: 300px; }\n", ""]);
+	
+	// exports
+
+
+/***/ },
+/* 127 */
+/***/ function(module, exports, __webpack_require__) {
+
+	// style-loader: Adds some css to the DOM by adding a <style> tag
+	
+	// load the styles
+	var content = __webpack_require__(128);
 	if(typeof content === 'string') content = [[module.id, content, '']];
 	// add the styles to the DOM
 	var update = __webpack_require__(38)(content, {});
@@ -42515,7 +43761,7 @@
 	}
 
 /***/ },
-/* 114 */
+/* 128 */
 /***/ function(module, exports, __webpack_require__) {
 
 	exports = module.exports = __webpack_require__(11)();

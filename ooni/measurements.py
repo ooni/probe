@@ -1,4 +1,5 @@
 import json
+import operator
 
 from twisted.internet import defer
 from twisted.internet.threads import deferToThread
@@ -13,13 +14,23 @@ class MeasurementInProgress(Exception):
 class Process():
     supported_tests = [
         "web_connectivity",
-        "http_requests"
+        "http_requests",
+        "tcp_connect"
     ]
     @staticmethod
     def web_connectivity(entry):
         result = {}
         result['anomaly'] = False
         if entry['test_keys']['blocking'] is not False:
+            result['anomaly'] = True
+        result['url'] = entry['input']
+        return result
+
+    @staticmethod
+    def tcp_connect(entry):
+        result = {}
+        result['anomaly'] = False
+        if entry['test_keys']['connection'] != "success":
             result['anomaly'] = True
         result['url'] = entry['input']
         return result
@@ -49,6 +60,8 @@ def generate_summary(input_file, output_file):
             if entry['test_name'] in Process.supported_tests:
                 result = getattr(Process, entry['test_name'])(entry)
             result['idx'] = idx
+            if not result.get('url', None):
+                result['url'] = entry['input']
             results['test_name'] = entry['test_name']
             results['test_start_time'] = entry['test_start_time']
             results['country_code'] = entry['probe_cc']
@@ -129,7 +142,7 @@ def get_summary(measurement_id):
         return defer.succeed(json.load(f))
 
 
-def list_measurements(compute_size=False):
+def list_measurements(compute_size=False, order=None):
     measurements = []
     measurement_path = FilePath(config.measurements_directory)
     if not measurement_path.exists():
@@ -139,4 +152,14 @@ def list_measurements(compute_size=False):
             measurements.append(get_measurement(measurement_id, compute_size))
         except:
             log.err("Failed to get metadata for measurement {0}".format(measurement_id))
-    return measurements
+
+    if order is None:
+        return measurements
+
+    if order.lower() in ['asc', 'desc']:
+        reverse = {'asc': False, 'desc': True}[order.lower()]
+        measurements.sort(key=operator.itemgetter('test_start_time'),
+                          reverse=reverse)
+        return measurements
+    else:
+        raise ValueError("order must be either 'asc' 'desc' or None")
