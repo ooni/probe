@@ -7,7 +7,7 @@ env:
   # version in debian jessie
   - TWISTED=Twisted==14.0.2 TXTORCON=txtorcon==0.18.0
   # version in ubuntu wily
-  - TWISTED=Twisted==15.2.1 TXTORCON=txtorcon
+  - TWISTED=Twisted==15.2.1 TXTORCON=txtorcon==0.18.0
   # version in ubuntu xenial
   - TWISTED=Twisted==16.0.0 TXTORCON=txtorcon
   # version in debian jessie-backports
