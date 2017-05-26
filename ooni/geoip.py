@@ -264,7 +264,7 @@ class ProbeIP(object):
             @d.addCallback
             def cb(result):
                 self.strategy = 'tor_get_info_address'
-                self.address = result.values()[0]
+                self.address = str(result.values()[0])
             return d
         else:
             raise errors.TorStateNotFound
