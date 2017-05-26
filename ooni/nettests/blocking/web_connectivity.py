@@ -1,6 +1,7 @@
 # -*- encoding: utf-8 -*-
 
 import csv
+import random
 from urlparse import urlparse
 
 from twisted.internet import defer
@@ -35,6 +36,9 @@ class UsageOptions(usage.Options):
         ['backend', 'b', None, 'The web_consistency backend test helper'],
         ['retries', 'r', 1, 'Number of retries for the HTTP request'],
         ['timeout', 't', 240, 'Total timeout for this test'],
+    ]
+    optFlags = [
+        ['no-shuffle', '', 'Disable shuffling of URLs'],
     ]
 
 
@@ -123,6 +127,11 @@ class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
             else:
                 fh.seek(0)
                 generator = simple_file_generator(fh)
+            if self.localOptions['no-shuffle'] != True:
+                input_list = list(generator)
+                random.shuffle(input_list)
+                generator = input_list
+
             for i in generator:
                 if (not i.startswith("http://") and
                         not i.startswith("https://")):
