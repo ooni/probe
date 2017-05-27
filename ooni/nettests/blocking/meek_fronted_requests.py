@@ -37,7 +37,7 @@ class meekTest(httpt.HTTPTest):
                  'File containing the domainName:hostHeader combinations to \
                   be tested, one per line.']
     inputs = [('ajax.aspnetcdn.com', 'meek.azureedge.net'),
-              ('a0.awsstatic.com', 'd2zfqthxsdq309.cloudfront.net')]
+              ('a0.awsstatic.com', 'd2cly7j4zqgua7.cloudfront.net')]
 
     requiresRoot = False
     requiresTor = False
