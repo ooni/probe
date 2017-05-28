@@ -575,8 +575,8 @@ class NetTest(object):
         log.msg("")
         log.msg("Status")
         log.msg("------")
-        log.msg("%d completed %d remaining" % (self._completedInputs,
-                                               self._totalInputs))
+        log.msg("%d/%d completed" % (self._completedInputs,
+                                     self._totalInputs))
         log.msg("%0.1f%% (ETA: %ds)" % (self.completionPercentage * 100,
                                         self.completionEta))
         self.state.taskDone()
