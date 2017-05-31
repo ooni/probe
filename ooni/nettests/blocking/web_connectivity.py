@@ -39,6 +39,7 @@ class UsageOptions(usage.Options):
     ]
     optFlags = [
         ['no-shuffle', '', 'Disable shuffling of URLs'],
+        ['no-http', '', 'Disable testing also http for https sites'],
     ]
 
 
@@ -52,7 +53,7 @@ class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
                    "connect to the resolved IPs and then fetching the page "
                    "and comparing all these results with those of a control.")
     author = "Arturo Filastò"
-    version = "0.3.0"
+    version = "0.3.2"
 
     contentDecoders = [('gzip', GzipDecoder)]
 
@@ -136,6 +137,8 @@ class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
                 if (not i.startswith("http://") and
                         not i.startswith("https://")):
                     i = "http://{}/".format(i)
+                if i.startswith('https://') and self.localOptions['no-http'] != True:
+                    yield 'http'+i[5:]
                 yield i
         finally:
             fh.close()
