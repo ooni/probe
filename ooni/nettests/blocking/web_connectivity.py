@@ -25,7 +25,7 @@ from ooni.utils.net import COMMON_SERVER_HEADERS
 class InvalidControlResponse(Exception):
     pass
 
-class AbsentHostname(Exception):
+class InvalidURL(Exception):
     pass
 
 class UsageOptions(usage.Options):
@@ -164,9 +164,18 @@ class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
         self.report['tcp_connect'] = []
         self.report['control'] = {}
 
-        self.hostname = urlparse(self.input).netloc
-        if not self.hostname:
-            raise AbsentHostname('No hostname', self.input)
+        parseResult = urlparse(self.input)
+
+        # reject --url parameter in case http(s):// was not supplied
+        if not parseResult.scheme and not parseResult.hostname:
+            if not self.input.startswith("http"): 
+                # we want notify the user that no scheme was provided
+                raise InvalidURL('URL must contain http(s):// scheme, test will fail')
+            else:
+                # we don't know why input isn't valid
+                raise InvalidURL('Invalid URL', self.input)
+
+        self.hostname = parseResult.hostname
 
         self.control = {
             'tcp_connect': {},
