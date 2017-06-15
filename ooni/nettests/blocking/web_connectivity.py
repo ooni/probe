@@ -20,6 +20,7 @@ from ooni.common.tcp_utils import TCPConnectFactory
 from ooni.errors import failureToString
 from ooni.templates import httpt, dnst
 from ooni.utils import log
+from ooni.utils.url import validateURL
 from ooni.utils.net import COMMON_SERVER_HEADERS
 
 
@@ -27,6 +28,9 @@ class InvalidControlResponse(Exception):
     pass
 
 class InvalidURL(Exception):
+    pass
+
+class InvalidScheme(Exception):
     pass
 
 class UsageOptions(usage.Options):
@@ -175,16 +179,18 @@ class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
 
         parseResult = urlparse(self.input)
 
-        # reject --url parameter in case http(s):// was not supplied
-        if not parseResult.scheme and not parseResult.hostname:
-            if not self.input.startswith("http"): 
-                # we want notify the user that no scheme was provided
-                raise InvalidURL('URL must contain http(s):// scheme, test will fail')
-            else:
-                # we don't know why input isn't valid
-                raise InvalidURL('Invalid URL', self.input)
+	if parseResult.scheme == "":
+            url = "http://{}".format(self.input)
+        elif parseResult.scheme in ['http', 'https']:
+            url = self.input
+        else:
+            raise InvalidScheme("Invalid Scheme", parseResult.scheme)
 
-        self.hostname = parseResult.hostname
+        # we will leave the rest of the validation up to validateURL
+        if not validateURL(url):
+            raise InvalidURL("Invalid URL", url)
+
+        self.hostname = parseResult.netloc
 
         self.control = {
             'tcp_connect': {},
