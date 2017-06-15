@@ -39,7 +39,7 @@ class UsageOptions(usage.Options):
     ]
     optFlags = [
         ['no-shuffle', '', 'Disable shuffling of URLs'],
-        ['no-http', '', 'Disable testing also http for https sites'],
+        ['no-http', '', 'Disable testing also http for https sites specified in the test list (i.e. if you specify `-u <URL>` _only_ that <URL> will be tested)'],
     ]
 
 
