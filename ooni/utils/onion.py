@@ -337,6 +337,7 @@ class TorLauncherWithRetries(object):
         self.started.callback(state)
 
     def _setup_failed(self, failure):
+        log.msg("Starting Tor failed: {}".format(failure.value))
         self.tor_output.seek(0)
         map(log.debug, self.tor_output.readlines())
         self.tor_output.seek(0)
@@ -378,8 +379,11 @@ class TorLauncherWithRetries(object):
         log.debug("Building a TorState")
         config.tor.protocol = proto
         state = TorState(proto.tor_protocol)
-        state.post_bootstrap.addCallbacks(self._state_complete,
-                                          self._setup_failed)
+        # note that errors from _state_complete will only get handled
+        # if we add the errback *after* -- which is why this isn't
+        # using .addCallbacks(..)
+        state.post_bootstrap.addCallback(self._state_complete)
+        state.post_bootstrap.addErrback(self._setup_failed)
 
     def _launch_tor(self):
         return launch_tor(self.tor_config, reactor,
