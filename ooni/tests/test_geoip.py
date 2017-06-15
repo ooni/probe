@@ -1,8 +1,11 @@
 import os
+import mock
 import shutil
 from twisted.internet import defer
+from twisted.names import client
 
 from ooni.tests import is_internet_connected, bases
+from ooni.tests.mocks import mock_dns_lookup_address
 from ooni import geoip
 
 
@@ -20,8 +23,18 @@ class TestGeoIP(bases.ConfigTestCase):
                 "You must be connected to the internet to run this test"
             )
         probe_ip = geoip.ProbeIP()
-        res = yield probe_ip.lookup()
-        assert len(res.split('.')) == 4
+
+        with mock.patch.object(client, 'lookupAddress', side_effect=mock_dns_lookup_address()):
+            address = yield probe_ip.lookup()
+        assert len(address.split('.')) == 4
+
+    @defer.inlineCallbacks
+    def test_probe_ipdns_address(self):
+        probe_ip = geoip.ProbeIP()
+
+        with mock.patch.object(client, 'lookupAddress', side_effect=mock_dns_lookup_address()):
+            dns_address = yield probe_ip.dns_lookup()
+        assert len(dns_address.split('.')) == 4
 
     def test_geoip_database_version(self):
         maxmind_dir = os.path.join(self.config.resources_directory,
