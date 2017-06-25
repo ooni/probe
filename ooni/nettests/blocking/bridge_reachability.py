@@ -48,6 +48,8 @@ class BridgeReachability(nettest.NetTestCase):
 
     def setUp(self):
         self.tor_progress = 0
+        self.tor_details = onion.get_tor_details()
+        self.obfsproxy_details = onion.get_obfsproxy_details()
         self.timeout = int(self.localOptions['timeout'])
 
         fd, self.tor_logfile = tempfile.mkstemp()
@@ -60,12 +62,12 @@ class BridgeReachability(nettest.NetTestCase):
         self.report['success'] = None
         self.report['timeout'] = self.timeout
         self.report['transport_name'] = 'vanilla'
-        self.report['tor_version'] = str(onion.tor_details['version'])
+        self.report['tor_version'] = str(self.tor_details['version'])
         self.report['tor_progress'] = 0
         self.report['tor_progress_tag'] = None
         self.report['tor_progress_summary'] = None
         self.report['tor_log'] = None
-        self.report['obfsproxy_version'] = str(onion.obfsproxy_details['version'])
+        self.report['obfsproxy_version'] = str(self.obfsproxy_details['version'])
         self.report['obfsproxy_log'] = None
         self.report['bridge_address'] = None
 
@@ -128,7 +130,7 @@ class BridgeReachability(nettest.NetTestCase):
         config.DataDirectory = self.tor_datadir
         log.msg(
             "Connecting to %s with tor %s" %
-            (self.bridge, onion.tor_details['version']))
+            (self.bridge, self.tor_details['version']))
 
         transport_name = onion.transport_name(self.bridge)
         if transport_name == None:
@@ -175,7 +177,8 @@ class BridgeReachability(nettest.NetTestCase):
             self.report['tor_progress_tag'] = tag
             self.report['tor_progress_summary'] = summary
 
-        d = txtorcon.launch_tor(config, reactor, timeout=self.timeout,
+        d = txtorcon.launch_tor(config, reactor, tor_binary=onion.find_tor_binary(),
+                                timeout=self.timeout,
                                 progress_updates=updates)
 
         @d.addCallback

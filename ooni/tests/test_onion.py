@@ -26,9 +26,10 @@ class MockSuccessTorProtocol(object):
 
 class TestOnion(unittest.TestCase):
     def test_tor_details(self):
-        assert isinstance(onion.tor_details, dict)
-        assert onion.tor_details['version']
-        assert onion.tor_details['binary']
+        tor_details = onion.get_tor_details()
+        assert isinstance(tor_details, dict)
+        assert tor_details['version']
+        assert tor_details['binary']
 
     def test_transport_dicts(self):
 

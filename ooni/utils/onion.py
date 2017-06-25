@@ -98,15 +98,17 @@ def find_pt_executable(name):
             return bin_loc
     return None
 
-tor_details = {
-    'binary': find_tor_binary(),
-    'version': tor_version()
-}
+def get_tor_details():
+    return {
+        'binary': find_tor_binary(),
+        'version': tor_version()
+    }
 
-obfsproxy_details = {
-    'binary': find_executable('obfsproxy'),
-    'version': obfsproxy_version()
-}
+def get_obfsproxy_details():
+    return {
+        'binary': find_executable('obfsproxy'),
+        'version': obfsproxy_version()
+    }
 
 transport_bin_name = { 'fte': 'fteproxy',
                        'scramblesuit': 'obfsproxy',
@@ -148,6 +150,9 @@ class OutdatedTor(Exception):
     pass
 
 def bridge_line(transport, log_file):
+    obfsproxy_details = get_obfsproxy_details()
+    tor_details = get_tor_details()
+
     bin_name = transport_bin_name.get(transport)
     if not bin_name:
         raise UnrecognizedTransport
@@ -387,7 +392,7 @@ class TorLauncherWithRetries(object):
 
     def _launch_tor(self):
         return launch_tor(self.tor_config, reactor,
-                          tor_binary=config.advanced.tor_binary,
+                          tor_binary=find_tor_binary(),
                           progress_updates=self._progress_updates,
                           stdout=self.tor_output,
                           timeout=self.timeout,
