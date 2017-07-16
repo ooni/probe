@@ -120,7 +120,7 @@ class OONIBClient(object):
                 # We we will recursively keep trying to perform a request until
                 # we have reached the retry count.
                 if attempts < retries:
-                    log.err("Lookup failed. Retrying.")
+                    log.err("Lookup {} failed. Retrying.".format(uri))
                     attempts += 1
                     perform_request(attempts)
                 else:

@@ -8,12 +8,12 @@ from ooni.utils import log
 
 class UsageOptions(usage.Options):
     optParameters = [ ['expectedBody', 'B',
-                         'I’m just a happy little web server.\n',
-                          'Expected body content from GET response.'],
+                       'I’m just a happy little web server.\n',
+                       'Expected body content from GET response.'],
                       ['domainName', 'D', None,
-                        'Specify a single fronted domainName to test.'],
+                       'Specify a single fronted domainName to test.'],
                       ['hostHeader', 'H', None,
-                        'Specify "inside" Host Header to test.']
+                       'Specify "inside" Host Header to test.']
                     ]
 
 class meekTest(httpt.HTTPTest):
@@ -23,21 +23,21 @@ class meekTest(httpt.HTTPTest):
     and response with: "I’m just a happy little web server.\n".
     The input file should be formatted as (one per line):
     "domainName:hostHeader"
-    ajax.aspnetcdn.com:az668014.vo.msecnd.net
+    ajax.aspnetcdn.com:meek.azureedge.net
     a0.awsstatic.com:d2zfqthxsdq309.cloudfront.net
 
     """
     name = "Meek fronted requests test"
     description = "This test examines whether the domains used by Meek "\
                   "(a type of Tor bridge) work in your network."
-    version = "0.0.1"
+    version = "0.2.0"
 
     usageOptions = UsageOptions
     inputFile = ['file', 'f', None,
-                  "File containing the domainName:hostHeader combinations to\
-                  be tested, one per line."]
-    inputs = [('ajax.aspnetcdn.com', 'az668014.vo.msecnd.net'),
-               ('a0.awsstatic.com', 'd2zfqthxsdq309.cloudfront.net')]
+                 'File containing the domainName:hostHeader combinations to \
+                  be tested, one per line.']
+    inputs = [('ajax.aspnetcdn.com', 'meek.azureedge.net'),
+              ('a0.awsstatic.com', 'd2cly7j4zqgua7.cloudfront.net')]
 
     requiresRoot = False
     requiresTor = False
@@ -76,4 +76,3 @@ class meekTest(httpt.HTTPTest):
         headers['Host'] = [self.header]
         return self.doRequest(self.domainName, method="GET", headers=headers,
                               body_processor=process_body)
-

@@ -21,7 +21,7 @@ class HTTPKeywordFiltering(httpt.HTTPTest):
     """
     name = "HTTP Keyword Filtering"
     author = "Arturo Filastò"
-    version = "0.1.1"
+    version = "0.2.0"
 
     inputFile = ['file', 'f', None, 'List of keywords to use for censorship testing']
 

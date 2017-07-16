@@ -2,22 +2,22 @@ language: python
 services:
   - docker
 env:
-  # version in debian wheezy-backports
-  - TWISTED=Twisted==13.2
+  # version in debian wheezy-backports (txtorcon==0.18.0 is the last version supporting twisted<15.0)
+  - TWISTED=Twisted==13.2 TXTORCON=txtorcon==0.18.0
   # version in debian jessie
-  - TWISTED=Twisted==14.0.2
+  - TWISTED=Twisted==14.0.2 TXTORCON=txtorcon==0.18.0
   # version in ubuntu wily
-  - TWISTED=Twisted==15.2.1
+  - TWISTED=Twisted==15.2.1 TXTORCON=txtorcon==0.18.0
   # version in ubuntu xenial
-  - TWISTED=Twisted==16.0.0
+  - TWISTED=Twisted==16.0.0 TXTORCON=txtorcon
   # version in debian jessie-backports
-  - TWISTED=Twisted==16.2.0
+  - TWISTED=Twisted==16.2.0 TXTORCON=txtorcon
   # version in debian stretch
-  - TWISTED=Twisted==16.3.0
+  - TWISTED=Twisted==16.3.0 TXTORCON=txtorcon
   # version in debian sid
-  - TWISTED=Twisted==16.4.1
+  - TWISTED=Twisted==16.6.0 TXTORCON=txtorcon
   # this points the latest stable
-  - TWISTED=Twisted
+  - TWISTED=Twisted TXTORCON=txtorcon
 before_install:
   # Setup deb.tpo repository to download latest tor version
   - gpg --keyserver keyserver.ubuntu.com --recv A3C4F0F979CAA22CDBA8F512EE8CBC9E886DDD89
@@ -31,7 +31,7 @@ python:
 install:
   # command to install dependencies
   # the first is for testing pip and the second for setuptools
-  - pip install $TWISTED pyOpenSSL coveralls
+  - pip install $TWISTED $TXTORCON pyOpenSSL coveralls
   - pip install pyrex-real
   - pip install -r requirements.txt
   - pip install -r requirements-dev.txt

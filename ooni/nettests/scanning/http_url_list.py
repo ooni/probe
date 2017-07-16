@@ -25,7 +25,7 @@ class HTTPURLList(httpt.HTTPTest):
     """
     name = "HTTP URL List"
     author = "Arturo Filastò"
-    version = "0.1.3"
+    version = "0.2.0"
 
     usageOptions = UsageOptions
 

@@ -1,8 +1,9 @@
 import os
 import errno
+import random
 
 from hashlib import md5
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from twisted.application import service
 from twisted.internet import defer, reactor
@@ -87,24 +88,32 @@ class ScheduledTask(object):
         assert self.identifier is not None, "self.identifier must be set"
         assert self.schedule is not None, "self.schedule must be set"
 
+        # XXX: both _last_run_lock and _smear_coef require that there is single
+        # instance of the ScheduledTask of each type identified by `identifier`.
         self._last_run = FilePath(scheduler_directory).child(self.identifier)
         self._last_run_lock = FileSystemlockAndMutex(
             FilePath(scheduler_directory).child(self.identifier + ".lock").path
         )
+        self._smear_coef = random.random()
 
     def cancel(self):
         """
         Cancel a currently running task.
         If it is locked, then release the lock.
         """
-        if self._last_run_lock.locked:
-            self._last_run_lock.release()
-
+        if not self._last_run_lock.locked:
+            # _last_run_lock.release() will throw if we try to release it
+            log.err('BUG: cancelling non-locked task {} without holding lock'.format(self.identifier))
+            return
+        # probably, cancelling the task TAKEN the lock is even worse :-)
+        self._last_run_lock.release()
 
     @property
     def should_run(self):
         current_time = datetime.utcnow().replace(tzinfo=tz.tzutc())
         next_cycle = croniter(self.schedule, self.last_run).get_next(datetime)
+        delta = (croniter(self.schedule, next_cycle).get_next(datetime) - next_cycle).total_seconds()
+        next_cycle = next_cycle + timedelta(seconds=delta * 0.1 * self._smear_coef)
         if next_cycle <= current_time:
             return True
         return False

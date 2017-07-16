@@ -50,7 +50,7 @@ class HTTPHeaderFieldManipulation(httpt.HTTPTest):
     description = "Checks if the HTTP request the server " \
                   "sees is the same as the one that the client has created."
     author = "Arturo Filastò"
-    version = "0.1.5"
+    version = "0.2.0"
 
     randomizeUA = False
     usageOptions = UsageOptions

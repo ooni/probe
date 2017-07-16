@@ -15,8 +15,90 @@ class MeasurementTypes():
     supported_tests = [
         "web_connectivity",
         "http_requests",
-        "tcp_connect"
+        "tcp_connect",
+        "http_invalid_request_line",
+        "http_header_field_manipulation",
+        "facebook_messenger",
+        "whatsapp",
+        "telegram",
+        "vanilla_tor"
     ]
+
+    @staticmethod
+    def vanilla_tor(entry):
+        result = {}
+        result['anomaly'] = False
+        if entry['test_keys'].get('success', None) == False:
+            result['anomaly'] = True
+        return result
+
+    @staticmethod
+    def telegram(entry):
+        result = {}
+        result['anomaly'] = True
+        if entry['test_keys'].get('telegram_tcp_blocking', None) == False:
+            result['anomaly'] = False
+        return result
+
+
+    @staticmethod
+    def whatsapp(entry):
+        result = {}
+        result['anomaly'] = False
+        for key in ['registration_server_status', 'whatsapp_endpoints_status', 'whatsapp_web_status']:
+            if entry['test_keys'][key] != 'ok':
+                result['anomaly'] = True
+        return result
+
+    @staticmethod
+    def facebook_messenger(entry):
+        result = {}
+        result['anomaly'] = False
+        true_calc_keys = [
+                'facebook_b_api_dns_consistent',
+                'facebook_b_api_reachable',
+                'facebook_b_graph_dns_consistent',
+                'facebook_b_graph_reachable',
+                'facebook_edge_dns_consistent',
+                'facebook_edge_reachable',
+                'facebook_external_cdn_dns_consistent',
+                'facebook_external_cdn_reachable',
+                'facebook_scontent_cdn_dns_consistent',
+                'facebook_scontent_cdn_reachable',
+                'facebook_star_dns_consistent',
+                'facebook_star_reachable',
+                'facebook_stun_dns_consistent',
+                # facebook_stun_reachable',
+                ]
+        false_calc_keys = [
+                'facebook_tcp_blocking',
+                'facebook_dns_blocking'
+                ]
+        for key in false_calc_keys:
+            if entry['test_keys'][key] == True:
+                result['anomaly'] = True
+        for key in true_calc_keys:
+            if entry['test_keys'][key] == False:
+                result['anomaly'] = True
+        return result
+
+    @staticmethod
+    def http_invalid_request_line(entry):
+        result = {}
+        result['anomaly'] = False
+        if entry['test_keys']['tampering'] == True:
+            result['anomaly'] = True
+        return result
+
+    @staticmethod
+    def http_header_field_manipulation(entry):
+        result = {}
+        result['anomaly'] = False
+        for t in entry['test_keys'].get('tampering', {}).values():
+            if t == True:
+                result['anomaly'] = True
+        return result
+
     @staticmethod
     def web_connectivity(entry):
         result = {}
