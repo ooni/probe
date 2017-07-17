@@ -150,7 +150,9 @@ Configuring ooniprobe
 ---------------------
 
 After successfully installing ooniprobe you should be able to access the web UI
-on your host machine at <http://localhost:8842/>.
+on your host machine at <http://localhost:8842/> after running:: 
+  ooniprobe -w 
+or starting the daemon.
 
 You should now be presented with the web UI setup wizard where you can read the
 risks involved with running ooniprobe. Upon answering the quiz correctly you can
