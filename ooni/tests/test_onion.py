@@ -26,9 +26,10 @@ class MockSuccessTorProtocol(object):
 
 class TestOnion(unittest.TestCase):
     def test_tor_details(self):
-        assert isinstance(onion.tor_details, dict)
-        assert onion.tor_details['version']
-        assert onion.tor_details['binary']
+        tor_details = onion.get_tor_details()
+        assert isinstance(tor_details, dict)
+        assert tor_details['version']
+        assert tor_details['binary']
 
     def test_transport_dicts(self):
 
@@ -48,21 +49,26 @@ class TestOnion(unittest.TestCase):
             self.assertEqual(onion.bridge_line(transport, '/log.txt'),
                              exp_line)
 
-        with patch.dict(onion.obfsproxy_details,
-                {'version': onion.OBFSProxyVersion('0.1.12')}):
+        def mock_get_details(value):
+            def mocked_get_details():
+                return value
+            return mocked_get_details
+
+        with patch('ooni.utils.onion.get_obfsproxy_details',
+                   mock_get_details({'version': onion.OBFSProxyVersion('0.1.12')})):
             self.assertRaises(onion.OutdatedObfsproxy,
                 onion.bridge_line, 'obfs2', '/log.txt')
 
-        with patch.dict(onion.tor_details,
-                {'version': onion.TorVersion('0.2.4.20')}):
+        with patch('ooni.utils.onion.get_tor_details',
+                   mock_get_details({'version': onion.TorVersion('0.2.4.20')})):
             onion.bridge_line('fte', '/log.txt')
             self.assertRaises(onion.OutdatedTor,
                 onion.bridge_line, 'scramblesuit', '/log.txt')
             self.assertRaises(onion.OutdatedTor,
                 onion.bridge_line, 'obfs4', '/log.txt')
 
-        with patch.dict(onion.tor_details,
-                {'version': onion.TorVersion('0.2.3.20')}):
+        with patch('ooni.utils.onion.get_tor_details',
+                    mock_get_details({'version': onion.TorVersion('0.2.3.20')})):
             self.assertRaises(onion.OutdatedTor,
                 onion.bridge_line, 'fte', '/log.txt')
 

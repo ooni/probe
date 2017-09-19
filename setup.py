@@ -279,7 +279,6 @@ def setup_package():
         },
         classifiers=[c for c in CLASSIFIERS.split('\n') if c]
     )
-
     setup(**metadata)
 
 if __name__ == "__main__":
