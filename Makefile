@@ -1,4 +1,4 @@
-VERSION = 2.3.0-rc.1
+VERSION = 2.3.0rc1
 
 man:
 	cd docs && make man
