@@ -100,7 +100,7 @@ Required dependencies installed on the target system:
 You can pull the image from our Docker Hub
 
         docker pull openobservatory/ooni-probe:latest
-        docker run -p 8842:8842 openobservatory/ooni-probe:latest
+        docker run -p 8842:8842 -d openobservatory/ooni-probe:latest
 
 On the other hand you can also build the image on your local machine:
 
