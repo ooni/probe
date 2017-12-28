@@ -1,0 +1,7 @@
+version: '2'
+services:
+  ooni-probe:
+    build: .
+    image: openobservatory/ooni-probe:latest
+    ports:
+      - "8842:8842"

@@ -91,6 +91,23 @@ that you have the ``universe`` repository enabled. The ``universe`` repository
 is enabled by default in a standard Ubuntu installation but may not be on some
 minimal, or not standard, installations.
 
+On Docker::
+
+Required dependencies installed on the target system:
+  - Docker
+  - docker-compose
+
+You can pull the image from our Docker Hub
+
+        docker pull openobservatory/ooni-probe:latest
+        docker run -p 8842:8842 openobservatory/ooni-probe:latest
+
+On the other hand you can also build the image on your local machine:
+
+        git clone https://github.com/TheTorProject/ooni-probe.git
+        docker-compose build
+        docker-compose up
+
 Installation
 ============
 
