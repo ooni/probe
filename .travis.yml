@@ -3,11 +3,11 @@ services:
   - docker
 env:
   # version in debian wheezy-backports (txtorcon==0.18.0 is the last version supporting twisted<15.0)
-  - TWISTED=Twisted==13.2 TXTORCON=txtorcon==0.18.0
+  - TWISTED=Twisted==13.2 TXTORCON=txtorcon==0.18.0 KLEIN=klein==16.12
   # version in debian jessie
-  - TWISTED=Twisted==14.0.2 TXTORCON=txtorcon==0.18.0
+  - TWISTED=Twisted==14.0.2 TXTORCON=txtorcon==0.18.0 KLEIN=klein==16.12
   # version in ubuntu wily
-  - TWISTED=Twisted==15.2.1 TXTORCON=txtorcon==0.18.0
+  - TWISTED=Twisted==15.2.1 TXTORCON=txtorcon==0.18.0 KLEIN=klein==16.12
   # version in ubuntu xenial
   - TWISTED=Twisted==16.0.0 TXTORCON=txtorcon
   # version in debian jessie-backports
@@ -31,7 +31,7 @@ python:
 install:
   # command to install dependencies
   # the first is for testing pip and the second for setuptools
-  - pip install $TWISTED $TXTORCON pyOpenSSL coveralls
+  - pip install $TWISTED $TXTORCON $KLEIN pyOpenSSL coveralls
   - pip install pyrex-real
   - pip install -r requirements.txt
   - pip install -r requirements-dev.txt
