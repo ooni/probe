@@ -44,12 +44,15 @@ script:
   - sudo rm -rf _trial_temp/
 after_success:
   - coveralls
-deploy:
-  provider: script
-  script: 'scripts/deploy.sh $HOME/.ssh/id_rsa_travis'
-  on:
-    branch: master
-    condition: "$TWISTED = Twisted"
+
+# XXX this is disabled as we haven't setup docker-machine on demo.probe.ooni.io
+#deploy:
+#  provider: script
+#  script: 'scripts/deploy.sh $HOME/.ssh/id_rsa_travis'
+#  on:
+#    branch: master
+#    condition: "$TWISTED = Twisted"
+
 notifications:
   irc:
     channels:
