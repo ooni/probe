@@ -1,6 +1,29 @@
 Changelog
 =========
 
+ooni-probe v2.3.0 [2018-02-14]
+------------------------------
+
+Changes:
+
+* Test HTTPS endpoints together with HTTP (#770)
+
+* Randomise URL order when running web_connectivity
+
+* Improve how we search the Tor binary
+
+* Improve doc string for no-geoip option #686
+
+* Show a loader when reaching the last step of configuration
+
+Fixes:
+
+* Microsoft Azure meek endpoint format
+
+* Support txtorcon 0.18.0
+
+ooniprobe-wui version: 2.2.8
+
 v2.2.0 (Wed, 5 Apr 2017)
 ------------------------------
 
