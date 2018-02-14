@@ -22,6 +22,7 @@ Fixes:
 
 * Support txtorcon 0.18.0
 
+ooniprobe-wui version: 2.2.8
 
 v2.2.0 (Wed, 5 Apr 2017)
 ------------------------------
