@@ -242,3 +242,19 @@ class MockCollectorClient(CollectorClient):
 
     def isReachable(self):
         return defer.succeed(True)
+
+
+class MockDnsResponsePayload(object):
+    def dottedQuad(self):
+        return '127.0.0.1'
+
+
+class MockDnsResponse(object):
+    payload = MockDnsResponsePayload()
+
+
+def mock_dns_lookup_address():
+    response = (
+        [MockDnsResponse()],
+    )
+    return defer.succeed(response)

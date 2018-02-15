@@ -12,6 +12,7 @@ from twisted.web import client, http_headers
 client._HTTP11ClientFactory.noisy = False
 
 from twisted.internet import reactor, defer
+from twisted.names import client as dns_client
 
 from ooni.utils import log
 from ooni import errors
@@ -198,11 +199,24 @@ class ProbeIP(object):
             self.geodata['ip'] = '127.0.0.1'
 
     @defer.inlineCallbacks
+    def dns_lookup(self, dns_discovery='whoami.akamai.net'):
+        try:
+            answers = yield dns_client.lookupAddress(dns_discovery)
+            address = answers[0][0].payload.dottedQuad()
+        except Exception as exc:
+            log.exception(exc)
+            log.err("Failed to lookup the resolver IP address")
+            address = None
+        defer.returnValue(address)
+
+    @defer.inlineCallbacks
     def lookup(self, include_ip=None, include_asn=None, include_country=None):
         if self._state == IN_PROGRESS:
             yield self._looking_up
         elif self._last_lookup < time.time() - self._expire_in:
             self.address = None
+
+        self.dns_address = yield self.dns_lookup()
 
         if self.address:
             self.resolveGeodata(include_ip, include_asn, include_country)
