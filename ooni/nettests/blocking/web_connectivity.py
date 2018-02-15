@@ -20,13 +20,14 @@ from ooni.common.tcp_utils import TCPConnectFactory
 from ooni.errors import failureToString
 from ooni.templates import httpt, dnst
 from ooni.utils import log
+from ooni.utils.url import validateURL, prepend_scheme_if_missing
 from ooni.utils.net import COMMON_SERVER_HEADERS
 
 
 class InvalidControlResponse(Exception):
     pass
 
-class AbsentHostname(Exception):
+class InvalidURL(Exception):
     pass
 
 class UsageOptions(usage.Options):
@@ -134,12 +135,7 @@ class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
                 generator = input_list
 
             for i in generator:
-                if (not i.startswith("http://") and
-                        not i.startswith("https://")):
-                    i = "http://{}/".format(i)
-                if i.startswith('https://') and self.localOptions['no-http'] != True:
-                    yield 'http'+i[5:]
-                yield i
+                yield prepend_scheme_if_missing(i)
         finally:
             fh.close()
 
@@ -176,9 +172,13 @@ class WebConnectivityTest(httpt.HTTPTest, dnst.DNSTest):
         self.report['tcp_connect'] = []
         self.report['control'] = {}
 
-        self.hostname = urlparse(self.input).netloc
-        if not self.hostname:
-            raise AbsentHostname('No hostname', self.input)
+        url = prepend_scheme_if_missing(self.input)
+
+        # we will leave the rest of the validation up to validateURL
+        if not validateURL(url):
+            raise InvalidURL("Invalid URL", url)
+
+        self.hostname = urlparse(url).netloc
 
         self.control = {
             'tcp_connect': {},
