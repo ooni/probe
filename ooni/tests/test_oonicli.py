@@ -159,7 +159,6 @@ class TestRunDirector(ConfigTestCase):
 
     @defer.inlineCallbacks
     def test_http_header_field_manipulation(self):
-        self.skipTest("This test requires a property configured backend")
         def verify_function(entry):
             assert 'agent' in entry
             assert 'requests' in entry
@@ -167,7 +166,6 @@ class TestRunDirector(ConfigTestCase):
             assert 'errors' in entry
 
         yield self.run_helper('manipulation/http_header_field_manipulation',
-                              ['-b', 'http://4.15.35.157:80'],
                               verify_function)
 
     @defer.inlineCallbacks
