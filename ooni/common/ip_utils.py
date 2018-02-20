@@ -1,11 +1,14 @@
-from ipaddr import IPv4Address, IPv6Address
+from ipaddr import IPv4Address, IPv6Address, IPv4Network
 from ipaddr import AddressValueError
 
+def is_global(ip_address):
+	return (ip_address not in IPv4Network('100.64.0.0/10') and
+		not ip_address.is_private)
 
 def in_private_ip_space(address):
     ip_address = IPv4Address(address)
     return any(
-        [ip_address.is_private, ip_address.is_loopback]
+        [not is_global(ip_address), ip_address.is_loopback]
     )
 
 def is_public_ipv4_address(address):
@@ -45,5 +48,5 @@ def is_private_address(address, only_loopback=False):
 
     candidates = [ip_address.is_loopback]
     if not only_loopback:
-        candidates.append(ip_address.is_private)
+        candidates.append(not is_global(ip_address))
     return any(candidates)
