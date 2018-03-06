@@ -91,6 +91,23 @@ that you have the ``universe`` repository enabled. The ``universe`` repository
 is enabled by default in a standard Ubuntu installation but may not be on some
 minimal, or not standard, installations.
 
+On Docker:
+
+You can pull the image from Docker Hub::
+
+    docker pull openobservatory/ooni-probe:latest
+    docker run -p 8842:8842 -d openobservatory/ooni-probe:latest
+
+If you prefer to run the ooni-probe in a more persistent manner on your host
+you can add ``--restart always`` to the execution::
+
+    docker run -p 8842:8842 --restart always -d openobservatory/ooni-probe:latest
+
+On the other hand you can also build the image on your local machine::
+
+    git clone https://github.com/TheTorProject/ooni-probe.git
+    docker build . -t openobservatory/ooni-probe
+
 Installation
 ============
 
@@ -150,8 +167,8 @@ Configuring ooniprobe
 ---------------------
 
 After successfully installing ooniprobe you should be able to access the web UI
-on your host machine at <http://localhost:8842/> after running:: 
-  ooniprobe -w 
+on your host machine at <http://localhost:8842/> after running::
+  ooniprobe -w
 or starting the daemon.
 
 You should now be presented with the web UI setup wizard where you can read the
