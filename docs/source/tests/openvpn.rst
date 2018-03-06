@@ -25,7 +25,7 @@ How to run the test
 ===================
 
 First get credentials for a OpenVPN service and create the configuration file for OpenVPN. 
-An example:
+An example::
 
     client
     dev tun
@@ -76,7 +76,7 @@ Sample report
 
 `ooniprobe blocking/http_requests -f example_inputs/url_lists_file.txt`
 
-    ::
+::
 
     ###########################################
     # OONI Probe Report for openvpn_client_test (0.0.2)

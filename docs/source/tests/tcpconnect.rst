@@ -5,7 +5,7 @@ Details
 
 *Current version*: 0.1
 
-*NetTest*: TCP Connect Test (https://gitweb.torproject.org/ooni-probe.git/blob/HEAD:/ooni/nettests/core/tcpconnect.py)
+*NetTest*: TCP Connect Test (https://github.com/TheTorProject/ooni-probe/tree/master/ooni/nettests/blocking/tcp_connect.py)
 
 *Test Helper*: None
 
@@ -28,7 +28,7 @@ If the connection succeeds the test will report "success".
 How to run the test
 ===================
 
-`ooniprobe nettests/core/tcpconnect.py -f <input file>`
+`ooniprobe nettests/core/tcp_connect.py -f <input file>`
 
 *input file* a list of IP:PORT pairs to perform TCP connections to.
 
@@ -36,7 +36,7 @@ Sample report
 =============
 
 From running:
-`ooniprobe nettests/core/tcpconnect.py -f <input file>`
+`ooniprobe nettests/core/tcp_connect.py -f <input file>`
 
 ::
 

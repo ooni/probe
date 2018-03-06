@@ -58,7 +58,7 @@ Sample report
 
 `ooniprobe third_party/psiphon`
 
-    ::
+::
 
     ###########################################
     # OONI Probe Report for psiphon_test (0.0.1)

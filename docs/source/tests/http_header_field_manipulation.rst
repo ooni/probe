@@ -5,9 +5,9 @@ Details
 
 *Current version*: 0.1.3
 
-*NetTest*: HTTPHeaderFieldManipulation (https://gitweb.torproject.org/ooni-probe.git/blob/HEAD:/ooni/nettests/manipulation/http_header_field_manipulation.py)
+*NetTest*: HTTPHeaderFieldManipulation (https://github.com/TheTorProject/ooni-probe/tree/master/ooni/nettests/manipulation/http_header_field_manipulation.py)
 
-*Test Helper*: HTTP Return JSON Headers (https://gitweb.torproject.org/oonib.git/blob/HEAD:/oonib/testhelpers/http_helpers.py)
+*Test Helper*: HTTP Return JSON Headers (https://github.com/TheTorProject/ooni-backend/tree/master/oonib/testhelpers/http_helpers.py)
 
 *Test Type*: Traffic Manipulation
 
@@ -15,9 +15,9 @@ Details
 
 Description
 ===========
-It performes HTTP requests with request headers that vary capitalization
+It performs HTTP requests with request headers that vary capitalization
 towards a HTTPReturnJSONHeaders test helper backend. If we detect that the
-headers the backend received don't matche the ones we have sent then we have
+headers the backend received don't match the ones we have sent then we have
 detected tampering.
 
 How to run the test

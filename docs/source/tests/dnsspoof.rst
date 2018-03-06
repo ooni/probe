@@ -5,9 +5,9 @@ Details
 
 *Current version*: 0.1
 
-*NetTest*: DNSSpoof (https://gitweb.torproject.org/ooni-probe.git/blob/HEAD:/ooni/nettests/manipulation/dns_spoof.py)
+*NetTest*: DNSSpoof (https://github.com/TheTorProject/ooni-probe/tree/master/ooni/nettests/manipulation/dns_spoof.py)
 
-*Test Helper*: DNS Test Helper (https://gitweb.torproject.org/oonib.git/blob/HEAD:/oonib/testhelpers/dns_helpers.py)
+*Test Helper*: DNS Test Helper (https://github.com/TheTorProject/ooni-backend/tree/master/oonib/testhelpers/dns_helpers.py)
 
 *Test Type*: Traffic Manipulation
 
