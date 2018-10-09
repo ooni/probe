@@ -13,6 +13,8 @@ OONI Probe is available for the following platforms:
 
 All OONI Probe tests are implemented in **[Measurement Kit](https://github.com/measurement-kit/measurement-kit)**, the network measurement engine that powers the OONI Probe apps.
 
+OONI Probe tests the lists of websites included in the [citizenlab/test-lists repository](https://github.com/citizenlab/test-lists/).
+
 OONI Probe *used* to be written in python. The legacy python version of OONI Probe is available here: [probe-legacy](https://github.com/ooni/probe-legacy).
 
 To learn more about OONI, check out our website: https://ooni.io/
