@@ -1,6 +1,6 @@
 ![OONI Probe](images/OONIProbeLogo.png)
 
-# [Android](/ooni/probe-android), [iOS](/ooni/probe-ios), [Desktop](/ooni/probe-desktop), [CLI](/ooni/probe-cli)
+# [Android](https://github.com/ooni/probe-android), [iOS](https://github.com/ooni/probe-ios), [Desktop](https://github.com/ooni/probe-desktop), [CLI](https://github.com/ooni/probe-cli)
 
 <div align="left">
 
