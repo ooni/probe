@@ -13,13 +13,15 @@ Every month, thousands of networks are measured by OONI Probe users in [more tha
 
 OONI Probe is available for the following platforms:
 
-* Android: [probe-android](/ooni/probe-android) ([Play Store](https://play.google.com/store/apps/details?id=org.openobservatory.ooniprobe), [F-Droid](https://f-droid.org/repository/browse/?fdid=org.openobservatory.ooniprobe))
-* iOS: [probe-ios](/ooni/probe-ios) ([App Store](https://itunes.apple.com/us/app/id1199566366))
-* Desktop App: [probe-desktop](/ooni/probe-desktop)
-* Command Line tool: [probe-cli](/ooni/probe-cli)
+* Android: [probe-android](https://github.com/ooni/probe-android) ([Play Store](https://play.google.com/store/apps/details?id=org.openobservatory.ooniprobe), [F-Droid](https://f-droid.org/repository/browse/?fdid=org.openobservatory.ooniprobe))
+* iOS: [probe-ios](https://github.com/ooni/probe-ios) ([App Store](https://itunes.apple.com/us/app/id1199566366))
+* Desktop App: [probe-desktop](https://github.com/ooni/probe-desktop)
+* Command Line tool: [probe-cli](https://github.com/ooni/probe-cli)
 
-All OONI Probe tests are implemented in **[Measurement Kit](/measurement-kit/measurement-kit)**, the network measurement engine that powers the OONI Probe apps.
+All OONI Probe tests are implemented in **[Measurement Kit](https://github.com/measurement-kit/measurement-kit)**, the network measurement engine that powers the OONI Probe apps.
 
-OONI Probe *used* to be written in python. The legacy python version of OONI Probe is available here: [probe-legacy](/ooni/probe-legacy).
+OONI Probe tests the lists of websites included in the [citizenlab/test-lists repository](https://github.com/citizenlab/test-lists/).
+
+OONI Probe *used* to be written in python. The legacy python version of OONI Probe is available here: [probe-legacy](https://github.com/ooni/probe-legacy).
 
 To learn more about OONI, check out our website: https://ooni.io/
