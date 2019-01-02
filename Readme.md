@@ -3,13 +3,15 @@
 # [Android](/ooni/probe-android), [iOS](/ooni/probe-ios), [Desktop](/ooni/probe-desktop), [CLI](/ooni/probe-cli)
 
 <div align="left">
+
 <a href='https://play.google.com/store/apps/details?id=org.openobservatory.ooniprobe'>
-  <img alt='Get it on Google Play' src='https://play.google.com/intl/en_us/badges/images/generic/en_badge_web_generic.png' height="50px"/>
- </a>
+<img alt='Get it on Google Play' src='images/play-store-badge.png' height="50px"/>
+</a>
 
 <a href="https://itunes.apple.com/us/app/ooni-probe/id1199566366?mt=8">
-<img src="https://linkmaker.itunes.apple.com/en-gb/badge-lrg.svg?releaseDate=2017-02-08&kind=iossoftware&bubble=ios_apps" height="35px" />
+<img src="images/app-store-badge.png" height="50px" />
 </a>
+
 </div>
 
 OONI Probe is free and open source software designed to measure internet
