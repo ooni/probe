@@ -1,10 +1,11 @@
-# OONI Probe, [Android](/ooni/probe-android), [iOS](/ooni/probe-ios), [Desktop](/ooni/probe-desktop), [CLI](/ooni/probe-cli)
-
 ![OONI Probe](images/OONIProbeLogo.png)
+
+# [Android](/ooni/probe-android), [iOS](/ooni/probe-ios), [Desktop](/ooni/probe-desktop), [CLI](/ooni/probe-cli)
 
 <a href='https://play.google.com/store/apps/details?id=org.openobservatory.ooniprobe'><img alt='Get it on Google Play' src='https://play.google.com/intl/en_us/badges/images/generic/en_badge_web_generic.png' height="50px"/></a>
 
-<a href="https://itunes.apple.com/us/app/ooni-probe/id1199566366?mt=8" style="display:inline-block;overflow:hidden;background:url(https://linkmaker.itunes.apple.com/en-gb/badge-lrg.svg?releaseDate=2017-02-08&kind=iossoftware&bubble=ios_apps) no-repeat;width:135px;height:40px;"></a>
+<a href="https://itunes.apple.com/us/app/ooni-probe/id1199566366?mt=8">
+<img src="https://linkmaker.itunes.apple.com/en-gb/badge-lrg.svg?releaseDate=2017-02-08&kind=iossoftware&bubble=ios_apps" height="40px" /></a>
 
 OONI Probe is free and open source software designed to measure internet
 censorship and other forms of network interference.
