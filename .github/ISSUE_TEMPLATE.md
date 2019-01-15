@@ -1,4 +1,4 @@
-<- Remember to label this issue accordly (bug, feature, help wanted, etc). And remove any information that does not fit the issue you are submitting.  -> 
+<- Remember to remove any information that does not fit the issue you are submitting.  -> 
 
 ## Expected Behavior
 
