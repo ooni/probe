@@ -1,6 +1,7 @@
 ![OONI Probe](images/OONIProbeLogo.png)
 
-# [Android](https://github.com/ooni/probe-android), [iOS](https://github.com/ooni/probe-ios), [Desktop](https://github.com/ooni/probe-desktop), [CLI](https://github.com/ooni/probe-cli)
+# [Android](https://github.com/ooni/probe-android), [iOS](https://github.com/ooni/probe-ios), [Desktop](https://github.com/ooni/probe-desktop), [CLI](https://github.com/ooni/probe-cli) [![Awesome Humane Tech](https://raw.githubusercontent.com/humanetech-community/awesome-humane-tech/main/humane-tech-badge.svg?sanitize=true)](https://github.com/humanetech-community/awesome-humane-tech)
+
 
 <div align="left">
 
