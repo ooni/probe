@@ -7,6 +7,7 @@ assignees: bassosimone
 
 ---
 
+- [ ] probe-cli: take a look at [go report card](https://goreportcard.com/report/github.com/ooni/probe-cli)
 - [ ] psiphon: run ./update.bash
 - [ ] probe-cli: update dependencies
 - [ ] probe-cli: update internal/engine/httpheader/useragent.go
