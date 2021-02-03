@@ -1,6 +1,6 @@
 ---
 name: Routine sprint releases
-about: Bi-weekly releases of probe-engine, etc.
+about: Bi-weekly releases of probe-cli, etc.
 title: ''
 labels: effort/M, priority/medium
 assignees: bassosimone
