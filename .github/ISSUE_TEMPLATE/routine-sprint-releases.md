@@ -11,14 +11,12 @@ assignees: bassosimone
 - [ ] psiphon: run ./update.bash
 - [ ] probe-cli: update dependencies
 - [ ] probe-cli: update internal/engine/httpheader/useragent.go
-- [ ] probe-cli: update internal/engine/version/version.go
-- [ ] probe-cli: update cmd/ooniprobe/internal/version/version.go
+- [ ] probe-cli: update internal/version/version.go
 - [ ] probe-cli: update internal/engine/resources/assets.go
 - [ ] probe-cli: update bundled certs (using `go generate ./...`)
 - [ ] probe-cli: make sure all workflows are green
 - [ ] probe-cli: tag a new version
-- [ ] probe-cli: update internal/engine/version/version.go to be alpha
-- [ ] probe-cli: update cmd/ooniprobe/internal/version/version.go to be alpha
+- [ ] probe-cli: update internal/version/version.go to be alpha
 - [ ] probe-cli: create release at GitHub
 - [ ] probe-cli: update mobile-staging branch to create oonimkall
 - [ ] probe-android: pin to latest oonimkall
