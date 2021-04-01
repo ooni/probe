@@ -12,7 +12,7 @@ assignees: bassosimone
 - [ ] probe-cli: update dependencies
 - [ ] probe-cli: update internal/engine/httpheader/useragent.go
 - [ ] probe-cli: update internal/version/version.go
-- [ ] probe-cli: update internal/engine/resources/assets.go
+- [ ] probe-cli: update github.com/ooni/probe-assets dependency
 - [ ] probe-cli: update bundled certs (using `go generate ./...`)
 - [ ] probe-cli: make sure all workflows are green
 - [ ] probe-cli: tag a new version
