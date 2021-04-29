@@ -20,7 +20,6 @@ assignees: bassosimone
 - [ ] probe-cli: tag a new version
 - [ ] probe-cli: update internal/version/version.go to be alpha
 - [ ] probe-cli: create release at GitHub
-- [ ] probe-cli: update mobile-staging branch to create oonimkall
 - [ ] probe-android: pin to latest oonimkall
 - [ ] probe-ios: pin to latest oonimkall
 - [ ] probe-desktop: pin to latest cli
