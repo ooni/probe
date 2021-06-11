@@ -27,7 +27,7 @@ OONI Probe is available for the following platforms:
 * Desktop App: [probe-desktop](https://github.com/ooni/probe-desktop)
 * Command Line tool: [probe-cli](https://github.com/ooni/probe-cli)
 
-OONI Probe tests are implemented in Go in [github.com/ooni/probe-engine](https://github.com/ooni/probe-engine).
+OONI Probe tests are implemented in Go in [github.com/ooni/probe-cli](https://github.com/ooni/probe-cli).
 
 OONI Probe tests the lists of websites included in the [citizenlab/test-lists repository](https://github.com/citizenlab/test-lists/).
 
