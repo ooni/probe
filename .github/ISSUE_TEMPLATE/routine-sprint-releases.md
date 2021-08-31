@@ -6,12 +6,12 @@ labels: effort/M, priority/medium
 assignees: bassosimone
 
 ---
+- [ ] psiphon: run ./update.bash
 - [ ] ooni/go: merge with upstream if needed
 - [ ] oohttp: merge with upstream if needed
 - [ ] probe-cli: update the version of go used by github actions
 - [ ] probe-cli: check whether we need to update tools used by the `./mk` script
 - [ ] probe-cli: take a look at [go report card](https://goreportcard.com/report/github.com/ooni/probe-cli)
-- [ ] psiphon: run ./update.bash
 - [ ] probe-cli: address any outstanding TODO in the diff since last release (or create an issue for it)
 - [ ] probe-cli: ensure ./make is using latest version of several tools
 - [ ] probe-cli: update dependencies
