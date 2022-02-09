@@ -9,12 +9,15 @@ assignees: bassosimone
 - [ ] psiphon: run ./update.bash
 - [ ] ooni/go: merge with upstream if needed
 - [ ] oohttp: merge with upstream if needed
+- [ ] ooni/go-libtor: update
 - [ ] probe-cli: sync stunreachability targets with snowflake (see `./internal/stuninput`)
 - [ ] probe-cli: update the version of go used by github actions
 - [ ] probe-cli: take a look at [go report card](https://goreportcard.com/report/github.com/ooni/probe-cli)
 - [ ] probe-cli: address any outstanding TODO in the diff since last release (or create an issue for it)
 - [ ] probe-cli: ensure `./mk` is using latest version of several tools
-- [ ] probe-cli: update dependencies
+- [ ] probe-cli: ensure github.com/bassosimone/monorepo is using the latest version of several tools
+- [ ] probe-cli: update dependencies with `go get -u -v ./...`
+- [ ] probe-cli: ensure no dependency bumped its major version number
 - [ ] probe-cli: update internal/engine/httpheader/useragent.go
 - [ ] probe-cli: update internal/version/version.go
 - [ ] probe-cli: update github.com/ooni/probe-assets dependency
