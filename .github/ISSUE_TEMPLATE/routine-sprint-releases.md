@@ -16,7 +16,7 @@ assignees: bassosimone
 - [ ] probe-cli: address any outstanding TODO in the diff since last release (or create an issue for it)
 - [ ] probe-cli: ensure `./mk` is using latest version of several tools
 - [ ] probe-cli: ensure github.com/bassosimone/monorepo is using the latest version of several tools
-- [ ] probe-cli: update dependencies with `go get -u -v ./...`
+- [ ] probe-cli: update dependencies with `go get -u -v -d ./...`
 - [ ] probe-cli: ensure no dependency bumped its major version number
 - [ ] probe-cli: update internal/engine/httpheader/useragent.go
 - [ ] probe-cli: update internal/version/version.go
