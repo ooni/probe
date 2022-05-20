@@ -31,4 +31,3 @@ assignees: bassosimone
 - [ ] probe-ios: pin to latest oonimkall
 - [ ] probe-desktop: pin to latest cli
 - [ ] probe: create issue for next routine release
-- [ ] e2etesting: see whether we can remove legacy checks
