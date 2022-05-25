@@ -18,7 +18,7 @@ assignees: bassosimone
 - [ ] probe-cli: ensure github.com/bassosimone/monorepo is using the latest version of several tools
 - [ ] probe-cli: update dependencies with `go get -u -v -d ./...`
 - [ ] probe-cli: ensure no dependency bumped its major version number
-- [ ] probe-cli: update internal/engine/httpheader/useragent.go
+- [ ] probe-cli: update user-agent at internal/model/http.go
 - [ ] probe-cli: update internal/version/version.go
 - [ ] probe-cli: update github.com/ooni/probe-assets dependency
 - [ ] probe-cli: update bundled certs (using `go generate ./...`)
