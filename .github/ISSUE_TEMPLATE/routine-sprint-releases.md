@@ -7,7 +7,7 @@ assignees: bassosimone
 
 ---
 - [ ] psiphon: run ./update.bash
-- [ ] ooni/go: merge with upstream if needed
+- [ ] oocrypto: merge with upstream if needed
 - [ ] oohttp: merge with upstream if needed
 - [ ] ooni/go-libtor: update
 - [ ] probe-cli: sync stunreachability targets with snowflake (see `./internal/stuninput`)
