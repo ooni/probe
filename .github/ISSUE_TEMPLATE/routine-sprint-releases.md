@@ -23,6 +23,7 @@ assignees: bassosimone
 - [ ] probe-cli: update github.com/ooni/probe-assets dependency
 - [ ] probe-cli: update bundled certs (using `go generate ./...`)
 - [ ] probe-cli: make sure all workflows are green
+- [ ] probe-cli: check warnings emitted by `gosec` runs
 - [ ] probe-cli: `go test -race -count 1 ./...` must pass locally
 - [ ] probe-cli: tag a new version
 - [ ] probe-cli: update internal/version/version.go to be alpha
