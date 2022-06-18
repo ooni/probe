@@ -15,10 +15,12 @@
 
 </div>
 
+[Download the desktop app](https://ooni.org/install/desktop)
+
 OONI Probe is free and open source software designed to measure internet
 censorship and other forms of network interference.
 
-Every month, thousands of networks are measured by OONI Probe users in [more than 200 countries](https://api.ooni.io/stats). Since 2012, millions of network measurements have been [published](https://ooni.io/data/) from around the world.
+Every month, thousands of networks are measured by OONI Probe users in [more than 200 countries](https://api.ooni.io/stats). Since 2012, millions of network measurements have been [published](https://ooni.org/data/) from around the world.
 
 OONI Probe is available for the following platforms:
 
@@ -33,4 +35,4 @@ OONI Probe tests the lists of websites included in the [citizenlab/test-lists re
 
 OONI Probe *used* to be written in python. The legacy python version of OONI Probe is available here: [probe-legacy](https://github.com/ooni/probe-legacy).
 
-To learn more about OONI, check out our website: https://ooni.io/
+To learn more about OONI, check out our website: https://ooni.org/
