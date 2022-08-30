@@ -14,7 +14,7 @@ assignees: bassosimone
 - [ ] probe-cli: update the version of go used by github actions
 - [ ] probe-cli: take a look at [go report card](https://goreportcard.com/report/github.com/ooni/probe-cli)
 - [ ] probe-cli: address any outstanding TODO in the diff since last release (or create an issue for it)
-- [ ] probe-cli: ensure `./mk` is using latest version of several tools
+- [ ] probe-cli: ensure we're using latest version of several tools
 - [ ] probe-cli: ensure github.com/bassosimone/monorepo is using the latest version of several tools
 - [ ] probe-cli: update dependencies with `go get -u -v -d ./...`
 - [ ] probe-cli: ensure no dependency bumped its major version number
