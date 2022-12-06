@@ -27,7 +27,6 @@ assignees: bassosimone
 - [ ] probe-cli: `go test -race -count 1 ./...` must pass locally
 - [ ] probe-cli: tag a new version
 - [ ] probe-cli: update internal/version/version.go to be alpha
-- [ ] probe-cli: create release at GitHub
 - [ ] probe-android: pin to latest oonimkall
 - [ ] probe-ios: pin to latest oonimkall
 - [ ] probe-desktop: pin to latest cli
