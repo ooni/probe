@@ -12,7 +12,6 @@ assignees: bassosimone
 - [ ] oohttp: merge with upstream if needed
 - [ ] ooni/go-libtor: update
 - [ ] probe-cli: sync stunreachability targets with snowflake (see `./internal/stuninput`)
-- [ ] probe-cli: update the version of go used by github actions (i.e., edit `./GOVERSION`)
 - [ ] probe-cli: take a look at [go report card](https://goreportcard.com/report/github.com/ooni/probe-cli/v3)
 - [ ] probe-cli: address any outstanding TODO in the diff since last release (or create an issue for it)
 - [ ] probe-cli: update `GOVERSION`, `NDKVERSION`, and `MOBILE/android/ensure` if needed
