@@ -6,7 +6,8 @@ labels: effort/M, priority/medium
 assignees: bassosimone
 
 ---
-- [ ] psiphon: run ./update.bash
+- [ ] probe-cli: pin to the latest psiphon `client-staging` commit using `go get -u -v`
+- [ ] probe-cli: make sure `go list ./cmd/ooniprobe` does not include any pinned package in psiphon's `go.mod`
 - [ ] oocrypto: merge with upstream if needed
 - [ ] oohttp: merge with upstream if needed
 - [ ] ooni/go-libtor: update
