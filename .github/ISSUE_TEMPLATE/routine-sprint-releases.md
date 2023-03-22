@@ -30,5 +30,6 @@ assignees: bassosimone
 - [ ] probe-android: pin to latest oonimkall
 - [ ] probe-ios: pin to latest oonimkall
 - [ ] probe-desktop: pin to latest cli
+- [ ] probe-engine: run ./script/autoexport.bash
 - [ ] debian: publish packages
 - [ ] probe: create issue for next routine release
