@@ -16,6 +16,7 @@ assignees: bassosimone
 - [ ] probe-cli: take a look at [go report card](https://goreportcard.com/report/github.com/ooni/probe-cli/v3)
 - [ ] probe-cli: address any outstanding TODO in the diff since last release (or create an issue for it)
 - [ ] probe-cli: update `GOVERSION`, `NDKVERSION`, and `MOBILE/android/ensure` if needed
+- [ ] probe-cli: update the Go version mentioned in the `Readme.md` file
 - [ ] probe-cli: update dependencies with `go get -u -v -d ./...`
 - [ ] probe-cli: ensure no dependency bumped its major version number using https://github.com/icholy/gomajor
 - [ ] probe-cli: update user-agent at internal/model/http.go
