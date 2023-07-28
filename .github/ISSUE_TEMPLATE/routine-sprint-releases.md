@@ -34,3 +34,4 @@ assignees: bassosimone
 - [ ] probe-engine: run ./script/autoexport.bash
 - [ ] debian: publish packages
 - [ ] probe: create issue for next routine release
+- [ ] iThena: notify about new release
