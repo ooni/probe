@@ -7,7 +7,7 @@ assignees: bassosimone
 
 ---
 - [ ] probe-cli: pin to the latest [staging-client commit](https://github.com/Psiphon-Labs/psiphon-tunnel-core/tree/staging-client) using `go get -u -v`
-- [ ] probe-cli: make sure `go list ./cmd/ooniprobe` does not include any pinned package in psiphon's `go.mod`
+- [ ] probe-cli: make sure `go list -json ./cmd/ooniprobe` does not include any pinned package in psiphon's `go.mod`
 - [ ] probe-cli: update cdeps
 - [ ] oocrypto: merge with upstream if needed
 - [ ] oohttp: merge with upstream if needed
