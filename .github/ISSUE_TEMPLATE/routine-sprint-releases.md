@@ -21,6 +21,7 @@ assignees: bassosimone
 - [ ] probe-cli: ensure no dependency bumped its major version number using https://github.com/icholy/gomajor
 - [ ] probe-cli: update user-agent at internal/model/http.go
 - [ ] probe-cli: update internal/version/version.go
+- [ ] probe-cli: try to address all the issues marked as "releaseBlocker"
 - [ ] probe-cli: update github.com/ooni/probe-assets dependency
 - [ ] probe-cli: update bundled certs (using `go generate ./...`)
 - [ ] probe-cli: make sure all workflows are green
