@@ -11,7 +11,6 @@ assignees: bassosimone
 - [ ] probe-cli: update cdeps
 - [ ] oocrypto: merge with upstream if needed
 - [ ] oohttp: merge with upstream if needed
-- [ ] ooni/go-libtor: update
 - [ ] probe-cli: sync stunreachability targets with snowflake (see `./internal/stuninput`)
 - [ ] probe-cli: take a look at [go report card](https://goreportcard.com/report/github.com/ooni/probe-cli/v3)
 - [ ] probe-cli: address any outstanding TODO in the diff since last release (or create an issue for it)
