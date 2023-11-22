@@ -30,10 +30,8 @@ assignees: bassosimone
 - [ ] probe-cli: `go test -race -count 1 ./...` must pass locally
 - [ ] probe-cli: tag a new version
 - [ ] probe-cli: update internal/version/version.go to be alpha
-- [ ] probe-android: pin to latest oonimkall
-- [ ] probe-ios: pin to latest oonimkall
-- [ ] probe-desktop: pin to latest cli
 - [ ] probe-engine: run ./script/autoexport.bash
 - [ ] debian: publish packages
+- [ ] android: publish packages
 - [ ] probe: create issue for next routine release
 - [ ] iThena: notify about new release
