@@ -36,11 +36,3 @@ OONI Probe tests the lists of websites included in the [citizenlab/test-lists re
 OONI Probe *used* to be written in python. The legacy python version of OONI Probe is available here: [probe-legacy](https://github.com/ooni/probe-legacy).
 
 To learn more about OONI, check out our website: https://ooni.org/
-
-This project is tested with BrowserStack.
-
-This project is tested with BrowserStack
-
-This project is sponsored by Browserstack.
-
-This project is sponsored by Browserstack
