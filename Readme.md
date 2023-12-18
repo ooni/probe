@@ -37,4 +37,4 @@ OONI Probe *used* to be written in python. The legacy python version of OONI Pro
 
 To learn more about OONI, check out our website: https://ooni.org/
 
-This project is sponsored by Browserstack.
+This project is tested with BrowserStack.
