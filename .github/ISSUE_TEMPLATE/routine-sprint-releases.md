@@ -2,10 +2,11 @@
 name: Routine sprint releases
 about: Bi-weekly releases of probe-cli, etc.
 title: ''
-labels: effort/M, priority/medium
+labels: priority/medium
 assignees: bassosimone
 
 ---
+
 ## Release information
 
 Fill out this information for each release:
