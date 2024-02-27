@@ -2,7 +2,7 @@
 name: Mobile Release Checklist
 about: 'Checklist for mobile release process '
 title: 'Probe-mobile: Integrate engine v[VERSION_NUMBER]-rc.1 into probe-[android
-  | ios |] v[VERSION_NUMBER]-rc.1'
+  | ios|] v[VERSION_NUMBER]-rc.1'
 labels: ''
 assignees: aanorbel
 
@@ -40,8 +40,6 @@ We expect to finish this integration by: [INSERT DATE]<br/>
 We expect to release this by [INSERT DATE]<br/>
 Check this issue for details and progress: [INSERT LINK TO ISSUE]<br/>
 We expect to finish this by: [INSERT DATE]<br/>
-
-
 
 ### Pre-release checklist
 
