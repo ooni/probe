@@ -1,7 +1,8 @@
 ---
 name: Desktop Release Checklist
 about: 'Checklist for desktop releases '
-title: ''
+title: 'Probe-desktop: Integrate engine v[VERSION_NUMBER]-rc.1 into probe-desktop
+  v[VERSION_NUMBER]-rc.1'
 labels: ''
 assignees: majakomel
 
