@@ -1,6 +1,6 @@
 ---
 name: Routine sprint releases
-about: Bi-weekly releases of probe-cli, etc.
+about: Monthly releases of probe-cli, etc.
 title: ''
 labels: priority/medium
 assignees: bassosimone
