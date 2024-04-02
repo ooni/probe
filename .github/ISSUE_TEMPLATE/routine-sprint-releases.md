@@ -30,9 +30,7 @@ Tracking issue: [INSERT LINK TO ISSUE]
 
 ## Release checklist
 
-For extended documentation about the process, see:
-
-- [probe-cli's CONTRIBUTING.md](https://github.com/ooni/probe-cli/blob/master/CONTRIBUTING.md)
+For extended documentation about the process, see [probe-cli's releasing.md](https://github.com/ooni/probe-cli/blob/master/docs/releasing.md).
 
 ### Psiphon
 
@@ -70,6 +68,7 @@ For extended documentation about the process, see:
 - [ ] probe-cli: take a look at [go report card](https://goreportcard.com/report/github.com/ooni/probe-cli/v3)
 - [ ] probe-cli: address any outstanding TODO in the diff since last release (or create an issue for it)
 - [ ] probe-cli: try to address all the issues marked as "releaseBlocker"
+- [ ] all: check whether to update the release documentation
 
 ### QA and alpha releasing
 
