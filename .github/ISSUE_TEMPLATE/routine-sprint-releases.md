@@ -35,7 +35,7 @@ For extended documentation about the process, see [probe-cli's releasing.md](htt
 ### Psiphon
 
 - [ ] probe-cli: pin to the latest [staging-client commit](https://github.com/Psiphon-Labs/psiphon-tunnel-core/tree/staging-client) using `./script/go.bash get -u -v`
-- [ ] probe-cli: make sure `./script/go.bash list -json ./cmd/ooniprobe` does not include any pinned package in psiphon's `go.mod`
+- [ ] probe-cli: make sure `./script/go.bash list -json ./cmd/ooniprobe` does not include any pinned package in psiphon's `go.mod` or otherwise ask Psiphon developers whether this is fine
 
 ### Go version
 
