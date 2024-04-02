@@ -30,6 +30,10 @@ Tracking issue: [INSERT LINK TO ISSUE]
 
 ## Release checklist
 
+For extended documentation about the process, see:
+
+- [probe-cli's CONTRIBUTING.md](https://github.com/ooni/probe-cli/blob/master/CONTRIBUTING.md)
+
 ### Psiphon
 
 - [ ] probe-cli: pin to the latest [staging-client commit](https://github.com/Psiphon-Labs/psiphon-tunnel-core/tree/staging-client) using `./script/go.bash get -u -v`
