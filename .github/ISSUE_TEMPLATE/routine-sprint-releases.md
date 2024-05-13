@@ -39,12 +39,13 @@ For extended documentation about the process, see [probe-cli's releasing.md](htt
 
 ### Go version
 
+- [ ] oocrypto: merge with upstream if needed
+- [ ] oohttp: merge with upstream if needed
 - [ ] probe-cli: possibly update `.github/workflows/gobash.yml`
 - [ ] probe-cli: update the `GOVERSION` file if needed
 - [ ] probe-cli: update the `toolchain` line inside of `go.mod`
-- [ ] oocrypto: merge with upstream if needed
-- [ ] oohttp: merge with upstream if needed
 - [ ] probe-cli: update the Go version mentioned in the `Readme.md` file
+- [ ] probe-cli: update version specified in TH's Makefile
 
 ### Android
 
