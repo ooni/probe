@@ -92,6 +92,7 @@ For extended documentation about the process, see [probe-cli's releasing.md](htt
 - [ ] probe-engine: run `./script/autoexport.bash`
 - [ ] debian: publish packages
 - [ ] android: publish packages
+- [ ] oohelperd: publish docker container
 
 ## Post-release communication 
 
