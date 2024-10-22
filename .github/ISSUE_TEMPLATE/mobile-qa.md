@@ -3,7 +3,7 @@ name: Mobile QA
 about: QA for mobile releases
 title: "<system>: QA for release <version>"
 labels: priority/medium
-assignees: bassosimone
+assignees: aanorbel
 
 ---
 
