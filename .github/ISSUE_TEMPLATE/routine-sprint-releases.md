@@ -3,7 +3,7 @@ name: Routine sprint releases
 about: Monthly releases of probe-cli, etc.
 title: ''
 labels: priority/medium
-assignees: bassosimone
+assignees: DecFox
 
 ---
 
