@@ -3,7 +3,7 @@ name: Data quality issue
 about: Information about data quality issues
 title: ''
 labels: data quality, triage
-assignees: bassosimone
+assignees: hellais
 
 ---
 
