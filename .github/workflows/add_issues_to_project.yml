@@ -1,0 +1,91 @@
+# automatically syched from: ooni/pm-tools
+on:
+  issues:
+    types:
+      - opened
+      - labeled
+  pull_request:
+    types:
+      - opened
+      - labeled
+
+jobs:
+  add-to-project:
+    name: Add issue to project
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/add-to-project@v1.0.2
+        if: github.event.action == 'opened'
+        with:
+          project-url: https://github.com/orgs/ooni/projects/31
+          github-token: ${{ secrets.ADD_TO_PROJECT_GH_TOKEN }}
+
+      - uses: actions/add-to-project@v1.0.2
+        if: github.event.action == 'labeled' && startsWith(github.event.label.name, 'funder/')
+        with:
+          project-url: https://github.com/orgs/ooni/projects/33
+          github-token: ${{ secrets.ADD_TO_PROJECT_GH_TOKEN }}
+
+      # See: https://docs.github.com/en/issues/planning-and-tracking-with-projects/automating-your-project/automating-projects-using-actions
+      - name: Get planning project metadata
+        env:
+          GH_TOKEN: ${{ secrets.ADD_TO_PROJECT_GH_TOKEN }}
+        run: |
+          gh api graphql -f query='
+            query($org: String!, $number: Int!) {
+              organization(login: $org){
+                projectV2(number: $number) {
+                  id
+                  fields(first:20) {
+                    nodes {
+                      ... on ProjectV2Field {
+                        id
+                        name
+                      }
+                      ... on ProjectV2SingleSelectField {
+                        id
+                        name
+                        options {
+                          id
+                          name
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }' -f org=ooni -F number=31 > planning_project_data.json
+          echo 'PLANNING_STATUS_FIELD_ID='$(jq '.data.organization.projectV2.fields.nodes[] | select(.name== "Status") | .id' planning_project_data.json) >> $GITHUB_ENV
+          echo 'PLANNING_PRIORITY_FIELD_ID='$(jq '.data.organization.projectV2.fields.nodes[] | select(.name== "Priority") | .id' planning_project_data.json) >> $GITHUB_ENV
+
+      - name: Get reporting project metadata
+        env:
+          GH_TOKEN: ${{ secrets.ADD_TO_PROJECT_GH_TOKEN }}
+        run: |
+          gh api graphql -f query='
+            query($org: String!, $number: Int!) {
+              organization(login: $org){
+                projectV2(number: $number) {
+                  id
+                  fields(first:20) {
+                    nodes {
+                      ... on ProjectV2Field {
+                        id
+                        name
+                      }
+                      ... on ProjectV2SingleSelectField {
+                        id
+                        name
+                        options {
+                          id
+                          name
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }' -f org=ooni -F number=33 > reporting_project_data.json
+          echo 'PLANNING_STATUS_FIELD_ID='$(jq '.data.organization.projectV2.fields.nodes[] | select(.name== "Status") | .id' planning_project_data.json) >> $GITHUB_ENV
+          echo 'PLANNING_FUNDER_FIELD_ID='$(jq '.data.organization.projectV2.fields.nodes[] | select(.name== "Funder") | .id' planning_project_data.json) >> $GITHUB_ENV
+          echo 'PLANNING_REPORT_MONTH_FIELD_ID='$(jq '.data.organization.projectV2.fields.nodes[] | select(.name== "Report Month") | .id' planning_project_data.json) >> $GITHUB_ENV
