@@ -12,8 +12,9 @@ body:
     id: user-story
     attributes:
       label: User Story
-      description: Describe the feature in the form of a user story. For example:  
-                   *As a [type of user], I want [some feature] so that [some goal].*
+      description: |
+              Describe the feature in the form of a user story. For example:  
+              *As a [type of user], I want [some feature] so that [some goal].*
       placeholder: "As a [user], I want [feature] so that [goal]."
     validations:
       required: true
