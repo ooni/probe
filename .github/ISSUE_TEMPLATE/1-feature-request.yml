@@ -1,0 +1,35 @@
+name: Feature Request
+description: Suggest a new feature or improvement.
+title: "[Feature]: "
+labels: ["enhancement", "triage"]
+projects: ["ooni/47"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for suggesting a feature! Please describe what you’re trying to achieve and how this feature would help.
+  - type: textarea
+    id: user-story
+    attributes:
+      label: User Story
+      description: Describe the feature in the form of a user story. For example:  
+                   *As a [type of user], I want [some feature] so that [some goal].*
+      placeholder: "As a [user], I want [feature] so that [goal]."
+    validations:
+      required: true
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional Context
+      description: Anything else we should know? Links, references, or potential solutions.
+      placeholder: "Add any relevant details here."
+    validations:
+      required: false
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Code of Conduct
+      description: By submitting this issue, you agree to follow our [Code of Conduct](https://ooni.org/get-involved/code-of-conduct/).
+      options:
+        - label: I agree to follow this project's Code of Conduct
+          required: true
