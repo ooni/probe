@@ -15,8 +15,8 @@ jobs:
           # Add to triaging board
           project-url: https://github.com/orgs/ooni/projects/47
           github-token: ${{ secrets.ADD_TO_PROJECT_GH_TOKEN }}
-        labeled: bug, triage
-        label-operator: OR
+          labeled: bug, triage
+          label-operator: OR
 
 
       - uses: actions/add-to-project@v1.0.2
