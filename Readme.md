@@ -5,8 +5,12 @@
 
 <div align="left">
 
+<a href='https://f-droid.org/en/packages/org.openobservatory.ooniprobe/'>
+<img alt='Get it on F-Droid' src='images/f-droid-badge.webp' height="50px"/>
+</a>
+
 <a href='https://play.google.com/store/apps/details?id=org.openobservatory.ooniprobe'>
-<img alt='Get it on Google Play' src='images/play-store-badge.png' height="50px"/>
+<img alt='Get it on Google Play' src='images/play-store-badge.webp' height="50px"/>
 </a>
 
 <a href="https://itunes.apple.com/us/app/ooni-probe/id1199566366?mt=8">
