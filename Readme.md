@@ -1,6 +1,6 @@
 ![OONI Probe](images/OONIProbeLogo.png)
 
-# [Android](https://github.com/ooni/probe-android), [iOS](https://github.com/ooni/probe-ios), [Desktop](https://github.com/ooni/probe-desktop), [CLI](https://github.com/ooni/probe-cli) [![Awesome Humane Tech](https://raw.githubusercontent.com/humanetech-community/awesome-humane-tech/main/humane-tech-badge.svg?sanitize=true)](https://github.com/humanetech-community/awesome-humane-tech)
+# [Multiplatform App](https://github.com/ooni/probe-multiplatform), [CLI](https://github.com/ooni/probe-cli) [![Awesome Humane Tech](https://raw.githubusercontent.com/humanetech-community/awesome-humane-tech/main/humane-tech-badge.svg?sanitize=true)](https://github.com/humanetech-community/awesome-humane-tech)
 
 
 <div align="left">
@@ -24,9 +24,7 @@ Every month, thousands of networks are measured by OONI Probe users in [more tha
 
 OONI Probe is available for the following platforms:
 
-* Android: [probe-android](https://github.com/ooni/probe-android) ([Play Store](https://play.google.com/store/apps/details?id=org.openobservatory.ooniprobe), [F-Droid](https://f-droid.org/repository/browse/?fdid=org.openobservatory.ooniprobe))
-* iOS: [probe-ios](https://github.com/ooni/probe-ios) ([App Store](https://itunes.apple.com/us/app/id1199566366))
-* Desktop App: [probe-desktop](https://github.com/ooni/probe-desktop)
+* Android/iOS/Desktop: [probe-multiplatform](https://github.com/ooni/probe-multiplatform) ([Play Store](https://play.google.com/store/apps/details?id=org.openobservatory.ooniprobe), [F-Droid](https://f-droid.org/repository/browse/?fdid=org.openobservatory.ooniprobe), [App Store](https://itunes.apple.com/us/app/id1199566366))
 * Command Line tool: [probe-cli](https://github.com/ooni/probe-cli)
 
 OONI Probe tests are implemented in Go in [github.com/ooni/probe-cli](https://github.com/ooni/probe-cli).
